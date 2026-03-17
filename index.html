@@ -1,398 +1,345 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check | Gestión de Eventos Premium</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" href="style.css">
     <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "surface-container-low": "#1e293b", 
-              "surface-container-highest": "#334155", 
-              "surface-dim": "#0f172a", 
-              "on-secondary-fixed": "#e2e8f0",
-              "on-tertiary-fixed-variant": "#f1f5f9",
-              "surface": "#0f172a",
-              "primary": "#3b82f6",
-              "outline": "#475569"
-            },
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-              display: ["Manrope", "sans-serif"],
-            },
-          },
-        },
-      };
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                primary: '#7c3aed',
+                slate: { 850: '#1e293b', 950: '#020617' }
+              },
+              fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+                display: ['Manrope', 'sans-serif']
+              }
+            }
+          }
+        }
     </script>
-    <style>
-        :root {
-            --surface: #0f172a;
-            --on-surface: #f8fafc;
-            --primary: #3b82f6;
-            --outline: #475569;
-        }
-        body {
-            background-color: var(--surface);
-            color: var(--on-surface);
-            font-family: 'Inter', sans-serif;
-        }
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-    </style>
-    <!-- Bibliotecas externas -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body class="min-h-screen">
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-50 glass h-16 flex items-center px-6 justify-between border-b border-white/10">
-        <div class="flex items-center gap-3 cursor-pointer" id="logo-trigger">
-            <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
-                <span class="material-symbols-outlined text-primary">check_circle</span>
-            </div>
-            <h1 class="text-xl font-display font-bold tracking-tight">Check</h1>
-        </div>
-        <div class="flex items-center gap-4">
-            <div id="nav-clock" class="hidden md:block font-mono text-sm opacity-60">00:00:00</div>
-            <button class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5" id="login-nav-btn">
-                <span class="material-symbols-outlined text-[20px]">account_circle</span>
-                <span class="text-sm font-medium">Panel Admin</span>
-            </button>
-        </div>
-    </nav>
+<body class="bg-slate-950 text-slate-50 antialiased">
 
-    <!-- PUBLIC VIEW: Registration -->
-    <main id="view-registration" class="view max-w-lg mx-auto pt-12 px-6">
-        <div class="text-center mb-10">
-            <div id="event-logo-container" class="mb-6 flex justify-center">
-                <img id="public-event-logo" src="" alt="Logo" class="hidden max-h-24 rounded-2xl shadow-2xl border border-white/10">
-            </div>
-            <h2 id="event-name-display" class="text-4xl font-display font-extrabold mb-3">Bienvenido</h2>
-            <p id="event-desc-display" class="text-slate-400">Selecciona o busca tu evento para comenzar.</p>
-            
-            <div class="mt-8 flex flex-col items-center gap-4">
-                <div id="current-clock" class="text-5xl font-mono font-bold tracking-tighter text-primary">00:00:00</div>
-                <div id="countdown-timer" class="text-sm font-medium px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
-                    Cargando evento...
-                </div>
-            </div>
-        </div>
-
-        <div class="glass p-8 rounded-3xl border border-white/10">
-            <form id="public-reg-form" class="space-y-5">
-                <div class="space-y-2">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Nombre Completo</label>
-                    <input type="text" id="reg-name" required placeholder="Ej: Carlos Hernández" 
-                           class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Correo Electrónico</label>
-                    <input type="email" id="reg-email" required placeholder="email@ejemplo.com"
-                           class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Teléfono</label>
-                        <input type="tel" id="reg-phone" placeholder="+52..."
-                               class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
+    <!-- VIEW: REGISTRATION (SPLIT SCREEN) -->
+    <div id="view-registration" class="split-screen animate-fade">
+        <div class="split-left lg:flex hidden">
+            <div class="z-10">
+                <div class="flex items-center gap-3 mb-10">
+                    <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                        <span class="material-symbols-outlined text-primary">verified</span>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Organización</label>
-                        <input type="text" id="reg-org" placeholder="Empresa"
-                               class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
+                    <span class="text-2xl font-black tracking-tight font-display">Check</span>
+                </div>
+                <h1 class="text-7xl font-black mb-8 leading-tight font-display">Hospitalidad <br><span class="text-primary italic">Digital.</span></h1>
+                <p class="text-slate-400 text-lg max-w-sm">La plataforma inteligente para el control y gestión de invitados en eventos de alto nivel.</p>
+                
+                <!-- Active Event Badge (Static/Dynamic placeholder) -->
+                <div class="mt-12 inline-flex items-center gap-4 bg-white/5 border border-white/5 pr-6 py-2 rounded-full backdrop-blur-md">
+                    <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-[20px]">event</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-primary">Evento Activo</p>
+                        <p id="event-name-badge" class="font-bold text-sm">Cargando...</p>
                     </div>
                 </div>
-                <button type="submit" class="w-full py-5 bg-primary hover:bg-blue-600 rounded-2xl font-bold text-lg shadow-xl shadow-primary/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 mt-4">
-                    <span>Confirmar Registro</span>
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </button>
-            </form>
+            </div>
         </div>
-    </main>
+        <div class="split-right w-full lg:w-1/2">
+            <div class="w-full max-w-sm p-4">
+                <div class="mb-12">
+                    <h2 class="text-4xl font-black mb-2 font-display">Registro</h2>
+                    <p class="text-slate-500" id="event-desc-display">Ingresa tus datos para confirmar asistencia</p>
+                </div>
 
-    <!-- ADMIN LOGIN -->
-    <section id="view-login" class="view hidden max-w-md mx-auto pt-24 px-6">
-        <div class="glass p-10 rounded-3xl border border-white/10 shadow-2xl text-center">
-            <h2 class="text-3xl font-display font-bold mb-2">Panel Administrativo</h2>
-            <p class="text-slate-400 mb-8">Ingresa tus credenciales para continuar</p>
+                <form id="public-reg-form" class="space-y-6">
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Nombre completo</label>
+                        <input type="text" id="reg-name" required placeholder="Carlos Hernández" class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Correo electrónico</label>
+                        <input type="email" id="reg-email" required placeholder="carlos@ejemplo.com" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Teléfono</label>
+                            <input type="text" id="reg-phone" placeholder="+52..." class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Organización</label>
+                            <input type="text" id="reg-org" placeholder="Empresa" class="input-field">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full mt-6 py-4 shadow-2xl shadow-primary/40">Confirmar mi Registro</button>
+                    
+                    <div class="mt-10 pt-10 border-t border-white/5 flex flex-col items-center gap-4">
+                         <div id="countdown-timer" class="text-primary font-black font-display text-4xl">00:00:00</div>
+                         <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cuenta regresiva de inicio</p>
+                    </div>
+                </form>
+
+                <div class="mt-12 flex justify-center">
+                    <button id="login-nav-btn" class="text-xs font-bold text-slate-700 hover:text-primary transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> ACCESO ADMINISTRADOR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: LOGIN (ADMIN ACCESS) -->
+    <div id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-950 p-6 animate-fade">
+        <div class="w-full max-w-md glass p-12 rounded-[40px]">
+            <div class="text-center mb-10">
+                <div class="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary/30">
+                    <span class="material-symbols-outlined text-primary text-[24px]">verified</span>
+                </div>
+                <h2 class="text-3xl font-black mb-2 font-display">Administración</h2>
+                <p class="text-slate-500">Ingresa a tu panel de control</p>
+            </div>
             
-            <form id="login-form" class="space-y-6 text-left">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-primary ml-1">Usuario</label>
-                    <input type="text" id="login-user" required class="w-full bg-surface-dim border-outline rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-primary ml-1">Contraseña</label>
-                    <input type="password" id="login-pass" required class="w-full bg-surface-dim border-outline rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
-                </div>
-                <button type="submit" class="w-full py-4 bg-primary hover:bg-blue-600 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 transition-all">Entrar</button>
-                <div class="text-center pt-4">
-                    <p class="text-sm text-slate-500">¿No tienes cuenta? <a href="#" id="go-to-signup" class="text-primary font-bold hover:underline">Regístrate</a></p>
-                    <button type="button" id="back-to-reg" class="mt-6 text-slate-400 text-sm hover:text-white transition-colors flex items-center justify-center gap-2 mx-auto">
-                        <span class="material-symbols-outlined text-sm">arrow_back</span>
-                        Volver al inicio
+            <form id="login-form" class="space-y-6">
+                <input type="text" id="login-user" required placeholder="Usuario" class="input-field">
+                <input type="password" id="login-pass" required placeholder="Contraseña" class="input-field">
+                <button type="submit" class="btn-primary w-full py-4 rounded-xl">Entrar al Sistema</button>
+                <div class="text-center mt-8">
+                    <p class="text-xs text-slate-600">¿No tienes acceso? <a href="#" id="go-to-signup" class="text-primary font-bold">Solicitar Cuenta</a></p>
+                    <button id="back-to-reg" type="button" class="mt-8 text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 mx-auto uppercase tracking-widest">
+                        <span class="material-symbols-outlined text-[16px]">arrow_back</span> Volver
                     </button>
                 </div>
             </form>
 
-            <form id="signup-form" class="hidden space-y-6 text-left">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-primary ml-1">Nuevo Usuario</label>
-                    <input type="text" id="signup-user" required class="w-full bg-surface-dim border-outline rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-primary ml-1">Contraseña</label>
-                    <input type="password" id="signup-pass" placeholder="Mínimo 6 caracteres" required class="w-full bg-surface-dim border-outline rounded-xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
-                </div>
-                <button type="submit" class="w-full py-4 bg-primary hover:bg-blue-600 rounded-xl font-bold text-lg shadow-lg transition-all">Crear Cuenta</button>
-                <p class="text-center text-sm text-slate-500 pt-4">¿Ya tienes cuenta? <a href="#" id="go-to-login" class="text-primary font-bold hover:underline">Inicia sesión</a></p>
+            <form id="signup-form" class="hidden space-y-6">
+                <input type="text" id="signup-user" required placeholder="Nuevo Usuario" class="input-field">
+                <input type="password" id="signup-pass" required placeholder="Crear Contraseña" class="input-field">
+                <button type="submit" class="btn-primary w-full py-4 rounded-xl">Crear mi Cuenta</button>
+                <button id="go-to-login" type="button" class="w-full text-xs font-bold text-slate-600 mt-6 uppercase tracking-widest hover:text-white transition-colors">Ya tengo una cuenta</button>
             </form>
         </div>
-    </section>
+    </div>
 
-    <!-- ADMIN DASHBOARD -->
-    <section id="view-admin" class="view hidden px-6 py-8">
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div class="flex items-center gap-5">
-                <img id="admin-event-logo" src="" alt="Event Logo" class="hidden h-14 w-14 rounded-2xl object-cover bg-white/5 border border-white/10">
+    <!-- VIEW: MY EVENTS LIST -->
+    <div id="view-my-events" class="hidden min-h-screen bg-slate-950 p-12 animate-fade">
+        <div class="max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-16">
                 <div>
-                    <h1 id="admin-event-title" class="text-3xl font-display font-black tracking-tight mb-1">Cargando...</h1>
-                    <div class="flex items-center gap-4">
-                        <span id="admin-clock" class="text-sm font-mono opacity-50">00:00:00</span>
-                        <span id="admin-countdown" class="text-sm font-bold text-primary flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[16px]">schedule</span>
-                            --:--:--
-                        </span>
-                    </div>
+                    <h2 class="text-4xl font-black font-display mb-2">Mis Eventos</h2>
+                    <p class="text-slate-500">Panel de gestión multiplataforma.</p>
                 </div>
+                <div class="flex items-center gap-6">
+                    <div id="events-list-clock" class="text-sm font-bold font-mono bg-slate-900 border border-white/5 px-6 py-3 rounded-2xl">00:00:00</div>
+                    <button id="btn-create-event-open" class="btn-primary !py-3 !px-6">
+                        <span class="material-symbols-outlined">add</span> Nuevo Evento
+                    </button>
+                </div>
+            </header>
+            <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Tarjetas dinámicas -->
             </div>
-            <div class="flex items-center gap-3">
-                <button id="btn-events-list" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
-                    <span class="material-symbols-outlined text-[20px]">calendar_today</span>
-                    <span class="text-sm font-semibold">Mis Eventos</span>
+        </div>
+    </div>
+
+    <!-- VIEW: ADMIN DASHBOARD (SIDEBAR + MAIN) -->
+    <div id="view-admin" class="hidden admin-layout animate-fade">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="flex items-center gap-3 mb-12 px-2">
+                <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
+                    <span class="material-symbols-outlined text-primary text-[20px]">verified</span>
+                </div>
+                <span class="font-black font-display tracking-tight text-xl">Check</span>
+            </div>
+
+            <nav class="flex-1 space-y-2">
+                <button class="w-full flex items-center gap-3 px-4 py-3.5 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
                 </button>
-                <button id="btn-logout" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all">
-                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                <button id="btn-events-list-nav" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-500 hover:bg-slate-800/50 hover:text-slate-300 rounded-2xl transition-all text-sm font-medium">
+                    <span class="material-symbols-outlined text-[20px]">event_list</span> Cambiar Evento
+                </button>
+                <div class="h-px bg-white/5 my-4"></div>
+                <button id="admin-import-excel-btn" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-500 hover:bg-slate-800/50 hover:text-slate-300 rounded-2xl transition-all text-sm font-medium">
+                    <span class="material-symbols-outlined text-[20px]">upload_file</span> Cargar Excel
+                </button>
+                <button id="admin-import-pdf-btn" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-500 hover:bg-slate-800/50 hover:text-slate-300 rounded-2xl transition-all text-sm font-medium">
+                    <span class="material-symbols-outlined text-[20px]">description</span> Cargar PDF
+                </button>
+                <button id="btn-edit-survey" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-500 hover:bg-slate-800/50 hover:text-slate-300 rounded-2xl transition-all text-sm font-medium">
+                    <span class="material-symbols-outlined text-[20px]">poll</span> Encuesta
+                </button>
+                <button id="btn-delete-event" class="w-full flex items-center gap-3 px-4 py-3.5 text-red-500/60 hover:bg-red-500/10 hover:text-red-500 rounded-2xl transition-all text-sm font-bold">
+                    <span class="material-symbols-outlined text-[20px]">delete</span> Eliminar
+                </button>
+            </nav>
+
+            <div class="pt-10 border-t border-white/5">
+                <button id="btn-logout" class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-white rounded-2xl transition-all text-sm font-bold">
+                    <span class="material-symbols-outlined text-[20px]">logout</span> Salir
                 </button>
             </div>
-        </header>
+        </aside>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <div class="glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-primary/30 transition-all">
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Total Registrados</p>
-                <div class="flex items-end justify-between">
-                    <span id="stat-total" class="text-5xl font-display font-black">0</span>
-                    <span class="material-symbols-outlined text-primary opacity-20 group-hover:opacity-100 transition-opacity">group</span>
+        <!-- Main -->
+        <main class="main-content">
+            <header class="flex justify-between items-center mb-12">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                         <h1 id="admin-event-title" class="text-4xl font-black font-display tracking-tight">Evento de Gala</h1>
+                         <img id="admin-event-logo" src="" class="hidden w-10 h-10 object-contain rounded-lg border border-white/5 bg-white/5">
+                    </div>
+                    <p class="text-slate-500 text-sm font-medium flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px]">location_on</span> <span id="admin-event-location">Sede Central</span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="admin-clock" class="bg-slate-900 border border-white/5 px-6 py-3 rounded-2xl font-bold font-mono text-sm">00:00:00</div>
+                    <button id="btn-show-qr" class="btn-primary !py-3 !px-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">qr_code_2</span> FEEDBACK QR
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Highlight -->
+            <div class="grid grid-cols-4 gap-6 mb-12">
+                <div class="card bg-slate-900/40">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Total Invitados</p>
+                    <div id="stat-total" class="text-4xl font-black font-display">0</div>
+                </div>
+                <div class="card bg-slate-900/40">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Asistencia %</p>
+                    <div id="stat-presence" class="text-4xl font-black font-display text-primary">0%</div>
+                </div>
+                <div class="card bg-slate-900/40">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Faltantes</p>
+                    <div id="stat-missing" class="text-4xl font-black font-display">0</div>
+                </div>
+                <div id="admin-countdown-card" class="card border-primary/20 bg-primary/5">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-primary mb-3">Tiempo Restante</p>
+                    <div id="admin-countdown" class="text-4xl font-black font-display text-primary">00:00</div>
                 </div>
             </div>
-            <div class="glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-green-500/30 transition-all">
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Asistencia</p>
-                <div class="flex items-end justify-between">
-                    <span id="stat-presence" class="text-5xl font-display font-black text-green-400">0%</span>
-                    <span class="material-symbols-outlined text-green-400 opacity-20 group-hover:opacity-100 transition-opacity">how_to_reg</span>
-                </div>
-            </div>
-            <div class="glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-red-500/30 transition-all">
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Faltantes</p>
-                <div class="flex items-end justify-between">
-                    <span id="stat-missing" class="text-5xl font-display font-black text-red-500">0</span>
-                    <span class="material-symbols-outlined text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">person_off</span>
-                </div>
-            </div>
-            <div class="glass p-6 rounded-3xl border border-primary/20 bg-primary/5 flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -translate-y-12 translate-x-12 blur-2xl"></div>
-                <p class="text-xs font-bold uppercase tracking-widest text-primary mb-4">Satisfacción</p>
-                <div class="flex items-end justify-between mb-4">
-                    <span id="stat-satisfaction" class="text-5xl font-display font-black">0.0</span>
-                    <div class="flex text-yellow-500">
-                        <span class="material-symbols-outlined filled">star</span>
+
+            <!-- List Section -->
+            <section class="card !p-0 overflow-hidden">
+                <div class="flex items-center justify-between p-6 bg-slate-900/20 border-bottom border-white/5">
+                    <div class="relative w-full max-w-lg">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">search</span>
+                        <input id="guest-search" type="text" placeholder="Filtrar por nombre, correo o empresa..." class="input-field !pl-12 !py-3.5 text-sm">
                     </div>
                 </div>
-                <div class="flex gap-2 relative z-10">
-                    <button id="btn-show-qr" class="flex-1 py-2 bg-primary hover:bg-blue-600 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">qr_code_2</span>
-                        QR
-                    </button>
-                    <button id="btn-edit-survey" class="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">quiz</span>
-                        Encuesta
-                    </button>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre Completo</th>
+                                <th>Organización</th>
+                                <th class="text-center">Confirmación</th>
+                                <th class="text-right">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-tbody">
+                            <!-- JS Loaded -->
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
-
-        <div class="glass rounded-3xl border border-white/5 overflow-hidden">
-            <div class="p-8 border-b border-white/5 flex flex-wrap items-center justify-between gap-6">
-                <div class="relative flex-1 min-w-[300px]">
-                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-500">search</span>
-                    <input type="text" id="guest-search" placeholder="Buscar por nombre, correo u organización..." 
-                           class="w-full bg-surface-dim border-none rounded-2xl pl-14 pr-6 py-4 focus:ring-2 focus:ring-primary transition-all text-sm">
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex rounded-xl bg-white/5 p-1 border border-white/10">
-                        <button id="btn-import-excel-trigger" class="px-4 py-2 rounded-lg hover:bg-white/5 text-xs font-bold transition-all flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[16px]">list_alt</span>
-                            Excel
-                        </button>
-                        <button id="btn-import-pdf-trigger" class="px-4 py-2 rounded-lg hover:bg-white/5 text-xs font-bold transition-all flex items-center gap-1 text-red-400">
-                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                            PDF
-                        </button>
-                        <input type="file" id="admin-file-import-excel" hidden accept=".xlsx, .xls, .csv">
-                        <input type="file" id="admin-file-import-pdf" hidden accept=".pdf">
-                    </div>
-                    <button id="btn-export-pdf" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">download_for_offline</span>
-                        Reporte
-                    </button>
-                    <button id="btn-delete-event" class="w-12 h-12 rounded-xl flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 transition-all">
-                        <span class="material-symbols-outlined">delete</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-white/[0.02] text-xs font-bold uppercase tracking-tighter text-slate-500">
-                            <th class="px-8 py-5">Nombre</th>
-                            <th class="px-8 py-5 text-center">Organización</th>
-                            <th class="px-8 py-5 text-center">Estado</th>
-                            <th class="px-8 py-5 text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- MY EVENTS LIST -->
-    <section id="view-my-events" class="view hidden px-6 py-12 max-w-7xl mx-auto">
-        <div class="flex items-center justify-between mb-12">
-            <div>
-                <h1 class="text-5xl font-display font-black tracking-tight mb-2">Mis Eventos</h1>
-                <p class="text-slate-400">Gestiona y crea tus experiencias premium desde aquí.</p>
-            </div>
-            <button id="btn-create-event-open" class="flex items-center gap-3 px-8 py-4 bg-primary hover:bg-blue-600 rounded-2xl font-bold transition-all shadow-xl shadow-primary/20 hover:scale-[1.05]">
-                <span class="material-symbols-outlined">add_circle</span>
-                Crear Evento
-            </button>
-        </div>
-        
-        <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Event cards stay here -->
-        </div>
-
-        <button id="back-to-admin" class="mt-12 text-slate-500 hover:text-white font-bold flex items-center gap-2 transition-colors transition-all">
-            <span class="material-symbols-outlined">arrow_back_ios</span>
-            Dashboard
-        </button>
-    </section>
+            </section>
+        </main>
+    </div>
 
     <!-- MODALS -->
-    
-    <!-- Modal Crear Evento -->
-    <div id="modal-event" class="modal-overlay hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-        <div class="glass w-full max-w-xl rounded-[40px] border border-white/10 p-10 overflow-hidden relative">
-            <div class="absolute top-0 left-0 w-full h-2 bg-primary"></div>
-            <h2 class="text-3xl font-display font-bold mb-8">Nuevo Evento</h2>
+    <!-- Modal: QR -->
+    <div id="modal-qr" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
+        <div class="w-full max-w-sm glass p-10 rounded-[48px] text-center">
+            <h3 class="text-2xl font-black mb-8 font-display">Feedback del Evento</h3>
+            <div class="bg-white p-6 rounded-3xl mb-10 shadow-2xl">
+                <img id="qr-display" src="" class="w-full aspect-square">
+            </div>
+            <p class="text-slate-400 text-sm mb-8">Escanea para acceder a la encuesta de satisfacción en tiempo real.</p>
+            <button id="close-qr" class="w-full py-4 text-slate-600 font-bold hover:text-white transition-colors">CERRAR VENTANA</button>
+        </div>
+    </div>
+
+    <!-- Modal: Survey Setup -->
+    <div id="modal-survey" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+        <div class="w-full max-w-2xl glass p-10 rounded-[40px]">
+            <h3 class="text-2xl font-black mb-8 font-display">Estructurar Encuesta</h3>
             
-            <form id="new-event-form" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Nombre del Evento</label>
-                        <input type="text" id="ev-name" required class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
+            <form id="add-question-form" class="flex gap-3 mb-10">
+                <input type="text" id="new-question-input" required placeholder="Escribe tu pregunta..." class="input-field !rounded-2xl">
+                <select id="new-question-type" class="bg-slate-900 border border-white/5 px-4 rounded-2xl outline-none text-xs font-bold uppercase tracking-widest text-slate-500">
+                    <option value="stars">Estrellas</option>
+                    <option value="yes_no">Sí / No</option>
+                </select>
+                <button type="submit" class="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shrink-0 hover:bg-accent transition-all">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </form>
+
+            <div id="questions-list" class="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scroll">
+                <!-- JS populated -->
+            </div>
+
+            <div class="mt-10 flex justify-end">
+                <button id="close-survey-modal" class="btn-primary !px-12">Finalizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Event -->
+    <div id="modal-event" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+        <div class="w-full max-w-xl glass p-10 rounded-[40px]">
+            <h3 class="text-3xl font-black mb-8 font-display">Diseño de Experiencia</h3>
+            <form id="new-event-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Nombre del Evento</label>
+                        <input type="text" id="ev-name" required class="input-field">
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Fecha y Hora</label>
-                        <input type="datetime-local" id="ev-date" required class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Fecha y Hora</label>
+                        <input type="datetime-local" id="ev-date" required class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Ubicación</label>
+                        <input type="text" id="ev-location" class="input-field">
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Ubicación</label>
-                    <input type="text" id="ev-location" required class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all">
+                <div>
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Descripción Detallada</label>
+                    <textarea id="ev-desc" class="input-field h-24 resize-none"></textarea>
                 </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Descripción Corta</label>
-                    <textarea id="ev-desc" rows="3" class="w-full bg-surface-dim border-outline rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary transition-all resize-none"></textarea>
+                <div>
+                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Logo del Evento (Opcional)</label>
+                     <div class="relative w-full h-14 bg-slate-900/50 border border-dashed border-white/10 rounded-2xl flex items-center justify-center px-4 overflow-hidden group">
+                         <span class="text-xs text-slate-600 font-bold uppercase tracking-wider group-hover:text-primary pointer-events-none">Seleccionar Archivo de Imagen</span>
+                         <input type="file" id="ev-logo-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                     </div>
                 </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Logo del Evento</label>
-                    <div class="group relative w-full h-32 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center hover:border-primary/50 transition-all cursor-pointer">
-                        <span class="material-symbols-outlined text-4xl text-slate-600 group-hover:text-primary transition-colors">cloud_upload</span>
-                        <p class="text-sm text-slate-500 mt-2 font-medium">Click para subir foto</p>
-                        <input type="file" id="ev-logo-input" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 pt-6">
-                    <button type="submit" class="flex-1 py-5 bg-primary hover:bg-blue-600 rounded-3xl font-black text-lg transition-all shadow-xl shadow-primary/20">Guardar Evento</button>
-                    <button type="button" id="close-modal" class="flex-1 py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl font-black text-lg transition-all">Cancelar</button>
+                <div class="flex gap-4 mt-8">
+                    <button type="submit" class="btn-primary flex-1 py-4">ACTIVAR EVENTO</button>
+                    <button type="button" id="close-modal" class="px-8 py-4 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Editar Encuesta -->
-    <div id="modal-survey" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
-        <div class="glass w-full max-w-xl rounded-[40px] border border-white/10 p-10">
-            <h3 class="text-3xl font-display font-black mb-2">Personalizar Encuesta</h3>
-            <p class="text-slate-400 mb-8">Diseña la experiencia de feedback para tus invitados.</p>
-            
-            <div id="questions-list" class="space-y-4 max-height-[40vh] overflow-y-auto mb-8 pr-2 custom-scrollbar">
-                <!-- Questions -->
-            </div>
+    <!-- Hidden file inputs for triggers -->
+    <input type="file" id="admin-file-import-excel" class="hidden" accept=".xlsx,.xls">
+    <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
 
-            <form id="add-question-form" class="space-y-4 p-6 bg-white/5 rounded-3xl border border-white/5">
-                <input type="text" id="new-question-input" required placeholder="Haz una pregunta..."
-                       class="w-full bg-surface-dim border-outline rounded-xl px-5 py-3 focus:ring-2 focus:ring-primary transition-all">
-                <div class="flex gap-4">
-                    <select id="new-question-type" class="flex-1 bg-surface-dim border-outline rounded-xl px-4 py-3 text-sm font-bold text-white uppercase tracking-widest">
-                        <option value="stars">5 Estrellas ⭐</option>
-                        <option value="yes_no">Sí / No ✅</option>
-                    </select>
-                    <button type="submit" class="px-6 bg-primary hover:bg-blue-600 rounded-xl font-bold transition-all">Añadir</button>
-                </div>
-            </form>
-
-            <button id="close-survey-modal" class="w-full mt-8 py-5 bg-white/10 hover:bg-white/20 rounded-3xl font-black transition-all">Guardar Cambios</button>
-        </div>
-    </div>
-
-    <!-- Modal QR -->
-    <div id="modal-qr" class="hidden fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6">
-        <div class="glass max-w-sm w-full p-10 rounded-[50px] border border-white/10 text-center relative overflow-hidden">
-            <div class="absolute inset-0 bg-primary/5 animate-pulse"></div>
-            <h3 class="text-2xl font-display font-bold mb-2 relative z-10">Escanea y Opina</h3>
-            <p class="text-slate-400 mb-8 text-sm relative z-10">Muestra este código al finalizar el evento</p>
-            <div class="bg-white p-6 rounded-[35px] shadow-2xl shadow-primary/30 relative z-10 mx-auto w-fit mb-8 border-[10px] border-white/5">
-                <img id="qr-display" src="" alt="QR" class="w-56 h-56 object-contain">
-            </div>
-            <button id="close-qr" class="w-full py-4 bg-primary hover:bg-blue-600 rounded-2xl font-black transition-all shadow-lg relative z-10">Cerrar</button>
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
