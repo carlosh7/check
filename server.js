@@ -20,6 +20,7 @@ const upload = multer({ dest: 'uploads/' });
 // Login Simple
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    console.log(`Intento de login para usuario: ${username}`);
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
         if (row) {
             res.json({ success: true, user: { id: row.id, username: row.username } });

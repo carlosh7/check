@@ -2,7 +2,7 @@
 let currentEvent = null;
 let allEvents = [];
 let allGuests = [];
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 // --- DOM Elements ---
 const views = {
