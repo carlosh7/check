@@ -1,9 +1,16 @@
-FROM nginx:alpine
+FROM node:18-slim
 
-# Copiar archivos estáticos al directorio de Nginx
-COPY . /usr/share/nginx/html
+# Crear directorio de la app
+WORKDIR /usr/src/app
 
-# Exponer el puerto 80
-EXPOSE 80
+# Instalar dependencias
+COPY package*.json ./
+RUN npm install
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copiar el resto del código
+COPY . .
+
+# Exponer el puerto de Express
+EXPOSE 3000
+
+CMD ["node", "server.js"]

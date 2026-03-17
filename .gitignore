@@ -24,3 +24,10 @@ yarn-error.log*
 *.xls
 *.csv
 !template.xlsx # Mantener plantillas si existen
+
+# SQLite & Uploads
+check_app.db
+check_app.db-journal
+uploads/
+node_modules/
+package-lock.json

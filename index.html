@@ -3,93 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check | Registro de Invitados</title>
+    <title>Check | Gestión de Eventos Premium</title>
     <link rel="stylesheet" href="style.css">
-    <!-- SheetJS for Excel Import -->
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <!-- PDF.js for PDF view (Optional/Future) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="app-container">
+        <!-- Navigation -->
         <nav class="navbar">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <div class="logo-section" id="logo-trigger">
+                <div class="logo-placeholder">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M20 6L9 17L4 12" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                Check
+                <h2 id="app-title">Check</h2>
             </div>
-            <ul class="nav-links">
-                <li><a href="#" class="active" id="nav-register">Registro</a></li>
-                <li><a href="#" id="nav-admin">Admin</a></li>
-            </ul>
             <div class="nav-actions">
-                <button class="theme-toggle" id="theme-btn" title="Cambiar Tema">
-                    🌓
-                </button>
+                <button class="btn" id="theme-btn">🌓</button>
+                <button class="btn btn-primary" id="login-nav-btn">Admin</button>
             </div>
         </nav>
 
-        <!-- Main Registration UI -->
-        <main id="register-view" class="hero">
-            <div class="hero-content">
-                <h1 class="hero-title">Bienvenido al <span>Círculo</span> de Gestión</h1>
-                <p class="on-surface-variant">Regístrate para asegurar tu lugar en el evento más exclusivo del año.</p>
-                
-                <div class="event-details">
-                    <p><strong>📍 Ubicación:</strong> Auditorio Metropolitano</p>
-                    <p><strong>📅 Fecha:</strong> 16 de Marzo, 2026</p>
-                    <p><strong>🕒 Hora:</strong> 19:30 PM</p>
+        <!-- PUBLIC VIEW: Registration & Countdown -->
+        <main id="view-registration" class="view">
+            <header class="hero-section" style="text-align: center; margin-bottom: 3rem;">
+                <div id="event-logo-container" style="margin-bottom: 1.5rem;">
+                    <!-- Logo del evento se inyectará aquí -->
                 </div>
-            </div>
+                <h1 id="event-name-display">Cargando evento...</h1>
+                <p id="event-desc-display">Obteniendo detalles del evento...</p>
+                
+                <div class="timer-container">
+                    <div id="current-clock" class="clock">00:00:00</div>
+                    <div id="countdown-timer" class="countdown">Inicia en: --:--:--</div>
+                </div>
+            </header>
 
-            <section class="form-card">
-                <h2 style="margin-bottom: 1.5rem;">Detallas de Registro</h2>
-                <form id="registration-form">
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <form id="public-reg-form">
                     <div class="form-group">
-                        <label for="name">Nombre Completo</label>
-                        <input type="text" id="name" placeholder="Ej: Juan Pérez" required>
+                        <label>Nombre Completo</label>
+                        <input type="text" id="reg-name" placeholder="Ej: Juan Pérez" required>
                     </div>
                     <div class="form-group">
-                        <label for="email">Correo Electrónico</label>
-                        <input type="email" id="email" placeholder="juan@ejemplo.com" required>
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="reg-email" placeholder="email@ejemplo.com" required>
                     </div>
                     <div class="form-group">
-                        <label for="phone">Número de Teléfono</label>
-                        <input type="tel" id="phone" placeholder="+52 ...">
+                        <label>Teléfono</label>
+                        <input type="tel" id="reg-phone" placeholder="+52 ...">
                     </div>
                     <div class="form-group">
-                        <label for="org">Organización</label>
-                        <input type="text" id="org" placeholder="Nombre de tu empresa">
+                        <label>Organización</label>
+                        <input type="text" id="reg-org" placeholder="Nombre de tu empresa">
                     </div>
-                    <button type="submit" class="btn-primary">Registrarse →</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Confirmar Registro</button>
                 </form>
-            </section>
+            </div>
         </main>
 
-        <!-- Admin / Import UI -->
-        <section id="admin-view" class="admin-section">
-            <h2 class="hero-title" style="font-size: 2rem;">Panel de <span>Administración</span></h2>
-            <div class="import-box" onclick="document.getElementById('file-input').click()">
-                <h3>Importar Base de Datos</h3>
-                <p>Haz clic para subir un archivo Excel (.xlsx, .csv) o PDF</p>
-                <input type="file" id="file-input" hidden accept=".xlsx, .xls, .csv, .pdf">
-            </div>
-            <div id="import-results" style="margin-top: 2rem;">
-                <!-- Resultados de la importación aparecerán aquí -->
+        <!-- LOGIN VIEW -->
+        <section id="view-login" class="view hidden">
+            <div class="card" style="max-width: 400px; margin: 4rem auto;">
+                <h2 style="margin-bottom: 1.5rem; text-align: center;">Panel Administrativo</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="login-user" value="admin" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="login-pass" value="admin123" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Entrar</button>
+                    <button type="button" class="btn" id="back-to-reg" style="width: 100%; margin-top: 1rem; justify-content: center;">Volver</button>
+                </form>
             </div>
         </section>
 
-        <footer style="margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--outline-variant); display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--on-surface-variant);">
-            <div>© 2026 Check App. Todos los derechos reservados.</div>
-            <div style="display: flex; gap: 1rem;">
-                <a href="#" style="color: inherit; text-decoration: none;">Privacidad</a>
-                <a href="#" style="color: inherit; text-decoration: none;">Términos</a>
-                <span style="color: var(--primary); font-weight: 600;">PORTAL SEGURO</span>
+        <!-- ADMIN DASHBOARD VIEW -->
+        <section id="view-admin" class="view hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Dashboard</h1>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn" id="btn-new-event">+ Nuevo Evento</button>
+                    <button class="btn btn-primary" id="btn-logout">Cerrar Sesión</button>
+                </div>
             </div>
-        </footer>
+
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <p>Total Registrados</p>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <p>Asistencia</p>
+                    <div class="stat-value" id="stat-presence">0%</div>
+                </div>
+                <div class="stat-card">
+                    <p>Faltantes</p>
+                    <div class="stat-value" id="stat-missing" style="color: #FF3B30;">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3>Gestión de Asistentes</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" id="btn-import-trigger">📂 Importar Excel</button>
+                        <input type="file" id="admin-file-import" hidden accept=".xlsx, .xls, .csv">
+                        <button class="btn" id="btn-export-pdf">📄 Generar Reporte PDF</button>
+                        <button class="btn" id="btn-export-excel">📊 Exportar Excel</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="guests-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Organización</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- CREATE EVENT MODAL (Simulado con hidden) -->
+        <div id="modal-event" class="view hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center;">
+            <div class="card" style="width: 100%; max-width: 500px;">
+                <h2>Crear Nuevo Evento</h2>
+                <form id="new-event-form" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label>Nombre del Evento</label>
+                        <input type="text" id="ev-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha y Hora de Inicio</label>
+                        <input type="datetime-local" id="ev-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación</label>
+                        <input type="text" id="ev-location">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="ev-desc" style="width: 100%; border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--outline); background: var(--bg); color: var(--text);"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Guardar</button>
+                        <button type="button" class="btn" id="close-modal" style="flex: 1; justify-content: center;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
