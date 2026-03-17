@@ -75,14 +75,33 @@
                 <form id="login-form">
                     <div class="form-group">
                         <label>Usuario</label>
-                        <input type="text" id="login-user" value="admin" required>
+                        <input type="text" id="login-user" placeholder="Tu usuario" required>
                     </div>
                     <div class="form-group">
                         <label>Contraseña</label>
-                        <input type="password" id="login-pass" value="admin123" required>
+                        <input type="password" id="login-pass" placeholder="Tu contraseña" required>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Entrar</button>
-                    <button type="button" class="btn" id="back-to-reg" style="width: 100%; margin-top: 1rem; justify-content: center;">Volver</button>
+                    <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                        ¿No tienes cuenta? <a href="#" id="go-to-signup" style="color: var(--primary); font-weight: 600;">Regístrate aquí</a>
+                    </p>
+                    <button type="button" class="btn" id="back-to-reg" style="width: 100%; margin-top: 1rem; justify-content: center;">Volver al inicio</button>
+                </form>
+
+                <!-- Signup Form (Hidden initially) -->
+                <form id="signup-form" class="hidden">
+                    <div class="form-group">
+                        <label>Nuevo Usuario</label>
+                        <input type="text" id="signup-user" placeholder="Ej: carlosh7" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="signup-pass" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Crear Cuenta</button>
+                    <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                        ¿Ya tienes cuenta? <a href="#" id="go-to-login" style="color: var(--primary); font-weight: 600;">Inicia sesión</a>
+                    </p>
                 </form>
             </div>
         </section>
@@ -90,10 +109,18 @@
         <!-- ADMIN DASHBOARD VIEW -->
         <section id="view-admin" class="view hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>Dashboard</h1>
+                <div class="logo-section">
+                    <img id="admin-event-logo" src="" alt="Logo" class="hidden" style="height: 40px; border-radius: 8px;">
+                    <h1 id="admin-event-title" style="font-size: 1.5rem;">Dashboard</h1>
+                </div>
+                <!-- Mini Timers inside Admin Dashboard -->
+                <div style="display: flex; gap: 2rem; align-items: center; background: var(--surface); padding: 0.5rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--outline);">
+                    <div id="admin-clock" style="font-family: monospace; font-size: 1.25rem;">00:00:00</div>
+                    <div id="admin-countdown" style="font-weight: 600; color: var(--primary);">--:--:--</div>
+                </div>
                 <div style="display: flex; gap: 1rem;">
-                    <button class="btn" id="btn-new-event">+ Nuevo Evento</button>
-                    <button class="btn btn-primary" id="btn-logout">Cerrar Sesión</button>
+                    <button class="btn" id="btn-events-list">Mis Eventos</button>
+                    <button class="btn btn-primary" id="btn-logout">Salir</button>
                 </div>
             </div>
 
@@ -110,16 +137,35 @@
                     <p>Faltantes</p>
                     <div class="stat-value" id="stat-missing" style="color: #FF3B30;">0</div>
                 </div>
+                <div class="stat-card" id="card-satisfaction" style="background: rgba(0, 122, 255, 0.05); border: 1px solid var(--primary);">
+                    <p>Satisfacción (⭐)</p>
+                    <div class="stat-value" id="stat-satisfaction">0.0</div>
+                    <button class="btn" id="btn-show-qr" style="font-size: 0.7rem; margin-top: 0.5rem; width: 100%;">Ver QR Encuesta</button>
+                </div>
+            </div>
+
+            <!-- Modal QR -->
+            <div id="modal-qr" class="view hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: flex; align-items: center; justify-content: center;">
+                <div class="card" style="text-align: center; max-width: 350px;">
+                    <h3>QR de Satisfacción</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 1rem;">Muestra este código al finalizar el evento</p>
+                    <img id="qr-display" src="" style="width: 250px; margin: 1rem auto; display: block;">
+                    <button class="btn btn-primary" id="close-qr" style="width: 100%;">Cerrar</button>
+                </div>
             </div>
 
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3>Gestión de Asistentes</h3>
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="position: relative; flex: 1; min-width: 300px;">
+                        <input type="text" id="guest-search" placeholder="🔍 Buscar por nombre u organización..." style="padding-left: 3rem;">
+                    </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn" id="btn-import-trigger">📂 Importar Excel</button>
-                        <input type="file" id="admin-file-import" hidden accept=".xlsx, .xls, .csv">
-                        <button class="btn" id="btn-export-pdf">📄 Generar Reporte PDF</button>
-                        <button class="btn" id="btn-export-excel">📊 Exportar Excel</button>
+                        <button class="btn" id="btn-import-excel-trigger">Excel</button>
+                        <button class="btn" id="btn-import-pdf-trigger">PDF</button>
+                        <input type="file" id="admin-file-import-excel" hidden accept=".xlsx, .xls, .csv">
+                        <input type="file" id="admin-file-import-pdf" hidden accept=".pdf">
+                        <button class="btn" id="btn-export-pdf">Reporte</button>
+                        <button class="btn btn-danger" id="btn-delete-event" style="background: rgba(255, 59, 48, 0.1); color: #FF3B30; border: 1px solid #FF3B30;">Borrar</button>
                     </div>
                 </div>
                 <div class="table-container">
@@ -136,6 +182,18 @@
                     </table>
                 </div>
             </div>
+        </section>
+
+        <!-- VIEW: My Events List -->
+        <section id="view-my-events" class="view hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Mis Eventos</h1>
+                <button class="btn btn-primary" id="btn-create-event-open">+ Nuevo Evento</button>
+            </div>
+            <div id="events-list-container" class="dashboard-grid">
+                <!-- Tarjetas de eventos se inyectarán aquí -->
+            </div>
+            <button class="btn" id="back-to-admin" style="margin-top: 2rem;">← Volver al Dashboard</button>
         </section>
 
         <!-- CREATE EVENT MODAL (Simulado con hidden) -->

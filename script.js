@@ -2,6 +2,7 @@
 let currentEvent = null;
 let allEvents = [];
 let allGuests = [];
+let loggedUserId = localStorage.getItem('userId');
 const API_URL = '/api';
 
 // --- DOM Elements ---
@@ -9,6 +10,7 @@ const views = {
     registration: document.getElementById('view-registration'),
     login: document.getElementById('view-login'),
     admin: document.getElementById('view-admin'),
+    myEvents: document.getElementById('view-my-events'),
     modalEvent: document.getElementById('modal-event')
 };
 
@@ -18,139 +20,228 @@ function showView(viewName) {
     views[viewName].classList.remove('hidden');
 }
 
-document.getElementById('login-nav-btn').onclick = () => showView('login');
+document.getElementById('login-nav-btn').onclick = () => {
+    if (loggedUserId) {
+        showView('admin');
+        loadMyEvents();
+    } else {
+        showView('login');
+    }
+};
+
 document.getElementById('back-to-reg').onclick = () => showView('registration');
-document.getElementById('btn-logout').onclick = () => showView('registration');
-document.getElementById('btn-new-event').onclick = () => views.modalEvent.classList.remove('hidden');
+document.getElementById('btn-logout').onclick = () => {
+    localStorage.removeItem('userId');
+    loggedUserId = null;
+    showView('registration');
+};
+
+document.getElementById('btn-events-list').onclick = () => loadMyEvents();
+document.getElementById('btn-create-event-open').onclick = () => views.modalEvent.classList.remove('hidden');
 document.getElementById('close-modal').onclick = () => views.modalEvent.classList.add('hidden');
+document.getElementById('back-to-admin').onclick = () => showView('admin');
 
 // --- Theme Management ---
 const themeBtn = document.getElementById('theme-btn');
 const html = document.documentElement;
-let savedTheme = localStorage.getItem('theme') || 'light';
-html.setAttribute('data-theme', savedTheme);
+html.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
 
-themeBtn.addEventListener('click', () => {
-    let current = html.getAttribute('data-theme');
-    let target = current === 'light' ? 'dark' : 'light';
+themeBtn.onclick = () => {
+    let target = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     html.setAttribute('data-theme', target);
     localStorage.setItem('theme', target);
-});
+};
 
-// --- Real-time Clock & Countdown ---
+// --- Timers (Public & Admin) ---
 function updateTimers() {
     const now = new Date();
-    document.getElementById('current-clock').innerText = now.toLocaleTimeString();
+    const timeStr = now.toLocaleTimeString();
+    
+    // Public View
+    if (document.getElementById('current-clock')) document.getElementById('current-clock').innerText = timeStr;
+    // Admin Dashboard View
+    if (document.getElementById('admin-clock')) document.getElementById('admin-clock').innerText = timeStr;
 
     if (currentEvent && currentEvent.date) {
         const eventDate = new Date(currentEvent.date);
         const diff = eventDate - now;
-
-        if (diff > 0) {
-            const h = Math.floor(diff / 36e5);
-            const m = Math.floor((diff % 36e5) / 6e4);
-            const s = Math.floor((diff % 6e4) / 1000);
-            document.getElementById('countdown-timer').innerText = `Inicia en: ${h}h ${m}m ${s}s`;
-            document.getElementById('countdown-timer').style.color = 'var(--primary)';
-        } else {
-            document.getElementById('countdown-timer').innerText = '¡El evento ha comenzado!';
-            document.getElementById('countdown-timer').style.color = '#34C759'; // Apple Green
-        }
+        const msg = diff > 0 ? formatCountdown(diff) : '¡Comenzó!';
+        
+        if (document.getElementById('countdown-timer')) document.getElementById('countdown-timer').innerText = msg;
+        if (document.getElementById('admin-countdown')) document.getElementById('admin-countdown').innerText = msg;
     }
+}
+
+function formatCountdown(diff) {
+    const h = Math.floor(diff / 36e5);
+    const m = Math.floor((diff % 36e5) / 6e4);
+    const s = Math.floor((diff % 6e4) / 1000);
+    return `${h}h ${m}m ${s}s`;
 }
 setInterval(updateTimers, 1000);
 
-// --- API Interactions ---
+// --- API & UI Logic ---
 
-async function fetchEvents() {
-    const res = await fetch(`${API_URL}/events`);
+// Cargar eventos del usuario
+async function loadMyEvents() {
+    if (!loggedUserId) return;
+    const res = await fetch(`${API_URL}/events?userId=${loggedUserId}`);
     allEvents = await res.json();
-    if (allEvents.length > 0) {
-        currentEvent = allEvents[0];
-        updateEventUI();
-    }
+    showView('myEvents');
+    renderEventsList();
 }
 
-function updateEventUI() {
-    document.getElementById('event-name-display').innerText = currentEvent.name;
-    document.getElementById('event-desc-display').innerText = `${currentEvent.location} • ${new Date(currentEvent.date).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}`;
+function renderEventsList() {
+    const container = document.getElementById('events-list-container');
+    container.innerHTML = allEvents.map(ev => `
+        <div class="stat-card" style="cursor: pointer;" onclick="switchToDashboard(${ev.id})">
+            <h3>${ev.name}</h3>
+            <p>${new Date(ev.date).toLocaleDateString()}</p>
+            <p style="font-size: 0.8rem; margin-top: 1rem; color: var(--primary);">Gestionar →</p>
+        </div>
+    `).join('');
 }
 
-// Registro Público
-document.getElementById('public-reg-form').onsubmit = async (e) => {
+async function switchToDashboard(id) {
+    currentEvent = allEvents.find(e => e.id === id);
+    showView('admin');
+    document.getElementById('admin-event-title').innerText = currentEvent.name;
+    loadAdminData();
+}
+
+// Crear Evento
+document.getElementById('new-event-form').onsubmit = async (e) => {
     e.preventDefault();
-    if (!currentEvent) return alert('No hay un evento seleccionado');
-
     const data = {
-        event_id: currentEvent.id,
-        name: document.getElementById('reg-name').value,
-        email: document.getElementById('reg-email').value,
-        phone: document.getElementById('reg-phone').value,
-        organization: document.getElementById('reg-org').value
+        userId: loggedUserId,
+        name: document.getElementById('ev-name').value,
+        date: document.getElementById('ev-date').value,
+        location: document.getElementById('ev-location').value,
+        description: document.getElementById('ev-desc').value
     };
 
-    const res = await fetch(`${API_URL}/register`, {
+    const res = await fetch(`${API_URL}/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
 
     if (res.ok) {
-        alert('¡Registro exitoso! Te esperamos.');
-        e.target.reset();
+        views.modalEvent.classList.add('hidden');
+        loadMyEvents();
+    }
+};
+
+const signupForm = document.getElementById('signup-form');
+const loginForm = document.getElementById('login-form');
+
+document.getElementById('go-to-signup').onclick = (e) => {
+    e.preventDefault();
+    loginForm.classList.add('hidden');
+    signupForm.classList.remove('hidden');
+};
+
+document.getElementById('go-to-login').onclick = (e) => {
+    e.preventDefault();
+    signupForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+};
+
+// Signup API
+signupForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('signup-user').value;
+    const password = document.getElementById('signup-pass').value;
+
+    const res = await fetch(`${API_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+
+    if (res.ok) {
+        alert('¡Cuenta creada! Ahora puedes iniciar sesión.');
+        signupForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+    } else {
+        const err = await res.json();
+        alert(err.message || 'Error al crear cuenta');
     }
 };
 
 // Login
-document.getElementById('login-form').onsubmit = async (e) => {
+loginForm.onsubmit = async (e) => {
     e.preventDefault();
-    const data = {
-        username: document.getElementById('login-user').value,
-        password: document.getElementById('login-pass').value
-    };
-
     const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            username: document.getElementById('login-user').value,
+            password: document.getElementById('login-pass').value
+        })
     });
 
     if (res.ok) {
+        const data = await res.json();
+        loggedUserId = data.userId;
+        localStorage.setItem('userId', loggedUserId);
         showView('admin');
-        loadAdminData();
+        loadMyEvents();
     } else {
-        alert('Acceso denegado');
+        alert('Error de acceso');
     }
 };
 
-// Admin Data
+// Dashboard Data
 async function loadAdminData() {
     if (!currentEvent) return;
     
-    // Cargar Stats
+    // Stats de Asistencia
     const sRes = await fetch(`${API_URL}/stats/${currentEvent.id}`);
     const stats = await sRes.json();
     document.getElementById('stat-total').innerText = stats.total || 0;
-    const perc = stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0;
-    document.getElementById('stat-presence').innerText = `${perc}%`;
+    document.getElementById('stat-presence').innerText = `${stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0}%`;
     document.getElementById('stat-missing').innerText = (stats.total || 0) - (stats.checkedIn || 0);
 
-    // Cargar Lista
+    // Stats de Satisfacción
+    const fRes = await fetch(`${API_URL}/surveys/stats/${currentEvent.id}`);
+    const fStats = await fRes.json();
+    document.getElementById('stat-satisfaction').innerText = fStats.avgRating ? fStats.avgRating.toFixed(1) : "0.0";
+
     const gRes = await fetch(`${API_URL}/guests/${currentEvent.id}`);
     allGuests = await gRes.json();
-    renderGuests();
+    renderGuests(allGuests);
 }
 
-function renderGuests() {
+// Lógica de QR
+document.getElementById('btn-show-qr').onclick = async () => {
+    const res = await fetch(`${API_URL}/events/${currentEvent.id}/qrcode`);
+    const data = await res.json();
+    document.getElementById('qr-display').src = data.qrCode;
+    document.getElementById('modal-qr').classList.remove('hidden');
+};
+document.getElementById('close-qr').onclick = () => document.getElementById('modal-qr').classList.add('hidden');
+
+// Búsqueda en Dashboard
+document.getElementById('guest-search').oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allGuests.filter(g => 
+        g.name.toLowerCase().includes(term) || 
+        (g.organization && g.organization.toLowerCase().includes(term))
+    );
+    renderGuests(filtered);
+};
+
+function renderGuests(data) {
     const tbody = document.getElementById('guests-tbody');
-    tbody.innerHTML = allGuests.map(g => `
+    tbody.innerHTML = data.map(g => `
         <tr>
             <td>${g.name}</td>
             <td>${g.organization || '-'}</td>
             <td><span style="color: ${g.checked_in ? '#34C759' : '#8E8E93'}">${g.checked_in ? 'Presente' : 'Pendiente'}</span></td>
             <td>
-                <button class="btn" onclick="toggleCheckin(${g.id}, ${g.checked_in})">
-                    ${g.checked_in ? 'Deshacer' : 'Validar'}
+                <button class="btn" style="padding: 0.5rem 1rem;" onclick="toggleCheckin(${g.id}, ${g.checked_in})">
+                    ${g.checked_in ? 'Deshacer' : 'Check-in'}
                 </button>
             </td>
         </tr>
@@ -166,55 +257,63 @@ async function toggleCheckin(id, currentStatus) {
     loadAdminData();
 }
 
-// PDF Report
-document.getElementById('btn-export-pdf').onclick = () => {
-    const { jsPDF } = window.jspdf;
-    const doc = jsPDF();
-    
-    doc.setFontSize(22);
-    doc.text(`Reporte de Evento: ${currentEvent.name}`, 14, 20);
-    
-    doc.setFontSize(12);
-    doc.text(`Estadísticas:`, 14, 35);
-    doc.text(`Total Inscritos: ${allGuests.length}`, 14, 42);
-    const asistentes = allGuests.filter(g => g.checked_in);
-    doc.text(`Asistentes: ${asistentes.length}`, 14, 49);
-    doc.text(`Faltantes: ${allGuests.length - asistentes.length}`, 14, 56);
-
-    // Tabla discriminada
-    const data = allGuests.map(g => [g.name, g.organization, g.checked_in ? 'ASISTENTE' : 'FALTANTE']);
-    
-    doc.autoTable({
-        head: [['Nombre', 'Organización', 'Estado']],
-        body: data,
-        startY: 65,
-        theme: 'grid',
-        headStyles: { fillColor: [0, 122, 255] }
-    });
-
-    doc.save(`Reporte-${currentEvent.name}.pdf`);
+// Borrar Evento
+document.getElementById('btn-delete-event').onclick = async () => {
+    if (!confirm('¿Estás seguro de borrar este evento y todos sus datos?')) return;
+    const res = await fetch(`${API_URL}/events/${currentEvent.id}`, { method: 'DELETE' });
+    if (res.ok) {
+        currentEvent = null;
+        loadMyEvents();
+    }
 };
 
-// Importar Excel
-document.getElementById('btn-import-trigger').onclick = () => document.getElementById('admin-file-import').click();
-document.getElementById('admin-file-import').onchange = async (e) => {
+// Importar Excel / PDF
+document.getElementById('btn-import-excel-trigger').onclick = () => document.getElementById('admin-file-import-excel').click();
+document.getElementById('btn-import-pdf-trigger').onclick = () => document.getElementById('admin-file-import-pdf').click();
+
+document.getElementById('admin-file-import-excel').onchange = (e) => handleImport(e, 'import');
+document.getElementById('admin-file-import-pdf').onchange = (e) => handleImport(e, 'import-pdf');
+
+async function handleImport(e, endpoint) {
     const file = e.target.files[0];
     if (!file || !currentEvent) return;
 
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(`${API_URL}/import/${currentEvent.id}`, {
+    const res = await fetch(`${API_URL}/${endpoint}/${currentEvent.id}`, {
         method: 'POST',
         body: formData
     });
 
     if (res.ok) {
-        alert('Base de datos alimentada correctamente');
+        alert('Datos importados correctamente');
         loadAdminData();
     }
+}
+
+// Exportar PDF
+document.getElementById('btn-export-pdf').onclick = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = jsPDF();
+    doc.text(`Reporte: ${currentEvent.name}`, 14, 20);
+    doc.autoTable({
+        head: [['Nombre', 'Organización', 'Estado']],
+        body: allGuests.map(g => [g.name, g.organization, g.checked_in ? 'SÍ' : 'NO']),
+        startY: 30
+    });
+    doc.save(`Reporte.pdf`);
 };
 
-// Inicialización
-fetchEvents();
+// Inicialización Pública
+async function initPublic() {
+    const res = await fetch(`${API_URL}/events`);
+    const evs = await res.json();
+    if (evs.length > 0) {
+        currentEvent = evs[0];
+        document.getElementById('event-name-display').innerText = currentEvent.name;
+        document.getElementById('event-desc-display').innerText = currentEvent.description;
+    }
+}
+initPublic();
 updateTimers();

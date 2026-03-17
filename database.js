@@ -16,12 +16,14 @@ db.serialize(() => {
     // Tabla de Eventos
     db.run(`CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
         name TEXT,
         date TEXT,
         location TEXT,
         logo_url TEXT,
         description TEXT,
-        db_name TEXT UNIQUE -- Identificador para la "base de datos" lógica del evento
+        db_name TEXT UNIQUE,
+        FOREIGN KEY (user_id) REFERENCES users (id)
     )`);
 
     // Tabla de Invitados/Asistentes
@@ -35,6 +37,25 @@ db.serialize(() => {
         checked_in INTEGER DEFAULT 0,
         checkin_time TEXT,
         FOREIGN KEY (event_id) REFERENCES events (id)
+    )`);
+
+    // Tabla de Encuestas (Configuración)
+    db.run(`CREATE TABLE IF NOT EXISTS surveys (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id INTEGER,
+        question TEXT,
+        FOREIGN KEY (event_id) REFERENCES events (id)
+    )`);
+
+    // Tabla de Respuestas de Encuestas
+    db.run(`CREATE TABLE IF NOT EXISTS survey_responses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id INTEGER,
+        guest_id INTEGER,
+        rating INTEGER,
+        comment TEXT,
+        FOREIGN KEY (event_id) REFERENCES events (id),
+        FOREIGN KEY (guest_id) REFERENCES guests (id)
     )`);
 
     // Insertar usuario administrador por defecto (password: admin123)
