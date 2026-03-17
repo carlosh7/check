@@ -1,0 +1,26 @@
+# Windows
+[Dd]esktop.ini
+Thumbs.db
+$RECYCLE.BIN/
+*.lnk
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Node (por si acaso se usa SheetJS localmente)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos temporales de datos
+*.xlsx
+*.xls
+*.csv
+!template.xlsx # Mantener plantillas si existen
