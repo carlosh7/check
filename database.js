@@ -44,6 +44,7 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id INTEGER,
         question TEXT,
+        type TEXT DEFAULT 'stars', -- 'stars', 'yes_no', 'text'
         FOREIGN KEY (event_id) REFERENCES events (id)
     )`);
 

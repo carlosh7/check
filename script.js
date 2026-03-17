@@ -254,7 +254,10 @@ async function loadSurveyQuestions() {
     const questions = await res.json();
     questionsList.innerHTML = questions.map(q => `
         <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm);">
-            <span style="font-size: 0.9rem;">${q.question}</span>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 0.9rem; font-weight: 500;">${q.question}</span>
+                <span style="font-size: 0.7rem; color: var(--text-secondary);">${q.type === 'yes_no' ? 'Sí / No' : 'Calificación 1-5'}</span>
+            </div>
             <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;" onclick="deleteQuestion(${q.id})">Eliminar</button>
         </div>
     `).join('') || '<p style="text-align: center; color: var(--text-secondary);">No hay preguntas personalizadas aún.</p>';
@@ -262,11 +265,15 @@ async function loadSurveyQuestions() {
 
 document.getElementById('add-question-form').onsubmit = async (e) => {
     e.preventDefault();
-    const question = document.getElementById('new-question-input').value;
+    const data = {
+        event_id: currentEvent.id,
+        question: document.getElementById('new-question-input').value,
+        type: document.getElementById('new-question-type').value
+    };
     await fetch(`${API_URL}/surveys/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_id: currentEvent.id, question })
+        body: JSON.stringify(data)
     });
     document.getElementById('new-question-input').value = '';
     loadSurveyQuestions();

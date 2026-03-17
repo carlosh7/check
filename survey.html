@@ -43,29 +43,54 @@
             const questions = await res.json();
             
             if (questions.length > 0) {
-                // Inyectar preguntas dinámicas
-                const questionsHtml = questions.map((q, idx) => `
-                    <div class="form-group" style="margin-top: 2rem; border-top: 1px solid var(--outline); padding-top: 1.5rem;">
-                        <label>${q.question}</label>
-                        <div style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
-                            ${[1,2,3,4,5].map(v => `
-                                <label style="cursor: pointer;">
-                                    <input type="radio" name="q-${q.id}" value="${v}" required> ${v}
+                const questionsHtml = questions.map((q) => {
+                    let inputHtml = "";
+                    
+                    if (q.type === 'yes_no') {
+                        inputHtml = `
+                            <div style="display: flex; gap: 2rem; justify-content: center; margin: 1rem 0;">
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                                    <input type="radio" name="q-${q.id}" value="5" required style="width: 20px; height: 20px;"> ✅ Sí
                                 </label>
-                            `).join('')}
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                                    <input type="radio" name="q-${q.id}" value="1" required style="width: 20px; height: 20px;"> ❌ No
+                                </label>
+                            </div>
+                        `;
+                    } else {
+                        // Estrellas (opción por defecto)
+                        inputHtml = `
+                            <div style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
+                                ${[1,2,3,4,5].map(v => `
+                                    <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                                        <input type="radio" name="q-${q.id}" value="${v}" required>
+                                        <span style="font-size: 0.8rem;">${v}★</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="form-group" style="margin-top: 2rem; border-top: 1px solid var(--outline); padding-top: 1.5rem;">
+                            <label style="font-size: 1.1rem; font-weight: 600; text-align: center; display: block;">${q.question}</label>
+                            ${inputHtml}
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 
                 surveyForm.insertAdjacentHTML('afterbegin', questionsHtml);
             } else {
-                // Fallback si no hay preguntas personalizadas
+                // Fallback
                 surveyForm.insertAdjacentHTML('afterbegin', `
                     <div class="form-group" style="text-align: center;">
-                        <label>¿Cómo calificarías tu experiencia general? (1-5 ⭐)</label>
+                        <label style="font-size: 1.1rem; font-weight: 600;">¿Cómo calificarías tu experiencia general?</label>
                         <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
                             ${[1,2,3,4,5].map(v => `
-                                <label style="cursor: pointer;"><input type="radio" name="rating" value="${v}" required> ${v}</label>
+                                <label style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                                    <input type="radio" name="rating" value="${v}" required>
+                                    <span style="font-size: 0.8rem;">${v}★</span>
+                                </label>
                             `).join('')}
                         </div>
                     </div>

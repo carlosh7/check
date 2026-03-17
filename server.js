@@ -181,8 +181,8 @@ app.get('/api/surveys/questions/:eventId', (req, res) => {
 
 // Añadir pregunta a la encuesta de un evento
 app.post('/api/surveys/questions', (req, res) => {
-    const { event_id, question } = req.body;
-    db.run("INSERT INTO surveys (event_id, question) VALUES (?, ?)", [event_id, question], function(err) {
+    const { event_id, question, type } = req.body;
+    db.run("INSERT INTO surveys (event_id, question, type) VALUES (?, ?, ?)", [event_id, question, type || 'stars'], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ id: this.lastID });
     });
