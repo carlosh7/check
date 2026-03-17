@@ -129,23 +129,35 @@ app.get('/api/stats/:eventId', (req, res) => {
 
 // Importar Excel (Más robusto)
 app.post('/api/import/:eventId', upload.single('file'), (req, res) => {
-    const eventId = req.params.eventId;
-    const workbook = xlsx.readFile(req.file.path);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = xlsx.utils.sheet_to_json(sheet);
+    try {
+        const eventId = req.params.eventId;
+        const workbook = xlsx.readFile(req.file.path);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = xlsx.utils.sheet_to_json(sheet);
 
-    const stmt = db.prepare("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)");
-    data.forEach(row => {
-        // Normalizar nombres de columnas
-        const name = row.Nombre || row.nombre || row.Name || row.name || "";
-        const email = row.Email || row.email || row.Correo || "";
-        const phone = row.Telefono || row.telefono || row.Phone || "";
-        const org = row.Empresa || row.empresa || row.Organización || row.organization || "";
-        
-        if (name) stmt.run(eventId, name, email, phone, org);
-    });
-    stmt.finalize();
-    res.json({ success: true, count: data.length });
+        const stmt = db.prepare("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)");
+        data.forEach(row => {
+            // Normalizar nombres de columnas de manera agresiva
+            const findValue = (keys) => {
+                const foundKey = Object.keys(row).find(k => keys.some(key => k.toLowerCase().trim().includes(key.toLowerCase())));
+                return foundKey ? row[foundKey] : "";
+            };
+
+            const name = findValue(['nombre', 'name', 'asistente', 'completo']);
+            const email = findValue(['email', 'correo', 'mail', 'contacto']);
+            const phone = findValue(['telefono', 'phone', 'celular', 'whatsapp']);
+            const org = findValue(['empresa', 'organizacion', 'org', 'company', 'institucion']);
+            
+            if (name && name.toString().trim() !== "") {
+                stmt.run(eventId, name.toString().trim(), email, phone, org);
+            }
+        });
+        stmt.finalize();
+        fs.unlinkSync(req.file.path); // Limpiar archivo temporal
+        res.json({ success: true, count: data.length });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al procesar el archivo Excel' });
+    }
 });
 
 // Importar PDF
@@ -154,19 +166,28 @@ app.post('/api/import-pdf/:eventId', upload.single('file'), (req, res) => {
     const dataBuffer = fs.readFileSync(req.file.path);
 
     pdfParse(dataBuffer).then(function(data) {
-        // Lógica de parsing simple: asume que cada línea es un registro
-        // Formato esperado: Nombre, Email, Telefono, Organización
-        const lines = data.text.split('\n').filter(l => l.trim().length > 5);
+        // Lógica de parsing: intenta dividir por líneas y luego por comas, tabs o punto y coma
+        const lines = data.text.split('\n').filter(l => l.trim().length > 3);
         const stmt = db.prepare("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)");
         
         lines.forEach(line => {
-            const parts = line.split(',').map(p => p.trim());
-            if (parts.length >= 1) {
+            // Intentar detectar el separador (coma, punto y coma o tab)
+            let parts = [];
+            if (line.includes(',')) parts = line.split(',');
+            else if (line.includes(';')) parts = line.split(';');
+            else parts = line.split(/\t/);
+
+            parts = parts.map(p => p.trim());
+            
+            if (parts[0] && parts[0].length > 2) {
                 stmt.run(eventId, parts[0], parts[1] || "", parts[2] || "", parts[3] || "");
             }
         });
         stmt.finalize();
+        fs.unlinkSync(req.file.path); // Limpiar
         res.json({ success: true, count: lines.length });
+    }).catch(err => {
+        res.status(500).json({ success: false, message: 'Error al procesar el archivo PDF' });
     });
 });
 

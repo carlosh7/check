@@ -70,7 +70,7 @@ db.serialize(() => {
     // Evento de ejemplo
     db.get("SELECT * FROM events LIMIT 1", (err, row) => {
         if (!row) {
-            db.run("INSERT INTO events (name, date, location, description) VALUES ('Evento de Gala 2026', '2026-03-20T19:30:00', 'Auditorio Metropolitano', 'El evento más exclusivo del año.')");
+            db.run("INSERT INTO events (user_id, name, date, location, description) VALUES (1, 'Evento Launch 2026', '2026-06-15T10:00:00', 'Centro de Convenciones', 'Lanzamiento de la nueva plataforma Premium.')");
         }
     });
 });
