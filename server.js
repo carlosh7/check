@@ -13,8 +13,15 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
 
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
@@ -56,12 +63,17 @@ app.get('/api/events', (req, res) => {
 
 // Crear evento vinculado a un usuario
 app.post('/api/events', (req, res) => {
-    const { userId, name, date, location, description } = req.body;
-    db.run("INSERT INTO events (user_id, name, date, location, description) VALUES (?, ?, ?, ?, ?)", 
-        [userId, name, date, location, description], function(err) {
+    const { userId, name, date, location, description, logo_url } = req.body;
+    db.run("INSERT INTO events (user_id, name, date, location, description, logo_url) VALUES (?, ?, ?, ?, ?, ?)", 
+        [userId, name, date, location, description, logo_url], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ id: this.lastID });
     });
+});
+
+// Subir Logo
+app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
+    res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 // Borrar evento y sus invitados
@@ -159,6 +171,30 @@ app.post('/api/import-pdf/:eventId', upload.single('file'), (req, res) => {
 });
 
 // --- ENCUESTAS Y QR ---
+
+// Obtener preguntas de la encuesta de un evento
+app.get('/api/surveys/questions/:eventId', (req, res) => {
+    db.all("SELECT * FROM surveys WHERE event_id = ?", [req.params.eventId], (err, rows) => {
+        res.json(rows);
+    });
+});
+
+// Añadir pregunta a la encuesta de un evento
+app.post('/api/surveys/questions', (req, res) => {
+    const { event_id, question } = req.body;
+    db.run("INSERT INTO surveys (event_id, question) VALUES (?, ?)", [event_id, question], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ id: this.lastID });
+    });
+});
+
+// Borrar pregunta de encuesta
+app.delete('/api/surveys/questions/:id', (req, res) => {
+    db.run("DELETE FROM surveys WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
 
 // Generar QR para encuesta del evento
 app.get('/api/events/:id/qrcode', async (req, res) => {

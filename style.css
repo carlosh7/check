@@ -20,28 +20,18 @@
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
     --spacing-md: 2rem;
-    --spacing-lg: 4rem;
-
-    /* Shared Transitions */
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[data-theme="light"] {
-    --bg: var(--background-light);
-    --surface: var(--surface-light);
-    --text: var(--text-primary-light);
-    --text-dim: var(--text-secondary-light);
-    --outline: var(--outline-light);
-    --btn-text: #FFFFFF;
+    --radius-lg: 20px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --glass: rgba(255, 255, 255, 0.7);
 }
 
 [data-theme="dark"] {
-    --bg: var(--background-dark);
-    --surface: var(--surface-dark);
-    --text: var(--text-primary-dark);
-    --text-dim: var(--text-secondary-dark);
-    --outline: var(--outline-dark);
-    --btn-text: #FFFFFF;
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --text: #F5F5F7;
+    --text-secondary: #8E8E93;
+    --outline: rgba(255, 255, 255, 0.1);
+    --glass: rgba(28, 28, 30, 0.7);
 }
 
 * {
@@ -54,83 +44,41 @@
 body {
     background-color: var(--bg);
     color: var(--text);
-    transition: var(--transition);
+    transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
-/* Typography */
-h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; }
-h2 { font-size: 2rem; font-weight: 600; }
-p { font-size: 1.125rem; line-height: 1.5; color: var(--text-dim); }
-
-/* Layout Components */
-.app-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-sm);
-}
-
-.navbar {
+header {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--outline);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 0;
-    margin-bottom: var(--spacing-md);
 }
 
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.logo-text {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--primary), #5856D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.logo-placeholder {
-    width: 48px;
-    height: 48px;
-    background: var(--primary);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
 }
 
-/* Glassmorphism Cards */
 .card {
     background: var(--surface);
-    border: 1px solid var(--outline);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-    transition: var(--transition);
-}
-
-/* Forms */
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-input, select {
-    width: 100%;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--outline);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 1rem;
-    transition: var(--transition);
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
 }
 

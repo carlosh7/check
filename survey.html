@@ -36,23 +36,77 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('eventId');
+        const surveyForm = document.getElementById('survey-form');
 
-        document.getElementById('survey-form').onsubmit = async (e) => {
+        async function loadSurvey() {
+            const res = await fetch(`/api/surveys/questions/${eventId}`);
+            const questions = await res.json();
+            
+            if (questions.length > 0) {
+                // Inyectar preguntas dinámicas
+                const questionsHtml = questions.map((q, idx) => `
+                    <div class="form-group" style="margin-top: 2rem; border-top: 1px solid var(--outline); padding-top: 1.5rem;">
+                        <label>${q.question}</label>
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin: 1rem 0;">
+                            ${[1,2,3,4,5].map(v => `
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="q-${q.id}" value="${v}" required> ${v}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                
+                surveyForm.insertAdjacentHTML('afterbegin', questionsHtml);
+            } else {
+                // Fallback si no hay preguntas personalizadas
+                surveyForm.insertAdjacentHTML('afterbegin', `
+                    <div class="form-group" style="text-align: center;">
+                        <label>¿Cómo calificarías tu experiencia general? (1-5 ⭐)</label>
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
+                            ${[1,2,3,4,5].map(v => `
+                                <label style="cursor: pointer;"><input type="radio" name="rating" value="${v}" required> ${v}</label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `);
+            }
+        }
+
+        surveyForm.onsubmit = async (e) => {
             e.preventDefault();
-            const rating = document.querySelector('input[name="rating"]:checked').value;
+            const formData = new FormData(surveyForm);
             const comment = document.getElementById('survey-comment').value;
+
+            // Enviamos un promedio de todas las respuestas como "rating" para simplicidad en el dashboard
+            let totalRating = 0;
+            let count = 0;
+            for (let value of formData.values()) {
+                if (!isNaN(value)) {
+                    totalRating += parseInt(value);
+                    count++;
+                }
+            }
+            const finalRating = count > 0 ? Math.round(totalRating / count) : 5;
 
             const res = await fetch('/api/surveys/respond', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ event_id: eventId, rating, comment })
+                body: JSON.stringify({ 
+                    event_id: eventId, 
+                    guest_id: null, // Por ahora anónimo
+                    rating: finalRating, 
+                    comment 
+                })
             });
 
             if (res.ok) {
-                document.getElementById('survey-form').classList.add('hidden');
+                surveyForm.classList.add('hidden');
                 document.getElementById('survey-thanks').classList.remove('hidden');
             }
         };
+
+        loadSurvey();
     </script>
 </body>
 </html>

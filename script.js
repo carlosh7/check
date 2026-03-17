@@ -106,18 +106,37 @@ async function switchToDashboard(id) {
     currentEvent = allEvents.find(e => e.id === id);
     showView('admin');
     document.getElementById('admin-event-title').innerText = currentEvent.name;
+    const logoImg = document.getElementById('admin-event-logo');
+    if (currentEvent.logo_url) {
+        logoImg.src = currentEvent.logo_url;
+        logoImg.classList.remove('hidden');
+    } else {
+        logoImg.classList.add('hidden');
+    }
     loadAdminData();
 }
 
 // Crear Evento
 document.getElementById('new-event-form').onsubmit = async (e) => {
     e.preventDefault();
+    let logo_url = null;
+    const logoFile = document.getElementById('ev-logo-input').files[0];
+
+    if (logoFile) {
+        const logoFormData = new FormData();
+        logoFormData.append('logo', logoFile);
+        const uploadRes = await fetch(`${API_URL}/upload-logo`, { method: 'POST', body: logoFormData });
+        const uploadData = await uploadRes.json();
+        logo_url = uploadData.url;
+    }
+
     const data = {
         userId: loggedUserId,
         name: document.getElementById('ev-name').value,
         date: document.getElementById('ev-date').value,
         location: document.getElementById('ev-location').value,
-        description: document.getElementById('ev-desc').value
+        description: document.getElementById('ev-desc').value,
+        logo_url: logo_url
     };
 
     const res = await fetch(`${API_URL}/events`, {
@@ -222,6 +241,42 @@ document.getElementById('btn-show-qr').onclick = async () => {
 };
 document.getElementById('close-qr').onclick = () => document.getElementById('modal-qr').classList.add('hidden');
 
+// Lógica de Encuestas (Personalización)
+const questionsList = document.getElementById('questions-list');
+document.getElementById('btn-edit-survey').onclick = () => {
+    document.getElementById('modal-survey').classList.remove('hidden');
+    loadSurveyQuestions();
+};
+document.getElementById('close-survey-modal').onclick = () => document.getElementById('modal-survey').classList.add('hidden');
+
+async function loadSurveyQuestions() {
+    const res = await fetch(`${API_URL}/surveys/questions/${currentEvent.id}`);
+    const questions = await res.json();
+    questionsList.innerHTML = questions.map(q => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm);">
+            <span style="font-size: 0.9rem;">${q.question}</span>
+            <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;" onclick="deleteQuestion(${q.id})">Eliminar</button>
+        </div>
+    `).join('') || '<p style="text-align: center; color: var(--text-secondary);">No hay preguntas personalizadas aún.</p>';
+}
+
+document.getElementById('add-question-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const question = document.getElementById('new-question-input').value;
+    await fetch(`${API_URL}/surveys/questions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_id: currentEvent.id, question })
+    });
+    document.getElementById('new-question-input').value = '';
+    loadSurveyQuestions();
+};
+
+async function deleteQuestion(id) {
+    await fetch(`${API_URL}/surveys/questions/${id}`, { method: 'DELETE' });
+    loadSurveyQuestions();
+}
+
 // Búsqueda en Dashboard
 document.getElementById('guest-search').oninput = (e) => {
     const term = e.target.value.toLowerCase();
@@ -313,6 +368,11 @@ async function initPublic() {
         currentEvent = evs[0];
         document.getElementById('event-name-display').innerText = currentEvent.name;
         document.getElementById('event-desc-display').innerText = currentEvent.description;
+        const logoImg = document.getElementById('public-event-logo');
+        if (currentEvent.logo_url) {
+            logoImg.src = currentEvent.logo_url;
+            logoImg.classList.remove('hidden');
+        }
     }
 }
 initPublic();
