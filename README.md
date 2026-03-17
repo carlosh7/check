@@ -28,8 +28,8 @@ Una aplicación web moderna y elegante para la gestión y registro de invitados 
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/TU_USUARIO/registro-invitados.git
-   cd registro-invitados
+   git clone https://github.com/carlosh7/check.git
+   cd check
    ```
 
 2. Ejecuta la aplicación con Docker Compose:
@@ -38,7 +38,7 @@ Una aplicación web moderna y elegante para la gestión y registro de invitados 
    ```
 
 3. Accede a la aplicación en:
-   `http://localhost:8080`
+   `http://localhost:3000`
 
 ## 📁 Estructura del Proyecto
 
