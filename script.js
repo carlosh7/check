@@ -10,7 +10,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.4.0' // Master Version
+        version: '10.5.0' // Master Version
     },
     constants: {
         API_URL: '/api'
@@ -36,13 +36,67 @@ window.App = {
         } catch (e) { alert("Error al crear evento."); }
     },
     
-    // --- CORE NAV ---
+    // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName) {
-        if (typeof window.FORCE_NAVGATION === 'function') {
-            window.FORCE_NAVGATION(viewName);
-        } else {
-            console.error("CHECK V7.8: Motor FORCE_NAVGATION no disponible. Actualice index.html.");
+        console.log("NAVEGANDO A:", viewName);
+        
+        // 1. Mostrar/Ocultar Contenedores Principales
+        const isLogin = viewName === 'login';
+        const loginEl = document.getElementById('view-login');
+        const appEl = document.getElementById('app-container');
+        
+        if (loginEl) loginEl.classList.toggle('hidden', !isLogin);
+        if (appEl) appEl.classList.toggle('hidden', isLogin);
+        
+        if (isLogin) {
+            if (loginEl) loginEl.style.display = 'flex';
+            if (appEl) appEl.style.display = 'none';
+            return;
         }
+
+        // 2. Switchear vistas internas
+        const viewIds = ["view-my-events", "view-admin", "view-system"];
+        viewIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+
+        const target = document.getElementById("view-" + viewName);
+        if (target) {
+            target.classList.remove('hidden');
+        }
+
+        // 3. Actualizar Sidebar Tabs (Visual)
+        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
+        const activeBtn = document.getElementById('nav-btn-' + viewName);
+        if (activeBtn) activeBtn.classList.add('active', 'bg-primary', 'text-white');
+
+        // Mostrar sección de evento en sidebar si estamos en admin
+        const evSection = document.getElementById('nav-section-event');
+        if (evSection) evSection.classList.toggle('hidden', viewName !== 'admin');
+        
+        window.scrollTo(0, 0);
+    },
+
+    navigate(viewName, params = {}, push = true) {
+        if (push) {
+            const url = viewName === 'my-events' ? '/' : `/${viewName}`;
+            history.pushState({ view: viewName, params }, '', url);
+        }
+        this.showView(viewName);
+        
+        if (viewName === 'my-events') this.loadEvents();
+        if (viewName === 'system') this.loadUsersTable();
+    },
+
+    initRouter() {
+        window.onpopstate = (e) => {
+            if (e.state && e.state.view) {
+                this.navigate(e.state.view, e.state.params, false);
+            } else {
+                this.navigate('my-events', {}, false);
+            }
+        };
     },
 
     // --- AUTH ---
@@ -60,19 +114,16 @@ window.App = {
         }
     },
     logout() {
-        console.log("CHECK V9.3: Cerrando sesión segura. Retornando a Login.");
+        console.log("CHECK V9.3: Cerrando sesión segura.");
         localStorage.removeItem('user');
         this.state.user = null;
-        if (typeof window.FORCE_NAVGATION === 'function') {
-            window.FORCE_NAVGATION('login');
-        }
+        this.showView('login');
     },
     async loadAppVersion() {
         try {
             const d = await fetch('/api/app-version').then(r => r.json());
             this.state.version = d.version;
             document.querySelectorAll('.app-version-label').forEach(el => el.innerText = `Check Pro V${d.version}`);
-            console.log(`CHECK V${d.version}: Versión sincronizada.`);
         } catch(e) {}
     },
 
@@ -82,10 +133,9 @@ window.App = {
             this.state.events = await this.fetchAPI('/events');
             this.showView('my-events');
             
-            // Mostrar botón global si es admin
-            const btnGlobal = document.getElementById('admin-global-nav-btn');
-            if (btnGlobal) {
-                btnGlobal.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
+            const btnAdminNav = document.getElementById('nav-btn-admin');
+            if (btnAdminNav) {
+                btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
             }
 
             this.renderEventsGrid();
@@ -110,9 +160,12 @@ window.App = {
         `).join('');
     },
     async openEvent(id) {
-        this.state.event = this.state.events.find(e => e.id === id);
-        if (!this.state.event) return;
-        this.showView('admin');
+        // FIX V10.5: Casting de ID para evitar fallos String vs Number
+        this.state.event = this.state.events.find(e => String(e.id) === String(id));
+        if (!this.state.event) return console.error("Evento no encontrado:", id);
+
+        this.navigate('admin', { id });
+        
         const tit = document.getElementById('admin-event-title');
         const loc = document.getElementById('admin-event-location');
         if (tit) tit.innerText = this.state.event.name;
@@ -602,19 +655,47 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch { alert('Error al actualizar contraseña.'); }
     });
 
-    // Clocks
-    setInterval(() => {
-        const ms = new Date();
-        const s = ms.toLocaleTimeString('es-ES', {hour12: false});
-        document.querySelectorAll('#events-list-clock, #admin-clock-real').forEach(e => e.innerText = s);
-        if (App.state.event) {
-            const d = new Date(App.state.event.date) - ms;
-            let cstr = "EVENTO ACTIVO";
-            if (d > 0) { const h=Math.floor(d/3600000).toString().padStart(2,'0'); const min=Math.floor((d%3600000)/60000).toString().padStart(2,'0'); const sec=Math.floor((d%60000)/1000).toString().padStart(2,'0'); cstr=`${h}:${min}:${sec}`; }
-            const c1 = document.getElementById('admin-clock-countdown'); const c2 = document.getElementById('countdown-timer');
-            if (c1) c1.innerText = cstr; if (c2) c2.innerText = cstr;
+    // 6. Inicialización V10.5
+    const init = async () => {
+        App.initRouter();
+        App.loadAppVersion();
+        
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            try {
+                App.state.user = JSON.parse(savedUser);
+                const sbu = document.getElementById('sidebar-username');
+                const sbr = document.getElementById('sidebar-role');
+                if (sbu) sbu.textContent = App.state.user.username || 'Usuario';
+                if (sbr) sbr.textContent = App.state.user.role || 'Staff';
+                App.navigate('my-events', {}, false);
+            } catch { App.logout(); }
+        } else {
+            App.showView('login');
         }
-    }, 1000);
+
+        // Clocks V10.5
+        setInterval(() => {
+            const ms = new Date();
+            const s = ms.toLocaleTimeString('es-ES', {hour12: false});
+            document.querySelectorAll('#events-list-clock, #admin-clock-real').forEach(e => e.innerText = s);
+            if (App.state.event) {
+                const eventDate = new Date(App.state.event.date);
+                const diff = eventDate - ms;
+                let cstr = "EVENTO ACTIVO";
+                if (diff > 0) { 
+                    const h = Math.floor(diff/3600000).toString().padStart(2,'0'); 
+                    const min = Math.floor((diff%3600000)/60000).toString().padStart(2,'0'); 
+                    const sec = Math.floor((diff%60000)/1000).toString().padStart(2,'0'); 
+                    cstr = `${h}:${min}:${sec}`; 
+                }
+                const c1 = document.getElementById('admin-clock-countdown');
+                if (c1) c1.innerText = cstr;
+            }
+        }, 1000);
+    };
+
+    init();
 });
 
 // Retrocompatibilidad

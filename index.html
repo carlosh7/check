@@ -135,69 +135,153 @@
         </div>
     </div>
 
-    <!-- VIEW: MY EVENTS -->
-    <div id="view-my-events" class="hidden min-h-screen bg-slate-950 p-6 md:p-12 animate-fade">
-        <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
-            <div>
-                <h2 class="text-5xl font-black font-display tracking-tight mb-2">Mis <span class="text-primary">Eventos</span></h2>
-                <p class="text-slate-500 text-sm">Gestiona y monitorea tus producciones activas.</p>
-            </div>
-            <div class="flex items-center gap-6">
-                <div class="px-6 py-3 glass-card rounded-2xl text-primary font-mono font-black text-xl border border-primary/20 shadow-lg shadow-primary/5">
-                    <span id="events-list-clock">00:00:00</span>
-                </div>
-                <button id="btn-create-event-open" class="btn-primary !py-4 !px-8 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-sm font-black uppercase tracking-widest">Nuevo Evento</button>
-            </div>
-        </header>
-        <div id="events-list-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
-    </div>
-
-    <!-- VIEW: SYSTEM ADMIN (V10.3 Global Management) -->
-    <div id="view-system" class="hidden admin-layout bg-slate-950 animate-fade">
-        <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
+    <!-- APP CONTAINER: Estructura Global V10.5.0 (Sidebar Persistente) -->
+    <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950">
+        <!-- Sidebar Global -->
+        <aside id="global-sidebar" class="sidebar w-[280px] bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
             <div class="flex items-center gap-5 mb-16 px-1">
                 <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
                     <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
                 </div>
-                <span class="font-black font-display text-2xl tracking-tighter">Check<span class="text-primary italic">.</span></span>
+                <span class="font-black font-display text-2xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
             </div>
-            <nav class="flex-1 space-y-1 overflow-y-auto">
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración Global</p>
-                <button id="sys-nav-users" class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
-                    <span class="material-symbols-outlined">group</span> Equipo
-                </button>
-                <button id="sys-nav-legal" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">gavel</span> Legales
-                </button>
-                <button id="sys-nav-account" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
-                </button>
-                
-                <div class="h-px bg-white/5 my-6"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Producción</p>
-                <button id="sys-nav-events" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">event_repeat</span> Selector de Eventos
-                </button>
+            
+            <nav id="sidebar-nav" class="flex-1 space-y-1 overflow-y-auto">
+                <!-- Secciones dinámicas según vista -->
+                <div id="nav-section-global" class="space-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Navegación</p>
+                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">event_repeat</span> Mis Eventos
+                    </button>
+                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="hidden w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">settings_suggest</span> Panel Sistema
+                    </button>
+                </div>
+
+                <div id="nav-section-event" class="hidden pt-6 mt-6 border-t border-white/5 space-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Evento Actual</p>
+                    <button class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
+                        <span class="material-symbols-outlined">dashboard</span> Dashboard
+                    </button>
+                    <!-- Aquí se pueden añadir más tabs del evento -->
+                </div>
             </nav>
-            <div class="mt-6 pt-6 border-t border-white/5 mb-20"> <!-- Margen inferior para evitar solapamiento con la versión -->
-                <button onclick="window.App.logout()" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
+
+            <div class="mt-6 pt-6 border-t border-white/5 pb-20">
+                <div class="flex items-center gap-3 px-4 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-lg">person</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p id="sidebar-username" class="text-xs font-black text-white truncate">Usuario</p>
+                        <p id="sidebar-role" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Rol</p>
+                    </div>
+                </div>
+                <button onclick="App.logout()" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
                     <span class="material-symbols-outlined text-sm">logout</span> Salir
                 </button>
             </div>
         </aside>
-        <main class="main-content bg-slate-950 p-12">
-            <!-- TAB: USUARIOS -->
-            <div id="sys-content-users" class="animate-fade">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+
+        <!-- Main Content Area -->
+        <main id="app-main-content" class="flex-1 overflow-auto relative bg-slate-950">
+            
+            <!-- VIEW: MY EVENTS -->
+            <div id="view-my-events" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
                     <div>
-                        <h2 class="text-4xl font-black font-display mb-2">Gestión de <span class="text-primary">Equipo</span></h2>
-                        <p class="text-slate-500 text-sm">Administra accesos, roles y estado de los usuarios del sistema.</p>
+                        <h2 class="text-5xl font-black font-display tracking-tight mb-2">Mis <span class="text-primary">Eventos</span></h2>
+                        <p class="text-slate-500 text-sm">Gestiona y monitorea tus producciones activas.</p>
                     </div>
-                    <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 whitespace-nowrap">
-                        <span class="material-symbols-outlined text-sm">person_add</span> Añadir Usuario
-                    </button>
+                    <div class="flex items-center gap-6">
+                        <div class="px-6 py-3 glass-card rounded-2xl text-primary font-mono font-black text-xl border border-primary/20 shadow-lg shadow-primary/5">
+                            <span id="events-list-clock">00:00:00</span>
+                        </div>
+                        <button id="btn-create-event-open" class="btn-primary !py-4 !px-8 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-sm font-black uppercase tracking-widest">Nuevo Evento</button>
+                    </div>
+                </header>
+                <div id="events-list-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
+            </div>
+
+            <!-- VIEW: ADMIN / SYSTEM (Unificado) -->
+            <div id="view-admin" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <!-- El contenido de administración/dashboard de evento se inyectará aquí o se mantendrá estructurado -->
+                <div id="admin-main-dashboard">
+                    <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                                <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Panel del Evento
+                            </div>
+                            <h1 id="admin-event-title" class="text-5xl font-black font-display tracking-tight mb-2">Cargando...</h1>
+                            <div class="flex items-center gap-2 text-slate-500 text-sm">
+                                <span class="material-symbols-outlined text-sm">location_on</span>
+                                <span id="admin-event-location">Ubicación</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-export-excel" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">Excel</button>
+                            <button id="btn-clear-db" class="px-6 py-3 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-all border border-red-500/10">Limpiar</button>
+                        </div>
+                    </header>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <div class="glass-card p-6 rounded-3xl">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Invitados</p>
+                            <h4 id="stat-total" class="text-3xl font-black font-display">0</h4>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Empresas</p>
+                            <h4 id="stat-orgs" class="text-3xl font-black font-display">0</h4>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl border-l-4 border-primary">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Presencia Real</p>
+                            <h4 id="stat-presence" class="text-3xl font-black font-display text-primary">0%</h4>
+                        </div>
+                         <div class="glass-card p-6 rounded-3xl border-l-4 border-amber-500">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">En Sitio</p>
+                            <h4 id="stat-onsite" class="text-3xl font-black font-display text-amber-500">0</h4>
+                        </div>
+                    </div>
+
+                    <!-- GUEST LIST SECTION -->
+                    <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                        <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                            <h3 class="font-black text-lg">Control de Acceso</h3>
+                            <input id="guest-search" type="text" placeholder="Buscar..." class="bg-slate-950 border border-white/10 rounded-xl px-6 py-3 text-xs w-64 focus:border-primary">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                    <tr><th class="px-8 py-5">Invitado</th><th class="px-8 py-5">Empresa</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acciones</th></tr>
+                                </thead>
+                                <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div id="pending-requests-section" class="hidden mb-8 p-8 glass-card rounded-[40px] border-2 border-amber-500/30 bg-amber-500/5">
+            </div>
+
+            <!-- VIEW: SYSTEM (NUEVOS USUARIOS/LEGALES) -->
+            <div id="view-system" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div id="sys-content-users">
+                     <div class="flex justify-between items-center mb-10">
+                        <h2 class="text-4xl font-black font-display">Gestión Global</h2>
+                        <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Añadir Usuario</button>
+                    </div>
+                    <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                         <table class="w-full text-left">
+                            <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                <tr><th class="px-8 py-5">Usuario</th><th class="px-8 py-5">Rol</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Fin</th></tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
                     <h4 class="text-sm font-black uppercase tracking-widest text-amber-400 mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined text-amber-400">notifications_active</span> Solicitudes Pendientes
                     </h4>
