@@ -476,19 +476,45 @@ setClick('btn-export-analytics', async () => {
     const doc = new jsPDF();
     const stats = await apiFetch(`/stats/${currentEvent.id}`);
     
+    // Título y Cabecera
     doc.setFontSize(22);
-    doc.text(`Reporte de Analítica: ${currentEvent.name}`, 20, 20);
+    doc.setTextColor(124, 58, 237); // Color Primary
+    doc.text("REPORT DE ANALÍTICA PREMIUM", 105, 20, { align: 'center' });
+    
     doc.setFontSize(14);
-    doc.text(`Fecha del Reporte: ${new Date().toLocaleString()}`, 20, 30);
-    doc.line(20, 35, 190, 35);
-    
-    doc.text(`Total Invitados: ${stats.total || 0}`, 20, 50);
-    doc.text(`Asistencia Real: ${stats.checkedIn || 0} (${document.getElementById('stat-presence').innerText})`, 20, 60);
-    doc.text(`Empresas Representadas: ${stats.orgs || 0}`, 20, 70);
-    doc.text(`Nuevos Registros (On-Site): ${stats.onsite || 0}`, 20, 80);
-    doc.text(`Alertas de Salud/Dieta: ${stats.healthAlerts || 0}`, 20, 90);
-    
-    doc.save(`Analitica_${currentEvent.name}.pdf`);
+    doc.setTextColor(100);
+    doc.text(`Evento: ${currentEvent.name}`, 20, 35);
+    doc.text(`Fecha: ${new Date().toLocaleString()}`, 20, 42);
+    doc.line(20, 45, 190, 45);
+
+    // Tabla de Resumen Ejecutivo
+    doc.autoTable({
+        startY: 55,
+        head: [['Métrica', 'Valor']],
+        body: [
+            ['Total Invitados', stats.total || 0],
+            ['Asistencia Real', `${stats.checkedIn || 0} (${document.getElementById('stat-presence').innerText})`],
+            ['Empresas Registradas', stats.orgs || 0],
+            ['Registros On-Site', stats.onsite || 0],
+            ['Alertas de Salud/Dieta', stats.healthAlerts || 0]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [124, 58, 237] }
+    });
+
+    // Tabla de Flujo de Asistencia
+    if (stats.flowData && stats.flowData.length > 0) {
+        doc.addPage();
+        doc.text("FLUJO DE ASISTENCIA (POR HORA)", 20, 20);
+        doc.autoTable({
+            startY: 30,
+            head: [['Hora', 'Invitados Registrados']],
+            body: stats.flowData.map(d => [`${d.hour}:00`, d.count]),
+            headStyles: { fillColor: [79, 70, 229] }
+        });
+    }
+
+    doc.save(`Reporte_Analitica_${currentEvent.name.replace(/\s+/g, '_')}.pdf`);
 });
 
 setClick('btn-clear-db', async () => {

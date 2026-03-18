@@ -48,7 +48,7 @@ const upload = multer({ storage });
 // --- MIDDLEWARES ---
 const authMiddleware = (roles = []) => {
     return (req, res, next) => {
-        const userId = req.headers['x-user-id'];
+        const userId = req.headers['x-user-id'] || req.query['x-user-id'];
         if (!userId) return res.status(401).json({ error: 'No autorizado' });
 
         db.get("SELECT role, status FROM users WHERE id = ?", [userId], (err, row) => {
