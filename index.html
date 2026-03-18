@@ -152,6 +152,9 @@
                     <button onclick="App.navigate('system')" id="nav-btn-system" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                         <span class="material-symbols-outlined">group</span> Equipo
                     </button>
+                    <button onclick="App.navigate('groups')" id="nav-btn-groups" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">folder</span> Grupos
+                    </button>
                     <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                         <span class="material-symbols-outlined">gavel</span> Legales
                     </button>
@@ -302,6 +305,22 @@
                             <tbody id="users-tbody-simple" class="divide-y divide-white/5"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- VIEW: GRUPOS (V10.5) -->
+            <div id="view-groups" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-4xl font-black font-display">Gestión de <span class="text-primary">Grupos</span></h2>
+                    <button id="btn-create-group" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Crear Grupo</button>
+                </div>
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                            <tr><th class="px-8 py-5">Nombre</th><th class="px-8 py-5">Descripción</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-center">Fecha</th><th class="px-8 py-5 text-right">Acciones</th></tr>
+                        </thead>
+                        <tbody id="groups-tbody" class="divide-y divide-white/5"></tbody>
+                    </table>
                 </div>
             </div>
 

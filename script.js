@@ -10,10 +10,84 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.5.3', // Master Version
+        version: '10.5.3',
+        groups: [],
     },
     constants: {
         API_URL: '/api'
+    },
+    
+    // ═══ PERMISOS JERÁRQUICOS V10.5 ═══
+    canAccess(permission) {
+        const role = this.state.user?.role;
+        if (role === 'ADMIN') return true;
+        
+        // Permisos de PRODUCTOR
+        if (role === 'PRODUCTOR') {
+            const producerPerms = [
+                'view_groups', 'create_group', 'edit_group',
+                'view_events', 'create_event', 'edit_event', 'delete_event',
+                'view_users', 'create_user', 'edit_user', 'delete_user',
+                'export_data', 'delete_db'
+            ];
+            return producerPerms.includes(permission);
+        }
+        
+        // Permisos de STAFF
+        if (role === 'STAFF') {
+            const staffPerms = [
+                'view_events', 'view_guests', 'create_guest', 'edit_guest', 'delete_guest', 'export_guests'
+            ];
+            return staffPerms.includes(permission);
+        }
+        
+        // Permisos de CLIENTE (más restrictivos)
+        if (role === 'CLIENTE') {
+            const clientPerms = [
+                'view_events', 'view_guests'
+            ];
+            return clientPerms.includes(permission);
+        }
+        
+        return false;
+    },
+    
+    // Mostrar/ocultar elementos según permisos
+    updateUIPermissions() {
+        // Admin: mostrar todo el menú de administración global
+        if (this.state.user?.role === 'ADMIN') {
+            document.getElementById('nav-section-global')?.classList.remove('hidden');
+        } else {
+            document.getElementById('nav-section-global')?.classList.add('hidden');
+        }
+        
+        // Ocultar botón de eliminar base de datos para no-admin
+        if (!this.canAccess('delete_db')) {
+            const deleteBtns = document.querySelectorAll('[id*="delete-db"], [id*="btn-clear-db"]');
+            deleteBtns.forEach(btn => btn?.classList.add('hidden'));
+        }
+    },
+    
+    // Cargar grupos
+    loadGroups: async function() {
+        if (!this.state.user || this.state.user.role !== 'ADMIN') return;
+        try {
+            const groups = await this.fetchAPI('/groups');
+            this.state.groups = groups;
+            const tbody = document.getElementById('groups-tbody');
+            if (tbody) {
+                tbody.innerHTML = groups.map(g => `
+                    <tr class="hover:bg-white/2 border-b border-white/5">
+                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${g.name}</div></td>
+                        <td class="px-8 py-5 text-slate-400 text-sm">${g.description || '-'}</td>
+                        <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}">${g.status}</span></td>
+                        <td class="px-8 py-5 text-center text-slate-500 text-xs">${g.created_at ? new Date(g.created_at).toLocaleDateString() : '-'}</td>
+                        <td class="px-8 py-5 text-right">
+                            <button onclick="App.editGroup('${g.id}')" class="px-3 py-1.5 bg-white/5 text-slate-400 hover:text-white rounded-xl text-[10px] font-black">Editar</button>
+                        </td>
+                    </tr>`).join('');
+            }
+        } catch(e) { console.error('Error loading groups:', e); }
     },
     
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
@@ -112,7 +186,7 @@ window.App = {
         }
 
         // 2. Switchear vistas internas
-        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple"];
+        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -158,6 +232,7 @@ window.App = {
         if (viewName === 'system') window.switchSystemTab('users');
         if (viewName === 'legal') window.switchSystemTab('legal');
         if (viewName === 'account') window.switchSystemTab('account');
+        if (viewName === 'groups') this.loadGroups();
     },
 
     initRouter() {
@@ -490,6 +565,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sbu) sbu.textContent = d.username || 'Usuario';
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
+                // Actualizar permisos UI
+                App.updateUIPermissions();
+                
                 if (d.role === 'ADMIN') {
                     App.navigate('system');
                     setTimeout(() => window.switchSystemTab('users'), 100);
@@ -773,6 +851,18 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('✓ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
         } catch { alert('Error al actualizar contraseña.'); }
+    });
+
+    // ═══ GRUPOS V10.5 ═══
+    cl('btn-create-group', async () => {
+        const name = prompt('Nombre del grupo:');
+        if (!name) return;
+        const description = prompt('Descripción del grupo (opcional):');
+        try {
+            const res = await App.fetchAPI('/groups', { method: 'POST', body: JSON.stringify({ name, description }) });
+            if (res.success) { alert('✓ Grupo creado'); App.loadGroups(); }
+            else alert('Error: ' + res.error);
+        } catch { alert('Error de conexión.'); }
     });
 });
 
