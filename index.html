@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark bg-slate-950">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +35,7 @@
     </script>
     <style type="text/tailwindcss">
         /* FIX SCROLL Y AUTO-AJUSTE V7.5 */
-        html, body { height: 100%; overflow-x: hidden; scroll-behavior: smooth; }
+        html, body { height: 100%; overflow-x: hidden; scroll-behavior: smooth; background-color: #020617 !important; }
         .admin-layout { height: 100vh; display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
         .sidebar { height: 100%; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
         .main-content { height: 100%; overflow-y: auto; padding: 3rem; scrollbar-gutter: stable; }
@@ -78,13 +78,14 @@
                 console.log("Mostrado forzosamente: view-" + viewName);
             }
             
-            // Restaurar overflow global por si acaso
+            // Restaurar overflow global por si acaso y SUBIR AL TOP (CRITICO PARA EVITAR PANTALLA BLANCA)
             document.body.style.overflow = 'auto';
             document.documentElement.style.overflow = 'auto';
+            window.scrollTo(0, 0);
         }
     </script>
 </head>
-<body class="bg-slate-950 text-slate-50 antialiased font-sans">
+<body class="bg-slate-950 text-slate-50 antialiased font-sans flex flex-col min-h-screen">
 
     <!-- VIEW: REGISTRATION -->
     <div id="view-registration" class="min-h-screen flex items-center justify-center bg-gradient-premium animate-fade relative overflow-hidden">
