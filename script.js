@@ -460,9 +460,22 @@ window.App = {
         const appEl = document.getElementById('app-container');
         
         if (isLogin) {
+            // Limpiar sesión al mostrar login
+            localStorage.removeItem('user');
+            localStorage.removeItem('selected_event_id');
+            localStorage.removeItem('selected_event_name');
+            this.state.user = null;
+            this.state.event = null;
+            
             // Mostrar login, ocultar app
-            if (loginEl) { loginEl.classList.remove('hidden'); loginEl.style.display = 'flex'; }
-            if (appEl) { appEl.classList.add('hidden'); appEl.style.display = 'none'; }
+            if (loginEl) { 
+                loginEl.classList.remove('hidden'); 
+                loginEl.style.display = 'flex'; 
+            }
+            if (appEl) { 
+                appEl.classList.add('hidden'); 
+                appEl.style.display = 'none'; 
+            }
             return;
         } else {
             // Ocultar login, mostrar app
