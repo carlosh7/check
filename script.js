@@ -540,3 +540,6 @@ if ('serviceWorker' in navigator) {
         }).catch(err => console.log('Error registrando SW', err));
     });
 }
+
+// Iniciar aplicación
+init();
