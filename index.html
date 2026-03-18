@@ -33,30 +33,11 @@
           }
         }
     </script>
-    <style type="text/tailwindcss">
-        /* FIX SCROLL Y AUTO-AJUSTE V7.5 */
-        html, body { height: 100%; overflow-x: hidden; scroll-behavior: smooth; background-color: #020617 !important; }
-        .admin-layout { height: 100vh; display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
-        .sidebar { height: 100%; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
-        .main-content { height: 100%; overflow-y: auto; padding: 3rem; scrollbar-gutter: stable; }
-        
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        .nav-btn-active { @apply bg-primary text-white shadow-lg shadow-primary/30; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(124, 58, 237, 0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.5); }
-    </style>
     <script>
         // MOTOR BRUTE-FORCE DE NAVEGACIÓN V7.5
-        function FORCE_NAVGATION(viewName) {
+        window.FORCE_NAVGATION = function(viewName) {
             console.log("EJECUTANDO NAVEGACION DE FUERZA BRUTA HACIA: " + viewName);
             
-            // 1. Ocultar todas las vistas a nivel atómico
             const views = ["view-registration", "view-login", "view-my-events", "view-admin"];
             views.forEach(id => {
                 const el = document.getElementById(id);
@@ -65,26 +46,23 @@
                     el.style.visibility = 'hidden';
                     el.style.opacity = '0';
                     el.classList.add('hidden');
-                    console.log("Ocultado: " + id);
                 }
             });
 
-            // 2. Mostrar la vista elegida a nivel atómico
             const target = document.getElementById("view-" + viewName);
             if (target) {
                 target.classList.remove('hidden');
                 target.style.display = (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex'));
                 target.style.cssText += 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important;';
-                console.log("Mostrado forzosamente: view-" + viewName);
             }
             
-            // Restaurar overflow global por si acaso y SUBIR AL TOP (CRITICO PARA EVITAR PANTALLA BLANCA)
             document.body.style.overflow = 'auto';
             document.documentElement.style.overflow = 'auto';
             window.scrollTo(0, 0);
         }
     </script>
 </head>
+
 <body class="bg-slate-950 text-slate-50 antialiased font-sans flex flex-col min-h-screen">
 
     <!-- VIEW: REGISTRATION -->

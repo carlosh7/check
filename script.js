@@ -17,30 +17,11 @@ window.App = {
     
     // --- CORE NAV ---
     showView(viewName) {
-        console.log(`CHECK V7.0: Renderizando vista -> ${viewName}`);
-        document.querySelectorAll('[id^="view-"]').forEach(v => {
-            v.classList.add('hidden');
-            v.style.display = 'none';
-        });
-        
-        const target = document.getElementById(`view-${viewName}`);
-        if (!target) return console.error(`CHECK V7.0: Vista [${viewName}] no hallada.`);
-
-        target.classList.remove('hidden');
-        if (viewName === 'admin') {
-            target.style.display = 'flex'; // Admin layout is flex
-            document.body.style.overflow = 'auto'; // FIX CRÍTICO: Permitir scroll libre
-            document.documentElement.style.overflow = 'auto';
-        } else if (viewName === 'my-events') {
-            target.style.display = 'block';
-            document.body.style.overflow = 'auto';
-            document.documentElement.style.overflow = 'auto';
+        if (typeof window.FORCE_NAVGATION === 'function') {
+            window.FORCE_NAVGATION(viewName);
         } else {
-            target.style.display = 'flex'; // split-screen is flex
-            document.body.style.overflow = 'auto';
-            document.documentElement.style.overflow = 'auto';
+            console.error("CHECK V7.8: Motor FORCE_NAVGATION no disponible. Actualice index.html.");
         }
-        window.scrollTo(0, 0);
     },
 
     // --- AUTH ---
