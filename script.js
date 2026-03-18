@@ -337,37 +337,44 @@ function updateFlowChart(flowData) {
 function renderGuests(data) {
     const tbody = document.getElementById('guests-tbody');
     if (!tbody) return;
-    tbody.innerHTML = data.map(g => `
-        <tr class="group">
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-20 text-slate-600 font-medium">No se encontraron invitados.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(g => {
+        const safeName = g.name || "Invitado Sin Nombre";
+        const initial = safeName.charAt(0).toUpperCase() || "?";
+        return `
+        <tr class="group border-b border-white/5 hover:bg-white/[0.02] transition-colors">
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-[11px] font-black text-primary border border-primary/20">
-                        ${g.name[0].toUpperCase()}
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-[12px] font-black text-primary border border-primary/20 shadow-inner">
+                        ${initial}
                     </div>
                     <div>
-                        <p class="font-bold text-sm text-white">${g.name}</p>
-                        <p class="text-[10px] text-slate-600 font-mono">${g.email || 'SIN CORREO'}</p>
+                        <p class="font-bold text-sm text-white">${safeName}</p>
+                        <p class="text-[10px] text-slate-600 font-mono tracking-tighter">${g.email || 'SIN CORREO REGISTRADO'}</p>
                     </div>
                 </div>
             </td>
             <td class="px-6 py-5">
-                <span class="text-xs font-semibold text-slate-500 uppercase">${g.organization || '---'}</span>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">${g.organization || '---'}</span>
             </td>
             <td class="px-6 py-5 text-center">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${g.checked_in ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-800 text-slate-600 border border-white/5'}">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${g.checked_in ? 'bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_10px_rgba(74,222,128,0.1)]' : 'bg-slate-800/50 text-slate-600 border border-white/5'}">
                     ${g.checked_in ? 'Presente' : 'Ausente'}
                 </div>
             </td>
-            <td class="px-6 py-5 text-right flex gap-2 justify-end">
-                <button onclick="toggleCheckin('${g.id}', ${g.checked_in})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${g.checked_in ? 'bg-slate-800 text-slate-500' : 'bg-primary text-white'}">
+            <td class="px-6 py-5 text-right flex gap-3 justify-end items-center">
+                <button onclick="toggleCheckin('${g.id}', ${g.checked_in})" class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${g.checked_in ? 'bg-slate-800 text-slate-500 border border-white/5' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105'}">
                     ${g.checked_in ? 'Deshacer' : 'Check-in'}
                 </button>
-                <button onclick="printBadge('${g.id}')" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-primary transition-all">
-                    <span class="material-symbols-outlined text-[18px]">print</span>
+                <button onclick="printBadge('${g.id}')" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/50 transition-all">
+                    <span class="material-symbols-outlined text-[20px]">print</span>
                 </button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 // Guest Search Logic
@@ -463,9 +470,25 @@ setClick('btn-export-excel', () => {
     window.location.href = `${API_URL}/export-excel/${currentEvent.id}?x-user-id=${loggedUser.userId}`;
 });
 
-setClick('btn-export-analytics', () => {
-    alert("Generando reporte de analítica... (Se descargará en breve)");
-    // Aquí se podría implementar jsPDF para un reporte visual
+setClick('btn-export-analytics', async () => {
+    if (!currentEvent) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const stats = await apiFetch(`/stats/${currentEvent.id}`);
+    
+    doc.setFontSize(22);
+    doc.text(`Reporte de Analítica: ${currentEvent.name}`, 20, 20);
+    doc.setFontSize(14);
+    doc.text(`Fecha del Reporte: ${new Date().toLocaleString()}`, 20, 30);
+    doc.line(20, 35, 190, 35);
+    
+    doc.text(`Total Invitados: ${stats.total || 0}`, 20, 50);
+    doc.text(`Asistencia Real: ${stats.checkedIn || 0} (${document.getElementById('stat-presence').innerText})`, 20, 60);
+    doc.text(`Empresas Representadas: ${stats.orgs || 0}`, 20, 70);
+    doc.text(`Nuevos Registros (On-Site): ${stats.onsite || 0}`, 20, 80);
+    doc.text(`Alertas de Salud/Dieta: ${stats.healthAlerts || 0}`, 20, 90);
+    
+    doc.save(`Analitica_${currentEvent.name}.pdf`);
 });
 
 setClick('btn-clear-db', async () => {
