@@ -105,6 +105,52 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// --- GOVERNANCE V10 (USERS & SETTINGS) ---
+app.get('/api/users', authMiddleware(['ADMIN']), (req, res) => {
+    db.all("SELECT id, username, role, status, created_at FROM users ORDER BY created_at DESC", (err, rows) => res.json(rows));
+});
+
+app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
+    const { username, password, role } = req.body;
+    const id = uuidv4();
+    db.run("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, 'APPROVED', ?)", 
+        [id, username, password, role || 'PRODUCTOR', new Date().toISOString()], (err) => {
+            if (err) return res.status(400).json({ success: false, error: 'Usuario ya existe u ocurrió un error' });
+            res.json({ success: true, userId: id });
+        });
+});
+
+app.put('/api/users/:id/role', authMiddleware(['ADMIN']), (req, res) => {
+    db.run("UPDATE users SET role = ? WHERE id = ?", [req.body.role, req.params.id], () => res.json({ success: true }));
+});
+
+app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
+    db.run("UPDATE users SET status = ? WHERE id = ?", [req.body.status, req.params.id], () => res.json({ success: true }));
+});
+
+app.put('/api/users/:id/password', authMiddleware(), (req, res) => {
+    // Solo un ADMIN o el propio usuario puede cambiar su clave
+    const targetId = req.params.id;
+    const requesterId = req.headers['x-user-id'] || req.query['x-user-id'];
+    if (req.userRole !== 'ADMIN' && requesterId !== targetId) return res.status(403).json({ error: 'Acceso Denegado' });
+    db.run("UPDATE users SET password = ? WHERE id = ?", [req.body.password, targetId], () => res.json({ success: true }));
+});
+
+app.get('/api/settings', (req, res) => {
+    db.all("SELECT * FROM settings", (err, rows) => {
+        const dict = {};
+        if (rows) rows.forEach(r => dict[r.setting_key] = r.setting_value);
+        res.json(dict);
+    });
+});
+
+app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {
+    const { policy_data, terms_conditions } = req.body;
+    if (policy_data !== undefined) db.run("UPDATE settings SET setting_value = ? WHERE setting_key = 'policy_data'", [policy_data]);
+    if (terms_conditions !== undefined) db.run("UPDATE settings SET setting_value = ? WHERE setting_key = 'terms_conditions'", [terms_conditions]);
+    res.json({ success: true });
+});
+
 app.get('/api/events', authMiddleware(), (req, res) => {
     const userId = req.headers['x-user-id'] || req.query['x-user-id'];
     const query = req.userRole === 'ADMIN' ? "SELECT * FROM events" : "SELECT * FROM events WHERE user_id = ?";

@@ -109,29 +109,52 @@
 
     <!-- VIEW: LOGIN -->
     <div id="view-login" class="min-h-screen flex items-center justify-center bg-slate-950 p-6 animate-fade relative z-50">
-        <div class="w-full max-w-md glass-card p-12 rounded-[48px] border border-white/10 shadow-2xl">
-            <h2 class="text-3xl font-black mb-10 font-display text-center">Acceso Privado</h2>
-            <form id="login-form" class="space-y-6">
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">person</span>
-                    <input type="text" id="login-user" required placeholder="Usuario" class="input-field !pl-12 bg-slate-900/50">
+        <div class="w-full max-w-md">
+            <div class="glass-card p-12 rounded-[48px] border border-white/10 shadow-2xl">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <div class="w-10 h-10 bg-primary/20 rounded-xl border border-primary/30 flex items-center justify-center"><span class="material-symbols-outlined text-primary text-xl">shield_checked</span></div>
+                    <span class="font-black font-display text-2xl tracking-tight">Check<span class="text-primary italic">.</span></span>
                 </div>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">lock</span>
-                    <input type="password" id="login-pass" required placeholder="Contraseña" class="input-field !pl-12 bg-slate-900/50">
-                </div>
-                <button type="submit" class="btn-primary w-full py-4 rounded-2xl shadow-lg shadow-primary/20 font-bold uppercase tracking-widest">Ingresar</button>
-                <div class="text-center mt-6">
-                    <a href="#" id="go-to-signup" class="text-primary text-xs font-bold hover:underline">¿No tienes cuenta? Solicita una</a>
-                    <button id="back-to-reg" type="button" onclick="FORCE_NAVGATION('registration'); return false;" class="block w-full mt-10 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors">Volver al Registro</button>
-                </div>
-            </form>
-            <form id="signup-form" class="hidden space-y-6">
-                <input type="text" id="signup-user" required placeholder="Nombre de Usuario" class="input-field">
-                <input type="password" id="signup-pass" required placeholder="Contraseña de Usuario" class="input-field">
-                <button type="submit" class="btn-primary w-full py-4 rounded-xl font-bold">Enviar Solicitud</button>
-                <button id="go-to-login" type="button" class="w-full text-xs font-bold text-slate-500 mt-6 hover:text-white transition-colors">Ya tengo cuenta</button>
-            </form>
+                <h2 class="text-lg font-bold mb-10 text-center text-slate-400">Acceso Privado</h2>
+                <form id="login-form" class="space-y-5">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">person</span>
+                        <input type="text" id="login-user" required placeholder="Usuario" class="input-field !pl-12 bg-slate-900/50">
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">lock</span>
+                        <input type="password" id="login-pass" required placeholder="Contraseña" class="input-field !pl-12 bg-slate-900/50">
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-4 rounded-2xl shadow-lg shadow-primary/20 font-bold uppercase tracking-widest">Ingresar</button>
+                    <div class="text-center mt-4">
+                        <a href="#" id="go-to-signup" class="text-primary text-xs font-bold hover:underline">¿No tienes cuenta? Solicita una</a>
+                    </div>
+                </form>
+                <form id="signup-form" class="hidden space-y-5">
+                    <h3 class="text-lg font-black text-center mb-6">Solicitar Acceso</h3>
+                    <input type="text" id="signup-user" required placeholder="Correo / Usuario" class="input-field bg-slate-900/50">
+                    <input type="password" id="signup-pass" required placeholder="Contraseña" class="input-field bg-slate-900/50">
+                    <button type="submit" class="btn-primary w-full py-4 rounded-xl font-bold uppercase tracking-widest">Enviar Solicitud</button>
+                    <button id="go-to-login" type="button" class="w-full text-xs font-bold text-slate-500 mt-2 hover:text-white transition-colors">Ya tengo cuenta → Ingresar</button>
+                </form>
+            </div>
+            <!-- LINKS LEGALES DEL LOGIN -->
+            <div class="flex justify-center gap-6 mt-8">
+                <button id="btn-open-policy" class="text-[11px] text-slate-600 hover:text-primary transition-colors uppercase tracking-widest font-bold">Política de Datos</button>
+                <span class="text-slate-700">·</span>
+                <button id="btn-open-terms" class="text-[11px] text-slate-600 hover:text-primary transition-colors uppercase tracking-widest font-bold">Términos de Uso</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: POLÍTICA / TÉRMINOS (Compartido) -->
+    <div id="modal-legal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
+        <div class="glass-card p-10 rounded-[48px] max-w-2xl w-full shadow-2xl border border-white/10 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-legal-title" class="text-2xl font-black font-display">Política</h3>
+                <button id="btn-close-legal" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="modal-legal-content" class="overflow-y-auto flex-1 text-slate-400 text-sm leading-relaxed prose prose-invert max-w-none"></div>
         </div>
     </div>
 
@@ -161,9 +184,9 @@
                 </div>
                 <span class="font-black font-display text-2xl tracking-tight">Check<span class="text-primary italic">.</span></span>
             </div>
-            <nav class="flex-1 space-y-2">
+            <nav class="flex-1 space-y-1 overflow-y-auto">
                 <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Panel Principal</p>
-                <button class="w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
+                <button id="nav-tab-dashboard" class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
                     <span class="material-symbols-outlined">dashboard</span> Dashboard
                 </button>
                 <button id="btn-events-list-nav" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
@@ -173,32 +196,56 @@
                     <span class="material-symbols-outlined">settings_suggest</span> Ajustes Evento
                 </button>
                 
-                <div class="h-px bg-white/5 my-8"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Importación y Datos</p>
+                <div class="h-px bg-white/5 my-4"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Datos e Importación</p>
                 <button id="admin-import-excel-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined">table_view</span> Importar Excel
                 </button>
                 <button id="admin-import-pdf-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined">picture_as_pdf</span> Importar PDF
                 </button>
-                
-                <div class="h-px bg-white/5 my-8"></div>
+
+                <div class="h-px bg-white/5 my-4"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración</p>
+                <button id="nav-tab-users" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="users">
+                    <span class="material-symbols-outlined">group</span> Gestión de Equipo
+                    <span id="pending-badge" class="hidden ml-auto bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full">!</span>
+                </button>
+                <button id="nav-tab-legal" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="legal">
+                    <span class="material-symbols-outlined">gavel</span> Textos Legales
+                </button>
+                <button id="nav-tab-account" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="account">
+                    <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
+                </button>
+
+                <div class="h-px bg-white/5 my-4"></div>
                 <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Complementos</p>
                 <button id="btn-edit-survey" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">poll</span> Gestionar Encuesta
+                    <span class="material-symbols-outlined">poll</span> Encuestas
                 </button>
                 <button id="btn-open-mailing" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">mail</span> Mailing Automático
+                    <span class="material-symbols-outlined">mail</span> Mailing Auto
                 </button>
-                
-                <div class="mt-12 flex-1"></div>
-                <button id="btn-delete-event" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all mt-auto uppercase tracking-widest">
+
+                <div class="mt-6 flex-1"></div>
+                <button id="btn-delete-event" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest">
                     <span class="material-symbols-outlined text-sm">delete_forever</span> Eliminar Evento
                 </button>
             </nav>
-            <button id="btn-logout" class="mt-8 px-5 py-4 text-slate-500 hover:text-white font-black text-xs uppercase tracking-[0.2em] flex items-center gap-3 transition-colors">
-                <span class="material-symbols-outlined text-sm">logout</span> Cerrar Sesión
-            </button>
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <div class="flex items-center gap-3 px-4 mb-4">
+                    <div class="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-lg">person</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p id="sidebar-username" class="text-sm font-black text-white truncate">Usuario</p>
+                        <p id="sidebar-role" class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Rol</p>
+                    </div>
+                </div>
+                <button id="btn-logout" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
+                    <span class="material-symbols-outlined text-sm">logout</span> Cerrar Sesión
+                </button>
+            </div>
         </aside>
 
         <main class="main-content bg-slate-950 relative">
@@ -357,7 +404,109 @@
                     </table>
                 </div>
             </section>
+
+            <!-- ======== TAB: GESTIÓN DE USUARIOS (V10.0) ======== -->
+            <section id="tab-users" class="hidden animate-fade">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 class="text-4xl font-black font-display mb-2">Gestión de <span class="text-primary">Equipo</span></h2>
+                        <p class="text-slate-500 text-sm">Administra accesos, roles y estado de los usuarios del sistema.</p>
+                    </div>
+                    <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 whitespace-nowrap">
+                        <span class="material-symbols-outlined text-sm">person_add</span> Invitar Usuario
+                    </button>
+                </div>
+
+                <!-- Panel de solicitudes pendientes -->
+                <div id="pending-requests-section" class="hidden mb-8 p-8 glass-card rounded-[40px] border-2 border-amber-500/30 bg-amber-500/5">
+                    <h4 class="text-sm font-black uppercase tracking-widest text-amber-400 mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400">notifications_active</span> Solicitudes Pendientes de Aprobación
+                    </h4>
+                    <div id="pending-users-list" class="space-y-3"></div>
+                </div>
+
+                <!-- Tabla completa de usuarios -->
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-white/2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                                    <th class="px-8 py-5">Usuario</th>
+                                    <th class="px-8 py-5">Rol</th>
+                                    <th class="px-8 py-5 text-center">Estado</th>
+                                    <th class="px-8 py-5 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== TAB: TEXTOS LEGALES (V10.0) ======== -->
+            <section id="tab-legal" class="hidden animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Textos <span class="text-primary">Legales</span></h2>
+                    <p class="text-slate-500 text-sm">Estos textos aparecerán en la página de Login y en el formulario de registro público.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Tratamiento de Datos</h4>
+                        <textarea id="legal-policy-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí el contenido de la política de datos..."></textarea>
+                        <button id="btn-save-policy" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Política</button>
+                    </div>
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos y Condiciones</h4>
+                        <textarea id="legal-terms-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí el contenido de los Términos y Condiciones..."></textarea>
+                        <button id="btn-save-terms" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Términos</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== TAB: MI CUENTA (V10.0) ======== -->
+            <section id="tab-account" class="hidden animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
+                    <p class="text-slate-500 text-sm">Configura tus credenciales de acceso.</p>
+                </div>
+                <div class="max-w-xl">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10">
+                        <h4 class="text-lg font-black mb-8 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
+                        <form id="change-pass-form" class="space-y-4">
+                            <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/60">
+                            <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field bg-slate-900/60">
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Actualizar Contraseña</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
         </main>
+    </div>
+
+    <!-- MODAL: INVITAR USUARIO (V10.0) -->
+    <div id="modal-invite" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[99999] flex items-center justify-center p-4">
+        <div class="glass-card p-12 rounded-[48px] max-w-lg w-full shadow-2xl border border-white/10">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black font-display">Crear / Invitar Usuario</h3>
+                <button id="btn-close-invite" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="invite-user-form" class="space-y-5">
+                <input type="text" id="invite-username" required placeholder="Correo / Nombre de usuario" class="input-field bg-slate-900/50">
+                <input type="password" id="invite-password" required placeholder="Contraseña inicial" class="input-field bg-slate-900/50">
+                <div>
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Rol de Acceso</label>
+                    <select id="invite-role" class="input-field bg-slate-900/50">
+                        <option value="ADMIN">ADMIN (Super Administrador)</option>
+                        <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                        <option value="STAFF">STAFF (Check-in en Sitio)</option>
+                        <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
+                        <option value="OTROS">OTROS (Acceso Restringido)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Crear Usuario Aprobado</button>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL: QR FEEDBACK -->
@@ -429,11 +578,11 @@
     <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="/script.js?v=9.2"></script>
+    <script src="/script.js?v=10.0"></script>
 
-    <!-- INDICADOR DE VERSIÓN GLOBAL -->
-    <div class="fixed bottom-4 left-4 z-[9999999] pointer-events-none opacity-50">
-        <span class="bg-black text-primary font-mono text-[10px] px-2 py-1 rounded border border-primary/20 shadow-lg shadow-black/50">Check Pro V9.2</span>
+    <!-- INDICADOR DE VERSIÓN GLOBAL V10 -->
+    <div class="fixed bottom-6 left-6 z-[9999999] pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
+        <span class="bg-slate-950 text-emerald-400 font-mono text-base sm:text-lg px-4 py-2 rounded-xl border-2 border-emerald-500/30 shadow-2xl shadow-emerald-900/50 backdrop-blur-md">Check Pro V10.0</span>
     </div>
 </body>
 </html>

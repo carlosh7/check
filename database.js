@@ -95,6 +95,29 @@ db.serialize(() => {
         FOREIGN KEY (guest_id) REFERENCES guests (id)
     )`);
 
+    // 7. Tabla de Configuración Global (Textos Legales V10)
+    db.run(`CREATE TABLE IF NOT EXISTS settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_value TEXT
+    )`, (err) => {
+        if (!err) {
+            // Semilla de textos legales por defecto si no existen
+            db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES 
+                ('policy_data', '<h2>Política de Tratamiento de Datos</h2><p>Texto provisional. El administrador debe actualizar esto.</p>'),
+                ('terms_conditions', '<h2>Términos y Condiciones</h2><p>Texto provisional. El administrador debe actualizar esto.</p>')
+            `);
+        }
+    });
+
+    // 8. Tabla de Auditoría (Logs V10)
+    db.run(`CREATE TABLE IF NOT EXISTS logs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        action TEXT,
+        details TEXT,
+        created_at TEXT
+    )`);
+
     // --- INICIALIZACIÓN DE DATOS SEMILLA (Si está vacío) ---
     
     db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
