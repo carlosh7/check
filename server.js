@@ -15,6 +15,10 @@ const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
+// --- VERSIÓN DINÁMICA V10.3 ---
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const APP_VERSION = pkg.version;
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -363,4 +367,8 @@ app.get('/api/events/public/:name', (req, res) => {
     else res.status(404).json({ error: 'Evento no encontrado' });
 });
 
-server.listen(port, () => console.log(`CHECK PRO V10.2 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}`));
+app.get('/api/app-version', (req, res) => {
+    res.json({ version: APP_VERSION });
+});
+
+server.listen(port, () => console.log(`CHECK PRO V${APP_VERSION} (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}`));

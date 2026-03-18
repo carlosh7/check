@@ -9,7 +9,8 @@ window.App = {
         guests: [],
         user: null,
         socket: null,
-        chart: null
+        chart: null,
+        version: '10.3.0' // Default fallback
     },
     constants: {
         API_URL: '/api'
@@ -45,6 +46,14 @@ window.App = {
         if (typeof window.FORCE_NAVGATION === 'function') {
             window.FORCE_NAVGATION('login');
         }
+    },
+    async loadAppVersion() {
+        try {
+            const d = await fetch('/api/app-version').then(r => r.json());
+            this.state.version = d.version;
+            document.querySelectorAll('.app-version-label').forEach(el => el.innerText = `Check Pro V${d.version}`);
+            console.log(`CHECK V${d.version}: Versión sincronizada.`);
+        } catch(e) {}
     },
 
     // --- DATA LOADERS ---
@@ -217,6 +226,9 @@ window.App = {
 
 // --- DOM READY BOOTSTRAP V10.2 ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Sync Version
+    App.loadAppVersion();
+
     // 1. Restore Auth
     try {
         const s = localStorage.getItem('user');
@@ -427,9 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = new window.jspdf.jsPDF();
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 50, 'F');
             doc.setTextColor(255,255,255); doc.setFontSize(28); doc.text("CHECK ANALYTICS", 15, 25);
-            doc.setFontSize(10); doc.setTextColor(124,58,237); doc.text(`REPORT V10.2 | ${App.state.event.name.toUpperCase()}`, 15, 35);
+            doc.setFontSize(10); doc.setTextColor(124,58,237); doc.text(`REPORT V${App.state.version} | ${App.state.event.name.toUpperCase()}`, 15, 35);
             doc.autoTable({ startY: 60, head: [['Métrica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas Médicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
-            doc.save(`Analitica_V10.2_${App.state.event.name.replace(/\s+/g,'_')}.pdf`);
+            doc.save(`Analitica_V${App.state.version}_${App.state.event.name.replace(/\s+/g,'_')}.pdf`);
         } catch(e) { alert("Error al generar PDF."); }
     });
 
