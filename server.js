@@ -436,12 +436,53 @@ app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (
         if (req.file.originalname.endsWith('.pdf')) {
             const dataBuffer = fs.readFileSync(req.file.path);
             const data = await pdfParse(dataBuffer);
-            const lines = data.text.split('\n').filter(l => l.trim().includes('@'));
-            lines.forEach(l => {
-                const parts = l.split(/\s+/);
-                const email = parts.find(p => p.includes('@'));
-                if (email) guests.push({ name: parts.filter(p => !p.includes('@')).join(' ') || 'Invitado PDF', email, organization: 'Importado PDF' });
+            const text = data.text;
+            
+            // Extraer emails con regex
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const emails = text.match(emailRegex) || [];
+            
+            // Para cada email, intentar extraer nombre asociado
+            emails.forEach(email => {
+                // Buscar texto antes del email (nombre posible)
+                const emailIndex = text.indexOf(email);
+                const beforeText = text.substring(Math.max(0, emailIndex - 150), emailIndex);
+                const lines = beforeText.split('\n');
+                const lastLine = lines[lines.length - 1].trim();
+                
+                // Limpiar nombre: quitar números, caracteres especiales al inicio/final
+                let name = lastLine.replace(/^[0-9\s\.\,\-\:]+/, '').trim();
+                name = name.split(/[0-9]{5,}/)[0].trim(); // Quitar códigos largos
+                
+                // Si el nombre está vacío o es muy corto, usar genérico
+                if (!name || name.length < 2) {
+                    name = email.split('@')[0].replace(/[._]/g, ' ');
+                    name = name.charAt(0).toUpperCase() + name.slice(1);
+                }
+                
+                guests.push({ 
+                    name: name.substring(0, 80), 
+                    email: email.toLowerCase(), 
+                    organization: 'Importado PDF' 
+                });
             });
+            
+            // Si no se encontraron emails, intentar con teléfonos
+            if (guests.length === 0) {
+                const phoneRegex = /[\+]?[0-9\s\-\(\)]{7,20}/g;
+                const phones = text.match(phoneRegex) || [];
+                phones.forEach(phone => {
+                    const cleanPhone = phone.replace(/\D/g, '');
+                    if (cleanPhone.length >= 8) {
+                        guests.push({ 
+                            name: 'Invitado ' + guests.length, 
+                            email: '', 
+                            phone: phone.trim(),
+                            organization: 'Importado PDF' 
+                        });
+                    }
+                });
+            }
         } else {
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(req.file.path);
