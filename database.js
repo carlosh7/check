@@ -13,6 +13,7 @@ db.serialize(() => {
         username TEXT UNIQUE,
         password TEXT,
         role TEXT DEFAULT 'PRODUCTOR',
+        status TEXT DEFAULT 'PENDING', -- 'PENDING', 'APPROVED', 'REJECTED'
         created_at TEXT
     )`);
 
@@ -88,8 +89,8 @@ db.serialize(() => {
     db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
         if (row && row.count === 0) {
             const adminId = uuidv4();
-            db.run("INSERT INTO users (id, username, password, role, created_at) VALUES (?, ?, ?, ?, ?)", 
-                [adminId, 'admin@check.com', 'admin123', 'ADMIN', new Date().toISOString()]);
+            db.run("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)", 
+                [adminId, 'admin@check.com', 'admin123', 'ADMIN', 'APPROVED', new Date().toISOString()]);
             
             console.log("Admin por defecto creado con ID:", adminId);
         }
