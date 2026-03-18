@@ -160,7 +160,7 @@ function renderEventsList() {
 }
 
 window.switchToDashboard = async function(id) {
-    currentEvent = allEvents.find(e => e.id === id);
+    currentEvent = allEvents.find(e => String(e.id) === String(id));
     if (!currentEvent) return;
     socket.emit('join_event', id);
     showView('admin');
