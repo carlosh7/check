@@ -1,4 +1,4 @@
-// MASTER SCRIPT V5.4 - RECONSTRUCCIÓN TOTAL 破🛡️
+// MASTER SCRIPT V5.5 - RESTAURACIÓN PREMIUM 🛡️⏪🚀
 let currentEvent = null;
 let allEvents = [];
 let allGuests = [];
@@ -25,8 +25,15 @@ async function apiFetch(endpoint, options = {}) {
 function showView(viewName) {
     document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
     const target = document.getElementById(`view-${viewName}`);
-    if (target) target.classList.remove('hidden');
-    document.body.classList.toggle('overflow-hidden', viewName === 'admin');
+    if (target) {
+        target.classList.remove('hidden');
+        // Fix scroll on admin
+        if (viewName === 'admin') {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+    }
 }
 
 function logout() {
@@ -64,17 +71,17 @@ async function loadMyEvents() {
         showView('my-events');
         const container = document.getElementById('events-list-container');
         container.innerHTML = allEvents.map(ev => `
-            <div class="glass p-8 rounded-[40px] hover:border-primary/40 transition-all group cursor-pointer" onclick="openAdmin('${ev.id}')">
-                <div class="flex justify-between items-start mb-6">
-                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <span class="material-symbols-outlined text-primary">calendar_today</span>
+            <div class="glass-card p-8 rounded-[40px] hover:border-primary/40 transition-all group cursor-pointer border border-white/5" onclick="openAdmin('${ev.id}')">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all group-hover:shadow-lg group-hover:shadow-primary/30">
+                        <span class="material-symbols-outlined text-primary group-hover:text-white transition-colors">event_available</span>
                     </div>
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Proximity</span>
+                    <span class="px-4 py-1.5 bg-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 border border-white/5 italic">Producción</span>
                 </div>
-                <h3 class="text-xl font-black mb-2 font-display">${ev.name}</h3>
-                <p class="text-slate-500 text-sm mb-6 line-clamp-2">${ev.description || 'Sin descripción'}</p>
-                <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                    <span class="material-symbols-outlined text-sm">location_on</span> ${ev.location || 'TBD'}
+                <h3 class="text-2xl font-black mb-2 font-display tracking-tight">${ev.name}</h3>
+                <p class="text-slate-500 text-xs mb-8 line-clamp-2 leading-relaxed">${ev.description || 'Este evento aún no cuenta con una descripción detallada.'}</p>
+                <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar Ubicación'}
                 </div>
             </div>
         `).join('');
@@ -94,6 +101,7 @@ async function openAdmin(eventId) {
 
 // --- GUEST LIST & SEARCH ---
 async function loadGuests() {
+    if (!currentEvent) return;
     try {
         allGuests = await apiFetch(`/guests/${currentEvent.id}`);
         renderGuests(allGuests);
@@ -103,19 +111,26 @@ async function loadGuests() {
 function renderGuests(list) {
     const tbody = document.getElementById('guests-tbody');
     tbody.innerHTML = list.map(g => `
-        <tr class="hover:bg-white/3 transition-colors">
-            <td class="px-6 py-4">
-                <div class="font-bold text-sm">${g.name}</div>
-                <div class="text-[10px] text-slate-500 font-mono">${g.email}</div>
+        <tr class="hover:bg-white/2 transition-colors border-b border-white/5">
+            <td class="px-10 py-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-black text-primary text-xs border border-primary/20">
+                        ${g.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-white">${g.name}</div>
+                        <div class="text-[10px] text-slate-500 font-medium tracking-tight">${g.email}</div>
+                    </div>
+                </div>
             </td>
-            <td class="px-6 py-4 text-xs text-slate-400">${g.organization || '-'}</td>
-            <td class="px-6 py-4 text-center">
-                <button onclick="toggleCheckin('${g.id}', ${g.checked_in})" class="w-10 h-10 rounded-full flex items-center justify-center mx-auto transition-all ${g.checked_in ? 'bg-green-500/20 text-green-500' : 'bg-white/5 text-slate-600 hover:bg-white/10'}">
-                    <span class="material-symbols-outlined">${g.checked_in ? 'check_circle' : 'radio_button_unchecked'}</span>
+            <td class="px-10 py-6 text-xs text-slate-400 font-medium">${g.organization || '<span class="italic opacity-50">Sin Empresa</span>'}</td>
+            <td class="px-10 py-6 text-center">
+                <button onclick="toggleCheckin('${g.id}', ${g.checked_in})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${g.checked_in ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/5 hover:border-primary/40 hover:text-primary'}">
+                    ${g.checked_in ? 'Acreditado' : 'Pendiente'}
                 </button>
             </td>
-            <td class="px-6 py-4 text-right">
-                <button class="p-2 text-slate-500 hover:text-white"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+            <td class="px-10 py-6 text-right">
+                <button class="w-8 h-8 rounded-lg hover:bg-white/5 text-slate-600 hover:text-white transition-all"><span class="material-symbols-outlined text-sm">edit</span></button>
             </td>
         </tr>
     `).join('');
@@ -147,28 +162,27 @@ async function updateStats() {
     document.getElementById('stat-presence').innerText = stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) + '%' : '0%';
     document.getElementById('stat-onsite').innerText = stats.onsite || 0;
     document.getElementById('stat-health').innerText = stats.healthAlerts || 0;
-
     renderChart(stats.flowData);
 }
 
 function renderChart(flowData) {
     const ctx = document.getElementById('flowChart').getContext('2d');
     if (analyticsChart) analyticsChart.destroy();
-    
     analyticsChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: (flowData || []).map(d => d.hour + ':00'),
             datasets: [{
-                label: 'Flujo de Asistencia',
                 data: (flowData || []).map(d => d.count),
                 borderColor: '#7c3aed',
-                backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                tension: 0.4,
+                backgroundColor: 'rgba(124, 58, 237, 0.05)',
+                tension: 0.5,
                 fill: true,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointBackgroundColor: '#fff'
+                borderWidth: 4,
+                pointRadius: 6,
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 3,
+                pointBorderColor: '#7c3aed'
             }]
         },
         options: {
@@ -176,18 +190,78 @@ function renderChart(flowData) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
-                x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569', font: { size: 10, weight: 'bold' } } },
+                x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 10, weight: 'bold' } } }
             }
         }
     });
 }
 
-// --- EXPORTS ---
+// --- UI BUTTONS & MODALS ---
+setClick('btn-events-list-nav', () => loadMyEvents());
+setClick('btn-create-event-open', () => { 
+    document.getElementById('ev-id-hidden').value = ''; 
+    document.getElementById('new-event-form').reset();
+    document.getElementById('modal-event').classList.remove('hidden'); 
+});
+setClick('btn-edit-event', () => {
+    if (!currentEvent) return;
+    document.getElementById('ev-id-hidden').value = currentEvent.id;
+    document.getElementById('ev-name').value = currentEvent.name;
+    document.getElementById('ev-date').value = currentEvent.date;
+    document.getElementById('ev-location').value = currentEvent.location;
+    document.getElementById('ev-desc').value = currentEvent.description;
+    document.getElementById('modal-event').classList.remove('hidden');
+});
+setClick('close-modal', () => document.getElementById('modal-event').classList.add('hidden'));
+
+setSubmit('new-event-form', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('ev-id-hidden').value;
+    const body = {
+        name: document.getElementById('ev-name').value,
+        date: document.getElementById('ev-date').value,
+        location: document.getElementById('ev-location').value,
+        description: document.getElementById('ev-desc').value
+    };
+    try {
+        if (id) await apiFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        else await apiFetch('/events', { method: 'POST', body: JSON.stringify(body) });
+        document.getElementById('modal-event').classList.add('hidden');
+        loadMyEvents();
+    } catch (err) { alert('Error al guardar evento'); }
+});
+
+setClick('btn-clear-db', async () => {
+    if (!confirm('¿ESTÁS SEGURO? Esta acción borrará todos los invitados y respuestas de encuestas de este evento. No se puede deshacer.')) return;
+    try {
+        await apiFetch(`/clear-db/${currentEvent.id}`, { method: 'POST' });
+        loadGuests();
+        updateStats();
+        alert('Base de datos del evento limpiada.');
+    } catch (err) { alert('Error al limpiar datos'); }
+});
+
+setClick('btn-show-qr', () => {
+    QRCode.toDataURL(`http://${window.location.host}/feedback.html?eventId=${currentEvent.id}`, (err, url) => {
+        document.getElementById('qr-display').src = url;
+        document.getElementById('modal-qr').classList.remove('hidden');
+    });
+});
+setClick('close-qr', () => document.getElementById('modal-qr').classList.add('hidden'));
+
+setClick('btn-delete-event', async () => {
+    if (!confirm('¿ELIMINAR EVENTO PERMANENTEMENTE?')) return;
+    try {
+        await apiFetch(`/events/${currentEvent.id}`, { method: 'DELETE' });
+        loadMyEvents();
+    } catch (err) { alert('Solo el administrador puede eliminar eventos corporativos.'); }
+});
+
+// --- EXPORTS & ANALYTICS ---
 setClick('btn-export-excel', () => {
     if (!currentEvent) return;
-    const url = `${API_URL}/export-excel/${currentEvent.id}?x-user-id=${loggedUser.userId}`;
-    window.location.href = url;
+    window.location.href = `${API_URL}/export-excel/${currentEvent.id}?x-user-id=${loggedUser.userId}`;
 });
 
 setClick('btn-export-analytics', async () => {
@@ -195,56 +269,28 @@ setClick('btn-export-analytics', async () => {
     const stats = await apiFetch(`/stats/${currentEvent.id}`);
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-
-    // Estilo Premium
-    doc.setFillColor(124, 58, 237); // Primary color
-    doc.rect(0, 0, 210, 40, 'F');
+    doc.setFillColor(124, 58, 237);
+    doc.rect(0, 0, 210, 50, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("REPORTE DE ANALÍTICA", 15, 25);
-    doc.setFontSize(10);
-    doc.text(currentEvent.name.toUpperCase(), 15, 32);
-
-    doc.setTextColor(50, 50, 50);
-    doc.setFontSize(14);
-    doc.text("Resumen Ejecutivo", 15, 55);
-
-    // Tabla de Métricas
-    const metrics = [
-        ["Total Invitados", stats.total.toString()],
-        ["Asistencia Real", stats.checkedIn.toString()],
-        ["Porcentaje Presencia", (stats.total > 0 ? Math.round((stats.checkedIn/stats.total)*100) : 0) + "%"],
-        ["Organizaciones", stats.orgs.toString()],
-        ["Registros On-Site", (stats.onsite || 0).toString()],
-        ["Alertas de Salud", (stats.healthAlerts || 0).toString()]
-    ];
-
+    doc.setFontSize(28); doc.text("CHECK ANALYTICS", 20, 30);
+    doc.setFontSize(10); doc.text(currentEvent.name.toUpperCase() + " | REPORT V5.5", 20, 40);
+    doc.setTextColor(40, 40, 40);
     doc.autoTable({
-        startY: 65,
-        head: [['Métrica', 'Valor']],
-        body: metrics,
-        theme: 'striped',
-        headStyles: { fillColor: [124, 58, 237] },
-        styles: { font: 'helvetica', fontSize: 10 }
+        startY: 60,
+        head: [['Métrica de Rendimiento', 'Valor Consolidado']],
+        body: [
+            ['Total de Invitados Registrados', stats.total],
+            ['Total de Asistencia Efectiva', stats.checkedIn],
+            ['Tasa de Presencia (%)', (stats.total > 0 ? Math.round((stats.checkedIn/stats.total)*100) : 0) + "%"],
+            ['Empresas Participantes', stats.orgs],
+            ['Alertas Médicas / Dieta', stats.healthAlerts]
+        ],
+        theme: 'striped', headStyles: { fillColor: [124, 58, 237], borderRadius: 10 }
     });
-
-    // Tabla de Flujo
-    doc.addPage();
-    doc.text("Flujo Horario de Ingresos", 15, 20);
-    const flowBody = (stats.flowData || []).map(d => [d.hour + ":00 hs", d.count + " personas"]);
-    doc.autoTable({
-        startY: 30,
-        head: [['Hora', 'Ingresos']],
-        body: flowBody.length > 0 ? flowBody : [['-', 'Sin registros']],
-        theme: 'grid',
-        headStyles: { fillColor: [30, 41, 59] }
-    });
-
-    doc.save(`Analitica_${currentEvent.name.replace(/\s/g, '_')}.pdf`);
+    doc.save(`Check_Analitica_${currentEvent.name.replace(/\s/g, '_')}.pdf`);
 });
 
-// --- IMPORT ---
+// --- IMPORT LOGIC (V5.5 REINFORCED) ---
 setClick('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel').click());
 setClick('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf').click());
 
@@ -253,87 +299,77 @@ const handleImport = async (inputEl) => {
     const formData = new FormData();
     formData.append('file', inputEl.files[0]);
     formData.append('eventId', currentEvent.id);
-
     try {
-        const res = await fetch(`${API_URL}/import-dry-run`, {
-            method: 'POST',
-            headers: { 'x-user-id': loggedUser.userId },
-            body: formData
-        });
+        const res = await fetch(`${API_URL}/import-dry-run`, { method: 'POST', headers: { 'x-user-id': loggedUser.userId }, body: formData });
         const result = await res.json();
-        if (result.error) return alert(result.error);
-
         const summary = document.getElementById('import-summary-content');
         summary.innerHTML = `
-            <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                <div class="flex justify-between mb-2"><span>Nuevos</span><span class="text-green-500 font-bold">+${result.summary.new}</span></div>
-                <div class="flex justify-between mb-2"><span>Duplicados</span><span class="text-amber-500 font-bold">${result.summary.existing}</span></div>
-                <div class="flex justify-between border-t border-white/10 pt-2 mt-2 font-black"><span>Total a importar</span><span>${result.summary.new}</span></div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-6 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 text-center">
+                    <p class="text-[10px] font-black uppercase text-emerald-500 mb-1">Listos</p>
+                    <p class="text-3xl font-black font-mono text-emerald-500">${result.summary.new}</p>
+                </div>
+                <div class="p-6 bg-amber-500/10 rounded-3xl border border-amber-500/20 text-center">
+                    <p class="text-[10px] font-black uppercase text-amber-500 mb-1">Duplicados</p>
+                    <p class="text-3xl font-black font-mono text-amber-500">${result.summary.existing}</p>
+                </div>
             </div>
+            <p class="text-xs text-slate-500 font-bold bg-white/5 p-4 rounded-2xl text-center italic">
+                La importación solo añadirá los ${result.summary.new} registros nuevos detectados.
+            </p>
         `;
         document.getElementById('modal-import-results').classList.remove('hidden');
-
         setClick('btn-confirm-import', async () => {
             await apiFetch('/import-confirm', { method: 'POST', body: JSON.stringify({ eventId: currentEvent.id, guests: result.data }) });
             document.getElementById('modal-import-results').classList.add('hidden');
-            loadGuests();
-            updateStats();
+            loadGuests(); updateStats();
+            alert('¡Importación completada con éxito!');
         });
-    } catch (err) { alert('Error al procesar archivo'); }
+    } catch (err) { alert('El formato del archivo no es compatible.'); }
 };
 
 document.getElementById('admin-file-import-excel').addEventListener('change', (e) => handleImport(e.target));
 document.getElementById('admin-file-import-pdf').addEventListener('change', (e) => handleImport(e.target));
 setClick('close-import-modal', () => document.getElementById('modal-import-results').classList.add('hidden'));
 
-// --- CLOCKS & COUNTDOWN ---
+// --- CLOCKS ---
 function updateClocks() {
     const now = new Date();
-    const clockText = now.toLocaleTimeString('es-ES', { hour12: false });
-    
-    document.querySelectorAll('[id$="clock-real"], [id$="list-clock"]').forEach(el => el.innerText = clockText);
-
+    const str = now.toLocaleTimeString('es-ES', { hour12: false });
+    document.querySelectorAll('#events-list-clock, #admin-clock-real').forEach(el => el.innerText = str);
     if (currentEvent) {
-        const evDate = new Date(currentEvent.date);
-        const diff = evDate - now;
+        const diff = new Date(currentEvent.date) - now;
         const cdEl = document.getElementById('admin-clock-countdown');
         const regCdEl = document.getElementById('countdown-timer');
-
         if (diff > 0) {
             const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
             const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
             const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-            const str = `${h}:${m}:${s}`;
-            if (cdEl) cdEl.innerText = str;
-            if (regCdEl) regCdEl.innerText = str;
+            const timeStr = `${h}:${m}:${s}`;
+            if (cdEl) cdEl.innerText = timeStr;
+            if (regCdEl) regCdEl.innerText = timeStr;
         } else {
             if (cdEl) cdEl.innerText = "00:00:00";
-            if (regCdEl) regCdEl.innerText = "EVENTO INICIADO";
+            if (regCdEl) regCdEl.innerText = "INICIADO";
         }
     }
 }
-
 setInterval(updateClocks, 1000);
 
-// --- INITIAL LOAD ---
 async function loadPublicEvent() {
     try {
         const evs = await apiFetch('/events');
         if (evs.length > 0) {
-            currentEvent = evs[0]; // Simplificación: usar el primero
-            document.getElementById('event-name-badge').innerText = currentEvent.name;
+            currentEvent = evs[0];
+            document.getElementById('event-name-badge')?.innerText = currentEvent.name;
         }
     } catch (err) {}
 }
 
 window.onload = () => {
     if (loggedUser) loadMyEvents();
-    else {
-        showView('registration');
-        loadPublicEvent();
-    }
+    else { showView('registration'); loadPublicEvent(); }
 };
 
-// Sockets
-socket.on('update_stats', (eId) => { if (currentEvent && eId === currentEvent.id) updateStats(); });
-socket.on('checkin_update', ({ guestId, status }) => { loadGuests(); });
+socket.on('update_stats', (id) => { if (currentEvent && id === currentEvent.id) updateStats(); });
+socket.on('checkin_update', () => loadGuests());
