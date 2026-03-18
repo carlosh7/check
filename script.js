@@ -151,7 +151,7 @@ function renderEventsList() {
                 <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden">
                     ${ev.logo_url ? `<img src="${ev.logo_url}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-primary text-2xl">event</span>`}
                 </div>
-                <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">${ev.status}</span>
+                <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">${ev.status || 'ACTIVE'}</span>
             </div>
             <h3 class="text-2xl font-display font-black mb-1">${ev.name}</h3>
             <p class="text-slate-500 text-sm mb-8">${ev.location || 'Sede Remota'}</p>

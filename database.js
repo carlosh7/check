@@ -36,7 +36,11 @@ db.serialize(() => {
         status TEXT DEFAULT 'ACTIVE',
         created_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users (id)
-    )`);
+    )`, (err) => {
+        if (!err) {
+            db.run("ALTER TABLE events ADD COLUMN created_at TEXT", (err) => {});
+        }
+    });
 
     // 3. Tabla de Invitados (UUIDs y Campos extendidos)
     db.run(`CREATE TABLE IF NOT EXISTS guests (
