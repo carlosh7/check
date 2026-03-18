@@ -39,11 +39,12 @@ window.App = {
         }
     },
     logout() {
-        console.log("CHECK V7.0: Cerrando sesión segura.");
+        console.log("CHECK V9.3: Cerrando sesión segura. Retornando a Login.");
         localStorage.removeItem('user');
         this.state.user = null;
-        this.showView('registration');
-        this.loadPublicEvent();
+        if (typeof window.FORCE_NAVGATION === 'function') {
+            window.FORCE_NAVGATION('login');
+        }
     },
 
     // --- DATA LOADERS ---
