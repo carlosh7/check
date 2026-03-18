@@ -15,7 +15,14 @@ db.serialize(() => {
         role TEXT DEFAULT 'PRODUCTOR',
         status TEXT DEFAULT 'PENDING', -- 'PENDING', 'APPROVED', 'REJECTED'
         created_at TEXT
-    )`);
+    )`, (err) => {
+        if (!err) {
+            // Migración: Asegurar que la columna status existe (para DBs antiguas)
+            db.run("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'PENDING'", (err) => {
+                // Si falla es porque ya existe, lo ignoramos
+            });
+        }
+    });
 
     // 2. Tabla de Eventos (Multitenancy)
     db.run(`CREATE TABLE IF NOT EXISTS events (
