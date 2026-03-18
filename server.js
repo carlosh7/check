@@ -274,11 +274,11 @@ app.post('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 });
 
 app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password, role, display_name } = req.body;
     const id = uuidv4();
     try {
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, 'APPROVED', ?)")
-          .run(id, username, password, role || 'PRODUCTOR', new Date().toISOString());
+        db.prepare("INSERT INTO users (id, username, password, role, display_name, status, created_at) VALUES (?, ?, ?, ?, ?, 'APPROVED', ?)")
+          .run(id, username, password, role || 'PRODUCTOR', display_name || username, new Date().toISOString());
         res.json({ success: true, userId: id });
     } catch (err) {
         res.status(400).json({ success: false, error: 'Usuario ya existe u ocurrió un error' });

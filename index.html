@@ -293,9 +293,27 @@
             <!-- VIEW: SYSTEM (NUEVOS USUARIOS/LEGALES) -->
             <div id="view-system-simple" class="hidden min-h-full p-8 md:p-12 animate-fade">
                 <div id="sys-content-users">
-                     <div class="flex justify-between items-center mb-10">
+                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-4xl font-black font-display">Gestión Global</h2>
                         <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Añadir Usuario</button>
+                    </div>
+                    <!-- FILTROS DE BÚSQUEDA -->
+                    <div class="glass-card p-6 rounded-[28px] border border-white/10 mb-6">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <!-- Búsqueda -->
+                            <div class="flex-1 relative">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                                <input type="text" id="user-search" onkeyup="App.filterUsers()" placeholder="Buscar por nombre, correo, rol, empresa..." class="w-full bg-slate-800/50 text-white text-sm rounded-xl pl-12 pr-4 py-3 border border-white/10 focus:border-primary/50 focus:outline-none">
+                            </div>
+                            <!-- Filtro Empresa -->
+                            <select id="filter-group" onchange="App.filterUsers()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                <option value="">Todas las empresas</option>
+                            </select>
+                            <!-- Filtro Evento -->
+                            <select id="filter-event" onchange="App.filterUsers()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                <option value="">Todos los eventos</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
                          <table class="w-full text-left">
@@ -665,7 +683,8 @@
                 <button id="btn-close-invite" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
             </div>
             <form id="invite-user-form" class="space-y-5">
-                <input type="text" id="invite-username" required placeholder="Correo / Nombre de usuario" class="input-field bg-slate-900/50">
+                <input type="text" id="invite-display-name" required placeholder="Nombre / Nickname" class="input-field bg-slate-900/50">
+                <input type="text" id="invite-username" required placeholder="Correo electrónico" class="input-field bg-slate-900/50">
                 <input type="password" id="invite-password" required placeholder="Contraseña inicial" class="input-field bg-slate-900/50">
                 <div id="invite-role-container">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Rol de Acceso</label>

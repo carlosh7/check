@@ -28,6 +28,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS users (
 try { db.exec("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'PENDING'"); } catch (_) {}
 try { db.exec("ALTER TABLE users ADD COLUMN role_detail TEXT DEFAULT 'STAFF'"); } catch (_) {}
 try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE users ADD COLUMN display_name TEXT"); } catch (_) {}
 
 // 2. Eventos (Multitenancy)
 db.exec(`CREATE TABLE IF NOT EXISTS events (
