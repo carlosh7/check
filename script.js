@@ -268,44 +268,45 @@ window.App = {
         } catch (e) {}
     },
     
-    // --- IMPORT ENGINE V7 ---
     async handleImport(file) {
-        if (!file || !this.state.event) return;
-        const fd = new FormData();
-        fd.append('file', file); fd.append('eventId', this.state.event.id);
-        
+        if (!file || !this.state.event) return alert("Selecciona un evento primero.");
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('event_id', this.state.event.id);
+
         try {
-            const res = await fetch(`${this.constants.API_URL}/import-dry-run`, { method: 'POST', headers: { 'x-user-id': this.state.user.userId }, body: fd });
-            const result = await res.json();
-            const sum = document.getElementById('import-summary-content');
-            if (sum) {
-                sum.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center">
-                            <p class="text-[10px] font-black uppercase text-emerald-500 mb-2">Datos Nuevos</p>
-                            <p class="text-4xl font-mono text-emerald-400 font-bold">${result.summary.new}</p>
+            const res = await fetch('/api/import-preview', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                this.state.importData = data;
+                const modal = document.getElementById('modal-import-results');
+                const content = document.getElementById('import-summary-content');
+                if (content) {
+                    content.innerHTML = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-900 rounded-2xl border border-white/5 text-center">
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Total Detectados</p>
+                                <p class="text-2xl font-black">${data.total}</p>
+                            </div>
+                            <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/10 text-center">
+                                <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Válidos</p>
+                                <p class="text-2xl font-black text-emerald-400">${data.valid}</p>
+                            </div>
                         </div>
-                        <div class="p-6 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-center">
-                            <p class="text-[10px] font-black uppercase text-amber-500 mb-2">Duplicados Omitidos</p>
-                            <p class="text-4xl font-mono text-amber-400 font-bold">${result.summary.existing}</p>
-                        </div>
-                    </div>
-                `;
-            }
-            document.getElementById('modal-import-results')?.classList.remove('hidden');
-            
-            document.getElementById('btn-confirm-import').onclick = async () => {
-                await this.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ eventId: this.state.event.id, guests: result.data }) });
-                document.getElementById('modal-import-results')?.classList.add('hidden');
-                this.loadGuests(); this.updateStats();
-                alert('¡Importación V7 Completada con Éxito!');
-            };
-        } catch (e) { alert("Error: El formato del archivo no es compatible o está corrupto."); }
+                    `;
+                }
+                modal?.classList.remove('hidden');
+            } else { alert("Error al leer archivo: " + data.error); }
+        } catch (e) { alert("Error de conexión al importar."); }
     }
 };
 
 // --- DOM READY BOOTSTRAP V10.2 ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Helpers Críticos (Hoisting manual)
+    const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+    const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+
     // 0. Sync Version
     App.loadAppVersion();
 
@@ -409,8 +410,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 5. Listeners generales
-    const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
-    const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
 
     // Login Form
     sf('login-form', async (e) => {
@@ -562,35 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    App.handleImport = async (file) => {
-        if (!App.state.event) return alert("Selecciona un evento primero.");
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('event_id', App.state.event.id);
-
-        try {
-            const res = await fetch('/api/import-preview', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.success) {
-                this.state.importData = data;
-                const modal = document.getElementById('modal-import-results');
-                const content = document.getElementById('import-summary-content');
-                content.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-slate-900 rounded-2xl border border-white/5">
-                            <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Total Detectados</p>
-                            <p class="text-2xl font-black">${data.total}</p>
-                        </div>
-                        <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/10">
-                            <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Válidos</p>
-                            <p class="text-2xl font-black text-emerald-400">${data.valid}</p>
-                        </div>
-                    </div>
-                `;
-                modal?.classList.remove('hidden');
-            } else { alert("Error al leer archivo: " + data.error); }
-        } catch (e) { alert("Error de conexión al importar."); }
-    };
+    // Listener para importación (Ya definido en App.handleImport)
 
     cl('btn-confirm-import', async () => {
         const btn = document.getElementById('btn-confirm-import');
