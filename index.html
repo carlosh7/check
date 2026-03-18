@@ -663,14 +663,10 @@
             <form id="invite-user-form" class="space-y-5">
                 <input type="text" id="invite-username" required placeholder="Correo / Nombre de usuario" class="input-field bg-slate-900/50">
                 <input type="password" id="invite-password" required placeholder="Contraseña inicial" class="input-field bg-slate-900/50">
-                <div>
+                <div id="invite-role-container">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Rol de Acceso</label>
                     <select id="invite-role" class="input-field bg-slate-900/50">
-                        <option value="ADMIN">ADMIN (Super Administrador)</option>
-                        <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
-                        <option value="STAFF">STAFF (Check-in en Sitio)</option>
-                        <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
-                        <option value="OTROS">OTROS (Acceso Restringido)</option>
+                        <!-- Opciones se generan dinámicamente según permisos -->
                     </select>
                 </div>
                 <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Crear Usuario Aprobado</button>

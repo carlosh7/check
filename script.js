@@ -28,7 +28,7 @@ window.App = {
                 'view_groups', 'create_group', 'edit_group',
                 'view_events', 'create_event', 'edit_event', 'delete_event',
                 'view_users', 'create_user', 'edit_user', 'delete_user',
-                'export_data', 'delete_db'
+                'export_data', 'delete_db', 'manage_roles'
             ];
             return producerPerms.includes(permission);
         }
@@ -41,7 +41,7 @@ window.App = {
             return staffPerms.includes(permission);
         }
         
-        // Permisos de CLIENTE (más restrictivos)
+        // Permisos de CLIENTE
         if (role === 'CLIENTE') {
             const clientPerms = [
                 'view_events', 'view_guests'
@@ -50,6 +50,34 @@ window.App = {
         }
         
         return false;
+    },
+    
+    // Actualizar opciones de rol en el formulario de invitación según permisos
+    updateRoleOptions() {
+        const roleSelect = document.getElementById('invite-role');
+        const roleContainer = document.getElementById('invite-role-container');
+        if (!roleSelect || !roleContainer) return;
+        
+        const role = this.state.user?.role;
+        
+        if (role === 'ADMIN') {
+            roleContainer.classList.remove('hidden');
+            roleSelect.innerHTML = `
+                <option value="ADMIN">ADMIN (Super Administrador)</option>
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="STAFF">STAFF (Check-in en Sitio)</option>
+                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
+                <option value="OTROS">OTROS (Acceso Restringido)</option>`;
+        } else if (role === 'PRODUCTOR') {
+            roleContainer.classList.remove('hidden');
+            roleSelect.innerHTML = `
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="STAFF">STAFF (Check-in en Sitio)</option>
+                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
+                <option value="OTROS">OTROS (Acceso Restringido)</option>`;
+        } else {
+            roleContainer.classList.add('hidden');
+        }
     },
     
     // Mostrar/ocultar elementos según permisos
@@ -92,7 +120,7 @@ window.App = {
     
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
     loadUsersTable: async function() {
-        if (!this.state.user || this.state.user.role !== 'ADMIN') return;
+        if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
         try {
             const users = await this.fetchAPI('/users');
             const pending = users.filter(u => u.status === 'PENDING');
@@ -113,16 +141,29 @@ window.App = {
                     </div>`).join('');
             }
             const tbody = document.getElementById('users-tbody-simple');
+            const isAdmin = this.state.user.role === 'ADMIN';
+            const isProductor = this.state.user.role === 'PRODUCTOR';
+            
             if (tbody) {
-                tbody.innerHTML = users.map(u => `
-                    <tr class="hover:bg-white/2 border-b border-white/5">
+                tbody.innerHTML = users.map(u => {
+                    // Si es ADMIN, puede editar todo. Si es PRODUCTOR, no puede tocar ADMINs
+                    const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
+                    const roleOptions = isAdmin ? 
+                        ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
+                        ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
+                    
+                    return `<tr class="hover:bg-white/2 border-b border-white/5">
                         <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div><div class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</div></td>
-                        <td class="px-8 py-5"><select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
-                            ${['ADMIN','PRODUCTOR','STAFF','CLIENTE','OTROS'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                        </select></td>
+                        <td class="px-8 py-5">${canEdit ? 
+                            `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
+                                ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>` : 
+                            `<span class="px-3 py-1 rounded-full text-[10px] font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-400'}">${u.role}</span>`
+                        }</td>
                         <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
-                        <td class="px-8 py-5 text-right">${u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`}</td>
-                    </tr>`).join('');
+                        <td class="px-8 py-5 text-right">${canEdit ? (u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`) : '-'}</td>
+                    </tr>`;
+                }).join('');
             }
         } catch(e) { console.error('Error loading users:', e); }
     },
@@ -567,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Actualizar permisos UI
                 App.updateUIPermissions();
+                App.updateRoleOptions();
                 
                 if (d.role === 'ADMIN') {
                     App.navigate('system');
