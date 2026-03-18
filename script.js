@@ -188,10 +188,67 @@ async function loadAdminData() {
     updateFlowChart(stats.flowData || []);
     allGuests = await apiFetch(`/guests/${currentEvent.id}`);
     renderGuests(allGuests);
+    startClocks();
+}
+
+function startClocks() {
+    if (window.clockInterval) clearInterval(window.clockInterval);
+    window.clockInterval = setInterval(() => {
+        // Hora Real
+        const now = new Date();
+        const clockReal = document.getElementById('admin-clock-real');
+        if (clockReal) clockReal.innerText = now.toLocaleTimeString();
+
+        // Cuenta Regresiva
+        if (currentEvent && currentEvent.date) {
+            const eventDate = new Date(currentEvent.date);
+            const diff = eventDate - now;
+            const clockCountdown = document.getElementById('admin-clock-countdown');
+            if (clockCountdown) {
+                if (diff > 0) {
+                    const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                    const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                    const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                    clockCountdown.innerText = `${h}:${m}:${s}`;
+                    clockCountdown.classList.remove('text-green-500');
+                    clockCountdown.classList.add('text-red-500');
+                } else {
+                    clockCountdown.innerText = "EN CURSO";
+                    clockCountdown.classList.remove('text-red-500');
+                    clockCountdown.classList.add('text-green-500');
+                }
+            }
+        }
+    }, 1000);
 }
 
 // Navigation Back
 setClick('btn-events-list-nav', loadMyEvents);
+
+setClick('btn-admin-partners', async () => {
+    views.modalPartners.classList.remove('hidden');
+    const partners = await apiFetch('/admin/users/pending');
+    const tbody = document.getElementById('partners-tbody');
+    if (tbody) {
+        tbody.innerHTML = partners.map(u => `
+            <tr>
+                <td class="px-6 py-4 font-bold text-sm">${u.username}</td>
+                <td class="px-6 py-4 text-xs text-slate-500">${u.role}</td>
+                <td class="px-6 py-4 text-right">
+                    <button onclick="approvePartner('${u.id}', 'APPROVED')" class="text-primary font-black text-[10px] uppercase mr-4">Aprobar</button>
+                    <button onclick="approvePartner('${u.id}', 'REJECTED')" class="text-red-500 font-black text-[10px] uppercase">Rechazar</button>
+                </td>
+            </tr>
+        `).join('') || '<tr><td colspan="3" class="text-center py-10 text-slate-500">No hay solicitudes pendientes</td></tr>';
+    }
+});
+
+setClick('close-partners-modal', () => views.modalPartners.classList.add('hidden'));
+
+window.approvePartner = async (userId, status) => {
+    await apiFetch('/admin/users/approve', { method: 'POST', body: JSON.stringify({ userId, status }) });
+    document.getElementById('btn-admin-partners').click(); // Refresh
+};
 
 // Event Modal (Create/Edit)
 setClick('btn-create-event-open', () => {
@@ -310,6 +367,20 @@ function renderGuests(data) {
     `).join('');
 }
 
+// Guest Search Logic
+const guestSearch = document.getElementById('guest-search');
+if (guestSearch) {
+    guestSearch.oninput = (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allGuests.filter(g => 
+            g.name.toLowerCase().includes(term) || 
+            (g.email && g.email.toLowerCase().includes(term)) || 
+            (g.organization && g.organization.toLowerCase().includes(term))
+        );
+        renderGuests(filtered);
+    };
+}
+
 window.toggleCheckin = async function(id, status) {
     const newStatus = !status;
     await apiFetch(`/checkin/${id}`, { method: 'POST', body: JSON.stringify({ status: newStatus }) });
@@ -383,6 +454,28 @@ setSubmit('mailing-config-form', async (e) => {
     views.modalMailing?.classList.add('hidden');
 });
 
+// Export & Cleanup Listeners
+setClick('btn-export-excel', () => {
+    if (!currentEvent) return;
+    window.location.href = `${API_URL}/export-excel/${currentEvent.id}?x-user-id=${loggedUser.userId}`;
+});
+
+setClick('btn-export-analytics', () => {
+    alert("Generando reporte de analítica... (Se descargará en breve)");
+    // Aquí se podría implementar jsPDF para un reporte visual
+});
+
+setClick('btn-clear-db', async () => {
+    if (!currentEvent) return;
+    if (confirm('¿ESTÁS SEGURO? Se borrarán todos los invitados y respuestas de este evento. Esta acción NO se puede deshacer.')) {
+        const res = await apiFetch(`/clear-db/${currentEvent.id}`, { method: 'POST' });
+        if (res.success) {
+            alert(res.message);
+            loadAdminData();
+        }
+    }
+});
+
 setClick('btn-edit-survey', () => {
     if (!currentEvent) return;
     views.modalSurvey?.classList.remove('hidden');
@@ -444,6 +537,56 @@ if (fileIn) {
         }
     };
 }
+
+setClick('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf')?.click());
+const filePdfIn = document.getElementById('admin-file-import-pdf');
+if (filePdfIn) {
+    filePdfIn.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !currentEvent) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('eventId', currentEvent.id);
+        const res = await fetch(`${API_URL}/import-dry-run`, { // Compartimos endpoint para procesar PDF tmb
+            method: 'POST',
+            headers: { ...(loggedUser ? { 'x-user-id': loggedUser.userId } : {}) },
+            body: fd
+        });
+        if (res.ok) {
+            const report = await res.json();
+            document.getElementById('import-summary-content').innerHTML = `
+                <p class="text-white font-bold">${report.summary.new} nuevos invitados.</p>
+                <p class="text-slate-500 text-xs">${report.summary.existing} ya presentes (se ignorarán).</p>
+            `;
+            views.modalImportResults?.classList.remove('hidden');
+            window.pendingImportData = report.data;
+        } else { alert("Error al cargar PDF (Verifica el formato)"); }
+    };
+}
+
+// Survey Extra Logic (Multiple Choice)
+const questionType = document.getElementById('new-question-type');
+const optContainer = document.getElementById('multiple-options-container');
+if (questionType) {
+    questionType.onchange = (e) => {
+        optContainer?.classList.toggle('hidden', e.target.value !== 'multiple');
+    };
+}
+
+// Re-defining setSubmit for 'add-question-form' to include options
+setSubmit('add-question-form', async (e) => {
+    e.preventDefault();
+    const data = {
+        event_id: currentEvent.id,
+        question: document.getElementById('new-question-input').value,
+        type: document.getElementById('new-question-type').value,
+        options: document.getElementById('multiple-options-input')?.value || null
+    };
+    await apiFetch('/surveys/questions', { method: 'POST', body: JSON.stringify(data) });
+    e.target.reset();
+    optContainer?.classList.add('hidden'); // Hide options after submission
+    loadSurveyQuestions();
+});
 
 setClick('btn-confirm-import', async () => {
     if (!window.pendingImportData || !currentEvent) return;

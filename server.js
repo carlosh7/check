@@ -192,45 +192,85 @@ app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
     });
 });
 
-// Import Engine
-app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('file'), (req, res) => {
+// Import Engine (Enhanced for Excel & PDF)
+app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     const { eventId } = req.body;
+    let data = [];
 
-    const workbook = xlsx.readFile(req.file.path);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = xlsx.utils.sheet_to_json(sheet);
-    fs.unlinkSync(req.file.path);
-
-    db.all("SELECT email FROM guests WHERE event_id = ?", [eventId], (err, existingGuests) => {
-        const existingEmails = new Set(existingGuests.map(g => g.email));
-        let newCount = 0;
-        let existingCount = 0;
-        const processedData = data.map(row => {
-            const email = (row.Email || row.email || row.correo || "").toString();
-            if (existingEmails.has(email)) existingCount++;
-            else newCount++;
-            return {
-                name: row.Nombre || row.nombre || row.name || "Sin nombre",
-                email: email,
+    try {
+        if (req.file.mimetype === 'application/pdf') {
+            const dataBuffer = fs.readFileSync(req.file.path);
+            const pdfData = await pdfParse(dataBuffer);
+            // Extracción simple de emails y nombres (Regex)
+            const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi;
+            const emails = pdfData.text.match(emailRegex) || [];
+            data = emails.map(email => ({ name: email.split('@')[0], email, organization: "PDF Import", phone: "", gender: "O" }));
+        } else {
+            const workbook = xlsx.readFile(req.file.path);
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const excelData = xlsx.utils.sheet_to_json(sheet);
+            data = excelData.map(row => ({
+                name: row.Nombre || row.nombre || row.name || "Invitado PDF",
+                email: (row.Email || row.email || row.correo || "").toString(),
                 organization: row.Organizacion || row.Empresa || row.organization || "",
                 phone: row.Telefono || row.phone || "",
                 gender: row.Genero || row.gender || "O"
-            };
+            }));
+        }
+        fs.unlinkSync(req.file.path);
+
+        db.all("SELECT email FROM guests WHERE event_id = ?", [eventId], (err, existingGuests) => {
+            const existingEmails = new Set(existingGuests.map(g => g.email ? g.email.toLowerCase() : ""));
+            let newCount = 0;
+            let existingCount = 0;
+            const uniqueGuests = data.filter(g => {
+                const email = g.email.toLowerCase();
+                if (email && existingEmails.has(email)) {
+                    existingCount++;
+                    return false;
+                }
+                newCount++;
+                return true;
+            });
+            res.json({ summary: { new: newCount, existing: existingCount }, data: uniqueGuests });
         });
-        res.json({ summary: { new: newCount, existing: existingCount }, data: processedData });
-    });
+    } catch (e) {
+        res.status(500).json({ error: "Error procesando archivo" });
+    }
 });
 
 app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const { eventId, guests } = req.body;
-    const stmt = db.prepare("INSERT OR REPLACE INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    const stmt = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     guests.forEach(g => {
         stmt.run([uuidv4(), eventId, g.name, g.email, g.organization, g.phone, g.gender, uuidv4()]);
     });
     stmt.finalize();
     io.to(eventId).emit('update_stats', eventId);
     res.json({ success: true });
+});
+
+// Advanced Export & Cleanup
+app.get('/api/export-excel/:eventId', authMiddleware(), (req, res) => {
+    db.all("SELECT name, email, organization, phone, gender, checked_in, checkin_time FROM guests WHERE event_id = ?", [req.params.eventId], (err, rows) => {
+        if (err) return res.status(500).send(err.message);
+        const worksheet = xlsx.utils.json_to_sheet(rows);
+        const workbook = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(workbook, worksheet, "Invitados");
+        const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=Event_Guests_${req.params.eventId}.xlsx`);
+        res.send(buffer);
+    });
+});
+
+app.post('/api/clear-db/:eventId', authMiddleware(['ADMIN']), (req, res) => {
+    db.serialize(() => {
+        db.run("DELETE FROM guests WHERE event_id = ?", [req.params.eventId]);
+        db.run("DELETE FROM survey_responses WHERE event_id = ?", [req.params.eventId]);
+        res.json({ success: true, message: "Base de datos del evento limpiada." });
+    });
 });
 
 // Survey Responses

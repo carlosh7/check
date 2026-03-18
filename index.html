@@ -218,28 +218,43 @@
 
         <!-- Main -->
         <main class="main-content">
-            <header class="flex justify-between items-center mb-12">
+            <header class="flex justify-between items-start mb-12">
                 <div>
                     <div class="flex items-center gap-3 mb-1">
                          <h1 id="admin-event-title" class="text-4xl font-black font-display tracking-tight">Evento de Gala</h1>
                          <img id="admin-event-logo" src="" class="hidden w-10 h-10 object-contain rounded-lg border border-white/5 bg-white/5">
                     </div>
-                    <p class="text-slate-500 text-sm font-medium flex items-center gap-2">
+                    <p class="text-slate-500 text-sm font-medium flex items-center gap-2 mb-4">
                         <span class="material-symbols-outlined text-[16px]">location_on</span> <span id="admin-event-location">Sede Central</span>
                     </p>
+                    <div class="flex items-center gap-4 bg-slate-900/50 p-2 rounded-2xl border border-white/5 w-fit">
+                        <div class="px-4 py-2 bg-slate-800 rounded-xl text-center">
+                            <p class="text-[8px] font-black uppercase text-slate-500 mb-1">Hora Actual</p>
+                            <p id="admin-clock-real" class="text-sm font-mono font-bold text-primary">00:00:00</p>
+                        </div>
+                        <div class="px-4 py-2 bg-red-500/10 rounded-xl text-center border border-red-500/20">
+                            <p class="text-[8px] font-black uppercase text-red-500 mb-1">Inicio en</p>
+                            <p id="admin-clock-countdown" class="text-3xl font-mono font-black text-red-500 leading-none">00:00:00</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <!-- Auto-Print Toggle -->
-                    <div class="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-2 rounded-2xl">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Auto-Print</span>
-                        <button id="toggle-autoprint" class="w-10 h-5 bg-slate-800 rounded-full relative transition-all duration-300">
-                            <div class="dot absolute left-1 top-1 w-3 h-3 bg-slate-600 rounded-full transition-all duration-300"></div>
+                <div class="flex flex-col items-end gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-2 rounded-2xl">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Auto-Print</span>
+                            <button id="toggle-autoprint" class="w-10 h-5 bg-slate-800 rounded-full relative transition-all duration-300">
+                                <div class="dot absolute left-1 top-1 w-3 h-3 bg-slate-600 rounded-full transition-all duration-300"></div>
+                            </button>
+                        </div>
+                        <button id="btn-show-qr" class="btn-primary !py-3 !px-6 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">qr_code_2</span> FEEDBACK QR
                         </button>
                     </div>
-                    <div id="admin-clock" class="bg-slate-900 border border-white/5 px-6 py-3 rounded-2xl font-bold font-mono text-sm">00:00:00</div>
-                    <button id="btn-show-qr" class="btn-primary !py-3 !px-6 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[20px]">qr_code_2</span> FEEDBACK QR
-                    </button>
+                    <div class="flex gap-2">
+                        <button id="btn-export-excel" class="px-4 py-2 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all">Exportar Excel</button>
+                        <button id="btn-export-analytics" class="px-4 py-2 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">Exportar Analítica</button>
+                        <button id="btn-clear-db" class="px-4 py-2 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all">Limpiar Datos</button>
+                    </div>
                 </div>
             </header>
 
@@ -498,6 +513,6 @@
         </div>
     </div>
 
-    <script src="/script.js?v=4.9.2"></script>
+    <script src="/script.js?v=5.0"></script>
 </body>
 </html>
