@@ -198,93 +198,143 @@ h1, h2, h3 {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* ═══ MODO CLARO ═══ */
+/* ═══ MODO CLARO - Estilos base ═══ */
 html.light {
-    --bg-slate-950: #f1f5f9;
-    --bg-slate-900: #e2e8f0;
-    --bg-slate-800: #cbd5e1;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --border-white: rgba(0, 0, 0, 0.1);
-    --glass-bg: rgba(255, 255, 255, 0.8);
+    --bg-main: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-input: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --primary: #7c3aed;
 }
 
+/* ═══ MODO CLARO - Aplicar estilos ═══ */
 html.light body {
-    background-color: #f1f5f9;
-    color: #0f172a;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+}
+
+html.light .bg-slate-950,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-900,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-800\/50 {
+    background-color: var(--bg-card) !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/20 {
+    background-color: var(--bg-input) !important;
 }
 
 html.light .glass-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
 html.light .sidebar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-color: rgba(0, 0, 0, 0.1) !important;
+    background: var(--bg-sidebar) !important;
+    border-color: var(--border-color) !important;
 }
 
-html.light .input-field {
-    background: rgba(0, 0, 0, 0.05);
-    border-color: rgba(0, 0, 0, 0.15);
-    color: #0f172a;
+html.light .input-field,
+html.light input[type="text"],
+html.light input[type="password"],
+html.light input[type="email"] {
+    background: var(--bg-input) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
 }
 
-html.light .input-field:focus {
-    border-color: var(--primary);
-}
-
-html.light .btn-primary {
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-    color: white;
-}
-
-html.light .btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+html.light select {
+    background: var(--bg-input) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
 }
 
 html.light .text-white {
-    color: #0f172a !important;
+    color: var(--text-main) !important;
 }
 
-html.light .text-slate-400 {
-    color: #64748b !important;
-}
-
-html.light .text-slate-500 {
-    color: #64748b !important;
-}
-
+html.light .text-slate-400,
+html.light .text-slate-500,
 html.light .text-slate-600 {
-    color: #475569 !important;
-}
-
-html.light .bg-slate-950 {
-    background-color: #f1f5f9 !important;
-}
-
-html.light .bg-slate-900\/60,
-html.light .bg-slate-800\/50 {
-    background-color: rgba(203, 213, 225, 0.5) !important;
+    color: var(--text-muted) !important;
 }
 
 html.light .border-white\/5,
 html.light .border-white\/10,
-html.light .border-white\/2 {
-    border-color: rgba(0, 0, 0, 0.1) !important;
+html.light .border-white\/2,
+html.light .border-white\/0 {
+    border-color: var(--border-color) !important;
 }
 
 html.light .hover\:bg-white\/5:hover {
-    background-color: rgba(0, 0, 0, 0.05) !important;
+    background-color: rgba(0,0,0,0.05) !important;
 }
 
-html.light select {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: #0f172a;
-    border-color: rgba(0, 0, 0, 0.15);
+html.light .rounded-\[40px\] {
+    border-color: var(--border-color) !important;
 }
 
 html.light table thead {
-    background: rgba(0, 0, 0, 0.03);
+    background: rgba(0,0,0,0.02) !important;
+}
+
+html.light table thead th {
+    color: var(--primary) !important;
+}
+
+/* ═══ MODO CLARO - Botones del sidebar ═══ */
+html.light #sidebar-nav button {
+    color: var(--text-muted) !important;
+}
+
+html.light #sidebar-nav button:hover {
+    background-color: rgba(0,0,0,0.05) !important;
+    color: var(--text-main) !important;
+}
+
+html.light #sidebar-nav button.active,
+html.light #sidebar-nav button.bg-primary {
+    background-color: var(--primary) !important;
+    color: white !important;
+}
+
+html.light .material-symbols-outlined {
+    color: inherit !important;
+}
+
+/* ═══ OVERFLOW Y TEXTO ═══ */
+html, body {
+    overflow-x: hidden;
+}
+
+* {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+table {
+    table-layout: fixed;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+input, select, textarea {
+    max-width: 100%;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
