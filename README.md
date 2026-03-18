@@ -40,6 +40,16 @@ Una aplicación web moderna y elegante para la gestión y registro de invitados 
 3. Accede a la aplicación en:
    `http://localhost:3000`
 
+## 🔐 Acceso Inicial (Administrador)
+
+Para el primer ingreso al sistema, utiliza las siguientes credenciales maestras:
+
+- **Usuario:** `admin@check.com`
+- **Contraseña:** `admin123`
+
+> [!IMPORTANT]
+> Estas credenciales tienen el rol de **ADMIN** y están pre-aprobadas. Se recomienda cambiar la contraseña tras el primer inicio de sesión por motivos de seguridad.
+
 ## 📁 Estructura del Proyecto
 
 - `index.html`: Estructura principal de la aplicación.
