@@ -17,16 +17,21 @@ window.App = {
     },
     
     // --- NUEVO EVENTO V10 ---
-    async createEvent(data) {
+    async createEvent(formData) {
         try {
-            const res = await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-            if (res.success) {
+            const res = await fetch(`${this.constants.API_URL}/events`, { 
+                method: 'POST', 
+                headers: { 'x-user-id': this.state.user.userId },
+                body: formData 
+            });
+            const d = await res.json();
+            if (d.success) {
                 alert("✓ Evento creado con éxito.");
                 document.getElementById('modal-event').classList.add('hidden');
                 document.getElementById('new-event-form').reset();
                 this.loadEvents();
             } else {
-                alert("Error: " + res.error);
+                alert("Error: " + d.error);
             }
         } catch (e) { alert("Error al crear evento."); }
     },
@@ -537,13 +542,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sf('new-event-form', async (e) => {
         e.preventDefault();
-        const data = {
-            name: document.getElementById('ev-name').value,
-            date: document.getElementById('ev-date').value,
-            location: document.getElementById('ev-location').value,
-            description: document.getElementById('ev-desc').value
-        };
-        App.createEvent(data);
+        const fd = new FormData();
+        fd.append('name', document.getElementById('ev-name').value);
+        fd.append('date', document.getElementById('ev-date').value);
+        fd.append('end_date', document.getElementById('ev-end-date').value);
+        fd.append('location', document.getElementById('ev-location').value);
+        fd.append('description', document.getElementById('ev-desc').value);
+        
+        const logo = document.getElementById('ev-logo-file').files[0];
+        if (logo) fd.append('logo', logo);
+        
+        App.createEvent(fd);
     });
 
     sf('invite-user-form', async (e) => {

@@ -161,8 +161,23 @@ app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// EVENTOS
+// EVENTS ENDPOINTS
 // ─────────────────────────────────────────────────────────────
+app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('logo'), (req, res) => {
+    const { name, date, end_date, location, description } = req.body;
+    const userId = req.headers['x-user-id'];
+    const id = uuidv4();
+    const logoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    
+    try {
+        db.prepare("INSERT INTO events (id, user_id, name, date, end_date, location, logo_url, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          .run(id, userId, name, date, end_date, location, logoUrl, description, new Date().toISOString());
+        res.json({ success: true, eventId: id });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
 app.get('/api/events', authMiddleware(), (req, res) => {
     const userId = req.headers['x-user-id'] || req.query['x-user-id'];
     const rows = req.userRole === 'ADMIN'

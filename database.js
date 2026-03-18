@@ -39,6 +39,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS events (
     FOREIGN KEY (user_id) REFERENCES users (id)
 )`);
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN end_date TEXT"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
