@@ -46,6 +46,20 @@ db.exec(`CREATE TABLE IF NOT EXISTS events (
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN end_date TEXT"); } catch (_) {}
 
+// Campos de personalización de registro público
+try { db.exec("ALTER TABLE events ADD COLUMN reg_title TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_welcome_text TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_policy TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_success_message TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_logo_url TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_phone INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_org INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_position INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_vegan INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_dietary INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_show_gender INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_require_agreement INTEGER DEFAULT 1"); } catch (_) {}
+
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
     id TEXT PRIMARY KEY,

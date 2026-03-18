@@ -435,6 +435,22 @@ window.App = {
         } catch (e) { alert("Error al crear evento."); }
     },
     
+    async updateEvent(id, data) {
+        try {
+            const res = await this.fetchAPI(`/events/${id}`, { 
+                method: 'PUT', 
+                body: JSON.stringify(data)
+            });
+            if (res.success) {
+                alert("✓ Evento actualizado.");
+                document.getElementById('modal-event').classList.add('hidden');
+                this.loadEvents();
+            } else {
+                alert("Error: " + res.error);
+            }
+        } catch (e) { alert("Error al actualizar evento."); }
+    },
+    
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName) {
         
@@ -602,12 +618,28 @@ window.App = {
         window.App.editEvent = (id) => {
             const ev = this.state.events.find(e => String(e.id) === String(id));
             if (!ev) return;
+            
+            // Datos básicos
             document.getElementById('ev-id-hidden').value = ev.id;
             document.getElementById('ev-name').value = ev.name || '';
             document.getElementById('ev-location').value = ev.location || '';
             document.getElementById('ev-desc').value = ev.description || '';
             document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
             document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+            
+            // Configuración de registro
+            document.getElementById('ev-reg-title').value = ev.reg_title || '';
+            document.getElementById('ev-reg-welcome').value = ev.reg_welcome_text || '';
+            document.getElementById('ev-reg-success').value = ev.reg_success_message || '';
+            document.getElementById('ev-reg-policy').value = ev.reg_policy || '';
+            document.getElementById('ev-reg-phone').checked = ev.reg_show_phone !== 0;
+            document.getElementById('ev-reg-org').checked = ev.reg_show_org !== 0;
+            document.getElementById('ev-reg-position').checked = ev.reg_show_position === 1;
+            document.getElementById('ev-reg-vegan').checked = ev.reg_show_vegan !== 0;
+            document.getElementById('ev-reg-dietary').checked = ev.reg_show_dietary !== 0;
+            document.getElementById('ev-reg-gender').checked = ev.reg_show_gender === 1;
+            document.getElementById('ev-reg-agreement').checked = ev.reg_require_agreement !== 0;
+            
             document.getElementById('modal-event')?.classList.remove('hidden');
         };
         
@@ -1225,18 +1257,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
 
-    // Form de crear evento
+    // Form de crear/editar evento
     sf('new-event-form', async (e) => {
         e.preventDefault();
-        const fd = new FormData();
-        fd.append('name', document.getElementById('ev-name').value);
-        fd.append('date', document.getElementById('ev-date').value);
-        fd.append('end_date', document.getElementById('ev-end-date').value);
-        fd.append('location', document.getElementById('ev-location').value);
-        fd.append('description', document.getElementById('ev-desc').value);
-        const logo = document.getElementById('ev-logo-file').files[0];
-        if (logo) fd.append('logo', logo);
-        App.createEvent(fd);
+        const eventId = document.getElementById('ev-id-hidden').value;
+        
+        if (eventId) {
+            // Editar evento existente
+            const data = {
+                name: document.getElementById('ev-name').value,
+                date: document.getElementById('ev-date').value,
+                end_date: document.getElementById('ev-end-date').value,
+                location: document.getElementById('ev-location').value,
+                description: document.getElementById('ev-desc').value,
+                reg_title: document.getElementById('ev-reg-title').value,
+                reg_welcome_text: document.getElementById('ev-reg-welcome').value,
+                reg_success_message: document.getElementById('ev-reg-success').value,
+                reg_policy: document.getElementById('ev-reg-policy').value,
+                reg_show_phone: document.getElementById('ev-reg-phone').checked,
+                reg_show_org: document.getElementById('ev-reg-org').checked,
+                reg_show_position: document.getElementById('ev-reg-position').checked,
+                reg_show_vegan: document.getElementById('ev-reg-vegan').checked,
+                reg_show_dietary: document.getElementById('ev-reg-dietary').checked,
+                reg_show_gender: document.getElementById('ev-reg-gender').checked,
+                reg_require_agreement: document.getElementById('ev-reg-agreement').checked
+            };
+            App.updateEvent(eventId, data);
+        } else {
+            // Crear nuevo evento
+            const fd = new FormData();
+            fd.append('name', document.getElementById('ev-name').value);
+            fd.append('date', document.getElementById('ev-date').value);
+            fd.append('end_date', document.getElementById('ev-end-date').value);
+            fd.append('location', document.getElementById('ev-location').value);
+            fd.append('description', document.getElementById('ev-desc').value);
+            const logo = document.getElementById('ev-logo-file').files[0];
+            if (logo) fd.append('logo', logo);
+            App.createEvent(fd);
+        }
     });
 
     // Form de invitación de usuario

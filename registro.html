@@ -26,9 +26,8 @@
         }
     </script>
     <style>
-        .bg-pattern {
-            background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
-        }
+        .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
+        input[type="radio"] { accent-color: #7c3aed; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern">
@@ -41,34 +40,36 @@
         </div>
     </div>
 
-    <div id="main-content" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="max-w-xl w-full glass-card rounded-[40px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
+    <div id="main-content" class="hidden min-h-screen flex items-center justify-center p-4 py-8">
+        <div class="max-w-lg w-full glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
             <!-- Header con info del evento -->
-            <div id="event-header" class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-10 text-center border-b border-white/5">
-                <div id="event-logo" class="hidden w-20 h-20 mx-auto mb-6 rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-4xl text-primary">event</span>
+            <div id="event-header" class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-8 text-center border-b border-white/5">
+                <div id="event-logo" class="hidden w-16 h-16 mx-auto mb-4 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-3xl text-primary">event</span>
                 </div>
-                <div class="w-14 h-14 bg-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <span class="material-symbols-outlined text-primary text-2xl">how_to_reg</span>
+                <div class="w-12 h-12 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-primary text-xl">how_to_reg</span>
                 </div>
-                <h2 id="event-name" class="text-2xl font-black font-display mb-2">Evento</h2>
-                <div class="flex items-center justify-center gap-2 text-slate-400 text-sm mb-4">
-                    <span class="material-symbols-outlined text-sm">location_on</span>
-                    <span id="event-location">Ubicación</span>
+                <h2 id="page-title" class="text-xl font-black font-display mb-2">Registro de Invitados</h2>
+                <h3 id="event-name" class="text-lg font-black text-primary mb-1"></h3>
+                <div class="flex items-center justify-center gap-2 text-slate-400 text-xs mb-2">
+                    <span class="material-symbols-outlined text-xs">location_on</span>
+                    <span id="event-location"></span>
                 </div>
-                <p id="event-description" class="text-slate-500 text-sm hidden"></p>
+                <p id="event-description" class="text-slate-500 text-xs hidden"></p>
             </div>
 
             <!-- Countdown -->
-            <div id="countdown-section" class="p-6 bg-white/[0.02] border-b border-white/5 text-center">
-                <div id="countdown-timer" class="text-4xl font-black text-primary font-mono">00:00:00</div>
-                <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500 mt-2">Para el evento</p>
+            <div id="countdown-section" class="p-4 bg-white/[0.02] border-b border-white/5 text-center">
+                <div id="countdown-timer" class="text-3xl font-black text-primary font-mono">00:00:00</div>
+                <p class="text-[9px] uppercase tracking-[0.2em] font-bold text-slate-500 mt-1">Para el evento</p>
             </div>
 
             <!-- Formulario -->
-            <div class="p-10">
-                <h3 class="text-xl font-black mb-6 font-display">Registro Previo</h3>
-                <form id="public-reg-form" class="space-y-5">
+            <div class="p-8">
+                <p id="welcome-text" class="text-slate-400 text-sm mb-6 text-center hidden"></p>
+                
+                <form id="public-reg-form" class="space-y-4">
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">person</span>
                         <input type="text" id="reg-name" required placeholder="Nombre Completo *" class="input-field !pl-12 bg-slate-900/50">
@@ -77,28 +78,38 @@
                         <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">mail</span>
                         <input type="email" id="reg-email" required placeholder="Correo Electrónico *" class="input-field !pl-12 bg-slate-900/50">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">call</span>
-                            <input type="tel" id="reg-phone" placeholder="Teléfono" class="input-field !pl-12 bg-slate-900/50">
-                        </div>
-                        <input type="text" id="reg-org" placeholder="Empresa" class="input-field bg-slate-900/50">
+                    
+                    <!-- Campos dinámicos -->
+                    <div id="field-phone" class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">call</span>
+                        <input type="tel" id="reg-phone" placeholder="Teléfono" class="input-field !pl-12 bg-slate-900/50">
                     </div>
-                    <input type="text" id="reg-position" placeholder="Cargo / Puesto" class="input-field bg-slate-900/50">
-                    <div>
-                        <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 block">¿Eres vegano?</label>
-                        <div class="flex gap-4">
+                    
+                    <div id="field-org" class="grid grid-cols-2 gap-4">
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">apartment</span>
+                            <input type="text" id="reg-org" placeholder="Empresa" class="input-field !pl-12 bg-slate-900/50">
+                        </div>
+                        <div id="field-position">
+                            <input type="text" id="reg-position" placeholder="Cargo/Puesto" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <div id="field-vegan" class="p-4 bg-white/[0.02] rounded-xl border border-white/5">
+                        <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-3 block">¿Eres vegano?</label>
+                        <div class="flex gap-6">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="vegan" value="no" checked class="w-4 h-4 accent-primary">
+                                <input type="radio" name="vegan" value="no" checked class="w-4 h-4">
                                 <span class="text-sm text-slate-300">No</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="vegan" value="si" class="w-4 h-4 accent-primary">
+                                <input type="radio" name="vegan" value="si" class="w-4 h-4">
                                 <span class="text-sm text-slate-300">Sí</span>
                             </label>
                         </div>
                     </div>
-                    <div>
+                    
+                    <div id="field-gender" class="hidden">
                         <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 block">Sexo</label>
                         <select id="reg-gender" class="input-field bg-slate-900/50">
                             <option value="O">Prefiero no decir</option>
@@ -106,21 +117,38 @@
                             <option value="F">Femenino</option>
                         </select>
                     </div>
-                    <div class="relative">
+                    
+                    <div id="field-dietary" class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-4 text-slate-500">medical_information</span>
-                        <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias (opcional)" class="input-field !pl-12 bg-slate-900/50 h-20 resize-none"></textarea>
+                        <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field !pl-12 bg-slate-900/50 h-16 resize-none"></textarea>
                     </div>
-                    <button type="submit" class="btn-primary w-full py-4 uppercase font-extrabold tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-transform text-sm">
+                    
+                    <!-- Política de datos -->
+                    <div id="policy-section" class="p-4 bg-white/[0.02] rounded-xl border border-white/5">
+                        <div id="policy-text" class="text-xs text-slate-500 mb-4 max-h-24 overflow-y-auto"></div>
+                        <label id="agreement-label" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="reg-agreement" required class="w-5 h-5 mt-0.5 accent-primary">
+                            <span class="text-xs text-slate-400">Acepto la política de tratamiento de datos personales</span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" id="submit-btn" class="btn-primary w-full py-4 uppercase font-extrabold tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-transform text-sm">
                         Confirmar Registro
                     </button>
                 </form>
-                <p id="success-message" class="hidden text-center p-6">
+                
+                <div id="success-message" class="hidden text-center py-8">
                     <span class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span class="material-symbols-outlined text-emerald-500 text-3xl">check_circle</span>
                     </span>
-                    <p class="text-lg font-black text-emerald-400 mb-2">¡Registro Exitoso!</p>
-                    <p class="text-slate-400 text-sm">Te esperamos en el evento. Recibirás un correo de confirmación.</p>
-                </p>
+                    <p id="success-text" class="text-lg font-black text-emerald-400 mb-2">¡Registro Exitoso!</p>
+                    <p class="text-slate-400 text-sm">Te esperamos en el evento.</p>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-8 pb-6 text-center">
+                <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors">Volver al inicio</a>
             </div>
         </div>
     </div>
@@ -138,42 +166,78 @@
 
     <script>
         const API_URL = '/api';
-        let eventId = null;
         let eventData = null;
 
         async function loadEvent() {
             const params = new URLSearchParams(window.location.search);
-            const eventIdParam = params.get('event');
+            const eventId = params.get('event');
 
-            if (!eventIdParam) {
+            if (!eventId) {
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error-content').classList.remove('hidden');
                 return;
             }
 
             try {
-                const res = await fetch(`${API_URL}/events/${eventIdParam}`);
+                const res = await fetch(`${API_URL}/events/${eventId}`);
                 if (!res.ok) throw new Error('Evento no encontrado');
 
                 eventData = await res.json();
-                eventId = eventData.id;
-
-                // Mostrar info del evento
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
 
+                // Título de la página
+                document.getElementById('page-title').innerText = eventData.reg_title || 'Registro de Invitados';
                 document.getElementById('event-name').innerText = eventData.name || 'Evento';
                 document.getElementById('event-location').innerText = eventData.location || 'Por definir';
-                document.title = `Registro | ${eventData.name}`;
+                document.title = `${eventData.reg_title || 'Registro'} | ${eventData.name}`;
 
+                // Logo
+                if (eventData.reg_logo_path) {
+                    document.getElementById('event-logo').classList.remove('hidden');
+                    document.getElementById('event-logo').innerHTML = `<img src="${eventData.reg_logo_path}" class="w-full h-full object-cover" alt="Logo">`;
+                }
+
+                // Descripción
                 if (eventData.description) {
                     document.getElementById('event-description').classList.remove('hidden');
                     document.getElementById('event-description').innerText = eventData.description;
                 }
 
+                // Texto de bienvenida
+                if (eventData.reg_welcome_text) {
+                    document.getElementById('welcome-text').classList.remove('hidden');
+                    document.getElementById('welcome-text').innerText = eventData.reg_welcome_text;
+                }
+
+                // Mensaje de éxito
+                if (eventData.reg_success_message) {
+                    document.getElementById('success-text').innerText = eventData.reg_success_message;
+                }
+
+                // Política de datos
+                if (eventData.reg_policy) {
+                    document.getElementById('policy-text').innerHTML = eventData.reg_policy.replace(/\n/g, '<br>');
+                } else {
+                    document.getElementById('policy-text').innerHTML = 'Al registrarse, acepta que sus datos sean utilizados únicamente para la gestión del evento.';
+                }
+
+                // Requerir aceptación
+                document.getElementById('reg-agreement').required = eventData.reg_require_agreement !== 0;
+
+                // Mostrar/ocultar campos según configuración
+                document.getElementById('field-phone').style.display = eventData.reg_show_phone !== 0 ? 'block' : 'none';
+                document.getElementById('field-org').style.display = eventData.reg_show_org !== 0 ? 'grid' : 'none';
+                document.getElementById('field-position').style.display = eventData.reg_show_position === 1 ? 'block' : 'none';
+                document.getElementById('field-vegan').style.display = eventData.reg_show_vegan !== 0 ? 'block' : 'none';
+                document.getElementById('field-gender').style.display = eventData.reg_show_gender === 1 ? 'block' : 'none';
+                document.getElementById('field-dietary').style.display = eventData.reg_show_dietary !== 0 ? 'block' : 'none';
+
                 // Countdown
                 if (eventData.date) {
                     const eventDate = new Date(eventData.date);
+                    const countdownSection = document.getElementById('countdown-section');
+                    
                     setInterval(() => {
                         const now = new Date();
                         const diff = eventDate - now;
@@ -190,13 +254,7 @@
                         }
                     }, 1000);
                 } else {
-                    document.getElementById('countdown-section').classList.add('hidden');
-                }
-
-                // Logo del evento si existe
-                if (eventData.logo_path) {
-                    document.getElementById('event-logo').classList.remove('hidden');
-                    document.getElementById('event-logo').innerHTML = `<img src="${eventData.logo_path}" class="w-full h-full object-cover" alt="Logo">`;
+                    document.getElementById('countdown-section').style.display = 'none';
                 }
 
             } catch (e) {
@@ -207,9 +265,9 @@
 
         document.getElementById('public-reg-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!eventId) return alert("Error: Evento no identificado");
+            if (!eventData) return alert("Error: Evento no identificado");
 
-            const btn = e.target.querySelector('button[type="submit"]');
+            const btn = document.getElementById('submit-btn');
             const orig = btn.innerText;
             btn.innerText = "Procesando...";
             btn.disabled = true;
@@ -219,7 +277,7 @@
             const dietaryNotes = vegan === 'si' ? 'Vegano' + (dietary ? ', ' + dietary : '') : dietary;
 
             const body = {
-                event_id: eventId,
+                event_id: eventData.id,
                 name: document.getElementById('reg-name').value.trim(),
                 email: document.getElementById('reg-email').value.trim().toLowerCase(),
                 phone: document.getElementById('reg-phone').value.trim(),
@@ -237,7 +295,7 @@
                 });
                 const d = await res.json();
                 if (d.success) {
-                    e.target.classList.add('hidden');
+                    e.target.style.display = 'none';
                     document.getElementById('success-message').classList.remove('hidden');
                 } else {
                     alert("Error: " + (d.error || 'No se pudo completar el registro'));

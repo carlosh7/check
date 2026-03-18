@@ -726,42 +726,116 @@
     </div>
 
     <!-- MODAL: EVENT CONFIG -->
-    <div id="modal-event" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
-        <div class="glass-card p-10 rounded-[48px] max-w-2xl w-full shadow-2xl border border-white/10 relative">
-            <h3 class="text-3xl font-black mb-8 font-display tracking-tight text-center">Configuración del Evento</h3>
-            <form id="new-event-form" class="space-y-4">
+    <div id="modal-event" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-card p-8 rounded-[40px] max-w-3xl w-full shadow-2xl border border-white/10 relative my-8">
+            <h3 class="text-2xl font-black mb-6 font-display tracking-tight text-center">Configuración del Evento</h3>
+            <form id="new-event-form" class="space-y-5">
                 <input type="hidden" id="ev-id-hidden">
+                
+                <!-- Datos básicos -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Título Comercial</label>
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre del Evento *</label>
                         <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field bg-slate-900/50">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo del Evento (PNG/JPG)</label>
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo del Evento</label>
                         <input type="file" id="ev-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Inicio del Evento</label>
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Inicio *</label>
                         <input type="datetime-local" id="ev-date" required class="input-field bg-slate-900/50">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fin del Evento</label>
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fin *</label>
                         <input type="datetime-local" id="ev-end-date" required class="input-field bg-slate-900/50">
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Sede / Ubicación</label>
+                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Ubicación</label>
                     <input type="text" id="ev-location" placeholder="Ciudad, Hotel, Centro de Convenciones" class="input-field bg-slate-900/50">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Descripción General</label>
-                    <textarea id="ev-desc" placeholder="Detalles corporativos o agenda rápida..." class="input-field bg-slate-900/50 h-32 resize-none"></textarea>
+                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Descripción</label>
+                    <textarea id="ev-desc" placeholder="Detalles corporativos o agenda..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
                 </div>
-                <div class="flex gap-4 pt-8">
-                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Crear Evento</button>
-                    <button type="button" id="close-modal" class="px-8 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
+                
+                <!-- Configuración de Registro Público -->
+                <div class="border-t border-white/10 pt-5 mt-5">
+                    <h4 class="text-lg font-black mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">how_to_reg</span>
+                        Página de Registro Público
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Título de la página</label>
+                                <input type="text" id="ev-reg-title" placeholder="Ej: Registro de Invitados" class="input-field bg-slate-900/50">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo para registro</label>
+                                <input type="file" id="ev-reg-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Texto de bienvenida</label>
+                            <input type="text" id="ev-reg-welcome" placeholder="Ej: Bienvenido a nuestro evento" class="input-field bg-slate-900/50">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Mensaje de éxito</label>
+                            <input type="text" id="ev-reg-success" placeholder="Ej: ¡Registro exitoso! Te esperamos." class="input-field bg-slate-900/50">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Política de tratamiento de datos</label>
+                            <textarea id="ev-reg-policy" placeholder="Texto legal de aceptación de tratamiento de datos personales..." class="input-field bg-slate-900/50 h-24 resize-none"></textarea>
+                        </div>
+                        
+                        <!-- Campos a mostrar -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2 mb-3 block">Campos a solicitar</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-phone" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Teléfono</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-org" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Empresa</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-position" class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Cargo/Puesto</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-vegan" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Vegano</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-dietary" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Alergias</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-gender" class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Sexo</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors md:col-span-3">
+                                    <input type="checkbox" id="ev-reg-agreement" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Requerir aceptación de política de datos</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 pt-5 border-t border-white/10">
+                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
+                    <button type="button" id="close-modal" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
                 </div>
             </form>
         </div>

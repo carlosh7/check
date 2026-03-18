@@ -402,10 +402,26 @@ app.get('/api/events', authMiddleware(), (req, res) => {
 });
 
 app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { name, date, location, description } = req.body;
+    const { 
+        name, date, location, description, end_date,
+        reg_title, reg_welcome_text, reg_policy, reg_success_message,
+        reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
+        reg_show_dietary, reg_show_gender, reg_require_agreement
+    } = req.body;
     const targetId = castId('events', req.params.id);
-    db.prepare("UPDATE events SET name = ?, date = ?, location = ?, description = ? WHERE id = ?")
-      .run(name, date, location, description, targetId);
+    
+    db.prepare(`UPDATE events SET 
+        name = ?, date = ?, location = ?, description = ?, end_date = ?,
+        reg_title = ?, reg_welcome_text = ?, reg_policy = ?, reg_success_message = ?,
+        reg_show_phone = ?, reg_show_org = ?, reg_show_position = ?, reg_show_vegan = ?,
+        reg_show_dietary = ?, reg_show_gender = ?, reg_require_agreement = ?
+        WHERE id = ?`).run(
+        name, date, location, description, end_date || null,
+        reg_title || null, reg_welcome_text || null, reg_policy || null, reg_success_message || null,
+        reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
+        reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
+        targetId
+    );
     res.json({ success: true });
 });
 
@@ -693,9 +709,15 @@ app.get('/api/events/public/:name', (req, res) => {
 // Obtener evento por ID (público)
 app.get('/api/events/:id', (req, res) => {
     const eId = castId('events', req.params.id);
-    const row = db.prepare("SELECT id, name, date, end_date, location, description, logo_url FROM events WHERE id = ?").get(eId);
+    const row = db.prepare(`
+        SELECT id, name, date, end_date, location, description, logo_url,
+               reg_title, reg_welcome_text, reg_policy, reg_success_message, reg_logo_url,
+               reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan, 
+               reg_show_dietary, reg_show_gender, reg_require_agreement
+        FROM events WHERE id = ?`).get(eId);
     if (row) {
         row.logo_path = row.logo_url ? `/uploads/${path.basename(row.logo_url)}` : null;
+        row.reg_logo_path = row.reg_logo_url ? `/uploads/${path.basename(row.reg_logo_url)}` : row.logo_path;
         res.json(row);
     }
     else res.status(404).json({ error: 'Evento no encontrado' });
