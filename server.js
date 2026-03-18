@@ -239,57 +239,28 @@ app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.s
     if (!req.file) return res.status(400).json({ error: 'Falta archivo' });
     const eventId = castId('events', req.body.eventId);
     let raw = [];
+// --- IMPORT MOTOR V10.5.2 ---
+let tempImport = {};
+
+app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (req, res) => {
+    if (!req.file || !req.body.event_id) return res.status(400).json({ error: 'Data faltante' });
+    const eId = castId('events', req.body.event_id);
+    const guests = [];
+    
     try {
-        if (req.file.mimetype === 'application/pdf') {
+        if (req.file.originalname.endsWith('.pdf')) {
             const dataBuffer = fs.readFileSync(req.file.path);
-            const pdfData = await pdfParse(dataBuffer);
-            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            const emails = [...new Set(pdfData.text.match(emailRegex) || [])];
-            raw = emails.map(e => ({
-                name: e.split('@')[0].split(/[._+-]/).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
-                email: e.toLowerCase().trim(), organization: "Importación PDF", phone: "", gender: "O"
-            }));
+            const data = await pdfParse(dataBuffer);
+            const lines = data.text.split('\n').filter(l => l.trim().includes('@'));
+            lines.forEach(l => {
+                const parts = l.split(/\s+/);
+                const email = parts.find(p => p.includes('@'));
+                if (email) guests.push({ name: parts.filter(p => !p.includes('@')).join(' ') || 'Invitado PDF', email, organization: 'Importado PDF' });
+            });
         } else {
-            // Leer Excel con ExcelJS (moderno, mantenido, sin vulnerabilidades)
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(req.file.path);
-            const sheet = workbook.worksheets[0];
-            // Obtener encabezados de la primera fila
-            const headers = [];
-            sheet.getRow(1).eachCell((cell) => headers.push(String(cell.value || '').trim()));
-            // Mapear filas a objetos
-            sheet.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return; // Saltar encabezados
-                const obj = {};
-                row.eachCell((cell, colNumber) => { obj[headers[colNumber - 1]] = cell.value; });
-                const name = (obj.Nombre || obj.nombre || obj.name || '').toString().trim() || obj.Email || 'Invitado';
-                const email = (obj.Email || obj.email || obj.correo || '').toString().toLowerCase().trim();
-                if (email) raw.push({
-                    name,
-                    email,
-                    organization: (obj.Organizacion || obj.Empresa || obj.organization || '').toString().trim(),
-                    phone: (obj.Telefono || obj.phone || '').toString().trim(),
-                    gender: (obj.Genero || obj.gender || 'O').toString().trim()
-                });
-            });
-        }
-        fs.unlinkSync(req.file.path);
-
-        // Deduplicar dentro del archivo
-        const uniqueInFile = [];
-        const seen = new Set();
-        raw.filter(g => g.email).forEach(g => {
-            if (!seen.has(g.email)) { seen.add(g.email); uniqueInFile.push(g); }
-        });
-
-        // Detectar duplicados contra la DB (síncrono)
-        const rowsDb = db.prepare("SELECT LOWER(TRIM(email)) as email FROM guests WHERE event_id = ?").all(eventId);
-        const inDb = new Set(rowsDb.map(r => r.email));
             const sheet = workbook.getWorksheet(1);
-            sheet.eachRow((row, i) => {
-                if (i > 1) {
-                    const name = row.getCell(1).text;
-                    const email = row.getCell(2).text;
                     if (name && email) guests.push({ name, email, organization: row.getCell(3).text || '', phone: row.getCell(4).text || '', gender: row.getCell(5).text || 'O' });
                 }
             });
