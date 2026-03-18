@@ -40,7 +40,7 @@ window.App = {
                         </div>
                     </div>`).join('');
             }
-            const tbody = document.getElementById('users-tbody');
+            const tbody = document.getElementById('users-tbody-simple');
             console.log("tbody found:", !!tbody);
             if (tbody) {
                 tbody.innerHTML = users.map(u => `
