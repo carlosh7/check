@@ -10,10 +10,25 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.3.0' // Default fallback
+        version: '10.4.0' // Master Version
     },
     constants: {
         API_URL: '/api'
+    },
+    
+    // --- NUEVO EVENTO V10 ---
+    async createEvent(data) {
+        try {
+            const res = await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
+            if (res.success) {
+                alert("✓ Evento creado con éxito.");
+                document.getElementById('modal-event').classList.add('hidden');
+                document.getElementById('new-event-form').reset();
+                this.loadEvents();
+            } else {
+                alert("Error: " + res.error);
+            }
+        } catch (e) { alert("Error al crear evento."); }
     },
     
     // --- CORE NAV ---
@@ -511,6 +526,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal de Invitación
     cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
     cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
+    
+    // Modal de Eventos
+    cl('btn-create-event-open', () => {
+        document.getElementById('ev-id-hidden').value = "";
+        document.getElementById('new-event-form').reset();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    });
+    cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
+
+    sf('new-event-form', async (e) => {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('ev-name').value,
+            date: document.getElementById('ev-date').value,
+            location: document.getElementById('ev-location').value,
+            description: document.getElementById('ev-desc').value
+        };
+        App.createEvent(data);
+    });
+
     sf('invite-user-form', async (e) => {
         e.preventDefault();
         const u = document.getElementById('invite-username').value;
