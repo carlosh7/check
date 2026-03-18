@@ -34,20 +34,16 @@
         }
     </script>
     <script>
-        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V8.0 (MODAL ABSOLUTO)
+        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V8.1 (ANULACIÓN FÍSICA)
         window.FORCE_NAVGATION = function(viewName) {
-            console.log("EJECUTANDO NAVEGACION V8.0 HACIA: " + viewName);
+            console.log("EJECUTANDO NAVEGACION V8.1 HACIA: " + viewName);
             
             const views = ["view-registration", "view-login", "view-my-events", "view-admin"];
             views.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
-                    el.style.opacity = '0';
+                if (el && id !== "view-" + viewName) {
+                    el.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; position: absolute !important; left: -9999px !important; top: -9999px !important; width: 0 !important; height: 0 !important; z-index: -9999 !important;';
                     el.classList.add('hidden');
-                    el.style.position = '';
-                    el.style.zIndex = '';
                 }
             });
 
@@ -55,11 +51,10 @@
             if (target) {
                 target.classList.remove('hidden');
                 if (viewName === 'login') {
-                    // MODAL FIJO INDESTRUCTIBLE
+                    // MODAL FIJO INDESTRUCTIBLE EN PRIMER PLANO
                     target.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background-color: #020617 !important;';
                 } else {
-                    target.style.display = (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex'));
-                    target.style.cssText += 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important;';
+                    target.style.cssText = 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important; position: relative !important; left: auto !important; top: auto !important; width: 100% !important; height: auto !important; z-index: 10 !important;';
                 }
             }
             
