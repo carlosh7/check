@@ -178,45 +178,48 @@ window.switchToDashboard = async function(id) {
 
 async function loadAdminData() {
     if (!currentEvent) return;
-    const stats = await apiFetch(`/stats/${currentEvent.id}`);
-    document.getElementById('stat-total').innerText = stats.total || 0;
-    document.getElementById('stat-orgs').innerText = stats.orgs || 0;
-    document.getElementById('stat-presence').innerText = `${stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0}%`;
-    document.getElementById('stat-onsite').innerText = stats.onsite || 0;
-    document.getElementById('stat-health').innerText = stats.healthAlerts || 0;
-    document.getElementById('stat-gender-ratio').innerText = stats.genderRatio || "0.0";
-    updateFlowChart(stats.flowData || []);
-    allGuests = await apiFetch(`/guests/${currentEvent.id}`);
-    renderGuests(allGuests);
+    
+    // Carga independiente para evitar bloqueos
+    try {
+        const stats = await apiFetch(`/stats/${currentEvent.id}`);
+        document.getElementById('stat-total').innerText = stats.total || 0;
+        document.getElementById('stat-orgs').innerText = stats.orgs || 0;
+        document.getElementById('stat-presence').innerText = `${stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0}%`;
+        document.getElementById('stat-onsite').innerText = stats.onsite || 0;
+        document.getElementById('stat-health').innerText = stats.healthAlerts || 0;
+        document.getElementById('stat-gender-ratio').innerText = stats.genderRatio || "0.0";
+        updateFlowChart(stats.flowData || []);
+    } catch (e) { console.error("Stats Error", e); }
+
+    try {
+        allGuests = await apiFetch(`/guests/${currentEvent.id}`);
+        renderGuests(allGuests);
+    } catch (e) { console.error("Guests Load Error", e); }
+
     startClocks();
 }
 
 function startClocks() {
     if (window.clockInterval) clearInterval(window.clockInterval);
+    const clockReal = document.getElementById('admin-clock-real');
+    const clockCountdown = document.getElementById('admin-clock-countdown');
+    
     window.clockInterval = setInterval(() => {
-        // Hora Real
         const now = new Date();
-        const clockReal = document.getElementById('admin-clock-real');
         if (clockReal) clockReal.innerText = now.toLocaleTimeString();
 
-        // Cuenta Regresiva
-        if (currentEvent && currentEvent.date) {
+        if (currentEvent && currentEvent.date && clockCountdown) {
             const eventDate = new Date(currentEvent.date);
             const diff = eventDate - now;
-            const clockCountdown = document.getElementById('admin-clock-countdown');
-            if (clockCountdown) {
-                if (diff > 0) {
-                    const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-                    const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-                    const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-                    clockCountdown.innerText = `${h}:${m}:${s}`;
-                    clockCountdown.classList.remove('text-green-500');
-                    clockCountdown.classList.add('text-red-500');
-                } else {
-                    clockCountdown.innerText = "EN CURSO";
-                    clockCountdown.classList.remove('text-red-500');
-                    clockCountdown.classList.add('text-green-500');
-                }
+            if (diff > 0) {
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                clockCountdown.innerText = `${h}:${m}:${s}`;
+                clockCountdown.classList.replace('text-green-500', 'text-red-500');
+            } else {
+                clockCountdown.innerText = "EN CURSO";
+                clockCountdown.classList.replace('text-red-500', 'text-green-500');
             }
         }
     }, 1000);

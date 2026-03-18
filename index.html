@@ -227,14 +227,15 @@
                     <p class="text-slate-500 text-sm font-medium flex items-center gap-2 mb-4">
                         <span class="material-symbols-outlined text-[16px]">location_on</span> <span id="admin-event-location">Sede Central</span>
                     </p>
-                    <div class="flex items-center gap-4 bg-slate-900/50 p-2 rounded-2xl border border-white/5 w-fit">
-                        <div class="px-4 py-2 bg-slate-800 rounded-xl text-center">
-                            <p class="text-[8px] font-black uppercase text-slate-500 mb-1">Hora Actual</p>
-                            <p id="admin-clock-real" class="text-sm font-mono font-bold text-primary">00:00:00</p>
+                               <div class="flex items-center gap-6 bg-slate-900/80 p-4 rounded-[32px] border border-white/10 shadow-2xl backdrop-blur-md w-fit">
+                        <div class="px-5 py-3 bg-slate-800/50 rounded-2xl text-center border border-white/5">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Hora Local</p>
+                            <p id="admin-clock-real" class="text-lg font-mono font-bold text-primary">00:00:00</p>
                         </div>
-                        <div class="px-4 py-2 bg-red-500/10 rounded-xl text-center border border-red-500/20">
-                            <p class="text-[8px] font-black uppercase text-red-500 mb-1">Inicio en</p>
-                            <p id="admin-clock-countdown" class="text-3xl font-mono font-black text-red-500 leading-none">00:00:00</p>
+                        <div class="h-10 w-px bg-white/5"></div>
+                        <div class="px-6 py-3 bg-red-500/10 rounded-2xl text-center border border-red-500/30">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Inicio en</p>
+                            <p id="admin-clock-countdown" class="text-5xl font-mono font-black text-red-500 tabular-nums drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]">00:00:00</p>
                         </div>
                     </div>
                 </div>
@@ -304,19 +305,16 @@
                                 <span id="stat-health" class="text-sm font-black text-white px-3 py-1 bg-red-500/10 text-red-400 rounded-full">0</span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-white/3 rounded-3xl border border-white/5">
-                                <span class="text-[10px] font-bold uppercase text-slate-500">Hombres / Mujeres</span>
-                                <span id="stat-gender-ratio" class="text-sm font-black text-white uppercase tracking-tighter">0.0</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
             <!-- List Section -->
-            <section class="card !p-0 overflow-hidden">
-                <div class="flex items-center justify-between p-6 bg-slate-900/20 border-bottom border-white/5">
+            <section class="card !p-0 overflow-hidden min-h-[500px] flex flex-col bg-slate-900/40 border-white/5 shadow-2xl">
+                <div class="flex items-center justify-between p-6 bg-slate-900/40 border-b border-white/5 sticky top-0 z-10 backdrop-blur-md">
                     <div class="relative w-full max-w-lg">
-                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">search</span>
-                        <input id="guest-search" type="text" placeholder="Filtrar por nombre, correo o empresa..." class="input-field !pl-12 !py-3.5 text-sm">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                        <input id="guest-search" type="text" placeholder="Filtrar por nombre, correo o empresa..." class="input-field !pl-12 !py-3.5 text-sm !bg-slate-950/50">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
