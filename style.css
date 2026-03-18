@@ -24,22 +24,54 @@
 
 html {
     scroll-behavior: smooth;
+    height: 100%;
 }
 
 body {
     background-color: var(--bg-slate-950);
     color: var(--text-primary);
     font-family: var(--font-body);
-    overflow-x: hidden;
-    overflow-y: auto; /* FIX CRÍTICO DEL SCROLL */
+    overflow: hidden;
     line-height: 1.5;
-    min-height: 100vh;
+    height: 100vh;
 }
 
-/* --- Master Layout V10.3.3 (CSS Grid) --- */
+/* ═══ APP CONTAINER LAYOUT ═══ */
+#app-container {
+    display: flex !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+
+#global-sidebar {
+    width: 260px !important;
+    min-width: 260px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    position: sticky !important;
+    top: 0;
+}
+
+#app-main-content {
+    flex: 1 !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative;
+}
+
+#app-main-content > div {
+    min-height: 100%;
+}
+
+/* ═══ ADMIN LAYOUT (Legacy) ═══ */
 .admin-layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
+    display: flex !important;
     min-height: 100vh;
     background-color: var(--bg-slate-950);
 }
@@ -49,11 +81,10 @@ body {
     border-right: 1px solid var(--border-white);
     display: flex;
     flex-direction: column;
-    padding: 2.5rem 1.5rem;
+    width: 260px;
+    min-width: 260px;
     height: 100vh;
-    position: sticky;
-    top: 0;
-    z-index: 40;
+    flex-shrink: 0;
     overflow-y: auto;
 }
 
@@ -61,18 +92,24 @@ body {
     padding: 3rem 4rem;
     min-width: 0; /* Fix para desbordamiento de hijos flex/grid */
     background: var(--bg-slate-950);
+    flex: 1;
 }
 
-/* Responsividad Móvil */
+/* ═══ RESPONSIVIDAD MÓVIL ═══ */
 @media (max-width: 1024px) {
-    .admin-layout {
-        grid-template-columns: 1fr;
+    #app-container {
+        flex-direction: column !important;
     }
-    .sidebar {
-        display: none; /* Ocultar sidebar en móviles por defecto en esta versión */
+    
+    #global-sidebar {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
     }
-    .main-content {
-        padding: 2rem;
+    
+    #app-main-content {
+        height: auto !important;
+        min-height: calc(100vh - 200px);
     }
 }
 
