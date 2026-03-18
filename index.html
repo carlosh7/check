@@ -150,17 +150,15 @@
     <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950">
         <!-- Sidebar Global -->
         <aside id="global-sidebar" class="sidebar w-[260px] bg-slate-950/40 p-6 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
-            <div class="flex items-center justify-between mb-12 px-1">
-                <div class="flex items-center gap-4">
-                    <div class="shrink-0 w-10 h-10 bg-primary/10 rounded-xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
-                        <span class="material-symbols-outlined text-primary text-xl">shield_checked</span>
-                    </div>
-                    <span class="font-black font-display text-xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
+            <div class="flex items-center gap-4 mb-6 px-1">
+                <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
+                    <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
                 </div>
-                <button onclick="App.toggleTheme()" id="theme-toggle" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" title="Cambiar tema">
-                    <span class="material-symbols-outlined text-sm text-slate-400" id="theme-icon">dark_mode</span>
-                </button>
+                <span class="font-black font-display text-2xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
             </div>
+            <button onclick="App.toggleTheme()" id="theme-toggle" class="w-full py-3 mb-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-slate-400 hover:text-white" title="Cambiar tema">
+                <span class="material-symbols-outlined text-lg" id="theme-icon">dark_mode</span>
+            </button>
             
             <nav id="sidebar-nav" class="flex-1 space-y-1 overflow-y-auto">
                 <div id="nav-section-global" class="space-y-1">
@@ -263,6 +261,8 @@
                             </div>
                         </div>
                         <div class="flex gap-3">
+                            <button id="btn-show-qr" class="px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-primary/20"><span class="material-symbols-outlined">qr_code_2</span> QR</button>
+                            <button class="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"><span class="material-symbols-outlined">mail</span> Mailing</button>
                             <button id="btn-export-excel" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">Excel</button>
                             <button id="btn-clear-db" class="px-6 py-3 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-all border border-red-500/10">Limpiar</button>
                         </div>

@@ -466,10 +466,8 @@ window.App = {
             targetViewId = "view-system-simple";
         }
         
-        // Si es admin, verificar cuál versión mostrar (completa si hay evento)
-        if (viewName === 'admin' && App.state.event) {
-            targetViewId = "view-admin";
-        } else if (viewName === 'admin') {
+        // Admin/Dashboard siempre usa la versión simple dentro del nuevo layout
+        if (viewName === 'admin') {
             targetViewId = "view-admin-simple";
         }
         
