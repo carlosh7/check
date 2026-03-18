@@ -101,22 +101,15 @@ window.App = {
         const loginEl = document.getElementById('view-login');
         const appEl = document.getElementById('app-container');
         
-        if (loginEl) {
-            loginEl.classList.remove('hidden');
-            loginEl.style.display = 'flex';
-        }
-        if (appEl) {
-            if (isLogin) {
-                appEl.classList.add('hidden');
-                appEl.style.display = 'none';
-            } else {
-                appEl.classList.remove('hidden');
-                appEl.style.display = 'flex';
-            }
-        }
-        
         if (isLogin) {
+            // Mostrar login, ocultar app
+            if (loginEl) { loginEl.classList.remove('hidden'); loginEl.style.display = 'flex'; }
+            if (appEl) { appEl.classList.add('hidden'); appEl.style.display = 'none'; }
             return;
+        } else {
+            // Ocultar login, mostrar app
+            if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+            if (appEl) { appEl.classList.remove('hidden'); appEl.style.display = 'flex'; }
         }
 
         // 2. Switchear vistas internas
