@@ -444,9 +444,20 @@
     <input type="file" id="admin-file-import-excel" class="hidden" accept=".xlsx,.xls">
     <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Modal: Import Results -->
+    <div id="modal-import-results" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
+        <div class="w-full max-w-lg glass p-10 rounded-[40px]">
+            <h3 class="text-2xl font-black mb-6 font-display">Informe de Importación</h3>
+            <div id="import-summary-content" class="space-y-4 mb-8">
+                <!-- JS populated -->
+            </div>
+            <div class="flex gap-4">
+                <button id="btn-confirm-import" class="btn-primary flex-1 py-4">CONFIRMAR Y GUARDAR</button>
+                <button id="close-import-modal" class="px-8 py-4 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Partner Management (Admin Only) -->
     <div id="modal-partners" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
         <div class="w-full max-w-3xl glass p-10 rounded-[40px] max-h-[85vh] overflow-hidden flex flex-col">

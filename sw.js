@@ -8,6 +8,8 @@ const assets = [
   'https://cdn.tailwindcss.com?plugins=forms,container-queries',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
+  '/socket.io/socket.io.js',
   'https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=Inter:wght@400;500;600&display=swap'
 ];
 

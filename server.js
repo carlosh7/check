@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 // --- RATE LIMITING ---
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // 10 intentos
+    max: 10,
     message: { error: "Demasiados intentos, intente más tarde." }
 });
 
@@ -51,8 +51,10 @@ const authMiddleware = (roles = []) => {
         const userId = req.headers['x-user-id'];
         if (!userId) return res.status(401).json({ error: 'No autorizado' });
 
-        db.get("SELECT role FROM users WHERE id = ?", [userId], (err, row) => {
+        db.get("SELECT role, status FROM users WHERE id = ?", [userId], (err, row) => {
             if (err || !row) return res.status(401).json({ error: 'Usuario no encontrado' });
+            if (row.status !== 'APPROVED') return res.status(403).json({ error: 'Cuenta pendiente de aprobación' });
+            
             if (roles.length > 0 && !roles.includes(row.role)) {
                 return res.status(403).json({ error: 'Permisos insuficientes' });
             }
@@ -72,11 +74,10 @@ io.on('connection', (socket) => {
 
 // --- API ROUTES ---
 
-// Registro de Usuario
+// Auth
 app.post('/api/signup', (req, res) => {
     const { username, password, role } = req.body;
     const id = uuidv4();
-    // Los administradores son aprobados de inmediato (solo debería haber uno inicial)
     const status = role === 'ADMIN' ? 'APPROVED' : 'PENDING';
     
     db.run("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)", 
@@ -86,7 +87,6 @@ app.post('/api/signup', (req, res) => {
     });
 });
 
-// Login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
@@ -101,7 +101,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Gestión de Usuarios (Admin Only)
+// Admin Users
 app.get('/api/admin/users/pending', authMiddleware(['ADMIN']), (req, res) => {
     db.all("SELECT id, username, role, created_at FROM users WHERE status = 'PENDING'", (err, rows) => {
         res.json(rows);
@@ -109,18 +109,16 @@ app.get('/api/admin/users/pending', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 app.post('/api/admin/users/approve', authMiddleware(['ADMIN']), (req, res) => {
-    const { userId, status } = req.body; // status: 'APPROVED' o 'REJECTED'
+    const { userId, status } = req.body;
     db.run("UPDATE users SET status = ? WHERE id = ?", [status, userId], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
 });
 
-// Eventos (Filtrado por Multitenancy)
+// Events
 app.get('/api/events', authMiddleware(), (req, res) => {
     const userId = req.headers['x-user-id'];
-    const { role } = req.query; // Si el admin quiere ver todos
-    
     let query = "SELECT * FROM events WHERE user_id = ?";
     let params = [userId];
 
@@ -146,7 +144,7 @@ app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     });
 });
 
-// Añadir pregunta a la encuesta de un evento
+// Surveys
 app.post('/api/surveys/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const { event_id, question, type, options } = req.body;
     db.run("INSERT INTO surveys (id, event_id, question, type, options) VALUES (?, ?, ?, ?, ?)", 
@@ -156,115 +154,155 @@ app.post('/api/surveys/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
         });
 });
 
-// Invitados
-app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
-    db.all("SELECT * FROM guests WHERE event_id = ?", [req.params.eventId], (err, rows) => {
+app.get('/api/surveys/questions/:eventId', authMiddleware(), (req, res) => {
+    db.all("SELECT * FROM surveys WHERE event_id = ?", [req.params.eventId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
-// --- MAILING ENGINE ---
-async function sendEmail(eventId, type, guestData) {
-    return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM event_mailing_config WHERE event_id = ?", [eventId], async (err, config) => {
-            if (err || !config) return resolve(false);
-
-            const transporter = nodemailer.createTransport({
-                host: config.smtp_host,
-                port: config.smtp_port,
-                auth: { user: config.smtp_user, pass: config.smtp_pass }
-            });
-
-            let subject = type === 'welcome' ? config.welcome_subject : config.survey_subject;
-            let body = type === 'welcome' ? config.welcome_body : config.survey_body;
-
-            // Reemplazo de variables dinámicas
-            const vars = { '{{nombre}}': guestData.name, '{{evento}}': guestData.eventName || 'el evento' };
-            Object.keys(vars).forEach(k => {
-                subject = subject.replace(new RegExp(k, 'g'), vars[k]);
-                body = body.replace(new RegExp(k, 'g'), vars[k]);
-            });
-
-            try {
-                await transporter.sendMail({
-                    from: `"Check | ${guestData.eventName}" <${config.smtp_user}>`,
-                    to: guestData.email,
-                    subject: subject,
-                    html: body.replace(/\n/g, '<br>')
-                });
-                console.log(`Email de ${type} enviado a ${guestData.email}`);
-                resolve(true);
-            } catch (error) {
-                console.error("Error enviando email:", error);
-                resolve(false);
-            }
-        });
+app.delete('/api/surveys/questions/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    db.run("DELETE FROM surveys WHERE id = ?", [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
-}
+});
 
-// Configuración de Mailing por Evento
-app.post('/api/mailing-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { event_id, host, port, user, pass, welcome_sub, welcome_body, survey_sub, survey_body } = req.body;
+// Guests
+app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
+    db.all("SELECT * FROM guests WHERE event_id = ?", [req.params.eventId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Import Engine
+app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const { eventId } = req.body;
+
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+    fs.unlinkSync(req.file.path);
+
+    db.all("SELECT email FROM guests WHERE event_id = ?", [eventId], (err, existingGuests) => {
+        const existingEmails = new Set(existingGuests.map(g => g.email));
+        let newCount = 0;
+        let existingCount = 0;
+        const processedData = data.map(row => {
+            const email = (row.Email || row.email || row.correo || "").toString();
+            if (existingEmails.has(email)) existingCount++;
+            else newCount++;
+            return {
+                name: row.Nombre || row.nombre || row.name || "Sin nombre",
+                email: email,
+                organization: row.Organizacion || row.Empresa || row.organization || "",
+                phone: row.Telefono || row.phone || "",
+                gender: row.Genero || row.gender || "O"
+            };
+        });
+        res.json({ summary: { new: newCount, existing: existingCount }, data: processedData });
+    });
+});
+
+app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { eventId, guests } = req.body;
+    const stmt = db.prepare("INSERT OR REPLACE INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    guests.forEach(g => {
+        stmt.run([uuidv4(), eventId, g.name, g.email, g.organization, g.phone, g.gender, uuidv4()]);
+    });
+    stmt.finalize();
+    io.to(eventId).emit('update_stats', eventId);
+    res.json({ success: true });
+});
+
+// Survey Responses
+app.post('/api/surveys/respond', (req, res) => {
+    const { event_id, guest_id, rating, comment } = req.body;
     const id = uuidv4();
-
-    db.run(`INSERT OR REPLACE INTO event_mailing_config (id, event_id, smtp_host, smtp_port, smtp_user, smtp_pass, welcome_subject, welcome_body, survey_subject, survey_body)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, event_id, host, port, user, pass, welcome_sub, welcome_body, survey_sub, survey_body], function(err) {
+    const responsesJson = JSON.stringify({ rating, comment });
+    db.run("INSERT INTO survey_responses (id, event_id, guest_id, responses_json, submitted_at) VALUES (?, ?, ?, ?, ?)",
+        [id, event_id, guest_id, responsesJson, new Date().toISOString()], (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });
         });
 });
 
-// Obtener configuración de Mailing
+// Mailing Engine
+async function sendEmail(eventId, type, guestData) {
+    db.get("SELECT * FROM event_mailing_config WHERE event_id = ?", [eventId], async (err, config) => {
+        if (err || !config) return;
+
+        const transporter = nodemailer.createTransport({
+            host: config.smtp_host,
+            port: config.smtp_port,
+            auth: { user: config.smtp_user, pass: config.smtp_pass }
+        });
+
+        let subject = type === 'welcome' ? config.welcome_subject : config.survey_subject;
+        let body = type === 'welcome' ? config.welcome_body : config.survey_body;
+
+        const vars = { '{{nombre}}': guestData.name, '{{evento}}': guestData.eventName || 'el evento' };
+        Object.keys(vars).forEach(k => {
+            subject = subject.replace(new RegExp(k, 'g'), vars[k]);
+            body = body.replace(new RegExp(k, 'g'), vars[k]);
+        });
+
+        try {
+            await transporter.sendMail({
+                from: `"Check | ${guestData.eventName}" <${config.smtp_user}>`,
+                to: guestData.email,
+                subject: subject,
+                html: body.replace(/\n/g, '<br>')
+            });
+        } catch (error) {
+            console.error("Error enviando email:", error);
+        }
+    });
+}
+
+app.post('/api/mailing-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { event_id, host, port, user, pass, welcome_sub, welcome_body, survey_sub, survey_body } = req.body;
+    db.run(`INSERT OR REPLACE INTO event_mailing_config (id, event_id, smtp_host, smtp_port, smtp_user, smtp_pass, welcome_subject, welcome_body, survey_subject, survey_body)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [uuidv4(), event_id, host, port, user, pass, welcome_sub, welcome_body, survey_sub, survey_body], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+});
+
 app.get('/api/mailing-config/:eventId', authMiddleware(), (req, res) => {
     db.get("SELECT * FROM event_mailing_config WHERE event_id = ?", [req.params.eventId], (err, row) => {
         res.json(row || {});
     });
 });
 
-// Check-in (Trigger Real-time & Email)
+// Check-in
 app.post('/api/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
     const { status } = req.body;
     const time = status ? new Date().toISOString() : null;
 
-    db.get(`
-        SELECT g.event_id, g.name, g.email, e.name as eventName 
-        FROM guests g JOIN events e ON g.event_id = e.id 
-        WHERE g.id = ?
-    `, [req.params.guestId], (err, guest) => {
+    db.get("SELECT g.*, e.name as eventName FROM guests g JOIN events e ON g.event_id = e.id WHERE g.id = ?", [req.params.guestId], (err, guest) => {
         if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
 
         db.run("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?", [status ? 1 : 0, time, req.params.guestId], (err) => {
-            // Repuesta inmediata al UI
             res.json({ success: true });
-
-            // Eventos asíncronos (Real-time & Email)
             io.to(guest.event_id).emit('checkin_update', { guestId: req.params.guestId, status });
-            
-            if (status && guest.email) {
-                sendEmail(guest.event_id, 'welcome', guest);
-            }
+            io.to(guest.event_id).emit('update_stats', guest.event_id);
+            if (status && guest.email) sendEmail(guest.event_id, 'welcome', guest);
         });
     });
 });
 
-// Stats Avanzadas (Real-time compatible)
+// Stats
 app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
     const eventId = req.params.eventId;
-    
     const queries = {
-        general: `SELECT 
-                    COUNT(*) as total,
-                    SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn,
-                    SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite,
-                    COUNT(DISTINCT organization) as orgs
-                  FROM guests WHERE event_id = ?`,
-        health: `SELECT COUNT(*) as count FROM guests 
-                 WHERE event_id = ? AND (dietary_notes LIKE '%vegano%' OR dietary_notes LIKE '%alergia%' OR dietary_notes IS NOT NULL AND dietary_notes != '')`,
-        gender: `SELECT gender, COUNT(*) as count FROM guests WHERE event_id = ? GROUP BY gender`,
-        flow: `SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count 
-               FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL 
-               GROUP BY hour ORDER BY hour ASC`
+        general: "SELECT COUNT(*) as total, SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn, SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite, COUNT(DISTINCT organization) as orgs FROM guests WHERE event_id = ?",
+        health: "SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND (dietary_notes IS NOT NULL AND dietary_notes != '')",
+        gender: "SELECT gender, COUNT(*) as count FROM guests WHERE event_id = ? GROUP BY gender",
+        flow: "SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL GROUP BY hour ORDER BY hour ASC"
     };
 
     db.get(queries.general, [eventId], (err, general) => {
@@ -273,37 +311,25 @@ app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
                 db.all(queries.flow, [eventId], (err, flow) => {
                     const m = genders.find(g => g.gender === 'M')?.count || 0;
                     const f = genders.find(g => g.gender === 'F')?.count || 0;
-                    
-                    res.json({
-                        ...general,
-                        healthAlerts: health.count,
-                        genderRatio: f > 0 ? (m / f).toFixed(1) : m.toFixed(1),
-                        flowData: flow
-                    });
+                    res.json({ ...general, healthAlerts: health.count, genderRatio: f > 0 ? (m / f).toFixed(1) : m.toFixed(1), flowData: flow });
                 });
             });
         });
     });
 });
 
-// Registro Público
+// Public Registration
 app.post('/api/register', (req, res) => {
     const { event_id, name, email, phone, organization, gender, dietary_notes } = req.body;
     const id = uuidv4();
-    const qr_token = uuidv4();
-
-    db.run("INSERT INTO guests (id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token], function(err) {
+    db.run("INSERT INTO guests (id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token, is_new_registration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+        [id, event_id, name, email, phone, organization, gender, dietary_notes, uuidv4()], (err) => {
             if (err) return res.status(500).json({ error: err.message });
-            
-            // Notificar al Dashboard que hay un nuevo registro
-            io.to(event_id).emit('new_registration', { id, name });
-            
+            io.to(event_id).emit('update_stats', event_id);
             res.json({ success: true, id });
         });
 });
 
-// --- SOCKETS DATA PUSH (Fase 3 PREVIEW) ---
 app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
     res.json({ url: `/uploads/${req.file.filename}` });
 });

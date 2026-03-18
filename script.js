@@ -16,7 +16,8 @@ const views = {
     myEvents: document.getElementById('view-my-events'),
     modalEvent: document.getElementById('modal-event'),
     modalMailing: document.getElementById('modal-mailing'),
-    modalSurvey: document.getElementById('modal-survey')
+    modalSurvey: document.getElementById('modal-survey'),
+    modalImportResults: document.getElementById('modal-import-results')
 };
 
 // --- API Helpers (Auth Headers) ---
@@ -543,3 +544,61 @@ if ('serviceWorker' in navigator) {
 
 // Iniciar aplicación
 init();
+
+// --- Import Logic ---
+let pendingImportData = null;
+
+document.getElementById('admin-import-excel-btn').onclick = () => document.getElementById('admin-file-import-excel').click();
+
+document.getElementById('admin-file-import-excel').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentEvent) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('eventId', currentEvent.id);
+
+    const res = await fetch(`${API_URL}/import-dry-run`, {
+        method: 'POST',
+        headers: { ...(loggedUser ? { 'x-user-id': loggedUser.userId } : {}) },
+        body: formData
+    });
+
+    if (res.ok) {
+        const report = await res.json();
+        pendingImportData = report.data;
+        document.getElementById('import-summary-content').innerHTML = `
+            <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="material-symbols-outlined text-green-400">person_add</span>
+                    <span class="text-sm font-bold">${report.summary.new} Invitados Nuevos</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-amber-400">group</span>
+                    <span class="text-sm font-bold">${report.summary.existing} Ya existentes</span>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 text-center">Se usarán los correos como identificador único.</p>
+        `;
+        views.modalImportResults.classList.remove('hidden');
+    }
+    e.target.value = ''; // Reset
+};
+
+document.getElementById('btn-confirm-import').onclick = async () => {
+    if (!pendingImportData || !currentEvent) return;
+    
+    await apiFetch('/import-confirm', {
+        method: 'POST',
+        body: JSON.stringify({ 
+            eventId: currentEvent.id, 
+            guests: pendingImportData 
+        })
+    });
+    
+    alert('Importación completada.');
+    views.modalImportResults.classList.add('hidden');
+    loadGuests(); // Recargar tabla
+};
+
+document.getElementById('close-import-modal').onclick = () => views.modalImportResults.classList.add('hidden');
