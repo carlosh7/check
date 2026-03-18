@@ -945,34 +945,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. Sync Version
     App.loadAppVersion();
 
-    // 1. Restore Auth
+    // 1. SIEMPRE mostrar login primero
+    App.showView('login');
+
+    // 2. Intentar restaurar sesión solo si existe un token válido
     try {
         const s = localStorage.getItem('user');
-        if (s && s !== "undefined" && s !== "null") window.App.state.user = JSON.parse(s);
-    } catch(e){}
-
-    // 2. ROUTING SPA ESTRICTO V10.3
-    const path = window.location.pathname;
-    
-    // El registro vive ahora en registro.html, pero mantenemos una redirección por si acaso
-    if (path.toLowerCase().endsWith('/registro')) {
-        console.log("CHECK V10.3: Ruta de registro detectada. Redirigiendo a archivo aislado...");
-        // Nota: server.js ya sirve registro.html directamente para estas rutas
-    }
-
-    // FLUJO PRINCIPAL: Login es siempre el punto de entrada
-    if (App.state.user) {
-        if (App.state.user.role === 'ADMIN') {
-            console.log("CHECK V10.3: Acceso ADMIN detectado. Cargando Panel Global.");
-            window.App.showView('system'); // Nueva vista global
-            window.switchSystemTab('users'); // Inicializar pestaña
-        } else {
-            console.log("CHECK V10.3: Acceso STAFF detectado. Cargando Selector de Eventos.");
-            App.loadEvents();
+        if (s && s !== "undefined" && s !== "null") {
+            const user = JSON.parse(s);
+            if (user && user.token) {
+                window.App.state.user = user;
+                // Si hay sesión válida, cargar contenido
+                if (user.role === 'ADMIN') {
+                    window.App.showView('system');
+                    window.switchSystemTab('users');
+                } else {
+                    App.loadEvents();
+                }
+            }
         }
-    } else {
-        App.showView('login');
-    }
+    } catch(e){}
 
     // 3. Sockets
     if (typeof io !== 'undefined') {
@@ -981,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
     }
 
-    // Listeners System
+    // 4. Listeners System
     document.getElementById('sys-nav-users')?.addEventListener('click', () => switchSystemTab('users'));
     document.getElementById('sys-nav-legal')?.addEventListener('click', () => switchSystemTab('legal'));
     document.getElementById('sys-nav-account')?.addEventListener('click', () => switchSystemTab('account'));
