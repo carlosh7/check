@@ -190,6 +190,61 @@ async function loadAdminData() {
     renderGuests(allGuests);
 }
 
+// Navigation Back
+setClick('btn-events-list-nav', loadMyEvents);
+
+// Event Modal (Create/Edit)
+setClick('btn-create-event-open', () => {
+    document.getElementById('new-event-form').reset();
+    document.getElementById('ev-id-hidden').value = '';
+    views.modalEvent.classList.remove('hidden');
+});
+
+setClick('btn-edit-event', () => {
+    if (!currentEvent) return;
+    document.getElementById('ev-id-hidden').value = currentEvent.id;
+    document.getElementById('ev-name').value = currentEvent.name;
+    document.getElementById('ev-date').value = currentEvent.date;
+    document.getElementById('ev-location').value = currentEvent.location || '';
+    document.getElementById('ev-desc').value = currentEvent.description || '';
+    views.modalEvent.classList.remove('hidden');
+});
+
+setClick('close-modal', () => views.modalEvent.classList.add('hidden'));
+
+setSubmit('new-event-form', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('ev-id-hidden').value;
+    const data = {
+        name: document.getElementById('ev-name').value,
+        date: document.getElementById('ev-date').value,
+        location: document.getElementById('ev-location').value,
+        description: document.getElementById('ev-desc').value,
+        logo_url: currentEvent?.logo_url || '' 
+    };
+
+    try {
+        if (id) {
+            await apiFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+            alert('Evento actualizado');
+            switchToDashboard(id);
+        } else {
+            const res = await apiFetch('/events', { method: 'POST', body: JSON.stringify(data) });
+            alert('Evento creado');
+            loadMyEvents();
+        }
+        views.modalEvent.classList.add('hidden');
+    } catch (err) { alert('Error al guardar evento'); }
+});
+
+setClick('btn-delete-event', async () => {
+    if (!currentEvent) return;
+    if (confirm('¿Estás seguro de eliminar este evento? Esta acción es irreversible.')) {
+        await apiFetch(`/events/${currentEvent.id}`, { method: 'DELETE' });
+        loadMyEvents();
+    }
+});
+
 function updateFlowChart(flowData) {
     const canvas = document.getElementById('flowChart');
     if (!canvas) return;

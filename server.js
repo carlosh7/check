@@ -144,6 +144,22 @@ app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     });
 });
 
+app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { name, date, location, description, logo_url } = req.body;
+    db.run("UPDATE events SET name = ?, date = ?, location = ?, description = ?, logo_url = ? WHERE id = ?",
+        [name, date, location, description, logo_url, req.params.id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+});
+
+app.delete('/api/events/:id', authMiddleware(['ADMIN']), (req, res) => {
+    db.run("DELETE FROM events WHERE id = ?", [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
 // Surveys
 app.post('/api/surveys/questions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const { event_id, question, type, options } = req.body;
