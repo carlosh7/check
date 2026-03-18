@@ -398,4 +398,4 @@ app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
 });
 
-server.listen(port, () => console.log(`\x1b[32mCHECK PRO V10.5.1 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V10.5.2 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
