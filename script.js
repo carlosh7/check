@@ -686,7 +686,9 @@ window.App = {
         formData.append('event_id', this.state.event.id);
 
         try {
-            const res = await fetch('/api/import-preview', { method: 'POST', body: formData });
+            const headers = {};
+            if (this.state.user) headers['x-user-id'] = this.state.user.userId;
+            const res = await fetch('/api/import-preview', { method: 'POST', body: formData, headers });
             const data = await res.json();
             if (data.success) {
                 this.state.importData = data;
@@ -956,26 +958,36 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { alert("Error al generar PDF."); }
     });
 
-    // Import
-    cl('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel')?.click());
-    cl('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf')?.click());
-    
+    // Import listeners para nuevos botones del sidebar
     document.getElementById('admin-file-import-excel')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
     document.getElementById('admin-file-import-pdf')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
     
+    // QR Feedback
     cl('btn-show-qr', () => App.showQR());
     cl('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
 
     App.showQR = async () => {
-        if (!App.state.event || !window.QRCode) return;
+        if (!App.state.event) return alert("Selecciona un evento primero.");
         const url = `${window.location.origin}/register.html?event=${App.state.event.id}`;
         const qrEl = document.getElementById('qr-display');
-        if (qrEl) {
-            const qrDataUrl = await QRCode.toDataURL(url, { width: 400, margin: 2 });
+        if (qrEl && typeof qrcode !== 'undefined') {
+            const qrDataUrl = await qrcode.toDataURL(url, { width: 400, margin: 2 });
             qrEl.src = qrDataUrl;
+            document.getElementById('modal-qr')?.classList.remove('hidden');
+        } else if (qrEl) {
+            // Fallback: generar QR con Canvas API simple
+            alert("Generando código QR...");
+            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
             document.getElementById('modal-qr')?.classList.remove('hidden');
         }
     };
+
+    // Mailing (placeholder - implementar según necesidad)
+    App.openMailing = () => {
+        if (!App.state.event) return alert("Selecciona un evento primero.");
+        alert("Módulo de Mailing en desarrollo. Aquí podrás enviar correos masivos a los invitados del evento.");
+    };
+    cl('btn-mailing', () => App.openMailing());
 
     // Listener para importación (Ya definido en App.handleImport)
 
