@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  check-app:
+    image: node:20-slim
+    container_name: check-app-stack
+    working_dir: /usr/src/app
+    ports:
+      - "8080:3000"
+    volumes:
+      - check_data:/usr/src/app/data
+      # Si despliegas desde Git en Portainer, el código se monta automáticamente
+    environment:
+      - NODE_ENV=production
+    command: >
+      sh -c "npm install && node server.js"
+    restart: always
+
+volumes:
+  check_data:
