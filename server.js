@@ -1,13 +1,12 @@
-// server.js — Check Elite Pro V10.1 (better-sqlite3 síncrono)
+// server.js — Check Elite Pro V10.2 (ExcelJS + Express 5 nativo)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const db = require('./database');
 const multer = require('multer');
-const xlsx = require('xlsx');
+const ExcelJS = require('exceljs');
 const qrcode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
@@ -29,7 +28,7 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // Nativo en Express 5 — body-parser ya no es necesario
 
 // --- RATE LIMITING ---
 app.set('trust proxy', 1);
@@ -214,15 +213,28 @@ app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.s
                 email: e.toLowerCase().trim(), organization: "Importación PDF", phone: "", gender: "O"
             }));
         } else {
-            const workbook = xlsx.readFile(req.file.path);
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            raw = xlsx.utils.sheet_to_json(sheet).map(row => ({
-                name: (row.Nombre || row.nombre || row.name || "").toString().trim() || row.Email || "Invitado",
-                email: (row.Email || row.email || row.correo || "").toString().toLowerCase().trim(),
-                organization: (row.Organizacion || row.Empresa || row.organization || "").toString().trim(),
-                phone: (row.Telefono || row.phone || "").toString().trim(),
-                gender: (row.Genero || row.gender || "O").toString().trim()
-            }));
+            // Leer Excel con ExcelJS (moderno, mantenido, sin vulnerabilidades)
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(req.file.path);
+            const sheet = workbook.worksheets[0];
+            // Obtener encabezados de la primera fila
+            const headers = [];
+            sheet.getRow(1).eachCell((cell) => headers.push(String(cell.value || '').trim()));
+            // Mapear filas a objetos
+            sheet.eachRow((row, rowNumber) => {
+                if (rowNumber === 1) return; // Saltar encabezados
+                const obj = {};
+                row.eachCell((cell, colNumber) => { obj[headers[colNumber - 1]] = cell.value; });
+                const name = (obj.Nombre || obj.nombre || obj.name || '').toString().trim() || obj.Email || 'Invitado';
+                const email = (obj.Email || obj.email || obj.correo || '').toString().toLowerCase().trim();
+                if (email) raw.push({
+                    name,
+                    email,
+                    organization: (obj.Organizacion || obj.Empresa || obj.organization || '').toString().trim(),
+                    phone: (obj.Telefono || obj.phone || '').toString().trim(),
+                    gender: (obj.Genero || obj.gender || 'O').toString().trim()
+                });
+            });
         }
         fs.unlinkSync(req.file.path);
 
@@ -258,14 +270,54 @@ app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 // ─────────────────────────────────────────────────────────────
 // EXPORTAR EXCEL
 // ─────────────────────────────────────────────────────────────
-app.get('/api/export-excel/:eventId', authMiddleware(), (req, res) => {
+app.get('/api/export-excel/:eventId', authMiddleware(), async (req, res) => {
     const rows = db.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(req.params.eventId);
-    const ws = xlsx.utils.json_to_sheet(rows.length ? rows : [{ Nombre: "Sin datos" }]);
-    const wb = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(wb, ws, "Invitados");
+    
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Check Pro V10';
+    const sheet = workbook.addWorksheet('Invitados', {
+        views: [{ state: 'frozen', ySplit: 1 }]
+    });
+    
+    // Cabeceras con estilo premium
+    sheet.columns = [
+        { header: 'Nombre', key: 'Nombre', width: 30 },
+        { header: 'Email', key: 'Email', width: 35 },
+        { header: 'Organización', key: 'Organizacion', width: 30 },
+        { header: 'Teléfono', key: 'Telefono', width: 18 },
+        { header: 'Género', key: 'Genero', width: 10 },
+        { header: 'Asistió', key: 'Asistio', width: 12 },
+        { header: 'Hora Check-in', key: 'Hora', width: 22 }
+    ];
+    
+    // Estilo del encabezado
+    sheet.getRow(1).eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } };
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { bottom: { style: 'medium', color: { argb: 'FF5B21B6' } } };
+    });
+    sheet.getRow(1).height = 24;
+    
+    // Datos con filas alternas
+    rows.forEach((row, i) => {
+        const dataRow = sheet.addRow(row);
+        if (i % 2 === 0) {
+            dataRow.eachCell(cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F3FF' } };
+            });
+        }
+        // Colorear asistidos en verde
+        const asistioCell = dataRow.getCell('Asistio');
+        if (asistioCell.value === 'SÍ') {
+            asistioCell.font = { bold: true, color: { argb: 'FF059669' } };
+        }
+    });
+    
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=Export_${req.params.eventId}.xlsx`);
-    res.send(xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    res.setHeader('Content-Disposition', `attachment; filename=CheckPro_Export_${req.params.eventId}.xlsx`);
+    await workbook.xlsx.write(res);
+    res.end();
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -311,4 +363,4 @@ app.get('/api/events/public/:name', (req, res) => {
     else res.status(404).json({ error: 'Evento no encontrado' });
 });
 
-server.listen(port, () => console.log(`CHECK PRO V10.1 (better-sqlite3): Puerto ${port}`));
+server.listen(port, () => console.log(`CHECK PRO V10.2 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}`));
