@@ -288,16 +288,52 @@
                         </div>
                     </div>
 
-                    <!-- GUEST LIST SECTION -->
+                    <!-- GUEST LIST SECTION MEJORADA -->
                     <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
-                        <div class="p-8 border-b border-white/5 flex justify-between items-center">
-                            <h3 class="font-black text-lg">Control de Acceso</h3>
-                            <input id="guest-search" type="text" placeholder="Buscar..." class="bg-slate-950 border border-white/10 rounded-xl px-6 py-3 text-xs w-64 focus:border-primary">
+                        <!-- FILTROS DE BÚSQUEDA -->
+                        <div class="p-6 border-b border-white/5">
+                            <div class="flex flex-col lg:flex-row gap-4">
+                                <!-- Búsqueda -->
+                                <div class="flex-1 relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                                    <input type="text" id="guest-search" onkeyup="App.filterGuests()" placeholder="Buscar por nombre, correo, teléfono..." class="w-full bg-slate-800/50 text-white text-sm rounded-xl pl-12 pr-4 py-3 border border-white/10 focus:border-primary/50 focus:outline-none">
+                                </div>
+                                <!-- Filtro Empresa -->
+                                <select id="filter-guest-org" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Todas las empresas</option>
+                                </select>
+                                <!-- Filtro Estado -->
+                                <select id="filter-guest-status" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Todos los estados</option>
+                                    <option value="acreditado">Acreditados</option>
+                                    <option value="pendiente">Pendientes</option>
+                                </select>
+                                <!-- Filtro Vegano -->
+                                <select id="filter-guest-vegan" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Vegano</option>
+                                    <option value="si">Sí</option>
+                                    <option value="no">No</option>
+                                </select>
+                                <!-- Filtro Sexo -->
+                                <select id="filter-guest-gender" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Sexo</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-4 mt-4">
+                                <label class="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+                                    <input type="checkbox" id="filter-guest-duplicates" onchange="App.filterGuests()" class="w-4 h-4 rounded bg-slate-800 border-white/10">
+                                    <span>Solo duplicados</span>
+                                </label>
+                                <span id="guest-count" class="text-xs text-slate-500 ml-auto">0 invitados</span>
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
-                                    <tr><th class="px-8 py-5">Invitado</th><th class="px-8 py-5">Empresa</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acciones</th></tr>
+                                    <tr><th class="px-6 py-4">Invitado</th><th class="px-6 py-4">Teléfono</th><th class="px-6 py-4">Empresa</th><th class="px-6 py-4 text-center">Sexo</th><th class="px-6 py-4 text-center">Vegano</th><th class="px-6 py-4 text-center">Estado</th><th class="px-6 py-4 text-right">Acciones</th></tr>
                                 </thead>
                                 <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
                             </table>

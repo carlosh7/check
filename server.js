@@ -492,7 +492,18 @@ app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (
                     if (i > 1) {
                         const name = row.getCell(1).text;
                         const email = row.getCell(2).text;
-                        if (name && email) guests.push({ name, email, organization: row.getCell(3).text || '', phone: row.getCell(4).text || '', gender: row.getCell(5).text || 'O' });
+                        if (name && email) {
+                            const genderRaw = (row.getCell(5).text || 'O').toString().toUpperCase();
+                            const gender = ['M', 'F', 'O'].includes(genderRaw) ? genderRaw : 'O';
+                            guests.push({ 
+                                name, 
+                                email, 
+                                organization: row.getCell(3).text || '', 
+                                phone: row.getCell(4).text || '', 
+                                gender,
+                                dietary_notes: row.getCell(6).text || ''
+                            });
+                        }
                     }
                 });
             }
@@ -511,21 +522,38 @@ app.post('/api/import-confirm', authMiddleware(), (req, res) => {
     const data = tempImport[req.userId];
     if (!data || String(data.event_id) !== String(req.body.event_id)) return res.status(400).json({ error: 'Sesión de importación expirada' });
     
-    // Obtener existentes para filtrar duplicados (email Y telefono)
+    // Obtener existentes para filtrar duplicados
     const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(data.event_id);
-    const existingSet = new Set(existing.map(e => `${e.email?.toLowerCase()}|${e.phone?.replace(/\D/g,'')}`));
     
+    // Crear sets normalizados para comparación (email y telefono separados)
+    const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
+    const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
+    
+    let duplicates = 0;
     const newGuests = data.guests.filter(g => {
         const email = (g.email || '').toLowerCase().trim();
         const phone = (g.phone || '').replace(/\D/g, '');
-        if (!email && !phone) return true; // Si no hay email ni telefono, se inserta
-        return !existingSet.has(`${email}|${phone}`);
+        
+        // Es duplicado si: el email existe Y no está vacío, O el teléfono existe Y tiene más de 6 dígitos
+        const isDuplicateEmail = email && existingEmails.has(email);
+        const isDuplicatePhone = phone.length > 6 && existingPhones.has(phone);
+        
+        if (isDuplicateEmail || isDuplicatePhone) {
+            duplicates++;
+            return false;
+        }
+        
+        // Agregar a los sets para detectar duplicados dentro del mismo archivo
+        if (email) existingEmails.add(email);
+        if (phone) existingPhones.add(phone);
+        
+        return true;
     });
     
     const insertMany = db.transaction((guestList) => {
-        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         for (const g of guestList) {
-            insertGuest.run(getValidId('guests'), data.event_id, g.name, g.email, g.organization, g.phone || '', g.gender || 'O', uuidv4());
+            insertGuest.run(getValidId('guests'), data.event_id, g.name, g.email, g.organization, g.phone || '', g.gender || 'O', g.dietary_notes || '', uuidv4());
         }
     });
 
@@ -533,7 +561,7 @@ app.post('/api/import-confirm', authMiddleware(), (req, res) => {
         insertMany(newGuests);
         delete tempImport[req.userId];
         io.to(data.event_id).emit('update_stats', data.event_id);
-        res.json({ success: true, count: newGuests.length, skipped: data.guests.length - newGuests.length });
+        res.json({ success: true, count: newGuests.length, skipped: duplicates });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
