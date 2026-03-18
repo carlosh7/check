@@ -18,12 +18,16 @@ db.exec(`CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE,
     password TEXT,
     role TEXT DEFAULT 'PRODUCTOR',
+    role_detail TEXT DEFAULT 'STAFF',
+    group_id TEXT,
     status TEXT DEFAULT 'PENDING',
     created_at TEXT
 )`);
 
 // Migración segura: agregar columna status si no existe (para DBs antiguas)
 try { db.exec("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'PENDING'"); } catch (_) {}
+try { db.exec("ALTER TABLE users ADD COLUMN role_detail TEXT DEFAULT 'STAFF'"); } catch (_) {}
+try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
 
 // 2. Eventos (Multitenancy)
 db.exec(`CREATE TABLE IF NOT EXISTS events (
@@ -114,6 +118,45 @@ db.exec(`CREATE TABLE IF NOT EXISTS logs (
     details TEXT,
     created_at TEXT
 )`);
+
+// ═══ NUEVAS TABLAS V10.5.3: GRUPOS Y PERMISOS JERÁRQUICOS ═══
+
+// 9. Grupos (cada grupo tiene su propio Producer(es))
+db.exec(`CREATE TABLE IF NOT EXISTS groups (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'ACTIVE',
+    created_at TEXT,
+    created_by TEXT
+)`);
+
+// 10. Relación Grupo-Usuario (muchos a muchos) - Productores del grupo
+db.exec(`CREATE TABLE IF NOT EXISTS group_users (
+    id TEXT PRIMARY KEY,
+    group_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role_in_group TEXT DEFAULT 'PRODUCTOR',
+    created_at TEXT,
+    FOREIGN KEY (group_id) REFERENCES groups(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(group_id, user_id)
+)`);
+
+// 11. Relación Usuario-Evento (muchos a muchos) - Staff/Cliente en eventos
+db.exec(`CREATE TABLE IF NOT EXISTS user_events (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    UNIQUE(user_id, event_id)
+)`);
+
+// Migraciones: agregar group_id a tablas existentes si no existen
+try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
 
 // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
