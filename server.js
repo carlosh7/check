@@ -18,6 +18,7 @@ const helmet = require('helmet');
 // --- VERSIÓN DINÁMICA V10.3 ---
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const APP_VERSION = pkg.version;
+let tempImport = {};
 
 const app = express();
 const server = http.createServer(app);
@@ -233,15 +234,8 @@ app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// IMPORTACIÓN (dry-run + confirm)
+// IMPORTACIÓN MOTOR V10.5.2 (Limpieza de duplicados y anidados)
 // ─────────────────────────────────────────────────────────────
-app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'Falta archivo' });
-    const eventId = castId('events', req.body.eventId);
-    let raw = [];
-// --- IMPORT MOTOR V10.5.2 ---
-let tempImport = {};
-
 app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (req, res) => {
     if (!req.file || !req.body.event_id) return res.status(400).json({ error: 'Data faltante' });
     const eId = castId('events', req.body.event_id);
@@ -261,24 +255,33 @@ app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(req.file.path);
             const sheet = workbook.getWorksheet(1);
-                    if (name && email) guests.push({ name, email, organization: row.getCell(3).text || '', phone: row.getCell(4).text || '', gender: row.getCell(5).text || 'O' });
-                }
-            });
+            if (sheet) {
+                sheet.eachRow((row, i) => {
+                    if (i > 1) {
+                        const name = row.getCell(1).text;
+                        const email = row.getCell(2).text;
+                        if (name && email) guests.push({ name, email, organization: row.getCell(3).text || '', phone: row.getCell(4).text || '', gender: row.getCell(5).text || 'O' });
+                    }
+                });
+            }
         }
         
-        fs.unlinkSync(req.file.path); // Limpiar temp
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         tempImport[req.userId] = { event_id: eId, guests };
         res.json({ success: true, total: guests.length, valid: guests.length });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) { 
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        res.status(500).json({ error: e.message }); 
+    }
 });
 
 app.post('/api/import-confirm', authMiddleware(), (req, res) => {
     const data = tempImport[req.userId];
     if (!data || String(data.event_id) !== String(req.body.event_id)) return res.status(400).json({ error: 'Sesión de importación expirada' });
     
-    const insertMany = db.transaction((guests) => {
+    const insertMany = db.transaction((guestList) => {
         const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        for (const g of guests) {
+        for (const g of guestList) {
             insertGuest.run(getValidId('guests'), data.event_id, g.name, g.email, g.organization, g.phone || '', g.gender || 'O', uuidv4());
         }
     });
