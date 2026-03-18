@@ -26,6 +26,15 @@ const io = new Server(server, {
 });
 const port = 3000;
 
+// --- ID COMPATIBILITY WRAPPER (V10.4.2) ---
+const getValidId = (tableName) => {
+    try {
+        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
+        const idCol = info.find(c => c.name === 'id');
+        return (idCol && idCol.type === 'INTEGER') ? null : uuidv4();
+    } catch(e) { return uuidv4(); }
+};
+
 // --- SECURITY MIDDLEWARE ---
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -80,7 +89,7 @@ const authMiddleware = (roles = []) => {
 // ─────────────────────────────────────────────────────────────
 app.post('/api/signup', (req, res) => {
     const { username, password, role } = req.body;
-    const id = uuidv4();
+    const id = getValidId('users');
     const status = (role === 'ADMIN') ? 'APPROVED' : 'PENDING';
     try {
         db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
@@ -166,7 +175,7 @@ app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {
 app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('logo'), (req, res) => {
     const { name, date, end_date, location, description } = req.body;
     const userId = req.headers['x-user-id'];
-    const id = uuidv4();
+    const id = getValidId('events');
     const logoUrl = req.file ? `/uploads/${req.file.filename}` : null;
     
     try {
