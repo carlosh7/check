@@ -2,9 +2,16 @@
 
 Para asegurar la estabilidad y sincronización del proyecto, se deben seguir las siguientes reglas obligatorias en cada intervención:
 
-1.  **Sincronización de GitHub**: Después de realizar cualquier cambio en el código (backend, frontend o base de datos), se debe realizar un `git commit` descriptivo y un `git push` a la rama principal (`main`), acompañado de un nuevo tag de versión si es un hito importante.
-2.  **Validación en Vivo**: Antes de dar por terminada una tarea, se debe validar la funcionalidad en `http://localhost:3000/` o en el entorno de despliegue activo, verificando que no haya errores en la consola del navegador ni en los logs del servidor.
-3.  **Comunicación**: Todas las explicaciones y documentación deben ser en **español**, siguiendo las instrucciones globales del usuario.
-4.  **Persistencia de Datos**: Cualquier cambio en el esquema de la base de datos debe incluir lógica de auto-migración en `database.js` para evitar pérdida de datos o fallos en instalaciones existentes.
+## 🏆 La Regla de Oro (Sincronización Total)
+En **cada cambio o versión**, se debe seguir estrictamente este orden:
+1.  **Actualizar GitHub**: Realizar `git add`, `git commit` y `git push` (con tags si aplica).
+2.  **Validar Sincronización**: Verificar que los cambios en el repositorio remoto (`origin/main`) coincidan con lo esperado.
+3.  **Actualizar Terminal**: Ejecutar `git pull` en la terminal de trabajo para asegurar que el código local esté refrescado.
+4.  **Verificación Final**: Reiniciar el servidor (`server.js`) y validar en `http://localhost:3000/` (usando `Ctrl + F5` en el navegador).
 
-*Estas reglas han sido establecidas a solicitud del usuario en la versión v4.9.* 破
+## 📋 Reglas Generales
+1.  **Comunicación**: Todas las explicaciones y documentación deben ser en **español**.
+2.  **Persistencia de Datos**: Cualquier cambio en el esquema debe ser manejado en `database.js` evitando la pérdida de información.
+3.  **Implementación**: Los planes de trabajo (`implementation_plan.md`) **DEBEN** incluir una sección obligatoria de "Sincronización y Validación GitHub".
+
+*Estas reglas son de cumplimiento obligatorio y han sido institucionalizadas en la versión v5.0.* 破
