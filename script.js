@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             App.loadEvents();
         }
     } else {
-        window.FORCE_NAVGATION('login');
+        App.showView('login');
     }
 
     // 3. Sockets
@@ -424,7 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = d.username || 'Usuario';
-                if (sbr) sbr.textContent = d.role || 'Staff';
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
                 if (d.role === 'ADMIN') {
