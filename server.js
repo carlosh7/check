@@ -13,6 +13,7 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const app = express();
 const server = http.createServer(app);
@@ -21,11 +22,20 @@ const io = new Server(server, {
 });
 const port = 3000;
 
+// --- SECURITY MIDDLEWARE (V7.0) ---
+app.use(helmet({
+    contentSecurityPolicy: false, // Desactivado temporalmente para permitir scripts inlines del frontend
+    crossOriginEmbedderPolicy: false
+}));
+
 app.use(cors());
 app.use(bodyParser.json());
 
 // --- RATE LIMITING ---
-const authLimiter = rateLimit({ windowMs: 15*60*1000, max: 20 });
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 800, message: { error: 'Demasiadas peticiones desde esta IP. Intente más tarde.' } });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Demasiados intentos de inicio de sesión.' } });
+
+app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
 
 app.use(express.static(path.join(__dirname, '/')));

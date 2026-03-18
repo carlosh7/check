@@ -22,12 +22,18 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: var(--bg-slate-950);
     color: var(--text-primary);
     font-family: var(--font-body);
     overflow-x: hidden;
+    overflow-y: auto; /* FIX CRÍTICO DEL SCROLL */
     line-height: 1.5;
+    min-height: 100vh;
 }
 
 /* --- Layouts --- */
