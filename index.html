@@ -34,9 +34,9 @@
         }
     </script>
     <script>
-        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V7.5
+        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V8.0 (MODAL ABSOLUTO)
         window.FORCE_NAVGATION = function(viewName) {
-            console.log("EJECUTANDO NAVEGACION DE FUERZA BRUTA HACIA: " + viewName);
+            console.log("EJECUTANDO NAVEGACION V8.0 HACIA: " + viewName);
             
             const views = ["view-registration", "view-login", "view-my-events", "view-admin"];
             views.forEach(id => {
@@ -46,14 +46,21 @@
                     el.style.visibility = 'hidden';
                     el.style.opacity = '0';
                     el.classList.add('hidden');
+                    el.style.position = '';
+                    el.style.zIndex = '';
                 }
             });
 
             const target = document.getElementById("view-" + viewName);
             if (target) {
                 target.classList.remove('hidden');
-                target.style.display = (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex'));
-                target.style.cssText += 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important;';
+                if (viewName === 'login') {
+                    // MODAL FIJO INDESTRUCTIBLE
+                    target.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background-color: #020617 !important;';
+                } else {
+                    target.style.display = (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex'));
+                    target.style.cssText += 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important;';
+                }
             }
             
             document.body.style.overflow = 'auto';
