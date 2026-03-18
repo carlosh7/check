@@ -31,9 +31,22 @@ app.use(helmet({
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- RATE LIMITING ---
-const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 800, message: { error: 'Demasiadas peticiones desde esta IP. Intente más tarde.' } });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Demasiados intentos de inicio de sesión.' } });
+// --- RATE LIMITING (Calibrado V7.1) ---
+app.set('trust proxy', 1); // Confiar en proxy interno/docker
+const skipLocal = (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1';
+
+const apiLimiter = rateLimit({ 
+    windowMs: 15 * 60 * 1000, 
+    max: 2000, 
+    skip: skipLocal,
+    message: { error: 'Demasiadas peticiones desde esta IP. Intente más tarde.' } 
+});
+const authLimiter = rateLimit({ 
+    windowMs: 15 * 60 * 1000, 
+    max: 50, 
+    skip: skipLocal,
+    message: { error: 'Demasiados intentos de inicio de sesión.' } 
+});
 
 app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
