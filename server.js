@@ -285,24 +285,39 @@ app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.s
         // Detectar duplicados contra la DB (síncrono)
         const rowsDb = db.prepare("SELECT LOWER(TRIM(email)) as email FROM guests WHERE event_id = ?").all(eventId);
         const inDb = new Set(rowsDb.map(r => r.email));
-        const final = uniqueInFile.filter(g => !inDb.has(g.email));
-        res.json({ summary: { new: final.length, existing: uniqueInFile.length - final.length }, data: final });
+            const sheet = workbook.getWorksheet(1);
+            sheet.eachRow((row, i) => {
+                if (i > 1) {
+                    const name = row.getCell(1).text;
+                    const email = row.getCell(2).text;
+                    if (name && email) guests.push({ name, email, organization: row.getCell(3).text || '', phone: row.getCell(4).text || '', gender: row.getCell(5).text || 'O' });
+                }
+            });
+        }
+        
+        fs.unlinkSync(req.file.path); // Limpiar temp
+        tempImport[req.userId] = { event_id: eId, guests };
+        res.json({ success: true, total: guests.length, valid: guests.length });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.body.eventId);
-    const { guests } = req.body;
-    // Inserción en transacción para máxima velocidad
-    const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    const insertMany = db.transaction((guestList) => {
-        for (const g of guestList) {
-            insertGuest.run(getValidId('guests'), eventId, g.name, g.email, g.organization, g.phone, g.gender, uuidv4());
+app.post('/api/import-confirm', authMiddleware(), (req, res) => {
+    const data = tempImport[req.userId];
+    if (!data || String(data.event_id) !== String(req.body.event_id)) return res.status(400).json({ error: 'Sesión de importación expirada' });
+    
+    const insertMany = db.transaction((guests) => {
+        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        for (const g of guests) {
+            insertGuest.run(getValidId('guests'), data.event_id, g.name, g.email, g.organization, g.phone || '', g.gender || 'O', uuidv4());
         }
     });
-    insertMany(guests);
-    io.to(eventId).emit('update_stats', eventId);
-    res.json({ success: true });
+
+    try {
+        insertMany(data.guests);
+        delete tempImport[req.userId];
+        io.to(data.event_id).emit('update_stats', data.event_id);
+        res.json({ success: true, count: data.guests.length });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ─────────────────────────────────────────────────────────────
