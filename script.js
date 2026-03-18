@@ -45,12 +45,21 @@ window.App = {
         const loginEl = document.getElementById('view-login');
         const appEl = document.getElementById('app-container');
         
-        if (loginEl) loginEl.classList.toggle('hidden', !isLogin);
-        if (appEl) appEl.classList.toggle('hidden', isLogin);
+        if (loginEl) {
+            loginEl.classList.remove('hidden');
+            loginEl.style.display = 'flex';
+        }
+        if (appEl) {
+            if (isLogin) {
+                appEl.classList.add('hidden');
+                appEl.style.display = 'none';
+            } else {
+                appEl.classList.remove('hidden');
+                appEl.style.display = 'flex';
+            }
+        }
         
         if (isLogin) {
-            if (loginEl) loginEl.style.display = 'flex';
-            if (appEl) appEl.style.display = 'none';
             return;
         }
 
@@ -426,6 +435,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
             if (d.success) { 
                 App.state.user = d; localStorage.setItem('user', JSON.stringify(d));
+                console.log("LOGIN SUCCESS, role:", d.role);
+                
                 // Actualizar sidebar info
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
@@ -433,8 +444,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
                 if (d.role === 'ADMIN') {
-                    window.App.showView('system');
-                    window.switchSystemTab('users');
+                    console.log("Navigating to system...");
+                    App.navigate('system');
+                    setTimeout(() => window.switchSystemTab('users'), 100);
                 } else {
                     App.loadEvents();
                 }
