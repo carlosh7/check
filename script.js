@@ -1,10 +1,10 @@
-// --- State Management (Master v3.0) ---
+// --- State Management ---
 let currentEvent = null;
 let allEvents = [];
 let allGuests = [];
 let loggedUser = JSON.parse(localStorage.getItem('user')) || null;
 const API_URL = '/api';
-const socket = io(); // Inicializar Socket.io
+const socket = io(); 
 let attendanceChart = null; 
 let autoPrintEnabled = false;
 
@@ -17,10 +17,23 @@ const views = {
     modalEvent: document.getElementById('modal-event'),
     modalMailing: document.getElementById('modal-mailing'),
     modalSurvey: document.getElementById('modal-survey'),
-    modalImportResults: document.getElementById('modal-import-results')
+    modalImportResults: document.getElementById('modal-import-results'),
+    modalQr: document.getElementById('modal-qr'),
+    modalPartners: document.getElementById('modal-partners')
 };
 
-// --- API Helpers (Auth Headers) ---
+// --- Helpers ---
+const setClick = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = fn;
+};
+
+const setSubmit = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.onsubmit = fn;
+};
+
+// --- API Helpers ---
 async function apiFetch(endpoint, options = {}) {
     const headers = {
         'Content-Type': 'application/json',
@@ -48,47 +61,48 @@ function logout() {
     showView('registration');
 }
 
-// --- Authentication ---
-document.getElementById('login-nav-btn').onclick = () => {
+// --- Authentication Events ---
+setClick('login-nav-btn', () => {
     if (loggedUser) loadMyEvents();
     else showView('login');
-};
+});
 
-document.getElementById('back-to-reg').onclick = () => {
-    showView('registration');
-};
+setClick('back-to-reg', () => showView('registration'));
+setClick('btn-logout', logout);
 
-document.getElementById('go-to-signup').onclick = (e) => {
+setClick('go-to-signup', (e) => {
     e.preventDefault();
-    document.getElementById('login-form').classList.add('hidden');
-    document.getElementById('signup-form').classList.remove('hidden');
-};
+    document.getElementById('login-form')?.classList.add('hidden');
+    document.getElementById('signup-form')?.classList.remove('hidden');
+});
 
-document.getElementById('signup-form').onsubmit = async (e) => {
+setClick('go-to-login', (e) => {
     e.preventDefault();
-    const username = document.getElementById('signup-user').value;
-    const password = document.getElementById('signup-pass').value;
+    document.getElementById('signup-form')?.classList.add('hidden');
+    document.getElementById('login-form')?.classList.remove('hidden');
+});
 
+setSubmit('signup-form', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('signup-user')?.value;
+    const password = document.getElementById('signup-pass')?.value;
     try {
         const data = await apiFetch('/signup', {
             method: 'POST',
             body: JSON.stringify({ username, password, role: 'PRODUCTOR' })
         });
         if (data.success) {
-            alert('Solicitud enviada. Espera la aprobación del administrador.');
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
+            alert('Solicitud enviada. Espera aprobación.');
+            document.getElementById('signup-form')?.classList.add('hidden');
+            document.getElementById('login-form')?.classList.remove('hidden');
         }
     } catch (err) { alert('Error al solicitar cuenta'); }
-};
+});
 
-document.getElementById('btn-logout').onclick = logout;
-
-document.getElementById('login-form').onsubmit = async (e) => {
+setSubmit('login-form', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('login-user').value;
-    const password = document.getElementById('login-pass').value;
-
+    const username = document.getElementById('login-user')?.value;
+    const password = document.getElementById('login-pass')?.value;
     try {
         const data = await apiFetch('/login', {
             method: 'POST',
@@ -100,34 +114,29 @@ document.getElementById('login-form').onsubmit = async (e) => {
             loadMyEvents();
         }
     } catch (err) { 
-        if (err.message.includes('aprobación')) alert('Tu cuenta está pendiente de aprobación por el administrador.');
-        else alert('Error de acceso: Verifica tus credenciales'); 
+        alert(err.message.includes('aprobación') ? 'Cuenta pendiente de aprobación' : 'Error de acceso');
     }
-};
+});
 
-// --- Socket Events (Real-time) ---
+// --- Socket Events ---
 socket.on('checkin_update', ({ guestId, status }) => {
     const guest = allGuests.find(g => g.id === guestId);
     if (guest) {
         guest.checked_in = status;
         renderGuests(allGuests);
-        loadAdminData(); // Actualizar métricas
+        loadAdminData();
     }
 });
 
-socket.on('new_registration', ({ id, name }) => {
+socket.on('new_registration', () => {
     if (currentEvent) loadAdminData();
 });
 
-// --- Core Logic: Events & Dashboard ---
-
+// --- Events & Dashboard ---
 async function loadMyEvents() {
     if (!loggedUser) return;
-    
-    // Mostrar/Ocultar botones de Admin
     const btnAdminPartners = document.getElementById('btn-admin-partners');
     if (btnAdminPartners) btnAdminPartners.classList.toggle('hidden', loggedUser.role !== 'ADMIN');
-
     allEvents = await apiFetch(`/events`);
     showView('myEvents');
     renderEventsList();
@@ -136,74 +145,57 @@ async function loadMyEvents() {
 function renderEventsList() {
     const container = document.getElementById('events-list-container');
     if (!container) return;
-
     container.innerHTML = allEvents.map(ev => `
         <div class="card bg-slate-900 border-white/5 hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden" onclick="switchToDashboard('${ev.id}')">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16 blur-2xl group-hover:bg-primary/10 transition-all"></div>
-            <div class="flex items-start justify-between mb-8 relative z-10">
+            <div class="flex items-start justify-between mb-8">
                 <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden">
                     ${ev.logo_url ? `<img src="${ev.logo_url}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-primary text-2xl">event</span>`}
                 </div>
                 <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">${ev.status}</span>
             </div>
-            <h3 class="text-2xl font-display font-black mb-1 relative z-10">${ev.name}</h3>
-            <p class="text-slate-500 text-sm mb-8 flex items-center gap-2 relative z-10 font-medium">${ev.location || 'Sede Remota'}</p>
-            <div class="pt-6 border-t border-white/5 flex items-center justify-between relative z-10">
-                <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Entrar</span>
-                <span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </div>
+            <h3 class="text-2xl font-display font-black mb-1">${ev.name}</h3>
+            <p class="text-slate-500 text-sm mb-8">${ev.location || 'Sede Remota'}</p>
         </div>
     `).join('');
 }
 
-async function switchToDashboard(id) {
+window.switchToDashboard = async function(id) {
     currentEvent = allEvents.find(e => e.id === id);
     if (!currentEvent) return;
-
     socket.emit('join_event', id);
     showView('admin');
-    
-    document.getElementById('admin-event-title').innerText = currentEvent.name;
-    document.getElementById('admin-event-location').innerText = currentEvent.location || 'Sin ubicación';
-    
+    const title = document.getElementById('admin-event-title');
+    if (title) title.innerText = currentEvent.name;
+    const loc = document.getElementById('admin-event-location');
+    if (loc) loc.innerText = currentEvent.location || 'Sin ubicación';
     const logoImg = document.getElementById('admin-event-logo');
     if (logoImg) {
         logoImg.src = currentEvent.logo_url || '';
         logoImg.classList.toggle('hidden', !currentEvent.logo_url);
     }
-    
     loadAdminData();
-}
+};
 
 async function loadAdminData() {
     if (!currentEvent) return;
-    
     const stats = await apiFetch(`/stats/${currentEvent.id}`);
-    
-    // Población de tarjetas Maestro
     document.getElementById('stat-total').innerText = stats.total || 0;
     document.getElementById('stat-orgs').innerText = stats.orgs || 0;
     document.getElementById('stat-presence').innerText = `${stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0}%`;
     document.getElementById('stat-onsite').innerText = stats.onsite || 0;
-    
-    // Segmentos Críticos
     document.getElementById('stat-health').innerText = stats.healthAlerts || 0;
     document.getElementById('stat-gender-ratio').innerText = stats.genderRatio || "0.0";
-
-    // Actualizar Gráfica
     updateFlowChart(stats.flowData || []);
-
     allGuests = await apiFetch(`/guests/${currentEvent.id}`);
     renderGuests(allGuests);
 }
 
 function updateFlowChart(flowData) {
-    const ctx = document.getElementById('flowChart')?.getContext('2d');
-    if (!ctx) return;
-
+    const canvas = document.getElementById('flowChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     const labels = flowData.map(d => `${d.hour}:00`);
     const data = flowData.map(d => d.count);
-
     if (attendanceChart) {
         attendanceChart.data.labels = labels;
         attendanceChart.data.datasets[0].data = data;
@@ -212,27 +204,17 @@ function updateFlowChart(flowData) {
         attendanceChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
-                    label: 'Ingresos por Hora',
-                    data: data,
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    label: 'Ingresos',
+                    data,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
                     fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#6366f1'
+                    tension: 0.4
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } },
-                    x: { grid: { display: false } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 }
@@ -240,13 +222,12 @@ function updateFlowChart(flowData) {
 function renderGuests(data) {
     const tbody = document.getElementById('guests-tbody');
     if (!tbody) return;
-
     tbody.innerHTML = data.map(g => `
         <tr class="group">
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-[11px] font-black text-primary border border-primary/20">
-                        ${g.name.split(' ').map(n=>n[0]).join('').toUpperCase()}
+                        ${g.name[0].toUpperCase()}
                     </div>
                     <div>
                         <p class="font-bold text-sm text-white">${g.name}</p>
@@ -274,132 +255,64 @@ function renderGuests(data) {
     `).join('');
 }
 
+window.toggleCheckin = async function(id, status) {
+    const newStatus = !status;
+    await apiFetch(`/checkin/${id}`, { method: 'POST', body: JSON.stringify({ status: newStatus }) });
+    if (newStatus && autoPrintEnabled) printBadge(id);
+};
+
 window.printBadge = async function(id) {
     const guest = allGuests.find(g => g.id === id);
     if (!guest) return;
-
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'in',
-        format: [4, 3] // Tamaño estándar escarapela (4x3 pulgadas)
-    });
-
-    const primaryColor = '#6366f1';
-    
-    // 1. Cabecera / Fondo sutil
-    doc.setFillColor(248, 250, 252); // Slate 50
-    doc.rect(0, 0, 3, 4, 'F');
-    
-    doc.setFillColor(30, 41, 59); // Slate 800
-    doc.rect(0, 0, 3, 0.6, 'F');
-
-    // 2. Logo si existe
-    if (currentEvent.logo_url) {
-        try {
-            // Intento básico de añadir imagen (idealmente base64)
-            // doc.addImage(currentEvent.logo_url, 'PNG', 1.25, 0.15, 0.5, 0.3);
-        } catch(e) {}
-    }
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text(currentEvent.name.toUpperCase(), 1.5, 0.35, { align: 'center' });
-
-    // 3. QR Code
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [4, 3] });
     const qrDataUrl = await QRCode.toDataURL(guest.qr_token || guest.id, { margin: 1, width: 200 });
-    doc.addImage(qrDataUrl, 'PNG', 0.5, 0.8, 2, 2);
-
-    // 4. Datos del Invitado
-    doc.setTextColor(15, 23, 42); // Slate 900
+    doc.addImage(qrDataUrl, 'PNG', 0.5, 0.5, 2, 2);
     doc.setFontSize(18);
-    doc.text(guest.name, 1.5, 3.2, { align: 'center' });
-
-    doc.setFont("helvetica", "normal");
+    doc.text(guest.name, 1.5, 2.8, { align: 'center' });
     doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139); // Slate 500
-    doc.text(guest.organization || "INVITADO ESPECIAL", 1.5, 3.45, { align: 'center' });
-
-    // 5. Pie de página decorativo
-    doc.setFillColor(primaryColor);
-    doc.rect(0, 3.8, 3, 0.2, 'F');
-
-    doc.save(`Escarapela_${guest.name.replace(' ', '_')}.pdf`);
+    doc.text(guest.organization || "INVITADO", 1.5, 3.0, { align: 'center' });
+    doc.save(`Badge_${guest.name}.pdf`);
 };
 
-window.toggleCheckin = async function(id, status) {
-    const newStatus = !status;
-    await apiFetch(`/checkin/${id}`, {
-        method: 'POST',
-        body: JSON.stringify({ status: newStatus })
-    });
-    
-    // Si se activa y autoPrint está ON, imprimir
-    if (newStatus && autoPrintEnabled) {
-        printBadge(id);
-    }
-};
-
-// Toggle Auto-Print UI
-document.getElementById('toggle-autoprint').onclick = function() {
+// --- Features Listeners ---
+setClick('toggle-autoprint', function() {
     autoPrintEnabled = !autoPrintEnabled;
     this.classList.toggle('bg-primary', autoPrintEnabled);
     this.classList.toggle('bg-slate-800', !autoPrintEnabled);
-    this.querySelector('.dot').classList.toggle('translate-x-5', autoPrintEnabled);
-    this.querySelector('.dot').classList.toggle('bg-white', autoPrintEnabled);
-    this.querySelector('.dot').classList.toggle('bg-slate-600', !autoPrintEnabled);
-};
+    const dot = this.querySelector('.dot');
+    if (dot) dot.classList.toggle('translate-x-5', autoPrintEnabled);
+});
 
-// --- Mailing Logic ---
-document.getElementById('btn-open-mailing').onclick = async () => {
+setClick('btn-show-qr', () => {
     if (!currentEvent) return;
-    views.modalMailing.classList.remove('hidden');
+    QRCode.toDataURL(`${window.location.origin}/survey.html?event=${currentEvent.id}`, (err, url) => {
+        const img = document.getElementById('qr-display');
+        if (img) img.src = url;
+        views.modalQr?.classList.remove('hidden');
+    });
+});
+
+setClick('close-qr', () => views.modalQr?.classList.add('hidden'));
+
+setClick('btn-open-mailing', async () => {
+    if (!currentEvent) return;
+    views.modalMailing?.classList.remove('hidden');
     try {
         const config = await apiFetch(`/mailing-config/${currentEvent.id}`);
         if (config) {
             document.getElementById('smtp-host').value = config.smtp_host || '';
             document.getElementById('smtp-port').value = config.smtp_port || '';
             document.getElementById('smtp-user').value = config.smtp_user || '';
-            document.getElementById('smtp-pass').value = config.smtp_pass || '';
             document.getElementById('welcome-sub').value = config.welcome_subject || '';
             document.getElementById('welcome-body').value = config.welcome_body || '';
-            document.getElementById('survey-sub').value = config.survey_subject || '';
-            document.getElementById('survey-body').value = config.survey_body || '';
         }
-    } catch (e) {}
-};
+    } catch(e) {}
+});
 
-document.getElementById('close-mailing-modal').onclick = () => views.modalMailing.classList.add('hidden');
+setClick('close-mailing-modal', () => views.modalMailing?.classList.add('hidden'));
 
-// Registro Público v3.0
-document.getElementById('public-reg-form').onsubmit = async (e) => {
-    e.preventDefault();
-    if (!currentEvent) return alert("Selecciona un evento primero");
-
-    const data = {
-        event_id: currentEvent.id,
-        name: document.getElementById('reg-name').value,
-        email: document.getElementById('reg-email').value,
-        phone: document.getElementById('reg-phone').value,
-        organization: document.getElementById('reg-org').value,
-        gender: document.getElementById('reg-gender').value,
-        dietary_notes: document.getElementById('reg-diet').value
-    };
-
-    const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-
-    if (res.ok) {
-        alert('¡Registro Exitoso! Te esperamos.');
-        e.target.reset();
-    }
-};
-
-document.getElementById('mailing-config-form').onsubmit = async (e) => {
+setSubmit('mailing-config-form', async (e) => {
     e.preventDefault();
     const data = {
         event_id: currentEvent.id,
@@ -408,197 +321,122 @@ document.getElementById('mailing-config-form').onsubmit = async (e) => {
         user: document.getElementById('smtp-user').value,
         pass: document.getElementById('smtp-pass').value,
         welcome_sub: document.getElementById('welcome-sub').value,
-        welcome_body: document.getElementById('welcome-body').value,
-        survey_sub: document.getElementById('survey-sub').value,
-        survey_body: document.getElementById('survey-body').value
+        welcome_body: document.getElementById('welcome-body').value
     };
     await apiFetch('/mailing-config', { method: 'POST', body: JSON.stringify(data) });
-    alert('Configuración guardada.');
-    views.modalMailing.classList.add('hidden');
-};
+    alert('Guardado');
+    views.modalMailing?.classList.add('hidden');
+});
 
-// --- Survey Logic ---
-document.getElementById('btn-edit-survey').onclick = () => {
+setClick('btn-edit-survey', () => {
     if (!currentEvent) return;
-    views.modalSurvey.classList.remove('hidden');
+    views.modalSurvey?.classList.remove('hidden');
     loadSurveyQuestions();
-};
+});
 
-document.getElementById('close-survey-modal').onclick = () => views.modalSurvey.classList.add('hidden');
-
-document.getElementById('new-question-type').onchange = (e) => {
-    document.getElementById('multiple-options-container').classList.toggle('hidden', e.target.value !== 'multiple');
-};
+setClick('close-survey-modal', () => views.modalSurvey?.classList.add('hidden'));
 
 async function loadSurveyQuestions() {
     const questions = await apiFetch(`/surveys/questions/${currentEvent.id}`);
-    const questionsList = document.getElementById('questions-list');
-    if (!questionsList) return;
-
-    questionsList.innerHTML = questions.map(q => {
-        let typeBadge = "⭐ Estrellas";
-        if (q.type === 'yes_no') typeBadge = "🌓 Sí/No";
-        if (q.type === 'open') typeBadge = "📝 Abierta";
-        if (q.type === 'multiple') typeBadge = `📑 Múltiple (${q.options})`;
-
-        return `
-            <div class="flex items-center justify-between p-5 bg-slate-900 border border-white/5 rounded-2xl">
-                <div>
-                    <p class="font-bold text-sm mb-1">${q.question}</p>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">${typeBadge}</span>
-                </div>
-                <button onclick="deleteQuestion('${q.id}')" class="text-red-500/60 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            </div>
-        `;
-    }).join('') || '<p class="text-center text-slate-600 py-10 uppercase text-[10px] font-black tracking-widest">No hay preguntas</p>';
+    const list = document.getElementById('questions-list');
+    if (!list) return;
+    list.innerHTML = questions.map(q => `
+        <div class="flex justify-between p-4 bg-slate-900 mb-2 rounded-xl">
+            <span>${q.question}</span>
+            <button onclick="deleteQuestion('${q.id}')" class="text-red-500">Eliminar</button>
+        </div>
+    `).join('') || '<p class="text-center p-4">Sin preguntas</p>';
 }
 
-document.getElementById('add-question-form').onsubmit = async (e) => {
+setSubmit('add-question-form', async (e) => {
     e.preventDefault();
     const data = {
         event_id: currentEvent.id,
         question: document.getElementById('new-question-input').value,
-        type: document.getElementById('new-question-type').value,
-        options: document.getElementById('multiple-options-input').value || null
+        type: document.getElementById('new-question-type').value
     };
     await apiFetch('/surveys/questions', { method: 'POST', body: JSON.stringify(data) });
     e.target.reset();
-    document.getElementById('multiple-options-container').classList.add('hidden');
     loadSurveyQuestions();
-};
+});
 
 window.deleteQuestion = async function(id) {
-    if (confirm('¿Eliminar pregunta?')) {
+    if (confirm('¿Eliminar?')) {
         await apiFetch(`/surveys/questions/${id}`, { method: 'DELETE' });
         loadSurveyQuestions();
     }
 };
 
-// --- Partner Management (Admin Only) ---
-const btnAdminPartners = document.getElementById('btn-admin-partners');
-if (btnAdminPartners) {
-    btnAdminPartners.onclick = () => {
-        document.getElementById('modal-partners').classList.remove('hidden');
-        loadPendingPartners();
+setClick('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel')?.click());
+const fileIn = document.getElementById('admin-file-import-excel');
+if (fileIn) {
+    fileIn.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !currentEvent) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('eventId', currentEvent.id);
+        const res = await fetch(`${API_URL}/import-dry-run`, {
+            method: 'POST',
+            headers: { ...(loggedUser ? { 'x-user-id': loggedUser.userId } : {}) },
+            body: fd
+        });
+        if (res.ok) {
+            const report = await res.json();
+            document.getElementById('import-summary-content').innerText = `${report.summary.new} nuevos invitados encontrados.`;
+            views.modalImportResults?.classList.remove('hidden');
+            window.pendingImportData = report.data;
+        }
     };
 }
-document.getElementById('close-partners-modal').onclick = () => document.getElementById('modal-partners').classList.add('hidden');
 
-async function loadPendingPartners() {
-    const users = await apiFetch('/admin/users/pending');
-    const tbody = document.getElementById('partners-tbody');
-    if (!tbody) return;
+setClick('btn-confirm-import', async () => {
+    if (!window.pendingImportData || !currentEvent) return;
+    await apiFetch('/import-confirm', { method: 'POST', body: JSON.stringify({ eventId: currentEvent.id, guests: window.pendingImportData }) });
+    alert('Completado');
+    views.modalImportResults?.classList.add('hidden');
+    loadAdminData();
+});
 
-    tbody.innerHTML = users.map(u => `
-        <tr class="group">
-            <td class="px-6 py-5">
-                <p class="font-bold text-sm text-white">${u.username}</p>
-                <p class="text-[10px] text-slate-600 font-mono">${u.id}</p>
-            </td>
-            <td class="px-6 py-5">
-                <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-white/5 rounded-full text-slate-400 border border-white/10">${u.role}</span>
-            </td>
-            <td class="px-6 py-5 text-right flex gap-2 justify-end">
-                <button onclick="processPartner('${u.id}', 'APPROVED')" class="px-4 py-2 rounded-xl bg-green-500/10 text-green-400 text-[10px] font-black uppercase tracking-widest border border-green-500/20 hover:bg-green-500 hover:text-white transition-all">Aprobar</button>
-                <button onclick="processPartner('${u.id}', 'REJECTED')" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">Rechazar</button>
-            </td>
-        </tr>
-    `).join('') || '<tr><td colspan="3" class="text-center py-20 text-slate-600 uppercase text-[10px] font-black tracking-widest">No hay solicitudes pendientes</td></tr>';
-}
+setClick('close-import-modal', () => views.modalImportResults?.classList.add('hidden'));
 
-window.processPartner = async function(userId, status) {
-    await apiFetch('/admin/users/approve', {
+// --- Registration Form ---
+setSubmit('public-reg-form', async (e) => {
+    e.preventDefault();
+    if (!currentEvent) return alert("Cargando evento...");
+    const data = {
+        event_id: currentEvent.id,
+        name: document.getElementById('reg-name').value,
+        email: document.getElementById('reg-email').value,
+        organization: document.getElementById('reg-org').value
+    };
+    const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
-        body: JSON.stringify({ userId, status })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
     });
-    alert(status === 'APPROVED' ? 'Socio Aprobado' : 'Socio Rechazado');
-    loadPendingPartners();
-};
+    if (res.ok) {
+        alert('¡Registrado!');
+        e.target.reset();
+    }
+});
 
 // --- Initialization ---
 async function init() {
-    // Si hay sesión, cargar eventos. Si no, login.
-    if (loggedUser) {
-        loadMyEvents();
-    } else {
-        showView('login');
-    }
+    try {
+        if (loggedUser) await loadMyEvents();
+        else showView('registration'); // Cambiado a registration como página principal por defecto
 
-    const evs = await fetch(`${API_URL}/events`).then(r => r.json());
-    if (evs.length > 0) {
-        currentEvent = evs[0];
-        const badge = document.getElementById('event-name-badge');
-        if (badge) badge.innerText = currentEvent.name;
-    }
-}
-// --- Service Worker Registration (PWA) ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
-            console.log('PWA Service Worker registrado');
-        }).catch(err => console.log('Error registrando SW', err));
-    });
+        const res = await fetch(`${API_URL}/events`);
+        if (res.ok) {
+            const evs = await res.json();
+            if (evs.length > 0) {
+                currentEvent = evs[0];
+                const badge = document.getElementById('event-name-badge');
+                if (badge) badge.innerText = currentEvent.name;
+            }
+        }
+    } catch (e) { console.error("Init Error", e); }
 }
 
-// Iniciar aplicación
 init();
-
-// --- Import Logic ---
-let pendingImportData = null;
-
-document.getElementById('admin-import-excel-btn').onclick = () => document.getElementById('admin-file-import-excel').click();
-
-document.getElementById('admin-file-import-excel').onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file || !currentEvent) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('eventId', currentEvent.id);
-
-    const res = await fetch(`${API_URL}/import-dry-run`, {
-        method: 'POST',
-        headers: { ...(loggedUser ? { 'x-user-id': loggedUser.userId } : {}) },
-        body: formData
-    });
-
-    if (res.ok) {
-        const report = await res.json();
-        pendingImportData = report.data;
-        document.getElementById('import-summary-content').innerHTML = `
-            <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
-                <div class="flex items-center gap-4 mb-4">
-                    <span class="material-symbols-outlined text-green-400">person_add</span>
-                    <span class="text-sm font-bold">${report.summary.new} Invitados Nuevos</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="material-symbols-outlined text-amber-400">group</span>
-                    <span class="text-sm font-bold">${report.summary.existing} Ya existentes</span>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 text-center">Se usarán los correos como identificador único.</p>
-        `;
-        views.modalImportResults.classList.remove('hidden');
-    }
-    e.target.value = ''; // Reset
-};
-
-document.getElementById('btn-confirm-import').onclick = async () => {
-    if (!pendingImportData || !currentEvent) return;
-    
-    await apiFetch('/import-confirm', {
-        method: 'POST',
-        body: JSON.stringify({ 
-            eventId: currentEvent.id, 
-            guests: pendingImportData 
-        })
-    });
-    
-    alert('Importación completada.');
-    views.modalImportResults.classList.add('hidden');
-    loadGuests(); // Recargar tabla
-};
-
-document.getElementById('close-import-modal').onclick = () => views.modalImportResults.classList.add('hidden');
