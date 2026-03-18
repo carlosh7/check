@@ -1,15 +1,47 @@
-// MASTER SCRIPT V5.5 - RESTAURACIÓN PREMIUM 🛡️⏪🚀
+// MASTER SCRIPT V5.6 - BLINDAJE ANTI-ERRORES 🛡️🚨破
 let currentEvent = null;
 let allEvents = [];
 let allGuests = [];
-let loggedUser = JSON.parse(localStorage.getItem('user')) || null;
+let loggedUser = null;
 const API_URL = '/api';
-const socket = io();
+let socket = null;
 let analyticsChart = null;
 
+console.log("CHECK V5.6: Iniciando script...");
+
+// --- SAFE INIT ---
+try {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && savedUser !== "undefined") {
+        loggedUser = JSON.parse(savedUser);
+    }
+} catch (e) {
+    console.warn("CHECK V5.6: Error al leer localStorage, limpiando...", e);
+    localStorage.removeItem('user');
+}
+
+try {
+    if (typeof io !== 'undefined') {
+        socket = io();
+        console.log("CHECK V5.6: Socket.io inicializado.");
+    } else {
+        console.error("CHECK V5.6: Socket.io no cargó correctamente (io undefined).");
+    }
+} catch (e) {
+    console.error("CHECK V5.6: Error crítico al iniciar Socket.io:", e);
+}
+
 // --- HELPERS ---
-const setClick = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-const setSubmit = (id, fn) => { const el = document.getElementById(id); if (el) el.onsubmit = fn; };
+const setClick = (id, fn) => { 
+    const el = document.getElementById(id); 
+    if (el) el.onclick = fn; 
+    else console.warn(`CHECK V5.6: Elemento ${id} no encontrado para onclick.`);
+};
+const setSubmit = (id, fn) => { 
+    const el = document.getElementById(id); 
+    if (el) el.onsubmit = fn; 
+    else console.warn(`CHECK V5.6: Elemento ${id} no encontrado para onsubmit.`);
+};
 
 async function apiFetch(endpoint, options = {}) {
     const headers = {
@@ -17,22 +49,29 @@ async function apiFetch(endpoint, options = {}) {
         ...(loggedUser ? { 'x-user-id': loggedUser.userId } : {}),
         ...options.headers
     };
-    const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-    if (res.status === 401 || res.status === 403) { logout(); throw new Error('Sesión expirada'); }
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+        if (res.status === 401 || res.status === 403) { logout(); throw new Error('Sesión expirada'); }
+        return res.json();
+    } catch (e) {
+        console.error(`CHECK V5.6: Error en fetch ${endpoint}:`, e);
+        throw e;
+    }
 }
 
 function showView(viewName) {
+    console.log(`CHECK V5.6: Cambiando a vista ${viewName}`);
     document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
     const target = document.getElementById(`view-${viewName}`);
     if (target) {
         target.classList.remove('hidden');
-        // Fix scroll on admin
         if (viewName === 'admin') {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'auto';
         }
+    } else {
+        console.error(`CHECK V5.6: Vista view-${viewName} no existe en el DOM.`);
     }
 }
 
@@ -47,8 +86,8 @@ function logout() {
 setClick('login-nav-btn', () => loggedUser ? loadMyEvents() : showView('login'));
 setClick('back-to-reg', () => showView('registration'));
 setClick('btn-logout', logout);
-setClick('go-to-signup', (e) => { e.preventDefault(); document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); });
-setClick('go-to-login', (e) => { e.preventDefault(); document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); });
+setClick('go-to-signup', (e) => { e.preventDefault(); document.getElementById('login-form')?.classList.add('hidden'); document.getElementById('signup-form')?.classList.remove('hidden'); });
+setClick('go-to-login', (e) => { e.preventDefault(); document.getElementById('signup-form')?.classList.add('hidden'); document.getElementById('login-form')?.classList.remove('hidden'); });
 
 setSubmit('login-form', async (e) => {
     e.preventDefault();
@@ -70,21 +109,23 @@ async function loadMyEvents() {
         allEvents = await apiFetch('/events');
         showView('my-events');
         const container = document.getElementById('events-list-container');
-        container.innerHTML = allEvents.map(ev => `
-            <div class="glass-card p-8 rounded-[40px] hover:border-primary/40 transition-all group cursor-pointer border border-white/5" onclick="openAdmin('${ev.id}')">
-                <div class="flex justify-between items-start mb-8">
-                    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all group-hover:shadow-lg group-hover:shadow-primary/30">
-                        <span class="material-symbols-outlined text-primary group-hover:text-white transition-colors">event_available</span>
+        if (container) {
+            container.innerHTML = allEvents.map(ev => `
+                <div class="glass-card p-8 rounded-[40px] hover:border-primary/40 transition-all group cursor-pointer border border-white/5" onclick="openAdmin('${ev.id}')">
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all group-hover:shadow-lg group-hover:shadow-primary/30">
+                            <span class="material-symbols-outlined text-primary group-hover:text-white transition-colors">event_available</span>
+                        </div>
+                        <span class="px-4 py-1.5 bg-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 border border-white/5 italic">Producción</span>
                     </div>
-                    <span class="px-4 py-1.5 bg-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 border border-white/5 italic">Producción</span>
+                    <h3 class="text-2xl font-black mb-2 font-display tracking-tight">${ev.name}</h3>
+                    <p class="text-slate-500 text-xs mb-8 line-clamp-2 leading-relaxed">${ev.description || 'Este evento aún no cuenta con una descripción detallada.'}</p>
+                    <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar Ubicación'}
+                    </div>
                 </div>
-                <h3 class="text-2xl font-black mb-2 font-display tracking-tight">${ev.name}</h3>
-                <p class="text-slate-500 text-xs mb-8 line-clamp-2 leading-relaxed">${ev.description || 'Este evento aún no cuenta con una descripción detallada.'}</p>
-                <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar Ubicación'}
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
     } catch (err) { console.error(err); }
 }
 
@@ -92,11 +133,13 @@ async function openAdmin(eventId) {
     currentEvent = allEvents.find(e => e.id === eventId);
     if (!currentEvent) return;
     showView('admin');
-    document.getElementById('admin-event-title').innerText = currentEvent.name;
-    document.getElementById('admin-event-location').innerText = currentEvent.location;
+    const titleEl = document.getElementById('admin-event-title');
+    const locEl = document.getElementById('admin-event-location');
+    if (titleEl) titleEl.innerText = currentEvent.name;
+    if (locEl) locEl.innerText = currentEvent.location;
     loadGuests();
     updateStats();
-    socket.emit('join_event', eventId);
+    if (socket) socket.emit('join_event', eventId);
 }
 
 // --- GUEST LIST & SEARCH ---
@@ -110,6 +153,7 @@ async function loadGuests() {
 
 function renderGuests(list) {
     const tbody = document.getElementById('guests-tbody');
+    if (!tbody) return;
     tbody.innerHTML = list.map(g => `
         <tr class="hover:bg-white/2 transition-colors border-b border-white/5">
             <td class="px-10 py-6">
@@ -156,17 +200,22 @@ async function toggleCheckin(guestId, currentStatus) {
 // --- STATS & CHARTS ---
 async function updateStats() {
     if (!currentEvent) return;
-    const stats = await apiFetch(`/stats/${currentEvent.id}`);
-    document.getElementById('stat-total').innerText = stats.total;
-    document.getElementById('stat-orgs').innerText = stats.orgs;
-    document.getElementById('stat-presence').innerText = stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) + '%' : '0%';
-    document.getElementById('stat-onsite').innerText = stats.onsite || 0;
-    document.getElementById('stat-health').innerText = stats.healthAlerts || 0;
-    renderChart(stats.flowData);
+    try {
+        const stats = await apiFetch(`/stats/${currentEvent.id}`);
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        setVal('stat-total', stats.total);
+        setVal('stat-orgs', stats.orgs);
+        setVal('stat-presence', stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) + '%' : '0%');
+        setVal('stat-onsite', stats.onsite || 0);
+        setVal('stat-health', stats.healthAlerts || 0);
+        renderChart(stats.flowData);
+    } catch (e) { console.error("CHECK V5.6: Error al actualizar stats:", e); }
 }
 
 function renderChart(flowData) {
-    const ctx = document.getElementById('flowChart').getContext('2d');
+    const canvas = document.getElementById('flowChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
     if (analyticsChart) analyticsChart.destroy();
     analyticsChart = new Chart(ctx, {
         type: 'line',
@@ -200,39 +249,43 @@ function renderChart(flowData) {
 // --- UI BUTTONS & MODALS ---
 setClick('btn-events-list-nav', () => loadMyEvents());
 setClick('btn-create-event-open', () => { 
-    document.getElementById('ev-id-hidden').value = ''; 
-    document.getElementById('new-event-form').reset();
-    document.getElementById('modal-event').classList.remove('hidden'); 
+    const idHidden = document.getElementById('ev-id-hidden');
+    const form = document.getElementById('new-event-form');
+    if (idHidden) idHidden.value = ''; 
+    if (form) form.reset();
+    document.getElementById('modal-event')?.classList.remove('hidden'); 
 });
 setClick('btn-edit-event', () => {
     if (!currentEvent) return;
-    document.getElementById('ev-id-hidden').value = currentEvent.id;
-    document.getElementById('ev-name').value = currentEvent.name;
-    document.getElementById('ev-date').value = currentEvent.date;
-    document.getElementById('ev-location').value = currentEvent.location;
-    document.getElementById('ev-desc').value = currentEvent.description;
-    document.getElementById('modal-event').classList.remove('hidden');
+    const setF = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    setF('ev-id-hidden', currentEvent.id);
+    setF('ev-name', currentEvent.name);
+    setF('ev-date', currentEvent.date);
+    setF('ev-location', currentEvent.location);
+    setF('ev-desc', currentEvent.description);
+    document.getElementById('modal-event')?.classList.remove('hidden');
 });
-setClick('close-modal', () => document.getElementById('modal-event').classList.add('hidden'));
+setClick('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
 
 setSubmit('new-event-form', async (e) => {
     e.preventDefault();
-    const id = document.getElementById('ev-id-hidden').value;
+    const id = document.getElementById('ev-id-hidden')?.value;
     const body = {
-        name: document.getElementById('ev-name').value,
-        date: document.getElementById('ev-date').value,
-        location: document.getElementById('ev-location').value,
-        description: document.getElementById('ev-desc').value
+        name: document.getElementById('ev-name')?.value,
+        date: document.getElementById('ev-date')?.value,
+        location: document.getElementById('ev-location')?.value,
+        description: document.getElementById('ev-desc')?.value
     };
     try {
         if (id) await apiFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
         else await apiFetch('/events', { method: 'POST', body: JSON.stringify(body) });
-        document.getElementById('modal-event').classList.add('hidden');
+        document.getElementById('modal-event')?.classList.add('hidden');
         loadMyEvents();
     } catch (err) { alert('Error al guardar evento'); }
 });
 
 setClick('btn-clear-db', async () => {
+    if (!currentEvent) return;
     if (!confirm('¿ESTÁS SEGURO? Esta acción borrará todos los invitados y respuestas de encuestas de este evento. No se puede deshacer.')) return;
     try {
         await apiFetch(`/clear-db/${currentEvent.id}`, { method: 'POST' });
@@ -243,14 +296,19 @@ setClick('btn-clear-db', async () => {
 });
 
 setClick('btn-show-qr', () => {
-    QRCode.toDataURL(`http://${window.location.host}/feedback.html?eventId=${currentEvent.id}`, (err, url) => {
-        document.getElementById('qr-display').src = url;
-        document.getElementById('modal-qr').classList.remove('hidden');
-    });
+    if (!currentEvent) return;
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toDataURL(`http://${window.location.host}/feedback.html?eventId=${currentEvent.id}`, (err, url) => {
+            const disp = document.getElementById('qr-display');
+            if (disp) disp.src = url;
+            document.getElementById('modal-qr')?.classList.remove('hidden');
+        });
+    }
 });
-setClick('close-qr', () => document.getElementById('modal-qr').classList.add('hidden'));
+setClick('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
 
 setClick('btn-delete-event', async () => {
+    if (!currentEvent) return;
     if (!confirm('¿ELIMINAR EVENTO PERMANENTEMENTE?')) return;
     try {
         await apiFetch(`/events/${currentEvent.id}`, { method: 'DELETE' });
@@ -260,42 +318,45 @@ setClick('btn-delete-event', async () => {
 
 // --- EXPORTS & ANALYTICS ---
 setClick('btn-export-excel', () => {
-    if (!currentEvent) return;
+    if (!currentEvent || !loggedUser) return;
     window.location.href = `${API_URL}/export-excel/${currentEvent.id}?x-user-id=${loggedUser.userId}`;
 });
 
 setClick('btn-export-analytics', async () => {
     if (!currentEvent) return;
-    const stats = await apiFetch(`/stats/${currentEvent.id}`);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFillColor(124, 58, 237);
-    doc.rect(0, 0, 210, 50, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28); doc.text("CHECK ANALYTICS", 20, 30);
-    doc.setFontSize(10); doc.text(currentEvent.name.toUpperCase() + " | REPORT V5.5", 20, 40);
-    doc.setTextColor(40, 40, 40);
-    doc.autoTable({
-        startY: 60,
-        head: [['Métrica de Rendimiento', 'Valor Consolidado']],
-        body: [
-            ['Total de Invitados Registrados', stats.total],
-            ['Total de Asistencia Efectiva', stats.checkedIn],
-            ['Tasa de Presencia (%)', (stats.total > 0 ? Math.round((stats.checkedIn/stats.total)*100) : 0) + "%"],
-            ['Empresas Participantes', stats.orgs],
-            ['Alertas Médicas / Dieta', stats.healthAlerts]
-        ],
-        theme: 'striped', headStyles: { fillColor: [124, 58, 237], borderRadius: 10 }
-    });
-    doc.save(`Check_Analitica_${currentEvent.name.replace(/\s/g, '_')}.pdf`);
+    try {
+        const stats = await apiFetch(`/stats/${currentEvent.id}`);
+        if (typeof window.jspdf === 'undefined') return alert('Librería PDF no cargada');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFillColor(124, 58, 237);
+        doc.rect(0, 0, 210, 50, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(28); doc.text("CHECK ANALYTICS", 20, 30);
+        doc.setFontSize(10); doc.text(currentEvent.name.toUpperCase() + " | REPORT V5.6", 20, 40);
+        doc.setTextColor(40, 40, 40);
+        doc.autoTable({
+            startY: 60,
+            head: [['Métrica de Rendimiento', 'Valor Consolidado']],
+            body: [
+                ['Total de Invitados Registrados', stats.total],
+                ['Total de Asistencia Efectiva', stats.checkedIn],
+                ['Tasa de Presencia (%)', (stats.total > 0 ? Math.round((stats.checkedIn/stats.total)*100) : 0) + "%"],
+                ['Empresas Participantes', stats.orgs],
+                ['Alertas Médicas / Dieta', stats.healthAlerts]
+            ],
+            theme: 'striped', headStyles: { fillColor: [124, 58, 237], borderRadius: 10 }
+        });
+        doc.save(`Check_Analitica_${currentEvent.name.replace(/\s/g, '_')}.pdf`);
+    } catch (e) { alert('Error al generar PDF'); }
 });
 
-// --- IMPORT LOGIC (V5.5 REINFORCED) ---
-setClick('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel').click());
-setClick('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf').click());
+// --- IMPORT LOGIC (V5.6 REINFORCED) ---
+setClick('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel')?.click());
+setClick('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf')?.click());
 
 const handleImport = async (inputEl) => {
-    if (!inputEl.files[0] || !currentEvent) return;
+    if (!inputEl.files[0] || !currentEvent || !loggedUser) return;
     const formData = new FormData();
     formData.append('file', inputEl.files[0]);
     formData.append('eventId', currentEvent.id);
@@ -303,34 +364,36 @@ const handleImport = async (inputEl) => {
         const res = await fetch(`${API_URL}/import-dry-run`, { method: 'POST', headers: { 'x-user-id': loggedUser.userId }, body: formData });
         const result = await res.json();
         const summary = document.getElementById('import-summary-content');
-        summary.innerHTML = `
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-6 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 text-center">
-                    <p class="text-[10px] font-black uppercase text-emerald-500 mb-1">Listos</p>
-                    <p class="text-3xl font-black font-mono text-emerald-500">${result.summary.new}</p>
+        if (summary) {
+            summary.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 text-center">
+                        <p class="text-[10px] font-black uppercase text-emerald-500 mb-1">Listos</p>
+                        <p class="text-3xl font-black font-mono text-emerald-500">${result.summary.new}</p>
+                    </div>
+                    <div class="p-6 bg-amber-500/10 rounded-3xl border border-amber-500/20 text-center">
+                        <p class="text-[10px] font-black uppercase text-amber-500 mb-1">Duplicados</p>
+                        <p class="text-3xl font-black font-mono text-amber-500">${result.summary.existing}</p>
+                    </div>
                 </div>
-                <div class="p-6 bg-amber-500/10 rounded-3xl border border-amber-500/20 text-center">
-                    <p class="text-[10px] font-black uppercase text-amber-500 mb-1">Duplicados</p>
-                    <p class="text-3xl font-black font-mono text-amber-500">${result.summary.existing}</p>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 font-bold bg-white/5 p-4 rounded-2xl text-center italic">
-                La importación solo añadirá los ${result.summary.new} registros nuevos detectados.
-            </p>
-        `;
-        document.getElementById('modal-import-results').classList.remove('hidden');
+                <p class="text-xs text-slate-500 font-bold bg-white/5 p-4 rounded-2xl text-center italic">
+                    La importación solo añadirá los ${result.summary.new} registros nuevos detectados.
+                </p>
+            `;
+        }
+        document.getElementById('modal-import-results')?.classList.remove('hidden');
         setClick('btn-confirm-import', async () => {
             await apiFetch('/import-confirm', { method: 'POST', body: JSON.stringify({ eventId: currentEvent.id, guests: result.data }) });
-            document.getElementById('modal-import-results').classList.add('hidden');
+            document.getElementById('modal-import-results')?.classList.add('hidden');
             loadGuests(); updateStats();
             alert('¡Importación completada con éxito!');
         });
     } catch (err) { alert('El formato del archivo no es compatible.'); }
 };
 
-document.getElementById('admin-file-import-excel').addEventListener('change', (e) => handleImport(e.target));
-document.getElementById('admin-file-import-pdf').addEventListener('change', (e) => handleImport(e.target));
-setClick('close-import-modal', () => document.getElementById('modal-import-results').classList.add('hidden'));
+document.getElementById('admin-file-import-excel')?.addEventListener('change', (e) => handleImport(e.target));
+document.getElementById('admin-file-import-pdf')?.addEventListener('change', (e) => handleImport(e.target));
+setClick('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
 // --- CLOCKS ---
 function updateClocks() {
@@ -361,15 +424,24 @@ async function loadPublicEvent() {
         const evs = await apiFetch('/events');
         if (evs.length > 0) {
             currentEvent = evs[0];
-            document.getElementById('event-name-badge')?.innerText = currentEvent.name;
+            const badge = document.getElementById('event-name-badge');
+            if (badge) badge.innerText = currentEvent.name;
         }
     } catch (err) {}
 }
 
 window.onload = () => {
-    if (loggedUser) loadMyEvents();
-    else { showView('registration'); loadPublicEvent(); }
+    try {
+        console.log("CHECK V5.6: window.onload disparado.");
+        if (loggedUser) loadMyEvents();
+        else { showView('registration'); loadPublicEvent(); }
+    } catch (e) {
+        console.error("CHECK V5.6: Error en window.onload:", e);
+        showView('registration');
+    }
 };
 
-socket.on('update_stats', (id) => { if (currentEvent && id === currentEvent.id) updateStats(); });
-socket.on('checkin_update', () => loadGuests());
+if (socket) {
+    socket.on('update_stats', (id) => { if (currentEvent && id === currentEvent.id) updateStats(); });
+    socket.on('checkin_update', () => loadGuests());
+}
