@@ -67,14 +67,15 @@ window.App = {
         }
 
         // 3. Actualizar Sidebar Tabs (Visual)
-        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
+        document.querySelectorAll('#sidebar-nav button').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
         const activeBtn = document.getElementById('nav-btn-' + viewName);
         if (activeBtn) activeBtn.classList.add('active', 'bg-primary', 'text-white');
 
-        // Mostrar sección de evento en sidebar si estamos en admin
+        // Mostrar sección de evento en sidebar si hay un evento cargado
         const evSection = document.getElementById('nav-section-event');
-        if (evSection) evSection.classList.toggle('hidden', viewName !== 'admin');
+        if (evSection) evSection.classList.toggle('hidden', !this.state.event);
         
+        // El selector de eventos siempre está en la sección Production
         window.scrollTo(0, 0);
     },
 
@@ -497,6 +498,23 @@ document.addEventListener('DOMContentLoaded', () => {
     cl('btn-events-list-nav', () => App.loadEvents());
     cl('admin-global-nav-btn', () => App.showView('system'));
     
+    cl('btn-delete-event', () => App.handleDeleteEvent());
+    cl('btn-delete-event-sidebar', () => App.handleDeleteEvent());
+
+    App.handleDeleteEvent = async () => {
+        if (!App.state.event) return;
+        if (!confirm(`☢️ ¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acción es irreversible.`)) return;
+        
+        try {
+            const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
+            if (res.success) {
+                alert("✓ Evento eliminado.");
+                App.state.event = null;
+                App.navigate('my-events');
+            }
+        } catch { alert("No se pudo eliminar el evento."); }
+    };
+
     // Admin Actions
     cl('btn-clear-db', async () => {
         if (!App.state.event) return;

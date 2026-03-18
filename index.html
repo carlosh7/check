@@ -147,23 +147,48 @@
             </div>
             
             <nav id="sidebar-nav" class="flex-1 space-y-1 overflow-y-auto">
-                <!-- Secciones dinámicas según vista -->
                 <div id="nav-section-global" class="space-y-1">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Navegación</p>
-                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">event_repeat</span> Mis Eventos
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración Global</p>
+                    <button onclick="App.navigate('system')" id="nav-btn-system" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">group</span> Equipo
                     </button>
-                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="hidden w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">settings_suggest</span> Panel Sistema
+                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">gavel</span> Legales
+                    </button>
+                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
                     </button>
                 </div>
 
-                <div id="nav-section-event" class="hidden pt-6 mt-6 border-t border-white/5 space-y-1">
+                <div class="h-px bg-white/5 my-6"></div>
+                <div id="nav-section-production" class="space-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Producción</p>
+                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">event_repeat</span> Selector de Eventos
+                    </button>
+                </div>
+
+                <div id="nav-section-event" class="hidden pt-6 mt-6 border-t border-white/10 space-y-1">
                     <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Evento Actual</p>
-                    <button class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
+                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                         <span class="material-symbols-outlined">dashboard</span> Dashboard
                     </button>
-                    <!-- Aquí se pueden añadir más tabs del evento -->
+                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">upload_file</span> Cargar Excel
+                    </button>
+                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">picture_as_pdf</span> Cargar PDF
+                    </button>
+                    <button onclick="document.getElementById('btn-show-qr').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">qr_code_2</span> Encuesta QR
+                    </button>
+                    <button class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined">mail</span> Mailing
+                    </button>
+                    <div class="h-px bg-white/5 my-4"></div>
+                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest">
+                        <span class="material-symbols-outlined">delete_forever</span> Eliminar
+                    </button>
                 </div>
             </nav>
 
