@@ -597,7 +597,7 @@ window.App = {
         const c = document.getElementById('events-list-container');
         if (!c) return;
         c.innerHTML = this.state.events.map(ev => `
-            <div class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group">
+            <div onclick="window.App.openEvent('${ev.id}')" class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group cursor-pointer">
                 <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button onclick="event.stopPropagation(); window.App.editEvent('${ev.id}')" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
