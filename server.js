@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
@@ -6,8 +8,16 @@ const db = require('./database');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const qrcode = require('qrcode');
+const { v4: uuidv4 } = require('uuid');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+});
 const port = 3000;
 
 app.use(cors());
@@ -18,240 +28,151 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const storage = multer.diskStorage({
     destination: 'uploads/',
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+        cb(null, uuidv4() + path.extname(file.originalname));
     }
 });
 const upload = multer({ storage });
 
-const fs = require('fs');
-const pdfParse = require('pdf-parse');
+// --- MIDDLEWARES ---
+const authMiddleware = (roles = []) => {
+    return (req, res, next) => {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.status(401).json({ error: 'No autorizado' });
 
-// --- API ROUTES ---
+        db.get("SELECT role FROM users WHERE id = ?", [userId], (err, row) => {
+            if (err || !row) return res.status(401).json({ error: 'Usuario no encontrado' });
+            if (roles.length > 0 && !roles.includes(row.role)) {
+                return res.status(403).json({ error: 'Permisos insuficientes' });
+            }
+            req.userRole = row.role;
+            next();
+        });
+    };
+};
 
-// Registro de nuevo Administrador
-app.post('/api/signup', (req, res) => {
-    const { username, password } = req.body;
-    db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], function(err) {
-        if (err) {
-            return res.status(400).json({ success: false, message: 'El usuario ya existe' });
-        }
-        res.json({ success: true, userId: this.lastID });
+// --- SOCKET.IO ---
+io.on('connection', (socket) => {
+    console.log('Cliente conectado:', socket.id);
+    socket.on('join_event', (eventId) => {
+        socket.join(eventId);
     });
 });
 
-// Login Simple
+// --- API ROUTES ---
+
+// Registro de Usuario
+app.post('/api/signup', (req, res) => {
+    const { username, password, role } = req.body;
+    const id = uuidv4();
+    db.run("INSERT INTO users (id, username, password, role, created_at) VALUES (?, ?, ?, ?, ?)", 
+        [id, username, password, role || 'PRODUCTOR', new Date().toISOString()], function(err) {
+        if (err) return res.status(400).json({ success: false, message: 'El usuario ya existe' });
+        res.json({ success: true, userId: id });
+    });
+});
+
+// Login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
         if (row) {
-            res.json({ success: true, userId: row.id, username: row.username });
+            res.json({ success: true, userId: row.id, role: row.role, username: row.username });
         } else {
             res.status(401).json({ success: false, message: 'Credenciales inválidas' });
         }
     });
 });
 
-// Obtener eventos filtrados por usuario
-app.get('/api/events', (req, res) => {
-    const { userId } = req.query;
-    const query = userId ? "SELECT * FROM events WHERE user_id = ?" : "SELECT * FROM events";
-    const params = userId ? [userId] : [];
+// Eventos (Filtrado por Multitenancy)
+app.get('/api/events', authMiddleware(), (req, res) => {
+    const userId = req.headers['x-user-id'];
+    const { role } = req.query; // Si el admin quiere ver todos
+    
+    let query = "SELECT * FROM events WHERE user_id = ?";
+    let params = [userId];
+
+    if (req.userRole === 'ADMIN') {
+        query = "SELECT * FROM events";
+        params = [];
+    }
+
     db.all(query, params, (err, rows) => {
         res.json(rows);
     });
 });
 
-// Crear evento vinculado a un usuario
-app.post('/api/events', (req, res) => {
-    const { userId, name, date, location, description, logo_url } = req.body;
-    db.run("INSERT INTO events (user_id, name, date, location, description, logo_url) VALUES (?, ?, ?, ?, ?, ?)", 
-        [userId, name, date, location, description, logo_url], function(err) {
+app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { name, date, location, description, logo_url } = req.body;
+    const userId = req.headers['x-user-id'];
+    const id = uuidv4();
+
+    db.run("INSERT INTO events (id, user_id, name, date, location, description, logo_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+        [id, userId, name, date, location, description, logo_url, new Date().toISOString()], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ id: this.lastID });
+            res.json({ id });
     });
 });
 
-// Subir Logo
-app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
-    res.json({ url: `/uploads/${req.file.filename}` });
-});
-
-// Borrar evento y sus invitados
-app.delete('/api/events/:id', (req, res) => {
-    const eventId = req.params.id;
-    db.serialize(() => {
-        db.run("DELETE FROM guests WHERE event_id = ?", [eventId]);
-        db.run("DELETE FROM events WHERE id = ?", [eventId], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
-        });
-    });
-});
-
-// Registro de invitado (Público)
-app.post('/api/register', (req, res) => {
-    const { event_id, name, email, phone, organization } = req.body;
-    db.run("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)",
-        [event_id, name, email, phone, organization], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, id: this.lastID });
-        });
-});
-
-// Obtener invitados de un evento
-app.get('/api/guests/:eventId', (req, res) => {
+// Invitados
+app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
     db.all("SELECT * FROM guests WHERE event_id = ?", [req.params.eventId], (err, rows) => {
         res.json(rows);
     });
 });
 
-// Toggle Check-in
-app.post('/api/checkin/:guestId', (req, res) => {
+// Check-in (Trigger Real-time & Email)
+app.post('/api/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
     const { status } = req.body;
     const time = status ? new Date().toISOString() : null;
-    db.run("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?", [status ? 1 : 0, time, req.params.guestId], (err) => {
-        res.json({ success: true });
+
+    db.get("SELECT event_id, name, email FROM guests WHERE id = ?", [req.params.guestId], (err, guest) => {
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+
+        db.run("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?", [status ? 1 : 0, time, req.params.guestId], (err) => {
+            // Emitir actualización vía Socket
+            io.to(guest.event_id).emit('checkin_update', { guestId: req.params.guestId, status });
+            
+            // Aquí iría el trigger de Mailing en la Fase 2
+            res.json({ success: true });
+        });
     });
 });
 
-// Dashboard Stats
-app.get('/api/stats/:eventId', (req, res) => {
-    const eventId = req.params.eventId;
+// Stats (Real-time compatible)
+app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
     db.get(`
         SELECT 
             COUNT(*) as total,
-            SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn
+            SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn,
+            SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onSite
         FROM guests WHERE event_id = ?
-    `, [eventId], (err, row) => {
+    `, [req.params.eventId], (err, row) => {
         res.json(row);
     });
 });
 
-// Importar Excel (Más robusto)
-app.post('/api/import/:eventId', upload.single('file'), (req, res) => {
-    try {
-        const eventId = req.params.eventId;
-        const workbook = xlsx.readFile(req.file.path);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const data = xlsx.utils.sheet_to_json(sheet);
+// Registro Público
+app.post('/api/register', (req, res) => {
+    const { event_id, name, email, phone, organization, gender, dietary_notes } = req.body;
+    const id = uuidv4();
+    const qr_token = uuidv4();
 
-        const stmt = db.prepare("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)");
-        data.forEach(row => {
-            // Normalizar nombres de columnas de manera agresiva
-            const findValue = (keys) => {
-                const foundKey = Object.keys(row).find(k => keys.some(key => k.toLowerCase().trim().includes(key.toLowerCase())));
-                return foundKey ? row[foundKey] : "";
-            };
-
-            const name = findValue(['nombre', 'name', 'asistente', 'completo']);
-            const email = findValue(['email', 'correo', 'mail', 'contacto']);
-            const phone = findValue(['telefono', 'phone', 'celular', 'whatsapp']);
-            const org = findValue(['empresa', 'organizacion', 'org', 'company', 'institucion']);
-            
-            if (name && name.toString().trim() !== "") {
-                stmt.run(eventId, name.toString().trim(), email, phone, org);
-            }
-        });
-        stmt.finalize();
-        fs.unlinkSync(req.file.path); // Limpiar archivo temporal
-        res.json({ success: true, count: data.length });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Error al procesar el archivo Excel' });
-    }
-});
-
-// Importar PDF
-app.post('/api/import-pdf/:eventId', upload.single('file'), (req, res) => {
-    const eventId = req.params.eventId;
-    const dataBuffer = fs.readFileSync(req.file.path);
-
-    pdfParse(dataBuffer).then(function(data) {
-        // Lógica de parsing: intenta dividir por líneas y luego por comas, tabs o punto y coma
-        const lines = data.text.split('\n').filter(l => l.trim().length > 3);
-        const stmt = db.prepare("INSERT INTO guests (event_id, name, email, phone, organization) VALUES (?, ?, ?, ?, ?)");
-        
-        lines.forEach(line => {
-            // Intentar detectar el separador (coma, punto y coma o tab)
-            let parts = [];
-            if (line.includes(',')) parts = line.split(',');
-            else if (line.includes(';')) parts = line.split(';');
-            else parts = line.split(/\t/);
-
-            parts = parts.map(p => p.trim());
-            
-            if (parts[0] && parts[0].length > 2) {
-                stmt.run(eventId, parts[0], parts[1] || "", parts[2] || "", parts[3] || "");
-            }
-        });
-        stmt.finalize();
-        fs.unlinkSync(req.file.path); // Limpiar
-        res.json({ success: true, count: lines.length });
-    }).catch(err => {
-        res.status(500).json({ success: false, message: 'Error al procesar el archivo PDF' });
-    });
-});
-
-// --- ENCUESTAS Y QR ---
-
-// Obtener preguntas de la encuesta de un evento
-app.get('/api/surveys/questions/:eventId', (req, res) => {
-    db.all("SELECT * FROM surveys WHERE event_id = ?", [req.params.eventId], (err, rows) => {
-        res.json(rows);
-    });
-});
-
-// Añadir pregunta a la encuesta de un evento
-app.post('/api/surveys/questions', (req, res) => {
-    const { event_id, question, type } = req.body;
-    db.run("INSERT INTO surveys (event_id, question, type) VALUES (?, ?, ?)", [event_id, question, type || 'stars'], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: this.lastID });
-    });
-});
-
-// Borrar pregunta de encuesta
-app.delete('/api/surveys/questions/:id', (req, res) => {
-    db.run("DELETE FROM surveys WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
-});
-
-// Generar QR para encuesta del evento
-app.get('/api/events/:id/qrcode', async (req, res) => {
-    const eventId = req.params.id;
-    // URL que llevará a la página pública de encuesta
-    const surveyUrl = `${req.protocol}://${req.get('host')}/survey.html?eventId=${eventId}`;
-    try {
-        const qrImage = await qrcode.toDataURL(surveyUrl);
-        res.json({ qrCode: qrImage });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al generar QR' });
-    }
-});
-
-// Enviar respuesta de encuesta
-app.post('/api/surveys/respond', (req, res) => {
-    const { event_id, guest_id, rating, comment } = req.body;
-    db.run("INSERT INTO survey_responses (event_id, guest_id, rating, comment) VALUES (?, ?, ?, ?)",
-        [event_id, guest_id, rating, comment], function(err) {
+    db.run("INSERT INTO guests (id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
+            
+            // Notificar al Dashboard que hay un nuevo registro
+            io.to(event_id).emit('new_registration', { id, name });
+            
+            res.json({ success: true, id });
         });
 });
 
-// Obtener estadísticas de satisfacción
-app.get('/api/surveys/stats/:eventId', (req, res) => {
-    db.get(`
-        SELECT 
-            AVG(rating) as avgRating,
-            COUNT(*) as totalResponses
-        FROM survey_responses WHERE event_id = ?
-    `, [req.params.eventId], (err, row) => {
-        res.json(row || { avgRating: 0, totalResponses: 0 });
-    });
+// --- SOCKETS DATA PUSH (Fase 3 PREVIEW) ---
+app.post('/api/upload-logo', upload.single('logo'), (req, res) => {
+    res.json({ url: `/uploads/${req.file.filename}` });
 });
 
-app.listen(port, () => {
-    console.log(`Servidor ejecutándose en http://localhost:${port}`);
+server.listen(port, () => {
+    console.log(`Servidor MAESTRO ejecutándose en http://localhost:${port}`);
 });

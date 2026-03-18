@@ -1,78 +1,100 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 const dbPath = path.resolve(__dirname, 'check_app.db');
 const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
-    // Tabla de Usuarios (Administradores)
+    // 1. Tabla de Usuarios (Soporte RBAC)
+    // roles: 'ADMIN', 'PRODUCTOR', 'CLIENTE', 'LOGISTICO'
     db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT,
-        role TEXT DEFAULT 'admin'
+        role TEXT DEFAULT 'PRODUCTOR',
+        created_at TEXT
     )`);
 
-    // Tabla de Eventos
+    // 2. Tabla de Eventos (Multitenancy)
     db.run(`CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
         name TEXT,
         date TEXT,
         location TEXT,
         logo_url TEXT,
         description TEXT,
-        db_name TEXT UNIQUE,
+        status TEXT DEFAULT 'ACTIVE',
+        created_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users (id)
     )`);
 
-    // Tabla de Invitados/Asistentes
+    // 3. Tabla de Invitados (UUIDs y Campos extendidos)
     db.run(`CREATE TABLE IF NOT EXISTS guests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_id INTEGER,
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
         name TEXT,
         email TEXT,
         phone TEXT,
         organization TEXT,
+        gender TEXT, -- 'M', 'F', 'O'
+        dietary_notes TEXT, -- Alergias / Vegano
+        is_new_registration INTEGER DEFAULT 0, -- 1 si fue registro on-site
         checked_in INTEGER DEFAULT 0,
         checkin_time TEXT,
+        qr_token TEXT UNIQUE,
         FOREIGN KEY (event_id) REFERENCES events (id)
     )`);
 
-    // Tabla de Encuestas (Configuración)
+    // 4. Tabla de Configuración de Mailing (SMTP por evento o usuario)
+    db.run(`CREATE TABLE IF NOT EXISTS event_mailing_config (
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
+        smtp_host TEXT,
+        smtp_port INTEGER,
+        smtp_user TEXT,
+        smtp_pass TEXT,
+        welcome_subject TEXT,
+        welcome_body TEXT,
+        survey_subject TEXT,
+        survey_body TEXT,
+        FOREIGN KEY (event_id) REFERENCES events (id)
+    )`);
+
+    // 5. Tabla de Encuestas
     db.run(`CREATE TABLE IF NOT EXISTS surveys (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_id INTEGER,
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
         question TEXT,
-        type TEXT DEFAULT 'stars', -- 'stars', 'yes_no', 'text'
+        type TEXT DEFAULT 'stars', -- 'stars', 'yes_no', 'open', 'multiple'
+        options TEXT, -- JSON para opciones múltiples
         FOREIGN KEY (event_id) REFERENCES events (id)
     )`);
 
-    // Tabla de Respuestas de Encuestas
+    // 6. Tabla de Respuestas
     db.run(`CREATE TABLE IF NOT EXISTS survey_responses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_id INTEGER,
-        guest_id INTEGER,
-        rating INTEGER,
-        comment TEXT,
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
+        guest_id TEXT,
+        responses_json TEXT, -- Almacena todas las respuestas de un invitado en JSON
+        submitted_at TEXT,
         FOREIGN KEY (event_id) REFERENCES events (id),
         FOREIGN KEY (guest_id) REFERENCES guests (id)
     )`);
 
-    // Insertar usuario administrador por defecto (password: admin123)
-    // En producción usaríamos bcrypt
-    db.get("SELECT * FROM users WHERE username = 'admin'", (err, row) => {
-        if (!row) {
-            db.run("INSERT INTO users (username, password) VALUES ('admin', 'admin123')");
+    // --- INICIALIZACIÓN DE DATOS SEMILLA (Si está vacío) ---
+    
+    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+        if (row && row.count === 0) {
+            const adminId = uuidv4();
+            db.run("INSERT INTO users (id, username, password, role, created_at) VALUES (?, ?, ?, ?, ?)", 
+                [adminId, 'admin@check.com', 'admin123', 'ADMIN', new Date().toISOString()]);
+            
+            console.log("Admin por defecto creado con ID:", adminId);
         }
     });
 
-    // Evento de ejemplo
-    db.get("SELECT * FROM events LIMIT 1", (err, row) => {
-        if (!row) {
-            db.run("INSERT INTO events (user_id, name, date, location, description) VALUES (1, 'Evento Launch 2026', '2026-06-15T10:00:00', 'Centro de Convenciones', 'Lanzamiento de la nueva plataforma Premium.')");
-        }
-    });
 });
 
 module.exports = db;
