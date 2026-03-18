@@ -31,9 +31,8 @@ body {
     background-color: var(--bg-slate-950);
     color: var(--text-primary);
     font-family: var(--font-body);
-    overflow: hidden;
     line-height: 1.5;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 /* ═══ APP CONTAINER LAYOUT ═══ */
@@ -160,6 +159,17 @@ body {
 .btn-primary:hover {
     background: var(--accent);
     transform: translateY(-2px);
+}
+
+/* Modal scroll fix */
+.modal-scroll {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-scroll > div:first-child {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
 }
 
 .input-field {
