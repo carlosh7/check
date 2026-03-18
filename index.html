@@ -588,14 +588,70 @@
                         </tbody>
                     </table>
                 </div>
-            </section            <!-- DASHBOARD DEL EVENTO -->
-            <section id="admin-main-dashboard">
-                <!-- El contenido del dashboard se mantiene aquí -->
             </section>
-        </main>
-    </div>
-            </section>
+            <!-- VISTAS DE ADMINISTRACIÓN GLOBAL -->
+            <section id="view-system" class="hidden">
+                <div class="p-8 md:p-12">
+                    <div id="sys-content-users" class="hidden animate-fade">
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                            <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
+                                <span class="w-2 h-10 bg-primary rounded-full"></span> Equipo y Accesos
+                            </h3>
+                            <button id="btn-open-invite" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 w-full md:w-fit font-black uppercase tracking-widest text-xs">
+                                AÑADIR USUARIO <span class="material-symbols-outlined text-sm ml-2">person_add</span>
+                            </button>
+                        </div>
+                        <div id="pending-requests-section" class="hidden mb-12 bg-amber-500/5 border border-amber-500/10 p-8 rounded-[40px] backdrop-blur-md">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-base">warning</span> Solicitudes Pendientes
+                                <span id="pending-badge" class="hidden bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full text-[9px]">0</span>
+                            </p>
+                            <div id="pending-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        </div>
+                        <div class="glass-card rounded-[40px] overflow-hidden border border-white/5 shadow-2xl">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/2 border-b border-white/5 uppercase text-[10px] font-black tracking-widest text-slate-500">
+                                    <tr><th class="px-8 py-5">Usuario / Fecha</th><th class="px-8 py-5">Rol / Nivel</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acción</th></tr>
+                                </thead>
+                                <tbody id="users-tbody" class="divide-y divide-white/2"></tbody>
+                            </table>
+                        </div>
+                    </div>
 
+                    <div id="sys-content-legal" class="hidden animate-fade">
+                        <h3 class="text-3xl font-black font-display tracking-tight mb-12">Gestión de Textos Legales</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="glass-card p-10 rounded-[40px] border border-white/5">
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Política de Datos</p>
+                                <textarea id="legal-policy-text" class="input-field bg-slate-900/50 h-80 mb-6 font-sans text-sm"></textarea>
+                                <button id="btn-save-policy" class="btn-primary w-full py-4 rounded-xl font-black uppercase text-xs">Guardar Política</button>
+                            </div>
+                            <div class="glass-card p-10 rounded-[40px] border border-white/5">
+                                <p class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Términos y Condiciones</p>
+                                <textarea id="legal-terms-text" class="input-field bg-slate-900/50 h-80 mb-6 font-sans text-sm"></textarea>
+                                <button id="btn-save-terms" class="btn-primary w-full py-4 rounded-xl font-black uppercase text-xs">Guardar Términos</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sys-content-account" class="hidden animate-fade max-w-2xl mx-auto py-12">
+                        <div class="text-center mb-12">
+                            <div class="w-24 h-24 bg-primary/10 rounded-[40px] flex items-center justify-center mx-auto mb-6 text-primary shadow-2xl shadow-primary/20 ring-1 ring-primary/20">
+                                <span class="material-symbols-outlined text-4xl">shield_person</span>
+                            </div>
+                            <h3 class="text-3xl font-black font-display tracking-tight">Seguridad de la Cuenta</h3>
+                            <p class="text-slate-500 text-sm mt-2">Mantén tus credenciales seguras y actualizadas.</p>
+                        </div>
+                        <form id="change-pass-form" class="glass-card p-12 rounded-[56px] border border-white/10 shadow-3xl space-y-6">
+                            <div class="space-y-4">
+                                <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/80 !py-5">
+                                <input type="password" id="new-pass-2" required placeholder="Repite la contraseña" class="input-field bg-slate-900/80 !py-5">
+                            </div>
+                            <button type="submit" class="btn-primary w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/30">ACTUALIZAR CONTRASEÑA</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -701,13 +757,15 @@
     <!-- Hidden File Inputs -->
     <input type="file" id="admin-file-import-excel" class="hidden" accept=".xlsx,.xls">
     <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
+    
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="/script.js?v=10.2"></script>
+    <script src="/script.js?v=10.5.2"></script>
 
     <!-- INDICADOR DE VERSIÓN GLOBAL V10 -->
     <div class="fixed bottom-6 left-6 z-[9999999] pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
-        <span class="app-version-label bg-slate-950 text-emerald-400 font-mono text-base sm:text-lg px-4 py-2 rounded-xl border-2 border-emerald-500/30 shadow-2xl shadow-emerald-900/50 backdrop-blur-md">Check Pro V10.3</span>
+        <span class="app-version-label bg-slate-950 text-emerald-400 font-mono text-base sm:text-lg px-4 py-2 rounded-xl border-2 border-emerald-500/30 shadow-2xl shadow-emerald-900/50 backdrop-blur-md">Check Pro V10.5.2</span>
     </div>
 </body>
 </html>

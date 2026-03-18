@@ -61,10 +61,14 @@ window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        const target = document.getElementById("view-" + viewName);
-        if (target) {
-            target.classList.remove('hidden');
+        // Mapear rutas virtuales a vistas reales
+        let targetViewId = "view-" + viewName;
+        if (["system", "legal", "account"].includes(viewName)) {
+            targetViewId = "view-system";
         }
+        
+        const target = document.getElementById(targetViewId);
+        if (target) target.classList.remove('hidden');
 
         // 3. Actualizar Sidebar Tabs (Visual)
         document.querySelectorAll('#sidebar-nav button').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
@@ -87,7 +91,9 @@ window.App = {
         this.showView(viewName);
         
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') this.loadUsersTable();
+        if (viewName === 'system') window.switchSystemTab('users');
+        if (viewName === 'legal') window.switchSystemTab('legal');
+        if (viewName === 'account') window.switchSystemTab('account');
     },
 
     initRouter() {
@@ -539,8 +545,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Import
     cl('admin-import-excel-btn', () => document.getElementById('admin-file-import-excel')?.click());
     cl('admin-import-pdf-btn', () => document.getElementById('admin-file-import-pdf')?.click());
+    
     document.getElementById('admin-file-import-excel')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
     document.getElementById('admin-file-import-pdf')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
+    
+    cl('btn-show-qr', () => App.showQR());
+    cl('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
+
+    App.showQR = async () => {
+        if (!App.state.event || !window.QRCode) return;
+        const url = `${window.location.origin}/register.html?event=${App.state.event.id}`;
+        const qrEl = document.getElementById('qr-display');
+        if (qrEl) {
+            const qrDataUrl = await QRCode.toDataURL(url, { width: 400, margin: 2 });
+            qrEl.src = qrDataUrl;
+            document.getElementById('modal-qr')?.classList.remove('hidden');
+        }
+    };
+
+    App.handleImport = async (file) => {
+        if (!App.state.event) return alert("Selecciona un evento primero.");
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('event_id', App.state.event.id);
+
+        try {
+            const res = await fetch('/api/import-preview', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                this.state.importData = data;
+                const modal = document.getElementById('modal-import-results');
+                const content = document.getElementById('import-summary-content');
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-900 rounded-2xl border border-white/5">
+                            <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Total Detectados</p>
+                            <p class="text-2xl font-black">${data.total}</p>
+                        </div>
+                        <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/10">
+                            <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Válidos</p>
+                            <p class="text-2xl font-black text-emerald-400">${data.valid}</p>
+                        </div>
+                    </div>
+                `;
+                modal?.classList.remove('hidden');
+            } else { alert("Error al leer archivo: " + data.error); }
+        } catch (e) { alert("Error de conexión al importar."); }
+    };
+
+    cl('btn-confirm-import', async () => {
+        const btn = document.getElementById('btn-confirm-import');
+        btn.innerText = "PROCESANDO..."; btn.disabled = true;
+        try {
+            const res = await App.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ event_id: App.state.event.id }) });
+            if (res.success) {
+                alert(`✓ Importación exitosa: ${res.count} invitados añadidos.`);
+                document.getElementById('modal-import-results')?.classList.add('hidden');
+                App.loadGuests();
+            } else { alert("Error: " + res.error); }
+        } catch(e) { alert("Fallo en la importación."); }
+        finally { btn.innerText = "PROCESAR E IMPORTAR AHORA"; btn.disabled = false; }
+    });
+
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
     // ------- V10: GESTIÓN DE USUARIOS -------
