@@ -11,7 +11,7 @@ const qrcode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
+const pdfParse = require('pdf-parse').default || require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
@@ -470,6 +470,17 @@ app.post('/api/import-confirm', authMiddleware(), (req, res) => {
     const data = tempImport[req.userId];
     if (!data || String(data.event_id) !== String(req.body.event_id)) return res.status(400).json({ error: 'Sesión de importación expirada' });
     
+    // Obtener existentes para filtrar duplicados (email Y telefono)
+    const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(data.event_id);
+    const existingSet = new Set(existing.map(e => `${e.email?.toLowerCase()}|${e.phone?.replace(/\D/g,'')}`));
+    
+    const newGuests = data.guests.filter(g => {
+        const email = (g.email || '').toLowerCase().trim();
+        const phone = (g.phone || '').replace(/\D/g, '');
+        if (!email && !phone) return true; // Si no hay email ni telefono, se inserta
+        return !existingSet.has(`${email}|${phone}`);
+    });
+    
     const insertMany = db.transaction((guestList) => {
         const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         for (const g of guestList) {
@@ -478,10 +489,10 @@ app.post('/api/import-confirm', authMiddleware(), (req, res) => {
     });
 
     try {
-        insertMany(data.guests);
+        insertMany(newGuests);
         delete tempImport[req.userId];
         io.to(data.event_id).emit('update_stats', data.event_id);
-        res.json({ success: true, count: data.guests.length });
+        res.json({ success: true, count: newGuests.length, skipped: data.guests.length - newGuests.length });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

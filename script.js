@@ -549,7 +549,6 @@ window.App = {
     async loadEvents() {
         try {
             this.state.events = await this.fetchAPI('/events');
-            this.showView('my-events');
             
             const btnAdminNav = document.getElementById('nav-btn-admin');
             if (btnAdminNav) {
@@ -578,9 +577,12 @@ window.App = {
         `).join('');
     },
     async openEvent(id) {
-        // FIX V10.5: Casting de ID para evitar fallos String vs Number
         this.state.event = this.state.events.find(e => String(e.id) === String(id));
         if (!this.state.event) return console.error("Evento no encontrado:", id);
+
+        // Persistir evento seleccionado
+        localStorage.setItem('selected_event_id', String(id));
+        localStorage.setItem('selected_event_name', this.state.event.name);
 
         this.navigate('admin', { id });
         
@@ -591,6 +593,29 @@ window.App = {
         this.loadGuests();
         this.updateStats();
         if (this.state.socket) this.state.socket.emit('join_event', id);
+    },
+    
+    // Restaurar evento desde localStorage
+    restoreSelectedEvent() {
+        const savedEventId = localStorage.getItem('selected_event_id');
+        const savedEventName = localStorage.getItem('selected_event_name');
+        
+        if (savedEventId && this.state.events.length > 0) {
+            const event = this.state.events.find(e => String(e.id) === String(savedEventId));
+            if (event) {
+                console.log("Restaurando evento:", event.name);
+                this.state.event = event;
+                const tit = document.getElementById('admin-event-title');
+                const loc = document.getElementById('admin-event-location');
+                if (tit) tit.innerText = event.name;
+                if (loc) loc.innerText = event.location;
+                this.navigate('admin', { id: event.id });
+                this.loadGuests();
+                this.updateStats();
+                return true;
+            }
+        }
+        return false;
     },
     async loadGuests() {
         if (!this.state.event) return;
@@ -696,16 +721,21 @@ window.App = {
                 const content = document.getElementById('import-summary-content');
                 if (content) {
                     content.innerHTML = `
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div class="p-4 bg-slate-900 rounded-2xl border border-white/5 text-center">
                                 <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Total Detectados</p>
                                 <p class="text-2xl font-black">${data.total}</p>
                             </div>
                             <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/10 text-center">
-                                <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Válidos</p>
+                                <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Se Importarán</p>
                                 <p class="text-2xl font-black text-emerald-400">${data.valid}</p>
                             </div>
+                            <div class="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/10 text-center">
+                                <p class="text-[10px] uppercase font-black text-amber-500/60 mb-1">Duplicados</p>
+                                <p class="text-2xl font-black text-amber-400">${data.total - data.valid}</p>
+                            </div>
                         </div>
+                        <p class="text-center text-slate-500 text-xs mt-4">Los duplicados se identifican por Email + Teléfono</p>
                     `;
                 }
                 modal?.classList.remove('hidden');
@@ -1055,7 +1085,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = App.state.user.username || 'Usuario';
                 if (sbr) sbr.textContent = App.state.user.role || 'Staff';
-                App.navigate('my-events', {}, false);
+                
+                // Cargar eventos y restaurar selección si existe
+                await App.loadEvents();
+                App.restoreSelectedEvent();
             } catch { App.logout(); }
         } else {
             App.showView('login');
