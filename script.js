@@ -540,9 +540,14 @@ window.App = {
     initRouter() {
         window.onpopstate = (e) => {
             if (e.state && e.state.view) {
+                // Si no hay usuario y intenta ir a una vista que no es login
+                if (!this.state.user && e.state.view !== 'login') {
+                    this.showView('login');
+                    return;
+                }
                 this.navigate(e.state.view, e.state.params, false);
             } else {
-                this.navigate('my-events', {}, false);
+                this.showView('login');
             }
         };
     },
@@ -944,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 0. Sync Version
     App.loadAppVersion();
+    App.initRouter();
 
     // 1. SIEMPRE mostrar login primero
     App.showView('login');
@@ -1205,48 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 6. Inicialización V10.5
-    const init = async () => {
-        App.initRouter();
-        App.loadAppVersion();
-        
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            try {
-                App.state.user = JSON.parse(savedUser);
-                const sbu = document.getElementById('sidebar-username');
-                const sbr = document.getElementById('sidebar-role');
-                if (sbu) sbu.textContent = App.state.user.username || 'Usuario';
-                if (sbr) sbr.textContent = App.state.user.role || 'Staff';
-                
-                // Cargar eventos y restaurar selección si existe
-                await App.loadEvents();
-                App.restoreSelectedEvent();
-            } catch { App.logout(); }
-        } else {
-            App.showView('login');
-        }
-
-        // Clocks V10.5
-        setInterval(() => {
-            const ms = new Date();
-            const s = ms.toLocaleTimeString('es-ES', {hour12: false});
-            document.querySelectorAll('#events-list-clock, #admin-clock-real').forEach(e => e.innerText = s);
-            if (App.state.event) {
-                const eventDate = new Date(App.state.event.date);
-                const diff = eventDate - ms;
-                let cstr = "EVENTO ACTIVO";
-                if (diff > 0) { 
-                    const h = Math.floor(diff/3600000).toString().padStart(2,'0'); 
-                    const min = Math.floor((diff%3600000)/60000).toString().padStart(2,'0'); 
-                    const sec = Math.floor((diff%60000)/1000).toString().padStart(2,'0'); 
-                    cstr = `${h}:${min}:${sec}`; 
-                }
-                const c1 = document.getElementById('admin-clock-countdown');
-                if (c1) c1.innerText = cstr;
-            }
-        }, 1000);
-    };
-    init();
+    // Init removido - se usa DOMContentLoaded
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
     // Modal de Invitación
@@ -1330,6 +1295,26 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch { alert('Error al actualizar contraseña.'); }
     });
 
+    // Clocks
+    setInterval(() => {
+        const ms = new Date();
+        const s = ms.toLocaleTimeString('es-ES', {hour12: false});
+        document.querySelectorAll('#events-list-clock, #admin-clock-real').forEach(e => e.innerText = s);
+        if (App.state.event) {
+            const eventDate = new Date(App.state.event.date);
+            const diff = eventDate - ms;
+            let cstr = "EVENTO ACTIVO";
+            if (diff > 0) { 
+                const h = Math.floor(diff/3600000).toString().padStart(2,'0'); 
+                const min = Math.floor((diff%3600000)/60000).toString().padStart(2,'0'); 
+                const sec = Math.floor((diff%60000)/1000).toString().padStart(2,'0'); 
+                cstr = `${h}:${min}:${sec}`; 
+            }
+            const c1 = document.getElementById('admin-clock-countdown');
+            if (c1) c1.innerText = cstr;
+        }
+    }, 1000);
+    
     // ═══ GRUPOS V10.5 ═══
     cl('btn-create-group', async () => {
         const name = prompt('Nombre del grupo:');
