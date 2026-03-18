@@ -398,4 +398,13 @@ app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
 });
 
-server.listen(port, () => console.log(`\x1b[35mCHECK PRO V10.5.2 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
+// --- SPA FALLBACK (V10.5) ---
+app.use((req, res, next) => {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    } else {
+        next();
+    }
+});
+
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V10.5.3 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
