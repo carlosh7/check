@@ -235,46 +235,53 @@ document.addEventListener('DOMContentLoaded', () => {
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
     }
 
-    // 4. Tab Switcher del Admin (V10)
-    const allTabPanels = ['tab-users', 'tab-legal', 'tab-account'];
-    const mainDashboard = document.getElementById('guests-section'); // main panel
-    
-    function switchAdminTab(tabName) {
-        // Ocultar todos los paneles de tab
-        allTabPanels.forEach(t => document.getElementById(t)?.classList.add('hidden'));
-        // También ocultar las secciones del dashboard normal
-        document.querySelectorAll('.admin-main-section').forEach(el => el.classList.add('hidden'));
-        
+    // 4. Tab Switcher del Admin V10 - ROBUSTO CON IDs DIRECTOS
+    const ALL_TAB_IDS = ['tab-users', 'tab-legal', 'tab-account'];
+
+    window.switchAdminTab = function(tabName) {
+        console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
+        // Ocultar dashboard principal y todos los tabs
+        const mainDash = document.getElementById('admin-main-dashboard');
+        if (mainDash) mainDash.style.display = 'none';
+        ALL_TAB_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        // Restablecer todos los botones de nav
+        document.querySelectorAll('.nav-tab-btn').forEach(b => {
+            b.style.background = '';
+            b.style.color = '';
+            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20', 'active');
+            b.classList.add('text-slate-400');
+        });
+
         if (!tabName) {
             // Mostrar dashboard principal
-            document.querySelectorAll('.admin-main-section').forEach(el => el.classList.remove('hidden'));
-            document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('bg-primary', 'text-white', 'shadow-xl'));
-            document.getElementById('nav-tab-dashboard')?.classList.add('bg-primary', 'text-white', 'shadow-xl');
+            if (mainDash) mainDash.style.display = 'block';
+            const dashBtn = document.getElementById('nav-tab-dashboard');
+            if (dashBtn) {
+                dashBtn.classList.remove('text-slate-400');
+                dashBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+            }
         } else {
-            // Mostrar tab solicitado
-            const panel = document.getElementById(`tab-${tabName}`);
-            if (panel) panel.classList.remove('hidden');
-            document.querySelectorAll('.nav-tab-btn').forEach(b => {
-                b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20');
-                b.classList.add('text-slate-400');
-            });
-            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            // Mostrar tab pedido
+            const panel = document.getElementById('tab-' + tabName);
+            if (panel) panel.style.display = 'block';
+            const activeBtn = document.querySelector('[data-tab="' + tabName + '"]');
             if (activeBtn) {
-                activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20');
                 activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20', 'active');
             }
             if (tabName === 'users') App.loadUsersTable();
             if (tabName === 'legal') App.loadLegalTexts();
         }
-    }
+    };
 
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
     document.querySelectorAll('[data-tab]').forEach(btn => {
         btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
     });
-
-    // Marcar secciones del dashboard principal con clase
-    document.querySelectorAll('#view-admin main > *:not(section[id^="tab-"])').forEach(el => el.classList.add('admin-main-section'));
 
     // 5. Listeners generales
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
