@@ -54,12 +54,29 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
     email TEXT,
     phone TEXT,
     organization TEXT,
-    gender TEXT,
+    position TEXT,
+    gender TEXT DEFAULT 'O',
     dietary_notes TEXT,
     is_new_registration INTEGER DEFAULT 0,
     checked_in INTEGER DEFAULT 0,
     checkin_time TEXT,
     qr_token TEXT UNIQUE,
+    FOREIGN KEY (event_id) REFERENCES events (id)
+)`);
+
+// 3.1 Pre-Registros (Inscripción previa)
+db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    organization TEXT,
+    position TEXT,
+    gender TEXT DEFAULT 'O',
+    dietary_notes TEXT,
+    status TEXT DEFAULT 'PENDING',
+    registered_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES events (id)
 )`);
 

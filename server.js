@@ -510,8 +510,33 @@ app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (
         }
         
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        
+        // Calcular duplicados contra la BD
+        const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(eId);
+        const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
+        const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
+        
+        let duplicates = 0;
+        const seenEmails = new Set();
+        const seenPhones = new Set();
+        
+        for (const g of guests) {
+            const email = (g.email || '').toLowerCase().trim();
+            const phone = (g.phone || '').replace(/\D/g, '');
+            
+            const isDupEmail = email && (existingEmails.has(email) || seenEmails.has(email));
+            const isDupPhone = phone.length > 6 && (existingPhones.has(phone) || seenPhones.has(phone));
+            
+            if (isDupEmail || isDupPhone) {
+                duplicates++;
+            } else {
+                if (email) seenEmails.add(email);
+                if (phone) seenPhones.add(phone);
+            }
+        }
+        
         tempImport[req.userId] = { event_id: eId, guests };
-        res.json({ success: true, total: guests.length, valid: guests.length });
+        res.json({ success: true, total: guests.length, valid: guests.length - duplicates, duplicates });
     } catch (e) { 
         if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ error: e.message }); 
@@ -665,12 +690,53 @@ app.get('/api/events/public/:name', (req, res) => {
     else res.status(404).json({ error: 'Evento no encontrado' });
 });
 
+// Obtener evento por ID (público)
+app.get('/api/events/:id', (req, res) => {
+    const eId = castId('events', req.params.id);
+    const row = db.prepare("SELECT id, name, date, end_date, location, description, logo_url FROM events WHERE id = ?").get(eId);
+    if (row) {
+        row.logo_path = row.logo_url ? `/uploads/${path.basename(row.logo_url)}` : null;
+        res.json(row);
+    }
+    else res.status(404).json({ error: 'Evento no encontrado' });
+});
+
+// Registro público de pre-inscripción
+app.post('/api/public-register', async (req, res) => {
+    const { event_id, name, email, phone, organization, position, gender, dietary_notes } = req.body;
+    
+    if (!event_id || !name || !email) {
+        return res.status(400).json({ error: 'Datos obligatorios faltantes' });
+    }
+
+    try {
+        // Verificar si ya existe
+        const existing = db.prepare("SELECT id FROM pre_registrations WHERE event_id = ? AND email = ?").get(event_id, email.toLowerCase());
+        if (existing) {
+            return res.json({ success: true, message: 'Ya estás registrado. ¡Te esperamos!' });
+        }
+
+        // Crear pre-registro
+        const id = getValidId('pre_reg');
+        db.prepare(`INSERT INTO pre_registrations (id, event_id, name, email, phone, organization, position, gender, dietary_notes, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`)
+            .run(id, event_id, name, email.toLowerCase(), phone || '', organization || '', position || '', gender || 'O', dietary_notes || '');
+
+        res.json({ success: true, message: 'Registro exitoso. Tu inscripción está pendiente de aprobación.' });
+    } catch (e) {
+        res.status(500).json({ error: 'Error al procesar el registro' });
+    }
+});
+
 app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
 });
 
 // --- SPA FALLBACK (V10.5) ---
 app.use((req, res, next) => {
+    if (req.path === '/registro.html') {
+        return res.sendFile(path.join(__dirname, 'registro.html'));
+    }
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
         res.sendFile(path.join(__dirname, 'index.html'));
     } else {

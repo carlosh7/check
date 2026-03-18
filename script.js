@@ -257,7 +257,8 @@ window.App = {
                     `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
                 
                 // Badge de estado
-                const statusBadge = `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
+                const statusLabel = u.status === 'APPROVED' ? 'Aprobado' : u.status === 'PENDING' ? 'Pendiente' : 'Rechazado';
+                const statusBadge = `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${statusLabel}</span>`;
                 
                 // Botón activar/desactivar
                 const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
@@ -562,19 +563,61 @@ window.App = {
         const c = document.getElementById('events-list-container');
         if (!c) return;
         c.innerHTML = this.state.events.map(ev => `
-            <div class="glass-card p-8 rounded-[40px] hover:border-primary/40 transition-all group cursor-pointer border border-white/5 bg-slate-900/40 shadow-xl" onclick="window.App.openEvent('${ev.id}')">
-                <div class="flex justify-between items-start mb-8">
-                    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all group-hover:shadow-lg group-hover:shadow-primary/30">
-                        <span class="material-symbols-outlined text-primary group-hover:text-white transition-colors">event_available</span>
-                    </div>
+            <div class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group">
+                <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <button onclick="event.stopPropagation(); window.App.editEvent('${ev.id}')" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all" title="Editar">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="event.stopPropagation(); window.App.deleteEvent('${ev.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-all" title="Eliminar">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
                 </div>
-                <h3 class="text-2xl font-black mb-2 text-white font-display">${ev.name}</h3>
-                <p class="text-slate-500 text-xs line-clamp-2">${ev.description || 'Evento sin descripción.'}</p>
-                <div class="mt-6 flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-primary text-xl">event_available</span>
+                </div>
+                <h3 class="text-xl font-black mb-2 text-white font-display">${ev.name}</h3>
+                <p class="text-slate-500 text-xs line-clamp-2 mb-4">${ev.description || 'Evento sin descripción.'}</p>
+                <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar'}
+                </div>
+                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                    <span class="text-[10px] text-slate-500">${new Date(ev.date).toLocaleDateString('es-ES')}</span>
+                    <button onclick="event.stopPropagation(); window.App.copyRegistrationLink('${ev.id}')" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">link</span> Registro
+                    </button>
                 </div>
             </div>
         `).join('');
+        
+        // Función para copiar link de registro
+        window.App.copyRegistrationLink = (id) => {
+            const link = `${window.location.origin}/registro.html?event=${id}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Link de registro copiado: ' + link);
+            }).catch(() => {
+                prompt('Copia este link:', link);
+            });
+        };
+        
+        window.App.editEvent = (id) => {
+            const ev = this.state.events.find(e => String(e.id) === String(id));
+            if (!ev) return;
+            document.getElementById('ev-id-hidden').value = ev.id;
+            document.getElementById('ev-name').value = ev.name || '';
+            document.getElementById('ev-location').value = ev.location || '';
+            document.getElementById('ev-desc').value = ev.description || '';
+            document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
+            document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+            document.getElementById('modal-event')?.classList.remove('hidden');
+        };
+        
+        window.App.deleteEvent = (id) => {
+            if (!confirm('¿Eliminar este evento y todos sus datos?')) return;
+            this.fetchAPI(`/events/${id}`, { method: 'DELETE' }).then(() => {
+                this.loadEvents();
+                alert('Evento eliminado');
+            }).catch(e => alert('Error al eliminar: ' + e.message));
+        };
     },
     async openEvent(id) {
         this.state.event = this.state.events.find(e => String(e.id) === String(id));
