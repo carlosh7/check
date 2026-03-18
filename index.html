@@ -44,6 +44,17 @@
         }
     </script>
     <script>
+        // Inicializar tema antes de cargar
+        (function() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            if (saved === 'light') {
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <script>
         // MOTOR BRUTE-FORCE DE NAVEGACIÓN V10.3 (JERARQUÍA ESTRICTA)
         window.FORCE_NAVGATION = function(viewName) {
             console.log("EJECUTANDO NAVEGACION V10.3 HACIA: " + viewName);
@@ -136,14 +147,19 @@
     </div>
 
     <!-- APP CONTAINER: Estructura Global V10.5.0 (Sidebar Persistente) -->
-    <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950">
+    <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950 dark:bg-slate-100">
         <!-- Sidebar Global -->
-        <aside id="global-sidebar" class="sidebar w-[280px] bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
-            <div class="flex items-center gap-5 mb-16 px-1">
-                <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
-                    <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
+        <aside id="global-sidebar" class="sidebar w-[260px] bg-slate-950/40 dark:bg-white/80 p-6 flex flex-col backdrop-blur-3xl border-r border-white/5 dark:border-slate-200/50 shrink-0">
+            <div class="flex items-center justify-between mb-12 px-1">
+                <div class="flex items-center gap-4">
+                    <div class="shrink-0 w-10 h-10 bg-primary/10 rounded-xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
+                        <span class="material-symbols-outlined text-primary text-xl">shield_checked</span>
+                    </div>
+                    <span class="font-black font-display text-xl tracking-tighter text-white dark:text-slate-900">Check<span class="text-primary italic">.</span></span>
                 </div>
-                <span class="font-black font-display text-2xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
+                <button onclick="App.toggleTheme()" id="theme-toggle" class="w-8 h-8 rounded-lg bg-white/5 dark:bg-slate-200 hover:bg-white/10 flex items-center justify-center transition-colors" title="Cambiar tema">
+                    <span class="material-symbols-outlined text-sm text-slate-400 dark:text-slate-600" id="theme-icon">dark_mode</span>
+                </button>
             </div>
             
             <nav id="sidebar-nav" class="flex-1 space-y-1 overflow-y-auto">

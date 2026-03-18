@@ -80,6 +80,39 @@ window.App = {
         }
     },
     
+    // ═══ TEMA OSCURO/CLARO ═══
+    toggleTheme: function() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const icon = document.getElementById('theme-icon');
+        
+        if (isDark) {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+            localStorage.setItem('theme', 'light');
+            if (icon) icon.textContent = 'light_mode';
+        } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            if (icon) icon.textContent = 'dark_mode';
+        }
+    },
+    
+    initTheme: function() {
+        const saved = localStorage.getItem('theme') || 'dark';
+        const icon = document.getElementById('theme-icon');
+        
+        if (saved === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+            if (icon) icon.textContent = 'light_mode';
+        } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+            if (icon) icon.textContent = 'dark_mode';
+        }
+    },
+    
     // Mostrar/ocultar elementos según permisos
     updateUIPermissions() {
         // Admin: mostrar todo el menú de administración global
@@ -166,14 +199,13 @@ window.App = {
         if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
         if (pendingList) {
             pendingList.innerHTML = pending.map(u => `
-                <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-amber-500/20">
+                <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl border border-amber-500/20">
                     <div>
-                        <p class="font-bold text-sm text-white">${u.display_name || u.username}</p>
-                        <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${u.username}</p>
+                        <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
+                        <p class="text-[10px] text-slate-500">${u.username}</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="App.approveUser('${u.id}', 'APPROVED')" class="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-xs font-black uppercase">Aprobar</button>
-                        <button onclick="App.approveUser('${u.id}', 'REJECTED')" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/30 rounded-xl text-xs font-black uppercase">Rechazar</button>
+                        <button onclick="App.approveUser('${u.id}', 'APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[10px] font-bold uppercase">Aprobar</button>
                     </div>
                 </div>`).join('');
         }
@@ -194,14 +226,14 @@ window.App = {
                     `<option value="${g.id}" ${u.group_id === g.id ? 'selected' : ''}>${g.name}</option>`
                 ).join('');
                 const groupSelect = isAdmin && canEdit ? `
-                    <div class="flex items-center gap-2">
-                        <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-sm rounded-xl px-4 py-2.5 border border-white/10 flex-1">
-                            <option value="">-- Sin empresa --</option>
+                    <div class="flex items-center gap-1">
+                        <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-[11px] rounded-lg px-2 py-1.5 border border-white/10 flex-1">
+                            <option value="">-- Empresa --</option>
                             ${groupOptions}
                         </select>
-                        <button onclick="App.quickCreateGroup()" class="px-3 py-2.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-sm font-black" title="Crear empresa">+</button>
+                        <button onclick="App.quickCreateGroup()" class="px-2 py-1.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[11px] font-bold" title="Crear">+</button>
                     </div>` : 
-                    `<span class="px-4 py-2.5 bg-slate-800/50 rounded-xl text-sm ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin empresa'}</span>`;
+                    `<span class="px-2 py-1.5 bg-slate-800/50 rounded-lg text-[11px] ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin empresa'}</span>`;
                 
                 // Opciones de eventos
                 let eventOptions = events.map(e => {
@@ -209,63 +241,61 @@ window.App = {
                     return `<option value="${e.id}" ${selected}>${e.name}</option>`;
                 }).join('');
                 const eventSelect = canEdit ? `
-                    <div class="flex items-center gap-2">
-                        <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-sm rounded-xl px-4 py-2.5 border border-white/10 flex-1 h-16">
+                    <div class="flex items-center gap-1">
+                        <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-[11px] rounded-lg px-2 py-1.5 border border-white/10 flex-1 h-10">
                             ${eventOptions}
                         </select>
-                        ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-3 py-2.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-sm font-black" title="Crear evento">+</button>` : ''}
+                        ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-2 py-1.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[11px] font-bold" title="Crear">+</button>` : ''}
                     </div>` : 
-                    `<span class="px-4 py-2.5 bg-slate-800/50 rounded-xl text-sm text-slate-400">${u.events ? u.events.length : 0} evento(s)</span>`;
+                    `<span class="px-2 py-1.5 bg-slate-800/50 rounded-lg text-[11px] text-slate-400">${u.events ? u.events.length : 0} evt</span>`;
                 
                 // Selector de rol
                 const roleSelect = canEdit ? 
-                    `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-sm font-bold rounded-xl px-4 py-2.5 border border-white/10">
+                    `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-[11px] font-bold rounded-lg px-2 py-1.5 border border-white/10">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select>` : 
-                    `<span class="px-4 py-2.5 rounded-xl text-sm font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
+                    `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
                 
                 // Badge de estado
-                const statusBadge = `<span class="px-4 py-2.5 rounded-xl text-sm font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
+                const statusBadge = `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
                 
                 // Botón activar/desactivar
                 const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-5 py-2.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-sm font-black">Activar</button>` : 
-                    `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-5 py-2.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-xl text-sm font-black">Desactivar</button>`) : '';
+                    `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
+                    `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
                 
                 const eventCountBadge = u.events && u.events.length > 0 ? 
-                    `<span class="ml-2 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-bold">${u.events.length}</span>` : '';
+                    `<span class="ml-1 px-1.5 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-bold">${u.events.length}</span>` : '';
                 
                 // Línea separadora sutil
-                const separator = index > 0 ? '<div class="border-t border-white/5 my-2"></div>' : '';
+                const separator = index > 0 ? '<div class="border-t border-white/5"></div>' : '';
                 
                 return `${separator}<tr class="hover:bg-white/[0.02]">
-                    <td class="px-6 py-5">
-                        <!-- RENGLON 1: Usuario -->
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-lg">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-xs">
                                 ${(u.display_name || u.username).charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <p class="font-bold text-lg text-white">${u.display_name || u.username}</p>
-                                <p class="text-sm text-slate-500">${u.username}</p>
+                                <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
+                                <p class="text-[10px] text-slate-500">${u.username}</p>
                             </div>
                         </div>
-                        <!-- RENGLON 2: Eventos -->
-                        <div>
-                            <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Eventos asignados ${eventCountBadge}</p>
+                        <div class="ml-11">
+                            <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Eventos ${eventCountBadge}</p>
                             ${eventSelect}
                         </div>
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Rol</p>
-                        <div class="mb-3">${roleSelect}</div>
-                        <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Empresa</p>
+                    <td class="px-4 py-3 align-top">
+                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Rol</p>
+                        <div class="mb-2">${roleSelect}</div>
+                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Empresa</p>
                         ${groupSelect}
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Estado</p>
-                        <div class="mb-3">${statusBadge}</div>
-                        <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Acción</p>
+                    <td class="px-4 py-3 align-top">
+                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Estado</p>
+                        <div class="mb-2">${statusBadge}</div>
+                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Acción</p>
                         ${actionBtn}
                     </td>
                 </tr>`;
