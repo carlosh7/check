@@ -725,8 +725,62 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     };
-
     init();
+
+    // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
+    // Modal de Invitación
+    cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
+    cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
+    cl('btn-open-invite-admin', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
+    
+    // Modal de Eventos
+    cl('btn-create-event-open', () => {
+        document.getElementById('ev-id-hidden').value = "";
+        document.getElementById('new-event-form').reset();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    });
+    cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
+
+    // Form de crear evento
+    sf('new-event-form', async (e) => {
+        e.preventDefault();
+        const fd = new FormData();
+        fd.append('name', document.getElementById('ev-name').value);
+        fd.append('date', document.getElementById('ev-date').value);
+        fd.append('end_date', document.getElementById('ev-end-date').value);
+        fd.append('location', document.getElementById('ev-location').value);
+        fd.append('description', document.getElementById('ev-desc').value);
+        const logo = document.getElementById('ev-logo-file').files[0];
+        if (logo) fd.append('logo', logo);
+        App.createEvent(fd);
+    });
+
+    // Form de invitación de usuario
+    sf('invite-user-form', async (e) => {
+        e.preventDefault();
+        const u = document.getElementById('invite-username').value;
+        const p = document.getElementById('invite-password').value;
+        const r = document.getElementById('invite-role').value;
+        try {
+            const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r}) });
+            if (res.success) { alert(`✓ Usuario "${u}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
+            else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
+        } catch { alert('Error de conexión.'); }
+    });
+
+    // Form de cambio de contraseña
+    sf('change-pass-form', async (e) => {
+        e.preventDefault();
+        const p1 = document.getElementById('new-pass-1').value;
+        const p2 = document.getElementById('new-pass-2').value;
+        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
+        if (!App.state.user) return;
+        try {
+            await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
+            alert('✓ Contraseña actualizada exitosamente.');
+            document.getElementById('change-pass-form').reset();
+        } catch { alert('Error al actualizar contraseña.'); }
+    });
 });
 
 // Retrocompatibilidad
