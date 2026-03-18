@@ -157,44 +157,108 @@ window.App = {
                         ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                         ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                     
-                    // Opciones de grupo (solo ADMIN)
+                    // Opciones de grupo (solo ADMIN) con botón +
                     const groupOptions = groups.map(g => 
                         `<option value="${g.id}" ${u.group_id === g.id ? 'selected' : ''}>${g.name}</option>`
                     ).join('');
+                    const groupSelect = isAdmin && canEdit ? `
+                        <div class="flex items-center gap-2">
+                            <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 flex-1">
+                                <option value="">-- Sin grupo --</option>
+                                ${groupOptions}
+                            </select>
+                            <button onclick="App.quickCreateGroup()" class="px-2 py-2 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-xs font-black" title="Crear grupo">+</button>
+                        </div>` : 
+                        `<span class="px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin grupo'}</span>`;
                     
-                    // Opciones de eventos (filtrados por grupo si es PRODUCTOR)
+                    // Opciones de eventos con botón +
                     let eventOptions = events.map(e => {
                         const selected = u.events && u.events.includes(e.id) ? 'selected' : '';
                         return `<option value="${e.id}" ${selected}>${e.name}</option>`;
                     }).join('');
-                    
-                    return `<tr class="hover:bg-white/2 border-b border-white/5">
-                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div><div class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</div></td>
-                        <td class="px-8 py-5">${canEdit ? 
-                            `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10 mb-2">
-                                ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                            </select>` : 
-                            `<span class="px-3 py-1 rounded-full text-[10px] font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-400'}">${u.role}</span>`
-                        }</td>
-                        <td class="px-8 py-5">${isAdmin && canEdit ? 
-                            `<select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 w-full">
-                                <option value="">-- Sin grupo --</option>
-                                ${groupOptions}
-                            </select>` : 
-                            `<span class="text-slate-400 text-xs">${u.group_name || '-'}</span>`
-                        }</td>
-                        <td class="px-8 py-5">${canEdit ?
-                            `<select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 w-full h-16">
+                    const eventSelect = canEdit ? `
+                        <div class="flex items-center gap-2">
+                            <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 flex-1 h-14">
                                 ${eventOptions}
-                            </select>` :
-                            `<span class="text-slate-400 text-xs">${u.events ? u.events.length : 0} evento(s)</span>`
-                        }</td>
-                        <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
-                        <td class="px-8 py-5 text-right">${canEdit ? (u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`) : '-'}</td>
+                            </select>
+                            ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-2 py-2 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-xs font-black" title="Crear evento">+</button>` : ''}
+                        </div>` : 
+                        `<span class="px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs text-slate-400">${u.events ? u.events.length : 0} evento(s)</span>`;
+                    
+                    // Badge de rol
+                    const roleBadge = canEdit ? 
+                        `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
+                            ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                        </select>` : 
+                        `<span class="px-4 py-2 rounded-xl text-xs font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
+                    
+                    // Badge de estado
+                    const statusBadge = `<span class="px-3 py-1.5 rounded-xl text-xs font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
+                    
+                    // Botón activar/desactivar
+                    const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
+                        `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-xs font-black">Activar</button>` : 
+                        `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-xl text-xs font-black">Desactivar</button>`) : '';
+                    
+                    return `<tr class="hover:bg-white/[0.02] border-b border-white/5">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-sm">
+                                    ${u.username.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-white">${u.username}</p>
+                                    <p class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">${roleBadge}</td>
+                        <td class="px-6 py-5">${groupSelect}</td>
+                        <td class="px-6 py-5">${eventSelect}</td>
+                        <td class="px-6 py-5 text-center">${statusBadge}</td>
+                        <td class="px-6 py-5 text-center">${actionBtn}</td>
                     </tr>`;
                 }).join('');
             }
         } catch(e) { console.error('Error loading users:', e); }
+    },
+    
+    // Crear grupo rápido desde modal
+    quickCreateGroup: async function() {
+        const name = prompt('Nombre del nuevo grupo:');
+        if (!name || !name.trim()) return;
+        const description = prompt('Descripción (opcional):') || '';
+        try {
+            const res = await this.fetchAPI('/groups', { 
+                method: 'POST', 
+                body: JSON.stringify({ name: name.trim(), description }) 
+            });
+            if (res.success) { 
+                alert('✓ Grupo creado exitosamente');
+                this.loadUsersTable();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch { alert('Error de conexión'); }
+    },
+    
+    // Crear evento rápido desde modal
+    quickCreateEvent: async function() {
+        const name = prompt('Nombre del nuevo evento:');
+        if (!name || !name.trim()) return;
+        const date = prompt('Fecha del evento (YYYY-MM-DD HH:MM):') || '';
+        try {
+            const res = await this.fetchAPI('/events', { 
+                method: 'POST', 
+                body: JSON.stringify({ name: name.trim(), date, location: '', description: '' }) 
+            });
+            if (res.success) { 
+                alert('✓ Evento creado exitosamente');
+                this.loadUsersTable();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch { alert('Error de conexión'); }
     },
     
     // Asignar usuario a un grupo
