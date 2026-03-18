@@ -18,9 +18,11 @@ window.App = {
     
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
     loadUsersTable: async function() {
-        if (!this.state.user || this.state.user.role !== 'ADMIN') return;
+        console.log("loadUsersTable called, user:", this.state.user?.role);
+        if (!this.state.user || this.state.user.role !== 'ADMIN') { console.log("Not admin or no user"); return; }
         try {
             const users = await this.fetchAPI('/users');
+            console.log("Users loaded:", users.length);
             const pending = users.filter(u => u.status === 'PENDING');
             const badge = document.getElementById('pending-badge');
             const pendingSection = document.getElementById('pending-requests-section');
@@ -39,16 +41,18 @@ window.App = {
                     </div>`).join('');
             }
             const tbody = document.getElementById('users-tbody');
+            console.log("tbody found:", !!tbody);
             if (tbody) {
                 tbody.innerHTML = users.map(u => `
                     <tr class="hover:bg-white/2 border-b border-white/5">
-                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div></td>
+                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div><div class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</div></td>
                         <td class="px-8 py-5"><select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
                             ${['ADMIN','PRODUCTOR','STAFF','CLIENTE','OTROS'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                         </select></td>
                         <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
                         <td class="px-8 py-5 text-right">${u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`}</td>
                     </tr>`).join('');
+                console.log("Table rendered, rows:", users.length);
             }
         } catch(e) { console.error('Error loading users:', e); }
     },
@@ -646,101 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
-
-    // ------- V10: GESTIÓN DE USUARIOS -------
-    App.loadUsersTable = async () => {
-        if (!App.state.user || App.state.user.role !== 'ADMIN') return;
-        const users = await App.fetchAPI('/users');
-        const pending = users.filter(u => u.status === 'PENDING');
-        const badge = document.getElementById('pending-badge');
-        const pendingSection = document.getElementById('pending-requests-section');
-        const pendingList = document.getElementById('pending-users-list');
-
-        if (badge) badge.classList.toggle('hidden', pending.length === 0);
-        if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
-        if (pendingList) {
-            pendingList.innerHTML = pending.map(u => `
-                <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-amber-500/20">
-                    <div>
-                        <p class="font-bold text-sm text-white">${u.username}</p>
-                        <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${u.role} · Solicitado ${new Date(u.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="App.approveUser('${u.id}', 'APPROVED')" class="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-xs font-black uppercase transition-all">Aprobar</button>
-                        <button onclick="App.approveUser('${u.id}', 'REJECTED')" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/30 rounded-xl text-xs font-black uppercase transition-all">Rechazar</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        const tbody = document.getElementById('users-tbody');
-        if (tbody) {
-            tbody.innerHTML = users.map(u => `
-                <tr class="hover:bg-white/2 transition-colors border-b border-white/5">
-                    <td class="px-8 py-5">
-                        <div class="font-bold text-sm text-white">${u.username}</div>
-                        <div class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</div>
-                    </td>
-                    <td class="px-8 py-5">
-                        <select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10 cursor-pointer">
-                            ${['ADMIN','PRODUCTOR','STAFF','CLIENTE','OTROS'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="px-8 py-5 text-center">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span>
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                        ${u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-[10px] font-black uppercase transition-all">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all">Desactivar</button>`}
-                    </td>
-                </tr>`).join('');
-        }
-    };
-
-    App.approveUser = async (id, status) => {
-        await App.fetchAPI(`/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
-        App.loadUsersTable();
-    };
-    App.changeUserRole = async (id, role) => {
-        await App.fetchAPI(`/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
-    };
-
-    // Modal de Invitación
-    cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
-    cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
-    
-    // Modal de Eventos
-    cl('btn-create-event-open', () => {
-        document.getElementById('ev-id-hidden').value = "";
-        document.getElementById('new-event-form').reset();
-        document.getElementById('modal-event')?.classList.remove('hidden');
-    });
-    cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
-
-    sf('new-event-form', async (e) => {
-        e.preventDefault();
-        const fd = new FormData();
-        fd.append('name', document.getElementById('ev-name').value);
-        fd.append('date', document.getElementById('ev-date').value);
-        fd.append('end_date', document.getElementById('ev-end-date').value);
-        fd.append('location', document.getElementById('ev-location').value);
-        fd.append('description', document.getElementById('ev-desc').value);
-        
-        const logo = document.getElementById('ev-logo-file').files[0];
-        if (logo) fd.append('logo', logo);
-        
-        App.createEvent(fd);
-    });
-
-    sf('invite-user-form', async (e) => {
-        e.preventDefault();
-        const u = document.getElementById('invite-username').value;
-        const p = document.getElementById('invite-password').value;
-        const r = document.getElementById('invite-role').value;
-        try {
-            const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r}) });
-            if (res.success) { alert(`✓ Usuario "${u}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
-            else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
-        } catch { alert('Error de conexión.'); }
-    });
 
     // ------- V10: TEXTOS LEGALES -------
     App.loadLegalTexts = async () => {
