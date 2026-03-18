@@ -93,12 +93,59 @@ const authMiddleware = (roles = []) => {
         if (roles.length > 0 && !roles.includes(row.role)) return res.status(403).json({ error: 'Acceso denegado' });
         req.userId = userId; // Inyectar ID casteado
         req.userRole = row.role;
+        req.userGroupId = row.group_id;
         next();
     };
 };
 
-// ─────────────────────────────────────────────────────────────
-// AUTH ENDPOINTS
+// ═══ FUNCIONES HELPER PARA PERMISOS JERÁRQUICOS V10.5 ═══
+
+// Obtener grupos que administra un PRODUCTOR
+const getProducerGroups = (userId) => {
+    const groupUsers = db.prepare("SELECT group_id FROM group_users WHERE user_id = ?").all(userId);
+    return groupUsers.map(g => g.group_id);
+};
+
+// Obtener eventos a los que tiene acceso un usuario (por grupo o asignados)
+const getUserEventIds = (userId, role) => {
+    if (role === 'ADMIN') {
+        const all = db.prepare("SELECT id FROM events").all();
+        return all.map(e => e.id);
+    }
+    
+    const userGroups = db.prepare("SELECT group_id FROM group_users WHERE user_id = ?").all(userId);
+    const groupIds = userGroups.map(g => g.group_id);
+    
+    let eventIds = [];
+    if (groupIds.length > 0) {
+        const placeholders = groupIds.map(() => '?').join(',');
+        const eventsByGroup = db.prepare(`SELECT id FROM events WHERE group_id IN (${placeholders})`).all(...groupIds);
+        eventIds = eventsByGroup.map(e => e.id);
+    }
+    
+    const userEvents = db.prepare("SELECT event_id FROM user_events WHERE user_id = ?").all(userId);
+    const assignedIds = userEvents.map(e => e.event_id);
+    
+    return [...new Set([...eventIds, ...assignedIds])];
+};
+
+// Verificar si usuario tiene acceso a un evento específico
+const hasEventAccess = (userId, eventId, role) => {
+    if (role === 'ADMIN') return true;
+    
+    const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(eventId);
+    if (!event) return false;
+    
+    if (event.group_id) {
+        const inGroup = db.prepare("SELECT 1 FROM group_users WHERE user_id = ? AND group_id = ?").get(userId, event.group_id);
+        if (inGroup) return true;
+    }
+    
+    const assigned = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);
+    return !!assigned;
+};
+
+// ═══ AUTH ENDPOINTS
 // ─────────────────────────────────────────────────────────────
 app.post('/api/signup', (req, res) => {
     const { username, password, role } = req.body;
@@ -127,8 +174,79 @@ app.post('/api/login', (req, res) => {
 // GOVERNANCE V10 — USUARIOS
 // ─────────────────────────────────────────────────────────────
 app.get('/api/users', authMiddleware(['ADMIN']), (req, res) => {
-    const rows = db.prepare("SELECT id, username, role, status, created_at FROM users ORDER BY created_at DESC").all();
+    // ADMIN ve todos los usuarios
+    const rows = db.prepare("SELECT id, username, role, role_detail, status, created_at, group_id FROM users ORDER BY created_at DESC").all();
     res.json(rows);
+});
+
+// ═══ ENDPOINTS DE GRUPOS V10.5 ═══
+
+// Ver grupos (ADMIN ve todos, PRODUCTOR ve los suyos)
+app.get('/api/groups', authMiddleware(), (req, res) => {
+    const userId = req.userId;
+    const role = req.userRole;
+    
+    let rows;
+    if (role === 'ADMIN') {
+        rows = db.prepare("SELECT * FROM groups ORDER BY created_at DESC").all();
+    } else {
+        // PRODUCTOR ve solo sus grupos
+        const groupIds = getProducerGroups(userId);
+        if (groupIds.length === 0) {
+            rows = [];
+        } else {
+            const placeholders = groupIds.map(() => '?').join(',');
+            rows = db.prepare(`SELECT * FROM groups WHERE id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
+        }
+    }
+    res.json(rows);
+});
+
+// Crear grupo (solo ADMIN)
+app.post('/api/groups', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, description } = req.body;
+    const id = getValidId('groups');
+    const created_by = req.userId;
+    
+    db.prepare("INSERT INTO groups (id, name, description, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(id, name, description || '', 'ACTIVE', new Date().toISOString(), created_by);
+    
+    res.json({ success: true, groupId: id });
+});
+
+// Agregar usuario a grupo
+app.post('/api/groups/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { userId, role_in_group } = req.body;
+    const groupId = castId('groups', req.params.groupId);
+    
+    // Verificar que el PRODUCTOR tenga acceso al grupo
+    if (req.userRole === 'PRODUCTOR') {
+        const hasAccess = db.prepare("SELECT 1 FROM group_users WHERE user_id = ? AND group_id = ?").get(req.userId, groupId);
+        if (!hasAccess) return res.status(403).json({ error: 'No tienes acceso a este grupo' });
+    }
+    
+    const id = getValidId('group_users');
+    db.prepare("INSERT INTO group_users (id, group_id, user_id, role_in_group, created_at) VALUES (?, ?, ?, ?, ?)")
+      .run(id, groupId, userId, role_in_group || 'PRODUCTOR', new Date().toISOString());
+    
+    res.json({ success: true });
+});
+
+// Asignar usuario a evento
+app.post('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { userId } = req.body;
+    const eventId = castId('events', req.params.eventId);
+    
+    // Verificar acceso al evento
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const id = getValidId('user_events');
+    db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+      .run(id, userId, eventId, new Date().toISOString());
+    
+    res.json({ success: true });
 });
 
 app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
@@ -203,10 +321,23 @@ app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('l
 });
 
 app.get('/api/events', authMiddleware(), (req, res) => {
-    const userId = req.userId; // YA CASTEADO
-    const rows = req.userRole === 'ADMIN'
-        ? db.prepare("SELECT * FROM events ORDER BY created_at DESC").all()
-        : db.prepare("SELECT * FROM events WHERE user_id = ? ORDER BY created_at DESC").all(userId);
+    const userId = req.userId;
+    const role = req.userRole;
+    
+    let rows;
+    if (role === 'ADMIN') {
+        // ADMIN ve todos los eventos
+        rows = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+    } else {
+        // PRODUCTOR, STAFF, CLIENTE ven solo eventos de sus grupos/asignaciones
+        const eventIds = getUserEventIds(userId, role);
+        if (eventIds.length === 0) {
+            rows = [];
+        } else {
+            const placeholders = eventIds.map(() => '?').join(',');
+            rows = db.prepare(`SELECT * FROM events WHERE id IN (${placeholders}) ORDER BY created_at DESC`).all(...eventIds);
+        }
+    }
     res.json(rows);
 });
 
