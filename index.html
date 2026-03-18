@@ -537,8 +537,18 @@
                         <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field bg-slate-900/50">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fecha y Hora</label>
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo del Evento (PNG/JPG)</label>
+                        <input type="file" id="ev-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Inicio del Evento</label>
                         <input type="datetime-local" id="ev-date" required class="input-field bg-slate-900/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fin del Evento</label>
+                        <input type="datetime-local" id="ev-end-date" required class="input-field bg-slate-900/50">
                     </div>
                 </div>
                 <div class="space-y-1">
