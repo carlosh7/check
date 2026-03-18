@@ -16,6 +16,62 @@ window.App = {
         API_URL: '/api'
     },
     
+    // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
+    loadUsersTable: async function() {
+        if (!this.state.user || this.state.user.role !== 'ADMIN') return;
+        try {
+            const users = await this.fetchAPI('/users');
+            const pending = users.filter(u => u.status === 'PENDING');
+            const badge = document.getElementById('pending-badge');
+            const pendingSection = document.getElementById('pending-requests-section');
+            const pendingList = document.getElementById('pending-users-list');
+            if (badge) badge.classList.toggle('hidden', pending.length === 0);
+            if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
+            if (pendingList) {
+                pendingList.innerHTML = pending.map(u => `
+                    <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-amber-500/20">
+                        <div><p class="font-bold text-sm text-white">${u.username}</p>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${u.role}</p></div>
+                        <div class="flex gap-2">
+                            <button onclick="App.approveUser('${u.id}', 'APPROVED')" class="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-xs font-black uppercase">Aprobar</button>
+                            <button onclick="App.approveUser('${u.id}', 'REJECTED')" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/30 rounded-xl text-xs font-black uppercase">Rechazar</button>
+                        </div>
+                    </div>`).join('');
+            }
+            const tbody = document.getElementById('users-tbody');
+            if (tbody) {
+                tbody.innerHTML = users.map(u => `
+                    <tr class="hover:bg-white/2 border-b border-white/5">
+                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div></td>
+                        <td class="px-8 py-5"><select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
+                            ${['ADMIN','PRODUCTOR','STAFF','CLIENTE','OTROS'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                        </select></td>
+                        <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
+                        <td class="px-8 py-5 text-right">${u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`}</td>
+                    </tr>`).join('');
+            }
+        } catch(e) { console.error('Error loading users:', e); }
+    },
+    
+    approveUser: async function(id, status) {
+        await this.fetchAPI(`/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+        this.loadUsersTable();
+    },
+    
+    changeUserRole: async function(id, role) {
+        await this.fetchAPI(`/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
+    },
+    
+    loadLegalTexts: async function() {
+        try {
+            const s = await fetch('/api/settings').then(r => r.json());
+            const pt = document.getElementById('legal-policy-text');
+            const tt = document.getElementById('legal-terms-text');
+            if (pt) pt.value = s.policy_data?.replace(/<[^>]*>/g,'') || '';
+            if (tt) tt.value = s.terms_conditions?.replace(/<[^>]*>/g,'') || '';
+        } catch {}
+    },
+    
     // --- NUEVO EVENTO V10 ---
     async createEvent(formData) {
         try {
