@@ -173,10 +173,34 @@ app.post('/api/login', (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // GOVERNANCE V10 — USUARIOS
 // ─────────────────────────────────────────────────────────────
-app.get('/api/users', authMiddleware(['ADMIN']), (req, res) => {
-    // ADMIN ve todos los usuarios
-    const rows = db.prepare("SELECT id, username, role, role_detail, status, created_at, group_id FROM users ORDER BY created_at DESC").all();
-    res.json(rows);
+app.get('/api/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    // ADMIN y PRODUCTOR ven usuarios (PRODUCTOR ve solo los de su grupo)
+    let rows;
+    if (req.userRole === 'ADMIN') {
+        rows = db.prepare("SELECT id, username, role, role_detail, status, created_at, group_id FROM users ORDER BY created_at DESC").all();
+    } else {
+        // PRODUCTOR ve solo usuarios de sus grupos
+        const groupIds = getProducerGroups(req.userId);
+        if (groupIds.length === 0) {
+            rows = [];
+        } else {
+            const placeholders = groupIds.map(() => '?').join(',');
+            rows = db.prepare(`SELECT id, username, role, role_detail, status, created_at, group_id FROM users WHERE group_id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
+        }
+    }
+    
+    // Agregar nombre del grupo y eventos asignados a cada usuario
+    const usersWithDetails = rows.map(u => {
+        const group = u.group_id ? db.prepare("SELECT name FROM groups WHERE id = ?").get(u.group_id) : null;
+        const events = db.prepare("SELECT event_id FROM user_events WHERE user_id = ?").all(u.id);
+        return {
+            ...u,
+            group_name: group?.name || null,
+            events: events.map(e => e.event_id)
+        };
+    });
+    
+    res.json(usersWithDetails);
 });
 
 // ═══ ENDPOINTS DE GRUPOS V10.5 ═══
@@ -264,6 +288,42 @@ app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
 app.put('/api/users/:id/role', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
     db.prepare("UPDATE users SET role = ? WHERE id = ?").run(req.body.role, targetId);
+    res.json({ success: true });
+});
+
+// Asignar usuario a grupo
+app.put('/api/users/:id/group', authMiddleware(['ADMIN']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const { group_id } = req.body;
+    db.prepare("UPDATE users SET group_id = ? WHERE id = ?").run(group_id || null, targetId);
+    res.json({ success: true });
+});
+
+// Asignar usuario a eventos (reemplaza todas las asignaciones)
+app.put('/api/users/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const { events } = req.body;
+    
+    // Verificar que PRODUCTOR solo asigne a usuarios de su grupo
+    if (req.userRole === 'PRODUCTOR') {
+        const userGroups = getProducerGroups(req.userId);
+        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        }
+    }
+    
+    // Eliminar asignaciones actuales
+    db.prepare("DELETE FROM user_events WHERE user_id = ?").run(targetId);
+    
+    // Insertar nuevas asignaciones
+    if (events && events.length > 0) {
+        const insert = db.prepare("INSERT INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)");
+        events.forEach(eventId => {
+            insert.run(getValidId('user_events'), targetId, eventId, new Date().toISOString());
+        });
+    }
+    
     res.json({ success: true });
 });
 

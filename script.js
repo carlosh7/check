@@ -122,7 +122,12 @@ window.App = {
     loadUsersTable: async function() {
         if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
         try {
-            const users = await this.fetchAPI('/users');
+            const [users, groups, events] = await Promise.all([
+                this.fetchAPI('/users'),
+                this.fetchAPI('/groups'),
+                this.fetchAPI('/events')
+            ]);
+            
             const pending = users.filter(u => u.status === 'PENDING');
             const badge = document.getElementById('pending-badge');
             const pendingSection = document.getElementById('pending-requests-section');
@@ -140,25 +145,49 @@ window.App = {
                         </div>
                     </div>`).join('');
             }
+            
             const tbody = document.getElementById('users-tbody-simple');
             const isAdmin = this.state.user.role === 'ADMIN';
             const isProductor = this.state.user.role === 'PRODUCTOR';
             
             if (tbody) {
                 tbody.innerHTML = users.map(u => {
-                    // Si es ADMIN, puede editar todo. Si es PRODUCTOR, no puede tocar ADMINs
                     const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
                     const roleOptions = isAdmin ? 
                         ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                         ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                     
+                    // Opciones de grupo (solo ADMIN)
+                    const groupOptions = groups.map(g => 
+                        `<option value="${g.id}" ${u.group_id === g.id ? 'selected' : ''}>${g.name}</option>`
+                    ).join('');
+                    
+                    // Opciones de eventos (filtrados por grupo si es PRODUCTOR)
+                    let eventOptions = events.map(e => {
+                        const selected = u.events && u.events.includes(e.id) ? 'selected' : '';
+                        return `<option value="${e.id}" ${selected}>${e.name}</option>`;
+                    }).join('');
+                    
                     return `<tr class="hover:bg-white/2 border-b border-white/5">
                         <td class="px-8 py-5"><div class="font-bold text-sm text-white">${u.username}</div><div class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</div></td>
                         <td class="px-8 py-5">${canEdit ? 
-                            `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
+                            `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10 mb-2">
                                 ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                             </select>` : 
                             `<span class="px-3 py-1 rounded-full text-[10px] font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-400'}">${u.role}</span>`
+                        }</td>
+                        <td class="px-8 py-5">${isAdmin && canEdit ? 
+                            `<select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 w-full">
+                                <option value="">-- Sin grupo --</option>
+                                ${groupOptions}
+                            </select>` : 
+                            `<span class="text-slate-400 text-xs">${u.group_name || '-'}</span>`
+                        }</td>
+                        <td class="px-8 py-5">${canEdit ?
+                            `<select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 w-full h-16">
+                                ${eventOptions}
+                            </select>` :
+                            `<span class="text-slate-400 text-xs">${u.events ? u.events.length : 0} evento(s)</span>`
                         }</td>
                         <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
                         <td class="px-8 py-5 text-right">${canEdit ? (u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`) : '-'}</td>
@@ -166,6 +195,29 @@ window.App = {
                 }).join('');
             }
         } catch(e) { console.error('Error loading users:', e); }
+    },
+    
+    // Asignar usuario a un grupo
+    assignUserGroup: async function(userId, groupId) {
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ group_id: groupId || null }) 
+            });
+            if (res.success) console.log('Grupo asignado');
+        } catch(e) { console.error('Error assigning group:', e); }
+    },
+    
+    // Asignar usuario a eventos (recibe el select multiple)
+    assignUserEvents: async function(userId, selectEl) {
+        const selectedEvents = Array.from(selectEl.selectedOptions).map(o => o.value);
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/events`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ events: selectedEvents }) 
+            });
+            if (res.success) console.log('Eventos asignados');
+        } catch(e) { console.error('Error assigning events:', e); }
     },
     
     approveUser: async function(id, status) {
