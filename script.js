@@ -18,11 +18,9 @@ window.App = {
     
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
     loadUsersTable: async function() {
-        console.log("loadUsersTable called, user:", this.state.user?.role);
-        if (!this.state.user || this.state.user.role !== 'ADMIN') { console.log("Not admin or no user"); return; }
+        if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const users = await this.fetchAPI('/users');
-            console.log("Users loaded:", users.length);
             const pending = users.filter(u => u.status === 'PENDING');
             const badge = document.getElementById('pending-badge');
             const pendingSection = document.getElementById('pending-requests-section');
@@ -41,7 +39,6 @@ window.App = {
                     </div>`).join('');
             }
             const tbody = document.getElementById('users-tbody-simple');
-            console.log("tbody found:", !!tbody);
             if (tbody) {
                 tbody.innerHTML = users.map(u => `
                     <tr class="hover:bg-white/2 border-b border-white/5">
@@ -52,7 +49,6 @@ window.App = {
                         <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}">${u.status}</span></td>
                         <td class="px-8 py-5 text-right">${u.status !== 'APPROVED' ? `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-primary/20 text-primary rounded-xl text-[10px] font-black">Activar</button>` : `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black">Desactivar</button>`}</td>
                     </tr>`).join('');
-                console.log("Table rendered, rows:", users.length);
             }
         } catch(e) { console.error('Error loading users:', e); }
     },
@@ -98,7 +94,6 @@ window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName) {
-        console.log("NAVEGANDO A:", viewName);
         
         // 1. Mostrar/Ocultar Contenedores Principales
         const isLogin = viewName === 'login';
@@ -488,7 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
             if (d.success) { 
                 App.state.user = d; localStorage.setItem('user', JSON.stringify(d));
-                console.log("LOGIN SUCCESS, role:", d.role);
                 
                 // Actualizar sidebar info
                 const sbu = document.getElementById('sidebar-username');
@@ -497,7 +491,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
                 if (d.role === 'ADMIN') {
-                    console.log("Navigating to system...");
                     App.navigate('system');
                     setTimeout(() => window.switchSystemTab('users'), 100);
                 } else {
