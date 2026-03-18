@@ -62,6 +62,12 @@ app.use(express.static(path.join(__dirname, '/'), {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const upload = multer({ dest: 'uploads/' });
 
+// --- V9.0 ENRUTAMIENTO SPA ---
+// Permitir que las URLs dinámicas sirvan el index.html
+app.get('/:eventName/registro', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 
 // --- MIDDLEWARES ---
 const authMiddleware = (roles = []) => {

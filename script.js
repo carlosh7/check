@@ -154,11 +154,17 @@ window.App = {
             }
         });
     },
-    async loadPublicEvent() {
+    async loadPublicEvent(eventNameParam = null) {
         try {
             const evs = await this.fetchAPI('/events');
             if (evs.length > 0) {
-                this.state.event = evs[0];
+                // Si viene un nombre en la URL, buscamos el evento específico. Si no, tomamos el primero activo.
+                let targetEvent = evs[0];
+                if (eventNameParam) {
+                    const found = evs.find(e => e.name.replace(/\s+/g, '-').toLowerCase() === eventNameParam.toLowerCase());
+                    if (found) targetEvent = found;
+                }
+                this.state.event = targetEvent;
                 const badge = document.getElementById('event-name-badge');
                 if (badge) badge.innerText = this.state.event.name;
             }
@@ -201,13 +207,28 @@ window.App = {
     }
 };
 
-// --- DOM READY BOOTSTRAP ---
+// --- DOM READY BOOTSTRAP V9.0 ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Restore Auth
     try {
         const s = localStorage.getItem('user');
         if (s && s !== "undefined" && s !== "null") window.App.state.user = JSON.parse(s);
     } catch(e){}
+
+    // 2. ROUTING SPA ESTRICTO
+    const path = window.location.pathname;
+    const isRegistrationPath = path.toLowerCase().endsWith('/registro');
+
+    if (isRegistrationPath) {
+        const pathSegments = path.split('/');
+        const eventNameStr = pathSegments.length > 2 ? pathSegments[1] : null;
+        App.loadPublicEvent(eventNameStr);
+        window.FORCE_NAVGATION('registration');
+    } else {
+        // ESTADO POR DEFECTO: LOGIN O DASHBOARD
+        if (App.state.user) App.loadEvents();
+        else window.FORCE_NAVGATION('login');
+    }
 
     // 2. Sockets
     if (typeof io !== 'undefined') {
