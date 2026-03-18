@@ -11,7 +11,7 @@ const qrcode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-const pdfParse = require('pdf-parse').default || require('pdf-parse');
+const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
