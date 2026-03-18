@@ -317,6 +317,58 @@ window.App = {
     }
 };
 
+// --- TAB SWITCHERS DEFINIDOS AL INICIO ---
+const ALL_TAB_IDS = ['tab-users', 'tab-legal', 'tab-account'];
+const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
+
+window.switchSystemTab = function(tabName) {
+    console.log('CHECK V10.3: switchSystemTab ->', tabName);
+    ALL_SYS_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+    document.querySelectorAll('#view-system .nav-tab-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
+        b.classList.add('text-slate-400');
+    });
+
+    const panel = document.getElementById('sys-content-' + tabName);
+    if (panel) panel.classList.remove('hidden');
+    const activeBtn = document.getElementById('sys-nav-' + tabName);
+    if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400');
+        activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+    }
+    if (tabName === 'users') App.loadUsersTable();
+    if (tabName === 'legal') App.loadLegalTexts();
+};
+
+window.switchAdminTab = function(tabName) {
+    console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
+    const mainDash = document.getElementById('admin-main-dashboard');
+    if (mainDash) mainDash.style.display = 'none';
+    ALL_TAB_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    document.querySelectorAll('#view-admin .nav-tab-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
+        b.classList.add('text-slate-400');
+        b.style.background = '';
+    });
+
+    if (!tabName) {
+        if (mainDash) mainDash.style.display = 'block';
+        const dashBtn = document.getElementById('nav-tab-dashboard');
+        if (dashBtn) dashBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+    } else {
+        const panel = document.getElementById('tab-' + tabName);
+        if (panel) panel.style.display = 'block';
+        const activeBtn = document.querySelector('#view-admin [data-tab="' + tabName + '"]');
+        if (activeBtn) activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+    }
+};
+
 // --- DOM READY BOOTSTRAP V10.2 ---
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Helpers Críticos (Hoisting manual)
@@ -361,58 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.App.state.socket.on('update_stats', (id) => { if (App.state.event?.id === id) App.updateStats(); });
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
     }
-
-    // 4. Tab Switcher del Admin V10 - ROBUSTO CON IDs DIRECTOS
-    const ALL_TAB_IDS = ['tab-users', 'tab-legal', 'tab-account'];
-    const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
-
-    window.switchAdminTab = function(tabName) {
-        console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
-        const mainDash = document.getElementById('admin-main-dashboard');
-        if (mainDash) mainDash.style.display = 'none';
-        ALL_TAB_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
-        document.querySelectorAll('#view-admin .nav-tab-btn').forEach(b => {
-            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
-            b.classList.add('text-slate-400');
-            b.style.background = '';
-        });
-
-        if (!tabName) {
-            if (mainDash) mainDash.style.display = 'block';
-            const dashBtn = document.getElementById('nav-tab-dashboard');
-            if (dashBtn) dashBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
-        } else {
-            const panel = document.getElementById('tab-' + tabName);
-            if (panel) panel.style.display = 'block';
-            const activeBtn = document.querySelector('#view-admin [data-tab="' + tabName + '"]');
-            if (activeBtn) activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
-        }
-    };
-
-    window.switchSystemTab = function(tabName) {
-        console.log('CHECK V10.3: switchSystemTab ->', tabName);
-        ALL_SYS_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
-        });
-        document.querySelectorAll('#view-system .nav-tab-btn').forEach(b => {
-            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
-            b.classList.add('text-slate-400');
-        });
-
-        const panel = document.getElementById('sys-content-' + tabName);
-        if (panel) panel.classList.remove('hidden');
-        const activeBtn = document.getElementById('sys-nav-' + tabName);
-        if (activeBtn) {
-            activeBtn.classList.remove('text-slate-400');
-            activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
-        }
-        if (tabName === 'users') App.loadUsersTable();
-        if (tabName === 'legal') App.loadLegalTexts();
-    };
 
     // Listeners System
     document.getElementById('sys-nav-users')?.addEventListener('click', () => switchSystemTab('users'));
