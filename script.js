@@ -96,7 +96,7 @@ window.App = {
         }
     },
     
-    // Cargar grupos
+    // Cargar empresas
     loadGroups: async function() {
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
@@ -105,13 +105,13 @@ window.App = {
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => `
-                    <tr class="hover:bg-white/2 border-b border-white/5">
-                        <td class="px-8 py-5"><div class="font-bold text-sm text-white">${g.name}</div></td>
+                    <tr class="hover:bg-white/[0.02] border-b border-white/5">
+                        <td class="px-8 py-5"><div class="font-bold text-base text-white">${g.name}</div></td>
                         <td class="px-8 py-5 text-slate-400 text-sm">${g.description || '-'}</td>
-                        <td class="px-8 py-5 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}">${g.status}</span></td>
-                        <td class="px-8 py-5 text-center text-slate-500 text-xs">${g.created_at ? new Date(g.created_at).toLocaleDateString() : '-'}</td>
+                        <td class="px-8 py-5 text-center"><span class="px-4 py-2 rounded-xl text-sm font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${g.status}</span></td>
+                        <td class="px-8 py-5 text-center text-slate-500 text-sm">${g.created_at ? new Date(g.created_at).toLocaleDateString() : '-'}</td>
                         <td class="px-8 py-5 text-right">
-                            <button onclick="App.editGroup('${g.id}')" class="px-3 py-1.5 bg-white/5 text-slate-400 hover:text-white rounded-xl text-[10px] font-black">Editar</button>
+                            <button onclick="App.editGroup('${g.id}')" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
                         </td>
                     </tr>`).join('');
             }
@@ -157,19 +157,19 @@ window.App = {
                         ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                         ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                     
-                    // Opciones de grupo (solo ADMIN) con botón +
+                    // Opciones de empresa (solo ADMIN) con botón +
                     const groupOptions = groups.map(g => 
                         `<option value="${g.id}" ${u.group_id === g.id ? 'selected' : ''}>${g.name}</option>`
                     ).join('');
                     const groupSelect = isAdmin && canEdit ? `
                         <div class="flex items-center gap-2">
-                            <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 flex-1">
-                                <option value="">-- Sin grupo --</option>
+                            <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-sm rounded-xl px-4 py-2.5 border border-white/10 flex-1">
+                                <option value="">-- Sin empresa --</option>
                                 ${groupOptions}
                             </select>
-                            <button onclick="App.quickCreateGroup()" class="px-2 py-2 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-xs font-black" title="Crear grupo">+</button>
+                            <button onclick="App.quickCreateGroup()" class="px-3 py-2.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-sm font-black" title="Crear empresa">+</button>
                         </div>` : 
-                        `<span class="px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin grupo'}</span>`;
+                        `<span class="px-4 py-2.5 bg-slate-800/50 rounded-xl text-sm ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin empresa'}</span>`;
                     
                     // Opciones de eventos con botón +
                     let eventOptions = events.map(e => {
@@ -178,54 +178,75 @@ window.App = {
                     }).join('');
                     const eventSelect = canEdit ? `
                         <div class="flex items-center gap-2">
-                            <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-xs rounded-xl px-3 py-2 border border-white/10 flex-1 h-14">
+                            <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-sm rounded-xl px-4 py-2.5 border border-white/10 flex-1 h-16">
                                 ${eventOptions}
                             </select>
-                            ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-2 py-2 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-xs font-black" title="Crear evento">+</button>` : ''}
+                            ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-3 py-2.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-xl text-sm font-black" title="Crear evento">+</button>` : ''}
                         </div>` : 
-                        `<span class="px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs text-slate-400">${u.events ? u.events.length : 0} evento(s)</span>`;
+                        `<span class="px-4 py-2.5 bg-slate-800/50 rounded-xl text-sm text-slate-400">${u.events ? u.events.length : 0} evento(s)</span>`;
                     
-                    // Badge de rol
-                    const roleBadge = canEdit ? 
-                        `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 border border-white/10">
+                    // Selector de rol
+                    const roleSelect = canEdit ? 
+                        `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-sm font-bold rounded-xl px-4 py-2.5 border border-white/10">
                             ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                         </select>` : 
-                        `<span class="px-4 py-2 rounded-xl text-xs font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
+                        `<span class="px-4 py-2.5 rounded-xl text-sm font-black ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
                     
                     // Badge de estado
-                    const statusBadge = `<span class="px-3 py-1.5 rounded-xl text-xs font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
+                    const statusBadge = `<span class="px-4 py-2.5 rounded-xl text-sm font-black ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>`;
                     
                     // Botón activar/desactivar
                     const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                        `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-xs font-black">Activar</button>` : 
-                        `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-xl text-xs font-black">Desactivar</button>`) : '';
+                        `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-5 py-2.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-xl text-sm font-black">Activar</button>` : 
+                        `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-5 py-2.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-xl text-sm font-black">Desactivar</button>`) : '';
+                    
+                    // Badge de eventos count
+                    const eventCountBadge = u.events && u.events.length > 0 ? 
+                        `<span class="ml-2 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-bold">${u.events.length}</span>` : '';
                     
                     return `<tr class="hover:bg-white/[0.02] border-b border-white/5">
                         <td class="px-6 py-5">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-sm">
+                            <!-- RENGLON 1: Usuario -->
+                            <div class="flex items-center gap-4 mb-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-lg">
                                     ${u.username.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p class="font-bold text-sm text-white">${u.username}</p>
-                                    <p class="text-[10px] text-slate-500">${new Date(u.created_at).toLocaleDateString('es-ES')}</p>
+                                    <p class="font-bold text-lg text-white">${u.username}</p>
+                                    <p class="text-sm text-slate-500">Creado: ${new Date(u.created_at).toLocaleDateString('es-ES')}</p>
                                 </div>
                             </div>
+                            <!-- RENGLON 2: Eventos -->
+                            <div>
+                                <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Eventos asignados ${eventCountBadge}</p>
+                                ${eventSelect}
+                            </div>
                         </td>
-                        <td class="px-6 py-5">${roleBadge}</td>
-                        <td class="px-6 py-5">${groupSelect}</td>
-                        <td class="px-6 py-5">${eventSelect}</td>
-                        <td class="px-6 py-5 text-center">${statusBadge}</td>
-                        <td class="px-6 py-5 text-center">${actionBtn}</td>
+                        <td class="px-6 py-5 align-top">
+                            <!-- RENGLON 1: Rol -->
+                            <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Rol</p>
+                            <div class="mb-3">${roleSelect}</div>
+                            <!-- RENGLON 2: Empresa -->
+                            <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Empresa</p>
+                            ${groupSelect}
+                        </td>
+                        <td class="px-6 py-5 align-top">
+                            <!-- RENGLON 1: Estado -->
+                            <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Estado</p>
+                            <div class="mb-3">${statusBadge}</div>
+                            <!-- RENGLON 2: Acción -->
+                            <p class="text-xs font-black uppercase text-slate-500 mb-2 tracking-wider">Acción</p>
+                            ${actionBtn}
+                        </td>
                     </tr>`;
                 }).join('');
             }
         } catch(e) { console.error('Error loading users:', e); }
     },
     
-    // Crear grupo rápido desde modal
+    // Crear empresa rápido desde modal
     quickCreateGroup: async function() {
-        const name = prompt('Nombre del nuevo grupo:');
+        const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
         const description = prompt('Descripción (opcional):') || '';
         try {
@@ -234,7 +255,7 @@ window.App = {
                 body: JSON.stringify({ name: name.trim(), description }) 
             });
             if (res.success) { 
-                alert('✓ Grupo creado exitosamente');
+                alert('✓ Empresa creada exitosamente');
                 this.loadUsersTable();
             } else {
                 alert('Error: ' + res.error);
