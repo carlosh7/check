@@ -53,6 +53,34 @@ document.getElementById('login-nav-btn').onclick = () => {
     else showView('login');
 };
 
+document.getElementById('back-to-reg').onclick = () => {
+    showView('registration');
+};
+
+document.getElementById('go-to-signup').onclick = (e) => {
+    e.preventDefault();
+    document.getElementById('login-form').classList.add('hidden');
+    document.getElementById('signup-form').classList.remove('hidden');
+};
+
+document.getElementById('signup-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('signup-user').value;
+    const password = document.getElementById('signup-pass').value;
+
+    try {
+        const data = await apiFetch('/signup', {
+            method: 'POST',
+            body: JSON.stringify({ username, password, role: 'PRODUCTOR' })
+        });
+        if (data.success) {
+            alert('Solicitud enviada. Espera la aprobación del administrador.');
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+    } catch (err) { alert('Error al solicitar cuenta'); }
+};
+
 document.getElementById('btn-logout').onclick = logout;
 
 document.getElementById('login-form').onsubmit = async (e) => {
@@ -490,6 +518,13 @@ window.processPartner = async function(userId, status) {
 
 // --- Initialization ---
 async function init() {
+    // Si hay sesión, cargar eventos. Si no, login.
+    if (loggedUser) {
+        loadMyEvents();
+    } else {
+        showView('login');
+    }
+
     const evs = await fetch(`${API_URL}/events`).then(r => r.json());
     if (evs.length > 0) {
         currentEvent = evs[0];
