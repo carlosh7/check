@@ -620,34 +620,7 @@ window.App = {
     async loadGuests() {
         if (!this.state.event) return;
         this.state.guests = await this.fetchAPI(`/guests/${this.state.event.id}`);
-        this.renderGuestsTarget(this.state.guests);
-    },
-    renderGuestsTarget(list) {
-        const tb = document.getElementById('guests-tbody');
-        if (!tb) return;
-        tb.innerHTML = list.map(g => `
-            <tr class="hover:bg-white/2 transition-colors border-b border-white/5">
-                <td class="px-6 py-5">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-black text-primary text-xs shadow-inner">
-                            ${(g.name || 'I').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="font-bold text-sm text-white">${g.name || 'S/N'}</div>
-                            <div class="text-[10px] text-slate-500 font-medium tracking-tight">${g.email}</div>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-5 text-xs text-slate-400">${g.organization || '<span class="opacity-30">-</span>'}</td>
-                <td class="px-6 py-5 text-center">
-                    <button onclick="window.App.toggleCheckin('${g.id}', ${g.checked_in})" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${g.checked_in ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-white/5 text-slate-500 hover:text-white border border-white/10'}">
-                        ${g.checked_in ? 'Acreditado' : 'Pendiente'}
-                    </button>
-    async loadGuests() {
-        if (!this.state.event) return;
-        this.state.guests = await this.fetchAPI(`/guests/${this.state.event.id}`);
         
-        // Cargar opciones de filtros
         const filterOrg = document.getElementById('filter-guest-org');
         if (filterOrg) {
             const orgs = [...new Set(this.state.guests.map(g => g.organization).filter(Boolean))];
@@ -662,40 +635,28 @@ window.App = {
         const search = (document.getElementById('guest-search')?.value || '').toLowerCase();
         const org = document.getElementById('filter-guest-org')?.value || '';
         const status = document.getElementById('filter-guest-status')?.value || '';
-        const vegan = document.getElementById('filter-guest-vegan')?.value || '';
         const gender = document.getElementById('filter-guest-gender')?.value || '';
-        const duplicatesOnly = document.getElementById('filter-guest-duplicates')?.checked || false;
+        const vegan = document.getElementById('filter-guest-vegan')?.value || '';
         
         let filtered = this.state.guests.filter(g => {
-            // Búsqueda por texto
             if (search) {
                 const match = (g.name || '').toLowerCase().includes(search) ||
                     (g.email || '').toLowerCase().includes(search) ||
                     (g.phone || '').includes(search);
                 if (!match) return false;
             }
-            
-            // Filtro empresa
             if (org && g.organization !== org) return false;
-            
-            // Filtro estado
             if (status === 'acreditado' && !g.checked_in) return false;
             if (status === 'pendiente' && g.checked_in) return false;
-            
-            // Filtro sexo
             if (gender && g.gender !== gender) return false;
-            
-            // Filtro vegano (basado en dietary_notes)
             if (vegan) {
                 const isVegan = (g.dietary_notes || '').toLowerCase().includes('vegano');
                 if (vegan === 'si' && !isVegan) return false;
                 if (vegan === 'no' && isVegan) return false;
             }
-            
             return true;
         });
         
-        // Actualizar contador
         const countEl = document.getElementById('guest-count');
         if (countEl) countEl.textContent = `${filtered.length} invitados`;
         
@@ -738,8 +699,8 @@ window.App = {
                 <td class="px-6 py-4 text-right">
                     <button class="w-8 h-8 rounded-lg hover:bg-white/5 text-slate-600 hover:text-white transition-all"><span class="material-symbols-outlined text-sm">edit</span></button>
                 </td>
-            </tr>
-        `}).join('');
+            </tr>`;
+        }).join('');
     },
     async toggleCheckin(gId, status) {
         await this.fetchAPI(`/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
