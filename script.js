@@ -454,7 +454,7 @@ window.App = {
         }
 
         // 2. Switchear vistas internas
-        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups"];
+        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -462,7 +462,7 @@ window.App = {
 
         // Mapear rutas virtuales a vistas reales
         let targetViewId = "view-" + viewName;
-        if (["system", "legal", "account"].includes(viewName)) {
+        if (viewName === "system") {
             targetViewId = "view-system-simple";
         }
         
@@ -497,9 +497,15 @@ window.App = {
         this.showView(viewName);
         
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') window.switchSystemTab('users');
-        if (viewName === 'legal') window.switchSystemTab('legal');
-        if (viewName === 'account') window.switchSystemTab('account');
+        if (viewName === 'system') {
+            window.switchSystemTab('users');
+        }
+        if (viewName === 'legal') {
+            App.loadLegalTexts();
+        }
+        if (viewName === 'account') {
+            // Mi Cuenta se muestra directamente
+        }
         if (viewName === 'groups') this.loadGroups();
     },
 

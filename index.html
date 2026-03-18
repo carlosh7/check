@@ -362,11 +362,8 @@
                 </div>
             </div>
 
-        </main>
-    </div>
-
-            <!-- TAB: LEGALES -->
-            <div id="sys-content-legal" class="hidden animate-fade">
+        <!-- VIEW: LEGALES (V10.5) -->
+            <div id="view-legal" class="hidden min-h-full p-8 md:p-12 animate-fade">
                 <div class="mb-10">
                     <h2 class="text-4xl font-black font-display mb-2">Textos <span class="text-primary">Legales</span></h2>
                     <p class="text-slate-500 text-sm">Configuración de políticas y términos.</p>
@@ -385,8 +382,8 @@
                 </div>
             </div>
 
-            <!-- TAB: CUENTA -->
-            <div id="sys-content-account" class="hidden animate-fade">
+            <!-- VIEW: MI CUENTA (V10.5) -->
+            <div id="view-account" class="hidden min-h-full p-8 md:p-12 animate-fade">
                 <div class="mb-10">
                     <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
                 </div>
@@ -401,10 +398,11 @@
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- VIEW: EVENT DASHBOARD (V5.5 Master Layout) -->
+    <!-- VIEW: EVENT DASHBOARD (Legacy - Para compatibilidad) -->
     <div id="view-admin" class="hidden admin-layout bg-slate-950 animate-fade">
         <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
             <div class="flex items-center gap-5 mb-16 px-1">
@@ -653,39 +651,7 @@
                             </table>
                         </div>
                     </div>
-
-                    <div id="sys-content-legal" class="hidden animate-fade">
-                        <h3 class="text-3xl font-black font-display tracking-tight mb-12">Gestión de Textos Legales</h3>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="glass-card p-10 rounded-[40px] border border-white/5">
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Política de Datos</p>
-                                <textarea id="legal-policy-text" class="input-field bg-slate-900/50 h-80 mb-6 font-sans text-sm"></textarea>
-                                <button id="btn-save-policy" class="btn-primary w-full py-4 rounded-xl font-black uppercase text-xs">Guardar Política</button>
-                            </div>
-                            <div class="glass-card p-10 rounded-[40px] border border-white/5">
-                                <p class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Términos y Condiciones</p>
-                                <textarea id="legal-terms-text" class="input-field bg-slate-900/50 h-80 mb-6 font-sans text-sm"></textarea>
-                                <button id="btn-save-terms" class="btn-primary w-full py-4 rounded-xl font-black uppercase text-xs">Guardar Términos</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="sys-content-account" class="hidden animate-fade max-w-2xl mx-auto py-12">
-                        <div class="text-center mb-12">
-                            <div class="w-24 h-24 bg-primary/10 rounded-[40px] flex items-center justify-center mx-auto mb-6 text-primary shadow-2xl shadow-primary/20 ring-1 ring-primary/20">
-                                <span class="material-symbols-outlined text-4xl">shield_person</span>
-                            </div>
-                            <h3 class="text-3xl font-black font-display tracking-tight">Seguridad de la Cuenta</h3>
-                            <p class="text-slate-500 text-sm mt-2">Mantén tus credenciales seguras y actualizadas.</p>
-                        </div>
-                        <form id="change-pass-form" class="glass-card p-12 rounded-[56px] border border-white/10 shadow-3xl space-y-6">
-                            <div class="space-y-4">
-                                <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/80 !py-5">
-                                <input type="password" id="new-pass-2" required placeholder="Repite la contraseña" class="input-field bg-slate-900/80 !py-5">
-                            </div>
-                            <button type="submit" class="btn-primary w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/30">ACTUALIZAR CONTRASEÑA</button>
-                        </form>
-                    </div>
+                    <!-- Las vistas de legal y account ahora están en contenedores separados -->
                 </div>
             </section>
         </main>

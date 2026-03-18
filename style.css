@@ -55,6 +55,8 @@ body {
     flex-direction: column;
     position: sticky !important;
     top: 0;
+    z-index: 100 !important;
+    flex-shrink: 0;
 }
 
 #app-main-content {
@@ -67,32 +69,31 @@ body {
 
 #app-main-content > div {
     min-height: 100%;
+    padding-bottom: 40px;
 }
 
-/* ═══ ADMIN LAYOUT (Legacy) ═══ */
+/* ═══ VISTAS DENTRO DEL CONTENIDO ═══ */
+#app-main-content > div[id^="view-"] {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ═══ MODALES ═══ */
+.modal-legal, #modal-legal {
+    z-index: 99999 !important;
+}
+
+/* ═══ ADMIN LAYOUT LEGACY (Mantenido oculto - NO USAR) ═══ */
+#view-admin {
+    display: none !important;
+}
+
 .admin-layout {
-    display: flex !important;
-    min-height: 100vh;
-    background-color: var(--bg-slate-950);
+    display: none !important;
 }
 
-.sidebar {
-    background: var(--bg-slate-900);
-    border-right: 1px solid var(--border-white);
-    display: flex;
-    flex-direction: column;
-    width: 260px;
-    min-width: 260px;
-    height: 100vh;
-    flex-shrink: 0;
-    overflow-y: auto;
-}
-
-.main-content {
-    padding: 3rem 4rem;
-    min-width: 0; /* Fix para desbordamiento de hijos flex/grid */
-    background: var(--bg-slate-950);
-    flex: 1;
+.sidebar-legacy {
+    display: none !important;
 }
 
 /* ═══ RESPONSIVIDAD MÓVIL ═══ */
