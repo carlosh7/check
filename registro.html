@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es" class="dark bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Invitado | Check</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" href="/style.css">
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                primary: { DEFAULT: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
+                slate: { 850: '#1e293b', 950: '#020617' }
+              },
+              fontFamily: {
+                sans: ['Plus Jakarta Sans', 'sans-serif'],
+                display: ['Manrope', 'sans-serif']
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-50 antialiased font-sans flex items-center justify-center min-h-screen">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px]"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
+    
+    <div class="max-w-4xl w-full mx-6 glass-card rounded-[48px] overflow-hidden flex flex-col md:flex-row shadow-2xl relative z-10 border border-white/10">
+        <div class="md:w-5/12 p-12 bg-primary/10 border-r border-white/5 flex flex-col justify-between items-center text-center">
+            <div>
+                <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-xl shadow-primary/20">
+                    <span class="material-symbols-outlined text-white text-3xl">verified</span>
+                </div>
+                <h1 class="text-4xl font-black font-display mb-4 tracking-tight">Check<span class="text-primary italic">.</span></h1>
+                <p class="text-slate-400 text-sm leading-relaxed px-4">Bienvenido al sistema de acreditación digital.</p>
+                <div id="event-info" class="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 hidden">
+                    <p id="event-name-display" class="font-black text-primary uppercase tracking-widest text-xs"></p>
+                    <p id="event-loc-display" class="text-[10px] text-slate-500 mt-1"></p>
+                </div>
+            </div>
+            <div class="w-full">
+                <div id="countdown-timer" class="text-3xl font-black text-primary font-mono mb-2">00:00:00</div>
+                <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Apertura de Evento</p>
+            </div>
+        </div>
+        <div class="md:w-7/12 p-12">
+            <h2 class="text-2xl font-black mb-8 font-display">Registro de Invitado</h2>
+            <form id="public-reg-form" class="space-y-4">
+                <input type="text" id="reg-name" required placeholder="Nombre Completo" class="input-field bg-slate-900/50">
+                <input type="email" id="reg-email" required placeholder="Correo Electrónico" class="input-field bg-slate-900/50">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="reg-phone" placeholder="Teléfono" class="input-field bg-slate-900/50">
+                    <input type="text" id="reg-org" placeholder="Empresa" class="input-field bg-slate-900/50">
+                </div>
+                <textarea id="reg-diet" placeholder="Notas de salud o dieta (opcional)" class="input-field bg-slate-900/50 h-24 resize-none"></textarea>
+                <button type="submit" class="btn-primary w-full py-4 uppercase font-extrabold tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">Confirmar Registro</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let eventId = null;
+
+        // Cargar info del evento desde la URL
+        async function loadEvent() {
+            const path = window.location.pathname;
+            const segments = path.split('/');
+            const eventName = segments[1]; // /:eventName/registro
+            
+            try {
+                const res = await fetch(`${API_URL}/events/public/${eventName}`);
+                const event = await res.json();
+                if (event.id) {
+                    eventId = event.id;
+                    document.getElementById('event-info').classList.remove('hidden');
+                    document.getElementById('event-name-display').innerText = event.name;
+                    document.getElementById('event-loc-display').innerText = event.location;
+                    
+                    // Countdown
+                    setInterval(() => {
+                        const d = new Date(event.date) - new Date();
+                        let cstr = "EVENTO ACTIVO";
+                        if (d > 0) {
+                            const h=Math.floor(d/3600000).toString().padStart(2,'0');
+                            const min=Math.floor((d%3600000)/60000).toString().padStart(2,'0');
+                            const sec=Math.floor((d%60000)/1000).toString().padStart(2,'0');
+                            cstr=`${h}:${min}:${sec}`;
+                        }
+                        document.getElementById('countdown-timer').innerText = cstr;
+                    }, 1000);
+                }
+            } catch(e) {}
+        }
+
+        document.getElementById('public-reg-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!eventId) return alert("Error: Evento no identificado");
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const orig = btn.innerText; btn.innerText = "Procesando..."; btn.disabled = true;
+            
+            const body = {
+                event_id: eventId,
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                phone: document.getElementById('reg-phone').value,
+                organization: document.getElementById('reg-org').value,
+                gender: 'O',
+                dietary_notes: document.getElementById('reg-diet').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                if (d.success) {
+                    alert("✓ Registro Confirmado exitosamente.");
+                    e.target.reset();
+                } else alert("Error: " + d.error);
+            } catch(e) { alert("Error de conexión"); }
+            finally { btn.innerText = orig; btn.disabled = false; }
+        });
+
+        loadEvent();
+    </script>
+</body>
+</html>

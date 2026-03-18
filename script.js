@@ -52,6 +52,13 @@ window.App = {
         try {
             this.state.events = await this.fetchAPI('/events');
             this.showView('my-events');
+            
+            // Mostrar botón global si es admin
+            const btnGlobal = document.getElementById('admin-global-nav-btn');
+            if (btnGlobal) {
+                btnGlobal.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
+            }
+
             this.renderEventsGrid();
         } catch (e) { this.showView('login'); }
     },
@@ -216,16 +223,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s && s !== "undefined" && s !== "null") window.App.state.user = JSON.parse(s);
     } catch(e){}
 
-    // 2. ROUTING SPA ESTRICTO V9
+    // 2. ROUTING SPA ESTRICTO V10.3
     const path = window.location.pathname;
-    const isRegistrationPath = path.toLowerCase().endsWith('/registro');
-    if (isRegistrationPath) {
-        const segments = path.split('/');
-        App.loadPublicEvent(segments.length > 2 ? segments[1] : null);
-        window.FORCE_NAVGATION('registration');
+    
+    // El registro vive ahora en registro.html, pero mantenemos una redirección por si acaso
+    if (path.toLowerCase().endsWith('/registro')) {
+        console.log("CHECK V10.3: Ruta de registro detectada. Redirigiendo a archivo aislado...");
+        // Nota: server.js ya sirve registro.html directamente para estas rutas
+    }
+
+    // FLUJO PRINCIPAL: Login es siempre el punto de entrada
+    if (App.state.user) {
+        if (App.state.user.role === 'ADMIN') {
+            console.log("CHECK V10.3: Acceso ADMIN detectado. Cargando Panel Global.");
+            window.App.showView('system'); // Nueva vista global
+            window.switchSystemTab('users'); // Inicializar pestaña
+        } else {
+            console.log("CHECK V10.3: Acceso STAFF detectado. Cargando Selector de Eventos.");
+            App.loadEvents();
+        }
     } else {
-        if (App.state.user) App.loadEvents();
-        else window.FORCE_NAVGATION('login');
+        window.FORCE_NAVGATION('login');
     }
 
     // 3. Sockets
@@ -237,49 +255,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Tab Switcher del Admin V10 - ROBUSTO CON IDs DIRECTOS
     const ALL_TAB_IDS = ['tab-users', 'tab-legal', 'tab-account'];
+    const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
 
     window.switchAdminTab = function(tabName) {
         console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
-        // Ocultar dashboard principal y todos los tabs
         const mainDash = document.getElementById('admin-main-dashboard');
         if (mainDash) mainDash.style.display = 'none';
         ALL_TAB_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
-
-        // Restablecer todos los botones de nav
-        document.querySelectorAll('.nav-tab-btn').forEach(b => {
-            b.style.background = '';
-            b.style.color = '';
-            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20', 'active');
+        document.querySelectorAll('#view-admin .nav-tab-btn').forEach(b => {
+            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
             b.classList.add('text-slate-400');
+            b.style.background = '';
         });
 
         if (!tabName) {
-            // Mostrar dashboard principal
             if (mainDash) mainDash.style.display = 'block';
             const dashBtn = document.getElementById('nav-tab-dashboard');
-            if (dashBtn) {
-                dashBtn.classList.remove('text-slate-400');
-                dashBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
-            }
+            if (dashBtn) dashBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
         } else {
-            // Mostrar tab pedido
             const panel = document.getElementById('tab-' + tabName);
             if (panel) panel.style.display = 'block';
-            const activeBtn = document.querySelector('[data-tab="' + tabName + '"]');
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-400');
-                activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/20', 'active');
-            }
-            if (tabName === 'users') App.loadUsersTable();
-            if (tabName === 'legal') App.loadLegalTexts();
+            const activeBtn = document.querySelector('#view-admin [data-tab="' + tabName + '"]');
+            if (activeBtn) activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
         }
     };
 
+    window.switchSystemTab = function(tabName) {
+        console.log('CHECK V10.3: switchSystemTab ->', tabName);
+        ALL_SYS_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        document.querySelectorAll('#view-system .nav-tab-btn').forEach(b => {
+            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
+            b.classList.add('text-slate-400');
+        });
+
+        const panel = document.getElementById('sys-content-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+        const activeBtn = document.getElementById('sys-nav-' + tabName);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+        }
+        if (tabName === 'users') App.loadUsersTable();
+        if (tabName === 'legal') App.loadLegalTexts();
+    };
+
+    // Listeners System
+    document.getElementById('sys-nav-users')?.addEventListener('click', () => switchSystemTab('users'));
+    document.getElementById('sys-nav-legal')?.addEventListener('click', () => switchSystemTab('legal'));
+    document.getElementById('sys-nav-account')?.addEventListener('click', () => switchSystemTab('account'));
+    document.getElementById('sys-nav-events')?.addEventListener('click', () => App.loadEvents());
+
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
-    document.querySelectorAll('[data-tab]').forEach(btn => {
+    document.querySelectorAll('#view-admin [data-tab]').forEach(btn => {
         btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
     });
 
@@ -300,7 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = d.username || 'Usuario';
                 if (sbr) sbr.textContent = d.role || 'Staff';
-                App.loadEvents(); 
+                if (sbr) sbr.textContent = d.role || 'Staff';
+                
+                if (d.role === 'ADMIN') {
+                    window.App.showView('system');
+                    window.switchSystemTab('users');
+                } else {
+                    App.loadEvents();
+                }
             } else alert(d.message || 'Credenciales inválidas.');
         } catch (err) { alert('Error de conexión con el servidor.'); }
     });
@@ -370,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Navigation Buttons
     cl('btn-events-list-nav', () => App.loadEvents());
+    cl('admin-global-nav-btn', () => App.showView('system'));
     
     // Admin Actions
     cl('btn-clear-db', async () => {

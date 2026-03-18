@@ -34,11 +34,11 @@
         }
     </script>
     <script>
-        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V8.1 (ANULACIÓN FÍSICA)
+        // MOTOR BRUTE-FORCE DE NAVEGACIÓN V10.3 (JERARQUÍA ESTRICTA)
         window.FORCE_NAVGATION = function(viewName) {
-            console.log("EJECUTANDO NAVEGACION V8.1 HACIA: " + viewName);
+            console.log("EJECUTANDO NAVEGACION V10.3 HACIA: " + viewName);
             
-            const views = ["view-registration", "view-login", "view-my-events", "view-admin"];
+            const views = ["view-login", "view-my-events", "view-admin", "view-system"];
             views.forEach(id => {
                 const el = document.getElementById(id);
                 if (el && id !== "view-" + viewName) {
@@ -54,7 +54,8 @@
                     // MODAL FIJO INDESTRUCTIBLE EN PRIMER PLANO
                     target.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background-color: #020617 !important;';
                 } else {
-                    target.style.cssText = 'display: ' + (viewName === 'admin' ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex')) + ' !important; visibility: visible !important; opacity: 1 !important; position: relative !important; left: auto !important; top: auto !important; width: 100% !important; height: auto !important; z-index: 10 !important;';
+                    const disp = (viewName === 'admin' || viewName === 'system') ? 'grid' : (viewName === 'my-events' ? 'block' : 'flex');
+                    target.style.cssText = 'display: ' + disp + ' !important; visibility: visible !important; opacity: 1 !important; position: relative !important; left: auto !important; top: auto !important; width: 100% !important; height: auto !important; z-index: 10 !important;';
                 }
             }
             
@@ -67,45 +68,7 @@
 
 <body class="bg-slate-950 text-slate-50 antialiased font-sans flex flex-col min-h-screen">
 
-    <!-- VIEW: REGISTRATION -->
-    <div id="view-registration" class="hidden min-h-screen flex items-center justify-center bg-gradient-premium animate-fade relative overflow-hidden">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px]"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
-        
-        <div class="max-w-4xl w-full mx-6 glass-card rounded-[48px] overflow-hidden flex flex-col md:flex-row shadow-2xl relative z-10 border border-white/10">
-            <div class="md:w-5/12 p-12 bg-primary/10 border-r border-white/5 flex flex-col justify-between items-center text-center">
-                <div>
-                    <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-xl shadow-primary/20">
-                        <span class="material-symbols-outlined text-white text-3xl">verified</span>
-                    </div>
-                    <h1 class="text-4xl font-black font-display mb-4 tracking-tight">Check<span class="text-primary italic">.</span></h1>
-                    <p class="text-slate-400 text-sm leading-relaxed px-4">Bienvenido al sistema de acreditación digital.</p>
-                </div>
-                <div class="w-full">
-                    <div id="countdown-timer" class="text-3xl font-black text-primary font-mono mb-2">00:00:00</div>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Apertura de Evento</p>
-                </div>
-            </div>
-            <div class="md:w-7/12 p-12">
-                <h2 class="text-2xl font-black mb-8 font-display">Registro de Invitado</h2>
-                <form id="public-reg-form" class="space-y-4">
-                    <input type="text" id="reg-name" required placeholder="Nombre Completo" class="input-field bg-slate-900/50">
-                    <input type="email" id="reg-email" required placeholder="Correo Electrónico" class="input-field bg-slate-900/50">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="text" id="reg-phone" placeholder="Teléfono" class="input-field bg-slate-900/50">
-                        <input type="text" id="reg-org" placeholder="Empresa" class="input-field bg-slate-900/50">
-                    </div>
-                    <textarea id="reg-diet" placeholder="Notas de salud o dieta (opcional)" class="input-field bg-slate-900/50 h-24 resize-none"></textarea>
-                    <button type="submit" class="btn-primary w-full py-4 uppercase font-extrabold tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">Confirmar Registro</button>
-                </form>
-                <div class="mt-8 pt-8 border-t border-white/5 flex justify-center">
-                    <a href="/" id="login-nav-btn" class="text-[10px] font-bold text-slate-600 hover:text-primary transition-all flex items-center gap-2 uppercase tracking-widest cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">key</span> Acceso STAFF
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- REGISTRO PÚBLICO MOVIDO A registro.html (Aislamiento V10.3) -->
 
     <!-- VIEW: LOGIN -->
     <div id="view-login" class="min-h-screen flex items-center justify-center bg-slate-950 p-6 animate-fade relative z-50">
@@ -175,7 +138,129 @@
         <div id="events-list-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
     </div>
 
-    <!-- VIEW: ADMIN DASHBOARD (V5.5 Master Layout) -->
+    <!-- VIEW: SYSTEM ADMIN (V10.3 Global Management) -->
+    <div id="view-system" class="hidden admin-layout bg-slate-950 animate-fade">
+        <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
+            <div class="flex items-center gap-4 mb-16 px-2">
+                <div class="w-10 h-10 bg-primary/20 rounded-2xl border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/10">
+                    <span class="material-symbols-outlined text-primary text-2xl font-black">shield_checked</span>
+                </div>
+                <span class="font-black font-display text-2xl tracking-tight">Check<span class="text-primary italic">.</span></span>
+            </div>
+            <nav class="flex-1 space-y-1 overflow-y-auto">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración Global</p>
+                <button id="sys-nav-users" class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
+                    <span class="material-symbols-outlined">group</span> Equipo
+                </button>
+                <button id="sys-nav-legal" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">gavel</span> Legales
+                </button>
+                <button id="sys-nav-account" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
+                </button>
+                
+                <div class="h-px bg-white/5 my-6"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Producción</p>
+                <button id="sys-nav-events" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">event_repeat</span> Selector de Eventos
+                </button>
+            </nav>
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <button onclick="window.App.logout()" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
+                    <span class="material-symbols-outlined text-sm">logout</span> Salir
+                </button>
+            </div>
+        </aside>
+        <main class="main-content bg-slate-950 p-12">
+            <!-- TAB: USUARIOS -->
+            <div id="sys-content-users" class="animate-fade">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                    <div>
+                        <h1 class="text-4xl font-black font-display mb-2">Mis <span class="text-primary italic">Eventos</span></h1>
+                        <p class="text-slate-500 font-medium">Selecciona una producción para gestionar su acreditación.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="admin-global-nav-btn" class="hidden px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold text-sm border border-white/5 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">shield_person</span> Panel Global
+                        </button>
+                        <div class="glass px-6 py-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary text-xl">schedule</span>
+                            <span id="events-list-clock" class="font-mono font-black text-xl text-white">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 class="text-4xl font-black font-display mb-2">Gestión de <span class="text-primary">Equipo</span></h2>
+                        <p class="text-slate-500 text-sm">Administra accesos, roles y estado de los usuarios del sistema.</p>
+                    </div>
+                    <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 whitespace-nowrap">
+                        <span class="material-symbols-outlined text-sm">person_add</span> Invitar Usuario
+                    </button>
+                </div>
+                <div id="pending-requests-section" class="hidden mb-8 p-8 glass-card rounded-[40px] border-2 border-amber-500/30 bg-amber-500/5">
+                    <h4 class="text-sm font-black uppercase tracking-widest text-amber-400 mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400">notifications_active</span> Solicitudes Pendientes
+                    </h4>
+                    <div id="pending-users-list" class="space-y-3"></div>
+                </div>
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-white/2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                                    <th class="px-8 py-5">Usuario</th>
+                                    <th class="px-8 py-5">Rol</th>
+                                    <th class="px-8 py-5 text-center">Estado</th>
+                                    <th class="px-8 py-5 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: LEGALES -->
+            <div id="sys-content-legal" class="hidden animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Textos <span class="text-primary">Legales</span></h2>
+                    <p class="text-slate-500 text-sm">Configuración de políticas y términos.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Datos</h4>
+                        <textarea id="legal-policy-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí..."></textarea>
+                        <button id="btn-save-policy" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Política</button>
+                    </div>
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos y Condiciones</h4>
+                        <textarea id="legal-terms-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí..."></textarea>
+                        <button id="btn-save-terms" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Términos</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CUENTA -->
+            <div id="sys-content-account" class="hidden animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
+                </div>
+                <div class="max-w-xl">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10">
+                        <h4 class="text-lg font-black mb-8 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
+                        <form id="change-pass-form" class="space-y-4">
+                            <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/60">
+                            <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field bg-slate-900/60">
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Actualizar Contraseña</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VIEW: EVENT DASHBOARD (V5.5 Master Layout) -->
     <div id="view-admin" class="hidden admin-layout bg-slate-950 animate-fade">
         <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
             <div class="flex items-center gap-4 mb-16 px-2">
@@ -206,17 +291,7 @@
                 </button>
 
                 <div class="h-px bg-white/5 my-4"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración</p>
-                <button id="nav-tab-users" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="users">
-                    <span class="material-symbols-outlined">group</span> Gestión de Equipo
-                    <span id="pending-badge" class="hidden ml-auto bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full">!</span>
-                </button>
-                <button id="nav-tab-legal" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="legal">
-                    <span class="material-symbols-outlined">gavel</span> Textos Legales
-                </button>
-                <button id="nav-tab-account" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all" data-tab="account">
-                    <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
-                </button>
+                <!-- SECCIÓN MOVIDA A view-system (Flujo V10.3) -->
 
                 <div class="h-px bg-white/5 my-4"></div>
                 <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Complementos</p>
@@ -405,82 +480,12 @@
                         </tbody>
                     </table>
                 </div>
-            </section><!-- /admin-main-dashboard -->
-
-            <!-- ======== TAB: GESTIÓN DE USUARIOS (V10.0) ======== -->
-            <section id="tab-users" class="hidden animate-fade">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                    <div>
-                        <h2 class="text-4xl font-black font-display mb-2">Gestión de <span class="text-primary">Equipo</span></h2>
-                        <p class="text-slate-500 text-sm">Administra accesos, roles y estado de los usuarios del sistema.</p>
-                    </div>
-                    <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 whitespace-nowrap">
-                        <span class="material-symbols-outlined text-sm">person_add</span> Invitar Usuario
-                    </button>
-                </div>
-
-                <!-- Panel de solicitudes pendientes -->
-                <div id="pending-requests-section" class="hidden mb-8 p-8 glass-card rounded-[40px] border-2 border-amber-500/30 bg-amber-500/5">
-                    <h4 class="text-sm font-black uppercase tracking-widest text-amber-400 mb-6 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-amber-400">notifications_active</span> Solicitudes Pendientes de Aprobación
-                    </h4>
-                    <div id="pending-users-list" class="space-y-3"></div>
-                </div>
-
-                <!-- Tabla completa de usuarios -->
-                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="bg-white/2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
-                                    <th class="px-8 py-5">Usuario</th>
-                                    <th class="px-8 py-5">Rol</th>
-                                    <th class="px-8 py-5 text-center">Estado</th>
-                                    <th class="px-8 py-5 text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-tbody" class="divide-y divide-white/5"></tbody>
-                        </table>
-                    </div>
-                </div>
+            </section            <!-- DASHBOARD DEL EVENTO -->
+            <section id="admin-main-dashboard">
+                <!-- El contenido del dashboard se mantiene aquí -->
             </section>
-
-            <!-- ======== TAB: TEXTOS LEGALES (V10.0) ======== -->
-            <section id="tab-legal" class="hidden animate-fade">
-                <div class="mb-10">
-                    <h2 class="text-4xl font-black font-display mb-2">Textos <span class="text-primary">Legales</span></h2>
-                    <p class="text-slate-500 text-sm">Estos textos aparecerán en la página de Login y en el formulario de registro público.</p>
-                </div>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
-                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Tratamiento de Datos</h4>
-                        <textarea id="legal-policy-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí el contenido de la política de datos..."></textarea>
-                        <button id="btn-save-policy" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Política</button>
-                    </div>
-                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
-                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos y Condiciones</h4>
-                        <textarea id="legal-terms-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí el contenido de los Términos y Condiciones..."></textarea>
-                        <button id="btn-save-terms" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Términos</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ======== TAB: MI CUENTA (V10.0) ======== -->
-            <section id="tab-account" class="hidden animate-fade">
-                <div class="mb-10">
-                    <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
-                    <p class="text-slate-500 text-sm">Configura tus credenciales de acceso.</p>
-                </div>
-                <div class="max-w-xl">
-                    <div class="glass-card p-10 rounded-[40px] border border-white/10">
-                        <h4 class="text-lg font-black mb-8 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
-                        <form id="change-pass-form" class="space-y-4">
-                            <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/60">
-                            <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field bg-slate-900/60">
-                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Actualizar Contraseña</button>
-                        </form>
-                    </div>
-                </div>
+        </main>
+    </div>
             </section>
 
         </main>

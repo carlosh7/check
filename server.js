@@ -52,7 +52,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // --- ENRUTAMIENTO SPA (V9) ---
 app.get('/:eventName/registro', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'registro.html'));
 });
 
 // ─────────────────────────────────────────────────────────────
