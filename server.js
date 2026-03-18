@@ -26,13 +26,23 @@ const io = new Server(server, {
 });
 const port = 3000;
 
-// --- ID COMPATIBILITY WRAPPER (V10.4.2) ---
+// --- ID COMPATIBILITY WRAPPER (V10.4.3) ---
 const getValidId = (tableName) => {
     try {
         const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
         const idCol = info.find(c => c.name === 'id');
         return (idCol && idCol.type === 'INTEGER') ? null : uuidv4();
     } catch(e) { return uuidv4(); }
+};
+
+const castId = (tableName, id) => {
+    if (id === null || id === undefined) return id;
+    try {
+        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
+        const idCol = info.find(c => c.name === 'id');
+        if (idCol && idCol.type === 'INTEGER' && !isNaN(id)) return parseInt(id, 10);
+        return id;
+    } catch(e) { return id; }
 };
 
 // --- SECURITY MIDDLEWARE ---
@@ -73,12 +83,14 @@ app.get('/:eventName/registro', (req, res) => {
 // ─────────────────────────────────────────────────────────────
 const authMiddleware = (roles = []) => {
     return (req, res, next) => {
-        const userId = req.headers['x-user-id'] || req.query['x-user-id'];
+        let userId = req.headers['x-user-id'] || req.query['x-user-id'];
         if (!userId) return res.status(401).json({ error: 'No autorizado' });
+        userId = castId('users', userId); // ASEGURAR TIPO DE DATO
         const row = db.prepare("SELECT role, status FROM users WHERE id = ?").get(userId);
         if (!row) return res.status(401).json({ error: 'Usuario inexistente' });
         if (row.status !== 'APPROVED') return res.status(403).json({ error: 'Cuenta pendiente de aprobación' });
         if (roles.length > 0 && !roles.includes(row.role)) return res.status(403).json({ error: 'Acceso denegado' });
+        req.userId = userId; // Inyectar ID casteado
         req.userRole = row.role;
         next();
     };
@@ -131,18 +143,20 @@ app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 app.put('/api/users/:id/role', authMiddleware(['ADMIN']), (req, res) => {
-    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(req.body.role, req.params.id);
+    const targetId = castId('users', req.params.id);
+    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(req.body.role, targetId);
     res.json({ success: true });
 });
 
 app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
-    db.prepare("UPDATE users SET status = ? WHERE id = ?").run(req.body.status, req.params.id);
+    const targetId = castId('users', req.params.id);
+    db.prepare("UPDATE users SET status = ? WHERE id = ?").run(req.body.status, targetId);
     res.json({ success: true });
 });
 
 app.put('/api/users/:id/password', authMiddleware(), (req, res) => {
-    const targetId = req.params.id;
-    const requesterId = req.headers['x-user-id'] || req.query['x-user-id'];
+    const targetId = castId('users', req.params.id);
+    const requesterId = req.userId; // YA CASTEADO
     if (req.userRole !== 'ADMIN' && requesterId !== targetId) return res.status(403).json({ error: 'Acceso Denegado' });
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(req.body.password, targetId);
     res.json({ success: true });
@@ -174,7 +188,7 @@ app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {
 // ─────────────────────────────────────────────────────────────
 app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('logo'), (req, res) => {
     const { name, date, end_date, location, description } = req.body;
-    const userId = req.headers['x-user-id'];
+    const userId = req.userId; // YA CASTEADO EN EL MIDDLEWARE
     const id = getValidId('events');
     const logoUrl = req.file ? `/uploads/${req.file.filename}` : null;
     
@@ -188,30 +202,24 @@ app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('l
 });
 
 app.get('/api/events', authMiddleware(), (req, res) => {
-    const userId = req.headers['x-user-id'] || req.query['x-user-id'];
+    const userId = req.userId; // YA CASTEADO
     const rows = req.userRole === 'ADMIN'
         ? db.prepare("SELECT * FROM events ORDER BY created_at DESC").all()
         : db.prepare("SELECT * FROM events WHERE user_id = ? ORDER BY created_at DESC").all(userId);
     res.json(rows);
 });
 
-app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { name, date, location, description } = req.body;
-    const id = uuidv4();
-    db.prepare("INSERT INTO events (id, user_id, name, date, location, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-      .run(id, req.headers['x-user-id'], name, date, location, description, new Date().toISOString());
-    res.json({ id });
-});
-
 app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const { name, date, location, description } = req.body;
+    const targetId = castId('events', req.params.id);
     db.prepare("UPDATE events SET name = ?, date = ?, location = ?, description = ? WHERE id = ?")
-      .run(name, date, location, description, req.params.id);
+      .run(name, date, location, description, targetId);
     res.json({ success: true });
 });
 
 app.delete('/api/events/:id', authMiddleware(['ADMIN']), (req, res) => {
-    db.prepare("DELETE FROM events WHERE id = ?").run(req.params.id);
+    const targetId = castId('events', req.params.id);
+    db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
     res.json({ success: true });
 });
 
@@ -219,7 +227,8 @@ app.delete('/api/events/:id', authMiddleware(['ADMIN']), (req, res) => {
 // INVITADOS
 // ─────────────────────────────────────────────────────────────
 app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
-    const rows = db.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(req.params.eventId);
+    const eId = castId('events', req.params.eventId);
+    const rows = db.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
     res.json(rows);
 });
 
@@ -228,7 +237,7 @@ app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
 // ─────────────────────────────────────────────────────────────
 app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Falta archivo' });
-    const { eventId } = req.body;
+    const eventId = castId('events', req.body.eventId);
     let raw = [];
     try {
         if (req.file.mimetype === 'application/pdf') {
@@ -282,12 +291,13 @@ app.post('/api/import-dry-run', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.s
 });
 
 app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { eventId, guests } = req.body;
+    const eventId = castId('events', req.body.eventId);
+    const { guests } = req.body;
     // Inserción en transacción para máxima velocidad
     const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     const insertMany = db.transaction((guestList) => {
         for (const g of guestList) {
-            insertGuest.run(uuidv4(), eventId, g.name, g.email, g.organization, g.phone, g.gender, uuidv4());
+            insertGuest.run(getValidId('guests'), eventId, g.name, g.email, g.organization, g.phone, g.gender, uuidv4());
         }
     });
     insertMany(guests);
@@ -299,7 +309,8 @@ app.post('/api/import-confirm', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
 // EXPORTAR EXCEL
 // ─────────────────────────────────────────────────────────────
 app.get('/api/export-excel/:eventId', authMiddleware(), async (req, res) => {
-    const rows = db.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(req.params.eventId);
+    const eId = castId('events', req.params.eventId);
+    const rows = db.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(eId);
     
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Check Pro V10';
@@ -352,22 +363,24 @@ app.get('/api/export-excel/:eventId', authMiddleware(), async (req, res) => {
 // LIMPIAR BD / CHECK-IN / STATS / REGISTRO PÚBLICO
 // ─────────────────────────────────────────────────────────────
 app.post('/api/clear-db/:eventId', authMiddleware(['ADMIN']), (req, res) => {
-    db.prepare("DELETE FROM guests WHERE event_id = ?").run(req.params.eventId);
-    db.prepare("DELETE FROM survey_responses WHERE event_id = ?").run(req.params.eventId);
+    const eId = castId('events', req.params.eventId);
+    db.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
+    db.prepare("DELETE FROM survey_responses WHERE event_id = ?").run(eId);
     res.json({ success: true });
 });
 
 app.post('/api/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
     const { status } = req.body;
+    const gId = castId('guests', req.params.guestId);
     const time = status ? new Date().toISOString() : null;
-    db.prepare("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?").run(status ? 1 : 0, time, req.params.guestId);
-    const row = db.prepare("SELECT event_id FROM guests WHERE id = ?").get(req.params.guestId);
+    db.prepare("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?").run(status ? 1 : 0, time, gId);
+    const row = db.prepare("SELECT event_id FROM guests WHERE id = ?").get(gId);
     if (row) io.to(row.event_id).emit('update_stats', row.event_id);
     res.json({ success: true });
 });
 
 app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
-    const eId = req.params.eventId;
+    const eId = castId('events', req.params.eventId);
     const gen = db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn, COUNT(DISTINCT organization) as orgs, SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite FROM guests WHERE event_id = ?").get(eId);
     const health = db.prepare("SELECT COUNT(*) as health FROM guests WHERE event_id = ? AND (dietary_notes IS NOT NULL AND dietary_notes != '')").get(eId);
     const flow = db.prepare("SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1 GROUP BY hour").all(eId);
@@ -376,9 +389,10 @@ app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
 
 app.post('/api/register', (req, res) => {
     const { event_id, name, email, phone, organization, gender, dietary_notes } = req.body;
+    const eId = castId('events', event_id);
     db.prepare("INSERT INTO guests (id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token, is_new_registration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)")
-      .run(uuidv4(), event_id, name, email, phone, organization, gender, dietary_notes, uuidv4());
-    io.to(event_id).emit('update_stats', event_id);
+      .run(getValidId('guests'), eId, name, email, phone, organization, gender, dietary_notes, uuidv4());
+    io.to(eId).emit('update_stats', eId);
     res.json({ success: true });
 });
 
