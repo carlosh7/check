@@ -10,7 +10,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.5.0' // Master Version
+        version: '10.5.1' // Master Version
     },
     constants: {
         API_URL: '/api'
