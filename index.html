@@ -138,57 +138,65 @@
                     <button onclick="App.navigate('groups')" id="nav-btn-groups" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
                         <span class="material-symbols-outlined">folder</span> Empresas
                     </button>
-                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">gavel</span> Legales
+                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">gavel</span> Legales
                     </button>
-                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
-                    </button>
-                </div>
-
-                <div class="h-px bg-white/5 my-6"></div>
-                <div id="nav-section-production" class="space-y-1">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Producción</p>
-                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">event_repeat</span> Selector de Eventos
+                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">manage_accounts</span> Mi Cuenta
                     </button>
                 </div>
 
-                <div id="nav-section-event" class="hidden pt-6 mt-6 border-t border-white/10 space-y-1">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Evento Actual</p>
-                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">dashboard</span> Dashboard
+                <div class="h-px bg-white/5 my-4"></div>
+                <div id="nav-section-production" class="space-y-0.5">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-3 px-4">Producción</p>
+                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">event_repeat</span> Selector de Eventos
                     </button>
-                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">upload_file</span> Cargar Excel
+                </div>
+
+                <div id="nav-section-event" class="hidden pt-4 mt-4 border-t border-white/10 space-y-0.5">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-3 px-4">Evento Actual</p>
+                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">dashboard</span> Dashboard
                     </button>
-                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">picture_as_pdf</span> Cargar PDF
+                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">upload_file</span> Cargar Excel
                     </button>
-                    <button onclick="document.getElementById('btn-show-qr').click()" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">qr_code_2</span> Encuesta QR
+                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">picture_as_pdf</span> Cargar PDF
                     </button>
-                    <button id="btn-mailing" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">mail</span> Mailing
+                    <button onclick="App.showQR()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">qr_code_2</span> Encuesta QR
                     </button>
-                    <div class="h-px bg-white/5 my-4"></div>
-                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest">
-                        <span class="material-symbols-outlined">delete_forever</span> Eliminar
+                    <button onclick="App.openMailing()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">mail</span> Mailing
+                    </button>
+                    <button onclick="App.navigate('pre-registrations')" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-base">how_to_reg</span> Pre-inscripciones
+                    </button>
+                    <div class="h-px bg-white/5 my-3"></div>
+                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-3 px-4 py-2.5 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl font-bold text-[10px] transition-all uppercase tracking-wider">
+                        <span class="material-symbols-outlined text-base">delete_forever</span> Eliminar
                     </button>
                 </div>
             </nav>
 
-            <div class="mt-6 pt-6 border-t border-white/5 pb-20">
-                <div class="flex items-center gap-3 px-4 mb-6">
-                    <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-primary text-lg">person</span>
+            <!-- Scroll wrapper for sidebar content -->
+            <div class="flex-1 overflow-y-auto min-h-0 pb-4">
+            </div>
+            
+            <!-- User section compact -->
+            <div class="shrink-0 pt-3 border-t border-white/5">
+                <div class="flex items-center gap-3 px-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-sm">person</span>
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <p id="sidebar-username" class="text-xs font-black text-white truncate">Usuario</p>
                         <p id="sidebar-role" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Rol</p>
                     </div>
                 </div>
-                <button onclick="App.logout()" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
+                <button onclick="App.logout()" class="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-2 transition-all rounded-lg">
                     <span class="material-symbols-outlined text-sm">logout</span> Salir
                 </button>
             </div>
