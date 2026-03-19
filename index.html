@@ -120,18 +120,13 @@
         <!-- Sidebar Global -->
         <aside id="global-sidebar" class="sidebar w-[220px] bg-slate-950/40 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
             
-            <!-- Header: Logo + Tema -->
+            <!-- Header: Logo -->
             <div class="p-4 border-b border-white/5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-primary text-base">shield_checked</span>
-                        </div>
-                        <span class="font-black font-display text-lg text-white">Check<span class="text-primary italic">.</span></span>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-base">shield_checked</span>
                     </div>
-                    <button onclick="App.toggleTheme()" id="theme-toggle" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" title="Cambiar tema">
-                        <span class="material-symbols-outlined text-sm text-slate-400" id="theme-icon">dark_mode</span>
-                    </button>
+                    <span class="font-black font-display text-lg text-white">Check<span class="text-primary italic">.</span></span>
                 </div>
             </div>
             
@@ -202,12 +197,17 @@
                     </div>
                 </div>
                 
-                <!-- Controles en línea -->
-                <div class="flex items-center gap-2">
-                    <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">logout</span> Salir
+                <!-- Controles en línea: Salir + Tema + Versión -->
+                <div class="flex items-center gap-1.5">
+                    <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[9px] uppercase tracking-wider rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">logout</span>
                     </button>
-                    <span id="sidebar-version" class="text-[9px] text-slate-600 font-mono px-1">v11</span>
+                    <button onclick="App.toggleTheme()" class="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-all" title="Cambiar tema">
+                        <span class="material-symbols-outlined text-sm" id="theme-icon">dark_mode</span>
+                    </button>
+                    <div class="w-9 h-9 flex items-center justify-center bg-primary/10 text-primary font-mono font-black text-[9px] rounded-lg" title="Versión">
+                        v11
+                    </div>
                 </div>
                 
                 <!-- Marca -->
