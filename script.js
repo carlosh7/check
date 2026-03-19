@@ -539,14 +539,17 @@ window.App = {
 
     initRouter() {
         window.onpopstate = (e) => {
+            // Botón atrás: solo navegar si hay estado guardado
             if (e.state && e.state.view) {
-                // Si no hay usuario y intenta ir a una vista que no es login
+                // Verificar si debemos ir a login
                 if (!this.state.user && e.state.view !== 'login') {
+                    history.replaceState(null, '', '/');
                     this.showView('login');
                     return;
                 }
                 this.navigate(e.state.view, e.state.params, false);
             } else {
+                // Sin estado, ir a login
                 this.showView('login');
             }
         };
