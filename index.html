@@ -197,17 +197,14 @@
                     </div>
                 </div>
                 
-                <!-- Controles: Salir + Tema + Versión -->
+                <!-- Controles: Salir + Tema (mismo tamaño) -->
                 <div class="flex items-center gap-1.5">
                     <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[9px] uppercase tracking-wider rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">logout</span>
+                        <span class="material-symbols-outlined text-sm">logout</span>
                     </button>
-                    <button onclick="App.toggleTheme()" class="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-all" title="Cambiar tema">
+                    <button onclick="App.toggleTheme()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-all" title="Cambiar tema">
                         <span class="material-symbols-outlined text-sm" id="theme-icon">dark_mode</span>
                     </button>
-                    <div class="w-9 h-9 flex items-center justify-center bg-primary/10 text-primary font-mono font-black text-[9px] rounded-lg" title="Versión">
-                        v11
-                    </div>
                 </div>
             </div>
         </aside>
