@@ -118,87 +118,100 @@
     <!-- APP CONTAINER: Estructura Global V10.5.0 (Sidebar Persistente) -->
     <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950">
         <!-- Sidebar Global -->
-        <aside id="global-sidebar" class="sidebar w-[260px] bg-slate-950/40 p-6 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
-            <div class="flex items-center gap-4 mb-6 px-1">
-                <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
-                    <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
-                </div>
-                <span class="font-black font-display text-2xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
-            </div>
-            <button onclick="App.toggleTheme()" id="theme-toggle" class="w-full py-3 mb-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-slate-400 hover:text-white" title="Cambiar tema">
-                <span class="material-symbols-outlined text-lg" id="theme-icon">dark_mode</span>
-            </button>
+        <aside id="global-sidebar" class="sidebar w-[220px] bg-slate-950/40 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
             
-            <nav id="sidebar-nav" class="flex-1 space-y-1 overflow-y-auto">
-                <div id="nav-section-global" class="space-y-1">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Administración Global</p>
-                    <button onclick="App.navigate('system')" id="nav-btn-system" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">group</span> Equipo
+            <!-- Header: Logo + Tema -->
+            <div class="p-4 border-b border-white/5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-base">shield_checked</span>
+                        </div>
+                        <span class="font-black font-display text-lg text-white">Check<span class="text-primary italic">.</span></span>
+                    </div>
+                    <button onclick="App.toggleTheme()" id="theme-toggle" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" title="Cambiar tema">
+                        <span class="material-symbols-outlined text-sm text-slate-400" id="theme-icon">dark_mode</span>
                     </button>
-                    <button onclick="App.navigate('groups')" id="nav-btn-groups" class="w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined">folder</span> Empresas
+                </div>
+            </div>
+            
+            <!-- Navegación con scroll -->
+            <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+                <div id="nav-section-global">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Administración</p>
+                    <button onclick="App.navigate('system')" id="nav-btn-system" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">group</span> Equipo
                     </button>
-                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">gavel</span> Legales
+                    <button onclick="App.navigate('groups')" id="nav-btn-groups" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">folder</span> Empresas
                     </button>
-                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">manage_accounts</span> Mi Cuenta
+                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">gavel</span> Legales
+                    </button>
+                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">manage_accounts</span> Mi Cuenta
                     </button>
                 </div>
 
-                <div class="h-px bg-white/5 my-4"></div>
-                <div id="nav-section-production" class="space-y-0.5">
-                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-3 px-4">Producción</p>
-                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">event_repeat</span> Selector de Eventos
+                <div class="h-px bg-white/5 my-3"></div>
+                <div id="nav-section-production">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Producción</p>
+                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">event_repeat</span> Selector de Eventos
                     </button>
                 </div>
 
-                <div id="nav-section-event" class="hidden pt-4 mt-4 border-t border-white/10 space-y-0.5">
-                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-3 px-4">Evento Actual</p>
-                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">dashboard</span> Dashboard
-                    </button>
-                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">upload_file</span> Cargar Excel
-                    </button>
-                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">picture_as_pdf</span> Cargar PDF
-                    </button>
-                    <button onclick="App.showQR()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">qr_code_2</span> Encuesta QR
-                    </button>
-                    <button onclick="App.openMailing()" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">mail</span> Mailing
-                    </button>
-                    <button onclick="App.navigate('pre-registrations')" class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-base">how_to_reg</span> Pre-inscripciones
-                    </button>
+                <div id="nav-section-event" class="hidden space-y-0.5">
                     <div class="h-px bg-white/5 my-3"></div>
-                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-3 px-4 py-2.5 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl font-bold text-[10px] transition-all uppercase tracking-wider">
-                        <span class="material-symbols-outlined text-base">delete_forever</span> Eliminar
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Evento Actual</p>
+                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">dashboard</span> Dashboard
+                    </button>
+                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">upload_file</span> Cargar Excel
+                    </button>
+                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">picture_as_pdf</span> Cargar PDF
+                    </button>
+                    <button onclick="App.showQR()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span> Encuesta QR
+                    </button>
+                    <button onclick="App.navigate('pre-registrations')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">how_to_reg</span> Pre-inscripciones
+                    </button>
+                    <button onclick="App.openMailing()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">mail</span> Mailing
+                    </button>
+                    <div class="h-px bg-white/5 my-2"></div>
+                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-2 px-3 py-2 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-bold text-[10px] transition-all uppercase">
+                        <span class="material-symbols-outlined text-sm">delete_forever</span> Eliminar
                     </button>
                 </div>
             </nav>
-
-            <!-- Scroll wrapper for sidebar content -->
-            <div class="flex-1 overflow-y-auto min-h-0 pb-4">
-            </div>
             
-            <!-- User section compact -->
-            <div class="shrink-0 pt-3 border-t border-white/5">
-                <div class="flex items-center gap-3 px-3 mb-3">
-                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-primary text-sm">person</span>
+            <!-- Footer: Usuario + Controles + Marca -->
+            <div class="shrink-0 p-3 border-t border-white/5 space-y-2">
+                <!-- Usuario -->
+                <div class="flex items-center gap-2 px-2 py-1.5 bg-white/5 rounded-lg">
+                    <div class="w-7 h-7 bg-primary/20 rounded-md flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-xs">person</span>
                     </div>
-                    <div class="min-w-0 flex-1">
+                    <div class="flex-1 min-w-0">
                         <p id="sidebar-username" class="text-xs font-black text-white truncate">Usuario</p>
-                        <p id="sidebar-role" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Rol</p>
+                        <p id="sidebar-role" class="text-[9px] text-slate-500 uppercase font-bold">Rol</p>
                     </div>
                 </div>
-                <button onclick="App.logout()" class="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-2 transition-all rounded-lg">
-                    <span class="material-symbols-outlined text-sm">logout</span> Salir
-                </button>
+                
+                <!-- Controles en línea -->
+                <div class="flex items-center gap-2">
+                    <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">logout</span> Salir
+                    </button>
+                    <span id="sidebar-version" class="text-[9px] text-slate-600 font-mono px-1">v11</span>
+                </div>
+                
+                <!-- Marca -->
+                <p class="text-[9px] text-slate-600 text-center font-medium">Powered by <span class="text-primary font-bold">Smart Eventos</span></p>
             </div>
         </aside>
 
