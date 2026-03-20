@@ -1798,6 +1798,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('[DOM] DOMContentLoaded fired');
     
+    // 0.5. QUITAR LOADING SCREEN (se quitó arriba en el HTML con script síncrono)
+    const ls = document.getElementById('loading-screen');
+    if (ls) ls.remove();
+    
     // INMEDIATAMENTE: asegurar que login esté visible y app-container oculto
     const loginEl = document.getElementById('view-login');
     const appEl = document.getElementById('app-container');
