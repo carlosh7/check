@@ -120,6 +120,19 @@ window.App = {
         }
     },
     
+    checkVersion: async function() {
+        try {
+            const res = await this.fetchAPI('/app-version');
+            const versionDisplay = document.getElementById('version-display');
+            if (versionDisplay) {
+                versionDisplay.textContent = 'V' + res.version;
+            }
+            location.reload();
+        } catch(e) {
+            console.error('Error al verificar versión:', e);
+        }
+    },
+    
     initTheme: function() {
         const saved = LS.get('theme') || 'dark';
         const icon = document.getElementById('theme-icon');

@@ -1517,4 +1517,4 @@ app.use((req, res, next) => {
     }
 });
 
-server.listen(port, () => console.log(`\x1b[35mCHECK PRO V10.5.3 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V11.0.0 (ExcelJS + better-sqlite3 + Express 5): Puerto ${port}\x1b[0m`));
