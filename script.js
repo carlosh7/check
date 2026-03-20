@@ -1464,7 +1464,7 @@ window.App = {
         const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
         const name = document.getElementById('tpl-name').value || 'Plantilla';
         
-        const preview = `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:20px;margin:0;background:#f0f0f0;}table{background:white;width:100%;max-width:600px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);}td{padding:30px;}</style></head><body><table><tr><td>${body}</td></tr></table></body></html>`;
+        const preview = `<!DOCTYPE html><html><head><style>body{font-family:'Inter',Arial,sans-serif;padding:0;margin:0;background:transparent;overflow-y:auto;} .preview-wrapper{padding:20px;display:flex;justify-content:center;} .preview-card{background:white;width:100%;max-width:600px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.1);}</style></head><body><div class="preview-wrapper"><div class="preview-card">${body}</div></div></body></html>`;
         
         const iframe = document.getElementById('tpl-preview-frame');
         if (iframe) {
@@ -1697,7 +1697,7 @@ window.App = {
                             </div>
                             <div>
                                 <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Cuerpo (HTML)</label>
-                                <textarea id="ev-tpl-body-${t.template_type}" rows="6" class="input-field bg-slate-800/50 text-xs resize-none">${t.body || ''}</textarea>
+                                <textarea id="ev-tpl-body-${t.template_type}" rows="18" class="input-field bg-slate-800/50 text-xs resize-y">${t.body || ''}</textarea>
                             </div>
                             <div class="text-[10px] text-slate-500">
                                 Variables: {{guest_name}}, {{guest_email}}, {{event_name}}, {{event_date}}, {{event_location}}, {{checkin_time}}, {{agenda}}, {{organization}}
