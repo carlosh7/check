@@ -334,6 +334,7 @@ window.App = {
     },
     
     renderUsersTable: function(users, groups, events) {
+        if (!this.state.user) return; // No renderizar si no hay sesión
         // Cargar opciones de filtros si no existen
         const filterGroup = document.getElementById('filter-group');
         const filterEvent = document.getElementById('filter-event');
@@ -471,6 +472,7 @@ window.App = {
     
     // Filtrar usuarios
     filterUsers: function() {
+        if (!this.state.user) return; // No filtrar si no hay sesión
         const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
         const groupFilter = document.getElementById('filter-group')?.value || '';
         const eventFilter = document.getElementById('filter-event')?.value || '';
