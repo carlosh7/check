@@ -34,6 +34,9 @@ window.App = {
         chart: null,
         version: '10.5.3',
         groups: [],
+        quillEditor: null,
+        editingTemplate: null,
+        emailTemplates: [],
     },
     constants: {
         API_URL: '/api'
@@ -1041,7 +1044,170 @@ window.App = {
     },
     
     showCreateTemplateModal: function() {
-        alert('Modal de creación de plantilla - FASE 3');
+        this.state.editingTemplate = null;
+        document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
+        document.getElementById('tpl-name').value = '';
+        document.getElementById('tpl-subject').value = '';
+        this._initTemplateEditor();
+        document.getElementById('modal-template-editor').classList.remove('hidden');
+        this.switchTemplateEditorTab('visual');
+    },
+    
+    showTemplateEditor: function(templateId, templateName) {
+        const template = this.state.emailTemplates?.find(t => t.id === templateId);
+        if (!template) {
+            return alert('Plantilla no encontrada. Recarga la página.');
+        }
+        this.state.editingTemplate = template;
+        document.getElementById('template-editor-title').textContent = 'Editar: ' + (template.name || templateName);
+        document.getElementById('tpl-name').value = template.name || '';
+        document.getElementById('tpl-subject').value = template.subject || '';
+        this._initTemplateEditor(template.body || '');
+        document.getElementById('modal-template-editor').classList.remove('hidden');
+        this.switchTemplateEditorTab('visual');
+    },
+    
+    closeTemplateEditor: function() {
+        document.getElementById('modal-template-editor')?.classList.add('hidden');
+        if (this.quillEditor) {
+            this.quillEditor = null;
+        }
+    },
+    
+    _initTemplateEditor: function(initialHtml) {
+        if (this.quillEditor) {
+            this.quillEditor = null;
+        }
+        const container = document.getElementById('tpl-quill-editor');
+        if (container) container.innerHTML = '';
+        
+        setTimeout(() => {
+            this.quillEditor = new Quill('#tpl-quill-editor', {
+                theme: 'snow',
+                placeholder: 'Escribe el contenido de tu email aquí...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+            if (initialHtml) {
+                const div = document.createElement('div');
+                div.innerHTML = initialHtml;
+                this.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
+            }
+            this._loadVariablesPalette();
+        }, 50);
+    },
+    
+    _loadVariablesPalette: function() {
+        const isEvent = this.state.editingTemplate?.event_id;
+        const vars = isEvent 
+            ? ['{{guest_name}}', '{{guest_email}}', '{{event_name}}', '{{event_date}}', '{{event_location}}', '{{agenda}}', '{{qr_code}}', '{{checkin_time}}']
+            : ['{{user_name}}', '{{email}}', '{{password}}', '{{role}}', '{{company_name}}', '{{login_url}}', '{{reset_url}}', '{{reset_code}}'];
+        
+        const palette = document.getElementById('tpl-variables-palette');
+        if (!palette) return;
+        
+        palette.innerHTML = vars.map(v => 
+            `<button onclick="App.insertVariable('${v}')" class="px-2 py-1 bg-slate-800/60 hover:bg-primary/20 hover:text-primary text-slate-400 rounded-lg text-[10px] font-mono font-bold border border-white/5 transition-all">${v}</button>`
+        ).join('');
+    },
+    
+    insertVariable: function(varName) {
+        if (this.quillEditor) {
+            const range = this.quillEditor.getSelection(true);
+            this.quillEditor.insertText(range.index, varName);
+            this.quillEditor.setSelection(range.index + varName.length);
+            this.quillEditor.focus();
+        } else {
+            const ta = document.getElementById('tpl-code-editor');
+            if (ta) {
+                const start = ta.selectionStart;
+                ta.value = ta.value.substring(0, start) + varName + ta.value.substring(start);
+                ta.selectionStart = ta.selectionEnd = start + varName.length;
+                ta.focus();
+            }
+        }
+    },
+    
+    switchTemplateEditorTab: function(tab) {
+        const tabs = ['visual', 'code', 'preview'];
+        tabs.forEach(t => {
+            document.getElementById('tab-btn-' + t)?.classList.remove('bg-primary', 'text-white', 'shadow');
+            document.getElementById('tab-btn-' + t)?.classList.add('bg-white/5', 'text-slate-400');
+        });
+        
+        const activeTab = document.getElementById('tab-btn-' + tab);
+        if (activeTab) {
+            activeTab.classList.remove('bg-white/5', 'text-slate-400');
+            activeTab.classList.add('bg-primary', 'text-white', 'shadow');
+        }
+        
+        document.getElementById('editor-visual-container')?.classList.add('hidden');
+        document.getElementById('editor-code-container')?.classList.add('hidden');
+        document.getElementById('editor-preview-container')?.classList.add('hidden');
+        
+        if (tab === 'visual') {
+            document.getElementById('editor-visual-container')?.classList.remove('hidden');
+            setTimeout(() => this.quillEditor?.focus(), 50);
+        } else if (tab === 'code') {
+            document.getElementById('editor-code-container')?.classList.remove('hidden');
+            const body = this.quillEditor ? this.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
+            document.getElementById('tpl-code-editor').value = body;
+            setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
+        } else if (tab === 'preview') {
+            document.getElementById('editor-preview-container')?.classList.remove('hidden');
+            this._updateTemplatePreview();
+        }
+    },
+    
+    _updateTemplatePreview: function() {
+        const body = this.quillEditor ? this.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
+        const name = document.getElementById('tpl-name').value || 'Plantilla';
+        
+        const preview = `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:20px;margin:0;background:#f0f0f0;}table{background:white;width:100%;max-width:600px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);}td{padding:30px;}</style></head><body><table><tr><td>${body}</td></tr></table></body></html>`;
+        
+        const iframe = document.getElementById('tpl-preview-frame');
+        if (iframe) {
+            iframe.srcdoc = preview;
+        }
+    },
+    
+    saveTemplate: async function() {
+        const name = document.getElementById('tpl-name').value.trim();
+        const subject = document.getElementById('tpl-subject').value.trim();
+        const body = this.quillEditor ? this.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        
+        if (!name) return alert('Ingresa un nombre para la plantilla.');
+        if (!subject) return alert('Ingresa el asunto del email.');
+        
+        try {
+            const tpl = this.state.editingTemplate;
+            if (tpl) {
+                await this.fetchAPI(`/email-templates/${tpl.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, subject, body })
+                });
+            } else {
+                await this.fetchAPI('/email-templates', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, subject, body })
+                });
+            }
+            alert('✓ Plantilla guardada');
+            this.closeTemplateEditor();
+            this.loadEmailTemplates();
+        } catch (e) { 
+            alert('Error al guardar plantilla: ' + e.message); 
+        }
     },
     
     syncEmails: function() {
@@ -1097,59 +1263,6 @@ window.App = {
                 container.innerHTML = `<p class="text-red-400 text-center py-8">Error al cargar plantillas: ${e.message}</p>`;
             }
         }
-    },
-    
-    showTemplateEditor: function(templateId, templateName) {
-        const template = this.state.emailTemplates?.find(t => t.id === templateId);
-        if (!template) {
-            console.error('Template not found:', templateId, this.state.emailTemplates);
-            return alert('Plantilla no encontrada. Recarga la página.');
-        }
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-template-editor';
-        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-start justify-center p-4 overflow-y-auto';
-        modal.innerHTML = `
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl mb-8">
-                <h3 class="text-lg font-black text-white mb-4">Editar: ${templateName}</h3>
-                <div class="space-y-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Asunto</label>
-                        <input type="text" id="template-subject" value="${template.subject || ''}" class="input-field bg-slate-800/50">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Cuerpo del mensaje (HTML)</label>
-                        <textarea id="template-body" rows="12" class="input-field bg-slate-800/50 font-mono text-xs resize-none">${template.body || ''}</textarea>
-                    </div>
-                    <div class="text-xs text-slate-500">
-                        <strong>Variables disponibles:</strong> {{user_name}}, {{email}}, {{password}}, {{role}}, {{company_name}}, {{login_url}}, {{reset_url}}, {{reset_code}}
-                    </div>
-                </div>
-                <div class="flex gap-3 mt-6">
-                    <button onclick="App.saveTemplate('${templateId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl">Guardar</button>
-                    <button onclick="App.closeTemplateEditor()" class="px-6 py-3 bg-white/5 text-slate-400 font-bold text-sm rounded-xl">Cancelar</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    },
-    
-    saveTemplate: async function(templateId) {
-        const subject = document.getElementById('template-subject').value;
-        const body = document.getElementById('template-body').value;
-        
-        try {
-            await this.fetchAPI(`/email-templates/${templateId}`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ subject, body })
-            });
-            alert('✓ Plantilla guardada');
-            this.closeTemplateEditor();
-            this.loadEmailTemplates();
-        } catch (e) { alert('Error al guardar plantilla'); }
-    },
-    
-    closeTemplateEditor: function() {
-        document.getElementById('modal-template-editor')?.remove();
     },
     
     // --- EVENT EMAIL CONFIG V10.6 ---
