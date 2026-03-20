@@ -999,9 +999,19 @@ window.App = {
     },
     
     navigateEmailSection: function(section) {
-        // Mostrar la vista de Email Admin
-        this.navigate('smtp');
+        // Verificar que view-smtp esté visible, si no navegar
+        const smtpView = document.getElementById('view-smtp');
+        if (!smtpView || smtpView.classList.contains('hidden')) {
+            this.navigate('smtp');
+            // Esperar a que se cargue la vista antes de mostrar sección
+            setTimeout(() => this._showEmailSection(section), 50);
+            return;
+        }
         
+        this._showEmailSection(section);
+    },
+    
+    _showEmailSection: function(section) {
         // Ocultar todos los contenidos de email
         document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.email-nav-btn').forEach(el => {
@@ -1505,20 +1515,6 @@ window.App = {
             App.loadProfileData();
         }
         if (viewName === 'groups') this.loadGroups();
-        if (viewName === 'smtp-config') {
-            App.loadSMTPConfig();
-            App.loadIMAPConfig();
-            App.loadEmailTemplates();
-        }
-        if (viewName === 'smtp-templates') {
-            App.loadSMTPConfig();
-            App.loadIMAPConfig();
-            App.loadEmailTemplates();
-        }
-        if (viewName === 'smtp-mailbox') {
-            App.loadSMTPConfig();
-            App.loadIMAPConfig();
-        }
         if (viewName === 'smtp') {
             const savedSection = LS.get('email_admin_section') || 'config';
             this.navigateEmailSection(savedSection);
