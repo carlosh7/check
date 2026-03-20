@@ -1396,12 +1396,16 @@ window.App = {
     async fetchAPI(endpoint, options = {}) {
         const headers = { 'Content-Type': 'application/json' };
         if (this.state.user) headers['x-user-id'] = this.state.user.userId;
+        const url = `${this.constants.API_URL}${endpoint}`;
+        console.log('[API] Request:', url, 'userId:', this.state.user?.userId);
         
         try {
-            const res = await fetch(`${this.constants.API_URL}${endpoint}`, { ...options, headers: { ...headers, ...options.headers } });
+            const res = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
             if (res.status === 401 || res.status === 403) throw new Error('Auth fail');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return res.json();
         } catch (e) {
+            console.error('[API] Error:', url, e);
             if (e.message === 'Auth fail') this.logout();
             throw e;
         }
