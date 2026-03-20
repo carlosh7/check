@@ -1782,13 +1782,12 @@ document.addEventListener('DOMContentLoaded', () => {
     App.loadAppVersion();
 
     // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
-    console.log("[DEBUG] localStorage.getItem('user'):", localStorage.getItem('user'));
     const savedUser = localStorage.getItem('user');
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
-            console.log("[DEBUG] Parsed user:", user);
-            if (user && user.token) {
+            // Verificar sesión válida: debe tener userId o token
+            if (user && (user.userId || user.token)) {
                 window.App.state.user = user;
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
@@ -1803,6 +1802,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     App.loadEvents();
                 }
+            } else {
+                App.showView('login');
+            }
+        } catch(e){ 
+            App.showView('login'); 
+        }
+    } else {
+        App.showView('login');
+    }
             } else {
                 console.log("[DEBUG] No token, showing login");
                 App.showView('login');
