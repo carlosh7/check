@@ -215,6 +215,17 @@ db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
     updated_at TEXT
 )`);
 
+// 14. Códigos de recuperación de contraseña
+db.exec(`CREATE TABLE IF NOT EXISTS password_resets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    code TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)`);
+
 // 13. Plantillas de Email
 db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     id TEXT PRIMARY KEY,

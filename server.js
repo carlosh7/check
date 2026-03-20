@@ -46,6 +46,115 @@ const castId = (tableName, id) => {
     } catch(e) { return id; }
 };
 
+// --- EMAIL SERVICE V10.6 ---
+async function getSMTPConfig() {
+    return db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+}
+
+async function getEmailTemplate(templateId) {
+    return db.prepare("SELECT * FROM email_templates WHERE id = ?").get(templateId);
+}
+
+function replaceTemplateVariables(template, data) {
+    let result = template;
+    for (const [key, value] of Object.entries(data)) {
+        result = result.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
+    }
+    return result;
+}
+
+async function sendEmail(to, subject, html, options = {}) {
+    try {
+        const config = await getSMTPConfig();
+        
+        if (!config || !config.smtp_host || !config.smtp_user) {
+            console.log('📧 Email simulation (no SMTP configured):', { to, subject });
+            return { success: true, simulated: true };
+        }
+        
+        const transporter = nodemailer.createTransport({
+            host: config.smtp_host,
+            port: config.smtp_port || 587,
+            secure: config.smtp_secure === 1,
+            auth: {
+                user: config.smtp_user,
+                pass: config.smtp_pass
+            }
+        });
+        
+        const mailOptions = {
+            from: `"${config.from_name || 'Check'}" <${config.from_email || config.smtp_user}>`,
+            to,
+            subject,
+            html
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('📧 Email sent:', { to, subject, messageId: result.messageId });
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.error('📧 Email error:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
+async function sendUserApprovedEmail(user) {
+    const template = await getEmailTemplate('user_approved');
+    if (!template) return { success: false, error: 'Template not found' };
+    
+    const password = options?.password || user.temp_password || 'Tu contraseña actual';
+    
+    const subject = replaceTemplateVariables(template.subject, {
+        user_name: user.display_name || user.username
+    });
+    
+    const html = replaceTemplateVariables(template.body, {
+        user_name: user.display_name || user.username,
+        email: user.username,
+        password: password,
+        role: user.role,
+        login_url: `http://localhost:3000/`
+    });
+    
+    return sendEmail(user.username, subject, html);
+}
+
+async function sendUserInvitedEmail(user, companyName = '') {
+    const template = await getEmailTemplate('user_invited');
+    if (!template) return { success: false, error: 'Template not found' };
+    
+    const subject = replaceTemplateVariables(template.subject, {
+        user_name: user.display_name || user.username,
+        company_name: companyName
+    });
+    
+    const html = replaceTemplateVariables(template.body, {
+        user_name: user.display_name || user.username,
+        company_name: companyName,
+        role: user.role,
+        login_url: `http://localhost:3000/`
+    });
+    
+    return sendEmail(user.username, subject, html);
+}
+
+async function sendPasswordResetEmail(user, resetCode) {
+    const template = await getEmailTemplate('password_reset');
+    if (!template) return { success: false, error: 'Template not found' };
+    
+    const subject = replaceTemplateVariables(template.subject, {
+        user_name: user.display_name || user.username
+    });
+    
+    const html = replaceTemplateVariables(template.body, {
+        user_name: user.display_name || user.username,
+        reset_code: resetCode,
+        reset_url: `http://localhost:3000/?reset=${resetCode}`
+    });
+    
+    return sendEmail(user.username, subject, html);
+}
+
 // --- SECURITY MIDDLEWARE ---
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -320,11 +429,35 @@ app.post('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 });
 
 app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
-    const { username, password, role, display_name, phone, group_id } = req.body;
+    const { username, password, role, display_name, phone, group_id, send_email = true } = req.body;
     const id = getValidId('users');
+    
+    // Obtener nombre de empresa si se asigna
+    let companyName = '';
+    if (group_id) {
+        const group = db.prepare("SELECT name FROM groups WHERE id = ?").get(group_id);
+        companyName = group?.name || '';
+    }
+    
     try {
         db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
           .run(id, username.toLowerCase(), password, role || 'PRODUCTOR', display_name || username, phone || '', group_id || null, new Date().toISOString());
+        
+        const newUser = { 
+            id, 
+            username: username.toLowerCase(), 
+            password, 
+            role: role || 'PRODUCTOR', 
+            display_name: display_name || username 
+        };
+        
+        // Enviar email de invitación
+        if (send_email) {
+            sendUserInvitedEmail(newUser, companyName).catch(err => {
+                console.error('Error sending invitation email:', err);
+            });
+        }
+        
         res.json({ success: true, userId: id });
     } catch (err) {
         if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, error: 'Este email ya está registrado' });
@@ -393,7 +526,29 @@ app.delete('/api/users/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR
 
 app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
-    db.prepare("UPDATE users SET status = ? WHERE id = ?").run(req.body.status, targetId);
+    const newStatus = req.body.status;
+    
+    // Obtener datos del usuario antes de actualizar
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(targetId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    
+    db.prepare("UPDATE users SET status = ? WHERE id = ?").run(newStatus, targetId);
+    
+    // Si se aprueba, enviar email de bienvenida
+    if (newStatus === 'APPROVED') {
+        // Generar contraseña temporal si no tiene
+        if (!user.password || user.password.length === 0) {
+            const tempPassword = Math.random().toString(36).slice(-8);
+            db.prepare("UPDATE users SET password = ? WHERE id = ?").run(tempPassword, targetId);
+            user.temp_password = tempPassword;
+        }
+        
+        // Enviar email en background (no bloquear respuesta)
+        sendUserApprovedEmail({ ...user, temp_password: user.temp_password }).catch(err => {
+            console.error('Error sending approval email:', err);
+        });
+    }
+    
     res.json({ success: true });
 });
 
@@ -446,11 +601,50 @@ app.post('/api/password-reset-request', (req, res) => {
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     const resetExpiry = new Date(Date.now() + 3600000).toISOString(); // 1 hora
     
-    // Guardar código (necesitaríamos una tabla para esto, por ahora solo retornamos el código)
-    // TODO: Crear tabla password_resets
+    // Invalidar códigos anteriores
+    db.prepare("UPDATE password_resets SET used = 1 WHERE user_id = ?").run(user.id);
+    
+    // Guardar nuevo código
+    db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
+      .run(getValidId('pr'), user.id, resetCode, resetExpiry, new Date().toISOString());
+    
+    // Enviar email
+    sendPasswordResetEmail(user, resetCode).catch(err => {
+        console.error('Error sending password reset email:', err);
+    });
     
     res.json({ success: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
-    // Aquí se enviaría el email con el código
+});
+
+// Verificar código de recuperación
+app.post('/api/password-reset-verify', (req, res) => {
+    const { email, code, new_password } = req.body;
+    
+    if (!email || !code) {
+        return res.status(400).json({ error: 'Email y código requeridos' });
+    }
+    
+    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(email.toLowerCase());
+    if (!user) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    const reset = db.prepare("SELECT * FROM password_resets WHERE user_id = ? AND code = ? AND used = 0 AND expires_at > ?")
+        .get(user.id, code, new Date().toISOString());
+    
+    if (!reset) {
+        return res.status(400).json({ error: 'Código inválido o expirado' });
+    }
+    
+    if (new_password) {
+        // Actualizar contraseña
+        db.prepare("UPDATE users SET password = ? WHERE id = ?").run(new_password, user.id);
+        // Marcar código como usado
+        db.prepare("UPDATE password_resets SET used = 1 WHERE id = ?").run(reset.id);
+        return res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
+    }
+    
+    res.json({ success: true, valid: true });
 });
 
 // Solicitar cuenta (signup)
