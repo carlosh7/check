@@ -1075,11 +1075,14 @@ window.App = {
     },
     
     _initTemplateEditor: function(initialHtml) {
+        const container = document.getElementById('tpl-quill-editor');
         if (this.state.quillEditor) {
+            try { this.state.quillEditor.destroy(); } catch(e) {}
             this.state.quillEditor = null;
         }
-        const container = document.getElementById('tpl-quill-editor');
-        if (container) container.innerHTML = '';
+        if (container) {
+            container.innerHTML = '';
+        }
         
         this.state.quillEditor = new Quill('#tpl-quill-editor', {
             theme: 'snow',
