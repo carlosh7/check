@@ -1598,6 +1598,12 @@ window.App = {
         const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
         
+        // Mostrar versión del servidor al cargar
+        this.fetchAPI('/app-version').then(res => {
+            const vd = document.getElementById('version-display');
+            if (vd) vd.textContent = 'V' + res.version;
+        }).catch(() => {});;
+        
         // Navigation
         cl('sys-nav-users', () => window.switchSystemTab('users'));
         cl('sys-nav-legal', () => window.switchSystemTab('legal'));
