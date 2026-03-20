@@ -1,4 +1,4 @@
-const CACHE_NAME = 'check-v10.2-cache';
+const CACHE_NAME = 'check-v10.5-cache';
 const assets = [
   '/',
   '/index.html',
@@ -32,13 +32,12 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Estrategia: Network First para scripts y HTML, Cache First para el resto
+// Estrategia: Network Only para scripts y HTML (sin caché), Cache First para CDNs
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (url.pathname === '/' || url.pathname.endsWith('.js') || url.pathname.endsWith('.html')) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
-    );
+  // Siempre obtener de la red para scripts, HTML y archivos locales
+  if (url.pathname === '/' || url.pathname.endsWith('.js') || url.pathname.endsWith('.html') || url.pathname.endsWith('.css')) {
+    e.respondWith(fetch(e.request));
   } else {
     e.respondWith(
       caches.match(e.request).then((res) => res || fetch(e.request))
