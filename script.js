@@ -236,6 +236,82 @@ window.App = {
         document.getElementById('modal-user-selector-group')?.remove();
     },
     
+    // --- EVENT USER MANAGEMENT V10.6 ---
+    showUserSelectorForEvent: function(eventId) {
+        const users = this.state.allUsers || [];
+        const eventUsers = users.filter(u => u.events && u.events.includes(eventId));
+        const assignedUserIds = eventUsers.map(u => u.id);
+        const availableUsers = users.filter(u => !assignedUserIds.includes(u.id));
+        
+        if (availableUsers.length === 0) {
+            alert('No hay más usuarios disponibles para agregar.');
+            return;
+        }
+        
+        const options = availableUsers.map(u => 
+            `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`
+        ).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-user-selector-event';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">group_add</span> Agregar Personal al Evento
+                </h3>
+                <select id="select-user-for-event" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
+                    <option value="">-- Seleccionar usuario --</option>
+                    ${options}
+                </select>
+                <div class="flex gap-3">
+                    <button onclick="App.assignUserToEventFromSelector('${eventId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
+                    <button onclick="App.closeUserSelectorEvent()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+    
+    assignUserToEventFromSelector: async function(eventId) {
+        const select = document.getElementById('select-user-for-event');
+        const userId = select.value;
+        if (!userId) return alert('Selecciona un usuario');
+        
+        const users = this.state.allUsers || [];
+        const user = users.find(u => u.id === userId);
+        const currentEvents = user?.events || [];
+        
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/events`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ events: [...currentEvents, eventId] }) 
+            });
+            if (res.success) {
+                // Recargar usuarios
+                const users = await this.fetchAPI('/users');
+                this.state.allUsers = users;
+                this.loadUsersTable();
+                this.closeUserSelectorEvent();
+                alert('✓ Usuario agregado al evento');
+            }
+        } catch(e) { console.error('Error assigning user to event:', e); }
+    },
+    
+    closeUserSelectorEvent: function() {
+        document.getElementById('modal-user-selector-event')?.remove();
+    },
+    
+    removeUserFromEvent: async function(userId, eventId) {
+        if (!confirm('¿Quitar este usuario del evento?')) return;
+        try {
+            await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+            // Recargar usuarios
+            const users = await this.fetchAPI('/users');
+            this.state.allUsers = users;
+            this.loadUsersTable();
+        } catch(e) { console.error('Error removing user from event:', e); }
+    },
+    
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
     loadUsersTable: async function() {
         if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
@@ -789,6 +865,89 @@ window.App = {
         } catch (e) { alert('Error al actualizar perfil'); }
     },
     
+    // --- SMTP CONFIG V10.6 ---
+    loadSMTPConfig: async function() {
+        try {
+            const config = await this.fetchAPI('/smtp-config');
+            document.getElementById('smtp-host').value = config.smtp_host || '';
+            document.getElementById('smtp-port').value = config.smtp_port || 587;
+            document.getElementById('smtp-user').value = config.smtp_user || '';
+            document.getElementById('smtp-pass').value = config.smtp_pass ? '***' : '';
+            document.getElementById('smtp-secure').checked = config.smtp_secure == 1;
+            document.getElementById('smtp-from-name').value = config.from_name || 'Check';
+            document.getElementById('smtp-from-email').value = config.from_email || '';
+        } catch (e) { console.error('Error loading SMTP config:', e); }
+    },
+    
+    loadEmailTemplates: async function() {
+        try {
+            const templates = await this.fetchAPI('/email-templates');
+            const container = document.getElementById('email-templates-list');
+            if (container) {
+                container.innerHTML = templates.map(t => `
+                    <div class="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-bold text-white text-sm">${t.name}</h5>
+                            <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
+                        <button onclick="App.showTemplateEditor('${t.id}', '${t.name}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
+                    </div>
+                `).join('');
+            }
+        } catch (e) { console.error('Error loading templates:', e); }
+    },
+    
+    showTemplateEditor: function(templateId, templateName) {
+        const template = this.state.emailTemplates?.find(t => t.id === templateId);
+        if (!template) return alert('Plantilla no encontrada');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-template-editor';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-start justify-center p-4 overflow-y-auto';
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl mb-8">
+                <h3 class="text-lg font-black text-white mb-4">Editar: ${templateName}</h3>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Asunto</label>
+                        <input type="text" id="template-subject" value="${template.subject || ''}" class="input-field bg-slate-800/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Cuerpo del mensaje (HTML)</label>
+                        <textarea id="template-body" rows="12" class="input-field bg-slate-800/50 font-mono text-xs resize-none">${template.body || ''}</textarea>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        <strong>Variables disponibles:</strong> {{user_name}}, {{email}}, {{password}}, {{role}}, {{company_name}}, {{login_url}}, {{reset_url}}, {{reset_code}}
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="App.saveTemplate('${templateId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl">Guardar</button>
+                    <button onclick="App.closeTemplateEditor()" class="px-6 py-3 bg-white/5 text-slate-400 font-bold text-sm rounded-xl">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+    
+    saveTemplate: async function(templateId) {
+        const subject = document.getElementById('template-subject').value;
+        const body = document.getElementById('template-body').value;
+        
+        try {
+            await this.fetchAPI(`/email-templates/${templateId}`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ subject, body })
+            });
+            alert('✓ Plantilla guardada');
+            this.closeTemplateEditor();
+            this.loadEmailTemplates();
+        } catch (e) { alert('Error al guardar plantilla'); }
+    },
+    
+    closeTemplateEditor: function() {
+        document.getElementById('modal-template-editor')?.remove();
+    },
+    
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
         
@@ -840,7 +999,7 @@ window.App = {
         }
 
         // 2. Switchear vistas internas
-        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account"];
+        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account", "view-smtp"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -891,6 +1050,10 @@ window.App = {
             App.loadProfileData();
         }
         if (viewName === 'groups') this.loadGroups();
+        if (viewName === 'smtp') {
+            App.loadSMTPConfig();
+            App.loadEmailTemplates();
+        }
     },
 
     initRouter() {
@@ -979,11 +1142,18 @@ window.App = {
                 <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar'}
                 </div>
-                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                    <span class="text-[10px] text-slate-500">${new Date(ev.date).toLocaleDateString('es-ES')}</span>
-                    <button onclick="event.stopPropagation(); window.App.copyRegistrationLink('${ev.id}')" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">link</span> Registro
-                    </button>
+                <div class="mt-4 pt-4 border-t border-white/5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] text-slate-500">${new Date(ev.date).toLocaleDateString('es-ES')}</span>
+                        <button onclick="event.stopPropagation(); window.App.copyRegistrationLink('${ev.id}')" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">link</span> Link
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mt-2" onclick="event.stopPropagation()">
+                        <button onclick="window.App.showUserSelectorForEvent('${ev.id}')" class="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">group_add</span> Personal
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -1609,6 +1779,28 @@ document.addEventListener('DOMContentLoaded', () => {
             status: document.getElementById('company-status').value
         };
         await App.saveCompany(data);
+    });
+    
+    // ------- V10.6: SMTP -------
+    sf('smtp-form', async (e) => {
+        e.preventDefault();
+        const data = {
+            smtp_host: document.getElementById('smtp-host').value,
+            smtp_port: parseInt(document.getElementById('smtp-port').value) || 587,
+            smtp_user: document.getElementById('smtp-user').value,
+            smtp_pass: document.getElementById('smtp-pass').value,
+            smtp_secure: document.getElementById('smtp-secure').checked,
+            from_name: document.getElementById('smtp-from-name').value,
+            from_email: document.getElementById('smtp-from-email').value
+        };
+        try {
+            await App.fetchAPI('/smtp-config', { method: 'PUT', body: JSON.stringify(data) });
+            alert('✓ Configuración SMTP guardada');
+        } catch (e) { alert('Error al guardar configuración'); }
+    });
+    
+    cl('btn-test-smtp', async () => {
+        alert('Función de prueba de conexión SMTP en desarrollo.');
     });
 
     // 6. Inicialización V10.5
