@@ -1,0 +1,1011 @@
+    <div id="app-container" class="h-screen overflow-hidden flex bg-slate-950">
+        <!-- Sidebar Global -->
+        <aside id="global-sidebar" class="sidebar w-[220px] bg-slate-950/40 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
+            
+            <!-- Header: Logo Check -->
+            <div class="p-4 border-b border-white/5">
+                <div class="flex items-center gap-3 px-1">
+                    <div class="w-9 h-9 bg-primary/15 rounded-xl border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1, 'wght' 700;">verified_user</span>
+                    </div>
+                    <div class="flex flex-col leading-none">
+                        <span class="font-black font-display text-lg text-white tracking-tight">Check<span class="text-primary italic">.</span></span>
+                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-[0.15em]">Attendance</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navegación con scroll -->
+            <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+                <div id="nav-section-global">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Administración</p>
+                    <button onclick="App.navigate('system')" id="nav-btn-system" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">group</span> Equipo
+                    </button>
+                    <button onclick="App.navigate('groups')" id="nav-btn-groups" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">folder</span> Empresas
+                    </button>
+                    <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">gavel</span> Legales
+                    </button>
+                    <button onclick="App.navigate('smtp')" id="nav-btn-smtp" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">mail</span> Email SMTP
+                    </button>
+                    <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">manage_accounts</span> Mi Cuenta
+                    </button>
+                </div>
+
+                <div class="h-px bg-white/5 my-3"></div>
+                <div id="nav-section-production">
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Producción</p>
+                    <button onclick="App.navigate('my-events')" id="nav-btn-my-events" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">event_repeat</span> Selector de Eventos
+                    </button>
+                </div>
+
+                <div id="nav-section-event" class="hidden space-y-0.5">
+                    <div class="h-px bg-white/5 my-3"></div>
+                    <p class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600 mb-2 px-2">Evento Actual</p>
+                    <button onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-tab-btn w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">dashboard</span> Dashboard
+                    </button>
+                    <button onclick="document.getElementById('admin-file-import-excel').click()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">upload_file</span> Cargar Excel
+                    </button>
+                    <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">picture_as_pdf</span> Cargar PDF
+                    </button>
+                    <button onclick="App.showQR()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span> Encuesta QR
+                    </button>
+                    <button onclick="App.navigate('pre-registrations')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">how_to_reg</span> Pre-inscripciones
+                    </button>
+                    <button onclick="App.openMailing()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-sm">mail</span> Mailing
+                    </button>
+                    <div class="h-px bg-white/5 my-2"></div>
+                    <button id="btn-delete-event-sidebar" class="w-full flex items-center gap-2 px-3 py-2 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-bold text-[10px] transition-all uppercase">
+                        <span class="material-symbols-outlined text-sm">delete_forever</span> Eliminar
+                    </button>
+                </div>
+            </nav>
+            
+            <!-- Footer: Usuario + Controles + Marca -->
+            <div class="shrink-0 p-3 border-t border-white/5 space-y-2">
+                <!-- Usuario -->
+                <div class="flex items-center gap-2 px-2 py-1.5 bg-white/5 rounded-lg">
+                    <div class="w-7 h-7 bg-primary/20 rounded-md flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-xs">person</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p id="sidebar-username" class="text-xs font-black text-white truncate">Usuario</p>
+                        <p id="sidebar-role" class="text-[9px] text-slate-500 uppercase font-bold">Rol</p>
+                    </div>
+                </div>
+                
+                <!-- Controles: Salir + Versión + Tema (mismo tamaño) -->
+                <div class="flex items-center gap-1.5">
+                    <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[9px] uppercase tracking-wider rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-sm">logout</span>
+                    </button>
+                    <button id="btn-version" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-black text-[9px] uppercase tracking-wider rounded-lg transition-all cursor-default" title="Versión">
+                        <span class="app-version-text text-[10px] font-mono">V10.5.3</span>
+                    </button>
+                    <button onclick="App.toggleTheme()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-all" title="Cambiar tema">
+                        <span class="material-symbols-outlined text-sm" id="theme-icon">dark_mode</span>
+                    </button>
+                </div>
+                
+                <!-- Marca Smart Eventos -->
+                <p class="text-[8px] text-slate-600 text-center font-medium mt-2">Power BI <a href="https://smarteventos.co" target="_blank" class="text-primary font-bold hover:underline">Smart Eventos</a></p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="app-main-content" class="flex-1 overflow-auto relative bg-slate-950">
+            
+            <!-- VIEW: MY EVENTS -->
+            <div id="view-my-events" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
+                    <div>
+                        <h2 class="text-5xl font-black font-display tracking-tight mb-2">Mis <span class="text-primary">Eventos</span></h2>
+                        <p class="text-slate-500 text-sm">Gestiona y monitorea tus producciones activas.</p>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="px-6 py-3 glass-card rounded-2xl text-primary font-mono font-black text-xl border border-primary/20 shadow-lg shadow-primary/5">
+                            <span id="events-list-clock">00:00:00</span>
+                        </div>
+                        <button id="btn-create-event-open" class="btn-primary !py-4 !px-8 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-sm font-black uppercase tracking-widest">Nuevo Evento</button>
+                    </div>
+                </header>
+                <div id="events-list-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
+            </div>
+
+            <!-- VIEW: ADMIN / SYSTEM (Unificado) -->
+            <div id="view-admin-simple" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <!-- El contenido de administración/dashboard de evento se inyectará aquí o se mantendrá estructurado -->
+                <div id="admin-main-dashboard-simple">
+                    <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                                <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Panel del Evento
+                            </div>
+                            <h1 id="admin-event-title" class="text-5xl font-black font-display tracking-tight mb-2">Cargando...</h1>
+                            <div class="flex items-center gap-2 text-slate-500 text-sm">
+                                <span class="material-symbols-outlined text-sm">location_on</span>
+                                <span id="admin-event-location">Ubicación</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-show-qr" class="px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-primary/20"><span class="material-symbols-outlined">qr_code_2</span> QR</button>
+                            <button id="btn-mailing" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"><span class="material-symbols-outlined">mail</span> Mailing</button>
+                            <button id="btn-export-excel" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">Excel</button>
+                            <button id="btn-clear-db" class="px-6 py-3 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-all border border-red-500/10">Limpiar</button>
+                        </div>
+                    </header>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <div class="glass-card p-6 rounded-3xl">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Invitados</p>
+                            <h4 id="stat-total" class="text-3xl font-black font-display">0</h4>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Empresas</p>
+                            <h4 id="stat-orgs" class="text-3xl font-black font-display">0</h4>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl border-l-4 border-primary">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Presencia Real</p>
+                            <h4 id="stat-presence" class="text-3xl font-black font-display text-primary">0%</h4>
+                        </div>
+                         <div class="glass-card p-6 rounded-3xl border-l-4 border-amber-500">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">En Sitio</p>
+                            <h4 id="stat-onsite" class="text-3xl font-black font-display text-amber-500">0</h4>
+                        </div>
+                    </div>
+
+                    <!-- GUEST LIST SECTION MEJORADA -->
+                    <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                        <!-- FILTROS DE BÚSQUEDA -->
+                        <div class="p-6 border-b border-white/5">
+                            <div class="flex flex-col lg:flex-row gap-4">
+                                <!-- Búsqueda -->
+                                <div class="flex-1 relative">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                                    <input type="text" id="guest-search" onkeyup="App.filterGuests()" placeholder="Buscar por nombre, correo, teléfono..." class="w-full bg-slate-800/50 text-white text-sm rounded-xl pl-12 pr-4 py-3 border border-white/10 focus:border-primary/50 focus:outline-none">
+                                </div>
+                                <!-- Filtro Empresa -->
+                                <select id="filter-guest-org" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Todas las empresas</option>
+                                </select>
+                                <!-- Filtro Estado -->
+                                <select id="filter-guest-status" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Todos los estados</option>
+                                    <option value="acreditado">Acreditados</option>
+                                    <option value="pendiente">Pendientes</option>
+                                </select>
+                                <!-- Filtro Vegano -->
+                                <select id="filter-guest-vegan" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Vegano</option>
+                                    <option value="si">Sí</option>
+                                    <option value="no">No</option>
+                                </select>
+                                <!-- Filtro Sexo -->
+                                <select id="filter-guest-gender" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                    <option value="">Sexo</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-4 mt-4">
+                                <label class="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+                                    <input type="checkbox" id="filter-guest-duplicates" onchange="App.filterGuests()" class="w-4 h-4 rounded bg-slate-800 border-white/10">
+                                    <span>Solo duplicados</span>
+                                </label>
+                                <span id="guest-count" class="text-xs text-slate-500 ml-auto">0 invitados</span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                    <tr><th class="px-6 py-4">Invitado</th><th class="px-6 py-4">Teléfono</th><th class="px-6 py-4">Empresa</th><th class="px-6 py-4 text-center">Sexo</th><th class="px-6 py-4 text-center">Vegano</th><th class="px-6 py-4 text-center">Estado</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+                                </thead>
+                                <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: SYSTEM (NUEVOS USUARIOS/LEGALES) -->
+            <div id="view-system-simple" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div id="sys-content-users">
+                     <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-4xl font-black font-display">Gestión Global</h2>
+                        <button id="btn-open-invite" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Añadir Usuario</button>
+                    </div>
+                    <!-- FILTROS DE BÚSQUEDA -->
+                    <div class="glass-card p-6 rounded-[28px] border border-white/10 mb-6">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <!-- Búsqueda -->
+                            <div class="flex-1 relative">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                                <input type="text" id="user-search" onkeyup="App.filterUsers()" placeholder="Buscar por nombre, correo, rol, empresa..." class="w-full bg-slate-800/50 text-white text-sm rounded-xl pl-12 pr-4 py-3 border border-white/10 focus:border-primary/50 focus:outline-none">
+                            </div>
+                            <!-- Filtro Empresa -->
+                            <select id="filter-group" onchange="App.filterUsers()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                <option value="">Todas las empresas</option>
+                            </select>
+                            <!-- Filtro Evento -->
+                            <select id="filter-event" onchange="App.filterUsers()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
+                                <option value="">Todos los eventos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                         <table class="w-full text-left">
+                            <thead class="bg-white/5 border-b border-white/10">
+                                <tr>
+                                    <th class="px-6 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Usuario</th>
+                                    <th class="px-6 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Configuración</th>
+                                    <th class="px-6 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody-simple" class="divide-y divide-white/5"></tbody>
+                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: EMPRESAS (V10.5) -->
+            <div id="view-groups" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-4xl font-black font-display">Gestión de <span class="text-primary">Empresas</span></h2>
+                    <button id="btn-create-group" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Crear Empresa</button>
+                </div>
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Nombre</th>
+                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Contacto</th>
+                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Estado</th>
+                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Usuarios</th>
+                                <th class="px-8 py-5 text-right text-sm font-black uppercase tracking-wider text-primary">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groups-tbody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        <!-- VIEW: LEGALES (V10.5) -->
+            <div id="view-legal" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Textos <span class="text-primary">Legales</span></h2>
+                    <p class="text-slate-500 text-sm">Configuración de políticas y términos.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Datos</h4>
+                        <textarea id="legal-policy-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí..."></textarea>
+                        <button id="btn-save-policy" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Política</button>
+                    </div>
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                        <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos y Condiciones</h4>
+                        <textarea id="legal-terms-text" rows="14" class="input-field bg-slate-900/60 text-sm font-mono resize-none flex-1" placeholder="Escribe aquí..."></textarea>
+                        <button id="btn-save-terms" class="btn-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs self-end px-10">Guardar Términos</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: MI CUENTA (V10.5) -->
+            <div id="view-account" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
+                </div>
+                <div class="max-w-2xl">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 mb-8">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">person</span> Datos Personales</h4>
+                        <form id="profile-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre / Nickname</label>
+                                    <input type="text" id="profile-display-name" placeholder="Tu nombre" class="input-field bg-slate-900/60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Teléfono</label>
+                                    <input type="tel" id="profile-phone" placeholder="+57 300 123 4567" class="input-field bg-slate-900/60">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email (Usuario)</label>
+                                <input type="email" id="profile-email" disabled class="input-field bg-slate-800/50 text-slate-400 cursor-not-allowed">
+                            </div>
+                            <div class="space-y-1" id="profile-company-container">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Empresa</label>
+                                <select id="profile-company" class="input-field bg-slate-900/60">
+                                    <option value="">-- Sin empresa asignada --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Cambios</button>
+                        </form>
+                    </div>
+                    
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
+                        <form id="change-pass-form" class="space-y-4">
+                            <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/60">
+                            <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field bg-slate-900/60">
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Actualizar Contraseña</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: CONFIGURACIÓN SMTP (V10.6) -->
+            <div id="view-smtp" class="hidden min-h-full p-8 md:p-12 animate-fade">
+                <div class="mb-10">
+                    <h2 class="text-4xl font-black font-display mb-2">Configuración <span class="text-primary">Email</span></h2>
+                    <p class="text-slate-500 text-sm">Configura el servidor SMTP para envío de correos.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">mail</span> Servidor SMTP</h4>
+                        <form id="smtp-form" class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor SMTP</label>
+                                <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/60">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Puerto</label>
+                                    <input type="number" id="smtp-port" placeholder="587" class="input-field bg-slate-900/60" value="587">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 flex items-center gap-2">
+                                        <input type="checkbox" id="smtp-secure" class="w-4 h-4 accent-primary"> SSL/TLS
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Usuario (Email)</label>
+                                <input type="email" id="smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/60">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Contraseña</label>
+                                <input type="password" id="smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
+                                <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre Remitente</label>
+                                    <input type="text" id="smtp-from-name" placeholder="Check Attendance" class="input-field bg-slate-900/60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email Remitente</label>
+                                    <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="input-field bg-slate-900/60">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Configuración</button>
+                            <button type="button" id="btn-test-smtp" class="w-full py-3 rounded-2xl bg-white/5 text-slate-400 hover:text-white font-black text-sm mt-2">Probar Conexión</button>
+                        </form>
+                    </div>
+                    
+                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">description</span> Plantillas de Email</h4>
+                        <div id="email-templates-list" class="space-y-4">
+                            <!-- Templates loaded by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- VIEW: EVENT DASHBOARD (Legacy - Para compatibilidad) -->
+    <div id="view-admin" class="hidden admin-layout bg-slate-950 animate-fade">
+        <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
+            <div class="flex items-center gap-5 mb-16 px-1">
+                <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
+                    <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
+                </div>
+                <span class="font-black font-display text-2xl tracking-tighter">Check<span class="text-primary italic">.</span></span>
+            </div>
+            <nav class="flex-1 space-y-1 overflow-y-auto">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Panel Principal</p>
+                <button id="nav-tab-dashboard" class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
+                    <span class="material-symbols-outlined">dashboard</span> Dashboard
+                </button>
+                <button id="btn-events-list-nav" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">event_repeat</span> Cambiar Evento
+                </button>
+                <button id="btn-edit-event" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">settings_suggest</span> Ajustes Evento
+                </button>
+                
+                <div class="h-px bg-white/5 my-4"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Datos e Importación</p>
+                <button id="admin-import-excel-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">table_view</span> Importar Excel
+                </button>
+                <button id="admin-import-pdf-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">picture_as_pdf</span> Importar PDF
+                </button>
+
+                <div class="h-px bg-white/5 my-4"></div>
+                <!-- SECCIÓN MOVIDA A view-system (Flujo V10.3) -->
+
+                <div class="h-px bg-white/5 my-4"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Complementos</p>
+                <button id="btn-edit-survey" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">poll</span> Encuestas
+                </button>
+                <button id="btn-open-mailing" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined">mail</span> Mailing Auto
+                </button>
+
+                <div class="mt-6 flex-1"></div>
+                <button id="btn-delete-event" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest">
+                    <span class="material-symbols-outlined text-sm">delete_forever</span> Eliminar Evento
+                </button>
+            </nav>
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <div class="flex items-center gap-3 px-4 mb-4">
+                    <div class="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-lg">person</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p id="sidebar-username" class="text-sm font-black text-white truncate">Usuario</p>
+                        <p id="sidebar-role" class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Rol</p>
+                    </div>
+                </div>
+                <button id="btn-logout" class="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all rounded-2xl">
+                    <span class="material-symbols-outlined text-sm">logout</span> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content bg-slate-950 relative">
+            <!-- DASHBOARD PRINCIPAL (Tab por defecto) -->
+            <section id="admin-main-dashboard">
+            <!-- Header Premium -->
+            <header class="flex flex-col lg:flex-row justify-between items-start mb-16 gap-8">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                        <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Panel Administrativo
+                    </div>
+                    <h1 id="admin-event-title" class="text-6xl font-black font-display tracking-tight mb-3">Cargando...</h1>
+                    <div class="flex items-center gap-2 text-slate-500 text-sm mb-10">
+                        <span class="material-symbols-outlined text-sm">location_on</span>
+                        <span id="admin-event-location">Ubicación no definida</span>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <div class="glass-card px-8 py-4 rounded-[28px] border border-white/10 flex items-center gap-4">
+                            <div class="text-center border-r border-white/5 pr-6">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Local</p>
+                                <p id="admin-clock-real" class="text-xl font-mono font-black text-primary">00:00:00</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-red-500/60 mb-1">Cuenta Atrás</p>
+                                <p id="admin-clock-countdown" class="text-4xl font-mono font-black text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]">00:00:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-end gap-6 bg-white/3 p-8 rounded-[40px] border border-white/5 backdrop-blur-md">
+                    <button id="btn-show-qr" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 w-full lg:w-fit font-black uppercase tracking-widest text-xs">
+                        QR FEEDBACK <span class="material-symbols-outlined text-sm ml-2">qr_code_2</span>
+                    </button>
+                    <div class="flex gap-3">
+                        <button id="btn-export-excel" class="btn-action bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-lg">description</span> Excel
+                        </button>
+                        <button id="btn-export-analytics" class="btn-action bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-lg">analytics</span> Analítica
+                        </button>
+                        <button id="btn-clear-db" class="btn-action bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/30 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-lg">delete_sweep</span> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="glass-card p-8 rounded-[38px] group hover:scale-[1.02] transition-transform">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary transition-colors group-hover:text-white">
+                            <span class="material-symbols-outlined">group</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Invitados</p>
+                    <h4 id="stat-total" class="text-4xl font-black font-display font-mono">0</h4>
+                </div>
+                <div class="glass-card p-8 rounded-[38px] group hover:scale-[1.02] transition-transform">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-500">
+                            <span class="material-symbols-outlined">apartment</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Entidades/Empresas</p>
+                    <h4 id="stat-orgs" class="text-4xl font-black font-display font-mono">0</h4>
+                </div>
+                <div class="glass-card p-8 rounded-[38px] group hover:scale-[1.02] transition-transform border-l-4 border-l-primary">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-500">
+                            <span class="material-symbols-outlined">checklist_rtl</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Presencia Real</p>
+                    <h4 id="stat-presence" class="text-4xl font-black font-display font-mono text-emerald-400">0%</h4>
+                </div>
+                <div class="glass-card p-8 rounded-[38px] group hover:scale-[1.02] transition-transform border-l-4 border-l-amber-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-500">
+                            <span class="material-symbols-outlined">how_to_reg</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Registros On-Site</p>
+                    <h4 id="stat-onsite" class="text-4xl font-black font-display font-mono text-amber-500">0</h4>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
+                <div class="xl:col-span-2 glass-card p-10 rounded-[48px] border border-white/5 shadow-2xl relative overflow-hidden h-[450px]">
+                    <div class="flex justify-between items-center mb-10">
+                        <h5 class="text-lg font-black font-display">Flujo de Asistencia Horaria</h5>
+                        <div class="bg-primary/10 text-primary text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">En Tiempo Real</div>
+                    </div>
+                    <div class="h-[300px] w-full">
+                        <canvas id="flowChart"></canvas>
+                    </div>
+                </div>
+                <div class="xl:col-span-1 glass-card p-10 rounded-[48px] border border-white/5 flex flex-col h-[450px]">
+                    <h5 class="text-lg font-black font-display mb-8">Alertas de Seguridad</h5>
+                    <div class="space-y-4 flex-1">
+                        <div class="p-6 bg-red-500/10 rounded-3xl border border-red-500/20 flex items-center justify-between group hover:bg-red-500/20 transition-all cursor-default">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-500 shadow-lg shadow-red-500/10">
+                                    <span class="material-symbols-outlined">medical_services</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-red-200">Dieta / Salud</p>
+                                    <p class="text-[10px] text-red-500/60 uppercase font-black">Restricciones</p>
+                                </div>
+                            </div>
+                            <span id="stat-health" class="text-3xl font-black font-mono text-red-500">0</span>
+                        </div>
+                        <div class="p-6 bg-primary/10 rounded-3xl border border-white/5 flex items-center justify-between opacity-50 grayscale">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500">
+                                    <span class="material-symbols-outlined">security</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400">Incidencias</p>
+                                    <p class="text-[10px] text-slate-600 uppercase font-black">Reportadas</p>
+                                </div>
+                            </div>
+                            <span class="text-3xl font-black font-mono">0</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-center text-slate-600 font-bold uppercase tracking-wider mt-4">Actualizado cada 5 segundos</p>
+                </div>
+            </div>
+
+            <!-- GUEST LIST SECTION (V5.5 Premium Table) -->
+            <section class="glass-card rounded-[48px] overflow-hidden border border-white/10 shadow-3xl mb-12">
+                <div class="p-8 border-b border-white/5 bg-white/2 backdrop-blur-3xl flex flex-col md:flex-row justify-between items-center gap-6">
+                    <h3 class="text-xl font-black font-display flex items-center gap-3">
+                        <span class="w-2 h-8 bg-primary rounded-full"></span> 
+                        Listado de Invitados
+                    </h3>
+                    <div class="relative w-full max-w-md group">
+                        <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">person_search</span>
+                        <input id="guest-search" type="text" placeholder="Búsqueda rápida (Nombre, Email, Empresa)..." class="input-field !pl-14 !py-4 bg-slate-950/80 !rounded-2xl border-white/10 focus:border-primary/50 !transition-all">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-white/2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                                <th class="px-10 py-6">Perfil Invitado</th>
+                                <th class="px-10 py-6">Organización</th>
+                                <th class="px-10 py-6 text-center">Estado de Acreditación</th>
+                                <th class="px-10 py-6 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-tbody-admin" class="divide-y divide-white/5">
+                            <!-- JS Rendered -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- VISTAS DE ADMINISTRACIÓN GLOBAL -->
+            <section id="view-system" class="hidden">
+                <div class="p-8 md:p-12">
+                    <div id="sys-content-users" class="hidden animate-fade">
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                            <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
+                                <span class="w-2 h-10 bg-primary rounded-full"></span> Equipo y Accesos
+                            </h3>
+                            <button id="btn-open-invite-admin" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 w-full md:w-fit font-black uppercase tracking-widest text-xs">
+                                AÑADIR USUARIO <span class="material-symbols-outlined text-sm ml-2">person_add</span>
+                            </button>
+                        </div>
+                        <div id="pending-requests-section" class="hidden mb-12 bg-amber-500/5 border border-amber-500/10 p-8 rounded-[40px] backdrop-blur-md">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-base">warning</span> Solicitudes Pendientes
+                                <span id="pending-badge" class="hidden bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full text-[9px]">0</span>
+                            </p>
+                            <div id="pending-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        </div>
+                        <div class="glass-card rounded-[40px] overflow-hidden border border-white/5 shadow-2xl">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/2 border-b border-white/5 uppercase text-[10px] font-black tracking-widest text-slate-500">
+                                    <tr><th class="px-8 py-5">Usuario / Fecha</th><th class="px-8 py-5">Rol / Nivel</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acción</th></tr>
+                                </thead>
+                                <tbody id="users-tbody" class="divide-y divide-white/2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Las vistas de legal y account ahora están en contenedores separados -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: INVITAR USUARIO (V10.0) -->
+    <div id="modal-invite" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[99999] flex items-center justify-center p-4">
+        <div class="glass-card p-12 rounded-[48px] max-w-lg w-full shadow-2xl border border-white/10">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black font-display">Crear / Invitar Usuario</h3>
+                <button id="btn-close-invite" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="invite-user-form" class="space-y-5">
+                <input type="text" id="invite-display-name" required placeholder="Nombre / Nickname" class="input-field bg-slate-900/50">
+                <input type="text" id="invite-username" required placeholder="Correo electrónico" class="input-field bg-slate-900/50">
+                <input type="password" id="invite-password" required placeholder="Contraseña inicial" class="input-field bg-slate-900/50">
+                <div id="invite-role-container">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Rol de Acceso</label>
+                    <select id="invite-role" class="input-field bg-slate-900/50">
+                        <!-- Opciones se generan dinámicamente según permisos -->
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Crear Usuario Aprobado</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: QR FEEDBACK -->
+    <div id="modal-qr" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 animate-fade">
+        <div class="glass-card p-12 rounded-[56px] max-w-md w-full text-center border-t-8 border-t-primary shadow-[0_0_100px_rgba(124,58,237,0.2)]">
+            <h3 class="text-3xl font-black mb-10 font-display">Feedback QR</h3>
+            <p class="text-slate-400 text-sm mb-10">Muestra este código para que los invitados califiquen el evento en tiempo real.</p>
+            <div class="bg-white p-10 rounded-[40px] mb-12 inline-block shadow-2xl ring-8 ring-white/5"><img id="qr-display" class="w-64 h-64 grayscale-0"></div>
+            <button id="close-qr" class="w-full py-5 rounded-2xl bg-white/5 font-black text-slate-500 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all">Descartar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: EVENT CONFIG -->
+    <div id="modal-event" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] overflow-y-auto py-4 md:py-8">
+        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-3xl w-full mx-auto shadow-2xl border border-white/10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black font-display tracking-tight">Configuración del Evento</h3>
+                <button onclick="document.getElementById('modal-event').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            <h3 class="text-2xl font-black mb-6 font-display tracking-tight text-center">Configuración del Evento</h3>
+            <form id="new-event-form" class="space-y-5">
+                <input type="hidden" id="ev-id-hidden">
+                
+                <!-- Datos básicos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre del Evento *</label>
+                        <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field bg-slate-900/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo del Evento</label>
+                        <input type="file" id="ev-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Inicio *</label>
+                        <input type="datetime-local" id="ev-date" required class="input-field bg-slate-900/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fin *</label>
+                        <input type="datetime-local" id="ev-end-date" required class="input-field bg-slate-900/50">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Ubicación</label>
+                    <input type="text" id="ev-location" placeholder="Ciudad, Hotel, Centro de Convenciones" class="input-field bg-slate-900/50">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Descripción</label>
+                    <textarea id="ev-desc" placeholder="Detalles corporativos o agenda..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
+                </div>
+                
+                <!-- Configuración de Registro Público -->
+                <div class="border-t border-white/10 pt-5 mt-5">
+                    <h4 class="text-lg font-black mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">how_to_reg</span>
+                        Página de Registro Público
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Título de la página</label>
+                                <input type="text" id="ev-reg-title" placeholder="Ej: Registro de Invitados" class="input-field bg-slate-900/50">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo para registro</label>
+                                <input type="file" id="ev-reg-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Texto de bienvenida</label>
+                            <input type="text" id="ev-reg-welcome" placeholder="Ej: Bienvenido a nuestro evento" class="input-field bg-slate-900/50">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Mensaje de éxito</label>
+                            <input type="text" id="ev-reg-success" placeholder="Ej: ¡Registro exitoso! Te esperamos." class="input-field bg-slate-900/50">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Política de tratamiento de datos</label>
+                            <textarea id="ev-reg-policy" placeholder="Texto legal de aceptación de tratamiento de datos personales..." class="input-field bg-slate-900/50 h-24 resize-none"></textarea>
+                        </div>
+                        
+                        <!-- Campos a mostrar -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2 mb-3 block">Campos a solicitar <span class="text-primary">(Nombre y Email siempre requeridos)</span></label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors opacity-50">
+                                    <input type="checkbox" checked disabled class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Nombre *</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors opacity-50">
+                                    <input type="checkbox" checked disabled class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Email *</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-phone" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Teléfono</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-org" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Empresa</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-position" class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Cargo/Puesto</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-vegan" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Vegano</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-dietary" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Alergias</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" id="ev-reg-gender" class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Sexo</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors md:col-span-2">
+                                    <input type="checkbox" id="ev-reg-agreement" checked class="w-4 h-4 accent-primary">
+                                    <span class="text-sm">Requerir aceptación de política de datos</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 pt-5 border-t border-white/10">
+                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
+                    <button type="button" id="btn-open-email-config" onclick="App.openEventEmailConfig()" class="px-4 py-4 bg-white/5 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/20 hover:text-primary transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">mail</span> Emails
+                    </button>
+                    <button type="button" id="close-modal" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EVENT EMAIL CONFIG (V10.6) -->
+    <div id="modal-event-email" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[200] overflow-y-auto py-4 md:py-8">
+        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-4xl w-full mx-auto shadow-2xl border border-white/10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Emails - <span id="email-event-name" class="text-primary"></span></h3>
+                <button onclick="App.closeEventEmailConfig()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-6 border-b border-white/10 pb-4">
+                <button onclick="App.switchEmailTab('smtp')" id="tab-smtp" class="email-tab-btn active px-4 py-2 rounded-lg text-xs font-bold">SMTP</button>
+                <button onclick="App.switchEmailTab('templates')" id="tab-templates" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Plantillas</button>
+                <button onclick="App.switchEmailTab('agenda')" id="tab-agenda" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Agenda</button>
+            </div>
+            
+            <!-- SMTP Tab -->
+            <div id="content-smtp" class="email-tab-content">
+                <div class="space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                        <input type="checkbox" id="ev-smtp-enabled" class="w-5 h-5 accent-primary">
+                        <span class="font-bold text-sm">Habilitar emails personalizados para este evento</span>
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Servidor SMTP</label>
+                            <input type="text" id="ev-smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Puerto</label>
+                            <input type="number" id="ev-smtp-port" placeholder="587" value="587" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl">
+                        <input type="checkbox" id="ev-smtp-secure" class="w-4 h-4 accent-primary">
+                        <span class="text-sm">Usar conexión segura (SSL/TLS)</span>
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Usuario (Email)</label>
+                            <input type="email" id="ev-smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Contraseña</label>
+                            <input type="password" id="ev-smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre Remitente</label>
+                            <input type="text" id="ev-smtp-from-name" placeholder="Nombre del Evento" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Email Remitente</label>
+                            <input type="email" id="ev-smtp-from-email" placeholder="noreply@evento.com" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="App.saveEventEmailConfig()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar SMTP</button>
+                        <button onclick="App.testEventEmail()" class="px-6 py-3 bg-white/5 text-slate-400 rounded-xl font-bold text-sm hover:bg-white/10">Probar Conexión</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Templates Tab -->
+            <div id="content-templates" class="email-tab-content hidden">
+                <div id="event-email-templates-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                    <!-- Templates loaded by JS -->
+                </div>
+            </div>
+            
+            <!-- Agenda Tab -->
+            <div id="content-agenda" class="email-tab-content hidden">
+                <p class="text-slate-400 text-sm mb-4">Configura la agenda de tu evento. Se incluirá automáticamente en los emails de bienvenida.</p>
+                <div id="event-agenda-list" class="space-y-3 max-h-[400px] overflow-y-auto mb-4">
+                    <!-- Agenda items loaded by JS -->
+                </div>
+                <button onclick="App.addAgendaItem()" class="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">add</span> Agregar momento de agenda
+                </button>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="App.saveEventAgenda()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar Agenda</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: COMPANY CONFIG (V10.6) -->
+    <div id="modal-company" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] overflow-y-auto py-4 md:py-8">
+        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-xl w-full mx-auto shadow-2xl border border-white/10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Empresa</h3>
+                <button onclick="document.getElementById('modal-company').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            
+            <form id="company-form" class="space-y-5">
+                <input type="hidden" id="company-id-hidden">
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre de la Empresa *</label>
+                    <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field bg-slate-900/50">
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Descripción</label>
+                    <textarea id="company-description" placeholder="Descripción de la empresa..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Correo de Contacto</label>
+                        <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field bg-slate-900/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Teléfono</label>
+                        <input type="tel" id="company-phone" placeholder="+57 300 123 4567" class="input-field bg-slate-900/50">
+                    </div>
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Estado</label>
+                    <select id="company-status" class="input-field bg-slate-900/50">
+                        <option value="ACTIVE">Activo</option>
+                        <option value="INACTIVE">Inactivo</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-4 pt-5 border-t border-white/10">
+                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Empresa</button>
+                    <button type="button" id="close-company-modal" onclick="document.getElementById('modal-company').classList.add('hidden')" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT RESULTS (V5.5 Reinforced) -->
+    <div id="modal-import-results" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-12 rounded-[56px] max-w-xl w-full shadow-2xl border border-white/10">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+                </div>
+                <h3 class="text-3xl font-black font-display tracking-tight">Análisis de Datos</h3>
+                <p class="text-slate-500 text-sm mt-2">Hemos analizado tu archivo. Revisa los resultados antes de procesarlos.</p>
+            </div>
+            
+            <div id="import-summary-content" class="space-y-6 mb-10">
+                <!-- JS Rendered Summary -->
+            </div>
+            
+            <div class="flex flex-col gap-4">
+                <button id="btn-confirm-import" class="btn-primary w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20">Procesar e Importar Ahora</button>
+                <button id="close-import-modal" class="w-full py-5 rounded-2xl bg-white/5 text-slate-500 font-black uppercase tracking-widest text-[10px]">Descartar Lectura</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="admin-file-import-excel" class="hidden" accept=".xlsx,.xls">
+    <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
+    
+    <!-- MODAL: POLÍTICA / TÉRMINOS -->
+    <div id="modal-legal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
+        <div class="glass-card p-10 rounded-[48px] max-w-2xl w-full shadow-2xl border border-white/10 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-legal-title" class="text-2xl font-black font-display">Política</h3>
+                <button id="btn-close-legal" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="modal-legal-content" class="overflow-y-auto flex-1 text-slate-400 text-sm leading-relaxed prose prose-invert max-w-none"></div>
+        </div>
+    </div>
+
+</div>

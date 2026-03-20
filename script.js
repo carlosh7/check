@@ -1409,9 +1409,51 @@ window.App = {
     logout() {
         console.log("CHECK: Cerrando sesión segura.");
         LS.remove('user');
+        LS.remove('selected_event_id');
+        LS.remove('selected_event_name');
         this.state.user = null;
         this.state.event = null;
+        // Remover app-shell si existe
+        const appShell = document.getElementById('app-container');
+        if (appShell) appShell.remove();
         this.showView('login', true);
+    },
+    
+    // --- APP SHELL LOADER ---
+    loadAppShell() {
+        return new Promise((resolve, reject) => {
+            console.log('[APP-SHELL] Cargando app-shell.html...');
+            fetch('/app-shell.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.body.insertAdjacentHTML('beforeend', html);
+                    console.log('[APP-SHELL] app-shell.html cargado exitosamente');
+                    // Re-inicializar listeners después de cargar
+                    this.attachAppListeners();
+                    resolve();
+                })
+                .catch(err => {
+                    console.error('[APP-SHELL] Error cargando app-shell:', err);
+                    reject(err);
+                });
+        });
+    },
+    
+    attachAppListeners() {
+        // Re-attach critical listeners para elementos del app-shell
+        const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+        const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+        
+        // Navigation
+        cl('sys-nav-users', () => window.switchSystemTab('users'));
+        cl('sys-nav-legal', () => window.switchSystemTab('legal'));
+        cl('sys-nav-account', () => window.switchSystemTab('account'));
+        cl('sys-nav-events', () => this.loadEvents());
+        
+        // Legal modal
+        cl('btn-open-policy', () => this.showLegalModal('policy'));
+        cl('btn-open-terms', () => this.showLegalModal('terms'));
+        cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
     },
     async loadAppVersion() {
         try {
@@ -1791,24 +1833,18 @@ window.switchAdminTab = function(tabName) {
 };
 
 // --- DOM READY BOOTSTRAP V10.2 ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
     console.log('[DOM] DOMContentLoaded fired');
     
-    // 0.5. QUITAR LOADING SCREEN (se quitó arriba en el HTML con script síncrono)
+    // 0.5. QUITAR LOADING SCREEN
     const ls = document.getElementById('loading-screen');
     if (ls) ls.remove();
-    
-    // INMEDIATAMENTE: asegurar que login esté visible y app-container oculto
-    const loginEl = document.getElementById('view-login');
-    const appEl = document.getElementById('app-container');
-    if (loginEl) { loginEl.classList.remove('hidden'); loginEl.style.display = 'flex'; }
-    if (appEl) { appEl.classList.add('hidden'); appEl.style.display = 'none'; }
 
-    // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
+    // 1. RESTORE SESSION FIRST
     let savedUser = null;
     try {
         savedUser = LS.get('user');
@@ -1821,14 +1857,28 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const user = JSON.parse(savedUser);
             console.log('[AUTH] parsed user:', user);
-            // Verificar sesión válida: debe tener userId o token
             if (user && (user.userId || user.token)) {
-                console.log('[AUTH] Valid session, showing app for role:', user.role);
+                console.log('[AUTH] Valid session, loading app-shell for role:', user.role);
                 window.App.state.user = user;
+                
+                // CARGAR APP-SHELL PRIMERO
+                try {
+                    await App.loadAppShell();
+                } catch(err) {
+                    console.error('[AUTH] Error cargando app-shell:', err);
+                    App.showView('login');
+                    return;
+                }
+                
+                // Actualizar sidebar info
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = user.username || 'Usuario';
                 if (sbr) sbr.textContent = user.role || 'Staff';
+                
+                // Ocultar login, mostrar app
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
                 
                 if (user.role === 'ADMIN') {
                     App.showView('system');
@@ -1885,20 +1935,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (d.success) { 
                 App.state.user = d; LS.set('user', JSON.stringify(d));
                 
+                // CARGAR APP-SHELL PRIMERO
+                try {
+                    await App.loadAppShell();
+                } catch(err) {
+                    console.error('[LOGIN] Error cargando app-shell:', err);
+                    alert('Error al cargar la aplicación.');
+                    return;
+                }
+                
                 // Actualizar sidebar info
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = d.username || 'Usuario';
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
+                // Ocultar login, mostrar app
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+                
                 // Actualizar permisos UI
-                console.log("[LOGIN] Llamando updateUIPermissions");
                 App.updateUIPermissions();
-                console.log("[LOGIN] Llamando updateRoleOptions");
                 App.updateRoleOptions();
                 
                 if (d.role === 'ADMIN') {
-                    console.log("[LOGIN] Navegando a system");
                     App.navigate('system');
                     setTimeout(() => window.switchSystemTab('users'), 100);
                 } else {
