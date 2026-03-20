@@ -881,7 +881,9 @@ window.App = {
     
     loadEmailTemplates: async function() {
         try {
+            console.log("[DEBUG] Loading templates, user:", this.state.user);
             const templates = await this.fetchAPI('/email-templates');
+            console.log("[DEBUG] Templates loaded:", templates);
             this.state.emailTemplates = templates; // Guardar en estado
             
             const container = document.getElementById('email-templates-list');
@@ -902,10 +904,10 @@ window.App = {
                 }
             }
         } catch (e) { 
-            console.error('Error loading templates:', e); 
+            console.error('[ERROR] loadEmailTemplates:', e); 
             const container = document.getElementById('email-templates-list');
             if (container) {
-                container.innerHTML = '<p class="text-red-400 text-center py-8">Error al cargar plantillas. Verifica que tienes permisos de administrador.</p>';
+                container.innerHTML = `<p class="text-red-400 text-center py-8">Error al cargar plantillas: ${e.message}</p>`;
             }
         }
     },
