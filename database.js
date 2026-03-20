@@ -284,8 +284,11 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     subject TEXT,
     body TEXT,
     is_active INTEGER DEFAULT 1,
-    updated_at TEXT
+    event_id TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
+try { db.exec("ALTER TABLE email_templates ADD COLUMN event_id TEXT"); } catch (_) {}
 
 // ═══ FASE 4: BUZÓN Y ENVÍO MASIVO (V11.0) ═══
 
