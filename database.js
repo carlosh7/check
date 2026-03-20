@@ -330,74 +330,55 @@ try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribed INTEGER DEFAULT 0"); }
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribe_token TEXT"); } catch (_) {}
 
 // Semillas de plantillas de email por defecto
-const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates").get();
-if (templateCount.count === 0) {
+// Semillas de plantillas de email por defecto (Sistema)
+const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL").get();
+if (templateCount.count <= 2) { // Si hay pocos o faltan las nuevas, forzamos actualización de estilo
     const templates = [
         {
             id: 'user_approved',
             name: 'Aprobación de Cuenta',
-            subject: '¡Bienvenido a Check! Tu cuenta ha sido aprobada',
-            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
-        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">¡Cuenta Aprobada!</h2>
-        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{user_name}}, nos complace informarte que tu cuenta en <strong>Check Pro</strong> ha sido aprobada exitosamente.</p>
-        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">A continuación encontrarás tus credenciales de acceso:</p>
-        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="margin: 5px 0; color: #f8fafc;"><strong>Email:</strong> {{email}}</p>
-            <p style="margin: 5px 0; color: #f8fafc;"><strong>Contraseña temporal:</strong> {{password}}</p>
-            <p style="margin: 5px 0; color: #f8fafc;"><strong>Rol asignado:</strong> {{role}}</p>
+            subject: '¡Tu cuenta ha sido aprobada! - Check Pro',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">¡Cuenta Aprobada!</h1>
         </div>
-        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center;">Por favor, inicia sesión y cambia tu contraseña por seguridad.</p>
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="{{login_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Acceder a la Plataforma</a>
-        </div>
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
-            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, nos complace informarte que tu solicitud de acceso a <strong>Check Pro</strong> ha sido aprobada exitosamente.</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit;"><strong>Usuario:</strong> {{email}}</p>
+                <p style="margin: 5px 0; color: inherit;"><strong>Contraseña:</strong> {{password}}</p>
+                <p style="margin: 5px 0; color: inherit;"><strong>Rol:</strong> {{role}}</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">Entrar a Check Pro</a>
+            </div>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+            </div>
         </div>
     </div>
 </div>`
         },
         {
             id: 'user_invited',
-            name: 'Invitación a Usuario',
-            subject: 'Has sido invitado a unirte a {{company_name}} en Check',
-            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
-        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">Invitación de Equipo</h2>
-        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{user_name}}, has sido invitado(a) a formar parte de <strong>{{company_name}}</strong> en la plataforma Check Pro.</p>
-        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="margin: 5px 0; color: #f8fafc; text-align: center;"><strong>Tu rol asignado:</strong> {{role}}</p>
+            name: 'Invitación a Equipo',
+            subject: 'Has sido invitado a {{company_name}} en Check Pro',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">Invitación de Equipo</h1>
         </div>
-        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center;">Ya puedes acceder para comenzar a colaborar con tu equipo.</p>
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="{{login_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Entrar a Check Pro</a>
-        </div>
-        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
-            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
-        </div>
-    </div>
-</div>`
-        },
-        {
-            id: 'user_approved',
-            name: 'Aprobación de Cuenta',
-            subject: '¡Tu cuenta ha sido aprobada! - Check Pro',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">¡Cuenta Aprobada!</h1>
-        </div>
-        <div style="padding: 30px;">
-            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, nos complace informarte que tu solicitud de acceso a <strong>Check Pro</strong> ha sido aprobada exitosamente.</p>
-            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 20px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
-                <p style="margin: 5px 0; color: inherit;"><strong>Usuario:</strong> {{email}}</p>
-                <p style="margin: 5px 0; color: inherit;"><strong>Contraseña:</strong> {{password}}</p>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, has sido invitado(a) a formar parte de <strong>{{company_name}}</strong>.</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px;"><strong>Rol asignado:</strong> {{role}}</p>
             </div>
             <div style="text-align: center; margin-top: 30px;">
-                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Entrar a Check Pro</a>
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">Aceptar Invitación</a>
             </div>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
             </div>
         </div>
     </div>
@@ -407,21 +388,22 @@ if (templateCount.count === 0) {
             id: 'password_reset',
             name: 'Recuperación de Contraseña',
             subject: 'Restablece tu contraseña - Check Pro',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">Restablecer Contraseña</h1>
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">Recuperar Acceso</h1>
         </div>
-        <div style="padding: 30px;">
-            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, hemos recibido una solicitud para restablecer tu contraseña.</p>
-            <div style="background: rgba(124, 58, 237, 0.1); border: 2px dashed #7c3aed; border-radius: 16px; padding: 20px; margin: 25px 0; text-align: center;">
-                <span style="font-size: 32px; font-weight: 800; letter-spacing: 5px; color: inherit;">{{reset_code}}</span>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, recibimos una solicitud para restablecer tu contraseña. Usa el siguiente código:</p>
+            <div style="background: rgba(124, 58, 237, 0.08); border: 2px dashed #7c3aed; border-radius: 16px; padding: 30px; margin: 25px 0; text-align: center;">
+                <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: inherit;">{{reset_code}}</span>
             </div>
+            <p style="text-align: center; color: inherit; opacity: 0.6; font-size: 14px;">El código expira en 30 minutos.</p>
             <div style="text-align: center; margin-top: 30px;">
                 <a href="{{reset_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Restablecer mi Contraseña</a>
             </div>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">Si no solicitaste este cambio, ignora este mensaje.</p>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">Si no solicitaste este cambio, ignora este mensaje.</p>
             </div>
         </div>
     </div>
@@ -429,10 +411,9 @@ if (templateCount.count === 0) {
         }
     ];
 
-    
-    const insertTemplate = db.prepare("INSERT INTO email_templates (id, name, subject, body, updated_at) VALUES (?, ?, ?, ?, ?)");
     templates.forEach(t => {
-        insertTemplate.run(t.id, t.name, t.subject, t.body, new Date().toISOString());
+        db.prepare("INSERT OR REPLACE INTO email_templates (id, name, subject, body, updated_at) VALUES (?, ?, ?, ?, ?)")
+          .run(t.id, t.name, t.subject, t.body, new Date().toISOString());
     });
 }
 
@@ -465,20 +446,24 @@ function createEventEmailTemplates(eventId) {
             template_type: 'registration_confirm',
             name: 'Confirmación de registro',
             subject: '¡Registro exitoso! - {{event_name}}',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">Confirmación de Registro</h1>
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">¡Registro Confirmado!</h1>
         </div>
-        <div style="padding: 30px;">
-            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, tu registro para <strong>{{event_name}}</strong> ha sido procesado con éxito.</p>
-            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 20px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
-                <p style="margin: 5px 0; color: inherit;"><strong>📅 Fecha:</strong> {{event_date}}</p>
-                <p style="margin: 5px 0; color: inherit;"><strong>📍 Ubicación:</strong> {{event_location}}</p>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, tu registro para el evento ha sido procesado con éxito.</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px; text-align: center;"><strong>{{event_name}}</strong></p>
+                <div style="margin-top: 15px; border-top: 1px solid rgba(124, 58, 237, 0.1); padding-top: 15px;">
+                    <p style="margin: 5px 0; color: inherit;"><strong>📅 Fecha:</strong> {{event_date}}</p>
+                    <p style="margin: 5px 0; color: inherit;"><strong>📍 Ubicación:</strong> {{event_location}}</p>
+                </div>
             </div>
             <p style="line-height: 1.6; font-size: 16px; color: inherit; text-align: center;">Estamos ansiosos de contar con tu presencia.</p>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+                <p style="font-size: 11px; opacity: 0.4; margin-top: 10px;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
             </div>
         </div>
     </div>
@@ -491,19 +476,20 @@ function createEventEmailTemplates(eventId) {
             template_type: 'checkin_welcome',
             name: 'Bienvenida con agenda',
             subject: '¡Bienvenido! - {{event_name}}',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">¡Bienvenido!</h1>
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">¡Bienvenido(a)!</h1>
         </div>
-        <div style="padding: 30px;">
+        <div style="padding: 40px;">
             <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, agradecemos tu puntualidad. Tu ingreso a <strong>{{event_name}}</strong> ha sido registrado.</p>
-            <h3 style="color: inherit; font-size: 18px; margin-top: 30px; border-bottom: 2px solid #7c3aed; display: inline-block;">📋 Agenda del Día</h3>
-            <div style="margin-top: 15px; color: inherit; line-height: 1.6;">
+            <h3 style="color: #7c3aed; font-size: 18px; margin-top: 30px; border-bottom: 2px solid #7c3aed; padding-bottom: 5px; display: inline-block;">📋 Agenda del Día</h3>
+            <div style="margin: 20px 0; color: inherit; line-height: 1.8; background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px;">
                 {{agenda}}
             </div>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">Esperamos que disfrutes de la experiencia.</p>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">Esperamos que disfrutes de la experiencia.</p>
+                <p style="font-size: 11px; opacity: 0.4; margin-top: 10px;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
             </div>
         </div>
     </div>
@@ -516,16 +502,20 @@ function createEventEmailTemplates(eventId) {
             template_type: 'event_thanks',
             name: 'Agradecimiento post-evento',
             subject: '¡Gracias por asistir! - {{event_name}}',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">¡Gracias!</h1>
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">¡Gracias!</h1>
         </div>
-        <div style="padding: 30px;">
+        <div style="padding: 40px;">
             <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, ha sido un honor contar con tu presencia en <strong>{{event_name}}</strong>.</p>
-            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Esperamos que los contenidos y conexiones te resulten de gran valor.</p>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">¡Nos vemos pronto!</p>
+            <p style="line-height: 1.6; font-size: 16px; color: inherit; margin-top: 15px;">Esperamos que los contenidos y conexiones te resulten de gran valor para tu futuro profesional.</p>
+            <div style="text-align: center; margin-top: 30px;">
+                <span style="font-size: 40px;">🌟</span>
+            </div>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">¡Nos vemos pronto!</p>
+                <p style="font-size: 11px; opacity: 0.4; margin-top: 10px;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
             </div>
         </div>
     </div>
@@ -538,18 +528,19 @@ function createEventEmailTemplates(eventId) {
             template_type: 'suggestion_request',
             name: 'Solicitud de sugerencias',
             subject: 'Tu opinión es fundamental - {{event_name}}',
-            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: inherit; background: transparent;">
-    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 30px; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; text-shadow: none;">Queremos Escucharte</h1>
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">Danos tu Opinión</h1>
         </div>
-        <div style="padding: 30px;">
-            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, nos gustaría conocer tu opinión para seguir mejorando.</p>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{guest_name}}</strong>, nos encantaría saber qué te pareció <strong>{{event_name}}</strong> para seguir mejorando la experiencia.</p>
             <div style="text-align: center; margin-top: 30px;">
-                <a href="{{suggestion_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Enviar Sugerencia</a>
+                <a href="{{suggestion_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);">Enviar Sugerencia</a>
             </div>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
-                <p style="font-size: 13px; opacity: 0.7; margin: 0;">¡Gracias por tu tiempo!</p>
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 13px; opacity: 0.6; margin: 0;">¡Gracias por tu tiempo!</p>
+                <p style="font-size: 11px; opacity: 0.4; margin-top: 10px;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
             </div>
         </div>
     </div>
