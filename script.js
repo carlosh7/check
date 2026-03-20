@@ -426,10 +426,6 @@ window.App = {
     // Mostrar selector de empresas para asignar
     showGroupSelector: function(userId, currentGroupId) {
         const groups = this.state.allGroups || [];
-        if (groups.length === 0) {
-            alert('No hay empresas disponibles. Crea una primero.');
-            return;
-        }
         
         const options = groups.map(g => 
             `<option value="${g.id}" ${g.id === currentGroupId ? 'selected' : ''}>${g.name}</option>`
@@ -449,6 +445,7 @@ window.App = {
                 </select>
                 <div class="flex gap-3">
                     <button onclick="App.assignUserGroupFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
+                    <button onclick="App.quickCreateGroupFromUser()" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
                     <button onclick="App.closeGroupSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
@@ -468,6 +465,26 @@ window.App = {
                 this.closeGroupSelector();
             }
         } catch(e) { console.error('Error assigning group:', e); }
+    },
+    
+    quickCreateGroupFromUser: function() {
+        const name = prompt('Nombre de la nueva empresa:');
+        if (!name || !name.trim()) return;
+        const description = prompt('Descripción (opcional):') || '';
+        
+        fetch('/api/groups', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim(), description })
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                alert('✓ Empresa creada');
+                this.loadGroups().then(() => {
+                    this.closeGroupSelector();
+                    this.loadUsersTable();
+                });
+            }
+        }).catch(() => alert('Error al crear empresa'));
     },
     
     closeGroupSelector: function() {
@@ -503,6 +520,7 @@ window.App = {
                 </select>
                 <div class="flex gap-3">
                     <button onclick="App.assignEventFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
+                    <button onclick="App.quickCreateEventFromUser()" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
                     <button onclick="App.closeEventSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
@@ -514,16 +532,49 @@ window.App = {
         const eventId = select.value;
         if (!eventId) return alert('Selecciona un evento');
         
+        // Obtener eventos actuales del usuario desde la tabla en pantalla
+        const userRow = this.state.allUsers?.find(u => u.id === userId);
+        const currentEvents = userRow?.events || [];
+        
         try {
+            // Enviar TODOS los eventos (los actuales + el nuevo)
             const res = await this.fetchAPI(`/users/${userId}/events`, { 
                 method: 'PUT', 
-                body: JSON.stringify({ events: [...(this._tempUserEvents || []), eventId] }) 
+                body: JSON.stringify({ events: [...currentEvents, eventId] }) 
             });
             if (res.success) {
                 this.loadUsersTable();
                 this.closeEventSelector();
             }
         } catch(e) { console.error('Error adding event:', e); }
+    },
+    
+    quickCreateEventFromUser: function() {
+        const name = prompt('Nombre del nuevo evento:');
+        if (!name || !name.trim()) return;
+        const date = prompt('Fecha del evento (YYYY-MM-DD HH:MM):') || '';
+        const formData = new FormData();
+        formData.append('name', name.trim());
+        formData.append('date', date);
+        formData.append('end_date', date);
+        formData.append('location', '');
+        formData.append('description', '');
+        
+        fetch('/api/events', {
+            method: 'POST',
+            headers: { 'x-user-id': this.state.user.userId },
+            body: formData
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                alert('✓ Evento creado');
+                this.loadEvents().then(() => {
+                    // Re-abrir selector con el nuevo evento disponible
+                    this.closeEventSelector();
+                    // Forzar reload de users table para actualizar dropdowns
+                    this.loadUsersTable();
+                });
+            }
+        }).catch(() => alert('Error al crear evento'));
     },
     
     closeEventSelector: function() {
@@ -587,6 +638,22 @@ window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName) {
+        
+        // 0. Verificar sesión solo si no hay usuario en estado
+        if (viewName !== 'login') {
+            if (!this.state.user) {
+                const savedUser = localStorage.getItem('user');
+                if (!savedUser || savedUser === "undefined" || savedUser === "null") {
+                    viewName = 'login';
+                } else {
+                    try {
+                        this.state.user = JSON.parse(savedUser);
+                    } catch(e) {
+                        viewName = 'login';
+                    }
+                }
+            }
+        }
         
         // 1. Mostrar/Ocultar Contenedores Principales
         const isLogin = viewName === 'login';
@@ -673,18 +740,22 @@ window.App = {
 
     initRouter() {
         window.onpopstate = (e) => {
-            // Botón atrás: solo navegar si hay estado guardado
+            // Botón atrás: verificar sesión desde localStorage
+            const savedUser = localStorage.getItem('user');
+            const hasValidSession = savedUser && savedUser !== "undefined" && savedUser !== "null";
+            
             if (e.state && e.state.view) {
-                // Verificar si debemos ir a login
-                if (!this.state.user && e.state.view !== 'login') {
+                if (!hasValidSession && e.state.view !== 'login') {
                     history.replaceState(null, '', '/');
                     this.showView('login');
                     return;
                 }
                 this.navigate(e.state.view, e.state.params, false);
             } else {
-                // Sin estado, ir a login
-                this.showView('login');
+                // Sin estado, verificar sesión
+                if (!hasValidSession) {
+                    this.showView('login');
+                }
             }
         };
     },
@@ -1089,26 +1160,35 @@ document.addEventListener('DOMContentLoaded', () => {
     App.loadAppVersion();
     App.initRouter();
 
-    // 1. SIEMPRE mostrar login primero
-    App.showView('login');
-
-    // 2. Intentar restaurar sesión solo si existe un token válido
-    try {
-        const s = localStorage.getItem('user');
-        if (s && s !== "undefined" && s !== "null") {
-            const user = JSON.parse(s);
+    // 1. Verificar sesión y mostrar vista correspondiente
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+        try {
+            const user = JSON.parse(savedUser);
             if (user && user.token) {
                 window.App.state.user = user;
-                // Si hay sesión válida, cargar contenido
+                // Actualizar sidebar con info del usuario
+                const sbu = document.getElementById('sidebar-username');
+                const sbr = document.getElementById('sidebar-role');
+                if (sbu) sbu.textContent = user.username || 'Usuario';
+                if (sbr) sbr.textContent = user.role || 'Staff';
+                
+                // Navegar a la vista según rol
                 if (user.role === 'ADMIN') {
-                    window.App.showView('system');
-                    window.switchSystemTab('users');
+                    App.showView('system');
+                    App.updateUIPermissions();
+                    App.updateRoleOptions();
+                    setTimeout(() => window.switchSystemTab('users'), 100);
                 } else {
                     App.loadEvents();
                 }
+                return; // No mostrar login
             }
-        }
-    } catch(e){}
+        } catch(e){}
+    }
+    
+    // 2. Si no hay sesión válida, mostrar login
+    App.showView('login');
 
     // 3. Sockets
     if (typeof io !== 'undefined') {
