@@ -1075,8 +1075,10 @@ window.App = {
     },
     
     _initTemplateEditor: function(initialHtml) {
+        console.log('[QUILL] initTemplateEditor called, existing editor:', !!this.state.quillEditor);
         const container = document.getElementById('tpl-quill-editor');
         if (this.state.quillEditor) {
+            console.log('[QUILL] destroying existing editor');
             try { this.state.quillEditor.destroy(); } catch(e) {}
             this.state.quillEditor = null;
         }
