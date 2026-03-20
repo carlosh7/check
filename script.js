@@ -948,6 +948,267 @@ window.App = {
         document.getElementById('modal-template-editor')?.remove();
     },
     
+    // --- EVENT EMAIL CONFIG V10.6 ---
+    currentEventId: null,
+    
+    openEventEmailConfig: function() {
+        const eventId = document.getElementById('ev-id-hidden').value;
+        if (!eventId) return alert('Guarda el evento primero');
+        
+        this.currentEventId = eventId;
+        const event = this.state.events?.find(e => String(e.id) === String(eventId));
+        document.getElementById('email-event-name').textContent = event?.name || 'Evento';
+        
+        // Load config
+        this.loadEventEmailConfig(eventId);
+        this.loadEventEmailTemplates(eventId);
+        this.loadEventAgenda(eventId);
+        
+        document.getElementById('modal-event-email')?.classList.remove('hidden');
+    },
+    
+    closeEventEmailConfig: function() {
+        document.getElementById('modal-event-email')?.classList.add('hidden');
+        this.currentEventId = null;
+    },
+    
+    switchEmailTab: function(tab) {
+        document.querySelectorAll('.email-tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab)?.classList.add('active');
+        document.querySelectorAll('.email-tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById('content-' + tab)?.classList.remove('hidden');
+    },
+    
+    loadEventEmailConfig: async function(eventId) {
+        try {
+            const config = await this.fetchAPI(`/events/${eventId}/email-config`);
+            document.getElementById('ev-smtp-enabled').checked = config.enabled == 1;
+            document.getElementById('ev-smtp-host').value = config.smtp_host || '';
+            document.getElementById('ev-smtp-port').value = config.smtp_port || 587;
+            document.getElementById('ev-smtp-secure').checked = config.smtp_secure == 1;
+            document.getElementById('ev-smtp-user').value = config.smtp_user || '';
+            document.getElementById('ev-smtp-pass').value = config.smtp_pass || '';
+            document.getElementById('ev-smtp-from-name').value = config.from_name || '';
+            document.getElementById('ev-smtp-from-email').value = config.from_email || '';
+        } catch (e) { console.error('Error loading event email config:', e); }
+    },
+    
+    saveEventEmailConfig: async function() {
+        const eventId = this.currentEventId;
+        const data = {
+            smtp_host: document.getElementById('ev-smtp-host').value,
+            smtp_port: parseInt(document.getElementById('ev-smtp-port').value) || 587,
+            smtp_user: document.getElementById('ev-smtp-user').value,
+            smtp_pass: document.getElementById('ev-smtp-pass').value,
+            smtp_secure: document.getElementById('ev-smtp-secure').checked,
+            from_name: document.getElementById('ev-smtp-from-name').value,
+            from_email: document.getElementById('ev-smtp-from-email').value,
+            enabled: document.getElementById('ev-smtp-enabled').checked
+        };
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/email-config`, { 
+                method: 'PUT', 
+                body: JSON.stringify(data) 
+            });
+            alert('✓ Configuración SMTP guardada');
+        } catch (e) { alert('Error al guardar configuración'); }
+    },
+    
+    testEventEmail: async function() {
+        const testEmail = prompt('Ingresa un email de prueba:');
+        if (!testEmail) return;
+        
+        try {
+            const res = await this.fetchAPI(`/events/${this.currentEventId}/email-test`, {
+                method: 'POST',
+                body: JSON.stringify({ test_email: testEmail })
+            });
+            if (res.success) {
+                alert('✓ Email de prueba enviado (revisa la consola del servidor)');
+            } else {
+                alert('Error: ' + (res.error || 'No se pudo enviar'));
+            }
+        } catch (e) { alert('Error al probar conexión'); }
+    },
+    
+    loadEventEmailTemplates: async function(eventId) {
+        try {
+            const templates = await this.fetchAPI(`/events/${eventId}/email-templates`);
+            this.state.eventEmailTemplates = templates;
+            
+            const container = document.getElementById('event-email-templates-list');
+            if (container) {
+                const templateNames = {
+                    'registration_confirm': 'Confirmación de registro',
+                    'checkin_welcome': 'Bienvenida con agenda',
+                    'event_thanks': 'Agradecimiento post-evento',
+                    'suggestion_request': 'Solicitud de sugerencias'
+                };
+                
+                const autoLabels = {
+                    'registration_confirm': 'Al registrarse',
+                    'checkin_welcome': 'Al hacer check-in',
+                    'event_thanks': 'Post-evento',
+                    'suggestion_request': '1 día después'
+                };
+                
+                container.innerHTML = templates.map(t => `
+                    <div class="template-editor">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h5 class="font-bold text-white">${templateNames[t.template_type] || t.template_type}</h5>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <label class="flex items-center gap-1 text-xs">
+                                        <input type="checkbox" ${t.is_active == 1 ? 'checked' : ''} onchange="App.toggleEventTemplateActive('${t.template_type}', this.checked)">
+                                        <span class="text-slate-400">Activo</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 text-xs">
+                                        <input type="checkbox" ${t.auto_send == 1 ? 'checked' : ''} onchange="App.toggleEventTemplateAutoSend('${t.template_type}', this.checked)">
+                                        <span class="text-primary">Auto ${autoLabels[t.template_type] || ''}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Asunto</label>
+                                <input type="text" id="ev-tpl-subject-${t.template_type}" value="${t.subject || ''}" class="input-field bg-slate-800/50 text-sm" placeholder="Asunto del email">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Cuerpo (HTML)</label>
+                                <textarea id="ev-tpl-body-${t.template_type}" rows="6" class="input-field bg-slate-800/50 text-xs resize-none">${t.body || ''}</textarea>
+                            </div>
+                            <div class="text-[10px] text-slate-500">
+                                Variables: {{guest_name}}, {{guest_email}}, {{event_name}}, {{event_date}}, {{event_location}}, {{checkin_time}}, {{agenda}}, {{organization}}
+                            </div>
+                            <button onclick="App.saveEventEmailTemplate('${t.template_type}')" class="w-full py-2 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Guardar Plantilla</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (e) { console.error('Error loading event templates:', e); }
+    },
+    
+    saveEventEmailTemplate: async function(templateType) {
+        const eventId = this.currentEventId;
+        const subject = document.getElementById(`ev-tpl-subject-${templateType}`)?.value || '';
+        const body = document.getElementById(`ev-tpl-body-${templateType}`)?.value || '';
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/email-templates/${templateType}`, {
+                method: 'PUT',
+                body: JSON.stringify({ subject, body })
+            });
+            alert('✓ Plantilla guardada');
+        } catch (e) { alert('Error al guardar plantilla'); }
+    },
+    
+    toggleEventTemplateActive: async function(templateType, isActive) {
+        const eventId = this.currentEventId;
+        const template = this.state.eventEmailTemplates?.find(t => t.template_type === templateType);
+        if (!template) return;
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/email-templates/${templateType}`, {
+                method: 'PUT',
+                body: JSON.stringify({ 
+                    subject: template.subject, 
+                    body: template.body,
+                    is_active: isActive ? 1 : 0,
+                    auto_send: template.auto_send
+                })
+            });
+        } catch (e) { console.error('Error toggling template:', e); }
+    },
+    
+    toggleEventTemplateAutoSend: async function(templateType, autoSend) {
+        const eventId = this.currentEventId;
+        const template = this.state.eventEmailTemplates?.find(t => t.template_type === templateType);
+        if (!template) return;
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/email-templates/${templateType}`, {
+                method: 'PUT',
+                body: JSON.stringify({ 
+                    subject: template.subject, 
+                    body: template.body,
+                    is_active: template.is_active,
+                    auto_send: autoSend ? 1 : 0
+                })
+            });
+        } catch (e) { console.error('Error toggling auto send:', e); }
+    },
+    
+    // Agenda
+    loadEventAgenda: async function(eventId) {
+        try {
+            const agenda = await this.fetchAPI(`/events/${eventId}/agenda`);
+            this.state.eventAgenda = agenda;
+            this.renderEventAgenda(agenda);
+        } catch (e) { console.error('Error loading agenda:', e); }
+    },
+    
+    renderEventAgenda: function(agenda) {
+        const container = document.getElementById('event-agenda-list');
+        if (!container) return;
+        
+        container.innerHTML = agenda.map((item, index) => `
+            <div class="agenda-item flex gap-3 items-start" data-index="${index}">
+                <div class="flex-1 grid grid-cols-4 gap-2">
+                    <input type="time" value="${item.start_time || ''}" data-field="start_time" class="w-28">
+                    <input type="time" value="${item.end_time || ''}" data-field="end_time" class="w-28">
+                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="Título" class="flex-1">
+                    <input type="text" value="${item.speaker || ''}" data-field="speaker" placeholder="Ponente" class="flex-1">
+                </div>
+                <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+            </div>
+        `).join('');
+    },
+    
+    addAgendaItem: function() {
+        const container = document.getElementById('event-agenda-list');
+        const index = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'agenda-item flex gap-3 items-start';
+        div.dataset.index = index;
+        div.innerHTML = `
+            <div class="flex-1 grid grid-cols-4 gap-2">
+                <input type="time" value="" data-field="start_time" class="w-28">
+                <input type="time" value="" data-field="end_time" class="w-28">
+                <input type="text" value="" data-field="title" placeholder="Título" class="flex-1">
+                <input type="text" value="" data-field="speaker" placeholder="Ponente" class="flex-1">
+            </div>
+            <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+        `;
+        container.appendChild(div);
+    },
+    
+    saveEventAgenda: async function() {
+        const eventId = this.currentEventId;
+        const items = [];
+        
+        document.querySelectorAll('#event-agenda-list .agenda-item').forEach(div => {
+            const item = {};
+            div.querySelectorAll('input').forEach(input => {
+                item[input.dataset.field] = input.value;
+            });
+            if (item.title) items.push(item);
+        });
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/agenda`, {
+                method: 'PUT',
+                body: JSON.stringify({ agenda_items: items })
+            });
+            alert('✓ Agenda guardada');
+        } catch (e) { alert('Error al guardar agenda'); }
+    },
+    
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
         

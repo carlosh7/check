@@ -939,9 +939,105 @@
                 
                 <div class="flex gap-4 pt-5 border-t border-white/10">
                     <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
+                    <button type="button" id="btn-open-email-config" onclick="App.openEventEmailConfig()" class="px-4 py-4 bg-white/5 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/20 hover:text-primary transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">mail</span> Emails
+                    </button>
                     <button type="button" id="close-modal" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EVENT EMAIL CONFIG (V10.6) -->
+    <div id="modal-event-email" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[200] overflow-y-auto py-4 md:py-8">
+        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-4xl w-full mx-auto shadow-2xl border border-white/10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Emails - <span id="email-event-name" class="text-primary"></span></h3>
+                <button onclick="App.closeEventEmailConfig()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-6 border-b border-white/10 pb-4">
+                <button onclick="App.switchEmailTab('smtp')" id="tab-smtp" class="email-tab-btn active px-4 py-2 rounded-lg text-xs font-bold">SMTP</button>
+                <button onclick="App.switchEmailTab('templates')" id="tab-templates" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Plantillas</button>
+                <button onclick="App.switchEmailTab('agenda')" id="tab-agenda" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Agenda</button>
+            </div>
+            
+            <!-- SMTP Tab -->
+            <div id="content-smtp" class="email-tab-content">
+                <div class="space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                        <input type="checkbox" id="ev-smtp-enabled" class="w-5 h-5 accent-primary">
+                        <span class="font-bold text-sm">Habilitar emails personalizados para este evento</span>
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Servidor SMTP</label>
+                            <input type="text" id="ev-smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Puerto</label>
+                            <input type="number" id="ev-smtp-port" placeholder="587" value="587" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl">
+                        <input type="checkbox" id="ev-smtp-secure" class="w-4 h-4 accent-primary">
+                        <span class="text-sm">Usar conexión segura (SSL/TLS)</span>
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Usuario (Email)</label>
+                            <input type="email" id="ev-smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Contraseña</label>
+                            <input type="password" id="ev-smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre Remitente</label>
+                            <input type="text" id="ev-smtp-from-name" placeholder="Nombre del Evento" class="input-field bg-slate-900/50">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Email Remitente</label>
+                            <input type="email" id="ev-smtp-from-email" placeholder="noreply@evento.com" class="input-field bg-slate-900/50">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="App.saveEventEmailConfig()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar SMTP</button>
+                        <button onclick="App.testEventEmail()" class="px-6 py-3 bg-white/5 text-slate-400 rounded-xl font-bold text-sm hover:bg-white/10">Probar Conexión</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Templates Tab -->
+            <div id="content-templates" class="email-tab-content hidden">
+                <div id="event-email-templates-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                    <!-- Templates loaded by JS -->
+                </div>
+            </div>
+            
+            <!-- Agenda Tab -->
+            <div id="content-agenda" class="email-tab-content hidden">
+                <p class="text-slate-400 text-sm mb-4">Configura la agenda de tu evento. Se incluirá automáticamente en los emails de bienvenida.</p>
+                <div id="event-agenda-list" class="space-y-3 max-h-[400px] overflow-y-auto mb-4">
+                    <!-- Agenda items loaded by JS -->
+                </div>
+                <button onclick="App.addAgendaItem()" class="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">add</span> Agregar momento de agenda
+                </button>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="App.saveEventAgenda()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar Agenda</button>
+                </div>
+            </div>
         </div>
     </div>
 

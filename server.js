@@ -4,7 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const db = require('./database');
+const { db, createEventEmailTemplates } = require('./database');
 const multer = require('multer');
 const ExcelJS = require('exceljs');
 const qrcode = require('qrcode');
@@ -154,6 +154,121 @@ async function sendPasswordResetEmail(user, resetCode) {
     
     return sendEmail(user.username, subject, html);
 }
+
+// --- EMAIL POR EVENTO ---
+async function getEventEmailConfig(eventId) {
+    return db.prepare("SELECT * FROM event_email_config WHERE event_id = ? AND enabled = 1").get(eventId);
+}
+
+async function getEventEmailTemplate(eventId, templateType) {
+    return db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? AND template_type = ? AND is_active = 1").get(eventId, templateType);
+}
+
+async function getEventAgenda(eventId) {
+    const agenda = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY sort_order, start_time").all(eventId);
+    return agenda.map(item => {
+        let time = '';
+        if (item.start_time) {
+            time = item.start_time;
+            if (item.end_time) time += ` - ${item.end_time}`;
+        }
+        return `<p><strong>${time} ${item.title}</strong>${item.speaker ? ` - ${item.speaker}` : ''}${item.location ? ` @ ${item.location}` : ''}</p>`;
+    }).join('');
+}
+
+async function sendEventEmail(eventId, to, templateType, data = {}) {
+    try {
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+        if (!event) return { success: false, error: 'Evento no encontrado' };
+        
+        const config = await getEventEmailConfig(eventId);
+        
+        // Si no hay config de evento, usar SMTP global
+        let transporter, fromConfig;
+        if (config && config.smtp_host) {
+            transporter = nodemailer.createTransport({
+                host: config.smtp_host,
+                port: config.smtp_port || 587,
+                secure: config.smtp_secure === 1,
+                auth: {
+                    user: config.smtp_user,
+                    pass: config.smtp_pass
+                }
+            });
+            fromConfig = {
+                name: config.from_name || event.name,
+                email: config.from_email || config.smtp_user
+            };
+        } else {
+            // Fallback a SMTP global
+            const globalConfig = await getSMTPConfig();
+            if (!globalConfig || !globalConfig.smtp_host) {
+                console.log('📧 Event email simulation (no SMTP):', { eventId, to, templateType });
+                return { success: true, simulated: true };
+            }
+            transporter = nodemailer.createTransport({
+                host: globalConfig.smtp_host,
+                port: globalConfig.smtp_port || 587,
+                secure: globalConfig.smtp_secure === 1,
+                auth: {
+                    user: globalConfig.smtp_user,
+                    pass: globalConfig.smtp_pass
+                }
+            });
+            fromConfig = {
+                name: globalConfig.from_name || 'Check',
+                email: globalConfig.from_email || globalConfig.smtp_user
+            };
+        }
+        
+        // Obtener plantilla
+        const template = await getEventEmailTemplate(eventId, templateType);
+        if (!template) {
+            console.log('📧 Event email skipped (no template):', { eventId, to, templateType });
+            return { success: false, error: 'Plantilla no encontrada o inactiva' };
+        }
+        
+        // Preparar variables
+        const variables = {
+            guest_name: data.guest_name || '',
+            guest_email: data.email || to,
+            event_name: event.name,
+            event_date: event.date ? new Date(event.date).toLocaleString('es-ES') : '',
+            event_location: event.location || '',
+            organization: data.organization || '',
+            checkin_time: data.checkin_time || new Date().toLocaleString('es-ES'),
+            agenda: data.agenda || await getEventAgenda(eventId),
+            suggestion_url: `${req?.headers?.origin || 'http://localhost:3000'}/suggest.html?event=${eventId}${data.guest_id ? '&guest=' + data.guest_id : ''}`
+        };
+        
+        // Reemplazar variables
+        let subject = template.subject;
+        let html = template.body;
+        for (const [key, value] of Object.entries(variables)) {
+            subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
+            html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        }
+        
+        const mailOptions = {
+            from: `"${fromConfig.name}" <${fromConfig.email}>`,
+            to,
+            subject,
+            html
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('📧 Event email sent:', { eventId, to, templateType, messageId: result.messageId });
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.error('📧 Event email error:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
+// Función wrapper para enviar emails automáticos (sin access a req)
+global.sendEventEmailAuto = async function(eventId, to, templateType, data = {}) {
+    return sendEventEmail(eventId, to, templateType, data);
+};
 
 // --- SECURITY MIDDLEWARE ---
 app.use(helmet({
@@ -699,6 +814,10 @@ app.post('/api/events', authMiddleware(['ADMIN', 'PRODUCTOR']), upload.single('l
     try {
         db.prepare("INSERT INTO events (id, user_id, name, date, end_date, location, logo_url, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
           .run(id, userId, name, date, end_date, location, logoUrl, description, new Date().toISOString());
+        
+        // Crear plantillas de email por defecto para el nuevo evento
+        createEventEmailTemplates(id);
+        
         res.json({ success: true, eventId: id });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
@@ -999,9 +1118,28 @@ app.post('/api/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTI
     const { status } = req.body;
     const gId = castId('guests', req.params.guestId);
     const time = status ? new Date().toISOString() : null;
+    
+    // Obtener datos del invitado antes de actualizar
+    const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    
     db.prepare("UPDATE guests SET checked_in = ?, checkin_time = ? WHERE id = ?").run(status ? 1 : 0, time, gId);
-    const row = db.prepare("SELECT event_id FROM guests WHERE id = ?").get(gId);
-    if (row) io.to(row.event_id).emit('update_stats', row.event_id);
+    
+    if (guest && status) {
+        io.to(guest.event_id).emit('update_stats', guest.event_id);
+        
+        // Enviar email de bienvenida con agenda (en background)
+        if (guest.email) {
+            sendEventEmail(guest.event_id, guest.email, 'checkin_welcome', {
+                guest_name: guest.name,
+                email: guest.email,
+                organization: guest.organization,
+                checkin_time: new Date(time).toLocaleString('es-ES')
+            }).catch(err => console.error('Error sending checkin welcome email:', err));
+        }
+    } else if (guest) {
+        io.to(guest.event_id).emit('update_stats', guest.event_id);
+    }
+    
     res.json({ success: true });
 });
 
@@ -1016,9 +1154,22 @@ app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
 app.post('/api/register', (req, res) => {
     const { event_id, name, email, phone, organization, gender, dietary_notes } = req.body;
     const eId = castId('events', event_id);
+    
+    const guestId = getValidId('guests');
     db.prepare("INSERT INTO guests (id, event_id, name, email, phone, organization, gender, dietary_notes, qr_token, is_new_registration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)")
-      .run(getValidId('guests'), eId, name, email, phone, organization, gender, dietary_notes, uuidv4());
+      .run(guestId, eId, name, email, phone, organization, gender, dietary_notes, uuidv4());
     io.to(eId).emit('update_stats', eId);
+    
+    // Enviar email de confirmación de registro (en background)
+    if (email) {
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        sendEventEmail(eId, email, 'registration_confirm', {
+            guest_name: name,
+            email: email,
+            organization: organization
+        }).catch(err => console.error('Error sending registration confirm email:', err));
+    }
+    
     res.json({ success: true });
 });
 
@@ -1146,6 +1297,140 @@ app.get('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
     `).all(eventId);
     
     res.json(users);
+});
+
+// ═══ EMAIL POR EVENTO ═══
+
+// Obtener configuración SMTP de evento
+app.get('/api/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ?").get(eventId);
+    if (config) {
+        config.smtp_pass = config.smtp_pass ? '***' : '';
+    }
+    res.json(config || { event_id: eventId, enabled: 0 });
+});
+
+// Guardar configuración SMTP de evento
+app.put('/api/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled } = req.body;
+    
+    const existing = db.prepare("SELECT smtp_pass FROM event_email_config WHERE event_id = ?").get(eventId);
+    let passToSave = smtp_pass;
+    if (!smtp_pass || smtp_pass === '***') {
+        passToSave = existing?.smtp_pass || '';
+    }
+    
+    db.prepare(`INSERT OR REPLACE INTO event_email_config 
+                (id, event_id, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(getValidId('eec'), eventId, smtp_host || '', smtp_port || 587, smtp_user || '', passToSave, smtp_secure ? 1 : 0, from_name || '', from_email || '', enabled ? 1 : 0, new Date().toISOString());
+    
+    res.json({ success: true });
+});
+
+// Obtener plantillas de email de evento
+app.get('/api/events/:eventId/email-templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const templates = db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? ORDER BY template_type").all(eventId);
+    res.json(templates);
+});
+
+// Actualizar plantilla de email de evento
+app.put('/api/events/:eventId/email-templates/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { subject, body, is_active, auto_send } = req.body;
+    const templateType = req.params.type;
+    
+    const existing = db.prepare("SELECT id FROM event_email_templates WHERE event_id = ? AND template_type = ?").get(eventId, templateType);
+    
+    if (existing) {
+        db.prepare("UPDATE event_email_templates SET subject = ?, body = ?, is_active = ?, auto_send = ?, updated_at = ? WHERE event_id = ? AND template_type = ?")
+          .run(subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString(), eventId, templateType);
+    } else {
+        db.prepare("INSERT INTO event_email_templates (id, event_id, template_type, subject, body, is_active, auto_send, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+          .run(getValidId('eet'), eventId, templateType, subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString());
+    }
+    
+    res.json({ success: true });
+});
+
+// Obtener agenda de evento
+app.get('/api/events/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const agenda = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY sort_order, start_time").all(eventId);
+    res.json(agenda);
+});
+
+// Guardar agenda de evento
+app.put('/api/events/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { agenda_items } = req.body;
+    
+    // Eliminar agenda actual
+    db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(eventId);
+    
+    // Insertar nueva agenda
+    if (agenda_items && agenda_items.length > 0) {
+        const insert = db.prepare("INSERT INTO event_agenda (id, event_id, title, description, start_time, end_time, speaker, location, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        agenda_items.forEach((item, index) => {
+            insert.run(getValidId('ea'), eventId, item.title || '', item.description || '', item.start_time || '', item.end_time || '', item.speaker || '', item.location || '', index);
+        });
+    }
+    
+    res.json({ success: true });
+});
+
+// Enviar email de prueba para evento
+app.post('/api/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { test_email } = req.body;
+    
+    if (!test_email) return res.status(400).json({ error: 'Email de prueba requerido' });
+    
+    const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+    if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+    
+    // Función simplificada para testing
+    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ? AND enabled = 1").get(eventId);
+    
+    if (!config || !config.smtp_host) {
+        return res.json({ success: false, error: 'SMTP no configurado o deshabilitado para este evento' });
+    }
+    
+    // Simular envío
+    console.log('📧 TEST: Email de prueba a', test_email, 'desde evento', event.name);
+    res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
+});
+
+// Obtener sugerencias de un evento
+app.get('/api/events/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const suggestions = db.prepare(`
+        SELECT gs.*, g.name as guest_name, g.email as guest_email
+        FROM guest_suggestions gs
+        LEFT JOIN guests g ON gs.guest_id = g.id
+        WHERE gs.event_id = ?
+        ORDER BY gs.submitted_at DESC
+    `).all(eventId);
+    res.json(suggestions);
+});
+
+// Enviar sugerencia (público)
+app.post('/api/events/:eventId/suggestions', (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { guest_id, suggestion } = req.body;
+    
+    if (!suggestion || suggestion.trim().length === 0) {
+        return res.status(400).json({ error: 'Sugerencia requerida' });
+    }
+    
+    const id = getValidId('gs');
+    db.prepare("INSERT INTO guest_suggestions (id, event_id, guest_id, suggestion, submitted_at) VALUES (?, ?, ?, ?, ?)")
+      .run(id, eventId, guest_id || null, suggestion.trim(), new Date().toISOString());
+    
+    res.json({ success: true, message: '¡Gracias por tu sugerencia!' });
 });
 
 // --- SPA FALLBACK (V10.5) ---

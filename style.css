@@ -377,3 +377,69 @@ input, select, textarea {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* Email Tabs */
+.email-tab-btn {
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+
+.email-tab-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #f8fafc;
+}
+
+.email-tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Agenda Items */
+.agenda-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.agenda-item input {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 13px;
+    width: 100%;
+}
+
+.agenda-item input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Template Editor */
+.template-editor {
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.template-editor textarea {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-size: 13px;
+    width: 100%;
+    resize: vertical;
+    min-height: 150px;
+    font-family: monospace;
+}
+
+.template-editor textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}

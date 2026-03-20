@@ -94,32 +94,72 @@ db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
     FOREIGN KEY (event_id) REFERENCES events (id)
 )`);
 
-// 4. Configuración de Mailing
-db.exec(`CREATE TABLE IF NOT EXISTS event_mailing_config (
+// 4. Configuración de Mailing por Evento
+db.exec(`CREATE TABLE IF NOT EXISTS event_email_config (
     id TEXT PRIMARY KEY,
-    event_id TEXT,
+    event_id TEXT UNIQUE,
     smtp_host TEXT,
-    smtp_port INTEGER,
+    smtp_port INTEGER DEFAULT 587,
     smtp_user TEXT,
     smtp_pass TEXT,
-    welcome_subject TEXT,
-    welcome_body TEXT,
-    survey_subject TEXT,
-    survey_body TEXT,
-    FOREIGN KEY (event_id) REFERENCES events (id)
+    smtp_secure INTEGER DEFAULT 0,
+    from_name TEXT,
+    from_email TEXT,
+    enabled INTEGER DEFAULT 0,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
 
-// 5. Encuestas
+// 5. Plantillas de Email por Evento
+db.exec(`CREATE TABLE IF NOT EXISTS event_email_templates (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    template_type TEXT NOT NULL,
+    subject TEXT,
+    body TEXT,
+    is_active INTEGER DEFAULT 1,
+    auto_send INTEGER DEFAULT 0,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    UNIQUE(event_id, template_type)
+)`);
+
+// 6. Sugerencias de Invitados
+db.exec(`CREATE TABLE IF NOT EXISTS guest_suggestions (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    guest_id TEXT,
+    suggestion TEXT,
+    submitted_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+
+// 7. Agenda del Evento
+db.exec(`CREATE TABLE IF NOT EXISTS event_agenda (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    speaker TEXT,
+    location TEXT,
+    sort_order INTEGER DEFAULT 0,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+
+// 8. Encuestas (legacy - mantener para compatibilidad)
 db.exec(`CREATE TABLE IF NOT EXISTS surveys (
     id TEXT PRIMARY KEY,
     event_id TEXT,
     question TEXT,
     type TEXT DEFAULT 'stars',
     options TEXT,
-    FOREIGN KEY (event_id) REFERENCES events (id)
+    FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
 
-// 6. Respuestas de Encuestas
+// 9. Respuestas de Encuestas
 db.exec(`CREATE TABLE IF NOT EXISTS survey_responses (
     id TEXT PRIMARY KEY,
     event_id TEXT,
@@ -300,5 +340,76 @@ if (smtpCount.count === 0) {
     db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 587, '', 0, 'Check Attendance')").run();
 }
 
-console.log("✓ better-sqlite3 V10: Base de datos inicializada correctamente.");
-module.exports = db;
+// Función para crear plantillas por defecto para un evento
+function createEventEmailTemplates(eventId) {
+    const eventTemplates = [
+        {
+            id: uuidv4(),
+            template_type: 'registration_confirm',
+            name: 'Confirmación de registro',
+            subject: '¡Registro exitoso! - {{event_name}}',
+            body: `<h2>¡Hola {{guest_name}}!</h2>
+<p>Tu registro ha sido confirmado para <strong>{{event_name}}</strong></p>
+<p><strong>📅 Fecha:</strong> {{event_date}}</p>
+<p><strong>📍 Ubicación:</strong> {{event_location}}</p>
+<p>Te esperamos. Tus datos:</p>
+<ul>
+<li><strong>Nombre:</strong> {{guest_name}}</li>
+<li><strong>Email:</strong> {{guest_email}}</li>
+<li><strong>Empresa:</strong> {{organization}}</li>
+</ul>
+<p>¡Nos vemos pronto!</p>`,
+            is_active: 1,
+            auto_send: 1
+        },
+        {
+            id: uuidv4(),
+            template_type: 'checkin_welcome',
+            name: 'Bienvenida con agenda',
+            subject: '¡Bienvenido! - {{event_name}}',
+            body: `<h2>¡Hola {{guest_name}}!</h2>
+<p>¡Gracias por registrarte en <strong>{{event_name}}</strong>!</p>
+<p>Tu registro se realizó exitosamente a las {{checkin_time}}.</p>
+
+<h3>📋 Agenda del Evento</h3>
+{{agenda}}
+
+<p>¡Disfruta del evento!</p>`,
+            is_active: 1,
+            auto_send: 1
+        },
+        {
+            id: uuidv4(),
+            template_type: 'event_thanks',
+            name: 'Agradecimiento post-evento',
+            subject: '¡Gracias por asistir! - {{event_name}}',
+            body: `<h2>¡Hola {{guest_name}}!</h2>
+<p>Gracias por asistir a <strong>{{event_name}}</strong>.</p>
+<p>Esperamos que hayas enjoyedo del evento.</p>
+<p>¡Nos vemos en la próxima!</p>`,
+            is_active: 1,
+            auto_send: 0
+        },
+        {
+            id: uuidv4(),
+            template_type: 'suggestion_request',
+            name: 'Solicitud de sugerencias',
+            subject: 'Tus comentarios nos importan - {{event_name}}',
+            body: `<h2>¡Hola {{guest_name}}!</h2>
+<p>Gracias por asistir a <strong>{{event_name}}</strong>.</p>
+<p>¿Tienes alguna sugerencia para mejorar? Nos encantaría conocer tu opinión.</p>
+<p><a href="{{suggestion_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Enviar sugerencia</a></p>`,
+            is_active: 1,
+            auto_send: 0
+        }
+    ];
+    
+    const insert = db.prepare("INSERT OR IGNORE INTO event_email_templates (id, event_id, template_type, name, subject, body, is_active, auto_send, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    
+    eventTemplates.forEach(t => {
+        insert.run(t.id, eventId, t.template_type, t.name, t.subject, t.body, t.is_active, t.auto_send, new Date().toISOString());
+    });
+}
+
+// Exportar función para usar en server.js
+module.exports = { db, createEventEmailTemplates };
