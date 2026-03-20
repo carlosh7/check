@@ -1062,48 +1062,44 @@ window.App = {
         document.getElementById('template-editor-title').textContent = 'Editar: ' + (template.name || templateName);
         document.getElementById('tpl-name').value = template.name || '';
         document.getElementById('tpl-subject').value = template.subject || '';
-        this._initTemplateEditor(template.body || '');
         document.getElementById('modal-template-editor').classList.remove('hidden');
+        this._initTemplateEditor(template.body || '');
         this.switchTemplateEditorTab('visual');
     },
     
     closeTemplateEditor: function() {
         document.getElementById('modal-template-editor')?.classList.add('hidden');
-        if (this.quillEditor) {
-            this.quillEditor = null;
+        if (this.state.quillEditor) {
+            this.state.quillEditor = null;
         }
     },
     
     _initTemplateEditor: function(initialHtml) {
-        if (this.quillEditor) {
-            this.quillEditor = null;
+        if (this.state.quillEditor) {
+            this.state.quillEditor = null;
         }
         const container = document.getElementById('tpl-quill-editor');
         if (container) container.innerHTML = '';
         
-        setTimeout(() => {
-            this.quillEditor = new Quill('#tpl-quill-editor', {
-                theme: 'snow',
-                placeholder: 'Escribe el contenido de tu email aquí...',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link', 'image'],
-                        ['clean']
-                    ]
-                }
-            });
-            if (initialHtml) {
-                const div = document.createElement('div');
-                div.innerHTML = initialHtml;
-                this.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
+        this.state.quillEditor = new Quill('#tpl-quill-editor', {
+            theme: 'snow',
+            placeholder: 'Escribe el contenido de tu email aquí...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
             }
-            this._loadVariablesPalette();
-        }, 50);
+        });
+        if (initialHtml) {
+            this.state.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
+        }
+        this._loadVariablesPalette();
     },
     
     _loadVariablesPalette: function() {
@@ -1121,11 +1117,11 @@ window.App = {
     },
     
     insertVariable: function(varName) {
-        if (this.quillEditor) {
-            const range = this.quillEditor.getSelection(true);
-            this.quillEditor.insertText(range.index, varName);
-            this.quillEditor.setSelection(range.index + varName.length);
-            this.quillEditor.focus();
+        if (this.state.quillEditor) {
+            const range = this.state.quillEditor.getSelection(true);
+            this.state.quillEditor.insertText(range.index, varName);
+            this.state.quillEditor.setSelection(range.index + varName.length);
+            this.state.quillEditor.focus();
         } else {
             const ta = document.getElementById('tpl-code-editor');
             if (ta) {
@@ -1156,10 +1152,10 @@ window.App = {
         
         if (tab === 'visual') {
             document.getElementById('editor-visual-container')?.classList.remove('hidden');
-            setTimeout(() => this.quillEditor?.focus(), 50);
+            setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {
             document.getElementById('editor-code-container')?.classList.remove('hidden');
-            const body = this.quillEditor ? this.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
+            const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
             document.getElementById('tpl-code-editor').value = body;
             setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
         } else if (tab === 'preview') {
@@ -1169,7 +1165,7 @@ window.App = {
     },
     
     _updateTemplatePreview: function() {
-        const body = this.quillEditor ? this.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
         const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
         const name = document.getElementById('tpl-name').value || 'Plantilla';
         
@@ -1184,7 +1180,7 @@ window.App = {
     saveTemplate: async function() {
         const name = document.getElementById('tpl-name').value.trim();
         const subject = document.getElementById('tpl-subject').value.trim();
-        const body = this.quillEditor ? this.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
         
         if (!name) return alert('Ingresa un nombre para la plantilla.');
         if (!subject) return alert('Ingresa el asunto del email.');
