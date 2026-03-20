@@ -289,12 +289,24 @@ app.use('/api/login', authLimiter);
 // --- STATIC FILES ---
 app.use(express.static(path.join(__dirname, '/'), {
     maxAge: 0,
-    setHeaders: (res) => {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+    setHeaders: (res, reqPath) => {
+        // No cachear HTML, JS ni CSS para desarrollo
+        if (reqPath.endsWith('.html') || reqPath.endsWith('.js') || reqPath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Surrogate-Control', 'no-store');
+        }
     }
 }));
+
+// --- ROOT ROUTE (siempre sin caché) ---
+app.get('/', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const upload = multer({ dest: 'uploads/' });
 
