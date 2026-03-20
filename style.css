@@ -330,11 +330,21 @@ html:not(.light) .ql-stroke {
     stroke: white !important;
 }
 
-/* Fix para visibilidad de texto blanco en Modo Claro */
+/* Fix para visibilidad adaptativa según el tema */
 .tpl-preview-bg .ql-editor {
-    background-color: #0f172a !important; /* Siempre oscuro para emails premium */
-    color: #f8fafc !important;
+    background-color: transparent !important;
+    color: inherit !important;
     min-height: 500px;
+}
+
+/* En modo claro, asegurar que el texto sea oscuro si no hay estilo inline */
+html.light .tpl-preview-bg .ql-editor {
+    color: #0f172a !important;
+}
+
+/* En modo oscuro, asegurar que el texto sea claro */
+html:not(.light) .tpl-preview-bg .ql-editor {
+    color: #f8fafc !important;
 }
 
 html.light .tpl-preview-bg .ql-toolbar {
