@@ -1811,18 +1811,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         App.showView('login');
     }
-            } else {
-                console.log("[DEBUG] No token, showing login");
-                App.showView('login');
-            }
-        } catch(e){ 
-            console.log("[DEBUG] Parse error:", e);
-            App.showView('login'); 
-        }
-    } else {
-        console.log("[DEBUG] No savedUser, showing login");
-        App.showView('login');
-    }
 
     // 2. Init router AFTER session restoration (no synthetic popstate)
     App.initRouter();
