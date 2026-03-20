@@ -947,6 +947,24 @@ window.App = {
         } catch (e) { alert('Error al probar conexión IMAP'); }
     },
     
+    switchEmailService: function(service) {
+        // Ocultar todos los formularios y tabs
+        document.querySelectorAll('.email-form').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.email-service-tab').forEach(el => {
+            el.classList.remove('bg-primary', 'text-white', 'shadow-xl');
+            el.classList.add('bg-white/5', 'text-slate-400');
+        });
+        
+        // Mostrar el formulario seleccionado
+        const form = document.getElementById('form-' + service);
+        const tab = document.getElementById('tab-btn-' + service);
+        if (form) form.classList.remove('hidden');
+        if (tab) {
+            tab.classList.remove('bg-white/5', 'text-slate-400');
+            tab.classList.add('bg-primary', 'text-white', 'shadow-xl');
+        }
+    },
+    
     loadEmailTemplates: async function() {
         try {
             console.log("[DEBUG] Loading templates, user:", this.state.user);
@@ -1397,6 +1415,7 @@ window.App = {
         }
         if (viewName === 'groups') this.loadGroups();
         if (viewName === 'smtp') {
+            this.switchEmailService('smtp');
             App.loadSMTPConfig();
             App.loadIMAPConfig();
             App.loadEmailTemplates();

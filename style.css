@@ -463,3 +463,26 @@ input, select, textarea {
     background: rgba(255,255,255,0.2);
     border-radius: 3px;
 }
+
+/* Email Service Tabs */
+.email-service-tab {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94a3b8;
+}
+
+.email-service-tab:hover {
+    background: rgba(255,255,255,0.06);
+    color: #f8fafc;
+}
+
+.email-service-tab.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3), 0 4px 6px -4px rgba(124, 58, 237, 0.2);
+}
+
+.email-service-tab.active .material-symbols-outlined {
+    color: white !important;
+}

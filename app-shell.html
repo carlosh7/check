@@ -353,10 +353,21 @@
                     <p class="text-slate-500 text-sm">Configura los servidores SMTP (envío) e IMAP (recepción) para gestión de correos.</p>
                 </div>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <!-- SMTP CONFIG -->
-                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
-                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-emerald-400">upload</span> Servidor SMTP <span class="text-[10px] text-slate-500">(Envío)</span></h4>
+                <!-- TABS PARA ELEGIR SERVICIO -->
+                <div class="flex gap-2 mb-8">
+                    <button id="tab-btn-smtp" onclick="App.switchEmailService('smtp')" class="email-service-tab active px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-emerald-400">upload</span> SMTP (Envío)
+                    </button>
+                    <button id="tab-btn-imap" onclick="App.switchEmailService('imap')" class="email-service-tab px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-blue-400">download</span> IMAP (Recepción)
+                    </button>
+                </div>
+                
+                <!-- FORMULARIO DINÁMICO -->
+                <div class="glass-card p-8 rounded-[40px] border border-white/10 mb-8">
+                    <!-- SMTP FORM -->
+                    <div id="form-smtp" class="email-form">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-emerald-400">upload</span> Servidor SMTP <span class="text-[10px] text-slate-500">(Envío de correos)</span></h4>
                         <form id="smtp-form" class="space-y-4">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor SMTP</label>
@@ -392,14 +403,14 @@
                                     <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="input-field bg-slate-900/60">
                                 </div>
                             </div>
-                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar SMTP</button>
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Configuración SMTP</button>
                             <button type="button" id="btn-test-smtp" class="w-full py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-black text-sm mt-2">Probar Conexión SMTP</button>
                         </form>
                     </div>
                     
-                    <!-- IMAP CONFIG -->
-                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
-                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-blue-400">download</span> Servidor IMAP <span class="text-[10px] text-slate-500">(Recepción)</span></h4>
+                    <!-- IMAP FORM -->
+                    <div id="form-imap" class="email-form hidden">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-blue-400">download</span> Servidor IMAP <span class="text-[10px] text-slate-500">(Recepción de correos)</span></h4>
                         <form id="imap-form" class="space-y-4">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor IMAP</label>
@@ -425,7 +436,7 @@
                                 <input type="password" id="imap-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
                                 <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
                             </div>
-                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar IMAP</button>
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Configuración IMAP</button>
                             <button type="button" id="btn-test-imap" class="w-full py-3 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-black text-sm mt-2">Probar Conexión IMAP</button>
                         </form>
                     </div>
