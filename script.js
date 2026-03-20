@@ -580,6 +580,7 @@ window.App = {
             const d = await fetch('/api/app-version').then(r => r.json());
             this.state.version = d.version;
             document.querySelectorAll('.app-version-label').forEach(el => el.innerText = `Check Pro V${d.version}`);
+            document.querySelectorAll('.app-version-text').forEach(el => el.innerText = `V${d.version}`);
         } catch(e) {}
     },
 

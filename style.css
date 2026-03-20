@@ -109,10 +109,6 @@ body {
 }
 
 /* --- UI Logo Fix --- */
-.sidebar .flex.items-center.gap-2 {
-    gap: 0.75rem !important; /* Más espacio para evitar solapamiento */
-}
-
 .sidebar .material-symbols-outlined {
     font-variation-settings: 'FILL' 1, 'wght' 700 !important;
 }

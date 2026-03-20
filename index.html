@@ -66,12 +66,14 @@
             <div class="glass-card p-12 rounded-[48px] border border-white/10 shadow-2xl">
                 <div class="flex flex-col items-center mb-10">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
-                            <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
+                        <div class="w-14 h-14 bg-primary/15 rounded-2xl border border-primary/25 flex items-center justify-center shadow-xl shadow-primary/15">
+                            <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1, 'wght' 700;">verified_user</span>
                         </div>
-                        <span class="font-black font-display text-4xl tracking-tighter text-white">Check<span class="text-primary italic">.</span></span>
                     </div>
-                    <p class="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">Acceso Privado</p>
+                    <div class="text-center">
+                        <span class="font-black font-display text-4xl tracking-tight text-white">Check<span class="text-primary italic">.</span></span>
+                    </div>
+                    <p class="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Event Attendance</p>
                 </div>
                 <form id="login-form" class="space-y-5">
                     <div class="relative">
@@ -120,13 +122,16 @@
         <!-- Sidebar Global -->
         <aside id="global-sidebar" class="sidebar w-[220px] bg-slate-950/40 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
             
-            <!-- Header: Logo -->
+            <!-- Header: Logo Check -->
             <div class="p-4 border-b border-white/5">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary text-base">shield_checked</span>
+                <div class="flex items-center gap-3 px-1">
+                    <div class="w-9 h-9 bg-primary/15 rounded-xl border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1, 'wght' 700;">verified_user</span>
                     </div>
-                    <span class="font-black font-display text-lg text-white">Check<span class="text-primary italic">.</span></span>
+                    <div class="flex flex-col leading-none">
+                        <span class="font-black font-display text-lg text-white tracking-tight">Check<span class="text-primary italic">.</span></span>
+                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-[0.15em]">Attendance</span>
+                    </div>
                 </div>
             </div>
             
@@ -197,10 +202,13 @@
                     </div>
                 </div>
                 
-                <!-- Controles: Salir + Tema (mismo tamaño) -->
+                <!-- Controles: Salir + Versión + Tema (mismo tamaño) -->
                 <div class="flex items-center gap-1.5">
                     <button onclick="App.logout()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black text-[9px] uppercase tracking-wider rounded-lg transition-all">
                         <span class="material-symbols-outlined text-sm">logout</span>
+                    </button>
+                    <button id="btn-version" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-black text-[9px] uppercase tracking-wider rounded-lg transition-all cursor-default" title="Versión">
+                        <span class="app-version-text text-[10px] font-mono">V10.5.3</span>
                     </button>
                     <button onclick="App.toggleTheme()" class="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-all" title="Cambiar tema">
                         <span class="material-symbols-outlined text-sm" id="theme-icon">dark_mode</span>
@@ -869,10 +877,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="/script.js?v=11.0.2"></script>
-
-    <!-- INDICADOR DE VERSIÓN GLOBAL V10 -->
-    <div class="fixed bottom-6 left-6 z-[9999999] pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
-        <span class="app-version-label bg-slate-950 text-emerald-400 font-mono text-base sm:text-lg px-4 py-2 rounded-xl border-2 border-emerald-500/30 shadow-2xl shadow-emerald-900/50 backdrop-blur-md">Check Pro V10.5.3</span>
-    </div>
 </body>
 </html>
