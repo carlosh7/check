@@ -2921,25 +2921,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
-    // ------- V10: TEXTOS LEGALES -------
+    // ------- V11: TEXTOS LEGALES (MÓDULO PREMIUM) -------
+    App.initQuill = () => {
+        if (App.quillPolicy) return;
+        const toolbarOptions = [
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'clean']
+        ];
+        App.quillPolicy = new Quill('#editor-policy', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+        App.quillTerms = new Quill('#editor-terms', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+    };
+
     App.loadLegalTexts = async () => {
+        App.initQuill();
         try {
             const s = await fetch('/api/settings').then(r => r.json());
-            const pt = document.getElementById('legal-policy-text');
-            const tt = document.getElementById('legal-terms-text');
-            if (pt) pt.value = s.policy_data?.replace(/<[^>]*>/g,'') || '';
-            if (tt) tt.value = s.terms_conditions?.replace(/<[^>]*>/g,'') || '';
+            const defaultPolicy = `<h2>Política de Protección de Datos Personales</h2>
+<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la República de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la información suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
+<p><b>Finalidades:</b></p>
+<ul>
+  <li>Gestión administrativa, logística y control de acceso al evento.</li>
+  <li>Envío de información sobre la agenda, cambios de último momento y materiales post-evento.</li>
+  <li>Generación de estadísticas, reportes de asistencia y certificados de participación.</li>
+</ul>
+<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
+            
+            const defaultTerms = `<h2>Términos y Condiciones de Uso</h2>
+<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptación de los siguientes términos:</p>
+<ol>
+  <li><b>Veracidad:</b> El usuario garantiza que la información proporcionada es veraz, completa y actualizada.</li>
+  <li><b>Uso del Código:</b> El código QR o link de acceso generado es personal e intransferible.</li>
+  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisión y permanencia según los protocolos establecidos.</li>
+  <li><b>Privacidad:</b> Sus datos serán tratados bajo estrictos protocolos de seguridad industrial.</li>
+</ol>
+<p>El uso indebido de la plataforma podrá resultar en la cancelación del registro.</p>`;
+            
+            App.quillPolicy.root.innerHTML = s.policy_data || defaultPolicy;
+            App.quillTerms.root.innerHTML = s.terms_conditions || defaultTerms;
         } catch {}
     };
+
     cl('btn-save-policy', async () => {
-        const val = document.getElementById('legal-policy-text')?.value;
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: '<p>' + val.replace(/\n/g,'</p><p>') + '</p>' }) });
-        alert('✓ Política de datos guardada.');
+        const html = App.quillPolicy.root.innerHTML;
+        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html }) });
+        alert('✓ Política de datos guardada exitosamente.');
     });
+
     cl('btn-save-terms', async () => {
-        const val = document.getElementById('legal-terms-text')?.value;
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: '<p>' + val.replace(/\n/g,'</p><p>') + '</p>' }) });
-        alert('✓ Términos y Condiciones guardados.');
+        const html = App.quillTerms.root.innerHTML;
+        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html }) });
+        alert('✓ Términos y Condiciones guardados exitosamente.');
     });
 
     // ------- V10: CAMBIO DE CONTRASEÑA -------

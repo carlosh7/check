@@ -28,6 +28,10 @@
     <style>
         .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
         input[type="radio"] { accent-color: #7c3aed; }
+        #policy-text h2 { color: #f8fafc; font-weight: 800; font-size: 14px; margin-bottom: 8px; margin-top: 12px; }
+        #policy-text p { margin-bottom: 8px; }
+        #policy-text ul, #policy-text ol { padding-left: 18px; margin-bottom: 8px; list-style: inherit; }
+        #policy-text b, #policy-text strong { color: #a78bfa; font-weight: 700; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern">
@@ -217,7 +221,7 @@
 
                 // Política de datos
                 if (eventData.reg_policy) {
-                    document.getElementById('policy-text').innerHTML = eventData.reg_policy.replace(/\n/g, '<br>');
+                    document.getElementById('policy-text').innerHTML = eventData.reg_policy;
                 } else {
                     document.getElementById('policy-text').innerHTML = 'Al registrarse, acepta que sus datos sean utilizados únicamente para la gestión del evento.';
                 }
