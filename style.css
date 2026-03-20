@@ -330,6 +330,18 @@ html:not(.light) .ql-stroke {
     stroke: white !important;
 }
 
+/* Fix para visibilidad de texto blanco en Modo Claro */
+.tpl-preview-bg .ql-editor {
+    background-color: #0f172a !important; /* Siempre oscuro para emails premium */
+    color: #f8fafc !important;
+    min-height: 500px;
+}
+
+html.light .tpl-preview-bg .ql-toolbar {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
 
 html.light .text-slate-400,
 html.light .text-slate-500,
