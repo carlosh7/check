@@ -1054,6 +1054,10 @@ window.App = {
     },
     
     showTemplateEditor: function(templateId, templateName) {
+        if (this.state.editingTemplate?.id === templateId && !document.getElementById('modal-template-editor')?.classList.contains('hidden')) {
+            console.log('[QUILL] Already open, ignoring duplicate call');
+            return;
+        }
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
         if (!template) {
             return alert('Plantilla no encontrada. Recarga la página.');
