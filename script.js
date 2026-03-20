@@ -221,33 +221,34 @@ window.App = {
                     ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                 
-                // Opciones de empresa
-                const groupOptions = groups.map(g => 
-                    `<option value="${g.id}" ${u.group_id === g.id ? 'selected' : ''}>${g.name}</option>`
-                ).join('');
+                // Chips de empresa asignada
+                const userGroup = groups.find(g => g.id === u.group_id);
+                const groupChip = userGroup ? `
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
+                            ${userGroup.name}
+                            <button onclick="App.removeUserGroup('${u.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">×</button>
+                        </span>
+                    </div>` : `<span class="text-[10px] text-slate-500">Sin empresa</span>`;
                 const groupSelect = isAdmin && canEdit ? `
-                    <div class="flex items-center gap-1">
-                        <select onchange="App.assignUserGroup('${u.id}', this.value)" class="bg-slate-800 text-white text-[11px] rounded-lg px-2 py-1.5 border border-white/10 flex-1">
-                            <option value="">-- Empresa --</option>
-                            ${groupOptions}
-                        </select>
-                        <button onclick="App.quickCreateGroup()" class="px-2 py-1.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[11px] font-bold" title="Crear">+</button>
-                    </div>` : 
-                    `<span class="px-2 py-1.5 bg-slate-800/50 rounded-lg text-[11px] ${u.group_name ? 'text-white' : 'text-slate-500'}">${u.group_name || 'Sin empresa'}</span>`;
+                    <div class="mb-2">${groupChip}</div>
+                    <button onclick="App.showGroupSelector('${u.id}', '${userGroup?.id || ''}')" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Asignar empresa">+ Asignar</button>` : 
+                    `<div class="mb-2">${groupChip}</div>`;
                 
-                // Opciones de eventos
-                let eventOptions = events.map(e => {
-                    const selected = u.events && u.events.includes(e.id) ? 'selected' : '';
-                    return `<option value="${e.id}" ${selected}>${e.name}</option>`;
-                }).join('');
+                // Chips de eventos asignados
+                const userEvents = events.filter(e => u.events && u.events.includes(e.id));
+                const eventChips = userEvents.map(e => 
+                    `<span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-[10px] rounded-lg mb-1">
+                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
+                        <button onclick="App.removeUserEvent('${u.id}', '${e.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
+                    </span>`
+                ).join('');
                 const eventSelect = canEdit ? `
-                    <div class="flex items-center gap-1">
-                        <select onchange="App.assignUserEvents('${u.id}', this)" multiple class="bg-slate-800 text-white text-[11px] rounded-lg px-2 py-1.5 border border-white/10 flex-1 h-10">
-                            ${eventOptions}
-                        </select>
-                        ${(isAdmin || isProductor) ? `<button onclick="App.quickCreateEvent()" class="px-2 py-1.5 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[11px] font-bold" title="Crear">+</button>` : ''}
-                    </div>` : 
-                    `<span class="px-2 py-1.5 bg-slate-800/50 rounded-lg text-[11px] text-slate-400">${u.events ? u.events.length : 0} evt</span>`;
+                    <div class="flex items-start gap-1">
+                        <div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>
+                    </div>
+                    <button onclick="App.showEventSelector('${u.id}', ${JSON.stringify(u.events || []).replace(/"/g, '&quot;')})" class="mt-1 px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Agregar evento">+ Agregar</button>` : 
+                    `<div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>`;
                 
                 // Selector de rol
                 const roleSelect = canEdit ? 
@@ -394,6 +395,139 @@ window.App = {
             });
             if (res.success) console.log('Eventos asignados');
         } catch(e) { console.error('Error assigning events:', e); }
+    },
+    
+    // Quitar empresa de un usuario
+    removeUserGroup: async function(userId) {
+        if (!confirm('¿Quitar la empresa asignada a este usuario?')) return;
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ group_id: null }) 
+            });
+            if (res.success) {
+                console.log('Empresa quitada');
+                this.loadUsersTable();
+            }
+        } catch(e) { console.error('Error removing group:', e); }
+    },
+    
+    // Quitar un evento específico de un usuario
+    removeUserEvent: async function(userId, eventId) {
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+            if (res.success) {
+                console.log('Evento quitado');
+                this.loadUsersTable();
+            }
+        } catch(e) { console.error('Error removing event:', e); }
+    },
+    
+    // Mostrar selector de empresas para asignar
+    showGroupSelector: function(userId, currentGroupId) {
+        const groups = this.state.allGroups || [];
+        if (groups.length === 0) {
+            alert('No hay empresas disponibles. Crea una primero.');
+            return;
+        }
+        
+        const options = groups.map(g => 
+            `<option value="${g.id}" ${g.id === currentGroupId ? 'selected' : ''}>${g.name}</option>`
+        ).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-select-group';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">folder</span> Asignar Empresa
+                </h3>
+                <select id="select-group-target" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
+                    <option value="">-- Seleccionar empresa --</option>
+                    ${options}
+                </select>
+                <div class="flex gap-3">
+                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
+                    <button onclick="App.closeGroupSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+    
+    assignUserGroupFromSelector: async function(userId) {
+        const select = document.getElementById('select-group-target');
+        const groupId = select.value;
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ group_id: groupId || null }) 
+            });
+            if (res.success) {
+                this.loadUsersTable();
+                this.closeGroupSelector();
+            }
+        } catch(e) { console.error('Error assigning group:', e); }
+    },
+    
+    closeGroupSelector: function() {
+        document.getElementById('modal-select-group')?.remove();
+    },
+    
+    // Mostrar selector de eventos para agregar
+    showEventSelector: function(userId, currentEvents) {
+        const events = this.state.allEvents || [];
+        const assignedIds = currentEvents || [];
+        const availableEvents = events.filter(e => !assignedIds.includes(e.id));
+        
+        if (availableEvents.length === 0) {
+            alert('No hay más eventos disponibles para asignar.');
+            return;
+        }
+        
+        const options = availableEvents.map(e => 
+            `<option value="${e.id}">${e.name}</option>`
+        ).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-select-event';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">event</span> Agregar Evento
+                </h3>
+                <select id="select-event-target" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
+                    <option value="">-- Seleccionar evento --</option>
+                    ${options}
+                </select>
+                <div class="flex gap-3">
+                    <button onclick="App.assignEventFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
+                    <button onclick="App.closeEventSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+    
+    assignEventFromSelector: async function(userId) {
+        const select = document.getElementById('select-event-target');
+        const eventId = select.value;
+        if (!eventId) return alert('Selecciona un evento');
+        
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/events`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ events: [...(this._tempUserEvents || []), eventId] }) 
+            });
+            if (res.success) {
+                this.loadUsersTable();
+                this.closeEventSelector();
+            }
+        } catch(e) { console.error('Error adding event:', e); }
+    },
+    
+    closeEventSelector: function() {
+        document.getElementById('modal-select-event')?.remove();
     },
     
     approveUser: async function(id, status) {

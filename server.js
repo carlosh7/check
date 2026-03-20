@@ -327,6 +327,23 @@ app.put('/api/users/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
     res.json({ success: true });
 });
 
+// Quitar un evento específico de un usuario
+app.delete('/api/users/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const eventId = castId('events', req.params.eventId);
+    
+    if (req.userRole === 'PRODUCTOR') {
+        const userGroups = getProducerGroups(req.userId);
+        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        }
+    }
+    
+    db.prepare("DELETE FROM user_events WHERE user_id = ? AND event_id = ?").run(targetId, eventId);
+    res.json({ success: true });
+});
+
 app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
     db.prepare("UPDATE users SET status = ? WHERE id = ?").run(req.body.status, targetId);
