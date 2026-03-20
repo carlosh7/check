@@ -886,23 +886,36 @@ window.App = {
             
             const container = document.getElementById('email-templates-list');
             if (container) {
-                container.innerHTML = templates.map(t => `
-                    <div class="bg-slate-800/50 rounded-xl p-4 border border-white/5">
-                        <div class="flex items-center justify-between mb-2">
-                            <h5 class="font-bold text-white text-sm">${t.name}</h5>
-                            <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
+                if (templates && templates.length > 0) {
+                    container.innerHTML = templates.map(t => `
+                        <div class="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="font-bold text-white text-sm">${t.name}</h5>
+                                <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
+                            <button onclick="App.showTemplateEditor('${t.id}', '${(t.name || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
                         </div>
-                        <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
-                        <button onclick="App.showTemplateEditor('${t.id}', '${t.name.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
-                    </div>
-                `).join('');
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="text-slate-500 text-center py-8">No hay plantillas configuradas.</p>';
+                }
             }
-        } catch (e) { console.error('Error loading templates:', e); }
+        } catch (e) { 
+            console.error('Error loading templates:', e); 
+            const container = document.getElementById('email-templates-list');
+            if (container) {
+                container.innerHTML = '<p class="text-red-400 text-center py-8">Error al cargar plantillas. Verifica que tienes permisos de administrador.</p>';
+            }
+        }
     },
     
     showTemplateEditor: function(templateId, templateName) {
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
-        if (!template) return alert('Plantilla no encontrada');
+        if (!template) {
+            console.error('Template not found:', templateId, this.state.emailTemplates);
+            return alert('Plantilla no encontrada. Recarga la página.');
+        }
         
         const modal = document.createElement('div');
         modal.id = 'modal-template-editor';
