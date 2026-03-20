@@ -3,10 +3,11 @@ console.log("CHECK V7.0: Iniciando Sistema Centralizado...");
 
 // --- localStorage WRAPPER (soporta Tracking Prevention de Edge) ---
 const LS = {
-    get: (k) => { try { return localStorage.getItem(k); } catch(e) { return null; } },
-    set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} },
-    remove: (k) => { try { localStorage.removeItem(k); } catch(e) {} }
+    get: (k) => { try { return localStorage.getItem(k); } catch(e) { console.warn('[LS] Error get:', k, e); return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) { console.warn('[LS] Error set:', k, e); } },
+    remove: (k) => { try { localStorage.removeItem(k); } catch(e) { console.warn('[LS] Error remove:', k, e); } }
 };
+console.log('[INIT] Script loaded, LS available');
 
 // --- ESTADO CENTRALIZADO (STATE MANAGEMENT) ---
 window.App = {
@@ -1780,6 +1781,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+    
+    console.log('[DOM] DOMContentLoaded fired');
 
     // 0. Sync Version
     App.loadAppVersion();
@@ -1791,12 +1794,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {
         console.warn("[AUTH] localStorage no disponible:", e);
     }
+    console.log('[AUTH] savedUser:', savedUser ? 'EXISTS' : 'NULL', savedUser);
     
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
+            console.log('[AUTH] parsed user:', user);
             // Verificar sesión válida: debe tener userId o token
             if (user && (user.userId || user.token)) {
+                console.log('[AUTH] Valid session, showing app for role:', user.role);
                 window.App.state.user = user;
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
@@ -1812,6 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     App.loadEvents();
                 }
             } else {
+                console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');
             }
         } catch(e){ 
@@ -1819,6 +1826,7 @@ document.addEventListener('DOMContentLoaded', () => {
             App.showView('login'); 
         }
     } else {
+        console.log('[AUTH] No savedUser, showing login');
         App.showView('login');
     }
 
