@@ -1,6 +1,13 @@
 // MASTER SCRIPT V7.0 - ARQUITECTURA LIMPIA E INDUSTRIAL 🛡️🚀💎
 console.log("CHECK V7.0: Iniciando Sistema Centralizado...");
 
+// --- localStorage WRAPPER (soporta Tracking Prevention de Edge) ---
+const LS = {
+    get: (k) => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} },
+    remove: (k) => { try { localStorage.removeItem(k); } catch(e) {} }
+};
+
 // --- ESTADO CENTRALIZADO (STATE MANAGEMENT) ---
 window.App = {
     state: {
@@ -88,18 +95,18 @@ window.App = {
         if (isDark) {
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
-            localStorage.setItem('theme', 'light');
+            LS.set('theme', 'light');
             if (icon) icon.textContent = 'light_mode';
         } else {
             document.documentElement.classList.remove('light');
             document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
+            LS.set('theme', 'dark');
             if (icon) icon.textContent = 'dark_mode';
         }
     },
     
     initTheme: function() {
-        const saved = localStorage.getItem('theme') || 'dark';
+        const saved = LS.get('theme') || 'dark';
         const icon = document.getElementById('theme-icon');
         
         if (saved === 'light') {
@@ -860,7 +867,7 @@ window.App = {
             });
             if (res.success) {
                 this.state.user = { ...this.state.user, ...data };
-                localStorage.setItem('user', JSON.stringify(this.state.user));
+                LS.set('user', JSON.stringify(this.state.user));
                 alert('✓ Perfil actualizado');
                 this.loadProfileData();
             }
@@ -1234,7 +1241,7 @@ window.App = {
         // 0. Verificar sesión solo si no hay usuario en estado
         if (viewName !== 'login') {
             if (!this.state.user) {
-                const savedUser = localStorage.getItem('user');
+                const savedUser = LS.get('user');
                 if (!savedUser || savedUser === "undefined" || savedUser === "null") {
                     viewName = 'login';
                 } else {
@@ -1255,9 +1262,9 @@ window.App = {
         if (isLogin) {
             // Solo limpiar sesión si es un logout explícito
             if (clearSession) {
-                localStorage.removeItem('user');
-                localStorage.removeItem('selected_event_id');
-                localStorage.removeItem('selected_event_name');
+                LS.remove('user');
+                LS.remove('selected_event_id');
+                LS.remove('selected_event_name');
                 this.state.user = null;
                 this.state.event = null;
             }
@@ -1339,7 +1346,7 @@ window.App = {
     initRouter() {
         // Manejar navegación con el historial
         window.onpopstate = (e) => {
-            const savedUser = localStorage.getItem('user');
+            const savedUser = LS.get('user');
             if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
                 try {
                     const user = JSON.parse(savedUser);
@@ -1386,7 +1393,7 @@ window.App = {
     },
     logout() {
         console.log("CHECK: Cerrando sesión segura.");
-        localStorage.removeItem('user');
+        LS.remove('user');
         this.state.user = null;
         this.state.event = null;
         this.showView('login', true);
@@ -1501,8 +1508,8 @@ window.App = {
         if (!this.state.event) return console.error("Evento no encontrado:", id);
 
         // Persistir evento seleccionado
-        localStorage.setItem('selected_event_id', String(id));
-        localStorage.setItem('selected_event_name', this.state.event.name);
+        LS.set('selected_event_id', String(id));
+        LS.set('selected_event_name', this.state.event.name);
 
         this.navigate('admin', { id });
         
@@ -1517,8 +1524,8 @@ window.App = {
     
     // Restaurar evento desde localStorage
     restoreSelectedEvent() {
-        const savedEventId = localStorage.getItem('selected_event_id');
-        const savedEventName = localStorage.getItem('selected_event_name');
+        const savedEventId = LS.get('selected_event_id');
+        const savedEventName = LS.get('selected_event_name');
         
         if (savedEventId && this.state.events.length > 0) {
             const event = this.state.events.find(e => String(e.id) === String(savedEventId));
@@ -1780,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
     let savedUser = null;
     try {
-        savedUser = localStorage.getItem('user');
+        savedUser = LS.get('user');
     } catch(e) {
         console.warn("[AUTH] localStorage no disponible:", e);
     }
@@ -1847,7 +1854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
             console.log("[LOGIN] Respuesta:", d);
             if (d.success) { 
-                App.state.user = d; localStorage.setItem('user', JSON.stringify(d));
+                App.state.user = d; LS.set('user', JSON.stringify(d));
                 
                 // Actualizar sidebar info
                 const sbu = document.getElementById('sidebar-username');
