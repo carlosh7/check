@@ -222,7 +222,7 @@ window.App = {
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                 
                 // Chips de empresa asignada
-                const userGroup = groups.find(g => g.id === u.group_id);
+                const userGroup = groups.find(g => String(g.id) === String(u.group_id));
                 const groupChip = userGroup ? `
                     <div class="flex items-center gap-1 flex-wrap">
                         <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
@@ -236,10 +236,10 @@ window.App = {
                     `<div class="mb-2">${groupChip}</div>`;
                 
                 // Chips de eventos asignados
-                const userEvents = events.filter(e => u.events && u.events.includes(e.id));
+                const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => 
                     `<span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-[10px] rounded-lg mb-1">
-                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
+                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
                         <button onclick="App.removeUserEvent('${u.id}', '${e.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
                     </span>`
                 ).join('');
@@ -445,11 +445,16 @@ window.App = {
                 </select>
                 <div class="flex gap-3">
                     <button onclick="App.assignUserGroupFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
-                    <button onclick="App.quickCreateGroupFromUser()" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
+                    <button onclick="App.navigateToCreateGroup('${userId}')" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
                     <button onclick="App.closeGroupSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
+    },
+    
+    navigateToCreateGroup: function(userId) {
+        this.closeGroupSelector();
+        this.navigate('groups');
     },
     
     assignUserGroupFromSelector: async function(userId) {
@@ -467,7 +472,7 @@ window.App = {
         } catch(e) { console.error('Error assigning group:', e); }
     },
     
-    quickCreateGroupFromUser: function() {
+    openCreateGroupModal: function() {
         const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
         const description = prompt('Descripción (opcional):') || '';
@@ -479,10 +484,7 @@ window.App = {
         }).then(r => r.json()).then(d => {
             if (d.success) {
                 alert('✓ Empresa creada');
-                this.loadGroups().then(() => {
-                    this.closeGroupSelector();
-                    this.loadUsersTable();
-                });
+                this.loadGroups();
             }
         }).catch(() => alert('Error al crear empresa'));
     },
@@ -520,11 +522,19 @@ window.App = {
                 </select>
                 <div class="flex gap-3">
                     <button onclick="App.assignEventFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
-                    <button onclick="App.quickCreateEventFromUser()" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
+                    <button onclick="App.navigateToCreateEvent('${userId}')" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
                     <button onclick="App.closeEventSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
+    },
+    
+    navigateToCreateEvent: function(userId) {
+        this.closeEventSelector();
+        this.navigate('my-events');
+        setTimeout(() => {
+            document.getElementById('btn-create-event-open')?.click();
+        }, 200);
     },
     
     assignEventFromSelector: async function(userId) {
@@ -547,34 +557,6 @@ window.App = {
                 this.closeEventSelector();
             }
         } catch(e) { console.error('Error adding event:', e); }
-    },
-    
-    quickCreateEventFromUser: function() {
-        const name = prompt('Nombre del nuevo evento:');
-        if (!name || !name.trim()) return;
-        const date = prompt('Fecha del evento (YYYY-MM-DD HH:MM):') || '';
-        const formData = new FormData();
-        formData.append('name', name.trim());
-        formData.append('date', date);
-        formData.append('end_date', date);
-        formData.append('location', '');
-        formData.append('description', '');
-        
-        fetch('/api/events', {
-            method: 'POST',
-            headers: { 'x-user-id': this.state.user.userId },
-            body: formData
-        }).then(r => r.json()).then(d => {
-            if (d.success) {
-                alert('✓ Evento creado');
-                this.loadEvents().then(() => {
-                    // Re-abrir selector con el nuevo evento disponible
-                    this.closeEventSelector();
-                    // Forzar reload de users table para actualizar dropdowns
-                    this.loadUsersTable();
-                });
-            }
-        }).catch(() => alert('Error al crear evento'));
     },
     
     closeEventSelector: function() {
