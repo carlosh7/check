@@ -1371,11 +1371,28 @@ window.App = {
         });
 
         if (initialHtml) {
-            this.state.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
+            this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(initialHtml));
         }
         
         this._loadVariablesPalette();
         this._quillInitializing = false;
+    },
+
+    _cleanHtmlForEditor: function(html) {
+        if (!html) return '';
+        let clean = html;
+        // 1. Eliminar background-color de spans, p, div (excepto botones que suelen ser <a> con fondo)
+        clean = clean.replace(/(<(span|p|div|h1|h2|h3)[^>]*style="[^"]*)background-color\s*:\s*[^;"]+;?/gi, '$1');
+        clean = clean.replace(/(<(span|p|div|h1|h2|h3)[^>]*style="[^"]*)background\s*:\s*[^;"]+;?/gi, '$1');
+        
+        // 2. Cambiar colores de texto blancos/claros a 'inherit' en elementos de contenido
+        // Quill inyecta color: rgb(255, 255, 255) o #ffffff que en modo claro son invisibles
+        clean = clean.replace(/(<(span|p|div)[^>]*style="[^"]*)color\s*:\s*(#ffffff|white|#f8fafc|rgb\(255,\s*255,\s*255\));?/gi, '$1color: inherit;');
+        
+        // 3. Eliminar sombras de texto inline (causan el "resaltado blanco" en modo oscuro)
+        clean = clean.replace(/(<[^>]*style="[^"]*)text-shadow\s*:\s*[^;"]+;?/gi, '$1');
+        
+        return clean;
     },
     
     _loadVariablesPalette: function() {
@@ -1434,7 +1451,7 @@ window.App = {
             // Sincronizar desde Código a Visual si venimos de allá
             if (prevTab === 'code' && this.state.quillEditor) {
                 const codeContent = document.getElementById('tpl-code-editor').value;
-                this.state.quillEditor.clipboard.dangerouslyPasteHTML(codeContent);
+                this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(codeContent));
             }
             setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {

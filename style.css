@@ -350,8 +350,18 @@ html:not(.light) .tpl-preview-bg .ql-editor {
 /* ═══ LIMPIEZA AGRESIVA DE FONDOS (Evita cajas blancas en Quill) ═══ */
 .ql-editor span, 
 .ql-editor p, 
-.ql-editor div {
+.ql-editor div,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
     background-color: transparent !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+/* Forzar que el editor NO tenga sombra de texto global */
+.ql-editor * {
+    text-shadow: none !important;
 }
 
 html.light .tpl-preview-bg .ql-toolbar {
