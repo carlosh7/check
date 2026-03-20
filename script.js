@@ -1778,7 +1778,13 @@ document.addEventListener('DOMContentLoaded', () => {
     App.loadAppVersion();
 
     // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
-    const savedUser = localStorage.getItem('user');
+    let savedUser = null;
+    try {
+        savedUser = localStorage.getItem('user');
+    } catch(e) {
+        console.warn("[AUTH] localStorage no disponible:", e);
+    }
+    
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
@@ -1802,6 +1808,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.showView('login');
             }
         } catch(e){ 
+            console.warn("[AUTH] Error parseando usuario:", e);
             App.showView('login'); 
         }
     } else {
