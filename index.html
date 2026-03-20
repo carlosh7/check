@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check | Gestión de Eventos Elite</title>
-    <!-- PREVENT FLASH: Mover app-container FUERA de la vista hasta que JS cargue -->
-    <script>document.write('<style>#app-container,#view-admin,#view-admin-simple,#view-system,#view-system-simple,#view-groups,#view-legal,#view-account,#view-smtp{display:none!important}</style>')</script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -120,7 +118,7 @@
     </div>
 
     <!-- APP CONTAINER: Estructura Global V10.5.0 (Sidebar Persistente) -->
-    <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950" style="display: none !important">
+    <div id="app-container" class="hidden h-screen overflow-hidden flex bg-slate-950">
         <!-- Sidebar Global -->
         <aside id="global-sidebar" class="sidebar w-[220px] bg-slate-950/40 flex flex-col backdrop-blur-3xl border-r border-white/5 shrink-0">
             

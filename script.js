@@ -1783,9 +1783,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
     console.log('[DOM] DOMContentLoaded fired');
-
-    // 0. Sync Version
-    App.loadAppVersion();
+    
+    // INMEDIATAMENTE: asegurar que login esté visible y app-container oculto
+    const loginEl = document.getElementById('view-login');
+    const appEl = document.getElementById('app-container');
+    if (loginEl) { loginEl.classList.remove('hidden'); loginEl.style.display = 'flex'; }
+    if (appEl) { appEl.classList.add('hidden'); appEl.style.display = 'none'; }
 
     // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
     let savedUser = null;
