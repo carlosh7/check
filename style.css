@@ -300,6 +300,37 @@ html.light .text-white {
     color: var(--text-main) !important;
 }
 
+/* ═══ E-MAIL PREVIEW ADAPTATIVO ═══ */
+.tpl-preview-bg {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    transition: all 0.3s ease;
+}
+
+html:not(.light) .tpl-preview-bg {
+    background-color: var(--bg-slate-900) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Quill Editor Dark Mode Override */
+html:not(.light) .ql-editor.ql-blank::before {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+html:not(.light) .ql-toolbar {
+    background-color: var(--bg-slate-800) !important;
+    border-color: var(--border-white) !important;
+}
+
+html:not(.light) .ql-picker {
+    color: white !important;
+}
+
+html:not(.light) .ql-stroke {
+    stroke: white !important;
+}
+
+
 html.light .text-slate-400,
 html.light .text-slate-500,
 html.light .text-slate-600 {
