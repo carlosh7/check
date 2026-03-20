@@ -115,6 +115,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS event_email_templates (
     id TEXT PRIMARY KEY,
     event_id TEXT,
     template_type TEXT NOT NULL,
+    name TEXT,
     subject TEXT,
     body TEXT,
     is_active INTEGER DEFAULT 1,
