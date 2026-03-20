@@ -1,0 +1,9 @@
+--- email_templates ---
+- ID: evt_confirmation_model | Name: [Modelo] Confirmación de Registro
+
+--- event_email_templates ---
+- ID: f9b2b02d-29dc-4599-920c-2161fb9b427a | Name: Confirmación de registro
+- ID: bff02c0a-b073-42eb-89e8-cbe3bcd59e47 | Name: Confirmación de registro
+- ID: d345807a-ab72-4c93-a482-0de5cac042af | Name: Confirmación de registro
+- ID: 0f423fb6-d307-41eb-a1e3-cbb6dd92c130 | Name: Confirmación de registro
+- ID: f52c6b8d-556f-429f-a36b-2d52dfb6f8f5 | Name: Confirmación de registro

@@ -1464,7 +1464,7 @@ window.App = {
         const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
         const name = document.getElementById('tpl-name').value || 'Plantilla';
         
-        const preview = `<!DOCTYPE html><html><head><style>body{font-family:'Inter',Arial,sans-serif;padding:0;margin:0;background:transparent;overflow-y:auto;} .preview-wrapper{padding:20px;display:flex;justify-content:center;} .preview-card{background:transparent;width:100%;max-width:600px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.1);}</style></head><body><div class="preview-wrapper"><div class="preview-card">${body}</div></div></body></html>`;
+        const preview = `<!DOCTYPE html><html><head><meta name="color-scheme" content="dark light"><style>body{font-family:'Inter',Arial,sans-serif;padding:0;margin:0;background:transparent;overflow-y:auto;color-scheme:dark;} .preview-wrapper{padding:20px;display:flex;justify-content:center;} .preview-card{background:transparent;width:100%;max-width:600px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.1);}</style></head><body><div class="preview-wrapper"><div class="preview-card">${body}</div></div></body></html>`;
         
         const iframe = document.getElementById('tpl-preview-frame');
         if (iframe) {
