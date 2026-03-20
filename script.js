@@ -882,6 +882,8 @@ window.App = {
     loadEmailTemplates: async function() {
         try {
             const templates = await this.fetchAPI('/email-templates');
+            this.state.emailTemplates = templates; // Guardar en estado
+            
             const container = document.getElementById('email-templates-list');
             if (container) {
                 container.innerHTML = templates.map(t => `
@@ -891,7 +893,7 @@ window.App = {
                             <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
                         </div>
                         <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
-                        <button onclick="App.showTemplateEditor('${t.id}', '${t.name}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
+                        <button onclick="App.showTemplateEditor('${t.id}', '${t.name.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
                     </div>
                 `).join('');
             }
@@ -1318,25 +1320,54 @@ window.App = {
     },
 
     initRouter() {
+        // Manejar navegación con el historial
         window.onpopstate = (e) => {
-            // Botón atrás: verificar sesión desde localStorage
+            // Verificar si hay sesión válida
             const savedUser = localStorage.getItem('user');
             const hasValidSession = savedUser && savedUser !== "undefined" && savedUser !== "null";
             
-            if (e.state && e.state.view) {
-                if (!hasValidSession && e.state.view !== 'login') {
-                    history.replaceState(null, '', '/');
-                    this.showView('login');
-                    return;
-                }
-                this.navigate(e.state.view, e.state.params, false);
-            } else {
-                // Sin estado, verificar sesión
-                if (!hasValidSession) {
-                    this.showView('login');
-                }
+            // Intentar parsear el usuario
+            if (hasValidSession) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    if (user && user.token) {
+                        // Restaurar usuario en estado
+                        if (!this.state.user) {
+                            this.state.user = user;
+                        }
+                        
+                        // Si hay estado de navegación, navegar a esa vista
+                        if (e.state && e.state.view && e.state.view !== 'login') {
+                            this.navigate(e.state.view, e.state.params || {}, false);
+                            return;
+                        }
+                        
+                        // Sin estado, restaurar vista según rol
+                        if (user.role === 'ADMIN') {
+                            this.navigate('system', {}, false);
+                            setTimeout(() => window.switchSystemTab('users'), 50);
+                        } else {
+                            this.navigate('my-events', {}, false);
+                        }
+                        return;
+                    }
+                } catch(e) {}
             }
+            
+            // No hay sesión, ir a login
+            history.replaceState(null, '', '/');
+            this.showView('login', true);
         };
+        
+        // Disparar un evento de popstate inicial para restaurar estado
+        // Esto asegura que se maneje correctamente la recarga
+        if (document.readyState === 'complete') {
+            window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+        } else {
+            window.addEventListener('load', () => {
+                setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate', { state: history.state })), 100);
+            });
+        }
     },
 
     // --- AUTH ---
@@ -1957,10 +1988,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Mailing (placeholder - implementar según necesidad)
+    // Mailing - Abrir config de email del evento
     App.openMailing = () => {
         if (!App.state.event) return alert("Selecciona un evento primero.");
-        alert("Módulo de Mailing en desarrollo. Aquí podrás enviar correos masivos a los invitados del evento.");
+        document.getElementById('ev-id-hidden').value = App.state.event.id;
+        App.openEventEmailConfig();
     };
     cl('btn-mailing', () => App.openMailing());
 
