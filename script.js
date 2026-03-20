@@ -947,6 +947,64 @@ window.App = {
         } catch (e) { alert('Error al probar conexión IMAP'); }
     },
     
+    toggleEmailAdminMenu: function() {
+        const menu = document.getElementById('email-admin-menu');
+        const arrow = document.getElementById('email-admin-arrow');
+        if (menu) {
+            menu.classList.toggle('hidden');
+            if (arrow) {
+                arrow.style.transform = menu.classList.contains('hidden') ? '' : 'rotate(180deg)';
+            }
+        }
+    },
+    
+    // Cerrar menú al hacer clic afuera
+    closeEmailAdminMenu: function() {
+        const menu = document.getElementById('email-admin-menu');
+        const arrow = document.getElementById('email-admin-arrow');
+        if (menu && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            if (arrow) arrow.style.transform = '';
+        }
+    },
+    
+    navigateEmailSection: function(section) {
+        // Ocultar todos los contenidos
+        document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.email-nav-btn').forEach(el => {
+            el.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+            el.classList.add('bg-white/5', 'text-slate-400');
+        });
+        
+        // Mostrar el contenido seleccionado
+        const content = document.getElementById('email-content-' + section);
+        const navBtn = document.getElementById('email-nav-' + section);
+        if (content) content.classList.remove('hidden');
+        if (navBtn) {
+            navBtn.classList.remove('bg-white/5', 'text-slate-400');
+            navBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+        }
+        
+        // Guardar preferencia en localStorage
+        LS.set('email_admin_section', section);
+        
+        // Cargar datos según sección
+        if (section === 'config') {
+            App.loadSMTPConfig();
+            App.loadIMAPConfig();
+        } else if (section === 'templates') {
+            App.loadEmailTemplates();
+        }
+    },
+    
+    showCreateTemplateModal: function() {
+        alert('Modal de creación de plantilla - FASE 3');
+    },
+    
+    syncEmails: function() {
+        alert('Sincronizar correos - FASE 4');
+    },
+    
     switchEmailService: function(service) {
         // Ocultar todos los formularios y tabs
         document.querySelectorAll('.email-form').forEach(el => el.classList.add('hidden'));
@@ -1414,11 +1472,23 @@ window.App = {
             App.loadProfileData();
         }
         if (viewName === 'groups') this.loadGroups();
-        if (viewName === 'smtp') {
-            this.switchEmailService('smtp');
+        if (viewName === 'smtp-config') {
             App.loadSMTPConfig();
             App.loadIMAPConfig();
             App.loadEmailTemplates();
+        }
+        if (viewName === 'smtp-templates') {
+            App.loadSMTPConfig();
+            App.loadIMAPConfig();
+            App.loadEmailTemplates();
+        }
+        if (viewName === 'smtp-mailbox') {
+            App.loadSMTPConfig();
+            App.loadIMAPConfig();
+        }
+        if (viewName === 'smtp') {
+            const savedSection = LS.get('email_admin_section') || 'config';
+            this.navigateEmailSection(savedSection);
         }
     },
 
@@ -1985,6 +2055,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Init router AFTER session restoration (no synthetic popstate)
     App.initRouter();
+
+    // 2.5. Global click handler to close dropdowns
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#email-admin-dropdown')) {
+            App.closeEmailAdminMenu();
+        }
+    });
 
     // 3. Sockets
     if (typeof io !== 'undefined') {

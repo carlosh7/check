@@ -28,9 +28,24 @@
                     <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">gavel</span> Legales
                     </button>
-                    <button onclick="App.navigate('smtp')" id="nav-btn-smtp" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-sm">mail</span> Email SMTP
-                    </button>
+                    <!-- Email Admin Dropdown -->
+                    <div class="relative" id="email-admin-dropdown">
+                        <button onclick="App.toggleEmailAdminMenu()" id="nav-btn-email-admin" class="w-full flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mail</span> Email Admin</span>
+                            <span class="material-symbols-outlined text-xs transition-transform" id="email-admin-arrow">expand_more</span>
+                        </button>
+                        <div id="email-admin-menu" class="hidden absolute left-0 top-full mt-1 w-48 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                            <button onclick="App.navigate('smtp-config')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
+                                <span class="material-symbols-outlined text-sm text-emerald-400">settings</span> Configuración
+                            </button>
+                            <button onclick="App.navigate('smtp-templates')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
+                                <span class="material-symbols-outlined text-sm text-primary">description</span> Plantillas
+                            </button>
+                            <button onclick="App.navigate('smtp-mailbox')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all">
+                                <span class="material-symbols-outlined text-sm text-blue-400">inbox</span> Buzón
+                            </button>
+                        </div>
+                    </div>
                     <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">manage_accounts</span> Mi Cuenta
                     </button>
@@ -346,107 +361,136 @@
                 </div>
             </div>
 
-            <!-- VIEW: CONFIGURACIÓN SMTP (V10.6) -->
+            <!-- VIEW: EMAIL ADMIN -->
             <div id="view-smtp" class="hidden min-h-full p-8 md:p-12 animate-fade">
-                <div class="mb-10">
-                    <h2 class="text-4xl font-black font-display mb-2">Configuración <span class="text-primary">Email</span></h2>
-                    <p class="text-slate-500 text-sm">Configura los servidores SMTP (envío) e IMAP (recepción) para gestión de correos.</p>
+                <!-- Header -->
+                <div class="mb-8">
+                    <h2 class="text-4xl font-black font-display mb-2">Email <span class="text-primary">Admin</span></h2>
+                    <p class="text-slate-500 text-sm">Gestiona la configuración de email, plantillas y buzón.</p>
                 </div>
                 
-                <!-- TABS PARA ELEGIR SERVICIO -->
-                <div class="flex gap-2 mb-8">
-                    <button id="tab-btn-smtp" onclick="App.switchEmailService('smtp')" class="email-service-tab active px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
-                        <span class="material-symbols-outlined text-emerald-400">upload</span> SMTP (Envío)
+                <!-- Sub-Navigation -->
+                <div class="flex gap-2 mb-8 border-b border-white/10 pb-4">
+                    <button onclick="App.navigateEmailSection('config')" id="email-nav-config" class="email-nav-btn active px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-emerald-400">settings</span> Configuración
                     </button>
-                    <button id="tab-btn-imap" onclick="App.switchEmailService('imap')" class="email-service-tab px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
-                        <span class="material-symbols-outlined text-blue-400">download</span> IMAP (Recepción)
+                    <button onclick="App.navigateEmailSection('templates')" id="email-nav-templates" class="email-nav-btn px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-primary">description</span> Plantillas
+                    </button>
+                    <button onclick="App.navigateEmailSection('mailbox')" id="email-nav-mailbox" class="email-nav-btn px-6 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-blue-400">inbox</span> Buzón
                     </button>
                 </div>
                 
-                <!-- FORMULARIO DINÁMICO -->
-                <div class="glass-card p-8 rounded-[40px] border border-white/10 mb-8">
-                    <!-- SMTP FORM -->
-                    <div id="form-smtp" class="email-form">
-                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-emerald-400">upload</span> Servidor SMTP <span class="text-[10px] text-slate-500">(Envío de correos)</span></h4>
-                        <form id="smtp-form" class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor SMTP</label>
-                                <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/60">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                <!-- CONTENT: Configuración -->
+                <div id="email-content-config" class="email-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- SMTP -->
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                            <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-emerald-400">upload</span> Servidor SMTP <span class="text-[10px] text-slate-500">(Envío)</span></h4>
+                            <form id="smtp-form" class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Puerto</label>
-                                    <input type="number" id="smtp-port" placeholder="587" class="input-field bg-slate-900/60" value="587">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor SMTP</label>
+                                    <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/60">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Puerto</label>
+                                        <input type="number" id="smtp-port" placeholder="587" class="input-field bg-slate-900/60" value="587">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 flex items-center gap-2">
+                                            <input type="checkbox" id="smtp-secure" class="w-4 h-4 accent-primary"> SSL/TLS
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 flex items-center gap-2">
-                                        <input type="checkbox" id="smtp-secure" class="w-4 h-4 accent-primary"> SSL/TLS
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Usuario (Email)</label>
-                                <input type="email" id="smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/60">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Contraseña</label>
-                                <input type="password" id="smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
-                                <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre Remitente</label>
-                                    <input type="text" id="smtp-from-name" placeholder="Check Attendance" class="input-field bg-slate-900/60">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Usuario (Email)</label>
+                                    <input type="email" id="smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/60">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email Remitente</label>
-                                    <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="input-field bg-slate-900/60">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Contraseña</label>
+                                    <input type="password" id="smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
+                                    <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
                                 </div>
-                            </div>
-                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Configuración SMTP</button>
-                            <button type="button" id="btn-test-smtp" class="w-full py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-black text-sm mt-2">Probar Conexión SMTP</button>
-                        </form>
-                    </div>
-                    
-                    <!-- IMAP FORM -->
-                    <div id="form-imap" class="email-form hidden">
-                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-blue-400">download</span> Servidor IMAP <span class="text-[10px] text-slate-500">(Recepción de correos)</span></h4>
-                        <form id="imap-form" class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor IMAP</label>
-                                <input type="text" id="imap-host" placeholder="imap.gmail.com" class="input-field bg-slate-900/60">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre Remitente</label>
+                                        <input type="text" id="smtp-from-name" placeholder="Check Attendance" class="input-field bg-slate-900/60">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email Remitente</label>
+                                        <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="input-field bg-slate-900/60">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar SMTP</button>
+                                <button type="button" id="btn-test-smtp" class="w-full py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-black text-sm mt-2">Probar Conexión SMTP</button>
+                            </form>
+                        </div>
+                        
+                        <!-- IMAP -->
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                            <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-blue-400">download</span> Servidor IMAP <span class="text-[10px] text-slate-500">(Recepción)</span></h4>
+                            <form id="imap-form" class="space-y-4">
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Puerto</label>
-                                    <input type="number" id="imap-port" placeholder="993" class="input-field bg-slate-900/60" value="993">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Servidor IMAP</label>
+                                    <input type="text" id="imap-host" placeholder="imap.gmail.com" class="input-field bg-slate-900/60">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Puerto</label>
+                                        <input type="number" id="imap-port" placeholder="993" class="input-field bg-slate-900/60" value="993">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 flex items-center gap-2">
+                                            <input type="checkbox" id="imap-tls" class="w-4 h-4 accent-primary" checked> TLS
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 flex items-center gap-2">
-                                        <input type="checkbox" id="imap-tls" class="w-4 h-4 accent-primary" checked> TLS
-                                    </label>
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Usuario (Email)</label>
+                                    <input type="email" id="imap-user" placeholder="tu@email.com" class="input-field bg-slate-900/60">
                                 </div>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Usuario (Email)</label>
-                                <input type="email" id="imap-user" placeholder="tu@email.com" class="input-field bg-slate-900/60">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Contraseña</label>
-                                <input type="password" id="imap-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
-                                <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
-                            </div>
-                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Configuración IMAP</button>
-                            <button type="button" id="btn-test-imap" class="w-full py-3 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-black text-sm mt-2">Probar Conexión IMAP</button>
-                        </form>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Contraseña</label>
+                                    <input type="password" id="imap-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/60">
+                                    <p class="text-[10px] text-slate-600 ml-2">Usa una contraseña de aplicación para Gmail</p>
+                                </div>
+                                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar IMAP</button>
+                                <button type="button" id="btn-test-imap" class="w-full py-3 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-black text-sm mt-2">Probar Conexión IMAP</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Plantillas -->
-                <div class="glass-card p-8 rounded-[40px] border border-white/10">
-                    <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">description</span> Plantillas de Email</h4>
-                    <div id="email-templates-list" class="space-y-4">
-                        <!-- Templates loaded by JS -->
+                <!-- CONTENT: Plantillas -->
+                <div id="email-content-templates" class="email-content hidden">
+                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">description</span> Plantillas de Email</h4>
+                            <button onclick="App.showCreateTemplateModal()" class="btn-primary px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">add</span> Nueva Plantilla
+                            </button>
+                        </div>
+                        <div id="email-templates-list" class="space-y-4">
+                            <!-- Templates loaded by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CONTENT: Buzón -->
+                <div id="email-content-mailbox" class="email-content hidden">
+                    <div class="glass-card p-8 rounded-[40px] border border-white/10">
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-blue-400">inbox</span> Buzón de Correo</h4>
+                            <button onclick="App.syncEmails()" class="px-4 py-2 rounded-xl bg-blue-500/20 text-blue-400 font-black text-xs flex items-center gap-2 hover:bg-blue-500/30 transition-all">
+                                <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
+                            </button>
+                        </div>
+                        <div id="email-mailbox-list" class="text-slate-500 text-center py-12">
+                            <span class="material-symbols-outlined text-6xl text-slate-700">inbox</span>
+                            <p class="mt-4">Configura el servidor IMAP para ver tu bandeja de entrada.</p>
+                        </div>
                     </div>
                 </div>
             </div>
