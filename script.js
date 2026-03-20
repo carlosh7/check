@@ -32,7 +32,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.5.3',
+        version: '10.5.4',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -1081,6 +1081,8 @@ window.App = {
     closeTemplateEditor: function() {
         document.getElementById('modal-template-editor')?.classList.add('hidden');
         if (this.state.quillEditor) {
+            console.log('[QUILL] destroying editor on close');
+            try { this.state.quillEditor.destroy(); } catch(e) { console.warn('[QUILL] Error destroying:', e); }
             this.state.quillEditor = null;
         }
     },
@@ -1089,14 +1091,22 @@ window.App = {
         if (this._quillInitializing) return;
         this._quillInitializing = true;
         console.log('[QUILL] initTemplateEditor called');
+        
+        // Limpiar el contenedor y ELIMINAR toolbars remanentes (Quill 2.0 puede dejarlas como hermanos)
         const container = document.getElementById('tpl-quill-editor');
+        if (container) {
+            const parent = container.parentElement;
+            if (parent) {
+                const toolbars = parent.querySelectorAll('.ql-toolbar');
+                toolbars.forEach(t => t.remove());
+            }
+            container.innerHTML = '';
+        }
+
         if (this.state.quillEditor) {
             console.log('[QUILL] destroying existing editor');
             try { this.state.quillEditor.destroy(); } catch(e) {}
             this.state.quillEditor = null;
-        }
-        if (container) {
-            container.innerHTML = '';
         }
         
         this.state.quillEditor = new Quill('#tpl-quill-editor', {
@@ -1114,9 +1124,11 @@ window.App = {
                 ]
             }
         });
+
         if (initialHtml) {
             this.state.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
         }
+        
         this._loadVariablesPalette();
         this._quillInitializing = false;
     },
@@ -1165,26 +1177,45 @@ window.App = {
             activeTab.classList.add('bg-primary', 'text-white', 'shadow');
         }
         
+        const prevTab = this.state.templateActiveTab || 'visual';
+        this.state.templateActiveTab = tab;
+
         document.getElementById('editor-visual-container')?.classList.add('hidden');
         document.getElementById('editor-code-container')?.classList.add('hidden');
         document.getElementById('editor-preview-container')?.classList.add('hidden');
         
         if (tab === 'visual') {
             document.getElementById('editor-visual-container')?.classList.remove('hidden');
+            // Sincronizar desde Código a Visual si venimos de allá
+            if (prevTab === 'code' && this.state.quillEditor) {
+                const codeContent = document.getElementById('tpl-code-editor').value;
+                this.state.quillEditor.clipboard.dangerouslyPasteHTML(codeContent);
+            }
             setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {
             document.getElementById('editor-code-container')?.classList.remove('hidden');
+            // Sincronizar desde Visual a Código
             const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
             document.getElementById('tpl-code-editor').value = body;
             setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
         } else if (tab === 'preview') {
             document.getElementById('editor-preview-container')?.classList.remove('hidden');
+            // Sincronizar antes de previsualizar
+            if (prevTab === 'visual') {
+                document.getElementById('tpl-code-editor').value = this.state.quillEditor?.root.innerHTML || '';
+            }
             this._updateTemplatePreview();
         }
     },
     
     _updateTemplatePreview: function() {
-        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        const activeTab = this.state.templateActiveTab || 'visual';
+        let body = '';
+        if (activeTab === 'visual' && this.state.quillEditor) {
+            body = this.state.quillEditor.root.innerHTML;
+        } else {
+            body = document.getElementById('tpl-code-editor')?.value || '';
+        }
         const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
         const name = document.getElementById('tpl-name').value || 'Plantilla';
         
@@ -1199,7 +1230,14 @@ window.App = {
     saveTemplate: async function() {
         const name = document.getElementById('tpl-name').value.trim();
         const subject = document.getElementById('tpl-subject').value.trim();
-        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : document.getElementById('tpl-code-editor')?.value || '';
+        
+        const activeTab = this.state.templateActiveTab || 'visual';
+        let body = '';
+        if (activeTab === 'visual' && this.state.quillEditor) {
+            body = this.state.quillEditor.root.innerHTML;
+        } else {
+            body = document.getElementById('tpl-code-editor')?.value || '';
+        }
         
         if (!name) return alert('Ingresa un nombre para la plantilla.');
         if (!subject) return alert('Ingresa el asunto del email.');
@@ -2233,16 +2271,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
     }
 
-    // 4. Listeners System
-    document.getElementById('sys-nav-users')?.addEventListener('click', () => switchSystemTab('users'));
-    document.getElementById('sys-nav-legal')?.addEventListener('click', () => switchSystemTab('legal'));
-    document.getElementById('sys-nav-account')?.addEventListener('click', () => switchSystemTab('account'));
-    document.getElementById('sys-nav-events')?.addEventListener('click', () => App.loadEvents());
-
+    // Listeners System (Se maneja en attachAppListeners para evitar duplicación)
+    // Se mantienen solo los que no están en app-shell o son globales fuera del shell
+    
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
-    document.querySelectorAll('#view-admin [data-tab]').forEach(btn => {
-        btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
-    });
 
     // 5. Listeners generales
 
