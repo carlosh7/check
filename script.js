@@ -1339,27 +1339,20 @@ window.App = {
     initRouter() {
         // Manejar navegación con el historial
         window.onpopstate = (e) => {
-            // Verificar si hay sesión válida
             const savedUser = localStorage.getItem('user');
-            const hasValidSession = savedUser && savedUser !== "undefined" && savedUser !== "null";
-            
-            // Intentar parsear el usuario
-            if (hasValidSession) {
+            if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
                 try {
                     const user = JSON.parse(savedUser);
-                    if (user && user.token) {
-                        // Restaurar usuario en estado
+                    if (user && (user.userId || user.token)) {
                         if (!this.state.user) {
                             this.state.user = user;
                         }
                         
-                        // Si hay estado de navegación, navegar a esa vista
                         if (e.state && e.state.view && e.state.view !== 'login') {
                             this.navigate(e.state.view, e.state.params || {}, false);
                             return;
                         }
                         
-                        // Sin estado, restaurar vista según rol
                         if (user.role === 'ADMIN') {
                             this.navigate('system', {}, false);
                             setTimeout(() => window.switchSystemTab('users'), 50);
@@ -1371,7 +1364,6 @@ window.App = {
                 } catch(e) {}
             }
             
-            // No hay sesión, ir a login
             history.replaceState(null, '', '/');
             this.showView('login', true);
         };
@@ -1843,8 +1835,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sf('login-form', async (e) => {
         e.preventDefault();
         const u = document.getElementById('login-user').value; const p = document.getElementById('login-pass').value;
+        console.log("[LOGIN] Intentando login con:", u);
         try {
             const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
+            console.log("[LOGIN] Respuesta:", d);
             if (d.success) { 
                 App.state.user = d; localStorage.setItem('user', JSON.stringify(d));
                 
@@ -1855,17 +1849,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sbr) sbr.textContent = d.role || 'Staff';
                 
                 // Actualizar permisos UI
+                console.log("[LOGIN] Llamando updateUIPermissions");
                 App.updateUIPermissions();
+                console.log("[LOGIN] Llamando updateRoleOptions");
                 App.updateRoleOptions();
                 
                 if (d.role === 'ADMIN') {
+                    console.log("[LOGIN] Navegando a system");
                     App.navigate('system');
                     setTimeout(() => window.switchSystemTab('users'), 100);
                 } else {
                     App.loadEvents();
                 }
             } else alert(d.message || 'Credenciales inválidas.');
-        } catch (err) { alert('Error de conexión con el servidor.'); }
+        } catch (err) { 
+            console.error("[LOGIN] Error:", err);
+            alert('Error de conexión con el servidor.'); 
+        }
     });
 
     // Signup Form (Solicitar Cuenta)
