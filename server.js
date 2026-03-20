@@ -14,6 +14,8 @@ const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const imap = require('imap');
+const crypto = require('crypto');
 
 // --- VERSIÓN DINÁMICA V10.3 ---
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
@@ -67,9 +69,23 @@ async function sendEmail(to, subject, html, options = {}) {
     try {
         const config = await getSMTPConfig();
         
+        // Registrar en logs (independientemente de si es simulado o real)
+        const logId = uuidv4();
+        db.prepare(`INSERT INTO email_logs (id, event_id, type, subject, from_email, to_email, body_html, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+            logId, 
+            options.eventId || null, 
+            'SENT', 
+            subject, 
+            config ? (config.from_email || config.smtp_user) : 'system@check.com', 
+            to, 
+            html, 
+            new Date().toISOString()
+        );
+
         if (!config || !config.smtp_host || !config.smtp_user) {
             console.log('📧 Email simulation (no SMTP configured):', { to, subject });
-            return { success: true, simulated: true };
+            return { success: true, simulated: true, logId };
         }
         
         const transporter = nodemailer.createTransport({
@@ -91,11 +107,127 @@ async function sendEmail(to, subject, html, options = {}) {
         
         const result = await transporter.sendMail(mailOptions);
         console.log('📧 Email sent:', { to, subject, messageId: result.messageId });
-        return { success: true, messageId: result.messageId };
+        return { success: true, messageId: result.messageId, logId };
     } catch (error) {
         console.error('📧 Email error:', error.message);
         return { success: false, error: error.message };
     }
+}
+
+// ═══ MOTOR DE COLAS (QUEUE ENGINE) V11.0 ═══
+let isQueuePaused = false;
+
+async function processEmailQueue() {
+    if (isQueuePaused) return;
+
+    // Buscar el siguiente correo pendiente
+    const nextMail = db.prepare(`SELECT * FROM email_queue WHERE status = 'PENDING' ORDER BY scheduled_at ASC LIMIT 1`).get();
+
+    if (!nextMail) return;
+
+    // Cambiar estado a SENDING para evitar duplicados
+    db.prepare("UPDATE email_queue SET status = 'SENDING' WHERE id = ?").run(nextMail.id);
+
+    // Verificar si el invitado se ha desuscrito
+    if (nextMail.guest_id) {
+        const guest = db.prepare("SELECT unsubscribed FROM guests WHERE id = ?").get(nextMail.guest_id);
+        if (guest && guest.unsubscribed === 1) {
+            db.prepare("UPDATE email_queue SET status = 'CANCELLED', last_error = 'User unsubscribed' WHERE id = ?").run(nextMail.id);
+            return;
+        }
+    }
+
+    // Enviar el email
+    const result = await sendEmail(nextMail.to_email, nextMail.subject, nextMail.body_html, { eventId: nextMail.event_id });
+
+    if (result.success) {
+        db.prepare("UPDATE email_queue SET status = 'SENT', processed_at = ? WHERE id = ?").run(new Date().toISOString(), nextMail.id);
+        // Notificar por socket el progreso
+        io.emit('email_queue_progress', { eventId: nextMail.event_id });
+    } else {
+        const attempts = (nextMail.attempts || 0) + 1;
+        const newStatus = attempts >= 3 ? 'ERROR' : 'PENDING';
+        db.prepare("UPDATE email_queue SET status = ?, attempts = ?, last_error = ? WHERE id = ?").run(newStatus, attempts, result.error, nextMail.id);
+    }
+}
+
+// Procesar cola cada 5 segundos para no saturar el SMTP
+setInterval(processEmailQueue, 5000);
+
+// ═══ SINCRONIZACIÓN IMAP V11.0 ═══
+async function syncEmails() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
+            if (!config || !config.imap_host || !config.imap_user) {
+                return resolve({ success: false, error: 'IMAP not configured' });
+            }
+
+            const Imap = require('imap');
+            const { simpleParser } = require('mailparser'); // Necesitamos instalar esto si no está
+            
+            const imapConn = new Imap({
+                user: config.imap_user,
+                password: config.imap_pass,
+                host: config.imap_host,
+                port: config.imap_port || 993,
+                tls: config.imap_tls === 1,
+                tlsOptions: { rejectUnauthorized: false }
+            });
+
+            imapConn.once('ready', () => {
+                imapConn.openBox('INBOX', false, (err, box) => {
+                    if (err) return reject(err);
+                    
+                    // Buscar los últimos 20 mensajes
+                    const f = imapConn.seq.fetch((box.messages.total - 19) + ':' + box.messages.total, { bodies: '' });
+                    
+                    f.on('message', (msg, seqno) => {
+                        let totalBody = '';
+                        msg.on('body', (stream, info) => {
+                            stream.on('data', (chunk) => { totalBody += chunk.toString(); });
+                        });
+                        
+                        msg.once('end', async () => {
+                            try {
+                                const parsed = await simpleParser(totalBody);
+                                
+                                // Verificar si ya existe por Message-ID
+                                const externalId = parsed.messageId;
+                                const existing = db.prepare("SELECT id FROM email_logs WHERE external_id = ?").get(externalId);
+                                
+                                if (!existing) {
+                                    db.prepare(`INSERT INTO email_logs (id, type, subject, from_email, to_email, body_html, external_id, created_at) 
+                                                VALUES (?, 'INBOX', ?, ?, ?, ?, ?, ?)`).run(
+                                        uuidv4(),
+                                        parsed.subject || '(Sin asunto)',
+                                        parsed.from?.text || '',
+                                        config.imap_user,
+                                        parsed.html || parsed.textAsHtml || parsed.text || '',
+                                        externalId,
+                                        parsed.date ? parsed.date.toISOString() : new Date().toISOString()
+                                    );
+                                }
+                            } catch (e) {
+                                console.error('Error parsing email:', e);
+                            }
+                        });
+                    });
+
+                    f.once('error', (err) => { reject(err); });
+                    f.once('end', () => {
+                        imapConn.end();
+                        resolve({ success: true });
+                    });
+                });
+            });
+
+            imapConn.once('error', (err) => { reject(err); });
+            imapConn.connect();
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
 
 async function sendUserApprovedEmail(user) {
@@ -1347,6 +1479,125 @@ app.put('/api/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
       .run(subject, body, new Date().toISOString(), templateId);
     
     res.json({ success: true });
+});
+
+// ═══ SISTEMA DE BUZÓN Y ENVÍO MASIVO (V11.0) ═══
+
+// 1. Obtener Logs (Buzón)
+app.get('/api/email-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { type, event_id } = req.query;
+    let query = "SELECT * FROM email_logs WHERE 1=1";
+    let params = [];
+    
+    if (type) {
+        query += " AND type = ?";
+        params.push(type);
+    }
+    if (event_id) {
+        query += " AND event_id = ?";
+        params.push(castId('events', event_id));
+    }
+    
+    query += " ORDER BY created_at DESC LIMIT 100";
+    const logs = db.prepare(query).all(...params);
+    res.json(logs);
+});
+
+// 2. Encolar Envío Masivo (Broadcast)
+app.post('/api/emails/broadcast', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const { event_id, template_id, subject, body } = req.body;
+    const eId = castId('events', event_id);
+
+    if (!eId || !body) return res.status(400).json({ error: 'Faltan datos' });
+
+    try {
+        const guests = db.prepare("SELECT * FROM guests WHERE event_id = ? AND unsubscribed = 0").all(eId);
+        
+        const insertQueue = db.prepare(`INSERT INTO email_queue (id, event_id, guest_id, to_email, subject, body_html, status, scheduled_at) 
+                                        VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)`);
+        
+        const updateToken = db.prepare("UPDATE guests SET unsubscribe_token = ? WHERE id = ? AND unsubscribe_token IS NULL");
+
+        db.transaction(() => {
+            for (const guest of guests) {
+                // Generar token si no tiene
+                if (!guest.unsubscribe_token) {
+                    const token = crypto.randomBytes(16).toString('hex');
+                    updateToken.run(token, guest.id);
+                    guest.unsubscribe_token = token;
+                }
+
+                const personalizedBody = replaceTemplateVariables(body, {
+                    guest_name: guest.name,
+                    guest_email: guest.email,
+                    unsubscribe_url: `${req.protocol}://${req.get('host')}/unsubscribe/${guest.unsubscribe_token}`
+                });
+
+                insertQueue.run(uuidv4(), eId, guest.id, guest.email, subject, personalizedBody, new Date().toISOString());
+            }
+        })();
+
+        res.json({ success: true, count: guests.length });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Error al encolar' });
+    }
+});
+
+// 3. Control de Cola (Pausa/Reinicio)
+app.post('/api/emails/queue-control', authMiddleware(['ADMIN']), (req, res) => {
+    const { action } = req.body;
+    if (action === 'pause') isQueuePaused = true;
+    if (action === 'resume') isQueuePaused = false;
+    if (action === 'stop') {
+        db.prepare("UPDATE email_queue SET status = 'CANCELLED' WHERE status = 'PENDING'").run();
+        isQueuePaused = false;
+    }
+    res.json({ success: true, isPaused: isQueuePaused });
+});
+
+// 4. Estadísticas de Cola
+app.get('/api/emails/queue-stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const stats = db.prepare(`
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) as sent,
+            SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as errors,
+            SUM(CASE WHEN status = 'SENDING' THEN 1 ELSE 0 END) as sending
+        FROM email_queue WHERE status != 'CANCELLED'
+    `).get();
+    res.json({ ...stats, isPaused: isQueuePaused });
+});
+
+// 5. Endpoint Público de Desuscripción
+app.get('/unsubscribe/:token', (req, res) => {
+    const token = req.params.token;
+    const guest = db.prepare("SELECT id, name FROM guests WHERE unsubscribe_token = ?").get(token);
+    
+    if (!guest) {
+        return res.send('<h1>Enlace no válido</h1><p>No pudimos encontrar tu suscripción.</p>');
+    }
+
+    db.prepare("UPDATE guests SET unsubscribed = 1 WHERE id = ?").run(guest.id);
+    
+    res.send(`
+        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1>Desuscripción Exitosa</h1>
+            <p>Hola ${guest.name}, hemos procesado tu solicitud. No recibirás más correos automáticos de este sistema.</p>
+            <p><small>Si fue un error, contacta con soporte.</small></p>
+        </div>
+    `);
+});
+
+// 6. Ejecutar Sincronización IMAP
+app.post('/api/emails/sync', authMiddleware(['ADMIN']), async (req, res) => {
+    try {
+        const result = await syncEmails();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
 });
 
 // Obtener usuarios asignados a un evento

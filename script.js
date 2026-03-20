@@ -1040,7 +1040,197 @@ window.App = {
             App.loadIMAPConfig();
         } else if (section === 'templates') {
             App.loadEmailTemplates();
+        } else if (section === 'mailbox') {
+            App.switchMailboxFolder('INBOX');
+        } else if (section === 'mailing') {
+            App.loadMailingTemplates();
+            App.updateMailingStats();
         }
+    },
+
+    // ═══ MAILING & MAILBOX LOGIC V11.0 ═══
+    
+    switchMailboxFolder: function(folder) {
+        document.querySelectorAll('.mail-folder-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
+        const btn = document.getElementById('mail-folder-' + folder.toLowerCase());
+        if (btn) btn.classList.add('active', 'bg-primary', 'text-white');
+        
+        this.loadMailbox(folder);
+    },
+
+    loadMailbox: async function(folder) {
+        const container = document.getElementById('email-mailbox-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-12 text-center animate-pulse"><span class="material-symbols-outlined text-4xl text-primary block mb-2">sync</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cargando buzón...</p></div>';
+        
+        try {
+            const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
+            const logs = await this.fetchAPI(`/email-logs?type=${type}`);
+            
+            if (logs.length === 0) {
+                container.innerHTML = `<div class="p-12 text-center text-slate-600"><span class="material-symbols-outlined text-4xl block mb-2">inbox</span><p class="text-sm font-bold">No hay mensajes en ${folder}</p></div>`;
+                return;
+            }
+
+            container.innerHTML = logs.map(mail => `
+                <div class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs">
+                        ${(mail.from_email || 'S').charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <h5 class="text-sm font-bold text-slate-200 truncate pr-4">${mail.subject || '(Sin asunto)'}</h5>
+                            <span class="text-[9px] font-black text-slate-500 uppercase">${new Date(mail.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 truncate mb-1">De: ${mail.from_email}</p>
+                        <div class="text-[10px] text-slate-600 line-clamp-1">${mail.body_html.replace(/<[^>]*>?/gm, '').substring(0, 100)}...</div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón</p></div>`;
+        }
+    },
+
+    syncEmails: async function() {
+        showLoading('Sincronizando correos...');
+        try {
+            await this.fetchAPI('/emails/sync', { method: 'POST' });
+            this.loadMailbox('INBOX');
+            alert('✓ Sincronización completada');
+        } catch (e) {
+            alert('Error al sincronizar: ' + e.message);
+        } finally { hideLoading(); }
+    },
+
+    loadMailingTemplates: async function() {
+        try {
+            const templates = await this.fetchAPI('/email-templates');
+            const select = document.getElementById('mailing-template-select');
+            if (select) {
+                select.innerHTML = '<option value="">-- Selecciona una plantilla --</option>' + 
+                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+            this.state.emailTemplates = templates;
+        } catch (e) { console.error('Error loading mailing templates:', e); }
+    },
+
+    previewMailingTemplate: async function() {
+        const templateId = document.getElementById('mailing-template-select').value;
+        const container = document.getElementById('mailing-preview-container');
+        if (!templateId || !container) return;
+
+        const template = this.state.emailTemplates.find(t => t.id === templateId);
+        if (!template) return;
+
+        // Set subject
+        document.getElementById('mailing-subject').value = template.subject || '';
+
+        // Simular previsualización con el primer invitado si existe
+        let guest = this.state.guests?.[0] || { name: 'INVITADO DE PRUEBA', email: 'prueba@ejemplo.com', unsubscribe_token: 'test-token' };
+        
+        let body = template.body;
+        body = body.replace(/{{guest_name}}/g, guest.name);
+        body = body.replace(/{{guest_email}}/g, guest.email);
+        body = body.replace(/{{unsubscribe_url}}/g, `${window.location.origin}/unsubscribe/${guest.unsubscribe_token || 'sample-token'}`);
+
+        container.innerHTML = body;
+    },
+
+    refreshMailingPreview: function() {
+        if (!this.state.guests || this.state.guests.length === 0) return;
+        // Mezclar aleatoriamente y volver a previsualizar
+        this.state.guests = [...this.state.guests].sort(() => Math.random() - 0.5);
+        this.previewMailingTemplate();
+    },
+
+    startBroadcast: async function() {
+        const templateId = document.getElementById('mailing-template-select').value;
+        const subject = document.getElementById('mailing-subject').value;
+        const container = document.getElementById('mailing-preview-container');
+        
+        if (!templateId || !subject) return alert('Selecciona una plantilla y asunto');
+        if (!this.state.event) return alert('Selecciona un evento primero');
+
+        if (!confirm('¿Estás seguro de iniciar el envío masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
+
+        try {
+            const body = container.innerHTML;
+            await this.fetchAPI('/emails/broadcast', {
+                method: 'POST',
+                body: JSON.stringify({
+                    event_id: this.state.event.id,
+                    template_id: templateId,
+                    subject: subject,
+                    body: body
+                })
+            });
+            
+            alert('✓ Envío masivo iniciado. Revisa el progreso en la parte superior.');
+            document.getElementById('mailing-progress-card').classList.remove('hidden');
+            this.updateMailingStats();
+            
+            // Iniciar polling de progreso
+            if (this._mailingPolling) clearInterval(this._mailingPolling);
+            this._mailingPolling = setInterval(() => this.updateMailingStats(), 3000);
+
+        } catch (e) { alert('Error al iniciar envío: ' + e.message); }
+    },
+
+    controlMailingQueue: async function(action) {
+        try {
+            const res = await this.fetchAPI('/emails/queue-control', {
+                method: 'POST',
+                body: JSON.stringify({ action })
+            });
+            
+            if (action === 'pause') {
+                document.getElementById('btn-pause-mailing').classList.add('hidden');
+                document.getElementById('btn-resume-mailing').classList.remove('hidden');
+            } else if (action === 'resume') {
+                document.getElementById('btn-pause-mailing').classList.remove('hidden');
+                document.getElementById('btn-resume-mailing').classList.add('hidden');
+            } else if (action === 'stop') {
+                document.getElementById('mailing-progress-card').classList.add('hidden');
+                clearInterval(this._mailingPolling);
+            }
+        } catch (e) { alert('Error al controlar cola: ' + e.message); }
+    },
+
+    updateMailingStats: async function() {
+        try {
+            const stats = await this.fetchAPI('/emails/queue-stats');
+            const total = stats.total || 0;
+            const sent = stats.sent || 0;
+            const pending = stats.pending || 0;
+            const errors = stats.errors || 0;
+            
+            const percent = total > 0 ? Math.round((sent / total) * 100) : 0;
+            
+            const bar = document.getElementById('mailing-progress-bar');
+            const countText = document.getElementById('mailing-count-text');
+            const percentText = document.getElementById('mailing-percent-text');
+            const card = document.getElementById('mailing-progress-card');
+
+            if (bar) bar.style.width = percent + '%';
+            if (countText) countText.textContent = `${sent} / ${total} enviados · ${errors} errores`;
+            if (percentText) percentText.textContent = percent + '%';
+
+            // Si hay algo pendiente, mostrar la tarjeta si no estaba
+            if (pending > 0 || stats.sending > 0) {
+                card?.classList.remove('hidden');
+                if (!this._mailingPolling) {
+                    this._mailingPolling = setInterval(() => this.updateMailingStats(), 3000);
+                }
+            } else if (total > 0 && pending === 0 && stats.sending === 0) {
+                // Finalizado
+                document.getElementById('mailing-status-text').textContent = 'Envío completado';
+                clearInterval(this._mailingPolling);
+                this._mailingPolling = null;
+                setTimeout(() => card?.classList.add('hidden'), 10000); // Ocultar después de 10s
+            }
+        } catch (e) { console.error('Error updating mailing stats:', e); }
     },
     
     showCreateTemplateModal: function() {
@@ -2269,6 +2459,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.App.state.socket = io();
         window.App.state.socket.on('update_stats', (id) => { if (App.state.event?.id === id) App.updateStats(); });
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
+        window.App.state.socket.on('email_queue_progress', () => App.updateMailingStats());
     }
 
     // Listeners System (Se maneja en attachAppListeners para evitar duplicación)

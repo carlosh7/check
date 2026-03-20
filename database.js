@@ -278,7 +278,6 @@ db.exec(`CREATE TABLE IF NOT EXISTS password_resets (
     FOREIGN KEY (user_id) REFERENCES users(id)
 )`);
 
-// 13. Plantillas de Email
 db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -287,6 +286,45 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     is_active INTEGER DEFAULT 1,
     updated_at TEXT
 )`);
+
+// ═══ FASE 4: BUZÓN Y ENVÍO MASIVO (V11.0) ═══
+
+// 15. Logs de Email (Buzón)
+db.exec(`CREATE TABLE IF NOT EXISTS email_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    event_id TEXT,
+    type TEXT DEFAULT 'INBOX', -- INBOX, SENT, TRASH, ARCHIVE
+    subject TEXT,
+    from_email TEXT,
+    to_email TEXT,
+    body_html TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+
+// 16. Cola de Envío Masivo
+db.exec(`CREATE TABLE IF NOT EXISTS email_queue (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    guest_id TEXT,
+    to_email TEXT,
+    subject TEXT,
+    body_html TEXT,
+    status TEXT DEFAULT 'PENDING', -- PENDING, SENDING, SENT, ERROR, PAUSED
+    attempts INTEGER DEFAULT 0,
+    last_error TEXT,
+    scheduled_at TEXT,
+    processed_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+
+// Migraciones para invitados (Bajas/Unsubscribe)
+try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribed INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribe_token TEXT"); } catch (_) {}
 
 // Semillas de plantillas de email por defecto
 const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates").get();
