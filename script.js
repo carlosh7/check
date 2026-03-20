@@ -1074,7 +1074,7 @@ window.App = {
             }
 
             container.innerHTML = logs.map(mail => `
-                <div class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
+                <div onclick="App.viewMailDetail('${mail.id}')" class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
                     <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs">
                         ${(mail.from_email || 'S').charAt(0).toUpperCase()}
                     </div>
@@ -1091,6 +1091,23 @@ window.App = {
         } catch (e) {
             container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón</p></div>`;
         }
+    },
+
+    viewMailDetail: async function(mailId) {
+        try {
+            // Reutilizar el log que ya tenemos en estado o buscarlo
+            const logs = await this.fetchAPI(`/email-logs?id=${mailId}`);
+            if (logs.length === 0) return alert('Correo no encontrado');
+            const mail = logs[0];
+            
+            document.getElementById('mail-view-subject').textContent = mail.subject || '(Sin Asunto)';
+            document.getElementById('mail-view-from').textContent = mail.from_email || '-';
+            document.getElementById('mail-view-to').textContent = mail.to_email || '-';
+            document.getElementById('mail-view-date').textContent = new Date(mail.created_at).toLocaleString();
+            document.getElementById('mail-view-body').innerHTML = mail.body_html || '';
+            
+            document.getElementById('modal-mail-view').classList.remove('hidden');
+        } catch (e) { alert('Error al cargar detalle: ' + e.message); }
     },
 
     syncEmails: async function() {
@@ -1233,11 +1250,49 @@ window.App = {
         } catch (e) { console.error('Error updating mailing stats:', e); }
     },
     
-    showCreateTemplateModal: function() {
+    saveEmailTemplate: async function() {
+        const name = document.getElementById('tpl-name').value;
+        const subject = document.getElementById('tpl-subject').value;
+        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : '';
+        
+        if (!name || !subject || !body) return alert('Completa todos los campos');
+
+        try {
+            const isEditing = this.state.editingTemplate;
+            const endpoint = isEditing ? `/email-templates/${isEditing.id}` : '/email-templates';
+            const method = isEditing ? 'PUT' : 'POST';
+            
+            await this.fetchAPI(endpoint, {
+                method: method,
+                body: JSON.stringify({ 
+                    name, subject, body, 
+                    event_id: isEditing?.event_id || (this.state._creatingEventType === 'event' ? this.state.event?.id : null) 
+                })
+            });
+            
+            alert('✓ Plantilla guardada correctamente');
+            this.closeTemplateEditor();
+            this.loadEmailTemplates();
+            if (this.state.email_admin_section === 'mailing') this.loadMailingTemplates();
+        } catch (e) { alert('Error al guardar: ' + e.message); }
+    },
+
+    deleteEmailTemplate: async function(id) {
+        if (!confirm('¿Seguro que quieres eliminar esta plantilla permanente?')) return;
+        try {
+            await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+            this.loadEmailTemplates();
+            if (this.state.email_admin_section === 'mailing') this.loadMailingTemplates();
+        } catch (e) { alert('Error al eliminar: ' + e.message); }
+    },
+
+    showCreateTemplateModal: function(type = 'global') {
         if (this._templateEditorOpening) return;
         this._templateEditorOpening = true;
         this.state.editingTemplate = null;
-        document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
+        this.state._creatingEventType = type; // 'global' o 'event'
+        
+        document.getElementById('template-editor-title').textContent = type === 'event' ? 'Nueva Plantilla de Evento' : 'Nueva Plantilla Global';
         document.getElementById('tpl-name').value = '';
         document.getElementById('tpl-subject').value = '';
         document.getElementById('modal-template-editor').classList.remove('hidden');
@@ -1492,7 +1547,12 @@ window.App = {
                                 <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
                             </div>
                             <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
-                            <button onclick="App.showTemplateEditor('${t.id}', '${(t.name || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar Plantilla</button>
+                            <div class="flex gap-2">
+                                <button onclick="App.showTemplateEditor('${t.id}', '${(t.name || '').replace(/'/g, "\\'")}')" class="flex-1 px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar</button>
+                                <button onclick="App.deleteEmailTemplate('${t.id}')" class="w-10 h-10 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-all" title="Eliminar">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                            </div>
                         </div>
                     `).join('');
                 } else {
@@ -1988,6 +2048,7 @@ window.App = {
         cl('btn-test-smtp', async () => {
             alert('Función de prueba de conexión SMTP en desarrollo.');
         });
+        cl('btn-save-template', () => App.saveEmailTemplate());
         
         // IMAP listeners
         cl('btn-test-imap', async () => {

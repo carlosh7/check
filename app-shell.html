@@ -460,7 +460,7 @@
                     <div class="glass-card p-8 rounded-[40px] border border-white/10">
                         <div class="flex items-center justify-between mb-6">
                             <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">description</span> Plantillas de Email</h4>
-                            <button onclick="App.showCreateTemplateModal()" class="btn-primary px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2">
+                            <button onclick="App.showCreateTemplateModal()" class="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all">
                                 <span class="material-symbols-outlined text-sm">add</span> Nueva Plantilla
                             </button>
                         </div>
@@ -545,9 +545,14 @@
                                 <div class="space-y-4">
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Seleccionar Plantilla</label>
-                                        <select id="mailing-template-select" class="input-field bg-slate-900/60" onchange="App.previewMailingTemplate()">
-                                            <option value="">-- Selecciona una plantilla --</option>
-                                        </select>
+                                        <div class="flex gap-2">
+                                            <select id="mailing-template-select" class="input-field bg-slate-900/60 flex-1" onchange="App.previewMailingTemplate()">
+                                                <option value="">-- Selecciona una plantilla --</option>
+                                            </select>
+                                            <button onclick="App.showCreateTemplateModal('event')" class="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center transition-all" title="Nueva Plantilla">
+                                                <span class="material-symbols-outlined text-sm">add</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Asunto Personalizado</label>

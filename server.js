@@ -1466,8 +1466,26 @@ app.post('/api/imap-test', authMiddleware(['ADMIN']), async (req, res) => {
 
 // Obtener plantillas de email
 app.get('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
-    const templates = db.prepare("SELECT * FROM email_templates ORDER BY name").all();
+    const templates = db.prepare("SELECT * FROM email_templates ORDER BY name ASC").all();
     res.json(templates);
+});
+
+// Crear nueva plantilla
+app.post('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, subject, body, event_id } = req.body;
+    try {
+        const result = db.prepare("INSERT INTO email_templates (name, subject, body, event_id, is_active) VALUES (?, ?, ?, ?, 1)")
+            .run(name, subject, body, event_id || null);
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Eliminar plantilla
+app.delete('/api/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        db.prepare("DELETE FROM email_templates WHERE id = ?").run(req.params.id);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Actualizar plantilla de email
