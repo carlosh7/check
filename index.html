@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check | Gestión de Eventos Elite</title>
+    <!-- ANTI-FLASH: Script síncrono que oculta app antes de cualquier renderizado -->
+    <script>
+    (function() {
+        try {
+            var u = localStorage.getItem('user');
+            if (!u || u === 'undefined' || u === 'null') {
+                document.write('<style id="noauth">#app-container,#view-admin,#view-admin-simple,#view-system,#view-system-simple,#view-groups,#view-legal,#view-account,#view-smtp,#modal-legal{display:none!important}</style>');
+            } else {
+                document.write('<style id="hasauth">#view-login{display:none!important}</style>');
+            }
+        } catch(e) {
+            document.write('<style>#app-container,#view-admin,#view-admin-simple,#view-system,#view-system-simple,#view-groups,#view-legal,#view-account,#view-smtp,#modal-legal{display:none!important}</style>');
+        }
+    })();
+    </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

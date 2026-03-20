@@ -9,6 +9,20 @@ const LS = {
 };
 console.log('[INIT] Script loaded, LS available');
 
+// --- ANTI-FLASH: Ocultar app cuando la página se hace visible (prerender) ---
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        const appEl = document.getElementById('app-container');
+        if (appEl && !appEl.classList.contains('hidden')) {
+            const savedUser = LS.get('user');
+            if (!savedUser || savedUser === "undefined" || savedUser === "null") {
+                appEl.classList.add('hidden');
+                appEl.style.display = 'none';
+            }
+        }
+    }
+});
+
 // --- ESTADO CENTRALIZADO (STATE MANAGEMENT) ---
 window.App = {
     state: {
