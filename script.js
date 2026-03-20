@@ -1048,7 +1048,7 @@ window.App = {
         }
     },
 
-    // ═══ MAILING & MAILBOX LOGIC V11.0 ═══
+    // ═══ MAILING & MAILBOX LOGIC V11.1 ═══
     
     switchMailboxFolder: function(folder) {
         document.querySelectorAll('.mail-folder-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
@@ -2006,7 +2006,7 @@ window.App = {
     loadAppShell() {
         return new Promise((resolve, reject) => {
             console.log('[APP-SHELL] Cargando app-shell.html...');
-            fetch('/app-shell.html')
+            fetch('/app-shell.html?v=11.1.0')
                 .then(res => res.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('beforeend', html);
