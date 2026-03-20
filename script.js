@@ -960,6 +960,23 @@ window.App = {
         } catch (e) { alert('Error al probar conexión IMAP'); }
     },
     
+    toggleEmailSection: function() {
+        const submenu = document.getElementById('nav-email-submenu');
+        const arrow = document.getElementById('email-section-arrow');
+        if (submenu) {
+            submenu.classList.toggle('hidden');
+            if (arrow) {
+                if (submenu.classList.contains('hidden')) {
+                    arrow.style.transform = '';
+                    arrow.textContent = 'chevron_right';
+                } else {
+                    arrow.style.transform = 'rotate(90deg)';
+                    arrow.textContent = 'expand_more';
+                }
+            }
+        }
+    },
+    
     toggleEmailAdminMenu: function() {
         const menu = document.getElementById('email-admin-menu');
         const arrow = document.getElementById('email-admin-arrow');

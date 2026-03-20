@@ -28,9 +28,26 @@
                     <button onclick="App.navigate('legal')" id="nav-btn-legal" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">gavel</span> Legales
                     </button>
-                    <button onclick="App.navigateEmailSection('config')" id="nav-btn-email-admin" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
-                        <span class="material-symbols-outlined text-sm">mail</span> Email Admin
-                    </button>
+                    
+                    <!-- Email Admin Section -->
+                    <div id="nav-section-email" class="space-y-0.5">
+                        <button onclick="App.toggleEmailSection()" class="w-full flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all" id="nav-btn-email-admin-toggle">
+                            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mail</span> Email Admin</span>
+                            <span class="material-symbols-outlined text-xs transition-transform" id="email-section-arrow">chevron_right</span>
+                        </button>
+                        <div id="nav-email-submenu" class="hidden pl-4 space-y-0.5">
+                            <button onclick="App.navigateEmailSection('config')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all border-l border-white/10">
+                                <span class="material-symbols-outlined text-xs text-emerald-400">settings</span> Configuración
+                            </button>
+                            <button onclick="App.navigateEmailSection('templates')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all border-l border-white/10">
+                                <span class="material-symbols-outlined text-xs text-primary">description</span> Plantillas
+                            </button>
+                            <button onclick="App.navigateEmailSection('mailbox')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all border-l border-white/10">
+                                <span class="material-symbols-outlined text-xs text-blue-400">inbox</span> Buzón
+                            </button>
+                        </div>
+                    </div>
+                    
                     <button onclick="App.navigate('account')" id="nav-btn-account" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">manage_accounts</span> Mi Cuenta
                     </button>
