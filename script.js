@@ -969,7 +969,10 @@ window.App = {
     },
     
     navigateEmailSection: function(section) {
-        // Ocultar todos los contenidos
+        // Mostrar la vista de Email Admin
+        this.navigate('smtp');
+        
+        // Ocultar todos los contenidos de email
         document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.email-nav-btn').forEach(el => {
             el.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');

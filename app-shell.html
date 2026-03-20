@@ -35,13 +35,13 @@
                             <span class="material-symbols-outlined text-xs transition-transform" id="email-admin-arrow">expand_more</span>
                         </button>
                         <div id="email-admin-menu" class="hidden absolute left-0 top-full mt-1 w-48 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                            <button onclick="App.navigate('smtp-config')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
+                            <button onclick="App.navigateEmailSection('config'); App.closeEmailAdminMenu();" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
                                 <span class="material-symbols-outlined text-sm text-emerald-400">settings</span> Configuración
                             </button>
-                            <button onclick="App.navigate('smtp-templates')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
+                            <button onclick="App.navigateEmailSection('templates'); App.closeEmailAdminMenu();" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all border-b border-white/5">
                                 <span class="material-symbols-outlined text-sm text-primary">description</span> Plantillas
                             </button>
-                            <button onclick="App.navigate('smtp-mailbox')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all">
+                            <button onclick="App.navigateEmailSection('mailbox'); App.closeEmailAdminMenu();" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/10 text-xs transition-all">
                                 <span class="material-symbols-outlined text-sm text-blue-400">inbox</span> Buzón
                             </button>
                         </div>
