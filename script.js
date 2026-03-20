@@ -1372,15 +1372,6 @@ window.App = {
             this.showView('login', true);
         };
         
-        // Disparar un evento de popstate inicial para restaurar estado
-        // Esto asegura que se maneje correctamente la recarga
-        if (document.readyState === 'complete') {
-            window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
-        } else {
-            window.addEventListener('load', () => {
-                setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate', { state: history.state })), 100);
-            });
-        }
     },
 
     // --- AUTH ---
@@ -1789,22 +1780,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 0. Sync Version
     App.loadAppVersion();
-    App.initRouter();
 
-    // 1. Verificar sesión y mostrar vista correspondiente
+    // 1. RESTORE SESSION FIRST (before initRouter to prevent race condition)
     const savedUser = localStorage.getItem('user');
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
             if (user && user.token) {
                 window.App.state.user = user;
-                // Actualizar sidebar con info del usuario
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = user.username || 'Usuario';
                 if (sbr) sbr.textContent = user.role || 'Staff';
                 
-                // Navegar a la vista según rol
                 if (user.role === 'ADMIN') {
                     App.showView('system');
                     App.updateUIPermissions();
@@ -1813,15 +1801,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     App.loadEvents();
                 }
-                return; // No mostrar login
             }
-        } catch(e){}
-    }
-    
-    // 2. Si no hay sesión válida, mostrar login SIN limpiar (solo verificar)
-    if (!localStorage.getItem('user') || localStorage.getItem('user') === "null" || localStorage.getItem('user') === "undefined") {
+        } catch(e){ App.showView('login'); }
+    } else {
         App.showView('login');
     }
+
+    // 2. Init router AFTER session restoration (no synthetic popstate)
+    App.initRouter();
 
     // 3. Sockets
     if (typeof io !== 'undefined') {
