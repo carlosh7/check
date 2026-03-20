@@ -1272,6 +1272,66 @@ app.put('/api/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// ═══ IMAP CONFIG ENDPOINTS ═══
+
+// Obtener configuración IMAP
+app.get('/api/imap-config', authMiddleware(['ADMIN']), (req, res) => {
+    const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
+    if (config) {
+        config.imap_pass = config.imap_pass ? '***' : '';
+    }
+    res.json(config || {});
+});
+
+// Guardar configuración IMAP
+app.put('/api/imap-config', authMiddleware(['ADMIN']), (req, res) => {
+    const { imap_host, imap_port, imap_user, imap_pass, imap_tls } = req.body;
+    
+    // Solo actualizar contraseña si no está vacía o es ***
+    let passToSave = imap_pass;
+    if (!imap_pass || imap_pass === '***') {
+        const current = db.prepare("SELECT imap_pass FROM imap_config WHERE id = 1").get();
+        passToSave = current?.imap_pass || '';
+    }
+    
+    db.prepare(`INSERT OR REPLACE INTO imap_config (id, imap_host, imap_port, imap_user, imap_pass, imap_tls, updated_at) 
+                VALUES (1, ?, ?, ?, ?, ?, ?)`)
+      .run(imap_host || '', imap_port || 993, imap_user || '', passToSave, imap_tls ? 1 : 0, new Date().toISOString());
+    
+    res.json({ success: true });
+});
+
+// Probar conexión IMAP
+app.post('/api/imap-test', authMiddleware(['ADMIN']), async (req, res) => {
+    const { imap_host, imap_port, imap_user, imap_pass, imap_tls } = req.body;
+    
+    try {
+        const Imap = require('imap');
+        const imap = new Imap({
+            user: imap_user,
+            password: imap_pass,
+            host: imap_host,
+            port: parseInt(imap_port) || 993,
+            tls: imap_tls,
+            connTimeout: 10000,
+            authTimeout: 10000
+        });
+        
+        imap.once('ready', () => {
+            imap.end();
+            res.json({ success: true, message: 'Conexión IMAP exitosa' });
+        });
+        
+        imap.once('error', (err) => {
+            res.status(400).json({ success: false, error: err.message });
+        });
+        
+        imap.connect();
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
 // Obtener plantillas de email
 app.get('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
     const templates = db.prepare("SELECT * FROM email_templates ORDER BY name").all();

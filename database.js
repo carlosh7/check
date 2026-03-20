@@ -256,6 +256,17 @@ db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
     updated_at TEXT
 )`);
 
+// 12b. Configuración IMAP Global
+db.exec(`CREATE TABLE IF NOT EXISTS imap_config (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    imap_host TEXT,
+    imap_port INTEGER DEFAULT 993,
+    imap_user TEXT,
+    imap_pass TEXT,
+    imap_tls INTEGER DEFAULT 1,
+    updated_at TEXT
+)`);
+
 // 14. Códigos de recuperación de contraseña
 db.exec(`CREATE TABLE IF NOT EXISTS password_resets (
     id TEXT PRIMARY KEY,
@@ -339,6 +350,12 @@ if (userCount.count === 0) {
 const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
 if (smtpCount.count === 0) {
     db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 587, '', 0, 'Check Attendance')").run();
+}
+
+// Semilla de IMAP config si no existe
+const imapCount = db.prepare("SELECT COUNT(*) as count FROM imap_config").get();
+if (imapCount.count === 0) {
+    db.prepare("INSERT INTO imap_config (id, imap_host, imap_port, imap_tls) VALUES (1, '', 993, 1)").run();
 }
 
 // Función para crear plantillas por defecto para un evento

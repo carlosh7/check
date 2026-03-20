@@ -903,6 +903,50 @@ window.App = {
         } catch (e) { console.error('Error loading SMTP config:', e); }
     },
     
+    // --- IMAP CONFIG ---
+    loadIMAPConfig: async function() {
+        try {
+            const config = await this.fetchAPI('/imap-config');
+            document.getElementById('imap-host').value = config.imap_host || '';
+            document.getElementById('imap-port').value = config.imap_port || 993;
+            document.getElementById('imap-user').value = config.imap_user || '';
+            document.getElementById('imap-pass').value = config.imap_pass ? '***' : '';
+            document.getElementById('imap-tls').checked = config.imap_tls == 1;
+        } catch (e) { console.error('Error loading IMAP config:', e); }
+    },
+    
+    saveIMAPConfig: async function() {
+        const data = {
+            imap_host: document.getElementById('imap-host').value,
+            imap_port: parseInt(document.getElementById('imap-port').value) || 993,
+            imap_user: document.getElementById('imap-user').value,
+            imap_pass: document.getElementById('imap-pass').value,
+            imap_tls: document.getElementById('imap-tls').checked
+        };
+        try {
+            await this.fetchAPI('/imap-config', { method: 'PUT', body: JSON.stringify(data) });
+            alert('✓ Configuración IMAP guardada');
+        } catch (e) { alert('Error al guardar configuración IMAP'); }
+    },
+    
+    testIMAPConnection: async function() {
+        const data = {
+            imap_host: document.getElementById('imap-host').value,
+            imap_port: parseInt(document.getElementById('imap-port').value) || 993,
+            imap_user: document.getElementById('imap-user').value,
+            imap_pass: document.getElementById('imap-pass').value,
+            imap_tls: document.getElementById('imap-tls').checked
+        };
+        try {
+            const result = await this.fetchAPI('/imap-test', { method: 'POST', body: JSON.stringify(data) });
+            if (result.success) {
+                alert('✓ Conexión IMAP exitosa');
+            } else {
+                alert('✗ Error: ' + (result.error || 'Desconocido'));
+            }
+        } catch (e) { alert('Error al probar conexión IMAP'); }
+    },
+    
     loadEmailTemplates: async function() {
         try {
             console.log("[DEBUG] Loading templates, user:", this.state.user);
@@ -1354,6 +1398,7 @@ window.App = {
         if (viewName === 'groups') this.loadGroups();
         if (viewName === 'smtp') {
             App.loadSMTPConfig();
+            App.loadIMAPConfig();
             App.loadEmailTemplates();
         }
     },
@@ -1458,6 +1503,20 @@ window.App = {
         cl('btn-open-policy', () => this.showLegalModal('policy'));
         cl('btn-open-terms', () => this.showLegalModal('terms'));
         cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
+        
+        // SMTP listeners
+        cl('btn-test-smtp', async () => {
+            alert('Función de prueba de conexión SMTP en desarrollo.');
+        });
+        
+        // IMAP listeners
+        cl('btn-test-imap', async () => {
+            await this.testIMAPConnection();
+        });
+        sf('imap-form', async (e) => {
+            e.preventDefault();
+            await this.saveIMAPConfig();
+        });
     },
     async loadAppVersion() {
         try {
@@ -2210,6 +2269,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     cl('btn-test-smtp', async () => {
         alert('Función de prueba de conexión SMTP en desarrollo.');
+    });
+    
+    // IMAP listeners
+    cl('btn-test-imap', async () => {
+        await App.testIMAPConnection();
+    });
+    
+    sf('imap-form', async (e) => {
+        e.preventDefault();
+        await App.saveIMAPConfig();
     });
 
     // 6. Inicialización V10.5
