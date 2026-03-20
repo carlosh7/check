@@ -1068,28 +1068,43 @@ window.App = {
             const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
             const logs = await this.fetchAPI(`/email-logs?type=${type}`);
             
-            if (logs.length === 0) {
+            if (!logs || logs.length === 0) {
                 container.innerHTML = `<div class="p-12 text-center text-slate-600"><span class="material-symbols-outlined text-4xl block mb-2">inbox</span><p class="text-sm font-bold">No hay mensajes en ${folder}</p></div>`;
                 return;
             }
 
-            container.innerHTML = logs.map(mail => `
+            container.innerHTML = logs.map(mail => {
+                let dateStr = 'Fecha desconocida';
+                try {
+                    const d = new Date(mail.created_at);
+                    if (!isNaN(d.getTime())) {
+                        dateStr = d.toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch(e) {}
+
+                // Limpiar HTML para el preview
+                const previewText = mail.body_html ? mail.body_html.replace(/<[^>]*>?/gm, ' ').substring(0, 100) : '(Sin contenido)';
+
+                return `
                 <div onclick="App.viewMailDetail('${mail.id}')" class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs shadow-inner">
                         ${(mail.from_email || 'S').charAt(0).toUpperCase()}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-center mb-1">
                             <h5 class="text-sm font-bold text-slate-200 truncate pr-4">${mail.subject || '(Sin asunto)'}</h5>
-                            <span class="text-[9px] font-black text-slate-500 uppercase">${new Date(mail.created_at).toLocaleDateString()}</span>
+                            <span class="text-[9px] font-black text-slate-500 uppercase shrink-0">${dateStr}</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate mb-1">De: ${mail.from_email}</p>
-                        <div class="text-[10px] text-slate-600 line-clamp-1">${mail.body_html.replace(/<[^>]*>?/gm, '').substring(0, 100)}...</div>
+                        <p class="text-[10px] text-slate-600 truncate mb-1">
+                            <span class="text-slate-500">De:</span> ${mail.from_email || 'Sistema'}
+                        </p>
+                        <div class="text-[10px] text-slate-500/60 line-clamp-1 italic">${previewText}...</div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         } catch (e) {
-            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón</p></div>`;
+            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón: ${e.message}</p></div>`;
         }
     },
 
@@ -1111,14 +1126,172 @@ window.App = {
     },
 
     syncEmails: async function() {
-        showLoading('Sincronizando correos...');
+        if (typeof showLoading === 'function') showLoading('Sincronizando correos...');
         try {
-            await this.fetchAPI('/emails/sync', { method: 'POST' });
-            this.loadMailbox('INBOX');
-            alert('✓ Sincronización completada');
+            const res = await this.fetchAPI('/emails/sync', { method: 'POST' });
+            if (res.success) {
+                this.loadMailbox('INBOX');
+                alert(`✓ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
+            } else {
+                alert('Error al sincronizar: ' + (res.error || 'Error desconocido'));
+            }
         } catch (e) {
-            alert('Error al sincronizar: ' + e.message);
-        } finally { hideLoading(); }
+            alert('Error de conexión: ' + e.message);
+        } finally { if (typeof hideLoading === 'function') hideLoading(); }
+    },
+
+    loadIMAPConfig: async function() {
+        try {
+            const config = await this.fetchAPI('/imap-config');
+            if (config) {
+                const h = document.getElementById('imap-host');
+                const p = document.getElementById('imap-port');
+                const u = document.getElementById('imap-user');
+                const ps = document.getElementById('imap-pass');
+                const t = document.getElementById('imap-tls');
+                
+                if (h) h.value = config.imap_host || '';
+                if (p) p.value = config.imap_port || 993;
+                if (u) u.value = config.imap_user || '';
+                if (ps) ps.value = config.imap_pass || '';
+                if (t) t.checked = config.imap_tls == 1;
+            }
+        } catch (e) { console.error('[IMAP] Error loading config:', e); }
+    },
+
+    saveIMAPConfig: async function() {
+        const data = {
+            imap_host: document.getElementById('imap-host')?.value.trim() || '',
+            imap_port: parseInt(document.getElementById('imap-port')?.value) || 993,
+            imap_user: document.getElementById('imap-user')?.value.trim() || '',
+            imap_pass: document.getElementById('imap-pass')?.value.trim() || '',
+            imap_tls: document.getElementById('imap-tls')?.checked ? 1 : 0
+        };
+
+        if (!data.imap_host || !data.imap_user) return alert('Host y Usuario son obligatorios');
+
+        try {
+            await this.fetchAPI('/imap-config', {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            alert('✓ Configuración IMAP guardada');
+        } catch (e) { alert('Error al guardar: ' + e.message); }
+    },
+
+    testIMAPConnection: async function() {
+        const data = {
+            imap_host: document.getElementById('imap-host')?.value.trim() || '',
+            imap_port: parseInt(document.getElementById('imap-port')?.value) || 993,
+            imap_user: document.getElementById('imap-user')?.value.trim() || '',
+            imap_pass: document.getElementById('imap-pass')?.value.trim() || '',
+            imap_tls: document.getElementById('imap-tls')?.checked ? 1 : 0
+        };
+
+        if (!data.imap_host || !data.imap_user || !data.imap_pass) return alert('Completa los datos para probar');
+
+        if (typeof showLoading === 'function') showLoading('Probando conexión IMAP...');
+        try {
+            const res = await this.fetchAPI('/imap-test', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            if (res.success) alert('✓ ¡Conexión exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
+        } catch (e) {
+            alert('Error de red: ' + e.message);
+        } finally { if (typeof hideLoading === 'function') hideLoading(); }
+    },
+
+    switchEmailService: function(service) {
+        // Toggle tabs
+        document.querySelectorAll('.email-service-tab').forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-white', 'shadow-xl');
+            btn.classList.add('bg-white/5', 'text-slate-400');
+        });
+        const activeTab = document.getElementById('tab-btn-' + service);
+        if (activeTab) {
+            activeTab.classList.remove('bg-white/5', 'text-slate-400');
+            activeTab.classList.add('bg-primary', 'text-white', 'shadow-xl');
+        }
+
+        // Toggle forms
+        document.querySelectorAll('.email-form').forEach(form => form.classList.add('hidden'));
+        const activeForm = document.getElementById('form-' + service);
+        if (activeForm) activeForm.classList.remove('hidden');
+
+        // Load data
+        if (service === 'smtp') this.loadSMTPConfig();
+        if (service === 'imap') this.loadIMAPConfig();
+    },
+
+    loadSMTPConfig: async function() {
+        try {
+            const config = await this.fetchAPI('/smtp-config');
+            if (config) {
+                const h = document.getElementById('smtp-host');
+                const p = document.getElementById('smtp-port');
+                const u = document.getElementById('smtp-user');
+                const ps = document.getElementById('smtp-pass');
+                const s = document.getElementById('smtp-secure');
+                const fn = document.getElementById('smtp-from-name');
+                const fe = document.getElementById('smtp-from-email');
+
+                if (h) h.value = config.smtp_host || '';
+                if (p) p.value = config.smtp_port || 587;
+                if (u) u.value = config.smtp_user || '';
+                if (ps) ps.value = config.smtp_pass || '';
+                if (s) s.checked = config.smtp_secure == 1;
+                if (fn) fn.value = config.from_name || '';
+                if (fe) fe.value = config.from_email || '';
+            }
+        } catch (e) { console.error('[SMTP] Error loading config:', e); }
+    },
+
+    testSMTPConnection: async function() {
+        const data = {
+            smtp_host: document.getElementById('smtp-host')?.value.trim() || '',
+            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 587,
+            smtp_user: document.getElementById('smtp-user')?.value.trim() || '',
+            smtp_pass: document.getElementById('smtp-pass')?.value.trim() || '',
+            smtp_secure: document.getElementById('smtp-secure')?.checked ? 1 : 0
+        };
+
+        if (!data.smtp_host || !data.smtp_user || !data.smtp_pass) return alert('Completa los datos para probar');
+
+        if (typeof showLoading === 'function') showLoading('Probando conexión SMTP...');
+        try {
+            const res = await this.fetchAPI('/smtp-test', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            if (res.success) alert('✓ ¡Conexión SMTP exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
+        } catch (e) {
+            alert('Error de red: ' + e.message);
+        } finally { if (typeof hideLoading === 'function') hideLoading(); }
+    },
+
+    saveSMTPConfig: async function() {
+        const data = {
+            smtp_host: document.getElementById('smtp-host')?.value.trim() || '',
+            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 587,
+            smtp_user: document.getElementById('smtp-user')?.value.trim() || '',
+            smtp_pass: document.getElementById('smtp-pass')?.value.trim() || '',
+            smtp_secure: document.getElementById('smtp-secure')?.checked ? 1 : 0,
+            from_name: document.getElementById('smtp-from-name')?.value.trim() || 'Check',
+            from_email: document.getElementById('smtp-from-email')?.value.trim() || ''
+        };
+
+        if (!data.smtp_host || !data.smtp_user) return alert('Host y Usuario son obligatorios');
+
+        try {
+            await this.fetchAPI('/smtp-config', {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            alert('✓ Configuración SMTP guardada');
+        } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
     loadMailingTemplates: async function() {
@@ -1527,9 +1700,6 @@ window.App = {
         }
     },
     
-    syncEmails: function() {
-        alert('Sincronizar correos - FASE 4');
-    },
     
     switchEmailService: function(service) {
         // Ocultar todos los formularios y tabs
@@ -2814,23 +2984,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ------- V10.6: SMTP -------
     sf('smtp-form', async (e) => {
         e.preventDefault();
-        const data = {
-            smtp_host: document.getElementById('smtp-host').value,
-            smtp_port: parseInt(document.getElementById('smtp-port').value) || 587,
-            smtp_user: document.getElementById('smtp-user').value,
-            smtp_pass: document.getElementById('smtp-pass').value,
-            smtp_secure: document.getElementById('smtp-secure').checked,
-            from_name: document.getElementById('smtp-from-name').value,
-            from_email: document.getElementById('smtp-from-email').value
-        };
-        try {
-            await App.fetchAPI('/smtp-config', { method: 'PUT', body: JSON.stringify(data) });
-            alert('✓ Configuración SMTP guardada');
-        } catch (e) { alert('Error al guardar configuración'); }
+        await App.saveSMTPConfig();
     });
     
     cl('btn-test-smtp', async () => {
-        alert('Función de prueba de conexión SMTP en desarrollo.');
+        await App.testSMTPConnection();
     });
     
     // IMAP listeners

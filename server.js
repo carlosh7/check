@@ -15,6 +15,7 @@ const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
+const { simpleParser } = require('mailparser');
 const crypto = require('crypto');
 
 // --- VERSIÓN DINÁMICA V10.3 ---
@@ -71,15 +72,16 @@ async function sendEmail(to, subject, html, options = {}) {
         
         // Registrar en logs (independientemente de si es simulado o real)
         const logId = uuidv4();
-        db.prepare(`INSERT INTO email_logs (id, event_id, type, subject, from_email, to_email, body_html, created_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        db.prepare(`INSERT INTO email_logs (id, event_id, type, subject, from_email, to_email, body_html, message_id, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
             logId, 
             options.eventId || null, 
             'SENT', 
             subject, 
             config ? (config.from_email || config.smtp_user) : 'system@check.com', 
             to, 
-            html, 
+            html,
+            null, // El message_id real vendrá del transportista si es exitoso
             new Date().toISOString()
         );
 
@@ -107,6 +109,12 @@ async function sendEmail(to, subject, html, options = {}) {
         
         const result = await transporter.sendMail(mailOptions);
         console.log('📧 Email sent:', { to, subject, messageId: result.messageId });
+        
+        // Actualizar message_id en el log
+        if (result.messageId) {
+            db.prepare("UPDATE email_logs SET message_id = ? WHERE id = ?").run(result.messageId, logId);
+        }
+
         return { success: true, messageId: result.messageId, logId };
     } catch (error) {
         console.error('📧 Email error:', error.message);
@@ -154,79 +162,82 @@ async function processEmailQueue() {
 // Procesar cola cada 5 segundos para no saturar el SMTP
 setInterval(processEmailQueue, 5000);
 
-// ═══ SINCRONIZACIÓN IMAP V11.0 ═══
+// ═══ SINCRONIZACIÓN IMAP V12.0 ═══
 async function syncEmails() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
-            if (!config || !config.imap_host || !config.imap_user) {
-                return resolve({ success: false, error: 'IMAP not configured' });
-            }
+    console.log('[IMAP] Iniciando sincronización...');
+    const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
+    if (!config || !config.imap_host || !config.imap_user) {
+        return { success: false, error: 'IMAP no configurado' };
+    }
 
-            const Imap = require('imap');
-            const { simpleParser } = require('mailparser'); // Necesitamos instalar esto si no está
-            
-            const imapConn = new Imap({
-                user: config.imap_user,
-                password: config.imap_pass,
-                host: config.imap_host,
-                port: config.imap_port || 993,
-                tls: config.imap_tls === 1,
-                tlsOptions: { rejectUnauthorized: false }
-            });
+    return new Promise((resolve, reject) => {
+        const imapConn = new imap({
+            user: config.imap_user,
+            password: config.imap_pass,
+            host: config.imap_host,
+            port: config.imap_port || 993,
+            tls: config.imap_tls === 1,
+            tlsOptions: { rejectUnauthorized: true }
+        });
 
-            imapConn.once('ready', () => {
-                imapConn.openBox('INBOX', false, (err, box) => {
-                    if (err) return reject(err);
-                    
-                    // Buscar los últimos 20 mensajes
-                    const f = imapConn.seq.fetch((box.messages.total - 19) + ':' + box.messages.total, { bodies: '' });
-                    
-                    f.on('message', (msg, seqno) => {
-                        let totalBody = '';
-                        msg.on('body', (stream, info) => {
-                            stream.on('data', (chunk) => { totalBody += chunk.toString(); });
-                        });
-                        
-                        msg.once('end', async () => {
-                            try {
-                                const parsed = await simpleParser(totalBody);
-                                
-                                // Verificar si ya existe por Message-ID
-                                const externalId = parsed.messageId;
-                                const existing = db.prepare("SELECT id FROM email_logs WHERE external_id = ?").get(externalId);
-                                
-                                if (!existing) {
-                                    db.prepare(`INSERT INTO email_logs (id, type, subject, from_email, to_email, body_html, external_id, created_at) 
-                                                VALUES (?, 'INBOX', ?, ?, ?, ?, ?, ?)`).run(
-                                        uuidv4(),
-                                        parsed.subject || '(Sin asunto)',
-                                        parsed.from?.text || '',
-                                        config.imap_user,
-                                        parsed.html || parsed.textAsHtml || parsed.text || '',
-                                        externalId,
-                                        parsed.date ? parsed.date.toISOString() : new Date().toISOString()
-                                    );
-                                }
-                            } catch (e) {
-                                console.error('Error parsing email:', e);
-                            }
-                        });
+        let newEmailsCount = 0;
+
+        imapConn.once('ready', () => {
+            imapConn.openBox('INBOX', true, (err, box) => {
+                if (err) { imapConn.end(); return reject(err); }
+                
+                if (box.messages.total === 0) {
+                    imapConn.end();
+                    return resolve({ success: true, newEmails: 0 });
+                }
+
+                // Buscar los últimos 15 mensajes
+                const start = Math.max(1, box.messages.total - 14);
+                const f = imapConn.seq.fetch(`${start}:*`, { bodies: '' });
+                
+                f.on('message', (msg, seqno) => {
+                    let buffer = '';
+                    msg.on('body', (stream) => {
+                        stream.on('data', (chunk) => buffer += chunk.toString('utf8'));
                     });
-
-                    f.once('error', (err) => { reject(err); });
-                    f.once('end', () => {
-                        imapConn.end();
-                        resolve({ success: true });
+                    msg.once('end', async () => {
+                        try {
+                            const parsed = await simpleParser(buffer);
+                            const mId = parsed.messageId || `imap-${seqno}-${Date.now()}`;
+                            
+                            // Verificar duplicados contra message_id
+                            const exists = db.prepare("SELECT id FROM email_logs WHERE message_id = ?").get(mId);
+                            if (!exists) {
+                                db.prepare(`INSERT INTO email_logs (id, type, subject, from_email, to_email, body_html, message_id, created_at, is_read) 
+                                            VALUES (?, 'INBOX', ?, ?, ?, ?, ?, ?, 0)`).run(
+                                    uuidv4(),
+                                    parsed.subject || '(Sin Asunto)',
+                                    parsed.from?.text || '',
+                                    config.imap_user,
+                                    parsed.html || parsed.textAsHtml || parsed.text || '',
+                                    mId,
+                                    parsed.date ? parsed.date.toISOString() : new Date().toISOString()
+                                );
+                                newEmailsCount++;
+                            }
+                        } catch (e) { console.error('[IMAP] Error parsing email:', e.message); }
                     });
                 });
-            });
 
-            imapConn.once('error', (err) => { reject(err); });
-            imapConn.connect();
-        } catch (e) {
-            reject(e);
-        }
+                f.once('error', (err) => { imapConn.end(); reject(err); });
+                f.once('end', () => {
+                    imapConn.end();
+                    console.log(`[IMAP] Sincronización finalizada. Nuevos: ${newEmailsCount}`);
+                    resolve({ success: true, newEmails: newEmailsCount });
+                });
+            });
+        });
+
+        imapConn.once('error', (err) => { 
+            console.error('[IMAP] Connection Error:', err.message);
+            reject(err); 
+        });
+        imapConn.connect();
     });
 }
 
