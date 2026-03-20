@@ -1797,4 +1797,4 @@ app.use((req, res, next) => {
     }
 });
 
-server.listen(port, () => console.log(`\x1b[35mCHECK PRO V11.1.0 (Email System V3 + Phase 5): Puerto ${port}\x1b[0m`));
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V11.2.0 (Email System V3 + Phase 5): Puerto ${port}\x1b[0m`));
