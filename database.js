@@ -337,40 +337,72 @@ if (templateCount.count === 0) {
             id: 'user_approved',
             name: 'Aprobación de Cuenta',
             subject: '¡Bienvenido a Check! Tu cuenta ha sido aprobada',
-            body: `<h2>¡Bienvenido {{user_name}}!</h2>
-<p>Tu cuenta ha sido aprobada. Aquí están tus credenciales de acceso:</p>
-<ul>
-<li><strong>Email:</strong> {{email}}</li>
-<li><strong>Contraseña temporal:</strong> {{password}}</li>
-<li><strong>Rol:</strong> {{role}}</li>
-</ul>
-<p>Por favor, inicia sesión y cambia tu contraseña inmediatamente.</p>
-<p><a href="{{login_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Ir a Check</a></p>`
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">¡Cuenta Aprobada!</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{user_name}}, nos complace informarte que tu cuenta en <strong>Check Pro</strong> ha sido aprobada exitosamente.</p>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">A continuación encontrarás tus credenciales de acceso:</p>
+        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);">
+            <p style="margin: 5px 0; color: #f8fafc;"><strong>Email:</strong> {{email}}</p>
+            <p style="margin: 5px 0; color: #f8fafc;"><strong>Contraseña temporal:</strong> {{password}}</p>
+            <p style="margin: 5px 0; color: #f8fafc;"><strong>Rol asignado:</strong> {{role}}</p>
+        </div>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center;">Por favor, inicia sesión y cambia tu contraseña por seguridad.</p>
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{login_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Acceder a la Plataforma</a>
+        </div>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`
         },
         {
             id: 'user_invited',
             name: 'Invitación a Usuario',
-            subject: 'Has sido agregado a {{company_name}}',
-            body: `<h2>¡Hola {{user_name}}!</h2>
-<p>Has sido agregado(a) a <strong>{{company_name}}</strong> en la plataforma Check.</p>
-<ul>
-<li><strong>Tu rol:</strong> {{role}}</li>
-</ul>
-<p>Inicia sesión para comenzar:</p>
-<p><a href="{{login_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Ir a Check</a></p>`
+            subject: 'Has sido invitado a unirte a {{company_name}} en Check',
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">Invitación de Equipo</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{user_name}}, has sido invitado(a) a formar parte de <strong>{{company_name}}</strong> en la plataforma Check Pro.</p>
+        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);">
+            <p style="margin: 5px 0; color: #f8fafc; text-align: center;"><strong>Tu rol asignado:</strong> {{role}}</p>
+        </div>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center;">Ya puedes acceder para comenzar a colaborar con tu equipo.</p>
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{login_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Entrar a Check Pro</a>
+        </div>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`
         },
         {
             id: 'password_reset',
             name: 'Recuperación de Contraseña',
-            subject: 'Restablece tu contraseña - Check',
-            body: `<h2>Restablecer Contraseña</h2>
-<p>Hola {{user_name}},</p>
-<p>Recibimos una solicitud para restablecer tu contraseña. Usa el siguiente código o haz clic en el enlace:</p>
-<p><strong>Código de verificación:</strong> {{reset_code}}</p>
-<p><a href="{{reset_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Restablecer Contraseña</a></p>
-<p>Si no solicitaste este cambio, ignora este email.</p>`
+            subject: 'Restablece tu contraseña - Check Pro',
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">Restablecer Contraseña</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{user_name}}, hemos recibido una solicitud para restablecer la contraseña de tu cuenta conforme a los protocolos de seguridad de Check Pro.</p>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Usa el siguiente código de verificación para continuar:</p>
+        <div style="background: rgba(124, 58, 237, 0.1); border: 2px dashed #7c3aed; border-radius: 12px; padding: 15px; margin: 25px 0; text-align: center;">
+            <span style="font-size: 32px; font-weight: 800; letter-spacing: 5px; color: #f8fafc;">{{reset_code}}</span>
+        </div>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 14px; text-align: center;">También puedes hacer clic en el botón de abajo para ser redirigido directamente:</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{reset_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Restablecer mi Contraseña</a>
+        </div>
+        <p style="color: #64748b; line-height: 1.6; font-size: 13px; margin-top: 30px;">Si no solicitaste este cambio, por favor ignora este mensaje o contacta con el administrador de tu grupo por seguridad.</p>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`
         }
     ];
+
     
     const insertTemplate = db.prepare("INSERT INTO email_templates (id, name, subject, body, updated_at) VALUES (?, ?, ?, ?, ?)");
     templates.forEach(t => {
@@ -407,17 +439,25 @@ function createEventEmailTemplates(eventId) {
             template_type: 'registration_confirm',
             name: 'Confirmación de registro',
             subject: '¡Registro exitoso! - {{event_name}}',
-            body: `<h2>¡Hola {{guest_name}}!</h2>
-<p>Tu registro ha sido confirmado para <strong>{{event_name}}</strong></p>
-<p><strong>📅 Fecha:</strong> {{event_date}}</p>
-<p><strong>📍 Ubicación:</strong> {{event_location}}</p>
-<p>Te esperamos. Tus datos:</p>
-<ul>
-<li><strong>Nombre:</strong> {{guest_name}}</li>
-<li><strong>Email:</strong> {{guest_email}}</li>
-<li><strong>Empresa:</strong> {{organization}}</li>
-</ul>
-<p>¡Nos vemos pronto!</p>`,
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">Confirmación de Registro</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{guest_name}}, tu registro para el evento <strong>{{event_name}}</strong> ha sido procesado con éxito.</p>
+        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid rgba(255,255,255,0.05);">
+            <p style="margin: 5px 0; color: #f8fafc;"><strong>📅 Fecha:</strong> {{event_date}}</p>
+            <p style="margin: 5px 0; color: #f8fafc;"><strong>📍 Ubicación:</strong> {{event_location}}</p>
+        </div>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Detalles del asistente:</p>
+        <ul style="color: #f8fafc; padding-left: 20px;">
+            <li>Nombre: {{guest_name}}</li>
+            <li>Institución: {{organization}}</li>
+        </ul>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center; margin-top: 30px;">Estamos ansiosos de contar con tu presencia.</p>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`,
             is_active: 1,
             auto_send: 1
         },
@@ -426,14 +466,22 @@ function createEventEmailTemplates(eventId) {
             template_type: 'checkin_welcome',
             name: 'Bienvenida con agenda',
             subject: '¡Bienvenido! - {{event_name}}',
-            body: `<h2>¡Hola {{guest_name}}!</h2>
-<p>¡Gracias por registrarte en <strong>{{event_name}}</strong>!</p>
-<p>Tu registro se realizó exitosamente a las {{checkin_time}}.</p>
-
-<h3>📋 Agenda del Evento</h3>
-{{agenda}}
-
-<p>¡Disfruta del evento!</p>`,
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">¡Bienvenido al Evento!</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{guest_name}}, agradecemos tu puntualidad. Tu ingreso a <strong>{{event_name}}</strong> ha sido registrado a las {{checkin_time}}.</p>
+        
+        <h3 style="color: #f8fafc; font-size: 18px; margin-top: 30px; border-bottom: 1px solid #7c3aed; display: inline-block; padding-bottom: 5px;">📋 Agenda del Día</h3>
+        <div style="margin-top: 15px; color: #f8fafc;">
+            {{agenda}}
+        </div>
+        
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center; margin-top: 30px;">Esperamos que disfrutes de esta experiencia.</p>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`,
             is_active: 1,
             auto_send: 1
         },
@@ -442,10 +490,17 @@ function createEventEmailTemplates(eventId) {
             template_type: 'event_thanks',
             name: 'Agradecimiento post-evento',
             subject: '¡Gracias por asistir! - {{event_name}}',
-            body: `<h2>¡Hola {{guest_name}}!</h2>
-<p>Gracias por asistir a <strong>{{event_name}}</strong>.</p>
-<p>Esperamos que hayas enjoyedo del evento.</p>
-<p>¡Nos vemos en la próxima!</p>`,
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">¡Gracias por Acompañarnos!</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{guest_name}}, ha sido un honor contar con tu presencia en <strong>{{event_name}}</strong>.</p>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Esperamos que los contenidos y las conexiones realizadas durante la jornada te resulten de gran valor personal y profesional.</p>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center; margin-top: 30px;">¡Nos vemos en nuestra próxima edición!</p>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`,
             is_active: 1,
             auto_send: 0
         },
@@ -453,14 +508,24 @@ function createEventEmailTemplates(eventId) {
             id: uuidv4(),
             template_type: 'suggestion_request',
             name: 'Solicitud de sugerencias',
-            subject: 'Tus comentarios nos importan - {{event_name}}',
-            body: `<h2>¡Hola {{guest_name}}!</h2>
-<p>Gracias por asistir a <strong>{{event_name}}</strong>.</p>
-<p>¿Tienes alguna sugerencia para mejorar? Nos encantaría conocer tu opinión.</p>
-<p><a href="{{suggestion_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Enviar sugerencia</a></p>`,
+            subject: 'Tu opinión es fundamental - {{event_name}}',
+            body: `<div style="font-family: sans-serif; background-color: #020617; padding: 40px 20px; color: #f8fafc;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px;">
+        <h2 style="color: #f8fafc; text-align: center; font-size: 24px; margin-bottom: 20px;">Queremos Escucharte</h2>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px;">Hola {{guest_name}}, tras finalizar <strong>{{event_name}}</strong>, nos gustaría conocer tu opinión para seguir mejorando la calidad de nuestros eventos.</p>
+        <p style="color: #94a3b8; line-height: 1.6; font-size: 16px; text-align: center;">¿Podrías dedicarnos un minuto para enviarnos tus comentarios o sugerencias?</p>
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{suggestion_url}}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">Enviar mi Sugerencia</a>
+        </div>
+        <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #64748b; font-size: 14px;">
+            <p style="margin: 0;">Atentamente,<br><strong>El Equipo de Check Pro</strong></p>
+        </div>
+    </div>
+</div>`,
             is_active: 1,
             auto_send: 0
         }
+
     ];
     
     const insert = db.prepare("INSERT OR IGNORE INTO event_email_templates (id, event_id, template_type, name, subject, body, is_active, auto_send, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
