@@ -158,10 +158,20 @@ db.exec(`CREATE TABLE IF NOT EXISTS groups (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
+    email TEXT,
+    phone TEXT,
     status TEXT DEFAULT 'ACTIVE',
     created_at TEXT,
     created_by TEXT
 )`);
+
+// Migraciones para grupos
+try { db.exec("ALTER TABLE groups ADD COLUMN email TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE groups ADD COLUMN phone TEXT"); } catch (_) {}
+
+// Migraciones para users
+try { db.exec("ALTER TABLE users ADD COLUMN display_name TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE users ADD COLUMN phone TEXT"); } catch (_) {}
 
 // 10. Relación Grupo-Usuario (muchos a muchos) - Productores del grupo
 db.exec(`CREATE TABLE IF NOT EXISTS group_users (
@@ -190,6 +200,80 @@ db.exec(`CREATE TABLE IF NOT EXISTS user_events (
 try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
 
+// ═══ SMTP GLOBAL Y PLANTILLAS DE EMAIL ═══
+
+// 12. Configuración SMTP Global
+db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    smtp_host TEXT,
+    smtp_port INTEGER DEFAULT 587,
+    smtp_user TEXT,
+    smtp_pass TEXT,
+    smtp_secure INTEGER DEFAULT 0,
+    from_name TEXT DEFAULT 'Check Attendance',
+    from_email TEXT,
+    updated_at TEXT
+)`);
+
+// 13. Plantillas de Email
+db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    subject TEXT,
+    body TEXT,
+    is_active INTEGER DEFAULT 1,
+    updated_at TEXT
+)`);
+
+// Semillas de plantillas de email por defecto
+const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates").get();
+if (templateCount.count === 0) {
+    const templates = [
+        {
+            id: 'user_approved',
+            name: 'Aprobación de Cuenta',
+            subject: '¡Bienvenido a Check! Tu cuenta ha sido aprobada',
+            body: `<h2>¡Bienvenido {{user_name}}!</h2>
+<p>Tu cuenta ha sido aprobada. Aquí están tus credenciales de acceso:</p>
+<ul>
+<li><strong>Email:</strong> {{email}}</li>
+<li><strong>Contraseña temporal:</strong> {{password}}</li>
+<li><strong>Rol:</strong> {{role}}</li>
+</ul>
+<p>Por favor, inicia sesión y cambia tu contraseña inmediatamente.</p>
+<p><a href="{{login_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Ir a Check</a></p>`
+        },
+        {
+            id: 'user_invited',
+            name: 'Invitación a Usuario',
+            subject: 'Has sido agregado a {{company_name}}',
+            body: `<h2>¡Hola {{user_name}}!</h2>
+<p>Has sido agregado(a) a <strong>{{company_name}}</strong> en la plataforma Check.</p>
+<ul>
+<li><strong>Tu rol:</strong> {{role}}</li>
+</ul>
+<p>Inicia sesión para comenzar:</p>
+<p><a href="{{login_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Ir a Check</a></p>`
+        },
+        {
+            id: 'password_reset',
+            name: 'Recuperación de Contraseña',
+            subject: 'Restablece tu contraseña - Check',
+            body: `<h2>Restablecer Contraseña</h2>
+<p>Hola {{user_name}},</p>
+<p>Recibimos una solicitud para restablecer tu contraseña. Usa el siguiente código o haz clic en el enlace:</p>
+<p><strong>Código de verificación:</strong> {{reset_code}}</p>
+<p><a href="{{reset_url}}" style="background:#7c3aed;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;">Restablecer Contraseña</a></p>
+<p>Si no solicitaste este cambio, ignora este email.</p>`
+        }
+    ];
+    
+    const insertTemplate = db.prepare("INSERT INTO email_templates (id, name, subject, body, updated_at) VALUES (?, ?, ?, ?, ?)");
+    templates.forEach(t => {
+        insertTemplate.run(t.id, t.name, t.subject, t.body, new Date().toISOString());
+    });
+}
+
 // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 if (userCount.count === 0) {
@@ -197,6 +281,12 @@ if (userCount.count === 0) {
     db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
       .run(adminId, 'admin@check.com', 'admin123', 'ADMIN', 'APPROVED', new Date().toISOString());
     console.log("✓ Admin por defecto creado: admin@check.com / admin123");
+}
+
+// Semilla de SMTP config si no existe
+const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
+if (smtpCount.count === 0) {
+    db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 587, '', 0, 'Check Attendance')").run();
 }
 
 console.log("✓ better-sqlite3 V10: Base de datos inicializada correctamente.");

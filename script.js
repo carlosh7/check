@@ -129,26 +129,111 @@ window.App = {
         }
     },
     
-    // Cargar empresas
+    // Cargar empresas con usuarios
     loadGroups: async function() {
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
+            const users = await this.fetchAPI('/users');
             this.state.groups = groups;
+            this.state.allUsers = users;
+            
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
-                tbody.innerHTML = groups.map(g => `
+                tbody.innerHTML = groups.map(g => {
+                    const groupUsers = users.filter(u => u.group_id === g.id);
+                    const userChips = groupUsers.map(u => `
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
+                            <span class="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
+                            ${u.display_name || u.username}
+                            <span class="text-[8px] text-slate-400">${u.role}</span>
+                            <button onclick="App.removeUserFromGroup('${u.id}', '${g.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">×</button>
+                        </span>`).join('');
+                    
+                    return `
                     <tr class="hover:bg-white/[0.02] border-b border-white/5">
-                        <td class="px-8 py-5"><div class="font-bold text-base text-white">${g.name}</div></td>
-                        <td class="px-8 py-5 text-slate-400 text-sm">${g.description || '-'}</td>
-                        <td class="px-8 py-5 text-center"><span class="px-4 py-2 rounded-xl text-sm font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${g.status}</span></td>
-                        <td class="px-8 py-5 text-center text-slate-500 text-sm">${g.created_at ? new Date(g.created_at).toLocaleDateString() : '-'}</td>
-                        <td class="px-8 py-5 text-right">
-                            <button onclick="App.editGroup('${g.id}')" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
+                        <td class="px-8 py-5">
+                            <div class="font-bold text-base text-white">${g.name}</div>
+                            <div class="text-[10px] text-slate-500 mt-1">${g.description || ''}</div>
                         </td>
-                    </tr>`).join('');
+                        <td class="px-8 py-5">
+                            <div class="text-slate-400 text-sm">${g.email || '-'}</div>
+                            <div class="text-slate-500 text-xs">${g.phone || ''}</div>
+                        </td>
+                        <td class="px-8 py-5 text-center"><span class="px-4 py-2 rounded-xl text-sm font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</span></td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex flex-wrap gap-1 max-w-[150px]">${userChips || '<span class="text-slate-500 text-xs">Sin usuarios</span>'}</div>
+                            <div class="flex gap-1 mt-2">
+                                <button onclick="App.showUserSelectorForGroup('${g.id}')" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold">+ Usuario</button>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="App.openCompanyModal('${g.id}')" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
             }
         } catch(e) { console.error('Error loading groups:', e); }
+    },
+    
+    removeUserFromGroup: async function(userId, groupId) {
+        if (!confirm('¿Quitar este usuario de la empresa?')) return;
+        try {
+            await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+            this.loadGroups();
+        } catch(e) { console.error('Error removing user from group:', e); }
+    },
+    
+    showUserSelectorForGroup: function(groupId) {
+        const users = (this.state.allUsers || []).filter(u => u.group_id !== groupId);
+        if (users.length === 0) {
+            alert('No hay más usuarios disponibles para agregar.');
+            return;
+        }
+        
+        const options = users.map(u => `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-user-selector-group';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">person_add</span> Asignar Usuario a Empresa
+                </h3>
+                <select id="select-user-for-group" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
+                    <option value="">-- Seleccionar usuario --</option>
+                    ${options}
+                </select>
+                <div class="flex gap-3">
+                    <button onclick="App.assignUserToGroupFromSelector('${groupId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
+                    <button onclick="App.closeUserSelectorGroup()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+    
+    assignUserToGroupFromSelector: async function(groupId) {
+        const select = document.getElementById('select-user-for-group');
+        const userId = select.value;
+        if (!userId) return alert('Selecciona un usuario');
+        
+        try {
+            const res = await this.fetchAPI(`/groups/${groupId}/users`, { 
+                method: 'POST', 
+                body: JSON.stringify({ userId, role_in_group: 'PRODUCTOR' }) 
+            });
+            if (res.success) {
+                this.loadGroups();
+                this.closeUserSelectorGroup();
+            }
+        } catch(e) { console.error('Error assigning user to group:', e); }
+    },
+    
+    closeUserSelectorGroup: function() {
+        document.getElementById('modal-user-selector-group')?.remove();
     },
     
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
@@ -276,10 +361,13 @@ window.App = {
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-                                ${(u.display_name || u.username).charAt(0).toUpperCase()}
+                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-black rounded ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-400'}">${u.role}</span>
+                                </div>
                                 <p class="text-[10px] text-slate-500">${u.username}</p>
                             </div>
                         </div>
@@ -618,8 +706,91 @@ window.App = {
         } catch (e) { alert("Error al actualizar evento."); }
     },
     
+    // --- COMPANY CRUD V10.6 ---
+    openCompanyModal: function(groupId = null) {
+        const modal = document.getElementById('modal-company');
+        document.getElementById('company-id-hidden').value = groupId || '';
+        document.getElementById('company-form').reset();
+        
+        if (groupId) {
+            const group = this.state.allGroups?.find(g => g.id === groupId);
+            if (group) {
+                document.getElementById('company-name').value = group.name || '';
+                document.getElementById('company-description').value = group.description || '';
+                document.getElementById('company-email').value = group.email || '';
+                document.getElementById('company-phone').value = group.phone || '';
+                document.getElementById('company-status').value = group.status || 'ACTIVE';
+            }
+        }
+        
+        modal?.classList.remove('hidden');
+    },
+    
+    closeCompanyModal: function() {
+        document.getElementById('modal-company')?.classList.add('hidden');
+    },
+    
+    saveCompany: async function(data) {
+        const groupId = document.getElementById('company-id-hidden').value;
+        try {
+            if (groupId) {
+                await this.fetchAPI(`/groups/${groupId}`, { 
+                    method: 'PUT', 
+                    body: JSON.stringify(data)
+                });
+                alert('✓ Empresa actualizada');
+            } else {
+                await this.fetchAPI('/groups', { 
+                    method: 'POST', 
+                    body: JSON.stringify(data)
+                });
+                alert('✓ Empresa creada');
+            }
+            this.closeCompanyModal();
+            this.loadGroups();
+        } catch (e) { 
+            console.error('Error saving company:', e);
+            alert('Error al guardar empresa'); 
+        }
+    },
+    
+    // --- PROFILE V10.6 ---
+    loadProfileData: async function() {
+        if (!this.state.user) return;
+        
+        document.getElementById('profile-display-name').value = this.state.user.display_name || '';
+        document.getElementById('profile-phone').value = this.state.user.phone || '';
+        document.getElementById('profile-email').value = this.state.user.username || '';
+        
+        // Cargar empresas disponibles
+        try {
+            const groups = await this.fetchAPI('/groups');
+            this.state.allGroups = groups;
+            const select = document.getElementById('profile-company');
+            if (select) {
+                select.innerHTML = '<option value="">-- Sin empresa asignada --</option>' + 
+                    groups.map(g => `<option value="${g.id}" ${g.id === this.state.user.group_id ? 'selected' : ''}>${g.name}</option>`).join('');
+            }
+        } catch (e) { console.error('Error loading groups:', e); }
+    },
+    
+    saveProfile: async function(data) {
+        try {
+            const res = await this.fetchAPI(`/users/${this.state.user.userId}/profile`, { 
+                method: 'PUT', 
+                body: JSON.stringify(data)
+            });
+            if (res.success) {
+                this.state.user = { ...this.state.user, ...data };
+                localStorage.setItem('user', JSON.stringify(this.state.user));
+                alert('✓ Perfil actualizado');
+                this.loadProfileData();
+            }
+        } catch (e) { alert('Error al actualizar perfil'); }
+    },
+    
     // --- CORE NAV V10.5 (SPA Routing) ---
-    showView(viewName) {
+    showView(viewName, clearSession = false) {
         
         // 0. Verificar sesión solo si no hay usuario en estado
         if (viewName !== 'login') {
@@ -643,12 +814,14 @@ window.App = {
         const appEl = document.getElementById('app-container');
         
         if (isLogin) {
-            // Limpiar sesión al mostrar login
-            localStorage.removeItem('user');
-            localStorage.removeItem('selected_event_id');
-            localStorage.removeItem('selected_event_name');
-            this.state.user = null;
-            this.state.event = null;
+            // Solo limpiar sesión si es un logout explícito
+            if (clearSession) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('selected_event_id');
+                localStorage.removeItem('selected_event_name');
+                this.state.user = null;
+                this.state.event = null;
+            }
             
             // Mostrar login, ocultar app
             if (loginEl) { 
@@ -715,7 +888,7 @@ window.App = {
             App.loadLegalTexts();
         }
         if (viewName === 'account') {
-            // Mi Cuenta se muestra directamente
+            App.loadProfileData();
         }
         if (viewName === 'groups') this.loadGroups();
     },
@@ -757,10 +930,11 @@ window.App = {
         }
     },
     logout() {
-        console.log("CHECK V9.3: Cerrando sesión segura.");
+        console.log("CHECK: Cerrando sesión segura.");
         localStorage.removeItem('user');
         this.state.user = null;
-        this.showView('login');
+        this.state.event = null;
+        this.showView('login', true);
     },
     async loadAppVersion() {
         try {
@@ -1169,8 +1343,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     }
     
-    // 2. Si no hay sesión válida, mostrar login
-    App.showView('login');
+    // 2. Si no hay sesión válida, mostrar login SIN limpiar (solo verificar)
+    if (!localStorage.getItem('user') || localStorage.getItem('user') === "null" || localStorage.getItem('user') === "undefined") {
+        App.showView('login');
+    }
 
     // 3. Sockets
     if (typeof io !== 'undefined') {
@@ -1408,6 +1584,31 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('✓ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
         } catch { alert('Error al actualizar contraseña.'); }
+    });
+    
+    // ------- V10.6: PERFIL -------
+    sf('profile-form', async (e) => {
+        e.preventDefault();
+        const data = {
+            display_name: document.getElementById('profile-display-name').value,
+            phone: document.getElementById('profile-phone').value,
+            group_id: document.getElementById('profile-company').value || null
+        };
+        await App.saveProfile(data);
+    });
+    
+    // ------- V10.6: COMPANY -------
+    cl('btn-create-group', () => App.openCompanyModal());
+    sf('company-form', async (e) => {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('company-name').value,
+            description: document.getElementById('company-description').value,
+            email: document.getElementById('company-email').value,
+            phone: document.getElementById('company-phone').value,
+            status: document.getElementById('company-status').value
+        };
+        await App.saveCompany(data);
     });
 
     // 6. Inicialización V10.5

@@ -177,7 +177,7 @@ app.get('/api/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     // ADMIN y PRODUCTOR ven usuarios (PRODUCTOR ve solo los de su grupo)
     let rows;
     if (req.userRole === 'ADMIN') {
-        rows = db.prepare("SELECT id, username, role, role_detail, status, created_at, group_id FROM users ORDER BY created_at DESC").all();
+        rows = db.prepare("SELECT id, username, display_name, phone, role, role_detail, status, created_at, group_id FROM users ORDER BY display_name || username ASC").all();
     } else {
         // PRODUCTOR ve solo usuarios de sus grupos
         const groupIds = getProducerGroups(req.userId);
@@ -185,7 +185,7 @@ app.get('/api/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             rows = [];
         } else {
             const placeholders = groupIds.map(() => '?').join(',');
-            rows = db.prepare(`SELECT id, username, role, role_detail, status, created_at, group_id FROM users WHERE group_id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
+            rows = db.prepare(`SELECT id, username, display_name, phone, role, role_detail, status, created_at, group_id FROM users WHERE group_id IN (${placeholders}) ORDER BY display_name || username ASC`).all(...groupIds);
         }
     }
     
@@ -228,14 +228,46 @@ app.get('/api/groups', authMiddleware(), (req, res) => {
 
 // Crear grupo (solo ADMIN)
 app.post('/api/groups', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, email, phone } = req.body;
     const id = getValidId('groups');
     const created_by = req.userId;
     
-    db.prepare("INSERT INTO groups (id, name, description, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(id, name, description || '', 'ACTIVE', new Date().toISOString(), created_by);
+    db.prepare("INSERT INTO groups (id, name, description, email, phone, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(id, name, description || '', email || '', phone || '', 'ACTIVE', new Date().toISOString(), created_by);
     
     res.json({ success: true, groupId: id });
+});
+
+// Actualizar grupo
+app.put('/api/groups/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, description, email, phone, status } = req.body;
+    const groupId = castId('groups', req.params.id);
+    
+    db.prepare("UPDATE groups SET name = ?, description = ?, email = ?, phone = ?, status = ? WHERE id = ?")
+      .run(name, description || '', email || '', phone || '', status || 'ACTIVE', groupId);
+    
+    res.json({ success: true });
+});
+
+// Obtener usuarios de un grupo
+app.get('/api/groups/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const groupId = castId('groups', req.params.groupId);
+    
+    // Verificar acceso
+    if (req.userRole === 'PRODUCTOR') {
+        const hasAccess = db.prepare("SELECT 1 FROM group_users WHERE user_id = ? AND group_id = ?").get(req.userId, groupId);
+        if (!hasAccess) return res.status(403).json({ error: 'No tienes acceso a este grupo' });
+    }
+    
+    const users = db.prepare(`
+        SELECT u.id, u.username, u.display_name, u.role, u.status, gu.role_in_group
+        FROM users u
+        LEFT JOIN group_users gu ON u.id = gu.user_id AND gu.group_id = ?
+        WHERE gu.group_id = ?
+        ORDER BY u.display_name || u.username
+    `).all(groupId, groupId);
+    
+    res.json(users);
 });
 
 // Agregar usuario a grupo
@@ -250,9 +282,23 @@ app.post('/api/groups/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (
     }
     
     const id = getValidId('group_users');
-    db.prepare("INSERT INTO group_users (id, group_id, user_id, role_in_group, created_at) VALUES (?, ?, ?, ?, ?)")
+    db.prepare("INSERT OR REPLACE INTO group_users (id, group_id, user_id, role_in_group, created_at) VALUES (?, ?, ?, ?, ?)")
       .run(id, groupId, userId, role_in_group || 'PRODUCTOR', new Date().toISOString());
     
+    res.json({ success: true });
+});
+
+// Quitar usuario de grupo
+app.delete('/api/groups/:groupId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const groupId = castId('groups', req.params.groupId);
+    const userId = castId('users', req.params.userId);
+    
+    if (req.userRole === 'PRODUCTOR') {
+        const hasAccess = db.prepare("SELECT 1 FROM group_users WHERE user_id = ? AND group_id = ?").get(req.userId, groupId);
+        if (!hasAccess) return res.status(403).json({ error: 'No tienes acceso a este grupo' });
+    }
+    
+    db.prepare("DELETE FROM group_users WHERE group_id = ? AND user_id = ?").run(groupId, userId);
     res.json({ success: true });
 });
 
@@ -274,14 +320,15 @@ app.post('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (
 });
 
 app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
-    const { username, password, role, display_name } = req.body;
-    const id = uuidv4();
+    const { username, password, role, display_name, phone, group_id } = req.body;
+    const id = getValidId('users');
     try {
-        db.prepare("INSERT INTO users (id, username, password, role, display_name, status, created_at) VALUES (?, ?, ?, ?, ?, 'APPROVED', ?)")
-          .run(id, username, password, role || 'PRODUCTOR', display_name || username, new Date().toISOString());
+        db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
+          .run(id, username.toLowerCase(), password, role || 'PRODUCTOR', display_name || username, phone || '', group_id || null, new Date().toISOString());
         res.json({ success: true, userId: id });
     } catch (err) {
-        res.status(400).json({ success: false, error: 'Usuario ya existe u ocurrió un error' });
+        if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, error: 'Este email ya está registrado' });
+        res.status(400).json({ success: false, error: 'Error al crear usuario' });
     }
 });
 
@@ -356,6 +403,73 @@ app.put('/api/users/:id/password', authMiddleware(), (req, res) => {
     if (req.userRole !== 'ADMIN' && requesterId !== targetId) return res.status(403).json({ error: 'Acceso Denegado' });
     db.prepare("UPDATE users SET password = ? WHERE id = ?").run(req.body.password, targetId);
     res.json({ success: true });
+});
+
+// Actualizar perfil de usuario
+app.put('/api/users/:id/profile', authMiddleware(), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const requesterId = req.userId;
+    
+    // Solo el propio usuario o admin puede actualizar
+    if (req.userRole !== 'ADMIN' && requesterId !== targetId) {
+        return res.status(403).json({ error: 'Acceso Denegado' });
+    }
+    
+    const { display_name, phone, group_id } = req.body;
+    
+    // Users can only update their own profile, admins can update group_id
+    if (req.userRole === 'ADMIN') {
+        db.prepare("UPDATE users SET display_name = ?, phone = ?, group_id = ? WHERE id = ?")
+          .run(display_name || '', phone || '', group_id || null, targetId);
+    } else {
+        db.prepare("UPDATE users SET display_name = ?, phone = ? WHERE id = ?")
+          .run(display_name || '', phone || '', targetId);
+    }
+    
+    // Return updated user data
+    const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
+    res.json({ success: true, user });
+});
+
+// Solicitar recuperación de contraseña
+app.post('/api/password-reset-request', (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email requerido' });
+    
+    const user = db.prepare("SELECT id, username, display_name FROM users WHERE username = ?").get(email.toLowerCase());
+    if (!user) {
+        // No revelar si el email existe o no
+        return res.json({ success: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+    }
+    
+    // Generar código de recuperación (6 dígitos)
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetExpiry = new Date(Date.now() + 3600000).toISOString(); // 1 hora
+    
+    // Guardar código (necesitaríamos una tabla para esto, por ahora solo retornamos el código)
+    // TODO: Crear tabla password_resets
+    
+    res.json({ success: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+    // Aquí se enviaría el email con el código
+});
+
+// Solicitar cuenta (signup)
+app.post('/signup', async (req, res) => {
+    const { username, password, role = 'PRODUCTOR' } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) return res.status(400).json({ error: 'Email inválido' });
+    if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    
+    try {
+        const id = getValidId('users');
+        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(id, username.toLowerCase(), password, role, 'PENDING', new Date().toISOString());
+        
+        res.json({ success: true, message: 'Solicitud enviada. Un administrador debe aprobar tu acceso.' });
+    } catch (e) {
+        if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Este email ya está registrado' });
+        res.status(500).json({ error: 'Error al crear la cuenta' });
+    }
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -769,6 +883,75 @@ app.post('/api/public-register', async (req, res) => {
 
 app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
+});
+
+// ═══ SMTP CONFIGURATION & EMAIL TEMPLATES ═══
+
+// Obtener configuración SMTP
+app.get('/api/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
+    const config = db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+    if (config) {
+        // No devolver la contraseña en claro
+        config.smtp_pass = config.smtp_pass ? '***' : '';
+    }
+    res.json(config || {});
+});
+
+// Guardar configuración SMTP
+app.put('/api/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
+    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email } = req.body;
+    
+    // Solo actualizar contraseña si no está vacía o es ***
+    let passToSave = smtp_pass;
+    if (!smtp_pass || smtp_pass === '***') {
+        const current = db.prepare("SELECT smtp_pass FROM smtp_config WHERE id = 1").get();
+        passToSave = current?.smtp_pass || '';
+    }
+    
+    db.prepare(`INSERT OR REPLACE INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, updated_at) 
+                VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(smtp_host || '', smtp_port || 587, smtp_user || '', passToSave, smtp_secure ? 1 : 0, from_name || 'Check', from_email || '', new Date().toISOString());
+    
+    res.json({ success: true });
+});
+
+// Obtener plantillas de email
+app.get('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
+    const templates = db.prepare("SELECT * FROM email_templates ORDER BY name").all();
+    res.json(templates);
+});
+
+// Actualizar plantilla de email
+app.put('/api/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const { subject, body } = req.body;
+    const templateId = req.params.id;
+    
+    db.prepare("UPDATE email_templates SET subject = ?, body = ?, updated_at = ? WHERE id = ?")
+      .run(subject, body, new Date().toISOString(), templateId);
+    
+    res.json({ success: true });
+});
+
+// Obtener usuarios asignados a un evento
+app.get('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    
+    // Verificar acceso
+    if (req.userRole === 'PRODUCTOR') {
+        if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+            return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        }
+    }
+    
+    const users = db.prepare(`
+        SELECT u.id, u.username, u.display_name, u.role, u.status, ue.created_at as assigned_at
+        FROM users u
+        INNER JOIN user_events ue ON u.id = ue.user_id
+        WHERE ue.event_id = ?
+        ORDER BY u.display_name || u.username
+    `).all(eventId);
+    
+    res.json(users);
 });
 
 // --- SPA FALLBACK (V10.5) ---

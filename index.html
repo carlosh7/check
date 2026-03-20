@@ -386,7 +386,13 @@
                 <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
                     <table class="w-full text-left">
                         <thead class="bg-white/5 border-b border-white/10">
-                            <tr><th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Nombre</th><th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Descripción</th><th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Estado</th><th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Fecha</th><th class="px-8 py-5 text-right text-sm font-black uppercase tracking-wider text-primary">Acciones</th></tr>
+                            <tr>
+                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Nombre</th>
+                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Contacto</th>
+                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Estado</th>
+                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Usuarios</th>
+                                <th class="px-8 py-5 text-right text-sm font-black uppercase tracking-wider text-primary">Acciones</th>
+                            </tr>
                         </thead>
                         <tbody id="groups-tbody" class="divide-y divide-white/5"></tbody>
                     </table>
@@ -418,9 +424,36 @@
                 <div class="mb-10">
                     <h2 class="text-4xl font-black font-display mb-2">Mi <span class="text-primary">Cuenta</span></h2>
                 </div>
-                <div class="max-w-xl">
+                <div class="max-w-2xl">
+                    <div class="glass-card p-10 rounded-[40px] border border-white/10 mb-8">
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">person</span> Datos Personales</h4>
+                        <form id="profile-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre / Nickname</label>
+                                    <input type="text" id="profile-display-name" placeholder="Tu nombre" class="input-field bg-slate-900/60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Teléfono</label>
+                                    <input type="tel" id="profile-phone" placeholder="+57 300 123 4567" class="input-field bg-slate-900/60">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email (Usuario)</label>
+                                <input type="email" id="profile-email" disabled class="input-field bg-slate-800/50 text-slate-400 cursor-not-allowed">
+                            </div>
+                            <div class="space-y-1" id="profile-company-container">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Empresa</label>
+                                <select id="profile-company" class="input-field bg-slate-900/60">
+                                    <option value="">-- Sin empresa asignada --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4">Guardar Cambios</button>
+                        </form>
+                    </div>
+                    
                     <div class="glass-card p-10 rounded-[40px] border border-white/10">
-                        <h4 class="text-lg font-black mb-8 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
+                        <h4 class="text-lg font-black mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h4>
                         <form id="change-pass-form" class="space-y-4">
                             <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field bg-slate-900/60">
                             <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field bg-slate-900/60">
@@ -845,6 +878,56 @@
                 <div class="flex gap-4 pt-5 border-t border-white/10">
                     <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
                     <button type="button" id="close-modal" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: COMPANY CONFIG (V10.6) -->
+    <div id="modal-company" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] overflow-y-auto py-4 md:py-8">
+        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-xl w-full mx-auto shadow-2xl border border-white/10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Empresa</h3>
+                <button onclick="document.getElementById('modal-company').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            
+            <form id="company-form" class="space-y-5">
+                <input type="hidden" id="company-id-hidden">
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre de la Empresa *</label>
+                    <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field bg-slate-900/50">
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Descripción</label>
+                    <textarea id="company-description" placeholder="Descripción de la empresa..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Correo de Contacto</label>
+                        <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field bg-slate-900/50">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Teléfono</label>
+                        <input type="tel" id="company-phone" placeholder="+57 300 123 4567" class="input-field bg-slate-900/50">
+                    </div>
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Estado</label>
+                    <select id="company-status" class="input-field bg-slate-900/50">
+                        <option value="ACTIVE">Activo</option>
+                        <option value="INACTIVE">Inactivo</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-4 pt-5 border-t border-white/10">
+                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Empresa</button>
+                    <button type="button" id="close-company-modal" onclick="document.getElementById('modal-company').classList.add('hidden')" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
                 </div>
             </form>
         </div>
