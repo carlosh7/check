@@ -1044,22 +1044,28 @@ window.App = {
     },
     
     showCreateTemplateModal: function() {
+        if (this._templateEditorOpening) return;
+        this._templateEditorOpening = true;
         this.state.editingTemplate = null;
         document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
         document.getElementById('tpl-name').value = '';
         document.getElementById('tpl-subject').value = '';
-        this._initTemplateEditor();
         document.getElementById('modal-template-editor').classList.remove('hidden');
+        this._initTemplateEditor();
         this.switchTemplateEditorTab('visual');
+        this._templateEditorOpening = false;
     },
     
     showTemplateEditor: function(templateId, templateName) {
-        if (this.state.editingTemplate?.id === templateId && !document.getElementById('modal-template-editor')?.classList.contains('hidden')) {
-            console.log('[QUILL] Already open, ignoring duplicate call');
+        if (this._templateEditorOpening) {
+            console.log('[QUILL] Already opening, ignoring');
             return;
         }
+        this._templateEditorOpening = true;
+        
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
         if (!template) {
+            this._templateEditorOpening = false;
             return alert('Plantilla no encontrada. Recarga la página.');
         }
         this.state.editingTemplate = template;
@@ -1069,6 +1075,7 @@ window.App = {
         document.getElementById('modal-template-editor').classList.remove('hidden');
         this._initTemplateEditor(template.body || '');
         this.switchTemplateEditorTab('visual');
+        this._templateEditorOpening = false;
     },
     
     closeTemplateEditor: function() {
@@ -1079,7 +1086,9 @@ window.App = {
     },
     
     _initTemplateEditor: function(initialHtml) {
-        console.log('[QUILL] initTemplateEditor called, existing editor:', !!this.state.quillEditor);
+        if (this._quillInitializing) return;
+        this._quillInitializing = true;
+        console.log('[QUILL] initTemplateEditor called');
         const container = document.getElementById('tpl-quill-editor');
         if (this.state.quillEditor) {
             console.log('[QUILL] destroying existing editor');
@@ -1109,6 +1118,7 @@ window.App = {
             this.state.quillEditor.clipboard.dangerouslyPasteHTML(initialHtml);
         }
         this._loadVariablesPalette();
+        this._quillInitializing = false;
     },
     
     _loadVariablesPalette: function() {
