@@ -188,11 +188,52 @@ db.exec(`CREATE TABLE IF NOT EXISTS settings (
     setting_value TEXT
 )`);
 
-// Semilla de textos legales
-db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`)
-  .run('policy_data', '<h2>Política de Tratamiento de Datos</h2><p>Texto provisional. El administrador debe actualizar esto.</p>');
-db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`)
-  .run('terms_conditions', '<h2>Términos y Condiciones</h2><p>Texto provisional. El administrador debe actualizar esto.</p>');
+// Semilla de textos legales (V12.1.1 - Profesional)
+const POLICY_TEXT = `<div class="legal-content space-y-4">
+    <h2 class="text-xl font-bold text-white border-b border-primary/30 pb-2">POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES</h2>
+    <p class="text-sm text-slate-300">En **Check App**, la privacidad y seguridad de su información es nuestra prioridad. Esta política describe cómo recolectamos, usamos y protegemos sus datos bajo los principios de legalidad, finalidad y transparencia.</p>
+
+    <h3 class="text-md font-bold text-primary">1. Responsable del Tratamiento</h3>
+    <p class="text-xs text-slate-400">El responsable del tratamiento de sus datos es el Organizador del Evento al cual usted se registra, utilizando la plataforma Check App como medio tecnológico de gestión.</p>
+
+    <h3 class="text-md font-bold text-primary">2. Finalidad de la Recolección</h3>
+    <ul class="list-disc ml-6 text-xs text-slate-400 space-y-1">
+        <li>Gestión de registro y acreditación para el evento.</li>
+        <li>Envío de confirmaciones, códigos QR y comunicaciones logísticas.</li>
+        <li>Generación de estadísticas agregadas para el organizador.</li>
+        <li>Gestión de requerimientos especiales (dietas, alergias) para su seguridad.</li>
+    </ul>
+
+    <h3 class="text-md font-bold text-primary">3. Derechos del Titular</h3>
+    <p class="text-xs text-slate-400">Usted tiene derecho a conocer, actualizar y rectificar sus datos personales, así como a solicitar su supresión cuando no exista un deber legal de conservarlos.</p>
+
+    <h3 class="text-md font-bold text-primary">4. Seguridad</h3>
+    <p class="text-xs text-slate-400">Implementamos medidas técnicas y administrativas para evitar el acceso no autorizado o alteración de su información personal.</p>
+</div>`;
+
+const TERMS_TEXT = `<div class="legal-content space-y-4">
+    <h2 class="text-xl font-bold text-white border-b border-primary/30 pb-2">TÉRMINOS Y CONDICIONES DE SERVICIO</h2>
+    <p class="text-sm text-slate-300">El acceso y uso de la plataforma Check App implica la aceptación total de los presentes términos por parte del usuario y el organizador.</p>
+
+    <h3 class="text-md font-bold text-primary">1. Uso del Servicio</h3>
+    <p class="text-xs text-slate-400">Check App es una plataforma de gestión de asistencia. El usuario se compromete a proporcionar información veraz durante el proceso de registro.</p>
+
+    <h3 class="text-md font-bold text-primary">2. Responsabilidad del Organizador</h3>
+    <p class="text-xs text-slate-400">El Organizador es el único responsable del uso de la información de los invitados, de la logística del evento y del cumplimiento normativo en el recinto.</p>
+
+    <h3 class="text-md font-bold text-primary">3. Propiedad Intelectual</h3>
+    <p class="text-xs text-slate-400">Todos los derechos sobre el software, diseño y marcas de Check App son propiedad exclusiva del desarrollador.</p>
+
+    <h3 class="text-md font-bold text-primary">4. Limitación de Responsabilidad</h3>
+    <p class="text-xs text-slate-400">Check App no se hace responsable por interrupciones del servicio derivadas de fallos en proveedores de red o causas de fuerza mayor.</p>
+</div>`;
+
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('policy_data', POLICY_TEXT);
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('terms_conditions', TERMS_TEXT);
+
+// Actualizar si ya existían con el texto provisional (Fuerza actualización v12.1.1)
+db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND setting_value LIKE '%Texto provisional%'").run(POLICY_TEXT, 'policy_data');
+db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND setting_value LIKE '%Texto provisional%'").run(TERMS_TEXT, 'terms_conditions');
 
 // 8. Logs de Auditoría (V10)
 db.exec(`CREATE TABLE IF NOT EXISTS logs (

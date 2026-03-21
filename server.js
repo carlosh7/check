@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V12.1.0 (Smart Import & Column Config)
+// server.js — Check Elite Pro V12.1.1 (Smart Import & Legal Update)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
