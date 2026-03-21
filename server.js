@@ -1,7 +1,6 @@
 // server.js — Check Elite Pro v12.2.2 (Quill Fix & Robust Sync)
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const { db, createEventEmailTemplates } = require('./database');
@@ -22,6 +21,7 @@ const bcrypt = require('bcryptjs');
 // --- MÓDULOS (Fase 10 - Modularización) ---
 const { registerRoutes } = require('./src/routes');
 const { getValidId: modGetValidId, castId: modCastId } = require('./src/utils/helpers');
+const { init: initSocket, getIO: socketGetIO } = require('./src/socket');
 
 // --- VERSIÓN DINÁMICA V10.3 ---
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
@@ -34,12 +34,7 @@ const server = http.createServer(app);
 // CORS whitelist desde variable de entorno
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 
-const io = new Server(server, {
-    cors: {
-        origin: ALLOWED_ORIGINS,
-        methods: ["GET", "POST"]
-    }
-});
+const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
 const port = process.env.PORT || 3000;
 
 // --- ID COMPATIBILITY WRAPPER (V10.4.3) ---
@@ -163,7 +158,7 @@ async function processEmailQueue() {
     if (result.success) {
         db.prepare("UPDATE email_queue SET status = 'SENT', processed_at = ? WHERE id = ?").run(new Date().toISOString(), nextMail.id);
         // Notificar por socket el progreso
-        io.emit('email_queue_progress', { eventId: nextMail.event_id });
+        (socketGetIO() || io).emit('email_queue_progress', { eventId: nextMail.event_id });
     } else {
         const attempts = (nextMail.attempts || 0) + 1;
         const newStatus = attempts >= 3 ? 'ERROR' : 'PENDING';
@@ -535,8 +530,16 @@ const hasEventAccess = (userId, eventId, role) => {
     return !!assigned;
 };
 
+// --- SWAGGER UI ---
+const swaggerUi = require('swagger-ui-express');
+const { swaggerSpec } = require('./src/docs/swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Check Pro API Docs'
+}));
+
 // --- REGISTRAR RUTAS MODULARES ---
-registerRoutes(app, io);
+registerRoutes(app);
 
 // --- SPA FALLBACK ---
 app.use((req, res, next) => {

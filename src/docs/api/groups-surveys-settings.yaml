@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  title: Check Pro API - Groups, Surveys, Settings
+  version: 12.2.2
+paths:
+  # ─── GROUPS ─────────────────────────────────────────────────────────────────
+  /api/groups:
+    get:
+      tags: [Groups]
+      summary: Listar grupos
+      responses:
+        '200':
+          description: Lista de grupos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+    post:
+      tags: [Groups]
+      summary: Crear grupo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '201':
+          description: Grupo creado
+
+  /api/groups/{id}:
+    get:
+      tags: [Groups]
+      summary: Obtener grupo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del grupo
+
+    put:
+      tags: [Groups]
+      summary: Actualizar grupo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: Grupo actualizado
+
+    delete:
+      tags: [Groups]
+      summary: Eliminar grupo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Grupo eliminado
+
+  /api/groups/{id}/members:
+    post:
+      tags: [Groups]
+      summary: Agregar miembro al grupo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: integer }
+      responses:
+        '200':
+          description: Miembro agregado
+
+    delete:
+      tags: [Groups]
+      summary: Quitar miembro del grupo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: integer }
+      responses:
+        '200':
+          description: Miembro removido
+
+  # ─── SURVEYS ─────────────────────────────────────────────────────────────────
+  /api/events/{eventId}/suggestions:
+    get:
+      tags: [Surveys]
+      summary: Listar sugerencias
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Lista paginada de sugerencias
+
+    post:
+      tags: [Surveys]
+      summary: Crear sugerencia
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                guest_id: { type: [integer, string] }
+                type: { type: string, enum: [suggestion, complaint, compliment] }
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                message: { type: string }
+      responses:
+        '201':
+          description: Sugerencia creada
+
+  /api/events/{eventId}/surveys:
+    get:
+      tags: [Surveys]
+      summary: Listar encuestas
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Lista de encuestas
+
+    post:
+      tags: [Surveys]
+      summary: Crear encuesta
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                questions: { type: array, items: { type: object } }
+                is_active: { type: boolean }
+      responses:
+        '201':
+          description: Encuesta creada
+
+  # ─── SETTINGS ─────────────────────────────────────────────────────────────────
+  /api/settings/app-version:
+    get:
+      tags: [Settings]
+      summary: Versión de la aplicación
+      responses:
+        '200':
+          description: Versión actual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: string }
+                  name: { type: string }
+
+  /api/settings/roles:
+    get:
+      tags: [Settings]
+      summary: Listar roles disponibles
+      responses:
+        '200':
+          description: Lista de roles
+
+  /api/settings/stats:
+    get:
+      tags: [Settings]
+      summary: Estadísticas globales
+      responses:
+        '200':
+          description: Estadísticas

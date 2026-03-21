@@ -15,7 +15,7 @@ const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
 
-function registerRoutes(app, io, rootDir) {
+function registerRoutes(app, rootDir) {
     const path = require('path');
     rootDir = rootDir || __dirname + '/../..';
     
@@ -54,7 +54,6 @@ function registerRoutes(app, io, rootDir) {
     
     // Guests
     app.use('/api/guests', guestsRoutes);
-    if (io) guestsRoutes.setIO(io);
     
     // Email (SMTP, IMAP, templates, queue)
     app.use('/api', emailRoutes);

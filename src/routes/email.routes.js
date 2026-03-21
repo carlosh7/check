@@ -127,24 +127,37 @@ router.delete('/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Logs de email
+// Logs de email (con paginación)
 router.get('/email-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const { type, event_id } = req.query;
-    let query = "SELECT * FROM email_logs WHERE 1=1";
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+    const offset = (page - 1) * limit;
+
+    let whereClause = '1=1';
     let params = [];
-    
+
     if (type) {
-        query += " AND type = ?";
+        whereClause += " AND type = ?";
         params.push(type);
     }
     if (event_id) {
-        query += " AND event_id = ?";
-        params.push(event_id);
+        whereClause += " AND event_id = ?";
+        params.push(castId('events', event_id));
     }
-    
-    query += " ORDER BY created_at DESC LIMIT 100";
-    const logs = db.prepare(query).all(...params);
-    res.json(logs);
+
+    const total = db.prepare(`SELECT COUNT(*) as count FROM email_logs WHERE ${whereClause}`).get(...params).count;
+    const logs = db.prepare(`SELECT * FROM email_logs WHERE ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, limit, offset);
+
+    res.json({
+        data: logs,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        }
+    });
 });
 
 // Broadcast email

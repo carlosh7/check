@@ -8,8 +8,8 @@
 | Métrica | Valor |
 |---------|-------|
 | Versión | 12.2.2 |
-| Líneas server.js | **593** (desde 1780) |
-| Rutas modulares | **97%** (70/72) |
+| Líneas server.js | **555** (desde 1780) |
+| Rutas modulares | **100%** (72/72) |
 | Tests | 26/26 ✅ |
 | Docker | Puerto 8080 ✅ |
 | Base de datos | Funcional ✅ |
@@ -26,10 +26,11 @@
 - [x] Hash contraseñas con bcrypt
 - [x] Índices de base de datos (15 índices)
 - [x] Sistema de migrations
-- [x] **Modularización de rutas 97%** (70/72 rutas)
-- [x] **server.js: 1780 → 593 líneas** (-1187)
-- [x] **Auth routes 100% modulares** (login, signup, password reset)
-- [x] **Public routes 100% modulares** (unsubscribe)
+- [x] **Modularización de rutas 100%** (72/72 rutas)
+- [x] **server.js: 1780 → 555 líneas** (-1225)
+- [x] **SPA routes migradas** (root, registro)
+- [x] **Auth routes 100% modulares**
+- [x] **Public routes 100% modulares**
 
 ### Estructura Modular
 ```

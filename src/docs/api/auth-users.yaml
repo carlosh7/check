@@ -1,0 +1,258 @@
+openapi: 3.0.0
+info:
+  title: Check Pro API
+  version: 12.2.2
+paths:
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: admin@check.com }
+                password: { type: string, example: admin123 }
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  user: { type: object, properties: { id: { type: integer }, username: { type: string }, role: { type: string }, display_name: { type: string } } }
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/signup:
+    post:
+      tags: [Auth]
+      summary: Registrar nuevo usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, display_name]
+              properties:
+                username: { type: string, example: user@example.com }
+                password: { type: string, example: mypassword }
+                display_name: { type: string, example: Juan Pérez }
+                role: { type: string, enum: [ADMIN, PRODUCTOR, LOGISTICO], default: PRODUCTOR }
+      responses:
+        '201':
+          description: Usuario registrado
+        '400':
+          description: Datos inválidos
+
+  /api/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Solicitar recuperación de contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, example: user@example.com }
+      responses:
+        '200':
+          description: Código enviado
+
+  /api/reset-password:
+    post:
+      tags: [Auth]
+      summary: Restablecer contraseña con código
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, newPassword]
+              properties:
+                code: { type: string }
+                newPassword: { type: string }
+      responses:
+        '200':
+          description: Contraseña actualizada
+
+  # ─── USERS ─────────────────────────────────────────────────────────────────
+  /api/users:
+    get:
+      tags: [Users]
+      summary: Listar usuarios
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Buscar por nombre o email
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    username: { type: string }
+                    display_name: { type: string }
+                    role: { type: string }
+                    status: { type: string }
+                    group_id: { type: integer }
+    post:
+      tags: [Users]
+      summary: Crear usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, display_name, role]
+              properties:
+                username: { type: string }
+                password: { type: string }
+                display_name: { type: string }
+                role: { type: string }
+                group_id: { type: integer }
+      responses:
+        '201':
+          description: Usuario creado
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Obtener usuario por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del usuario
+        '404':
+          description: Usuario no encontrado
+
+    put:
+      tags: [Users]
+      summary: Actualizar usuario
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name: { type: string }
+                role: { type: string }
+                group_id: { type: integer }
+                status: { type: string }
+      responses:
+        '200':
+          description: Usuario actualizado
+
+    delete:
+      tags: [Users]
+      summary: Eliminar usuario
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Usuario eliminado
+
+  /api/users/{id}/password:
+    put:
+      tags: [Users]
+      summary: Cambiar contraseña
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string }
+      responses:
+        '200':
+          description: Contraseña cambiada
+
+  /api/users/me:
+    get:
+      tags: [Users]
+      summary: Obtener perfil del usuario actual
+      responses:
+        '200':
+          description: Perfil del usuario
+
+  /api/users/me/password:
+    put:
+      tags: [Users]
+      summary: Cambiar propia contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string }
+      responses:
+        '200':
+          description: Contraseña cambiada
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Success:
+      type: object
+      properties:
+        success: { type: boolean }

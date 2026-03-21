@@ -1,0 +1,404 @@
+openapi: 3.0.0
+info:
+  title: Check Pro API - Events, Guests, Email
+  version: 12.2.2
+paths:
+  # ─── EVENTS ─────────────────────────────────────────────────────────────────
+  /api/events:
+    get:
+      tags: [Events]
+      summary: Listar eventos
+      responses:
+        '200':
+          description: Lista de eventos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    date: { type: string, format: date-time }
+                    location: { type: string }
+                    status: { type: string }
+    post:
+      tags: [Events]
+      summary: Crear evento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                date: { type: string, format: date-time }
+                location: { type: string }
+                description: { type: string }
+      responses:
+        '201':
+          description: Evento creado
+
+  /api/events/{id}:
+    get:
+      tags: [Events]
+      summary: Obtener evento
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Datos del evento
+        '404':
+          description: No encontrado
+
+    put:
+      tags: [Events]
+      summary: Actualizar evento
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: [integer, string]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                date: { type: string }
+                location: { type: string }
+                description: { type: string }
+                status: { type: string }
+      responses:
+        '200':
+          description: Evento actualizado
+
+    delete:
+      tags: [Events]
+      summary: Eliminar evento
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Evento eliminado
+
+  # ─── GUESTS ─────────────────────────────────────────────────────────────────
+  /api/guests/{eventId}:
+    get:
+      tags: [Guests]
+      summary: Listar invitados con paginación
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+          description: Registros por página (max 500)
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Buscar por nombre, email u organización
+      responses:
+        '200':
+          description: Lista paginada de invitados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  pagination:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      limit: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+
+  /api/guests/stats/{eventId}:
+    get:
+      tags: [Guests]
+      summary: Estadísticas de invitados
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Estadísticas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  checkedIn: { type: integer }
+                  percentage: { type: integer }
+                  newRegistrations: { type: integer }
+
+  /api/guests/checkin/{guestId}:
+    post:
+      tags: [Guests]
+      summary: Check-in / Check-out de invitado
+      parameters:
+        - in: path
+          name: guestId
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Check-in exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  action: { type: string, enum: [checkin, uncheckin] }
+
+  /api/guests/export-excel/{eventId}:
+    get:
+      tags: [Guests]
+      summary: Exportar invitados a Excel
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Archivo Excel
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /api/guests/import-preview:
+    post:
+      tags: [Guests]
+      summary: Vista previa de importación
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: Vista previa
+
+  /api/guests/import-confirm:
+    post:
+      tags: [Guests]
+      summary: Confirmar importación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id: { type: [integer, string] }
+                mapping: { type: object }
+      responses:
+        '200':
+          description: Importación completada
+
+  /api/guests/clear/{eventId}:
+    post:
+      tags: [Guests]
+      summary: Limpiar todos los invitados
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: [integer, string]
+      responses:
+        '200':
+          description: Invitados eliminados
+
+  # ─── EMAIL ──────────────────────────────────────────────────────────────────
+  /api/smtp-config:
+    get:
+      tags: [Email]
+      summary: Obtener configuración SMTP
+      responses:
+        '200':
+          description: Configuración SMTP
+    put:
+      tags: [Email]
+      summary: Guardar configuración SMTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                smtp_host: { type: string }
+                smtp_port: { type: integer }
+                smtp_user: { type: string }
+                smtp_pass: { type: string }
+                smtp_secure: { type: boolean }
+                from_name: { type: string }
+                from_email: { type: string }
+      responses:
+        '200':
+          description: Configuración guardada
+
+  /api/imap-config:
+    get:
+      tags: [Email]
+      summary: Obtener configuración IMAP
+      responses:
+        '200':
+          description: Configuración IMAP
+    put:
+      tags: [Email]
+      summary: Guardar configuración IMAP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imap_host: { type: string }
+                imap_port: { type: integer }
+                imap_user: { type: string }
+                imap_pass: { type: string }
+                imap_tls: { type: boolean }
+      responses:
+        '200':
+          description: Configuración guardada
+
+  /api/email-logs:
+    get:
+      tags: [Email]
+      summary: Logs de email con paginación
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: Filtrar por tipo (SENT, INBOX, ERROR)
+        - in: query
+          name: event_id
+          schema:
+            type: [integer, string]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Lista paginada de logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  pagination:
+                    type: object
+
+  /api/emails/broadcast:
+    post:
+      tags: [Email]
+      summary: Enviar broadcast a todos los invitados
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event_id, subject, body]
+              properties:
+                event_id: { type: [integer, string] }
+                subject: { type: string }
+                body: { type: string }
+      responses:
+        '200':
+          description: Emails encolados
+
+  /api/emails/queue-stats:
+    get:
+      tags: [Email]
+      summary: Estadísticas de la cola de emails
+      responses:
+        '200':
+          description: Stats de cola
+
+  /api/emails/queue-control:
+    post:
+      tags: [Email]
+      summary: Controlar cola de emails
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action: { type: string, enum: [pause, resume, stop, clear] }
+                event_id: { type: [integer, string] }
+      responses:
+        '200':
+          description: Acción ejecutada
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Success:
+      type: object
+      properties:
+        success: { type: boolean }

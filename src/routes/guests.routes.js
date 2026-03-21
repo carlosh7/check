@@ -8,20 +8,41 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { getIO: socketGetIO } = require('../socket');
 
 const router = express.Router();
 
 let tempImport = {};
-let io;
 
-// Set io instance (llamar desde server.js)
-router.setIO = (ioInstance) => { io = ioInstance; };
-
-// Obtener invitados de evento
+// Obtener invitados de evento (con paginación)
 router.get('/:eventId', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.eventId);
-    const rows = db.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
-    res.json(rows);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 50));
+    const offset = (page - 1) * limit;
+    const search = (req.query.search || '').trim();
+
+    let whereClause = 'event_id = ?';
+    let params = [eId];
+
+    if (search) {
+        whereClause += " AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)";
+        const searchTerm = `%${search}%`;
+        params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    const total = db.prepare(`SELECT COUNT(*) as count FROM guests WHERE ${whereClause}`).get(...params).count;
+    const rows = db.prepare(`SELECT * FROM guests WHERE ${whereClause} ORDER BY name ASC LIMIT ? OFFSET ?`).all(...params, limit, offset);
+
+    res.json({
+        data: rows,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        }
+    });
 });
 
 // Importar preview
@@ -75,7 +96,7 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
                     if (mapping.dietary_notes !== undefined) g.dietary_notes = row.getCell(mapping.dietary_notes + 1).text;
                     
                     if (g.email || g.phone || g.name) guests.push(g);
-                    if (i % 10 === 0 && io) io.to(eId).emit('import_progress', { current: i, total: sheet.rowCount - 1 });
+                    if (i % 10 === 0 && socketGetIO()) socketGetIO().to(eId).emit('import_progress', { current: i, total: sheet.rowCount - 1 });
                 }
             });
         }
@@ -106,7 +127,7 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
         if (fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
         delete tempImport[req.userId];
         
-        if (io) io.to(eId).emit('update_stats', eId);
+        if (socketGetIO()) socketGetIO().to(eId).emit('update_stats', eId);
         res.json({ success: true, count: newGuests.length, skipped: duplicates });
     } catch (e) {
         if (session && session.filePath && fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
