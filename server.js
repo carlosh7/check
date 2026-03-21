@@ -585,26 +585,9 @@ app.use((req, res, next) => {
     } else { next(); }
 });
 
-// --- RUTAS ÚNICAS QUE NO ESTÁN EN MÓDULOS ---
-
-// Endpoint Público de Desuscripción
-app.get('/unsubscribe/:token', (req, res) => {
-    const token = req.params.token;
-    const guest = db.prepare("SELECT id, name FROM guests WHERE unsubscribe_token = ?").get(token);
-    
-    if (!guest) {
-        return res.send('<h1>Enlace no válido</h1><p>No pudimos encontrar tu suscripción.</p>');
-    }
-
-    db.prepare("UPDATE guests SET unsubscribed = 1 WHERE id = ?").run(guest.id);
-    
-    res.send(`
-        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <h1>Desuscripción Exitosa</h1>
-            <p>Hola ${guest.name}, hemos procesado tu solicitud. No recibirás más correos automáticos de este sistema.</p>
-            <p><small>Si fue un error, contacta con soporte.</small></p>
-        </div>
-    `);
-});
+// ═══ RUTAS INLINE NECESARIAS (requieren acceso directo a variables de server.js) ═══
+// - /                   → SPA root (usa path.join(__dirname, 'index.html'))
+// - /:eventName/registro → Registro público (usa path.basename para logos)
+// Estas rutas NO pueden migrarse a módulos porque necesitan variables del scope de server.js
 
 server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));

@@ -11,10 +11,14 @@ const emailRoutes = require('./email.routes');
 const groupsRoutes = require('./groups.routes');
 const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
+const publicRoutes = require('./public.routes');
 
 function registerRoutes(app, io) {
     // Auth (login, signup, password reset)
     app.use('/api', authRoutes);
+    
+    // Public routes (unsubscribe)
+    app.use('/', publicRoutes);
     
     // Users
     app.use('/api/users', usersRoutes);
