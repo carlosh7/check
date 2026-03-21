@@ -615,6 +615,12 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+// --- REGISTRAR RUTAS MODULARES PRIMERO ---
+registerRoutes(app, io);
+
+// ═══ RUTAS DUPLICADAS COMENTADAS (manejadas por módulos) ═══
+
+/*
 // ─────────────────────────────────────────────────────────────
 // GOVERNANCE V10 — USUARIOS
 // ─────────────────────────────────────────────────────────────
@@ -1444,24 +1450,18 @@ app.get('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
 
 // Rutas de email por evento movidas a email.routes.js (modular)
 
-// --- SPA FALLBACK (V10.5) ---
+*/ // ═══ FIN DE RUTAS DUPLICADAS ═══
+
+// --- SPA FALLBACK ---
 app.use((req, res, next) => {
-    if (req.path === '/registro.html') {
-        return res.sendFile(path.join(__dirname, 'registro.html'));
-    }
-    if (req.path === '/survey.html') {
-        return res.sendFile(path.join(__dirname, 'survey.html'));
-    }
+    if (req.path === '/registro.html') return res.sendFile(path.join(__dirname, 'registro.html'));
+    if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'survey.html'));
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
         res.sendFile(path.join(__dirname, 'index.html'));
-    } else {
-        next();
-    }
+    } else { next(); }
 });
 
-// --- REGISTRAR RUTAS MODULARES (Fase 10.6.3) ---
-// Activando TODAS las rutas modulares
-registerRoutes(app, io);
+// --- RUTAS ÚNICAS QUE NO ESTÁN EN MÓDULOS ---
 
 // Endpoint Público de Desuscripción
 app.get('/unsubscribe/:token', (req, res) => {
