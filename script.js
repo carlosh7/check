@@ -226,24 +226,91 @@ window.App = {
         }
     },
     
-    // ═══ TEMA OSCURO/CLARO ═══
-    toggleTheme: function() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const icon = document.getElementById('theme-icon');
-        
-        if (isDark) {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-            LS.set('theme', 'light');
-            if (icon) icon.textContent = 'light_mode';
-        } else {
-            document.documentElement.classList.remove('light');
-            document.documentElement.classList.add('dark');
-            LS.set('theme', 'dark');
-            if (icon) icon.textContent = 'dark_mode';
-        }
+    // ═══ TEMA OSCURO/CLARO MEJORADO ═══
+    
+    // Obtener tema del sistema
+    getSystemTheme: function() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     },
     
+    // Obtener tema guardado o del sistema
+    getCurrentTheme: function() {
+        const saved = LS.get('theme');
+        if (saved === 'dark' || saved === 'light') {
+            return saved;
+        }
+        return this.getSystemTheme();
+    },
+    
+    // Aplicar transición suave al cambiar tema
+    applyThemeTransition: function() {
+        // Agregar clase de transición
+        document.documentElement.classList.add('theme-transition');
+        // Remover después de la transición
+        setTimeout(() => {
+            document.documentElement.classList.remove('theme-transition');
+        }, 300);
+    },
+    
+    // Cambiar entre temas oscuro/claro
+    toggleTheme: function() {
+        const currentTheme = this.getCurrentTheme();
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        this.applyThemeTransition();
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(newTheme);
+        LS.set('theme', newTheme);
+        
+        // Actualizar todos los íconos de tema
+        document.querySelectorAll('.theme-icon').forEach(icon => {
+            icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
+        });
+        
+        // Emitir evento personalizado para que otros componentes reaccionen
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+        
+        console.log(`Tema cambiado a: ${newTheme}`);
+    },
+    
+    // Inicializar tema al cargar la aplicación
+    initTheme: function() {
+        const theme = this.getCurrentTheme();
+        const icon = document.getElementById('theme-icon');
+        
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(theme);
+        
+        if (icon) {
+            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
+        }
+        
+        // Actualizar todos los íconos de tema
+        document.querySelectorAll('.theme-icon').forEach(icon => {
+            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
+        });
+        
+        // Escuchar cambios en la preferencia del sistema (solo una vez)
+        if (!window._themeListenerAdded) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                // Solo cambiar si no hay tema guardado explícitamente
+                if (!LS.get('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    document.documentElement.classList.remove('dark', 'light');
+                    document.documentElement.classList.add(newTheme);
+                    document.querySelectorAll('.theme-icon').forEach(icon => {
+                        icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
+                    });
+                    console.log(`Tema cambiado por preferencia del sistema: ${newTheme}`);
+                }
+            });
+            window._themeListenerAdded = true;
+        }
+        
+        console.log(`Tema inicializado: ${theme}`);
+    },
+    
+    // Verificar versión de la aplicación
     checkVersion: async function() {
         try {
             const res = await this.fetchAPI('/app-version');
@@ -254,21 +321,6 @@ window.App = {
             location.reload();
         } catch(e) {
             console.error('Error al verificar versión:', e);
-        }
-    },
-    
-    initTheme: function() {
-        const saved = LS.get('theme') || 'dark';
-        const icon = document.getElementById('theme-icon');
-        
-        if (saved === 'light') {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-            if (icon) icon.textContent = 'light_mode';
-        } else {
-            document.documentElement.classList.remove('light');
-            document.documentElement.classList.add('dark');
-            if (icon) icon.textContent = 'dark_mode';
         }
     },
     
@@ -2414,6 +2466,9 @@ window.App = {
             const vd = document.getElementById('version-display');
             if (vd) vd.textContent = 'V' + res.version;
         }).catch(() => {});;
+
+        // Actualizar íconos del tema después de cargar app-shell
+        this.initTheme();
         
         // Navigation
         cl('sys-nav-users', () => window.switchSystemTab('users'));
@@ -3865,6 +3920,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 0.5. QUITAR LOADING SCREEN
     const ls = document.getElementById('loading-screen');
     if (ls) ls.remove();
+
+    // 0.6. INICIALIZAR TEMA OSCURO/CLARO
+    App.initTheme();
 
     // 1. RESTORE SESSION FIRST
     let savedUser = null;

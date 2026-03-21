@@ -12,6 +12,9 @@
     --radius-lg: 16px;
     --font-display: 'Manrope', sans-serif;
     --font-body: 'Inter', sans-serif;
+    --bg: var(--bg-slate-950);
+    --outline: var(--border-white);
+    --radius-md: 12px;
 }
 
 * {
@@ -25,6 +28,13 @@
 html {
     scroll-behavior: smooth;
     height: 100%;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
 }
 
 body {
@@ -247,6 +257,8 @@ html.light {
     --text-muted: #64748b;
     --border-color: #e2e8f0;
     --primary: #7c3aed;
+    --bg: var(--bg-main);
+    --outline: var(--border-color);
 }
 
 /* ═══ MODO CLARO - Aplicar estilos ═══ */

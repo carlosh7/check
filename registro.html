@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="dark bg-slate-950">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,6 +33,20 @@
         #policy-text ul, #policy-text ol { padding-left: 18px; margin-bottom: 8px; list-style: inherit; }
         #policy-text b, #policy-text strong { color: #a78bfa; font-weight: 700; }
     </style>
+    <script>
+        // Inicializar tema basado en preferencia del sistema o guardado
+        (function() {
+            const saved = localStorage.getItem('theme');
+            let theme = 'dark';
+            if (saved === 'dark' || saved === 'light') {
+                theme = saved;
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                theme = 'light';
+            }
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(theme);
+        })();
+    </script>
 </head>
 <body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern">
     <div id="loading" class="flex items-center justify-center min-h-screen">

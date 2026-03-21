@@ -79,11 +79,11 @@ Registro/
 - [x] Lazy loading (imágenes, scripts Quill, scripts async)
 - [x] Índices adicionales (25 índices implementados)
 
-### 🟠 UX/Features (En progreso - 3/4 completado)
+### 🟠 UX/Features (Completado ✅)
 - [x] Webhooks para integraciones (Slack, Discord, etc.) ✅
 - [x] Notificaciones push
 - [x] Exportar PDF reportes
-- [ ] Tema oscuro
+- [x] Tema oscuro (mejoras: detección sistema, transiciones suaves, Quill editor adaptativo, soporte en registro público)
 
 ---
 
