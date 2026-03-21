@@ -42,3 +42,6 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Configuración local de opencode
+.opencode-config.md
