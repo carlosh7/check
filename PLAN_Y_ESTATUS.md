@@ -13,7 +13,8 @@
 | Tests | 26/26 ✅ |
 | Docker | Puerto 8080 ✅ |
 | Base de datos | Funcional ✅ |
-| Swagger API | ✅ /api-docs | |
+| Swagger API | ✅ /api-docs |
+| Seguridad | ✅ JWT, Zod, CAPTCHA, Audit Logs |
 
 ---
 
@@ -88,11 +89,14 @@ src/routes/
 
 ### 🟢 Opcionales
 
-#### 6. Seguridad Avanzada
-- [ ] Implementar JWT tokens
-- [ ] Validación inputs con Zod/Joi
-- [ ] CAPTCHA en registro público
-- [ ] Logs de auditoría estructurados
+#### 6. Seguridad Avanzada - 100% COMPLETADO ✅
+- [x] JWT tokens (`src/security/jwt.js` - `generateToken`, `verifyToken`)
+- [x] Validación inputs con Zod (`src/security/validation.js` - 15 esquemas)
+- [x] CAPTCHA en registro público (`src/security/captcha.js` - math CAPTCHA)
+- [x] Logs de auditoría estructurados (`src/security/audit.js` + tabla `audit_logs`)
+- [x] Auth middleware soporta JWT Bearer + x-user-id legacy
+- [x] Endpoint `/api/captcha` para generar/verificar CAPTCHA
+- [x] Endpoint `/api/audit-logs` para consultar logs
 
 #### 7. Performance
 - [ ] Redis para cache
@@ -148,7 +152,8 @@ Registro/
 │   ├── middleware/        (auth.js)
 │   ├── utils/            (helpers.js)
 │   ├── socket/           (index.js - Socket.io module)
-│   └── docs/             (swagger.js + api/*.yaml)
+│   ├── docs/             (swagger.js + api/*.yaml)
+│   └── security/         (jwt.js, validation.js, audit.js, captcha.js)
 ├── tests/                (Jest - 26 tests)
 ├── scripts/              (migrations)
 ├── docs/                 (auditoría, changelog)
@@ -176,6 +181,10 @@ Registro/
 
 ## 📝 GIT COMMITS RECIENTES
 
+```
+b10c6e4 feat: security layer - JWT auth, Zod validation, CAPTCHA, structured audit logs
+8d13d49 refactor: clean unused code - removed 99 lines from server.js (558->459)
+8409182 feat: corto plazo - swagger api docs, pagination, socket.io module
 ```
 8d13d49 refactor: clean unused code - removed 99 lines from server.js (558->459)
 8409182 feat: corto plazo - swagger api docs, pagination, socket.io module
@@ -207,4 +216,4 @@ Registro/
 
 ---
 
-**Última sesión**: 21/03/2026 - Limpieza completa: server.js 1780→459 líneas. 26/26 tests passing
+**Última sesión**: 21/03/2026 - Seguridad COMPLETA: JWT, Zod, CAPTCHA, Audit Logs. 26/26 tests passing
