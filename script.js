@@ -32,7 +32,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '10.5.4',
+        version: '11.6.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -2213,7 +2213,7 @@ window.App = {
     loadAppShell() {
         return new Promise((resolve, reject) => {
             console.log('[APP-SHELL] Cargando app-shell.html...');
-            fetch('/app-shell.html?v=11.1.0')
+            fetch(`/app-shell.html?v=${this.state.version}`)
                 .then(res => res.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('beforeend', html);
@@ -2367,6 +2367,7 @@ window.App = {
             document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
             document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
             
+            App.updateQRPreview(); // Disparar preview al cargar datos del evento
             document.getElementById('modal-event')?.classList.remove('hidden');
         };
         
@@ -3076,7 +3077,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 card.style.backgroundPosition = 'center';
             } else {
                 card.style.backgroundImage = 'none';
-                card.style.backgroundColor = '#1e293b';
+                card.style.backgroundColor = '#0f172a';
             }
         }
 
@@ -3096,11 +3097,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 width: 600, 
                 margin: 1,
                 color: { dark, light },
-                errorCorrectionLevel: logoUrl ? 'H' : 'M' // Usar alta corrección si hay logo
+                errorCorrectionLevel: logoUrl ? 'H' : 'M'
             });
 
             if (logoUrl) {
-                // Procesar logo en el centro con Canvas
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const qrImg = new Image();
@@ -3108,19 +3108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     canvas.width = qrImg.width;
                     canvas.height = qrImg.height;
                     ctx.drawImage(qrImg, 0, 0);
-                    
                     const logoImg = new Image();
                     logoImg.crossOrigin = "Anonymous";
                     logoImg.onload = () => {
-                        const s = canvas.width * 0.2; // Tamaño del logo: 20% del QR
+                        const s = canvas.width * 0.2;
                         const x = (canvas.width - s) / 2;
                         const y = (canvas.height - s) / 2;
-                        
-                        // Fondo del logo (blanco/claro para contraste)
                         ctx.fillStyle = light;
-                        ctx.roundRect ? ctx.fillRoundRect(x-5, y-5, s+10, s+10, 10) : ctx.fillRect(x-5, y-5, s+10, s+10);
-                        ctx.fill();
-                        
+                        ctx.fillRect(x-5, y-5, s+10, s+10);
                         ctx.drawImage(logoImg, x, y, s, s);
                         ticketQrEl.src = canvas.toDataURL();
                     };
@@ -3133,19 +3128,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         modal.classList.remove('hidden');
+        App.state.currentTicketGuest = guest;
     };
 
-    App.downloadTicket = () => {
-        alert("Descargando boleto digital premium...");
-        // Futura integración con html2canvas para descargar como imagen
+    App.downloadTicket = async () => {
+        const card = document.querySelector('#modal-ticket .ticket-card');
+        if (!card || typeof html2canvas === 'undefined') return alert("Error: Motor de captura no disponible.");
+        
+        try {
+            const canvas = await html2canvas(card, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: null,
+                logging: false
+            });
+            const link = document.createElement('a');
+            const guestName = App.state.currentTicketGuest?.name?.replace(/\s+/g, '_') || 'ticket';
+            link.download = `Boleto_Check_${guestName}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (e) {
+            console.error(e);
+            alert("Error al generar la imagen del boleto.");
+        }
     };
 
-    App.closeTicket = () => {
-        document.getElementById('modal-ticket')?.classList.add('hidden');
+    App.shareTicketWhatsApp = () => {
+        const guest = App.state.currentTicketGuest;
+        if (!guest) return;
+        const url = `${window.location.origin}/ticket.html?g=${guest.id}&e=${App.state.event.id}`;
+        const text = encodeURIComponent(`¡Hola ${guest.name}! Aquí tienes tu boleto para ${App.state.event.name}: ${url}`);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
     };
 
     cl('btn-download-ticket', () => App.downloadTicket());
-    cl('btn-close-ticket', () => App.closeTicket());
+    cl('btn-share-whatsapp', () => App.shareTicketWhatsApp());
+    cl('btn-close-ticket', () => document.getElementById('modal-ticket').classList.add('hidden'));
 
     // Mailing - Abrir config de email del evento
     App.openMailing = () => {
@@ -3410,7 +3428,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 1000);
     
-    // ═══ GRUPOS V10.5 ═══
+    // ═══ DISEÑO PREMIUM V11.6.1 Live Preview ═══
+    App.updateQRPreview = async () => {
+        const img = document.getElementById('ev-qr-preview-img');
+        const logo = document.getElementById('ev-qr-preview-logo');
+        if (!img) return;
+        
+        try {
+            const dark = document.getElementById('ev-qr-dark').value;
+            const light = document.getElementById('ev-qr-light').value;
+            const logoUrl = document.getElementById('ev-qr-logo').value;
+            
+            // Sync Hex Inputs
+            document.getElementById('ev-qr-dark-hex').value = dark.toUpperCase();
+            document.getElementById('ev-qr-light-hex').value = light.toUpperCase();
+            document.getElementById('ev-ticket-accent-hex').value = document.getElementById('ev-ticket-accent').value.toUpperCase();
+
+            const qrDataUrl = await qrcode.toDataURL('CheckProPreview', {
+                width: 400,
+                margin: 1,
+                color: { dark, light },
+                errorCorrectionLevel: logoUrl ? 'H' : 'M'
+            });
+            img.src = qrDataUrl;
+            
+            if (logoUrl) {
+                logo.src = logoUrl;
+                logo.classList.remove('hidden');
+            } else {
+                logo.classList.add('hidden');
+            }
+        } catch (e) { console.warn('QR Preview Error:', e); }
+    };
+
+    ['ev-qr-dark', 'ev-qr-light', 'ev-qr-logo', 'ev-ticket-accent', 'ev-ticket-bg'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => App.updateQRPreview());
+    });
+
+    cl('btn-create-event-open', () => {
+        document.getElementById('ev-id-hidden').value = '';
+        document.getElementById('new-event-form').reset();
+        App.updateQRPreview();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    });
+
     cl('btn-create-group', async () => {
         const name = prompt('Nombre del grupo:');
         if (!name) return;

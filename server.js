@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V11.6.0 (QR Customization + Phase 8)
+// server.js — Check Elite Pro V11.6.1 (Cleaning & Architecture Update)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -944,6 +944,11 @@ app.get('/api/settings', (req, res) => {
     const dict = {};
     rows.forEach(r => dict[r.setting_key] = r.setting_value);
     res.json(dict);
+});
+
+// Endpoint para obtener la versión actual de la aplicación (V11.6.1)
+app.get('/api/app-version', (req, res) => {
+    res.json({ version: APP_VERSION });
 });
 
 app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {

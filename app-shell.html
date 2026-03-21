@@ -1077,46 +1077,73 @@
                     </div>
                 </div>
                 
-                <!-- Configuración de Ticket y QR (Fase 8) -->
-                <div class="border-t border-white/10 pt-5 mt-5">
-                    <h4 class="text-lg font-black mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-amber-400">qr_code_2</span>
-                        Diseño de Ticket y QR Premium
-                    </h4>
+                <!-- Diseño Premium de Boleto y QR (Fase 8.1) -->
+                <div class="border-t border-white/10 pt-6 mt-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-primary">palette</span>
+                        <h4 class="text-sm font-black uppercase tracking-widest text-primary">Personalización de Marca y Acceso</h4>
+                    </div>
                     
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color QR (Puntos)</label>
-                                <div class="flex gap-2">
-                                    <input type="color" id="ev-qr-color-dark" value="#000000" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
-                                    <input type="text" id="ev-qr-color-dark-hex" oninput="document.getElementById('ev-qr-color-dark').value = this.value" placeholder="#000000" class="input-field bg-slate-900/50 flex-1 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                        <!-- Controles -->
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Color QR Dark</label>
+                                    <div class="flex gap-2">
+                                        <input type="color" id="ev-qr-dark" class="w-10 h-10 rounded-lg bg-transparent border-0 cursor-pointer p-0" value="#000000">
+                                        <input type="text" id="ev-qr-dark-hex" oninput="document.getElementById('ev-qr-dark').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#000000">
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Color QR Light</label>
+                                    <div class="flex gap-2">
+                                        <input type="color" id="ev-qr-light" class="w-10 h-10 rounded-lg bg-transparent border-0 cursor-pointer p-0" value="#ffffff">
+                                        <input type="text" id="ev-qr-light-hex" oninput="document.getElementById('ev-qr-light').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#FFFFFF">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color Fondo QR</label>
-                                <div class="flex gap-2">
-                                    <input type="color" id="ev-qr-color-light" value="#ffffff" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
-                                    <input type="text" id="ev-qr-color-light-hex" oninput="document.getElementById('ev-qr-color-light').value = this.value" placeholder="#ffffff" class="input-field bg-slate-900/50 flex-1 text-xs">
+                            
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Logo Central QR (URL)</label>
+                                <input type="url" id="ev-qr-logo" placeholder="https://..." class="input-field bg-slate-900/50">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Color Acento Ticket</label>
+                                    <input type="color" id="ev-ticket-accent" class="w-full h-10 rounded-xl bg-transparent border-0 cursor-pointer p-0" value="#7c3aed">
+                                </div>
+                                <div class="space-y-2 pt-6">
+                                    <input type="text" id="ev-ticket-accent-hex" oninput="document.getElementById('ev-ticket-accent').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#7C3AED">
                                 </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color Acento Ticket</label>
-                                <div class="flex gap-2">
-                                    <input type="color" id="ev-ticket-accent" value="#7c3aed" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
-                                    <input type="text" id="ev-ticket-accent-hex" oninput="document.getElementById('ev-ticket-accent').value = this.value" placeholder="#7c3aed" class="input-field bg-slate-900/50 flex-1 text-xs">
-                                </div>
+
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Imagen de Fondo Ticket (URL)</label>
+                                <input type="url" id="ev-ticket-bg" placeholder="https://..." class="input-field bg-slate-900/50">
                             </div>
                         </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo Central QR (URL)</label>
-                                <input type="text" id="ev-qr-logo-url" placeholder="https://ejemplo.com/logo.png" class="input-field bg-slate-900/50">
+
+                        <!-- LIVE PREVIEW PANEL -->
+                        <div class="glass-card p-6 rounded-[32px] border border-white/10 bg-slate-950/50 flex flex-col items-center">
+                            <p class="text-[9px] font-black uppercase text-slate-500 mb-6 tracking-[0.2em] border-b border-white/5 pb-2 w-full text-center">Vista Previa Real-Time</p>
+                            <div class="relative group">
+                                <div id="ev-qr-preview-container" class="p-4 bg-white rounded-3xl shadow-2xl transition-transform group-hover:scale-105 duration-500">
+                                    <img id="ev-qr-preview-img" class="w-40 h-40">
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <img id="ev-qr-preview-logo" src="" class="w-10 h-10 rounded-xl hidden shadow-lg bg-white p-1 border border-white/10">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fondo de Ticket (URL)</label>
-                                <input type="text" id="ev-ticket-bg-url" placeholder="https://ejemplo.com/background.jpg" class="input-field bg-slate-900/50">
+                            <div class="mt-6 w-full space-y-3">
+                                <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                                    <span>Escaneabilidad</span>
+                                    <span id="preview-status" class="text-emerald-500">ÓPTIMA</span>
+                                </div>
+                                <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 w-[95%] shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1427,9 +1454,14 @@
             </div>
             
             <!-- Actions -->
-            <div class="mt-8 flex gap-3">
-                <button id="btn-download-ticket" class="btn-primary flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Descargar</button>
-                <button onclick="document.getElementById('modal-ticket').classList.add('hidden')" class="px-6 py-4 bg-white/5 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest">Cerrar</button>
+            <div class="mt-8 flex gap-3 no-print">
+                <button id="btn-download-ticket" class="btn-primary flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">download</span> Guardar Imagen
+                </button>
+                <button id="btn-share-whatsapp" class="w-14 h-14 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl flex items-center justify-center transition-all" title="Compartir por WhatsApp">
+                    <span class="material-symbols-outlined">share</span>
+                </button>
+                <button onclick="document.getElementById('modal-ticket').classList.add('hidden')" class="px-6 py-4 bg-white/5 text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-colors">Cerrar</button>
             </div>
         </div>
     </div>
