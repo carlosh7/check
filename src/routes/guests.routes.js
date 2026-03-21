@@ -9,6 +9,7 @@ const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
+const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 const router = express.Router();
 
@@ -117,13 +118,35 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
         });
 
         const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, position, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        const insertedGuests = [];
         const insertMany = db.transaction((list) => {
             for (const g of list) {
-                insertGuest.run(getValidId('guests'), eId, g.name || '', g.email || '', g.organization || '', g.phone || '', g.gender || 'O', g.dietary_notes || '', g.position || '', uuidv4());
+                const guestId = getValidId('guests');
+                const qrToken = uuidv4();
+                insertGuest.run(guestId, eId, g.name || '', g.email || '', g.organization || '', g.phone || '', g.gender || 'O', g.dietary_notes || '', g.position || '', qrToken);
+                insertedGuests.push({
+                    id: guestId,
+                    event_id: eId,
+                    name: g.name || '',
+                    email: g.email || '',
+                    organization: g.organization || '',
+                    phone: g.phone || '',
+                    gender: g.gender || 'O',
+                    dietary_notes: g.dietary_notes || '',
+                    position: g.position || '',
+                    qr_token: qrToken
+                });
             }
         });
 
         insertMany(newGuests);
+        
+        // Trigger webhooks for each new guest
+        for (const guest of insertedGuests) {
+            triggerWebhooks(WEBHOOK_EVENTS.GUEST_CREATED, guest, eId).catch(err => 
+                console.error(`Error triggering webhook for guest ${guest.id}:`, err.message)
+            );
+        }
         if (fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
         delete tempImport[req.userId];
         
@@ -183,14 +206,38 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
     const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
     
+    const io = socketGetIO();
+    
     if (guest.checked_in) {
         db.prepare("UPDATE guests SET checked_in = 0, checkin_time = NULL WHERE id = ?").run(gId);
         if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
+        
+        // Trigger webhook for uncheck-in
+        triggerWebhooks(WEBHOOK_EVENTS.GUEST_UNCHECKED_IN, {
+            guest_id: guest.id,
+            event_id: guest.event_id,
+            name: guest.name,
+            email: guest.email,
+            checked_in: false,
+            checkin_time: null
+        }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
+        
         return res.json({ success: true, action: 'uncheckin' });
     }
     
     db.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), gId);
     if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
+    
+    // Trigger webhook for check-in
+    triggerWebhooks(WEBHOOK_EVENTS.GUEST_CHECKED_IN, {
+        guest_id: guest.id,
+        event_id: guest.event_id,
+        name: guest.name,
+        email: guest.email,
+        checked_in: true,
+        checkin_time: new Date().toISOString()
+    }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
+    
     res.json({ success: true, action: 'checkin' });
 });
 

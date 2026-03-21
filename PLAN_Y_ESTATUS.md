@@ -73,9 +73,9 @@ Registro/
 ## 📋 PRÓXIMOS PASOS
 
 ### 🟣 Performance (Pendiente)
-- [ ] Redis para cache
-- [ ] Compresión gzip
-- [ ] Lazy loading
+- [x] Redis para cache (implementado con fallback a NodeCache)
+- [x] Compresión gzip (configurada en server.js)
+- [x] Lazy loading (imágenes, scripts Quill, scripts async)
 - [ ] Índices adicionales
 
 ### 🟠 UX/Features (Pendiente)

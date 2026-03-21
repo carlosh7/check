@@ -9,33 +9,44 @@ const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../ut
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
+const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 const router = express.Router();
 
-router.get('/', authMiddleware(), (req, res) => {
-    let rows;
-    if (req.userRole === 'ADMIN') {
-        rows = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
-    } else {
-        const groupIds = getProducerGroups(req.userId);
-        if (groupIds.length === 0) {
-            rows = [];
+router.get('/', authMiddleware(), async (req, res) => {
+    const cacheKey = req.userRole === 'ADMIN' 
+        ? CACHE_KEYS.EVENT_LIST 
+        : `events:list:user:${req.userId}`;
+    
+    const rows = await cacheOrFetch(cacheKey, () => {
+        if (req.userRole === 'ADMIN') {
+            return db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
         } else {
-            const placeholders = groupIds.map(() => '?').join(',');
-            rows = db.prepare(`SELECT * FROM events WHERE group_id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
+            const groupIds = getProducerGroups(req.userId);
+            if (groupIds.length === 0) {
+                return [];
+            } else {
+                const placeholders = groupIds.map(() => '?').join(',');
+                return db.prepare(`SELECT * FROM events WHERE group_id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
+            }
         }
-    }
+    }, 60); // TTL 60 seconds
+    
     res.json(rows);
 });
 
-router.get('/:id', authMiddleware(), (req, res) => {
+router.get('/:id', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const row = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+    const row = await cacheOrFetch(CACHE_KEYS.EVENT(eventId), () => {
+        return db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+    }, 300); // TTL 5 minutes
+    
     if (!row) return res.status(404).json({ error: 'Evento no encontrado' });
     res.json(row);
 });
 
-router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.createEvent, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
@@ -50,12 +61,18 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
       .run(userEventId, req.userId, id, new Date().toISOString());
 
+    // Invalidate cache
+    await del(CACHE_KEYS.EVENT_LIST);
+    if (req.userRole !== 'ADMIN') {
+        await del(`events:list:user:${req.userId}`);
+    }
+
     logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: id, name });
 
     res.json({ success: true, eventId: id });
 });
 
-router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.updateEvent, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
@@ -92,6 +109,13 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             reg_email_blacklist = COALESCE(?, reg_email_blacklist)
         WHERE id = ?
     `).run(d.name, d.date, d.location, logo_url, d.description, d.end_date, d.status, d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, d.reg_show_phone, d.reg_show_org, d.reg_show_position, d.reg_show_vegan, d.reg_show_dietary, d.reg_show_gender, d.reg_require_agreement, d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId);
+
+    // Invalidate cache
+    await del(CACHE_KEYS.EVENT_LIST);
+    await del(CACHE_KEYS.EVENT(eventId));
+    if (req.userRole !== 'ADMIN') {
+        await del(`events:list:user:${req.userId}`);
+    }
 
     logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId });
 
@@ -130,9 +154,38 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
         const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
         if (pre) {
             const guestId = getValidId('guests');
+            const qrToken = uuidv4();
             db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`)
-              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, uuidv4());
+              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, qrToken);
+            
+            const guestData = {
+                id: guestId,
+                event_id: pre.event_id,
+                name: pre.name,
+                email: pre.email,
+                phone: pre.phone,
+                organization: pre.organization,
+                position: pre.position,
+                gender: pre.gender,
+                dietary_notes: pre.dietary_notes,
+                qr_token: qrToken,
+                is_new_registration: 1
+            };
+            
+            // Trigger webhooks for guest creation
+            triggerWebhooks(WEBHOOK_EVENTS.GUEST_CREATED, guestData, pre.event_id).catch(err => 
+                console.error(`Error triggering webhook for guest ${guestId}:`, err.message)
+            );
+            
+            // Trigger webhook for pre-registration confirmation
+            triggerWebhooks(WEBHOOK_EVENTS.PRE_REGISTRATION_CONFIRMED, {
+                pre_registration_id: pre.id,
+                guest_id: guestId,
+                ...guestData
+            }, pre.event_id).catch(err => 
+                console.error(`Error triggering webhook for pre-registration ${pre.id}:`, err.message)
+            );
         }
     }
     

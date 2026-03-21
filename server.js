@@ -11,6 +11,29 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
 const { simpleParser } = require('mailparser');
+// --- GZIP COMPRESSION (Performance) ---
+const compression = require('compression');
+app.use(compression({
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        const accept = req.headers['accept-encoding'] || '';
+        if (accept.match(/\bdeflate\b/)) return 'deflate';
+        if (accept.match(/\bgzip\b/)) return 'gzip';
+        return false;
+    },
+    level: 6,
+    threshold: 1024
+}));
+
+// --- CACHE IN-MEMORY (Performance) ---
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
+global.cache = cache;
+
+// --- CACHE UTILITIES ---
+const { init: initCache } = require('./src/utils/cache');
+initCache(cache);
+
 // --- MÓDULOS (Fase 10 - Modularización) ---
 const { registerRoutes } = require('./src/routes');
 const { init: initSocket, getIO: socketGetIO } = require('./src/socket');

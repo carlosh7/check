@@ -15,6 +15,7 @@ const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
 const versionRoutes = require('./version.routes');
+const webhooksRoutes = require('./webhooks.routes');
 
 function registerRoutes(app, rootDir) {
     const path = require('path');
@@ -64,6 +65,9 @@ function registerRoutes(app, rootDir) {
     
     // Settings
     app.use('/api/settings', settingsRoutes);
+    
+    // Webhooks (integraciones externas)
+    app.use('/api/webhooks', webhooksRoutes);
     
     console.log('✓ Rutas registradas (modulares)');
 }

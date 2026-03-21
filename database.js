@@ -396,6 +396,21 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_queue (
     FOREIGN KEY (guest_id) REFERENCES guests(id)
 )`);
 
+// 17. Webhooks para integraciones externas (Slack, Discord, etc)
+db.exec(`CREATE TABLE IF NOT EXISTS webhooks (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    secret TEXT, -- HMAC signing secret
+    events TEXT NOT NULL, -- JSON array: ["guest.created", "guest.checked_in", "guest.updated", "event.created", "event.updated"]
+    headers TEXT, -- JSON object for custom headers
+    status TEXT DEFAULT 'ACTIVE', -- ACTIVE, INACTIVE
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+
 // Migraciones para invitados (Bajas/Unsubscribe)
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribed INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribe_token TEXT"); } catch (_) {}
@@ -628,6 +643,63 @@ function createEventEmailTemplates(eventId) {
     eventTemplates.forEach(t => {
         insert.run(t.id, eventId, t.template_type, t.name, t.subject, t.body, t.is_active, t.auto_send, new Date().toISOString());
     });
+}
+
+// ═══ ÍNDICES ADICIONALES (Performance V12.3) ═══
+const additionalIndices = [
+    // Guests - queries frecuentes
+    "CREATE INDEX IF NOT EXISTS idx_guests_event_name ON guests(event_id, name COLLATE NOCASE)",
+    "CREATE INDEX IF NOT EXISTS idx_guests_event_email ON guests(event_id, email COLLATE NOCASE)",
+    "CREATE INDEX IF NOT EXISTS idx_guests_checkin ON guests(event_id, checked_in)",
+    "CREATE INDEX IF NOT EXISTS idx_guests_event_newreg ON guests(event_id, is_new_registration)",
+    "CREATE INDEX IF NOT EXISTS idx_guests_event_unsub ON guests(event_id, unsubscribed)",
+    
+    // Email queue - procesamiento
+    "CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(status, scheduled_at)",
+    "CREATE INDEX IF NOT EXISTS idx_email_queue_event ON email_queue(event_id, status)",
+    
+    // Email logs - consultas paginadas
+    "CREATE INDEX IF NOT EXISTS idx_email_logs_event_type ON email_logs(event_id, type, created_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_email_logs_created ON email_logs(created_at DESC)",
+    
+    // Events - búsqueda por grupo y fecha
+    "CREATE INDEX IF NOT EXISTS idx_events_group ON events(group_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_events_group_created ON events(group_id, created_at DESC)",
+    
+    // Users - búsqueda por grupo y nombre
+    "CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_users_group_name ON users(group_id, display_name COLLATE NOCASE, username COLLATE NOCASE)",
+    
+    // Pre-registrations - por evento, estado y fecha
+    "CREATE INDEX IF NOT EXISTS idx_prereg_event_status ON pre_registrations(event_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_prereg_event_status_registered ON pre_registrations(event_id, status, registered_at DESC)",
+    
+    // Guest suggestions - por evento y fecha
+    "CREATE INDEX IF NOT EXISTS idx_guest_suggestions_event_submitted ON guest_suggestions(event_id, submitted_at DESC)",
+    
+    // Event agenda - por evento y horario
+    "CREATE INDEX IF NOT EXISTS idx_event_agenda_event_start ON event_agenda(event_id, start_time)",
+    
+    // Surveys - por evento
+    "CREATE INDEX IF NOT EXISTS idx_surveys_event ON surveys(event_id)",
+    
+    // Survey responses - por evento
+    "CREATE INDEX IF NOT EXISTS idx_survey_responses_event ON survey_responses(event_id)",
+    
+    // Password resets - por código y usuario
+    "CREATE INDEX IF NOT EXISTS idx_password_resets_code ON password_resets(code, expires_at)",
+    "CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id, expires_at)",
+    
+    // Audit logs - por usuario y fecha
+    "CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON audit_logs(user_id, created_at DESC)",
+    
+    // Webhooks - por evento y estado
+    "CREATE INDEX IF NOT EXISTS idx_webhooks_event_status ON webhooks(event_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_webhooks_status ON webhooks(status)",
+];
+
+for (const sql of additionalIndices) {
+    try { db.exec(sql); } catch (_) {}
 }
 
 // Exportar función para usar en server.js

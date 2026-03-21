@@ -23,6 +23,118 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// --- LAZY LOADING UTILITY (Performance V12.3) ---
+window.lazyLoad = {
+    observer: null,
+    loadedScripts: new Set(),
+    loadedStyles: new Set(),
+    
+    init() {
+        if ('IntersectionObserver' in window) {
+            this.observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const src = el.dataset.src;
+                        if (src) {
+                            el.src = src;
+                            el.removeAttribute('data-src');
+                            this.observer.unobserve(el);
+                        }
+                        // Lazy load background images
+                        const bgSrc = el.dataset.bgSrc;
+                        if (bgSrc) {
+                            el.style.backgroundImage = `url('${bgSrc}')`;
+                            el.removeAttribute('data-bg-src');
+                            this.observer.unobserve(el);
+                        }
+                    }
+                });
+            }, { rootMargin: '100px', threshold: 0.1 });
+        }
+    },
+    
+    observe(el) {
+        if (this.observer && (el.dataset.src || el.dataset.bgSrc)) {
+            this.observer.observe(el);
+        } else if (el.src && !el.src.includes('data:')) {
+            // Already loaded
+        }
+    },
+    
+    observeAll(selector = '[data-src], [data-bg-src]') {
+        if (!this.observer) return;
+        document.querySelectorAll(selector).forEach(el => this.observe(el));
+    },
+    
+    async loadScript(url, options = {}) {
+        if (this.loadedScripts.has(url)) {
+            return Promise.resolve();
+        }
+        
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = url;
+            script.async = true;
+            
+            if (options.integrity) script.integrity = options.integrity;
+            if (options.crossOrigin) script.crossOrigin = options.crossOrigin;
+            
+            script.onload = () => {
+                this.loadedScripts.add(url);
+                resolve();
+            };
+            
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    },
+    
+    async loadStyle(url, options = {}) {
+        if (this.loadedStyles.has(url)) {
+            return Promise.resolve();
+        }
+        
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            
+            if (options.integrity) link.integrity = options.integrity;
+            if (options.crossOrigin) link.crossOrigin = options.crossOrigin;
+            
+            link.onload = () => {
+                this.loadedStyles.add(url);
+                resolve();
+            };
+            
+            link.onerror = reject;
+            document.head.appendChild(link);
+        });
+    },
+    
+    async loadChartJS() {
+        return this.loadScript('https://cdn.jsdelivr.net/npm/chart.js');
+    },
+    
+    async loadHtml2Canvas() {
+        return this.loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+    },
+    
+    async loadJsPDF() {
+        return this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    },
+    
+    async loadQRCode() {
+        return this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js');
+    },
+    
+    async loadQuill() {
+        await this.loadStyle('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css');
+        return this.loadScript('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js');
+    }
+};
+
 // --- ESTADO CENTRALIZADO (STATE MANAGEMENT) ---
 window.App = {
     state: {
@@ -1428,7 +1540,7 @@ window.App = {
         } catch (e) { alert('Error al eliminar: ' + e.message); }
     },
 
-    showCreateTemplateModal: function(type = 'global') {
+    showCreateTemplateModal: async function(type = 'global') {
         if (this._templateEditorOpening) return;
         this._templateEditorOpening = true;
         this.state.editingTemplate = null;
@@ -1438,12 +1550,12 @@ window.App = {
         document.getElementById('tpl-name').value = '';
         document.getElementById('tpl-subject').value = '';
         document.getElementById('modal-template-editor').classList.remove('hidden');
-        this._initTemplateEditor();
+        await this._initTemplateEditor();
         this.switchTemplateEditorTab('visual');
         this._templateEditorOpening = false;
     },
     
-    showTemplateEditor: function(templateId, templateName) {
+    showTemplateEditor: async function(templateId, templateName) {
         if (this._templateEditorOpening) {
             console.log('[QUILL] Already opening, ignoring');
             return;
@@ -1460,7 +1572,7 @@ window.App = {
         document.getElementById('tpl-name').value = template.name || '';
         document.getElementById('tpl-subject').value = template.subject || '';
         document.getElementById('modal-template-editor').classList.remove('hidden');
-        this._initTemplateEditor(template.body || '');
+        await this._initTemplateEditor(template.body || '');
         this.switchTemplateEditorTab('visual');
         this._templateEditorOpening = false;
     },
@@ -1474,10 +1586,21 @@ window.App = {
         }
     },
     
-    _initTemplateEditor: function(initialHtml) {
+    _initTemplateEditor: async function(initialHtml) {
         if (this._quillInitializing) return;
         this._quillInitializing = true;
         console.log('[QUILL] initTemplateEditor called');
+        
+        // Lazy load Quill if not already loaded
+        if (typeof window.Quill === 'undefined') {
+            try {
+                await window.lazyLoad?.loadQuill();
+            } catch (err) {
+                console.error('Failed to load Quill:', err);
+                this._quillInitializing = false;
+                return;
+            }
+        }
         
         // Limpiar el contenedor y ELIMINAR toolbars remanentes (Quill 2.0 puede dejarlas como hermanos)
         const container = document.getElementById('tpl-quill-editor');
@@ -3224,6 +3347,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     console.log('[DOM] DOMContentLoaded fired');
     
+    // 0. Lazy Loading init (Performance)
+    window.lazyLoad?.init();
+    window.lazyLoad?.observeAll();
+    
     // 0.5. QUITAR LOADING SCREEN
     const ls = document.getElementById('loading-screen');
     if (ls) ls.remove();
@@ -3634,8 +3761,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
     // ------- V11: TEXTOS LEGALES (MÓDULO PREMIUM) -------
-    App.initQuill = () => {
+    App.initQuill = async () => {
         if (App.quillPolicy) return;
+        
+        // Lazy load Quill if not already loaded
+        if (typeof window.Quill === 'undefined') {
+            try {
+                await window.lazyLoad?.loadQuill();
+            } catch (err) {
+                console.error('Failed to load Quill:', err);
+                return;
+            }
+        }
+        
         const toolbarOptions = [
             ['bold', 'italic', 'underline'],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
@@ -3646,7 +3784,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     App.loadLegalTexts = async () => {
-        App.initQuill();
+        await App.initQuill();
         try {
             // Usar App.fetchAPI para mayor consistencia y control
             const s = await App.fetchAPI('/settings');

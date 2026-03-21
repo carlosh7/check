@@ -118,6 +118,26 @@ const schemas = {
     resetPassword: z.object({
         code: z.string().length(6),
         new_password: passwordSchema
+    }),
+
+    createWebhook: z.object({
+        event_id: z.union([z.string(), z.number(), z.null()]).optional(),
+        name: z.string().min(1, 'Nombre requerido').max(200),
+        url: z.string().url('URL inválida').max(500),
+        secret: z.string().max(100).optional(),
+        events: z.array(z.string()).min(1, 'Debe seleccionar al menos un evento'),
+        headers: z.record(z.string()).optional(),
+        status: z.enum(['ACTIVE', 'INACTIVE']).optional()
+    }),
+
+    updateWebhook: z.object({
+        event_id: z.union([z.string(), z.number(), z.null()]).optional(),
+        name: z.string().min(1).max(200).optional(),
+        url: z.string().url('URL inválida').max(500).optional(),
+        secret: z.string().max(100).optional(),
+        events: z.array(z.string()).min(1).optional(),
+        headers: z.record(z.string()).optional(),
+        status: z.enum(['ACTIVE', 'INACTIVE']).optional()
     })
 };
 
