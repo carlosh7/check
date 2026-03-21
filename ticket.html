@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boleto Digital | Check Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" href="/style.css">
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                primary: { DEFAULT: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
+                slate: { 850: '#1e293b', 950: '#020617' }
+              },
+              fontFamily: {
+                sans: ['Plus Jakarta Sans', 'sans-serif'],
+                display: ['Manrope', 'sans-serif']
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
+        .ticket-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+        }
+        .ticket-notch {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #020617;
+            border-radius: 50%;
+        }
+        .ticket-notch-left { left: -20px; top: 50%; transform: translateY(-50%); }
+        .ticket-notch-right { right: -20px; top: 50%; transform: translateY(-50%); }
+    </style>
+    <script>
+        // Inicializar tema basado en preferencia del sistema o guardado
+        (function() {
+            const saved = localStorage.getItem('theme');
+            let theme = 'dark';
+            if (saved === 'dark' || saved === 'light') {
+                theme = saved;
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                theme = 'light';
+            }
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(theme);
+        })();
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern flex items-center justify-center p-4">
+    <div id="loading" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <span class="material-symbols-outlined text-primary text-3xl">confirmation_number</span>
+            </div>
+            <p class="text-slate-500">Cargando boleto...</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="hidden w-full max-w-sm">
+        <div class="mb-8 text-center">
+            <h1 class="text-2xl font-black font-display mb-2">Boleto Digital</h1>
+            <p class="text-slate-500 text-sm">Presenta este QR al llegar al evento</p>
+        </div>
+
+        <!-- Ticket Container -->
+        <div id="ticket-container" class="ticket-card rounded-[40px] overflow-hidden shadow-2xl relative" style="min-height: 600px;">
+            <!-- Header / Background -->
+            <div id="ticket-header-bg" class="h-48 bg-primary/20 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/90"></div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="px-8 -mt-24 relative z-10 text-center">
+                <div id="ticket-event-logo-container" class="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl mx-auto mb-4 border border-white/10 flex items-center justify-center overflow-hidden">
+                    <img id="ticket-logo" src="" alt="Logo del evento" class="w-full h-full object-cover">
+                </div>
+                <h3 id="ticket-event-name" class="text-xl font-black font-display mb-1">Cargando evento...</h3>
+                <p id="ticket-guest-name" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Invitado</p>
+                
+                <!-- QR Code -->
+                <div class="glass-card p-4 rounded-3xl bg-white/5 inline-block mb-6 border border-white/10">
+                    <div id="ticket-qr-container" class="bg-white p-2 rounded-2xl">
+                        <canvas id="ticket-qr-canvas"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-4 text-left border-t border-white/5 pt-6">
+                    <div>
+                        <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Fecha</p>
+                        <p id="ticket-date" class="text-[10px] font-bold">-- -- ----</p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Ubicación</p>
+                        <p id="ticket-location" class="text-[10px] font-bold truncate">Por definir</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-white/5">
+                    <p class="text-[10px] text-slate-500 font-bold mb-2">Este boleto es válido para una sola persona</p>
+                    <p class="text-[9px] text-slate-600">ID: <span id="ticket-guest-id" class="font-mono">---</span></p>
+                </div>
+            </div>
+            
+            <!-- Ticket Notches (Decorative) -->
+            <div class="ticket-notch ticket-notch-left"></div>
+            <div class="ticket-notch ticket-notch-right"></div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="mt-8 flex gap-3">
+            <button id="btn-download" class="btn-primary flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">download</span> Guardar Imagen
+            </button>
+            <button id="btn-share" class="w-14 h-14 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl flex items-center justify-center transition-all" title="Compartir">
+                <span class="material-symbols-outlined">share</span>
+            </button>
+            <button onclick="window.print()" class="w-14 h-14 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-2xl flex items-center justify-center transition-all" title="Imprimir">
+                <span class="material-symbols-outlined">print</span>
+            </button>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <p class="text-[10px] text-slate-600">Powered by <a href="https://smarteventos.co" class="text-primary font-bold hover:underline">Smart Eventos</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        const API_URL = '/api';
+        const urlParams = new URLSearchParams(window.location.search);
+        const guestId = urlParams.get('g');
+        const eventId = urlParams.get('e');
+        
+        let ticketData = null;
+
+        async function loadTicket() {
+            if (!guestId || !eventId) {
+                showError('Boleto no válido. Faltan parámetros.');
+                return;
+            }
+
+            try {
+                // Cargar datos del evento e invitado
+                const [eventRes, guestRes] = await Promise.all([
+                    fetch(`${API_URL}/events/${eventId}`).then(r => r.json()),
+                    fetch(`${API_URL}/guests/${guestId}`).then(r => r.json())
+                ]);
+
+                if (!eventRes || !guestRes) {
+                    showError('No se encontró el boleto solicitado.');
+                    return;
+                }
+
+                ticketData = { event: eventRes, guest: guestRes };
+                renderTicket();
+                
+                // Ocultar loading, mostrar contenido
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error cargando boleto:', error);
+                showError('Error al cargar el boleto. Intenta nuevamente.');
+            }
+        }
+
+        function renderTicket() {
+            if (!ticketData) return;
+            
+            const { event, guest } = ticketData;
+            
+            // Datos textuales
+            document.getElementById('ticket-event-name').textContent = event.name;
+            document.getElementById('ticket-guest-name').textContent = guest.name;
+            document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('ticket-location').textContent = event.location;
+            document.getElementById('ticket-guest-id').textContent = guest.id.substring(0, 8) + '...';
+            
+            // Logo del evento
+            const logoEl = document.getElementById('ticket-logo');
+            if (event.logo_url) {
+                logoEl.src = event.logo_url;
+                logoEl.alt = `Logo ${event.name}`;
+            } else {
+                logoEl.parentElement.innerHTML = '<span class="material-symbols-outlined text-3xl text-primary">event</span>';
+            }
+            
+            // Personalización de colores
+            const accent = event.ticket_accent_color || '#7c3aed';
+            document.getElementById('ticket-header-bg').style.backgroundColor = `${accent}20`;
+            
+            // Generar QR
+            generateQRCode();
+        }
+
+        async function generateQRCode() {
+            if (!ticketData) return;
+            
+            const { event, guest } = ticketData;
+            const qrContent = JSON.stringify({ g: guest.id, e: event.id });
+            const canvas = document.getElementById('ticket-qr-canvas');
+            const dark = event.qr_color_dark || '#000000';
+            const light = event.qr_color_light || '#ffffff';
+            const logoUrl = event.qr_logo_url;
+            
+            if (typeof qrcode === 'undefined') {
+                // Fallback a API externa
+                const qrImg = document.createElement('img');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrContent)}&color=${dark.replace('#','')}&bgcolor=${light.replace('#','')}`;
+                qrImg.className = 'w-full h-auto';
+                canvas.parentElement.appendChild(qrImg);
+                canvas.remove();
+                return;
+            }
+            
+            try {
+                const qrDataUrl = await qrcode.toDataURL(qrContent, { 
+                    width: 400, 
+                    margin: 1,
+                    color: { dark, light },
+                    errorCorrectionLevel: logoUrl ? 'H' : 'M'
+                });
+                
+                if (logoUrl) {
+                    const img = new Image();
+                    img.onload = () => {
+                        const ctx = canvas.getContext('2d');
+                        const qrImg = new Image();
+                        qrImg.onload = () => {
+                            canvas.width = qrImg.width;
+                            canvas.height = qrImg.height;
+                            ctx.drawImage(qrImg, 0, 0);
+                            
+                            const logoImg = new Image();
+                            logoImg.crossOrigin = "Anonymous";
+                            logoImg.onload = () => {
+                                const size = canvas.width * 0.2;
+                                const x = (canvas.width - size) / 2;
+                                const y = (canvas.height - size) / 2;
+                                ctx.fillStyle = light;
+                                ctx.fillRect(x-5, y-5, size+10, size+10);
+                                ctx.drawImage(logoImg, x, y, size, size);
+                            };
+                            logoImg.src = logoUrl;
+                        };
+                        qrImg.src = qrDataUrl;
+                    };
+                    img.src = qrDataUrl;
+                } else {
+                    const img = new Image();
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                    };
+                    img.src = qrDataUrl;
+                }
+            } catch (error) {
+                console.error('Error generando QR:', error);
+            }
+        }
+
+        function downloadTicket() {
+            const container = document.getElementById('ticket-container');
+            if (!container || typeof html2canvas === 'undefined') {
+                alert("Error: Motor de captura no disponible.");
+                return;
+            }
+            
+            html2canvas(container, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: null,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                const guestName = ticketData?.guest?.name?.replace(/\s+/g, '_') || 'ticket';
+                link.download = `Boleto_${guestName}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(error => {
+                console.error('Error descargando boleto:', error);
+                alert("Error al generar la imagen del boleto.");
+            });
+        }
+
+        function shareTicket() {
+            if (!ticketData) return;
+            
+            const { guest, event } = ticketData;
+            const url = window.location.href;
+            const text = encodeURIComponent(`¡Hola ${guest.name}! Aquí tienes tu boleto para ${event.name}: ${url}`);
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Boleto para ${event.name}`,
+                    text: `¡Hola ${guest.name}! Aquí tienes tu boleto para ${event.name}`,
+                    url: url
+                });
+            } else {
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').innerHTML = `
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-red-500 text-3xl">error</span>
+                    </div>
+                    <p class="text-red-400 font-bold mb-2">${message}</p>
+                    <p class="text-slate-500 text-sm">Verifica el enlace o contacta al organizador.</p>
+                </div>
+            `;
+        }
+
+        // Event Listeners
+        document.getElementById('btn-download').addEventListener('click', downloadTicket);
+        document.getElementById('btn-share').addEventListener('click', shareTicket);
+
+        // Inicializar
+        loadTicket();
+    </script>
+</body>
+</html>

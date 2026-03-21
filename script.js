@@ -4251,6 +4251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // QR Feedback
     cl('btn-show-qr', () => App.showQR());
     cl('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
+    cl('btn-scan-qr', () => document.getElementById('modal-qr-scanner').classList.remove('hidden'));
 
     App.showQR = async () => {
         if (!App.state.event) return alert("Selecciona un evento primero.");
@@ -4384,6 +4385,155 @@ document.addEventListener('DOMContentLoaded', async () => {
         const text = encodeURIComponent(`¡Hola ${guest.name}! Aquí tienes tu boleto para ${App.state.event.name}: ${url}`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
     };
+
+    // QR Scanner V12.2.2
+    App.qrScanner = {
+        videoStream: null,
+        scanning: false,
+        interval: null,
+        async start() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Tu navegador no soporta acceso a cámara.');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                this.videoStream = stream;
+                const video = document.getElementById('qr-video');
+                video.srcObject = stream;
+                await video.play();
+                this.scanning = true;
+                this.startScanning();
+                document.getElementById('btn-start-scan').disabled = true;
+                document.getElementById('btn-stop-scan').disabled = false;
+            } catch (err) {
+                console.error('Error al acceder a la cámara:', err);
+                alert('No se pudo acceder a la cámara. Asegúrate de permitir los permisos.');
+            }
+        },
+        stop() {
+            if (this.interval) clearInterval(this.interval);
+            if (this.videoStream) {
+                this.videoStream.getTracks().forEach(track => track.stop());
+                this.videoStream = null;
+            }
+            const video = document.getElementById('qr-video');
+            video.srcObject = null;
+            this.scanning = false;
+            document.getElementById('btn-start-scan').disabled = false;
+            document.getElementById('btn-stop-scan').disabled = true;
+        },
+        async startScanning() {
+            const video = document.getElementById('qr-video');
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+            this.interval = setInterval(() => {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Load jsQR dynamically
+                    if (typeof jsQR === 'undefined') {
+                        this.loadJsQR().then(() => this.processQR(imageData));
+                    } else {
+                        this.processQR(imageData);
+                    }
+                }
+            }, 500);
+        },
+        async loadJsQR() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        },
+        processQR(imageData) {
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert',
+            });
+            if (code) {
+                this.onQRDetected(code.data);
+            }
+        },
+        async onQRDetected(data) {
+            try {
+                const parsed = JSON.parse(data);
+                if (parsed.g && parsed.e) {
+                    this.stop();
+                    this.showResult('Escaneando ticket...', 'info');
+                    const res = await App.fetchAPI(`/guests/checkin/${parsed.g}`, { method: 'POST' });
+                    if (res.success) {
+                        const guest = App.state.guests.find(g => String(g.id) === String(parsed.g));
+                        const name = guest ? guest.name : 'Invitado';
+                        this.showResult(`Check-in exitoso para ${name}.`, 'success');
+                        App.loadGuests(); // Refresh list
+                    } else {
+                        this.showResult('Error al registrar check-in.', 'error');
+                    }
+                } else {
+                    this.showResult('QR no válido.', 'error');
+                }
+            } catch (e) {
+                // If not JSON, maybe it's a guest ID directly
+                if (data.length === 36 || data.length === 32) { // UUID-like
+                    const res = await App.fetchAPI(`/guests/checkin/${data}`, { method: 'POST' });
+                    if (res.success) {
+                        this.showResult('Check-in exitoso.', 'success');
+                        App.loadGuests();
+                    } else {
+                        this.showResult('Invitado no encontrado.', 'error');
+                    }
+                } else {
+                    this.showResult('QR no reconocido.', 'error');
+                }
+            }
+        },
+        showResult(message, type) {
+            const resultEl = document.getElementById('scan-result');
+            const errorEl = document.getElementById('scan-error');
+            const resultMsg = document.getElementById('result-message');
+            const errorMsg = document.getElementById('error-message');
+            if (type === 'success') {
+                resultMsg.textContent = message;
+                resultEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+            } else if (type === 'error') {
+                errorMsg.textContent = message;
+                errorEl.classList.remove('hidden');
+                resultEl.classList.add('hidden');
+            } else {
+                // info
+                resultMsg.textContent = message;
+                resultEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+            }
+        }
+    };
+ 
+    // QR Scanner listeners
+    cl('btn-start-scan', () => App.qrScanner.start());
+    cl('btn-stop-scan', () => App.qrScanner.stop());
+    cl('btn-manual-checkin', () => {
+        const guestId = document.getElementById('manual-guest-id').value.trim();
+        if (!guestId) return alert('Ingresa un ID de invitado.');
+        App.fetchAPI(`/guests/checkin/${guestId}`, { method: 'POST' })
+            .then(res => {
+                if (res.success) {
+                    alert('Check-in manual exitoso.');
+                    App.loadGuests();
+                    document.getElementById('manual-guest-id').value = '';
+                } else {
+                    alert('Error: ' + (res.message || 'Invitado no encontrado.'));
+                }
+            })
+            .catch(err => alert('Error de red.'));
+    });
 
     cl('btn-download-ticket', () => App.downloadTicket());
     cl('btn-share-whatsapp', () => App.shareTicketWhatsApp());

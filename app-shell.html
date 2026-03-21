@@ -716,6 +716,9 @@
                         QR FEEDBACK <span class="material-symbols-outlined text-sm ml-2">qr_code_2</span>
                     </button>
                     <div class="flex gap-3">
+                        <button id="btn-scan-qr" class="btn-action bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-lg">qr_code_scanner</span> Escanear QR
+                        </button>
                         <button id="btn-export-excel" class="btn-action bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
                             <span class="material-symbols-outlined text-lg">description</span> Excel
                         </button>
@@ -1009,6 +1012,79 @@
             <p class="text-slate-400 text-sm mb-10">Muestra este código para que los invitados califiquen el evento en tiempo real.</p>
             <div class="bg-white p-10 rounded-[40px] mb-12 inline-block shadow-2xl ring-8 ring-white/5"><img id="qr-display" class="w-64 h-64 grayscale-0"></div>
             <button id="close-qr" class="w-full py-5 rounded-2xl bg-white/5 font-black text-slate-500 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all">Descartar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: QR SCANNER -->
+    <div id="modal-qr-scanner" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 animate-fade">
+        <div class="glass-card p-8 rounded-[40px] max-w-2xl w-full text-center border-t-8 border-t-amber-500 shadow-[0_0_100px_rgba(245,158,11,0.2)]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black font-display">Escanear Ticket QR</h3>
+                <button onclick="document.getElementById('modal-qr-scanner').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            <p class="text-slate-400 text-sm mb-6">Apunta la cámara al código QR del ticket para registrar asistencia automáticamente.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Camera Preview -->
+                <div class="space-y-4">
+                    <div class="glass-card p-4 rounded-3xl bg-white/5 border border-white/10">
+                        <div id="qr-scanner-preview" class="relative aspect-square bg-black rounded-2xl overflow-hidden">
+                            <video id="qr-video" class="w-full h-full object-cover" autoplay playsinline></video>
+                            <canvas id="qr-canvas" class="hidden"></canvas>
+                            <div id="qr-overlay" class="absolute inset-0 border-4 border-amber-500/50 rounded-2xl pointer-events-none"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="btn-start-scan" class="btn-primary flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">play_arrow</span> Iniciar Cámara
+                        </button>
+                        <button id="btn-stop-scan" disabled class="px-4 bg-white/5 text-slate-500 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="material-symbols-outlined">stop</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Scan Results -->
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-3xl border border-white/10">
+                        <h4 class="text-lg font-black mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500">info</span>
+                            Instrucciones
+                        </h4>
+                        <ul class="text-slate-400 text-sm space-y-2">
+                            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-xs text-amber-500 mt-0.5">check_circle</span> Permite acceso a la cámara cuando se solicite.</li>
+                            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-xs text-amber-500 mt-0.5">check_circle</span> Enfoca el código QR dentro del marco.</li>
+                            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-xs text-amber-500 mt-0.5">check_circle</span> El check-in se realizará automáticamente.</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="scan-result" class="hidden glass-card p-6 rounded-3xl border border-emerald-500/20 bg-emerald-500/5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-symbols-outlined text-emerald-500 text-2xl">check_circle</span>
+                            <h4 class="text-lg font-black text-emerald-500">Check-in Exitoso</h4>
+                        </div>
+                        <p id="result-message" class="text-slate-300 text-sm"></p>
+                    </div>
+                    
+                    <div id="scan-error" class="hidden glass-card p-6 rounded-3xl border border-red-500/20 bg-red-500/5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-symbols-outlined text-red-500 text-2xl">error</span>
+                            <h4 class="text-lg font-black text-red-500">Error de Escaneo</h4>
+                        </div>
+                        <p id="error-message" class="text-slate-300 text-sm"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-white/10 text-center">
+                <p class="text-[10px] text-slate-500 font-bold">Alternativa: Ingresa manualmente el ID del invitado</p>
+                <div class="flex gap-3 mt-4">
+                    <input id="manual-guest-id" type="text" placeholder="ID del invitado" class="input-field flex-1 bg-slate-900/50">
+                    <button id="btn-manual-checkin" class="px-6 py-3 bg-white/5 text-slate-400 rounded-xl font-bold hover:bg-primary/20 hover:text-primary transition-all">Check-in</button>
+                </div>
+            </div>
         </div>
     </div>
 
