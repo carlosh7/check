@@ -13,17 +13,6 @@ const imap = require('imap');
 const { simpleParser } = require('mailparser');
 // --- GZIP COMPRESSION (Performance) ---
 const compression = require('compression');
-app.use(compression({
-    filter: (req, res) => {
-        if (req.headers['x-no-compression']) return false;
-        const accept = req.headers['accept-encoding'] || '';
-        if (accept.match(/\bdeflate\b/)) return 'deflate';
-        if (accept.match(/\bgzip\b/)) return 'gzip';
-        return false;
-    },
-    level: 6,
-    threshold: 1024
-}));
 
 // --- CACHE IN-MEMORY (Performance) ---
 const NodeCache = require('node-cache');
@@ -411,6 +400,17 @@ global.sendEventEmailAuto = async function(eventId, to, templateType, data = {})
 };
 
 // SERVER V12.2.1 - ARQUITECTURA DISTRIBUIDA Y SEGURA 🛡️🚀
+app.use(compression({
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        const accept = req.headers['accept-encoding'] || '';
+        if (accept.match(/\bdeflate\b/)) return 'deflate';
+        if (accept.match(/\bgzip\b/)) return 'gzip';
+        return false;
+    },
+    level: 6,
+    threshold: 1024
+}));
 app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
