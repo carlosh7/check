@@ -9,6 +9,8 @@ const crypto = require('crypto');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { schemas, validate } = require('../security/validation');
+const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const router = express.Router();
 
@@ -162,9 +164,10 @@ router.get('/email-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => 
 
 // Broadcast email
 router.post('/emails/broadcast', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const { event_id, subject, body } = req.body;
-    
-    if (!event_id || !body) return res.status(400).json({ error: 'Faltan datos' });
+    const v = validate(schemas.broadcastEmail, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { event_id, subject, body } = v.data;
 
     try {
         const guests = db.prepare("SELECT * FROM guests WHERE event_id = ? AND unsubscribed = 0").all(event_id);
@@ -189,6 +192,8 @@ router.post('/emails/broadcast', authMiddleware(['ADMIN', 'PRODUCTOR']), async (
         })();
 
         res.json({ success: true, count: guests.length });
+
+        logAction(req, AUDIT_ACTIONS.EMAIL_BROADCAST, { event_id, subject, recipientCount: guests.length });
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Error al encolar' });

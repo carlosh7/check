@@ -1,53 +1,71 @@
 /**
- * Rutas de autenticación
+ * Rutas de autenticación (con JWT y Zod)
  */
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
+const { schemas, validate } = require('../security/validation');
+const { generateToken, verifyToken } = require('../security/jwt');
+const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const router = express.Router();
 
-// Login
 router.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
-    }
-    
+    const v = validate(schemas.login, req.body);
+    if (!v.valid) return res.status(400).json({ success: false, errors: v.errors });
+
+    const { username, password } = v.data;
     const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
-    
+
     if (!row) {
+        logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'user_not_found' });
         return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
-    
+
     if (row.status !== 'APPROVED') {
         return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
     }
-    
+
     const passwordMatch = bcrypt.compareSync(password, row.password);
-    
+
     if (passwordMatch) {
-        res.json({ success: true, userId: row.id, role: row.role, username: row.username });
+        const token = generateToken({
+            userId: row.id,
+            username: row.username,
+            role: row.role
+        });
+
+        logAction(req, AUDIT_ACTIONS.LOGIN, { username: row.username, role: row.role });
+
+        res.json({
+            success: true,
+            token,
+            userId: row.id,
+            role: row.role,
+            username: row.username
+        });
     } else {
+        logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'wrong_password' });
         res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 });
 
-// Signup
-router.post('/signup', async (req, res) => {
-    const { username, password, role = 'PRODUCTOR' } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) return res.status(400).json({ error: 'Email inválido' });
-    if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-    
+router.post('/signup', (req, res) => {
+    const v = validate(schemas.signup, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { username, password, role = 'PRODUCTOR', display_name } = v.data;
+
     try {
         const id = getValidId('users');
         const hashedPassword = bcrypt.hashSync(password, 10);
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(id, username.toLowerCase(), hashedPassword, role, 'PENDING', new Date().toISOString());
-        
+        db.prepare("INSERT INTO users (id, username, password, role, status, display_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+          .run(id, username.toLowerCase(), hashedPassword, role, 'PENDING', display_name, new Date().toISOString());
+
+        logAction(req, AUDIT_ACTIONS.USER_CREATED, { username, role });
+
         res.json({ success: true, message: 'Solicitud enviada. Un administrador debe aprobar tu acceso.' });
     } catch (e) {
         if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Este email ya está registrado' });
@@ -55,62 +73,80 @@ router.post('/signup', async (req, res) => {
     }
 });
 
-// Solicitar reset de contraseña
 router.post('/password-reset-request', (req, res) => {
-    const { username } = req.body;
-    if (!username) return res.status(400).json({ error: 'Email requerido' });
-    
+    const v = validate(schemas.passwordResetRequest, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { username } = v.data;
     const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username.toLowerCase());
     if (!user) {
         return res.json({ success: true, message: 'Si el email existe, recibirás un código de recuperación' });
     }
-    
+
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-    
+
     db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
       .run(getValidId('password_resets'), user.id, code, expires, new Date().toISOString());
-    
+
     res.json({ success: true, message: 'Código enviado (simulado)', code });
 });
 
-// Verificar código de reset
 router.post('/verify-reset-code', (req, res) => {
-    const { code } = req.body;
+    const v = validate(schemas.verifyResetCode, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { code } = v.data;
     const reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
       .get(code, new Date().toISOString());
-    
+
     if (!reset) {
         return res.status(400).json({ success: false, error: 'Código inválido o expirado' });
     }
-    
+
     res.json({ success: true, valid: true });
 });
 
-// Resetear contraseña
 router.post('/reset-password', (req, res) => {
-    const { code, new_password } = req.body;
-    
+    const v = validate(schemas.resetPassword, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { code, new_password } = v.data;
     const reset = db.prepare("SELECT * FROM password_resets WHERE code = ? AND used = 0 AND expires_at > ?")
       .get(code, new Date().toISOString());
-    
+
     if (!reset) {
         return res.status(400).json({ error: 'Código inválido o expirado' });
     }
-    
+
     const user = db.prepare("SELECT * FROM users WHERE id = ?").get(reset.user_id);
     if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    
-    if (new_password) {
-        const hashedPassword = bcrypt.hashSync(new_password, 10);
-        db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
-        db.prepare("UPDATE password_resets SET used = 1 WHERE id = ?").run(reset.id);
-        return res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
+
+    const hashedPassword = bcrypt.hashSync(new_password, 10);
+    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
+    db.prepare("UPDATE password_resets SET used = 1 WHERE id = ?").run(reset.id);
+
+    logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { userId: user.id });
+
+    res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
+});
+
+router.post('/verify-token', (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) {
+        return res.status(401).json({ valid: false, error: 'Token requerido' });
     }
-    
-    res.json({ success: true, valid: true });
+
+    const token = auth.substring(7);
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+        return res.status(401).json({ valid: false, error: 'Token inválido o expirado' });
+    }
+
+    res.json({ valid: true, user: decoded });
 });
 
 module.exports = router;

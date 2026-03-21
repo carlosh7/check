@@ -7,10 +7,11 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { schemas, validate } = require('../security/validation');
+const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const router = express.Router();
 
-// Obtener eventos
 router.get('/', authMiddleware(), (req, res) => {
     let rows;
     if (req.userRole === 'ADMIN') {
@@ -27,7 +28,6 @@ router.get('/', authMiddleware(), (req, res) => {
     res.json(rows);
 });
 
-// Obtener evento por ID
 router.get('/:id', authMiddleware(), (req, res) => {
     const eventId = castId('events', req.params.id);
     const row = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
@@ -35,27 +35,33 @@ router.get('/:id', authMiddleware(), (req, res) => {
     res.json(row);
 });
 
-// Crear evento
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { name, date, location, logo_url, description, group_id, end_date } = req.body;
+    const v = validate(schemas.createEvent, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
+    const { name, date, location, logo_url, description, group_id, end_date } = v.data;
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
-    
+
     db.prepare("INSERT INTO events (id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?)")
       .run(id, req.userId, name, date, location, logo_url || '', description || '', new Date().toISOString(), eventGroupId, end_date || null);
-    
+
     const userEventId = getValidId('user_events');
     db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
       .run(userEventId, req.userId, id, new Date().toISOString());
-    
+
+    logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: id, name });
+
     res.json({ success: true, eventId: id });
 });
 
-// Actualizar evento
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const v = validate(schemas.updateEvent, req.body);
+    if (!v.valid) return res.status(400).json({ errors: v.errors });
+
     const eventId = castId('events', req.params.id);
-    const { name, date, location, logo_url, description, end_date, status, reg_title, reg_welcome_text, reg_policy, reg_success_message, reg_logo_url, reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, reg_show_gender, reg_require_agreement, qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color, reg_email_whitelist, reg_email_blacklist } = req.body;
-    
+    const d = v.data;
+
     db.prepare(`
         UPDATE events SET 
             name = COALESCE(?, name),
@@ -85,14 +91,18 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             reg_email_whitelist = COALESCE(?, reg_email_whitelist),
             reg_email_blacklist = COALESCE(?, reg_email_blacklist)
         WHERE id = ?
-    `).run(name, date, location, logo_url, description, end_date, status, reg_title, reg_welcome_text, reg_policy, reg_success_message, reg_logo_url, reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, reg_show_gender, reg_require_agreement, qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color, reg_email_whitelist, reg_email_blacklist, eventId);
-    
+    `).run(d.name, d.date, d.location, logo_url, d.description, d.end_date, d.status, d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, d.reg_show_phone, d.reg_show_org, d.reg_show_position, d.reg_show_vegan, d.reg_show_dietary, d.reg_show_gender, d.reg_require_agreement, d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId);
+
+    logAction(req, AUDIT_ACTIONS.EVENT_UPDATED, { eventId });
+
     res.json({ success: true });
 });
 
-// Eliminar evento
 router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('events', req.params.id);
+
+    logAction(req, AUDIT_ACTIONS.EVENT_DELETED, { eventId: targetId });
+
     db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
     res.json({ success: true });
 });

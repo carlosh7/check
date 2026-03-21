@@ -247,6 +247,21 @@ db.exec(`CREATE TABLE IF NOT EXISTS logs (
     created_at TEXT
 )`);
 
+// 8b. Auditoría Estructurada (V12.3 - Seguridad)
+db.exec(`CREATE TABLE IF NOT EXISTS audit_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    action TEXT,
+    details TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TEXT
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC)"); } catch (_) {}
+
 // ═══ NUEVAS TABLAS V10.5.3: GRUPOS Y PERMISOS JERÁRQUICOS ═══
 
 // 9. Grupos (cada grupo tiene su propio Producer(es))
