@@ -26,6 +26,7 @@
 | 7 | Commit y documentación | ✅ COMPLETA | 21/03/2026 |
 | 8 | Índices de base de datos | ✅ COMPLETA | 21/03/2026 |
 | 9 | Sistema de migrations | ✅ COMPLETA | 21/03/2026 |
+| 10 | Módulos de server.js | 🔄 EN PROGRESO | 21/03/2026 |
 
 ---
 
@@ -149,6 +150,32 @@
 - **Notas:**
   - 15 migraciones registradas
   - Sistema listo para futuras actualizaciones
+
+---
+
+### Fase 10: Módulos de server.js (EN PROGRESO) 🔄
+- **Fecha:** 21/03/2026
+- **Estado:** EN PROGRESO
+- **Estructura creada:**
+  - `src/routes/` - Rutas organizadas
+  - `src/middleware/` - Middlewares
+  - `src/utils/` - Utilidades
+- **Módulos creados:**
+  - `src/utils/helpers.js` ✅
+  - `src/middleware/auth.js` ✅
+  - `src/routes/auth.routes.js` ✅
+  - `src/routes/users.routes.js` ✅
+  - `src/routes/events.routes.js` ✅
+  - `src/routes/index.js` ✅
+- **Pendiente:**
+  - Guests routes, Email routes, Surveys routes
+  - Groups routes, Settings routes
+  - Socket.io handlers
+  - Refactorizar server.js
+- **Notas:**
+  - Server.js tiene ~2000 líneas
+  - Requiere múltiples sesiones para completar
+  - Avance: 25% de rutas migradas
 
 ---
 
