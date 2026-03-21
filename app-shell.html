@@ -719,6 +719,9 @@
                         <button id="btn-scan-qr" class="btn-action bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
                             <span class="material-symbols-outlined text-lg">qr_code_scanner</span> Escanear QR
                         </button>
+                        <button id="btn-bulk-tickets" class="btn-action bg-violet-500/10 text-violet-500 border-violet-500/20 hover:bg-violet-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-lg">confirmation_number</span> Tickets Masivos
+                        </button>
                         <button id="btn-export-excel" class="btn-action bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
                             <span class="material-symbols-outlined text-lg">description</span> Excel
                         </button>
@@ -1084,6 +1087,25 @@
                     <input id="manual-guest-id" type="text" placeholder="ID del invitado" class="input-field flex-1 bg-slate-900/50">
                     <button id="btn-manual-checkin" class="px-6 py-3 bg-white/5 text-slate-400 rounded-xl font-bold hover:bg-primary/20 hover:text-primary transition-all">Check-in</button>
                 </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- MODAL: BULK TICKETS GENERATION -->
+    <div id="modal-bulk-tickets" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 animate-fade">
+        <div class="glass-card p-8 rounded-[40px] max-w-md w-full text-center border-t-8 border-t-violet-500 shadow-[0_0_100px_rgba(139,92,246,0.2)]">
+            <h3 class="text-2xl font-black font-display mb-6">Generando Tickets Masivos</h3>
+            <p class="text-slate-400 text-sm mb-8">Estamos creando imágenes de tickets para cada invitado. Esto puede tomar unos segundos.</p>
+            
+            <div class="space-y-4">
+                <div class="h-4 bg-white/5 rounded-full overflow-hidden">
+                    <div id="bulk-progress" class="h-full bg-violet-500 transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="bulk-progress-text" class="text-[10px] font-black uppercase tracking-widest text-slate-500">0/0</p>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-white/10">
+                <p class="text-[10px] text-slate-600">No cierres esta ventana hasta que se complete la descarga.</p>
             </div>
         </div>
     </div>

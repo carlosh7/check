@@ -142,7 +142,7 @@ Registro/
 - [✅] Exportar reportes en PDF mejorados
 - [x] Tema oscuro (dark theme) - mejorado con detección sistema, transiciones suaves, Quill editor adaptativo
 - [x] Dashboard analítico con gráficos - mejorado con datos de género, dieta, organización y flujo horario
-- [ ] Sistema de tickets QR personalizados
+- [x] Sistema de tickets QR personalizados (página pública ticket.html, escáner QR para check-in, generación masiva de tickets)
 - [ ] App móvil PWA
 
 ### 🩵 Técnico/Limpieza (Pendiente)
@@ -220,4 +220,4 @@ d20a0d0 docs: update plan after security layer
 
 ---
 
-**Última sesión**: 21/03/2026 - Dashboard analítico mejorado con gráficos de género, dieta, organización y flujo horario. Tema oscuro completado. Puerto 3000 y 8080 muestran V12.2.2. 26/26 tests passing.
+**Última sesión**: 21/03/2026 - Sistema de tickets QR personalizados implementado (página pública, escáner QR para check-in, generación masiva de tickets). Dashboard analítico y tema oscuro completados. Puerto 3000 y 8080 muestran V12.2.2. 26/26 tests passing.

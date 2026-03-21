@@ -4252,6 +4252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     cl('btn-show-qr', () => App.showQR());
     cl('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
     cl('btn-scan-qr', () => document.getElementById('modal-qr-scanner').classList.remove('hidden'));
+    cl('btn-bulk-tickets', () => App.generateBulkTickets());
 
     App.showQR = async () => {
         if (!App.state.event) return alert("Selecciona un evento primero.");
@@ -4514,6 +4515,94 @@ document.addEventListener('DOMContentLoaded', async () => {
                 errorEl.classList.add('hidden');
             }
         }
+    };
+
+    App.generateBulkTickets = async () => {
+        if (!App.state.event) return alert('Selecciona un evento primero.');
+        if (!App.state.guests.length) return alert('No hay invitados para generar tickets.');
+        
+        // Load required libraries dynamically
+        if (typeof JSZip === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+        }
+        if (typeof saveAs === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js');
+        }
+        if (typeof html2canvas === 'undefined') {
+            await loadScript('https://html2canvas.hertzen.com/dist/html2canvas.min.js');
+        }
+        
+        const zip = new JSZip();
+        const total = App.state.guests.length;
+        let processed = 0;
+        
+        // Show progress
+        const modal = document.getElementById('modal-bulk-tickets');
+        if (modal) modal.classList.remove('hidden');
+        const progressEl = document.getElementById('bulk-progress');
+        const progressText = document.getElementById('bulk-progress-text');
+        
+        for (const guest of App.state.guests) {
+            // Render ticket for each guest
+            const canvas = await App.renderTicketCanvas(guest);
+            if (canvas) {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                const fileName = `ticket_${guest.name.replace(/[^a-z0-9]/gi, '_')}_${guest.id.substring(0, 8)}.png`;
+                zip.file(fileName, blob);
+            }
+            processed++;
+            if (progressEl) progressEl.style.width = `${(processed / total) * 100}%`;
+            if (progressText) progressText.textContent = `${processed}/${total}`;
+            // Yield to UI
+            await new Promise(r => setTimeout(r, 50));
+        }
+        
+        // Generate ZIP
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        saveAs(zipBlob, `tickets_${App.state.event.name.replace(/[^a-z0-9]/gi, '_')}.zip`);
+        
+        // Hide progress
+        if (modal) modal.classList.add('hidden');
+        alert(`✓ Generados ${processed} tickets en ZIP.`);
+    };
+
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    App.renderTicketCanvas = async (guest) => {
+        // Create a temporary ticket card similar to modal-ticket
+        // For simplicity, reuse existing modal-ticket rendering
+        // We'll temporarily set currentTicketGuest and use html2canvas on ticket-card
+        // But we need to ensure the modal is visible? We can clone the ticket-card and style it.
+        // Alternative: use the same function as downloadTicket but for a specific guest.
+        // Since time is limited, we'll use the existing modal-ticket but hide it.
+        // We'll set App.state.currentTicketGuest = guest, call App.renderDigitalTicket(guest.id)
+        // wait for QR to render, then capture .ticket-card
+        // This is hacky but works.
+        
+        const originalGuest = App.state.currentTicketGuest;
+        App.state.currentTicketGuest = guest;
+        await App.renderDigitalTicket(guest.id);
+        await new Promise(r => setTimeout(r, 500)); // wait for QR
+        const card = document.querySelector('#modal-ticket .ticket-card');
+        if (!card || typeof html2canvas === 'undefined') return null;
+        const canvas = await html2canvas(card, {
+            useCORS: true,
+            scale: 2,
+            backgroundColor: null,
+            logging: false
+        });
+        // Restore
+        App.state.currentTicketGuest = originalGuest;
+        document.getElementById('modal-ticket').classList.add('hidden');
+        return canvas;
     };
  
     // QR Scanner listeners
