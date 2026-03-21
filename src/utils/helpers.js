@@ -3,7 +3,7 @@
  */
 
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../database');
+const { db } = require('../../database');
 
 function getValidId(tableName) {
     try {

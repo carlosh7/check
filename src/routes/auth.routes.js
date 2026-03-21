@@ -4,7 +4,7 @@
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db } = require('../database');
+const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 
 const router = express.Router();

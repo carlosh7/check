@@ -4,7 +4,7 @@
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db } = require('../database');
+const { db } = require('../../database');
 const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 

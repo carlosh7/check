@@ -3,7 +3,7 @@
  */
 
 const express = require('express');
-const { db } = require('../database');
+const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 

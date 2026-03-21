@@ -1528,249 +1528,7 @@ app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
 });
 
-// ═══ SMTP CONFIGURATION & EMAIL TEMPLATES ═══
-
-// Obtener configuración SMTP
-app.get('/api/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
-    const config = db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
-    if (config) {
-        // No devolver la contraseña en claro
-        config.smtp_pass = config.smtp_pass ? '***' : '';
-    }
-    res.json(config || {});
-});
-
-// Guardar configuración SMTP
-app.put('/api/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
-    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email } = req.body;
-    
-    // Solo actualizar contraseña si no está vacía o es ***
-    let passToSave = smtp_pass;
-    if (!smtp_pass || smtp_pass === '***') {
-        const current = db.prepare("SELECT smtp_pass FROM smtp_config WHERE id = 1").get();
-        passToSave = current?.smtp_pass || '';
-    }
-    
-    db.prepare(`INSERT OR REPLACE INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, updated_at) 
-                VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(smtp_host || '', smtp_port || 587, smtp_user || '', passToSave, smtp_secure ? 1 : 0, from_name || 'Check', from_email || '', new Date().toISOString());
-    
-    res.json({ success: true });
-});
-
-// ═══ IMAP CONFIG ENDPOINTS ═══
-
-// Obtener configuración IMAP
-app.get('/api/imap-config', authMiddleware(['ADMIN']), (req, res) => {
-    const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
-    if (config) {
-        config.imap_pass = config.imap_pass ? '***' : '';
-    }
-    res.json(config || {});
-});
-
-// Guardar configuración IMAP
-app.put('/api/imap-config', authMiddleware(['ADMIN']), (req, res) => {
-    const { imap_host, imap_port, imap_user, imap_pass, imap_tls } = req.body;
-    
-    // Solo actualizar contraseña si no está vacía o es ***
-    let passToSave = imap_pass;
-    if (!imap_pass || imap_pass === '***') {
-        const current = db.prepare("SELECT imap_pass FROM imap_config WHERE id = 1").get();
-        passToSave = current?.imap_pass || '';
-    }
-    
-    db.prepare(`INSERT OR REPLACE INTO imap_config (id, imap_host, imap_port, imap_user, imap_pass, imap_tls, updated_at) 
-                VALUES (1, ?, ?, ?, ?, ?, ?)`)
-      .run(imap_host || '', imap_port || 993, imap_user || '', passToSave, imap_tls ? 1 : 0, new Date().toISOString());
-    
-    res.json({ success: true });
-});
-
-// Probar conexión IMAP
-app.post('/api/imap-test', authMiddleware(['ADMIN']), async (req, res) => {
-    const { imap_host, imap_port, imap_user, imap_pass, imap_tls } = req.body;
-    
-    try {
-        const Imap = require('imap');
-        const imap = new Imap({
-            user: imap_user,
-            password: imap_pass,
-            host: imap_host,
-            port: parseInt(imap_port) || 993,
-            tls: imap_tls,
-            connTimeout: 10000,
-            authTimeout: 10000
-        });
-        
-        imap.once('ready', () => {
-            imap.end();
-            res.json({ success: true, message: 'Conexión IMAP exitosa' });
-        });
-        
-        imap.once('error', (err) => {
-            res.status(400).json({ success: false, error: err.message });
-        });
-        
-        imap.connect();
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
-});
-
-// Obtener plantillas de email
-app.get('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
-    const templates = db.prepare("SELECT * FROM email_templates ORDER BY name ASC").all();
-    res.json(templates);
-});
-
-// Crear nueva plantilla
-app.post('/api/email-templates', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, subject, body, event_id } = req.body;
-    try {
-        const result = db.prepare("INSERT INTO email_templates (name, subject, body, event_id, is_active) VALUES (?, ?, ?, ?, 1)")
-            .run(name, subject, body, event_id || null);
-        res.json({ success: true, id: result.lastInsertRowid });
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// Eliminar plantilla
-app.delete('/api/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
-    try {
-        db.prepare("DELETE FROM email_templates WHERE id = ?").run(req.params.id);
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// Actualizar plantilla de email
-app.put('/api/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
-    const { subject, body } = req.body;
-    const templateId = req.params.id;
-    
-    db.prepare("UPDATE email_templates SET subject = ?, body = ?, updated_at = ? WHERE id = ?")
-      .run(subject, body, new Date().toISOString(), templateId);
-    
-    res.json({ success: true });
-});
-
-// ═══ SISTEMA DE BUZÓN Y ENVÍO MASIVO (V11.0) ═══
-
-// 1. Obtener Logs (Buzón)
-app.get('/api/email-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { type, event_id } = req.query;
-    let query = "SELECT * FROM email_logs WHERE 1=1";
-    let params = [];
-    
-    if (type) {
-        query += " AND type = ?";
-        params.push(type);
-    }
-    if (event_id) {
-        query += " AND event_id = ?";
-        params.push(castId('events', event_id));
-    }
-    
-    query += " ORDER BY created_at DESC LIMIT 100";
-    const logs = db.prepare(query).all(...params);
-    res.json(logs);
-});
-
-// 2. Encolar Envío Masivo (Broadcast)
-app.post('/api/emails/broadcast', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const { event_id, template_id, subject, body } = req.body;
-    const eId = castId('events', event_id);
-
-    if (!eId || !body) return res.status(400).json({ error: 'Faltan datos' });
-
-    try {
-        const guests = db.prepare("SELECT * FROM guests WHERE event_id = ? AND unsubscribed = 0").all(eId);
-        
-        const insertQueue = db.prepare(`INSERT INTO email_queue (id, event_id, guest_id, to_email, subject, body_html, status, scheduled_at) 
-                                        VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)`);
-        
-        const updateToken = db.prepare("UPDATE guests SET unsubscribe_token = ? WHERE id = ? AND unsubscribe_token IS NULL");
-
-        db.transaction(() => {
-            for (const guest of guests) {
-                // Generar token si no tiene
-                if (!guest.unsubscribe_token) {
-                    const token = crypto.randomBytes(16).toString('hex');
-                    updateToken.run(token, guest.id);
-                    guest.unsubscribe_token = token;
-                }
-
-                const personalizedBody = replaceTemplateVariables(body, {
-                    guest_name: guest.name,
-                    guest_email: guest.email,
-                    unsubscribe_url: `${req.protocol}://${req.get('host')}/unsubscribe/${guest.unsubscribe_token}`
-                });
-
-                insertQueue.run(uuidv4(), eId, guest.id, guest.email, subject, personalizedBody, new Date().toISOString());
-            }
-        })();
-
-        res.json({ success: true, count: guests.length });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Error al encolar' });
-    }
-});
-
-// 3. Control de Cola (Pausa/Reinicio)
-app.post('/api/emails/queue-control', authMiddleware(['ADMIN']), (req, res) => {
-    const { action } = req.body;
-    if (action === 'pause') isQueuePaused = true;
-    if (action === 'resume') isQueuePaused = false;
-    if (action === 'stop') {
-        db.prepare("UPDATE email_queue SET status = 'CANCELLED' WHERE status = 'PENDING'").run();
-        isQueuePaused = false;
-    }
-    res.json({ success: true, isPaused: isQueuePaused });
-});
-
-// 4. Estadísticas de Cola
-app.get('/api/emails/queue-stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const stats = db.prepare(`
-        SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) as sent,
-            SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) as pending,
-            SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as errors,
-            SUM(CASE WHEN status = 'SENDING' THEN 1 ELSE 0 END) as sending
-        FROM email_queue WHERE status != 'CANCELLED'
-    `).get();
-    res.json({ ...stats, isPaused: isQueuePaused });
-});
-
-// 5. Endpoint Público de Desuscripción
-app.get('/unsubscribe/:token', (req, res) => {
-    const token = req.params.token;
-    const guest = db.prepare("SELECT id, name FROM guests WHERE unsubscribe_token = ?").get(token);
-    
-    if (!guest) {
-        return res.send('<h1>Enlace no válido</h1><p>No pudimos encontrar tu suscripción.</p>');
-    }
-
-    db.prepare("UPDATE guests SET unsubscribed = 1 WHERE id = ?").run(guest.id);
-    
-    res.send(`
-        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <h1>Desuscripción Exitosa</h1>
-            <p>Hola ${guest.name}, hemos procesado tu solicitud. No recibirás más correos automáticos de este sistema.</p>
-            <p><small>Si fue un error, contacta con soporte.</small></p>
-        </div>
-    `);
-});
-
-// 6. Ejecutar Sincronización IMAP
-app.post('/api/emails/sync', authMiddleware(['ADMIN']), async (req, res) => {
-    try {
-        const result = await syncEmails();
-        res.json(result);
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
+// ═══ RUTAS DE EMAIL - MOVIDAS A MÓDULO (src/routes/email.routes.js) ═══
 
 // Obtener usuarios asignados a un evento
 app.get('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -1994,7 +1752,29 @@ app.use((req, res, next) => {
 });
 
 // --- REGISTRAR RUTAS MODULARES (Fase 10) ---
-// Por ahora las rutas están definidas en server.js
+// Activando rutas de email
+const emailRoutes = require('./src/routes/email.routes');
+app.use('/api', emailRoutes);
 // registerRoutes(app, io); // Descomentar cuando se complete migración
+
+// Endpoint Público de Desuscripción
+app.get('/unsubscribe/:token', (req, res) => {
+    const token = req.params.token;
+    const guest = db.prepare("SELECT id, name FROM guests WHERE unsubscribe_token = ?").get(token);
+    
+    if (!guest) {
+        return res.send('<h1>Enlace no válido</h1><p>No pudimos encontrar tu suscripción.</p>');
+    }
+
+    db.prepare("UPDATE guests SET unsubscribed = 1 WHERE id = ?").run(guest.id);
+    
+    res.send(`
+        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1>Desuscripción Exitosa</h1>
+            <p>Hola ${guest.name}, hemos procesado tu solicitud. No recibirás más correos automáticos de este sistema.</p>
+            <p><small>Si fue un error, contacta con soporte.</small></p>
+        </div>
+    `);
+});
 
 server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));
