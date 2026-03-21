@@ -45,3 +45,6 @@ Thumbs.db
 
 # Configuración local de opencode
 .opencode-config.md
+
+# Skills y configs locales
+.opencode-skill.md
