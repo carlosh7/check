@@ -3,6 +3,8 @@
  * Carga todas las rutas del sistema
  */
 
+const express = require('express');
+const multer = require('multer');
 const authRoutes = require('./auth.routes');
 const usersRoutes = require('./users.routes');
 const eventsRoutes = require('./events.routes');
@@ -13,7 +15,25 @@ const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
 
-function registerRoutes(app, io) {
+function registerRoutes(app, io, rootDir) {
+    const path = require('path');
+    rootDir = rootDir || __dirname + '/../..';
+    
+    // SPA Routes (index.html, registro.html)
+    app.get('/', (req, res) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.sendFile(path.join(rootDir, 'index.html'));
+    });
+    
+    app.get('/:eventName/registro', (req, res) => {
+        res.sendFile(path.join(rootDir, 'registro.html'));
+    });
+    
+    // Static files
+    app.use('/uploads', express.static(path.join(rootDir, 'uploads')));
+    
     // Auth (login, signup, password reset)
     app.use('/api', authRoutes);
     

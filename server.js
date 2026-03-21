@@ -467,45 +467,7 @@ app.use(express.static(path.join(__dirname, '/'), {
     }
 }));
 
-// --- ROOT ROUTE (siempre sin caché) ---
-app.get('/', (req, res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Validación de uploads - tipos permitidos y tamaño máximo
-const upload = multer({
-    dest: 'uploads/',
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB máximo
-    },
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'image/webp',
-            'application/pdf',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
-            'application/vnd.ms-excel', // xls
-            'text/csv'
-        ];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            console.log(`[UPLOAD] Archivo bloqueado: ${file.originalname} (${file.mimetype})`);
-            cb(new Error('Tipo de archivo no permitido'), false);
-        }
-    }
-});
-
-// --- ENRUTAMIENTO SPA (V9) ---
-app.get('/:eventName/registro', (req, res) => {
-    res.sendFile(path.join(__dirname, 'registro.html'));
-});
+// Uploads y middleware de validación se manejan en registerRoutes
 
 // ─────────────────────────────────────────────────────────────
 // MIDDLEWARE DE AUTH — better-sqlite3: síncrono
