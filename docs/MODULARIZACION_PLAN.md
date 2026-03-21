@@ -36,7 +36,9 @@
 - [x] 10.3: Groups routes
 - [x] 10.4: Surveys routes
 - [x] 10.5: Settings routes
-- [ ] 10.6: Integración final (PENDIENTE)
+- [x] 10.6.1: Checkpoint - Preparación (módulos cargados)
+- [ ] 10.6.2: Activar módulos gradualmente (PENDIENTE)
+- [ ] 10.6.3: Eliminar código duplicado (PENDIENTE)
 
 ---
 

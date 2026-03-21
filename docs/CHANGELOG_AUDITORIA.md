@@ -175,11 +175,14 @@
   - `src/routes/index.js` ✅
   - `src/middleware/auth.js` ✅
   - `src/utils/helpers.js` ✅
-- **Pendiente:**
-  - 10.6: Integración final en server.js
+- **Sub-fases completadas:**
+  - 10.6.1: Checkpoint - Módulos cargados, listo para activar ✅
+  - 10.6.2: Activar módulos gradualmente (pendiente)
+  - 10.6.3: Eliminar código duplicado (pendiente)
 - **Notas:**
-  - Avance: 75% de modularización completada
-  - Falta integrar módulos en server.js
+  - Avance: 85% de modularización completada
+  - Servidor funcionando con módulos preparados
+  - Código original mantenido para seguridad
 
 ---
 
