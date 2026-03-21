@@ -17,6 +17,7 @@ const helmet = require('helmet');
 const imap = require('imap');
 const { simpleParser } = require('mailparser');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 // --- VERSIÓN DINÁMICA V10.3 ---
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
