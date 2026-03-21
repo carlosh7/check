@@ -16,6 +16,7 @@ const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
 const versionRoutes = require('./version.routes');
 const webhooksRoutes = require('./webhooks.routes');
+const pushRoutes = require('./push.routes');
 
 function registerRoutes(app, rootDir) {
     const path = require('path');
@@ -68,6 +69,9 @@ function registerRoutes(app, rootDir) {
     
     // Webhooks (integraciones externas)
     app.use('/api/webhooks', webhooksRoutes);
+    
+    // Push notifications (Web Push API)
+    app.use('/api/push', pushRoutes.router);
     
     console.log('✓ Rutas registradas (modulares)');
 }

@@ -1,4 +1,5 @@
 // server.js — Check Elite Pro v12.2.2 (Quill Fix & Robust Sync)
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -34,7 +35,7 @@ const app = express();
 const server = http.createServer(app);
 
 // CORS whitelist desde variable de entorno
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8080').split(',');
 
 const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
 const port = process.env.PORT || 3000;

@@ -10,6 +10,7 @@ const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+const { sendPushToEventUsers } = require('./push.routes');
 
 const router = express.Router();
 
@@ -222,6 +223,15 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
             checkin_time: null
         }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
         
+        // Send push notification to event organizers (optional)
+        sendPushToEventUsers(guest.event_id, {
+            title: 'Check-in revertido',
+            body: `${guest.name} ha sido marcado como no presente.`,
+            icon: '/icon-192.png',
+            data: { url: `/events/${guest.event_id}/guests` },
+            tag: 'guest-uncheckin'
+        }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
+        
         return res.json({ success: true, action: 'uncheckin' });
     }
     
@@ -237,6 +247,15 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         checked_in: true,
         checkin_time: new Date().toISOString()
     }, guest.event_id).catch(err => console.error(`Error triggering webhook for guest ${guest.id}:`, err.message));
+    
+    // Send push notification to event organizers
+    sendPushToEventUsers(guest.event_id, {
+        title: '¡Nuevo check-in!',
+        body: `${guest.name} ha llegado al evento.`,
+        icon: '/icon-192.png',
+        data: { url: `/events/${guest.event_id}/guests` },
+        tag: 'guest-checkin'
+    }).catch(err => console.error(`Error sending push notification for guest ${guest.id}:`, err.message));
     
     res.json({ success: true, action: 'checkin' });
 });

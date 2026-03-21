@@ -272,6 +272,115 @@ window.App = {
         }
     },
     
+    // ═══ NOTIFICACIONES PUSH (Web Push API) ═══
+    initPushNotifications: async function() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.log('Push notifications no soportadas en este navegador.');
+            return false;
+        }
+        
+        try {
+            // Registrar service worker si no está registrado
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registrado:', registration);
+            
+            // Solicitar permiso para notificaciones
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.log('Permiso para notificaciones denegado.');
+                return false;
+            }
+            
+            // Obtener clave pública VAPID del servidor
+            const vapidPublicKey = await this.getVAPIDPublicKey();
+            if (!vapidPublicKey) {
+                console.error('No se pudo obtener la clave pública VAPID.');
+                return false;
+            }
+            
+            // Suscribir al usuario
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
+            });
+            
+            // Enviar suscripción al servidor
+            await this.sendPushSubscription(subscription);
+            
+            console.log('Usuario suscrito a notificaciones push:', subscription);
+            return true;
+        } catch (error) {
+            console.error('Error al inicializar notificaciones push:', error);
+            return false;
+        }
+    },
+    
+    getVAPIDPublicKey: async function() {
+        try {
+            const res = await this.fetchAPI('/push/vapid-public-key');
+            return res.publicKey;
+        } catch (error) {
+            console.error('Error al obtener clave pública VAPID:', error);
+            return null;
+        }
+    },
+    
+    sendPushSubscription: async function(subscription) {
+        try {
+            await this.fetchAPI('/push/subscribe', {
+                method: 'POST',
+                body: JSON.stringify(subscription)
+            });
+            console.log('Suscripción enviada al servidor.');
+        } catch (error) {
+            console.error('Error al enviar suscripción:', error);
+        }
+    },
+    
+    removePushSubscription: async function() {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                await subscription.unsubscribe();
+                await this.fetchAPI('/push/unsubscribe', {
+                    method: 'POST',
+                    body: JSON.stringify({ endpoint: subscription.endpoint })
+                });
+                console.log('Suscripción eliminada.');
+            }
+        } catch (error) {
+            console.error('Error al eliminar suscripción:', error);
+        }
+    },
+    
+    urlBase64ToUint8Array: function(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    },
+    
+    sendTestNotification: async function(title, body) {
+        try {
+            await this.fetchAPI('/push/send-test', {
+                method: 'POST',
+                body: JSON.stringify({ title, body })
+            });
+            console.log('Notificación de prueba enviada.');
+        } catch (error) {
+            console.error('Error al enviar notificación de prueba:', error);
+        }
+    },
+    
     // Mostrar/ocultar elementos según permisos
     updateUIPermissions() {
         // Admin: mostrar todo el menú de administración global
@@ -3371,6 +3480,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (user && (user.userId || user.token)) {
                 console.log('[AUTH] Valid session, loading app-shell for role:', user.role);
                 window.App.state.user = user;
+                // Inicializar notificaciones push
+                window.App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
                 
                 // CARGAR APP-SHELL PRIMERO
                 try {
@@ -3447,6 +3558,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("[LOGIN] Respuesta:", d);
             if (d.success) { 
                 App.state.user = d; LS.set('user', JSON.stringify(d));
+                // Inicializar notificaciones push
+                App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
                 
                 // CARGAR APP-SHELL PRIMERO
                 try {

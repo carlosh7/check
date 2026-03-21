@@ -415,6 +415,17 @@ db.exec(`CREATE TABLE IF NOT EXISTS webhooks (
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribed INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribe_token TEXT"); } catch (_) {}
 
+// 18. Suscripciones para notificaciones push (Web Push API)
+db.exec(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)`);
+
 // Semillas de plantillas de email por defecto
 // Semillas de plantillas de email por defecto (Sistema)
 const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL").get();
