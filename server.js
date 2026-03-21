@@ -381,7 +381,7 @@ async function sendEventEmail(eventId, to, templateType, data = {}) {
             organization: data.organization || '',
             checkin_time: data.checkin_time || new Date().toLocaleString('es-ES'),
             agenda: data.agenda || await getEventAgenda(eventId),
-            suggestion_url: `${req?.headers?.origin || 'http://localhost:3000'}/suggest.html?event=${eventId}${data.guest_id ? '&guest=' + data.guest_id : ''}`
+            suggestion_url: `${data.origin || 'http://localhost:3000'}/suggest.html?event=${eventId}${data.guest_id ? '&guest=' + data.guest_id : ''}`
         };
         
         // Reemplazar variables
@@ -1443,6 +1443,33 @@ app.post('/api/public-register', async (req, res) => {
     }
 });
 
+// Obtener pre-registros de un evento
+app.get('/api/events/:eventId/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const rows = db.prepare("SELECT * FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
+    res.json(rows);
+});
+
+// Aprobar o rechazar pre-registro
+app.put('/api/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { status } = req.body; // 'APPROVED' o 'REJECTED'
+    const id = castId('pre_registrations', req.params.id);
+    
+    if (status === 'APPROVED') {
+        const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
+        if (pre) {
+            // Pasar a la tabla de invitados
+            const guestId = getValidId('guests');
+            db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`)
+              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, uuidv4());
+        }
+    }
+    
+    db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
+    res.json({ success: true });
+});
+
 app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
 });
@@ -1847,10 +1874,63 @@ app.post('/api/events/:eventId/suggestions', (req, res) => {
     res.json({ success: true, message: '¡Gracias por tu sugerencia!' });
 });
 
+// ─────────────────────────────────────────────────────────────
+// ENCUESTAS DINÁMICAS (V11.6.1)
+// ─────────────────────────────────────────────────────────────
+
+// Obtener preguntas de la encuesta de un evento
+app.get('/api/events/:eventId/surveys', (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const rows = db.prepare("SELECT * FROM surveys WHERE event_id = ?").all(eId);
+    res.json(rows);
+});
+
+// Guardar/Actualizar encuesta de un evento
+app.put('/api/events/:eventId/surveys', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { questions } = req.body; // Array de objetos { question, type, options }
+
+    try {
+        db.transaction(() => {
+            // Limpiar anteriores para este evento
+            db.prepare("DELETE FROM surveys WHERE event_id = ?").run(eId);
+            
+            // Insertar nuevas
+            const insert = db.prepare("INSERT INTO surveys (id, event_id, question, type, options) VALUES (?, ?, ?, ?, ?)");
+            if (questions && questions.length > 0) {
+                questions.forEach(q => {
+                    insert.run(uuidv4(), eId, q.question, q.type || 'stars', q.options || '');
+                });
+            }
+        })();
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Enviar respuestas de encuesta (Público)
+app.post('/api/events/:eventId/surveys/responses', (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { guest_id, responses } = req.body; // responses es un objeto JSON
+
+    try {
+        const id = uuidv4();
+        db.prepare("INSERT INTO survey_responses (id, event_id, guest_id, responses_json, submitted_at) VALUES (?, ?, ?, ?, ?)")
+          .run(id, eId, guest_id || null, JSON.stringify(responses), new Date().toISOString());
+        res.json({ success: true, message: '¡Gracias por tus respuestas!' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --- SPA FALLBACK (V10.5) ---
 app.use((req, res, next) => {
     if (req.path === '/registro.html') {
         return res.sendFile(path.join(__dirname, 'registro.html'));
+    }
+    if (req.path === '/survey.html') {
+        return res.sendFile(path.join(__dirname, 'survey.html'));
     }
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
         res.sendFile(path.join(__dirname, 'index.html'));

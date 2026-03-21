@@ -2087,7 +2087,7 @@ window.App = {
         }
 
         // 2. Switchear vistas internas
-        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account", "view-smtp"];
+        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account", "view-smtp", "view-pre-registrations", "view-survey-manager"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -2102,6 +2102,10 @@ window.App = {
         // Admin/Dashboard siempre usa la versión simple dentro del nuevo layout
         if (viewName === 'admin') {
             targetViewId = "view-admin-simple";
+        }
+
+        if (viewName === 'survey-manager') {
+            targetViewId = "view-survey-manager";
         }
         
         const target = document.getElementById(targetViewId);
@@ -2141,6 +2145,12 @@ window.App = {
         if (viewName === 'smtp') {
             const savedSection = LS.get('email_admin_section') || 'config';
             this.navigateEmailSection(savedSection);
+        }
+        if (viewName === 'pre-registrations') {
+            this.loadPreRegistrations();
+        }
+        if (viewName === 'survey-manager') {
+            this.loadSurveyQuestions();
         }
     },
 
@@ -2265,6 +2275,12 @@ window.App = {
             e.preventDefault();
             await this.saveIMAPConfig();
         });
+
+        // Survey Form
+        sf('survey-question-form', async (e) => {
+            e.preventDefault();
+            await this.saveSurveyQuestion();
+        });
     },
     async loadAppVersion() {
         try {
@@ -2274,6 +2290,164 @@ window.App = {
             document.querySelectorAll('.app-version-text').forEach(el => el.innerText = `V${d.version}`);
         } catch(e) {}
     },
+
+    // --- PRE-REGISTRATIONS (NUEVO V11.6) ---
+    async loadPreRegistrations() {
+        if (!this.state.event) return;
+        const tbody = document.getElementById('pre-reg-tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold">Cargando solicitudes...</td></tr>';
+        
+        try {
+            const data = await this.fetchAPI(`/events/${this.state.event.id}/pre-registrations`);
+            if (tbody) {
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold">No hay pre-inscripciones pendientes</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(pr => `
+                    <tr class="hover:bg-white/2 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white">${pr.full_name}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">${pr.email}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-white text-xs">${pr.organization || '-'}</div>
+                            <div class="text-[9px] text-slate-500 uppercase font-black">${pr.position || '-'}</div>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-400">
+                            ${new Date(pr.created_at).toLocaleString()}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1 bg-amber-500/10 text-amber-500 text-[9px] font-black rounded-full border border-amber-500/20 uppercase">Pendiente</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="App.updatePreRegStatus('${pr.id}', 'APPROVED')" class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-all" title="Aprobar">
+                                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                                </button>
+                                <button onclick="App.updatePreRegStatus('${pr.id}', 'REJECTED')" class="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all" title="Rechazar">
+                                    <span class="material-symbols-outlined text-sm">cancel</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) { console.error("Error al cargar pre-registros", e); }
+    },
+
+    async updatePreRegStatus(id, status) {
+        if (!confirm(`¿Estás seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
+        try {
+            await this.fetchAPI(`/pre-registrations/${id}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            this.loadPreRegistrations();
+            if (status === 'APPROVED' && this.state.event) {
+                this.loadEventStats(this.state.event.id);
+            }
+        } catch (e) { alert('Error al actualizar estado'); }
+    },
+
+    // --- SURVEYS (NUEVO V11.6) ---
+    async loadSurveyQuestions() {
+        if (!this.state.event) return;
+        const list = document.getElementById('survey-questions-list');
+        if (list) list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold">Cargando encuesta...</div>';
+        
+        try {
+            const data = await this.fetchAPI(`/events/${this.state.event.id}/surveys`);
+            if (list) {
+                if (data.length === 0) {
+                    list.innerHTML = `
+                        <div class="glass-card p-12 rounded-[40px] border border-dashed border-white/10 text-center">
+                            <span class="material-symbols-outlined text-6xl text-slate-800 mb-4">poll</span>
+                            <p class="text-slate-500 font-bold">No has creado preguntas todavía.</p>
+                            <p class="text-[10px] text-slate-600 uppercase mt-2">Personaliza la encuesta QR de tu evento</p>
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = data.map(q => `
+                        <div class="glass-card p-6 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">
+                                    <span class="material-symbols-outlined text-sm">
+                                        ${q.type === 'text' ? 'description' : q.type === 'binary' ? 'thumbs_up_down' : q.type === 'rating' ? 'stars' : 'list'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="text-sm font-bold text-white">${q.title}</h5>
+                                    <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificación' : 'Opción Múltiple'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="App.openSurveyEditor('${q.id}')" class="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-sm">edit</span>
+                                </button>
+                                <button onclick="App.deleteSurveyQuestion('${q.id}')" class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            const resp = await this.fetchAPI(`/events/${this.state.event.id}/surveys/responses`);
+            const cEl = document.getElementById('survey-response-count');
+            if (cEl) cEl.innerText = resp.length;
+        } catch (e) { console.error("Error al cargar encuesta", e); }
+    },
+
+    openSurveyEditor(questionId = null) {
+        this.toggleSurveyOptions();
+        const m = document.getElementById('modal-survey-editor');
+        const f = document.getElementById('survey-question-form');
+        f.reset();
+        document.getElementById('survey-question-id').value = questionId || '';
+        m.classList.remove('hidden');
+    },
+
+    toggleSurveyOptions() {
+        const type = document.getElementById('survey-question-type').value;
+        const container = document.getElementById('survey-options-container');
+        if (container) container.classList.toggle('hidden', type !== 'multiple');
+    },
+
+    async saveSurveyQuestion() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        const data = {
+            title: document.getElementById('survey-question-title').value,
+            type: document.getElementById('survey-question-type').value,
+            options: document.getElementById('survey-question-options').value
+        };
+        const id = document.getElementById('survey-question-id').value;
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const endpoint = id ? `/surveys/${id}` : `/events/${eventId}/surveys`;
+            await this.fetchAPI(endpoint, { method, body: JSON.stringify(data) });
+            document.getElementById('modal-survey-editor').classList.add('hidden');
+            this.loadSurveyQuestions();
+        } catch (e) { alert('Error al guardar la pregunta'); }
+    },
+
+    async deleteSurveyQuestion(id) {
+        if (!confirm('¿Eliminar esta pregunta?')) return;
+        try {
+            await this.fetchAPI(`/surveys/${id}`, { method: 'DELETE' });
+            this.loadSurveyQuestions();
+        } catch (e) { alert('Error al eliminar'); }
+    },
+
+    exportSurveyResponses() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        window.open(`${this.constants.API_URL}/events/${eventId}/surveys/responses/export?userId=${this.state.user.userId}`, '_blank');
+    },
+
 
     // --- DATA LOADERS ---
     async loadEvents() {

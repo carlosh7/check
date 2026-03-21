@@ -56,7 +56,7 @@
                     <button onclick="document.getElementById('admin-file-import-pdf').click()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">picture_as_pdf</span> Cargar PDF
                     </button>
-                    <button onclick="App.showQR()" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
+                    <button onclick="App.navigate('survey-manager')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-sm">qr_code_2</span> Encuesta QR
                     </button>
                     <button onclick="App.navigate('pre-registrations')" class="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs transition-all">
@@ -123,132 +123,12 @@
                 <div id="events-list-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
             </div>
 
-            <!-- VIEW: ADMIN / SYSTEM (Unificado) -->
             <div id="view-admin-simple" class="hidden min-h-full p-8 md:p-12 animate-fade">
-                <!-- El contenido de administración/dashboard de evento se inyectará aquí o se mantendrá estructurado -->
+                <!-- ... existing dashboard content ... -->
                 <div id="admin-main-dashboard-simple">
-                    <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
-                                <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Panel del Evento
-                            </div>
-                            <h1 id="admin-event-title" class="text-5xl font-black font-display tracking-tight mb-2">Cargando...</h1>
-                            <div class="flex items-center gap-2 text-slate-500 text-sm">
-                                <span class="material-symbols-outlined text-sm">location_on</span>
-                                <span id="admin-event-location">Ubicación</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button id="btn-show-qr" class="px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-primary/20"><span class="material-symbols-outlined">qr_code_2</span> QR</button>
-                            <button id="btn-mailing" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5"><span class="material-symbols-outlined">mail</span> Mailing</button>
-                            <button id="btn-export-excel" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">Excel</button>
-                            <button id="btn-clear-db" class="px-6 py-3 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-all border border-red-500/10">Limpiar</button>
-                        </div>
-                    </header>
-
-                    <!-- Stats Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                        <div class="glass-card p-6 rounded-3xl">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Invitados</p>
-                            <h4 id="stat-total" class="text-3xl font-black font-display">0</h4>
-                        </div>
-                        <div class="glass-card p-6 rounded-3xl">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Empresas</p>
-                            <h4 id="stat-orgs" class="text-3xl font-black font-display">0</h4>
-                        </div>
-                        <div class="glass-card p-6 rounded-3xl border-l-4 border-primary">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Presencia Real</p>
-                            <h4 id="stat-presence" class="text-3xl font-black font-display text-primary">0%</h4>
-                        </div>
-                         <div class="glass-card p-6 rounded-3xl border-l-4 border-amber-500">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">En Sitio</p>
-                            <h4 id="stat-onsite" class="text-3xl font-black font-display text-amber-500">0</h4>
-                        </div>
-                    </div>
-                    <div id="admin-analytics-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 animate-fade">
-                        <!-- Flujo de Entrada -->
-                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary text-lg">timeline</span> Flujo de ingreso por hora
-                            </h4>
-                            <div class="h-[250px] relative">
-                                <canvas id="flowChart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Distribución por Empresa -->
-                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary text-lg">pie_chart</span> Top 5 Organizaciones
-                            </h4>
-                            <div class="h-[250px] flex items-center justify-center relative">
-                                <canvas id="orgChart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Estado de Acreditación -->
-                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span> Estado de Acreditación
-                            </h4>
-                            <div class="h-[250px] flex items-center justify-center relative">
-                                <canvas id="statusChart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Rendimiento Mailing -->
-                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
-                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary text-lg">mail</span> Alcance de Mailing
-                            </h4>
-                            <div class="h-[250px] flex items-center justify-center relative">
-                                <canvas id="mailingChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GUEST LIST SECTION MEJORADA -->
+                    <!-- ... existing dashboard content ... -->
                     <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
-                        <!-- FILTROS DE BÚSQUEDA -->
-                        <div class="p-6 border-b border-white/5">
-                            <div class="flex flex-col lg:flex-row gap-4">
-                                <!-- Búsqueda -->
-                                <div class="flex-1 relative">
-                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
-                                    <input type="text" id="guest-search" onkeyup="App.filterGuests()" placeholder="Buscar por nombre, correo, teléfono..." class="w-full bg-slate-800/50 text-white text-sm rounded-xl pl-12 pr-4 py-3 border border-white/10 focus:border-primary/50 focus:outline-none">
-                                </div>
-                                <!-- Filtro Empresa -->
-                                <select id="filter-guest-org" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
-                                    <option value="">Todas las empresas</option>
-                                </select>
-                                <!-- Filtro Estado -->
-                                <select id="filter-guest-status" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
-                                    <option value="">Todos los estados</option>
-                                    <option value="acreditado">Acreditados</option>
-                                    <option value="pendiente">Pendientes</option>
-                                </select>
-                                <!-- Filtro Vegano -->
-                                <select id="filter-guest-vegan" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
-                                    <option value="">Vegano</option>
-                                    <option value="si">Sí</option>
-                                    <option value="no">No</option>
-                                </select>
-                                <!-- Filtro Sexo -->
-                                <select id="filter-guest-gender" onchange="App.filterGuests()" class="bg-slate-800/50 text-white text-sm rounded-xl px-4 py-3 border border-white/10">
-                                    <option value="">Sexo</option>
-                                    <option value="M">Masculino</option>
-                                    <option value="F">Femenino</option>
-                                    <option value="O">Otro</option>
-                                </select>
-                            </div>
-                            <div class="flex gap-4 mt-4">
-                                <label class="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
-                                    <input type="checkbox" id="filter-guest-duplicates" onchange="App.filterGuests()" class="w-4 h-4 rounded bg-slate-800 border-white/10">
-                                    <span>Solo duplicados</span>
-                                </label>
-                                <span id="guest-count" class="text-xs text-slate-500 ml-auto">0 invitados</span>
-                            </div>
-                        </div>
+                        <!-- ... existing table content ... -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
@@ -256,6 +136,164 @@
                                 </thead>
                                 <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PRE-INSCRIPCIONES (NUEVO V11.6) -->
+            <div id="view-pre-registrations" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
+                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Solicitudes Externas
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Pre-inscripciones</h1>
+                        <p class="text-slate-500 text-sm">Aprueba o rechaza a los asistentes que se registraron vía link público.</p>
+                    </div>
+                    <button onclick="App.loadPreRegistrations()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                        <span class="material-symbols-outlined text-sm">refresh</span> Actualizar
+                    </button>
+                </header>
+
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                <tr>
+                                    <th class="px-6 py-4">Asistente</th>
+                                    <th class="px-6 py-4">Empresa / Cargo</th>
+                                    <th class="px-6 py-4">Fecha Solicitud</th>
+                                    <th class="px-6 py-4 text-center">Estado</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pre-reg-tbody" class="divide-y divide-white/5">
+                                <!-- Cargado vía JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: GESTIÓN DE ENCUESTAS QR (NUEVO V11.6) -->
+            <div id="view-survey-manager" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
+                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2 text-amber-500 font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> Feedback Interactivo
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Encuesta QR</h1>
+                        <p class="text-slate-500 text-sm">Configura las preguntas que tus asistentes responderán al escanear el QR.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="App.openSurveyEditor()" class="btn-primary !py-3 !px-6 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined">add_circle</span> Nueva Pregunta
+                        </button>
+                        <button onclick="App.showQR()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                            <span class="material-symbols-outlined text-sm">qr_code_2</span> Ver QR
+                        </button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-4" id="survey-questions-list">
+                        <!-- Cargado vía JS -->
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10 bg-slate-900/40">
+                            <h4 class="text-[10px] font-black text-white uppercase tracking-widest mb-6">Analítica de Encuesta</h4>
+                            <div class="flex items-center gap-4 mb-8">
+                                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-2xl">poll</span>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-black text-white" id="survey-response-count">0</p>
+                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Respuestas</p>
+                                </div>
+                            </div>
+                            <button onclick="App.exportSurveyResponses()" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-white/5">
+                                <span class="material-symbols-outlined text-sm">download</span> Descargar Resultados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PRE-INSCRIPCIONES (NUEVO V11.6) -->
+            <div id="view-pre-registrations" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
+                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Solicitudes Externas
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Pre-inscripciones</h1>
+                        <p class="text-slate-500 text-sm">Aprueba o rechaza a los asistentes que se registraron vía link público.</p>
+                    </div>
+                    <button onclick="App.loadPreRegistrations()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                        <span class="material-symbols-outlined text-sm">refresh</span> Actualizar
+                    </button>
+                </header>
+
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                <tr>
+                                    <th class="px-6 py-4">Asistente</th>
+                                    <th class="px-6 py-4">Empresa / Cargo</th>
+                                    <th class="px-6 py-4">Fecha Solicitud</th>
+                                    <th class="px-6 py-4 text-center">Estado</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pre-reg-tbody" class="divide-y divide-white/5">
+                                <!-- Cargado vía JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: GESTIÓN DE ENCUESTAS QR (NUEVO V11.6) -->
+            <div id="view-survey-manager" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
+                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2 text-amber-500 font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> Feedback Interactivo
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Encuesta QR</h1>
+                        <p class="text-slate-500 text-sm">Configura las preguntas que tus asistentes responderán al escanear el QR.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="App.openSurveyEditor()" class="btn-primary !py-3 !px-6 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined">add_circle</span> Nueva Pregunta
+                        </button>
+                        <button onclick="App.showQR()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                            <span class="material-symbols-outlined text-sm">qr_code_2</span> Ver QR
+                        </button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-4" id="survey-questions-list">
+                        <!-- Cargado vía JS -->
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10 bg-slate-900/40">
+                            <h4 class="text-[10px] font-black text-white uppercase tracking-widest mb-6">Analítica de Encuesta</h4>
+                            <div class="flex items-center gap-4 mb-8">
+                                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-2xl">poll</span>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-black text-white" id="survey-response-count">0</p>
+                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Respuestas</p>
+                                </div>
+                            </div>
+                            <button onclick="App.exportSurveyResponses()" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-white/5">
+                                <span class="material-symbols-outlined text-sm">download</span> Descargar Resultados
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1463,6 +1501,39 @@
                 </button>
                 <button onclick="document.getElementById('modal-ticket').classList.add('hidden')" class="px-6 py-4 bg-white/5 text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-colors">Cerrar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SURVEY EDITOR (NUEVO V11.6) -->
+    <div id="modal-survey-editor" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
+        <div class="glass-card p-10 rounded-[48px] max-w-lg w-full shadow-2xl border border-white/10">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black font-display">Configurar Pregunta</h3>
+                <button onclick="document.getElementById('modal-survey-editor').classList.add('hidden')" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="survey-question-form" class="space-y-6">
+                <input type="hidden" id="survey-question-id">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Enunciado de la Pregunta</label>
+                    <input type="text" id="survey-question-title" required placeholder="Ej: ¿Qué te pareció la charla?" class="input-field bg-slate-900/50">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Tipo de Respuesta</label>
+                    <select id="survey-question-type" class="input-field bg-slate-900/50" onchange="App.toggleSurveyOptions()">
+                        <option value="text">Texto Libre (Abierta)</option>
+                        <option value="binary">Sí / No</option>
+                        <option value="rating">Calificación (1-5 Estrellas)</option>
+                        <option value="multiple">Opción Múltiple</option>
+                    </select>
+                </div>
+                <div id="survey-options-container" class="hidden space-y-3">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Opciones (separadas por coma)</label>
+                    <input type="text" id="survey-question-options" placeholder="Opc 1, Opc 2, Opc 3" class="input-field bg-slate-900/50">
+                </div>
+                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/30">Guardar Pregunta</button>
+            </form>
         </div>
     </div>
 
