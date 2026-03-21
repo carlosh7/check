@@ -1,4 +1,4 @@
-# Check | Registro de Invitados
+# Check Pro | Sistema de Gestión de Eventos
 
 Una aplicación web moderna y elegante para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.
 
@@ -9,58 +9,113 @@ Una aplicación web moderna y elegante para la gestión y registro de invitados 
 - **Importación de Datos**: Capacidad para importar listas de invitados desde archivos Excel (.xlsx, .xls) y CSV.
 - **Contenedorizado**: Listo para ser desplegado con Docker.
 - **Responsive**: Totalmente adaptable a dispositivos móviles y escritorio.
+- **Seguridad**: Contraseñas hasheadas con bcrypt, CORS configurable, rate limiting.
 
 ## 🚀 Tecnologías Utilizadas
 
-- **HTML5 & CSS3** (Vanilla CSS)
-- **JavaScript** (ES6+)
-- **SheetJS** (Para procesamiento de Excel)
+- **Backend**: Node.js + Express
+- **Base de datos**: SQLite (better-sqlite3)
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Tiempo real**: Socket.io
+- **Procesamiento Excel**: ExcelJS
+- **Generación QR**: qrcode
+- **Seguridad**: bcryptjs, helmet, express-rate-limit
 - **Docker & Docker Compose**
 
 ## 🛠️ Cómo Ejecutar
 
-### Requisitos Previos
+### Opción 1: Node.js Directo
 
-- [Docker](https://www.docker.com/products/docker-desktop/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+```bash
+# Clonar repositorio
+git clone https://github.com/carlosh7/check.git
+cd check
 
-### Pasos para el despliegue
+# Instalar dependencias
+npm install
 
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/carlosh7/check.git
-   cd check
-   ```
+# Copiar variables de entorno
+cp .env.example .env
 
-2. Ejecuta la aplicación con Docker Compose:
-   ```bash
-   docker-compose up -d --build
-   ```
+# Iniciar servidor
+npm start
+```
 
-3. Accede a la aplicación en:
-   `http://localhost:3000`
+### Opción 2: Docker
 
-## 🔐 Acceso Inicial (Administrador)
+```bash
+# Clonar repositorio
+git clone https://github.com/carlosh7/check.git
+cd check
 
-Para el primer ingreso al sistema, utiliza las siguientes credenciales maestras:
+# Ejecutar con Docker Compose
+docker-compose up -d --build
+```
 
-- **Usuario:** `admin@check.com`
-- **Contraseña:** `admin123`
+### Acceso
 
-> [!IMPORTANT]
-> Estas credenciales tienen el rol de **ADMIN** y están pre-aprobadas. Se recomienda cambiar la contraseña tras el primer inicio de sesión por motivos de seguridad.
+Abre tu navegador en: `http://localhost:3000`
+
+## 🔐 Seguridad
+
+### Configuración de Variables de Entorno
+
+Crea un archivo `.env` basado en `.env.example`:
+
+```env
+PORT=3000
+JWT_SECRET=genera_una_clave_unica
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+### Credenciales de Administrador
+
+> [!WARNING]
+> **CAMBIAR LA CONTRASEÑA INMEDIATAMENTE DESPUÉS DEL PRIMER LOGIN**
+
+Por defecto se crea un usuario administrador. Las credenciales iniciales están en `.env.example` (configuradas durante la instalación).
+
+Para cambiar la contraseña:
+1. Inicia sesión como administrador
+2. Ve a Configuración > Mi Cuenta
+3. Cambia la contraseña
 
 ## 📁 Estructura del Proyecto
 
-- `index.html`: Estructura principal de la aplicación.
-- `style.css`: Estilos y sistema de diseño.
-- `script.js`: Lógica de navegación, temas e importación.
-- `Dockerfile`: Configuración de la imagen de Nginx.
-- `docker-compose.yml`: Orquestación del contenedor.
+```
+├── index.html          # Página principal (login)
+├── app-shell.html      # Aplicación principal (SPA)
+├── registro.html       # Página de registro público
+├── survey.html         # Página de encuestas QR
+├── script.js          # Lógica de la aplicación
+├── style.css          # Estilos
+├── server.js          # Servidor Express (API)
+├── database.js        # Esquema y operaciones de BD
+├── sw.js              # Service Worker (PWA)
+├── docs/              # Documentación
+│   ├── AUDITORIA_*.md # Informe de auditoría
+│   ├── CHANGELOG_*.md # Registro de cambios
+│   └── EJECUCION_*.md # Plan de ejecución
+├── scripts/           # Scripts auxiliares
+│   └── migrate_passwords.js # Migración de contraseñas
+├── .env.example       # Plantilla de configuración
+├── .gitignore         # Archivos ignorados
+├── package.json       # Dependencias
+└── docker-compose.yml # Orquestación Docker
+```
+
+## 🔄 Migración de Contraseñas
+
+Si necesitas migrar contraseñas legacy a bcrypt:
+
+```bash
+node scripts/migrate_passwords.js
+```
 
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
+
 Desarrollado con ❤️ para la gestión de eventos de alto nivel.
