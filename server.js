@@ -1751,11 +1751,9 @@ app.use((req, res, next) => {
     }
 });
 
-// --- REGISTRAR RUTAS MODULARES (Fase 10) ---
-// Activando rutas de email
-const emailRoutes = require('./src/routes/email.routes');
-app.use('/api', emailRoutes);
-// registerRoutes(app, io); // Descomentar cuando se complete migración
+// --- REGISTRAR RUTAS MODULARES (Fase 10.6.3) ---
+// Activando TODAS las rutas modulares
+registerRoutes(app, io);
 
 // Endpoint Público de Desuscripción
 app.get('/unsubscribe/:token', (req, res) => {

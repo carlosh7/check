@@ -31,8 +31,8 @@ function registerRoutes(app, io) {
     app.use('/api/guests', guestsRoutes);
     if (io) guestsRoutes.setIO(io);
     
-    // Email
-    app.use('/api/email', emailRoutes);
+    // Email (SMTP, IMAP, templates, queue)
+    app.use('/api', emailRoutes);
     
     // Settings
     app.use('/api/settings', settingsRoutes);
