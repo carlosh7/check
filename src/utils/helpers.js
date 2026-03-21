@@ -38,10 +38,25 @@ function getProducerGroups(userId) {
     } catch(e) { return []; }
 }
 
+function hasEventAccess(userId, eventId, role) {
+    if (role === 'ADMIN') return true;
+    try {
+        const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(eventId);
+        if (!event) return false;
+        if (event.group_id) {
+            const groups = getProducerGroups(userId);
+            return groups.includes(event.group_id);
+        }
+        const userEvents = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);
+        return !!userEvents;
+    } catch(e) { return false; }
+}
+
 module.exports = {
     getValidId,
     castId,
     successResponse,
     errorResponse,
-    getProducerGroups
+    getProducerGroups,
+    hasEventAccess
 };

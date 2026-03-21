@@ -27,6 +27,9 @@ function registerRoutes(app, io) {
     // Events
     app.use('/api/events', eventsRoutes);
     
+    // Surveys (encuestas, sugerencias, agenda - montadas en /api/events/:eventId/...)
+    app.use('/api/events', surveysRoutes);
+    
     // Guests
     app.use('/api/guests', guestsRoutes);
     if (io) guestsRoutes.setIO(io);

@@ -5,7 +5,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
-const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
+const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -127,6 +127,43 @@ router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR'
     }
     
     db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
+    res.json({ success: true });
+});
+
+// Obtener usuarios asignados a un evento
+router.get('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    
+    if (req.userRole === 'PRODUCTOR') {
+        if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+            return res.status(403).json({ error: 'No tienes acceso a este evento' });
+        }
+    }
+    
+    const users = db.prepare(`
+        SELECT u.id, u.username, u.display_name, u.role, u.status, ue.created_at as assigned_at
+        FROM users u
+        INNER JOIN user_events ue ON u.id = ue.user_id
+        WHERE ue.event_id = ?
+        ORDER BY u.display_name || u.username
+    `).all(eventId);
+    
+    res.json(users);
+});
+
+// Asignar usuario a evento
+router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { userId } = req.body;
+    const eventId = castId('events', req.params.eventId);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const id = getValidId('user_events');
+    db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+      .run(id, userId, eventId, new Date().toISOString());
+    
     res.json({ success: true });
 });
 
