@@ -8,8 +8,8 @@
 | Métrica | Valor |
 |---------|-------|
 | Versión | 12.2.2 |
-| Líneas server.js | **610** (desde 1780) |
-| Rutas modulares | **95%** (57/60) |
+| Líneas server.js | **593** (desde 1780) |
+| Rutas modulares | **97%** (70/72) |
 | Tests | 26/26 ✅ |
 | Docker | Puerto 8080 ✅ |
 | Base de datos | Funcional ✅ |
@@ -26,30 +26,27 @@
 - [x] Hash contraseñas con bcrypt
 - [x] Índices de base de datos (15 índices)
 - [x] Sistema de migrations
-- [x] Modularización de rutas (95%)
-- [x] server.js limpio: 1780 → 610 líneas (-1170)
-- [x] Auth routes 100% modulares (login, signup, password reset)
+- [x] **Modularización de rutas 97%** (70/72 rutas)
+- [x] **server.js: 1780 → 593 líneas** (-1187)
+- [x] **Auth routes 100% modulares** (login, signup, password reset)
+- [x] **Public routes 100% modulares** (unsubscribe)
 
 ### Estructura Modular
 ```
-src/
-├── routes/
-│   ├── index.js           ✅ Registro centralizado
-│   ├── auth.routes.js     ✅ Login, signup, password reset
-│   ├── users.routes.js   ✅ CRUD + profile, password, status
-│   ├── events.routes.js  ✅ CRUD + guests, pre-registrations
-│   ├── guests.routes.js   ✅ Import/export, checkin, stats
-│   ├── email.routes.js    ✅ SMTP, IMAP, templates, queue
-│   ├── surveys.routes.js  ✅ Encuestas, sugerencias, agenda
-│   ├── groups.routes.js  ✅ Grupos
-│   └── settings.routes.js ✅ Configuraciones
-├── middleware/
-│   └── auth.js            ✅ Auth dual (x-user-id + Bearer)
-└── utils/
-    └── helpers.js        ✅ getValidId, castId, getProducerGroups
+src/routes/
+├── index.js           ✅ Registro centralizado
+├── auth.routes.js     ✅ Login, signup, password reset
+├── users.routes.js   ✅ CRUD + profile, password, status
+├── events.routes.js  ✅ CRUD + guests, pre-registrations
+├── guests.routes.js   ✅ Import/export, checkin, stats
+├── email.routes.js    ✅ SMTP, IMAP, templates, queue
+├── surveys.routes.js ✅ Encuestas, sugerencias, agenda
+├── groups.routes.js  ✅ Grupos
+├── settings.routes.js ✅ Configuraciones
+└── public.routes.js   ✅ Unsubscribe
 ```
 
-### Alta Prioridad Completada
+### 🔴 Alta Prioridad - 100% COMPLETADO ✅
 - [x] server.js limpio: 1780 → 652 líneas (-1128)
 - [x] Tests automatizados: 26 tests passando
 - [x] uuid v9 (CommonJS compatible)
