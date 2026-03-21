@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V12.1.1 (Smart Import & Legal Update)
+// server.js — Check Elite Pro V12.2.0 (Smart Import & PDF Engine)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');

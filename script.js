@@ -2735,6 +2735,11 @@ window.App = {
                 </td>
                 <td class="px-10 py-6 text-right">
                     <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        ${isChecked ? `
+                            <button onclick="App.generateCertificate('${g.id}')" class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado de Asistencia">
+                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                            </button>
+                        ` : ''}
                         <button onclick="App.showTicket('${g.id}')" class="w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Ver Ticket">
                             <span class="material-symbols-outlined text-sm">qr_code</span>
                         </button>
@@ -3058,6 +3063,180 @@ window.App = {
         document.getElementById('modal-import-progress').classList.add('hidden');
         this.loadGuests();
         this.updateStats();
+    },
+    
+    // --- PDF GENERATION (FASE 10) ---
+    async generateCertificate(guestId) {
+        const g = this.state.guests.find(x => x.id === guestId);
+        if (!g || !this.state.event) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const accent = this.state.event.ticket_accent_color || '#7c3aed';
+        
+        // Fondo y Marco Premium
+        doc.setFillColor(15, 23, 42); // bg-slate-900
+        doc.rect(0, 0, 297, 210, 'F');
+        
+        doc.setDrawColor(accent);
+        doc.setLineWidth(2);
+        doc.rect(10, 10, 277, 190);
+        doc.setLineWidth(0.5);
+        doc.rect(13, 13, 271, 184);
+        
+        // Contenido
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(40);
+        doc.text('CERTIFICADO', 148.5, 60, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(accent);
+        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.text('Se otorga el presente reconocimiento a:', 148.5, 100, { align: 'center' });
+        
+        doc.setFontSize(32);
+        doc.setFont('helvetica', 'bold');
+        doc.text(g.name.toUpperCase(), 148.5, 120, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
+        
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(accent);
+        doc.text(this.state.event.name, 148.5, 155, { align: 'center' });
+        
+        // Footer certificado
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const dateStr = new Date(this.state.event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        doc.text(`${this.state.event.location || 'S/L'} - ${dateStr}`, 148.5, 180, { align: 'center' });
+        
+        // Firma / Sello
+        doc.setDrawColor(255, 255, 255, 0.2);
+        doc.line(110, 175, 187, 175);
+        
+        doc.save(`Certificado_${g.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    async generateEventReport() {
+        if (!this.state.event) return;
+        const { jsPDF } = window.jspdf;
+        const doc = jsPDF();
+        const event = this.state.event;
+        const stats = await this.fetchAPI(`/stats/${event.id}`);
+        
+        // Cabecera Reporte
+        doc.setFillColor(124, 58, 237);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REPORTE EJECUTIVO DE ASISTENCIA', 15, 20);
+        doc.setFontSize(10);
+        doc.text(`CHECK APP v12.2 - ${new Date().toLocaleString()}`, 15, 30);
+        
+        // KPIs
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(14);
+        doc.text('RESUMEN DE MÉTRICAS', 15, 55);
+        
+        const kpis = [
+            ['Total Invitados', stats.total.toString()],
+            ['Acreditados', stats.checkedIn.toString()],
+            ['Ausentes', (stats.total - stats.checkedIn).toString()],
+            ['% de Asistencia', (stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0) + '%'],
+            ['Acreditaciones On-site', (stats.onsite || 0).toString()]
+        ];
+        
+        doc.autoTable({
+            startY: 60,
+            head: [['Indicador', 'Valor']],
+            body: kpis,
+            theme: 'striped',
+            headStyles: { fillColor: [124, 58, 237] }
+        });
+        
+        // Tabla de Invitados
+        doc.text('LISTADO DETALLADO DE ASISTENCIA', 15, doc.lastAutoTable.finalY + 15);
+        
+        const guestsData = this.state.guests.map(g => [
+            g.name,
+            g.email || '---',
+            g.organization || '---',
+            g.checked_in ? 'SÍ' : 'NO',
+            g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
+        ]);
+        
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['Nombre', 'Email', 'Empresa', 'Acreditado', 'Hora']],
+            body: guestsData,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [51, 65, 85] }
+        });
+        
+        doc.save(`Reporte_Check_${event.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    async generatePDFTicket(gId = null) {
+        const guestId = gId || this.state.ticketGuest?.id;
+        const g = this.state.guests.find(x => x.id === guestId);
+        if (!g || !this.state.event) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: [100, 150] }); // Formato tipo ticket
+        
+        // Diseño Ticket
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 100, 150, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(this.state.event.name, 50, 15, { align: 'center' });
+        
+        doc.setFontSize(8);
+        doc.setTextColor(124, 58, 237);
+        doc.text('BOLETO DIGITAL DE ACCESO', 50, 22, { align: 'center' });
+        
+        // Línea divisoria
+        doc.setDrawColor(255, 255, 255, 0.1);
+        doc.line(10, 28, 90, 28);
+        
+        // Info Invitado
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.text(g.name, 50, 40, { align: 'center' });
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text(g.organization || 'INVITADO ESPECIAL', 50, 45, { align: 'center' });
+        
+        // QR (Obtener de la UI si posible, o generar temporal)
+        const qrEl = document.querySelector('#ticket-qr-container canvas');
+        if (qrEl) {
+            const qrData = qrEl.toDataURL('image/png');
+            doc.addImage(qrData, 'PNG', 25, 55, 50, 50);
+        }
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.text(g.qr_token || '---', 50, 115, { align: 'center' });
+        
+        // Footer
+        doc.setFontSize(6);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Presente este QR en la entrada del evento.', 50, 135, { align: 'center' });
+        doc.text('Check Attendance Systems v12.2', 50, 140, { align: 'center' });
+        
+        doc.save(`Ticket_Check_${g.name.split(' ')[0]}.pdf`);
     },
 };
 
