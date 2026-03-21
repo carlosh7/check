@@ -5,10 +5,10 @@
  * Fecha: 21/03/2026
  * 
  * ÚLTIMO CAMBIO:
- * - server.js ahora ejecuta registerRoutes() PRIMERO
- * - Todas las rutas inline duplicadas están comentadas
- * - Rutas modulares manejan todas las peticiones API
- * - server.js mantiene solo rutas públicas únicas
+ * - Swagger API Docs en /api-docs (OpenAPI 3.0)
+ * - Paginación en /api/guests/:eventId y /api/email-logs
+ * - Socket.io extraído a módulo src/socket/index.js
+ * - server.js ahora usa el módulo socket en lugar de crear Server inline
  * 
  * ESTRUCTURA:
  * --------
@@ -25,8 +25,13 @@
  * │   └── settings.routes.js ✅ Configuraciones
  * ├── middleware/
  * │   └── auth.js          ✅ Auth dual (x-user-id + Bearer)
- * └── utils/
- *     └── helpers.js       ✅ getValidId, castId, getProducerGroups, hasEventAccess
+ * ├── utils/
+ * │   └── helpers.js       ✅ getValidId, castId, getProducerGroups, hasEventAccess
+ * ├── socket/
+ * │   └── index.js         ✅ init, getIO, emit, emitToRoom
+ * └── docs/
+ *     ├── swagger.js        ✅ OpenAPI config
+ *     └── api/             ✅ 3 archivos YAML con especificación de rutas
  * 
  * PROGRESO:
  * --------

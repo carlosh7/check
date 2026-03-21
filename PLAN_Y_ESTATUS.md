@@ -8,11 +8,12 @@
 | Métrica | Valor |
 |---------|-------|
 | Versión | 12.2.2 |
-| Líneas server.js | **555** (desde 1780) |
+| Líneas server.js | **552** (desde 1780) |
 | Rutas modulares | **100%** (72/72) |
 | Tests | 26/26 ✅ |
 | Docker | Puerto 8080 ✅ |
 | Base de datos | Funcional ✅ |
+| Swagger API | ✅ /api-docs | |
 
 ---
 
@@ -68,18 +69,21 @@ src/routes/
 - Quedan ~400 líneas comentadas en server.js
 - Opcional pero mejora legibilidad
 
-### 🟡 Corto Plazo
+### 🟡 Corto Plazo - 100% COMPLETADO ✅
 
 #### 3. Documentar API
-- Crear Swagger/OpenAPI
-- Documentar modelos de datos
+- [x] Crear Swagger/OpenAPI (`/api-docs`)
+- [x] 3 archivos YAML: auth-users, events-guests-email, groups-surveys-settings
+- [x] OpenAPI 3.0 spec
 
 #### 4. Paginación en listados
-- Invitados (1998 registros)
-- Logs de email
+- [x] Invitados: `GET /api/guests/:eventId?page=1&limit=50&search=`
+- [x] Logs email: `GET /api/email-logs?page=1&limit=50&type=&event_id=`
+- [x] Respuesta con `{ data, pagination: { page, limit, total, totalPages } }`
 
 #### 5. Mover Socket.io a módulo
-- Separar lógica realtime
+- [x] `src/socket/index.js` - init, getIO, emit, emitToRoom
+- [x] Guests routes ahora usan `socketGetIO()` directamente
 
 ### 🟢 Opcionales
 
@@ -131,7 +135,7 @@ git log --oneline -10
 
 ```
 Registro/
-├── server.js              (652 líneas - entry point)
+├── server.js              (552 líneas - entry point)
 ├── database.js            (configuración SQLite)
 ├── script.js             (frontend JS)
 ├── app-shell.html        (SPA principal)
@@ -141,7 +145,9 @@ Registro/
 ├── src/
 │   ├── routes/           (9 archivos de rutas)
 │   ├── middleware/        (auth.js)
-│   └── utils/            (helpers.js)
+│   ├── utils/            (helpers.js)
+│   ├── socket/           (index.js - Socket.io module)
+│   └── docs/             (swagger.js + api/*.yaml)
 ├── tests/                (Jest - 26 tests)
 ├── scripts/              (migrations)
 ├── docs/                 (auditoría, changelog)
@@ -170,10 +176,10 @@ Registro/
 ## 📝 GIT COMMITS RECIENTES
 
 ```
+8409182 feat: corto plazo - swagger api docs, pagination, socket.io module
 0d068de fix: uuid v9 for CommonJS compatibility, all 26 tests passing
 4f22bde feat: high priority tasks - server.js 652 lines, jest tests
 27bf2e7 docs: migration COMPLETE - 100% modular routes
-038ea60 refactor: server.js now uses modular routes first
 ```
 
 ---
@@ -196,4 +202,4 @@ Registro/
 
 ---
 
-**Última sesión**: 21/03/2026 - Problemas inmediatos resueltos, 26/26 tests passando
+**Última sesión**: 21/03/2026 - Corto plazo COMPLETO: Swagger, Paginación, Socket.io module. 26/26 tests passing
