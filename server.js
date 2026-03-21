@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V11.6.1 (Cleaning & Architecture Update)
+// server.js — Check Elite Pro V12.1.0 (Smart Import & Column Config)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -1918,4 +1918,4 @@ app.use((req, res, next) => {
     }
 });
 
-server.listen(port, () => console.log(`\x1b[35mCHECK PRO V11.6.1 (Analytics Dashboard + Phase 8): Puerto ${port}\x1b[0m`));
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));
