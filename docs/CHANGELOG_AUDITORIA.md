@@ -23,7 +23,7 @@
 | 4 | Corrección de paquetes | ✅ COMPLETA | 21/03/2026 |
 | 5 | Seguridad básica | ✅ COMPLETA | 21/03/2026 |
 | 6 | Hash de contraseñas | ✅ COMPLETA | 21/03/2026 |
-| 7 | Commit y documentación | PENDIENTE | - |
+| 7 | Commit y documentación | ✅ COMPLETA | 21/03/2026 |
 
 ---
 
