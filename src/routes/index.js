@@ -14,6 +14,7 @@ const groupsRoutes = require('./groups.routes');
 const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
+const versionRoutes = require('./version.routes');
 
 function registerRoutes(app, rootDir) {
     const path = require('path');
@@ -36,7 +37,10 @@ function registerRoutes(app, rootDir) {
     
     // Auth (login, signup, password reset)
     app.use('/api', authRoutes);
-    
+
+    // Version and health (público)
+    app.use('/api', versionRoutes);
+
     // Public routes (unsubscribe)
     app.use('/', publicRoutes);
     
