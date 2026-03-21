@@ -56,15 +56,15 @@
 
 const MIGRATION_STATUS = {
     totalRoutes: 60,
-    modularRoutes: 55,
-    inlineRoutes: 5,
-    percentage: 100,
+    modularRoutes: 57,
+    inlineRoutes: 3,
+    percentage: 95,
     serverLinesOriginal: 1780,
-    serverLinesCurrent: 1486,
-    serverLinesActive: ~650,
+    serverLinesCurrent: 610,
+    serverLinesActive: ~400,
     lastUpdate: '21/03/2026',
-    completedPhases: ['10.0', '10.1', '10.2', '10.3', '10.4', '10.5', '10.6.1', '10.6.2', '10.6.3', '10.6.4', '10.6.5', '10.6.6'],
-    status: 'COMPLETA - 100% modular, todas las rutas funcionando'
+    completedPhases: ['10.0', '10.1', '10.2', '10.3', '10.4', '10.5', '10.6.1', '10.6.2', '10.6.3', '10.6.4', '10.6.5', '10.6.6', '10.6.7'],
+    status: 'CASI COMPLETA - 95% modular, server.js 610 líneas'
 };
 
 module.exports = MIGRATION_STATUS;
