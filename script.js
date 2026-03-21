@@ -32,7 +32,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.1.0',
+        version: '12.2.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -3747,18 +3747,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             App.quillPolicy.root.innerHTML = s.policy_data || defaultPolicy;
             App.quillTerms.root.innerHTML = s.terms_conditions || defaultTerms;
+
+            // V12.2.1: Sincronizar checkbox de visibilidad
+            const chk = document.getElementById('check-show-legal-login');
+            if (chk) chk.checked = s.show_legal_login !== '0';
+            
+            App.applyUISettings(s);
         } catch {}
+    };
+
+    App.applyUISettings = (settings) => {
+        const links = document.getElementById('login-legal-links');
+        if (links) {
+            links.classList.toggle('hidden', settings.show_legal_login === '0');
+        }
     };
 
     cl('btn-save-policy', async () => {
         const html = App.quillPolicy.root.innerHTML;
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html }) });
+        const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
+        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html, show_legal_login: show }) });
         alert('✓ Política de datos guardada exitosamente.');
     });
 
     cl('btn-save-terms', async () => {
         const html = App.quillTerms.root.innerHTML;
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html }) });
+        const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
+        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html, show_legal_login: show }) });
         alert('✓ Términos y Condiciones guardados exitosamente.');
     });
 

@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V12.2.0 (Smart Import & PDF Engine)
+// server.js — Check Elite Pro V12.2.1 (Legal Control & Enhanced UI)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -413,7 +413,7 @@ global.sendEventEmailAuto = async function(eventId, to, templateType, data = {})
     return sendEventEmail(eventId, to, templateType, data);
 };
 
-// --- SECURITY MIDDLEWARE ---
+// SERVER V12.2.1 - ARQUITECTURA DISTRIBUIDA Y SEGURA 🛡️🚀
 app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
@@ -952,12 +952,15 @@ app.get('/api/app-version', (req, res) => {
 });
 
 app.put('/api/settings', authMiddleware(['ADMIN']), (req, res) => {
-    const { policy_data, terms_conditions } = req.body;
+    const { policy_data, terms_conditions, show_legal_login } = req.body;
     if (policy_data !== undefined) {
         db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'policy_data'").run(policy_data);
     }
     if (terms_conditions !== undefined) {
         db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'terms_conditions'").run(terms_conditions);
+    }
+    if (show_legal_login !== undefined) {
+        db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'show_legal_login'").run(show_legal_login);
     }
     res.json({ success: true });
 });

@@ -235,6 +235,9 @@ db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (
 db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND setting_value LIKE '%Texto provisional%'").run(POLICY_TEXT, 'policy_data');
 db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND setting_value LIKE '%Texto provisional%'").run(TERMS_TEXT, 'terms_conditions');
 
+// 7.1 Configuración de Visibilidad (V12.2.1)
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('show_legal_login', '1');
+
 // 8. Logs de Auditoría (V10)
 db.exec(`CREATE TABLE IF NOT EXISTS logs (
     id TEXT PRIMARY KEY,

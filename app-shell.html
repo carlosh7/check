@@ -950,7 +950,7 @@
             <div class="flex items-center gap-6">
                 <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
                 <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
-                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.6.0</span>
+                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V12.2.1</span>
             </div>
         </div>
                     <div id="sys-content-users" class="hidden animate-fade">
@@ -978,7 +978,60 @@
                             </table>
                         </div>
                     </div>
-                    <!-- Las vistas de legal y account ahora están en contenedores separados -->
+                    <!-- CONTENIDO: LEGALES (V12.2.1) -->
+                    <div id="sys-content-legal" class="hidden animate-fade space-y-8">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
+                                    <span class="w-2 h-10 bg-primary rounded-full"></span> Textos Legales y Privacidad
+                                </h3>
+                                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-2 ml-6">Configuración global de políticas y términos del sistema</p>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="check-show-legal-login" class="w-5 h-5 accent-primary">
+                                    <span class="text-xs font-bold text-slate-300">Mostrar en Login</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Política de Datos -->
+                            <div class="glass-card p-8 rounded-[40px] border border-white/10 space-y-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Datos</h4>
+                                    <button id="btn-save-policy" class="px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
+                                </div>
+                                <div id="editor-policy" class="bg-slate-900/50 rounded-2xl" style="height: 400px; border: none;"></div>
+                            </div>
+
+                            <!-- Términos y Condiciones -->
+                            <div class="glass-card p-8 rounded-[40px] border border-white/10 space-y-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos de Uso</h4>
+                                    <button id="btn-save-terms" class="px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
+                                </div>
+                                <div id="editor-terms" class="bg-slate-900/50 rounded-2xl" style="height: 400px; border: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: MI CUENTA (V12.2.1) -->
+                    <div id="sys-content-account" class="hidden animate-fade max-w-2xl">
+                        <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4 mb-10">
+                            <span class="w-2 h-10 bg-primary rounded-full"></span> Mi Cuenta
+                        </h3>
+                        <div class="glass-card p-10 rounded-[48px] border border-white/10 space-y-8">
+                            <form id="change-pass-form" class="space-y-6">
+                                <h4 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-4">Cambio de Contraseña</h4>
+                                <div class="space-y-4">
+                                    <input type="password" id="new-pass-1" required placeholder="Nueva Contraseña" class="input-field bg-slate-950/50">
+                                    <input type="password" id="new-pass-2" required placeholder="Confirmar Contraseña" class="input-field bg-slate-950/50">
+                                </div>
+                                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Actualizar Contraseña</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
