@@ -2,6 +2,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 
 const dbPath = path.resolve(__dirname, 'check_app.db');
 const db = new Database(dbPath);
@@ -491,8 +492,9 @@ if (templateCount.count <= 2) { // Si hay pocos o faltan las nuevas, forzamos ac
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
 if (userCount.count === 0) {
     const adminId = uuidv4();
+    const adminHash = bcrypt.hashSync('admin123', 10);
     db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(adminId, 'admin@check.com', 'admin123', 'ADMIN', 'APPROVED', new Date().toISOString());
+      .run(adminId, 'admin@check.com', adminHash, 'ADMIN', 'APPROVED', new Date().toISOString());
     console.log("✓ Admin por defecto creado: admin@check.com / admin123");
 }
 
