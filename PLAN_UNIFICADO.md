@@ -12,7 +12,7 @@
 | 🟢 **Seguridad** | ✅ 100% | JWT, Zod, CAPTCHA, audit logs |
 | 🔵 **Limpieza** | ✅ 100% | Código muerto eliminado |
 | 🟣 **Performance** | ✅ 100% | Redis✅, gzip✅, lazy loading✅, índices✅ |
-| 🟠 **UX/Features** | 🟡 En progreso | Webhooks✅, push✅, PDF✅, dark theme⏳ |
+| 🟠 **UX/Features** | 🟡 En progreso | Webhooks✅, push✅, PDF✅, dark theme✅, dashboard✅ |
 
 ---
 
@@ -140,8 +140,8 @@ Registro/
 - [x] Webhooks para integraciones externas (Slack, Discord) ✅
 - [✅] Notificaciones push (Web Push API)
 - [✅] Exportar reportes en PDF mejorados
-- [ ] Tema oscuro (dark theme)
-- [ ] Dashboard analítico con gráficos
+- [x] Tema oscuro (dark theme) - mejorado con detección sistema, transiciones suaves, Quill editor adaptativo
+- [x] Dashboard analítico con gráficos - mejorado con datos de género, dieta, organización y flujo horario
 - [ ] Sistema de tickets QR personalizados
 - [ ] App móvil PWA
 
@@ -220,4 +220,4 @@ d20a0d0 docs: update plan after security layer
 
 ---
 
-**Última sesión**: 21/03/2026 - Todo funcionando. Puerto 3000 y 8080 muestran V12.2.2. 26/26 tests passing.
+**Última sesión**: 21/03/2026 - Dashboard analítico mejorado con gráficos de género, dieta, organización y flujo horario. Tema oscuro completado. Puerto 3000 y 8080 muestran V12.2.2. 26/26 tests passing.

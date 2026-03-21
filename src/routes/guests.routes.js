@@ -267,13 +267,85 @@ router.post('/clear/:eventId', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Estadísticas de evento
+// Estadísticas de evento mejoradas con datos para gráficos
 router.get('/stats/:eventId', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.eventId);
+    
+    // KPIs básicos
     const total = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ?").get(eId).count;
     const checkedIn = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1").get(eId).count;
     const newRegistrations = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND is_new_registration = 1").get(eId).count;
-    res.json({ total, checkedIn, percentage: total > 0 ? Math.round((checkedIn / total) * 100) : 0, newRegistrations });
+    const onsite = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1").get(eId).count; // alias de checkedIn
+    
+    // Organizaciones únicas
+    const orgs = db.prepare("SELECT COUNT(DISTINCT organization) as count FROM guests WHERE event_id = ? AND organization IS NOT NULL AND organization != ''").get(eId).count;
+    
+    // Distribución por organización (top 5)
+    const orgDistribution = db.prepare(`
+        SELECT organization, COUNT(*) as count 
+        FROM guests 
+        WHERE event_id = ? AND organization IS NOT NULL AND organization != ''
+        GROUP BY organization 
+        ORDER BY count DESC 
+        LIMIT 5
+    `).all(eId);
+    
+    // Distribución por género
+    const genderDistribution = db.prepare(`
+        SELECT gender, COUNT(*) as count 
+        FROM guests 
+        WHERE event_id = ? AND gender IS NOT NULL
+        GROUP BY gender
+    `).all(eId);
+    
+    // Distribución por dieta (vegano vs otros)
+    const dietaryDistribution = db.prepare(`
+        SELECT 
+            CASE 
+                WHEN dietary_notes LIKE '%vegano%' OR dietary_notes LIKE '%vegetariano%' THEN 'Vegano/Vegetariano'
+                WHEN dietary_notes IS NOT NULL AND dietary_notes != '' THEN 'Otras dietas'
+                ELSE 'Sin restricciones'
+            END as diet_type,
+            COUNT(*) as count
+        FROM guests 
+        WHERE event_id = ?
+        GROUP BY diet_type
+    `).all(eId);
+    
+    // Flow data por hora de check-in (últimas 12 horas)
+    const flowData = db.prepare(`
+        SELECT 
+            strftime('%H', checkin_time) as hour,
+            COUNT(*) as count
+        FROM guests 
+        WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL
+        GROUP BY strftime('%H', checkin_time)
+        ORDER BY hour
+        LIMIT 12
+    `).all(eId).map(row => ({ hour: row.hour, count: row.count }));
+    
+    // Estadísticas de mailing (simplificado)
+    const mailingStats = db.prepare(`
+        SELECT 
+            SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) as sent,
+            SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as errors
+        FROM email_logs 
+        WHERE event_id = ?
+    `).get(eId) || { sent: 0, errors: 0 };
+    
+    res.json({ 
+        total, 
+        checkedIn, 
+        percentage: total > 0 ? Math.round((checkedIn / total) * 100) : 0, 
+        newRegistrations,
+        orgs,
+        onsite,
+        flowData,
+        orgDistribution,
+        genderDistribution,
+        dietaryDistribution,
+        mailingStats
+    });
 });
 
 module.exports = router;

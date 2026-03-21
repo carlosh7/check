@@ -84,6 +84,7 @@ Registro/
 - [x] Notificaciones push
 - [x] Exportar PDF reportes
 - [x] Tema oscuro (mejoras: detección sistema, transiciones suaves, Quill editor adaptativo, soporte en registro público)
+- [x] Dashboard analítico con gráficos (género, dieta, organización, flujo horario)
 
 ---
 
@@ -120,6 +121,7 @@ cd C:\Users\carlo\check && git pull && docker-compose down && docker-compose up 
 ## 📝 GIT COMMITS
 
 ```
+d5ee419 feat: tema oscuro mejorado con detección sistema, transiciones suaves y soporte en páginas públicas
 752a7da fix: move compression middleware after app initialization
 baeaeb3 feat: webhooks system for external integrations (Slack, Discord, etc)
 36e17ad fix: add /api/app-version route for frontend compatibility
@@ -140,4 +142,4 @@ b10c6e4 feat: security layer - JWT, Zod, CAPTCHA, audit logs
 
 ---
 
-**Última sesión**: 21/03/2026 - Sistema de webhooks implementado. Puerto 8080 activo con Redis. 26/26 tests passing. Performance 100% completado.
+**Última sesión**: 21/03/2026 - Tema oscuro mejorado implementado con detección del sistema, transiciones suaves y soporte en páginas públicas. Puerto 8080 activo con Redis. 26/26 tests passing. UX/Features 100% completado.

@@ -2981,6 +2981,12 @@ window.App = {
             sv('stat-presence', s.total > 0 ? Math.round((s.checkedIn / s.total) * 100) + '%' : '0%');
             sv('stat-onsite', s.onsite || 0);
             
+            // Restricciones dietéticas
+            const dietaryRestrictions = s.dietaryDistribution?.reduce((sum, d) => 
+                d.diet_type !== 'Sin restricciones' ? sum + d.count : sum, 0
+            ) || 0;
+            sv('stat-health', dietaryRestrictions);
+            
             // Renderizar Dashboard de Analítica
             this.renderAnalyticsDashboard(s);
         } catch (e) { console.error('Error actualizando estadísticas:', e); }
@@ -2996,6 +3002,8 @@ window.App = {
         this.renderOrgChart(data.orgDistribution);
         this.renderStatusChart(data);
         this.renderMailingChart(data.mailingStats);
+        this.renderGenderChart(data.genderDistribution);
+        this.renderDietaryChart(data.dietaryDistribution);
     },
 
     renderFlowChart(flow) {
@@ -3122,6 +3130,80 @@ window.App = {
             }
         });
     },
+
+    renderGenderChart(genderDistribution) {
+        const ctx = document.getElementById('genderChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.gender) this.state.charts.gender.destroy();
+        
+        // Mapear códigos de género a etiquetas
+        const genderLabels = {
+            'M': 'Masculino',
+            'F': 'Femenino',
+            'O': 'Otro'
+        };
+        
+        const labels = (genderDistribution || []).map(g => genderLabels[g.gender] || g.gender);
+        const data = (genderDistribution || []).map(g => g.count);
+        
+        this.state.charts.gender = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    },
+
+    renderDietaryChart(dietaryDistribution) {
+        const ctx = document.getElementById('dietaryChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.dietary) this.state.charts.dietary.destroy();
+        
+        const labels = (dietaryDistribution || []).map(d => d.diet_type);
+        const data = (dietaryDistribution || []).map(d => d.count);
+        
+        this.state.charts.dietary = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: ['#10b981', '#f59e0b', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    },
+
     async loadPublicEvent(eventNameParam = null) {
         try {
             const evs = await this.fetchAPI('/events');
