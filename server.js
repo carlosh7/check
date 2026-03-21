@@ -1412,32 +1412,7 @@ app.post('/api/public-register', async (req, res) => {
     }
 });
 
-// Obtener pre-registros de un evento
-app.get('/api/events/:eventId/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eId = castId('events', req.params.eventId);
-    const rows = db.prepare("SELECT * FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
-    res.json(rows);
-});
-
-// Aprobar o rechazar pre-registro
-app.put('/api/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { status } = req.body; // 'APPROVED' o 'REJECTED'
-    const id = castId('pre_registrations', req.params.id);
-    
-    if (status === 'APPROVED') {
-        const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
-        if (pre) {
-            // Pasar a la tabla de invitados
-            const guestId = getValidId('guests');
-            db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`)
-              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, uuidv4());
-        }
-    }
-    
-    db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
-    res.json({ success: true });
-});
+// Rutas de pre-registrations movidas a events.routes.js (modular)
 
 app.get('/api/app-version', (req, res) => {
     res.json({ version: APP_VERSION });
@@ -1467,88 +1442,7 @@ app.get('/api/events/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
     res.json(users);
 });
 
-// ═══ EMAIL POR EVENTO ═══
-
-// Obtener configuración SMTP de evento
-app.get('/api/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ?").get(eventId);
-    if (config) {
-        config.smtp_pass = config.smtp_pass ? '***' : '';
-    }
-    res.json(config || { event_id: eventId, enabled: 0 });
-});
-
-// Guardar configuración SMTP de evento
-app.put('/api/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled } = req.body;
-    
-    const existing = db.prepare("SELECT smtp_pass FROM event_email_config WHERE event_id = ?").get(eventId);
-    let passToSave = smtp_pass;
-    if (!smtp_pass || smtp_pass === '***') {
-        passToSave = existing?.smtp_pass || '';
-    }
-    
-    db.prepare(`INSERT OR REPLACE INTO event_email_config 
-                (id, event_id, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(getValidId('eec'), eventId, smtp_host || '', smtp_port || 587, smtp_user || '', passToSave, smtp_secure ? 1 : 0, from_name || '', from_email || '', enabled ? 1 : 0, new Date().toISOString());
-    
-    res.json({ success: true });
-});
-
-// Obtener plantillas de email de evento
-app.get('/api/events/:eventId/email-templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const templates = db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? ORDER BY template_type").all(eventId);
-    res.json(templates);
-});
-
-// Actualizar plantilla de email de evento
-app.put('/api/events/:eventId/email-templates/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const { subject, body, is_active, auto_send } = req.body;
-    const templateType = req.params.type;
-    
-    const existing = db.prepare("SELECT id FROM event_email_templates WHERE event_id = ? AND template_type = ?").get(eventId, templateType);
-    
-    if (existing) {
-        db.prepare("UPDATE event_email_templates SET subject = ?, body = ?, is_active = ?, auto_send = ?, updated_at = ? WHERE event_id = ? AND template_type = ?")
-          .run(subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString(), eventId, templateType);
-    } else {
-        db.prepare("INSERT INTO event_email_templates (id, event_id, template_type, subject, body, is_active, auto_send, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-          .run(getValidId('eet'), eventId, templateType, subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString());
-    }
-    
-    res.json({ success: true });
-});
-
-// Rutas /events/:eventId/agenda movidas a surveys.routes.js (modular)
-
-// Enviar email de prueba para evento
-app.post('/api/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const { test_email } = req.body;
-    
-    if (!test_email) return res.status(400).json({ error: 'Email de prueba requerido' });
-    
-    const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
-    if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-    
-    // Función simplificada para testing
-    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ? AND enabled = 1").get(eventId);
-    
-    if (!config || !config.smtp_host) {
-        return res.json({ success: false, error: 'SMTP no configurado o deshabilitado para este evento' });
-    }
-    
-    // Simular envío
-    console.log('📧 TEST: Email de prueba a', test_email, 'desde evento', event.name);
-    res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
-});
-
-// Rutas /events/:eventId/suggestions y /events/:eventId/surveys movidas a surveys.routes.js (modular)
+// Rutas de email por evento movidas a email.routes.js (modular)
 
 // --- SPA FALLBACK (V10.5) ---
 app.use((req, res, next) => {

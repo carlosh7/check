@@ -7,6 +7,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const { db } = require('../../database');
+const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -208,6 +209,80 @@ router.get('/emails/queue-stats', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, 
         error: db.prepare("SELECT COUNT(*) as count FROM email_queue WHERE status = 'ERROR'").get().count
     };
     res.json(stats);
+});
+
+// ═══ RUTAS DE EMAIL POR EVENTO ═══
+
+// Configuración de email por evento
+router.get('/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ?").get(eId);
+    if (config) {
+        config.smtp_pass = config.smtp_pass ? '***' : '';
+    }
+    res.json(config || {});
+});
+
+router.put('/events/:eventId/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled } = req.body;
+    
+    let passToSave = smtp_pass;
+    if (!smtp_pass || smtp_pass === '***') {
+        const current = db.prepare("SELECT smtp_pass FROM event_email_config WHERE event_id = ?").get(eId);
+        passToSave = current?.smtp_pass || '';
+    }
+    
+    db.prepare(`INSERT OR REPLACE INTO event_email_config (id, event_id, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, enabled, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(getValidId('eec'), eId, smtp_host || '', smtp_port || 587, smtp_user || '', passToSave, smtp_secure ? 1 : 0, from_name || '', from_email || '', enabled ? 1 : 0, new Date().toISOString());
+    
+    res.json({ success: true });
+});
+
+// Templates de email por evento
+router.get('/events/:eventId/email-templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const templates = db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? ORDER BY name ASC").all(eId);
+    res.json(templates);
+});
+
+router.put('/events/:eventId/email-templates/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const templateType = req.params.type;
+    const { subject, body, is_active, auto_send } = req.body;
+    
+    const existing = db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? AND template_type = ?").get(eId, templateType);
+    
+    if (existing) {
+        db.prepare("UPDATE event_email_templates SET subject = ?, body = ?, is_active = ?, auto_send = ?, updated_at = ? WHERE event_id = ? AND template_type = ?")
+          .run(subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString(), eId, templateType);
+    } else {
+        db.prepare("INSERT INTO event_email_templates (id, event_id, template_type, subject, body, is_active, auto_send, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+          .run(getValidId('eet'), eId, templateType, subject, body, is_active ? 1 : 0, auto_send ? 1 : 0, new Date().toISOString());
+    }
+    
+    res.json({ success: true });
+});
+
+// Email de prueba por evento
+router.post('/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { test_email } = req.body;
+    
+    if (!test_email) return res.status(400).json({ error: 'Email de prueba requerido' });
+    
+    const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+    if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+    
+    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ? AND enabled = 1").get(eId);
+    
+    if (!config || !config.smtp_host) {
+        return res.json({ success: false, error: 'SMTP no configurado o deshabilitado para este evento' });
+    }
+    
+    console.log('📧 TEST: Email de prueba a', test_email, 'desde evento', event.name);
+    res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
 });
 
 module.exports = router;

@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId, getProducerGroups } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
@@ -101,6 +102,32 @@ router.get('/:id/guests', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.id);
     const rows = db.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
     res.json(rows);
+});
+
+// Obtener pre-registros de evento
+router.get('/:id/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.id);
+    const rows = db.prepare("SELECT * FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
+    res.json(rows);
+});
+
+// Aprobar o rechazar pre-registro
+router.put('/pre-registrations/:id/status', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { status } = req.body;
+    const id = castId('pre_registrations', req.params.id);
+    
+    if (status === 'APPROVED') {
+        const pre = db.prepare("SELECT * FROM pre_registrations WHERE id = ?").get(id);
+        if (pre) {
+            const guestId = getValidId('guests');
+            db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`)
+              .run(guestId, pre.event_id, pre.name, pre.email, pre.phone, pre.organization, pre.position, pre.gender, pre.dietary_notes, uuidv4());
+        }
+    }
+    
+    db.prepare("UPDATE pre_registrations SET status = ? WHERE id = ?").run(status, id);
+    res.json({ success: true });
 });
 
 module.exports = router;
