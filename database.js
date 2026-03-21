@@ -65,6 +65,8 @@ try { db.exec("ALTER TABLE events ADD COLUMN qr_color_light TEXT DEFAULT '#fffff
 try { db.exec("ALTER TABLE events ADD COLUMN qr_logo_url TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN ticket_bg_url TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN ticket_accent_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_email_whitelist TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN reg_email_blacklist TEXT"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (

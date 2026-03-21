@@ -1011,7 +1011,8 @@ app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         reg_title, reg_welcome_text, reg_policy, reg_success_message,
         reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
         reg_show_dietary, reg_show_gender, reg_require_agreement,
-        qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color
+        qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
+        reg_email_whitelist, reg_email_blacklist
     } = req.body;
     const targetId = castId('events', req.params.id);
     
@@ -1020,13 +1021,15 @@ app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         reg_title = ?, reg_welcome_text = ?, reg_policy = ?, reg_success_message = ?,
         reg_show_phone = ?, reg_show_org = ?, reg_show_position = ?, reg_show_vegan = ?,
         reg_show_dietary = ?, reg_show_gender = ?, reg_require_agreement = ?,
-        qr_color_dark = ?, qr_color_light = ?, qr_logo_url = ?, ticket_bg_url = ?, ticket_accent_color = ?
+        qr_color_dark = ?, qr_color_light = ?, qr_logo_url = ?, ticket_bg_url = ?, ticket_accent_color = ?,
+        reg_email_whitelist = ?, reg_email_blacklist = ?
         WHERE id = ?`).run(
         name, date, location, description, end_date || null,
         reg_title || null, reg_welcome_text || null, reg_policy || null, reg_success_message || null,
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
         reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
         qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || null, ticket_bg_url || null, ticket_accent_color || '#7c3aed',
+        reg_email_whitelist || '', reg_email_blacklist || '',
         targetId
     );
     res.json({ success: true });
@@ -1406,7 +1409,8 @@ app.get('/api/events/:id', (req, res) => {
         SELECT id, name, date, end_date, location, description, logo_url,
                reg_title, reg_welcome_text, reg_policy, reg_success_message, reg_logo_url,
                reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan, 
-               reg_show_dietary, reg_show_gender, reg_require_agreement
+               reg_show_dietary, reg_show_gender, reg_require_agreement,
+               reg_email_whitelist, reg_email_blacklist
         FROM events WHERE id = ?`).get(eId);
     if (row) {
         row.logo_path = row.logo_url ? `/uploads/${path.basename(row.logo_url)}` : null;
@@ -1425,10 +1429,32 @@ app.post('/api/public-register', async (req, res) => {
     }
 
     try {
+        // --- FILTRADO DE DOMINIO V11.6.2 ---
+        const event = db.prepare("SELECT reg_email_whitelist, reg_email_blacklist FROM events WHERE id = ?").get(event_id);
+        if (event) {
+            const domain = email.split('@')[1].toLowerCase();
+            
+            // 1. Blacklist (Lista Negra - Prioridad de bloqueo)
+            if (event.reg_email_blacklist && event.reg_email_blacklist.trim()) {
+                const blacklist = event.reg_email_blacklist.split(',').map(d => d.trim().toLowerCase());
+                if (blacklist.includes(domain)) {
+                    return res.status(400).json({ error: `El dominio @${domain} está bloqueado por el organizador.` });
+                }
+            }
+            
+            // 2. Whitelist (Lista Blanca - Exclusividad)
+            if (event.reg_email_whitelist && event.reg_email_whitelist.trim()) {
+                const whitelist = event.reg_email_whitelist.split(',').map(d => d.trim().toLowerCase());
+                if (!whitelist.includes(domain)) {
+                    return res.status(400).json({ error: `Este evento solo acepta registros bajo dominios específicos. El dominio @${domain} no está permitido.` });
+                }
+            }
+        }
+
         // Verificar si ya existe
         const existing = db.prepare("SELECT id FROM pre_registrations WHERE event_id = ? AND email = ?").get(event_id, email.toLowerCase());
         if (existing) {
-            return res.json({ success: true, message: 'Ya estás registrado. ¡Te esperamos!' });
+            return res.json({ success: true, message: 'Ya tienes una solicitud pendiente. ¡Pronto te avisaremos!' });
         }
 
         // Crear pre-registro

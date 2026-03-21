@@ -2541,6 +2541,10 @@ window.App = {
             document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
             document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
             
+            // FILTROS DE DOMINIO V11.6.2
+            document.getElementById('ev-reg-whitelist').value = ev.reg_email_whitelist || '';
+            document.getElementById('ev-reg-blacklist').value = ev.reg_email_blacklist || '';
+            
             App.updateQRPreview(); // Disparar preview al cargar datos del evento
             document.getElementById('modal-event')?.classList.remove('hidden');
         };
@@ -3521,7 +3525,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             qr_color_light: document.getElementById('ev-qr-light').value,
             qr_logo_url: document.getElementById('ev-qr-logo').value,
             ticket_bg_url: document.getElementById('ev-ticket-bg').value,
-            ticket_accent_color: document.getElementById('ev-ticket-accent').value
+            ticket_accent_color: document.getElementById('ev-ticket-accent').value,
+            // FILTROS DE DOMINIO V11.6.2
+            reg_email_whitelist: document.getElementById('ev-reg-whitelist').value.trim(),
+            reg_email_blacklist: document.getElementById('ev-reg-blacklist').value.trim()
         };
 
         if (eventId) {

@@ -1112,6 +1112,25 @@
                                 </label>
                             </div>
                         </div>
+                        <!-- Filtros de Dominio (V11.6.2) -->
+                        <div class="border-t border-white/10 pt-6 mt-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="material-symbols-outlined text-emerald-500">verified_user</span>
+                                <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Seguridad de Registro (Filtros de Dominio)</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Whitelist (Permitir solo @...)</label>
+                                    <input type="text" id="ev-reg-whitelist" placeholder="ej: miempresa.com, socia.co" class="input-field bg-slate-900/50 text-xs py-3">
+                                    <p class="text-[9px] text-slate-500 italic ml-2">En blanco para permitir todos. Separa por comas.</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Blacklist (Bloquear @...)</label>
+                                    <input type="text" id="ev-reg-blacklist" placeholder="ej: gmail.com, hotmail.com" class="input-field bg-slate-900/50 text-xs py-3">
+                                    <p class="text-[9px] text-slate-500 italic ml-2">Bloquea dominios específicos. Separa por comas.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
