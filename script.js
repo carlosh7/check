@@ -32,11 +32,20 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '11.6.1',
+        version: '12.1.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
         emailTemplates: [],
+        columnConfig: {
+            name: { label: 'Nombre', visible: true, order: 0 },
+            email: { label: 'Email', visible: true, order: 1 },
+            organization: { label: 'Empresa', visible: true, order: 2 },
+            phone: { label: 'Teléfono', visible: false, order: 3 },
+            position: { label: 'Cargo', visible: false, order: 4 },
+            status: { label: 'Estado', visible: true, order: 5 }
+        },
+        importSession: null,
     },
     constants: {
         API_URL: '/api'
@@ -2609,7 +2618,42 @@ window.App = {
                 orgs.map(o => `<option value="${o}">${o}</option>`).join('');
         }
         
+        this.initColumnConfig(); // Asegurar columnas cargadas
         this.renderGuestsTarget(this.state.guests);
+    },
+    
+    // --- COLUMNAS DINÁMICAS V12.1 ---
+    initColumnConfig() {
+        const saved = LS.get('column_config_' + (this.state.event?.id || 'default'));
+        if (saved) {
+            try { this.state.columnConfig = JSON.parse(saved); } catch(e) {}
+        }
+        this.renderColumnOptions();
+    },
+    
+    toggleColumnConfig() {
+        const menu = document.getElementById('column-config-menu');
+        if (menu) menu.classList.toggle('hidden');
+    },
+    
+    toggleColumn(id) {
+        if (this.state.columnConfig[id]) {
+            this.state.columnConfig[id].visible = !this.state.columnConfig[id].visible;
+            LS.set('column_config_' + (this.state.event?.id || 'default'), JSON.stringify(this.state.columnConfig));
+            this.renderColumnOptions();
+            this.renderGuestsTarget(this.state.guests);
+        }
+    },
+    
+    renderColumnOptions() {
+        const list = document.getElementById('column-options-list');
+        if (!list) return;
+        list.innerHTML = Object.entries(this.state.columnConfig).map(([id, cfg]) => `
+            <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-white/5 rounded-xl transition-colors">
+                <input type="checkbox" ${cfg.visible ? 'checked' : ''} onchange="App.toggleColumn('${id}')" class="w-4 h-4 accent-primary">
+                <span class="text-xs font-bold ${cfg.visible ? 'text-white' : 'text-slate-500'}">${cfg.label}</span>
+            </label>
+        `).join('');
     },
     
     filterGuests() {
@@ -2645,42 +2689,61 @@ window.App = {
     },
     
     renderGuestsTarget(list) {
-        const tb = document.getElementById('guests-tbody');
+        const tb = document.getElementById('guests-tbody-admin') || document.getElementById('guests-tbody');
         if (!tb) return;
+        
+        const cfg = this.state.columnConfig;
+        
+        // Actualizar visibilidad de headers
+        const th_name = document.getElementById('th-name');
+        const th_org = document.getElementById('th-org');
+        const th_status = document.getElementById('th-status');
+        
+        if (th_name) th_name.style.display = cfg.name.visible ? '' : 'none';
+        if (th_org) th_org.style.display = cfg.organization.visible ? '' : 'none';
+        if (th_status) th_status.style.display = cfg.status.visible ? '' : 'none';
+
         tb.innerHTML = list.map(g => {
-            const isVegan = (g.dietary_notes || '').toLowerCase().includes('vegano');
-            const hasAllergies = (g.dietary_notes || '').toLowerCase().includes('alergia');
+            const isChecked = g.checked_in;
+            const healthAlert = (g.dietary_notes || '').length > 0;
+            
             return `
-            <tr class="hover:bg-white/2 transition-colors border-b border-white/5">
-                <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center font-black text-primary text-xs shadow-inner">
-                            ${(g.name || 'I').charAt(0).toUpperCase()}
+            <tr class="hover:bg-white/[0.04] border-b border-white/5 group transition-colors">
+                <td class="px-10 py-6" style="display: ${cfg.name.visible ? '' : 'none'}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${isChecked ? 'from-emerald-500/20 to-emerald-500/5' : 'from-slate-800 to-slate-900'} flex items-center justify-center border border-white/5 relative">
+                            <span class="material-symbols-outlined ${isChecked ? 'text-emerald-400' : 'text-slate-500'} text-xl">${isChecked ? 'verified' : 'person'}</span>
+                            ${healthAlert ? '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-950 animate-bounce"></span>' : ''}
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-white">${g.name || 'S/N'}</div>
-                            <div class="text-[10px] text-slate-500">${g.email || '-'}</div>
+                            <p class="font-black text-white text-sm tracking-tight">${g.name}</p>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]">mail</span> ${g.email || 'S/E'}
+                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1">·</span> <span class="material-symbols-outlined text-[10px]">call</span> ${g.phone}` : ''}
+                            </p>
+                            ${cfg.position.visible && g.position ? `<p class="text-[9px] text-primary/60 font-black uppercase mt-0.5">${g.position}</p>` : ''}
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 text-xs text-slate-400">${g.phone || '-'}</td>
-                <td class="px-6 py-4 text-xs text-slate-400">${g.organization || '-'}</td>
-                <td class="px-6 py-4 text-center">
-                    <span class="px-2 py-1 rounded-lg text-[10px] font-black ${g.gender === 'M' ? 'bg-blue-500/20 text-blue-400' : g.gender === 'F' ? 'bg-pink-500/20 text-pink-400' : 'bg-slate-500/20 text-slate-400'}">${g.gender || '-'}</span>
+                <td class="px-10 py-6" style="display: ${cfg.organization.visible ? '' : 'none'}">
+                    <div class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">${g.organization || '---'}</div>
                 </td>
-                <td class="px-6 py-4 text-center">
-                    ${isVegan ? '<span class="px-2 py-1 rounded-lg text-[10px] font-black bg-green-500/20 text-green-400">Sí</span>' : 
-                    hasAllergies ? '<span class="px-2 py-1 rounded-lg text-[10px] font-black bg-amber-500/20 text-amber-400">Alergia</span>' : '-'}
+                <td class="px-10 py-6 text-center" style="display: ${cfg.status.visible ? '' : 'none'}">
+                    <span class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${isChecked ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/5'}">
+                        ${isChecked ? 'Acreditado' : 'Pendiente'}
+                    </span>
                 </td>
-                <td class="px-6 py-4 text-center">
-                    <button onclick="window.App.toggleCheckin('${g.id}', ${g.checked_in})" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${g.checked_in ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-white/5 text-slate-500 hover:text-white border border-white/10'}">
-                        ${g.checked_in ? 'Acreditado' : 'Pendiente'}
-                    </button>
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <div class="flex gap-2 justify-end">
-                        <button onclick="App.renderDigitalTicket('${g.id}')" class="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all" title="Ver Boleto"><span class="material-symbols-outlined text-sm">confirmation_number</span></button>
-                        <button class="w-8 h-8 rounded-lg hover:bg-white/5 text-slate-600 hover:text-white transition-all"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <td class="px-10 py-6 text-right">
+                    <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="App.showTicket('${g.id}')" class="w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Ver Ticket">
+                            <span class="material-symbols-outlined text-sm">qr_code</span>
+                        </button>
+                        <button onclick="App.editGuest('${g.id}')" class="w-10 h-10 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <button onclick="App.deleteGuest('${g.id}')" class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
                     </div>
                 </td>
             </tr>`;
@@ -2862,42 +2925,140 @@ window.App = {
     
     async handleImport(file) {
         if (!file || !this.state.event) return alert("Selecciona un evento primero.");
+        
+        // Reset modales y barras
+        document.getElementById('modal-import-progress').classList.remove('hidden');
+        document.getElementById('import-success-actions').classList.add('hidden');
+        document.getElementById('upload-bar').style.width = '0%';
+        document.getElementById('upload-perc').innerText = '0%';
+        document.getElementById('process-bar').style.width = '0%';
+        document.getElementById('process-perc').innerText = '0%';
+        document.getElementById('import-progress-status').innerText = 'Iniciando subida...';
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('event_id', this.state.event.id);
 
         try {
-            const headers = {};
-            if (this.state.user) headers['x-user-id'] = this.state.user.userId;
-            const res = await fetch('/api/import-preview', { method: 'POST', body: formData, headers });
-            const data = await res.json();
-            if (data.success) {
-                this.state.importData = data;
-                const modal = document.getElementById('modal-import-results');
-                const content = document.getElementById('import-summary-content');
-                if (content) {
-                    content.innerHTML = `
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="p-4 bg-slate-900 rounded-2xl border border-white/5 text-center">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Total Detectados</p>
-                                <p class="text-2xl font-black">${data.total}</p>
-                            </div>
-                            <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/10 text-center">
-                                <p class="text-[10px] uppercase font-black text-emerald-500/60 mb-1">Se Importarán</p>
-                                <p class="text-2xl font-black text-emerald-400">${data.valid}</p>
-                            </div>
-                            <div class="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/10 text-center">
-                                <p class="text-[10px] uppercase font-black text-amber-500/60 mb-1">Duplicados</p>
-                                <p class="text-2xl font-black text-amber-400">${data.total - data.valid}</p>
-                            </div>
-                        </div>
-                        <p class="text-center text-slate-500 text-xs mt-4">Los duplicados se identifican por Email + Teléfono</p>
-                    `;
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/import-preview');
+            if (this.state.user) xhr.setRequestHeader('x-user-id', this.state.user.userId);
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const p = Math.round((e.loaded / e.total) * 100);
+                    document.getElementById('upload-bar').style.width = p + '%';
+                    document.getElementById('upload-perc').innerText = p + '%';
                 }
-                modal?.classList.remove('hidden');
-            } else { alert("Error al leer archivo: " + data.error); }
+            };
+
+            xhr.onload = async () => {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    document.getElementById('modal-import-progress').classList.add('hidden');
+                    this.state.importSession = data;
+                    this.showImportMapping(data);
+                } else {
+                    alert("Error: " + data.error);
+                    document.getElementById('modal-import-progress').classList.add('hidden');
+                }
+            };
+
+            xhr.send(formData);
         } catch (e) { alert("Error de conexión al importar."); }
-    }
+    },
+
+    showImportMapping(data) {
+        const modal = document.getElementById('modal-import-mapping');
+        const tbody = document.getElementById('import-mapping-tbody');
+        modal.classList.remove('hidden');
+
+        const dbFields = [
+            { id: 'name', label: 'Nombre Completo', keywords: ['nombre', 'name', 'invitado', 'full name'] },
+            { id: 'email', label: 'Email / Correo', keywords: ['email', 'correo', 'mail', 'usuario'] },
+            { id: 'organization', label: 'Empresa / Entidad', keywords: ['empresa', 'org', 'entidad', 'compan', 'company'] },
+            { id: 'phone', label: 'Teléfono / Móvil', keywords: ['tel', 'cel', 'phone', 'movil'] },
+            { id: 'gender', label: 'Género (M/F/O)', keywords: ['sexo', 'genero', 'gender'] },
+            { id: 'position', label: 'Cargo', keywords: ['cargo', 'puesto', 'position', 'rol'] },
+            { id: 'dietary_notes', label: 'Alergias / Dieta', keywords: ['alergia', 'dieta', 'salud', 'obs', 'coment'] }
+        ];
+
+        tbody.innerHTML = dbFields.map(field => {
+            // Auto-detectar índice
+            let detectedIdx = data.headers.findIndex(h => 
+                field.keywords.some(k => h.toLowerCase().includes(k))
+            );
+            
+            const options = data.headers.map((h, i) => 
+                `<option value="${i}" ${i === detectedIdx ? 'selected' : ''}>${h}</option>`
+            ).join('');
+
+            const previewText = detectedIdx !== -1 && data.rows[0] ? data.rows[0][detectedIdx] : '---';
+
+            return `
+                <tr class="bg-white/2 rounded-xl group">
+                    <td class="px-4 py-3 font-bold text-white text-xs">${field.label}</td>
+                    <td class="px-4 py-3">
+                        <select data-field="${field.id}" onchange="App.updateMappingPreview(this)" class="bg-slate-900 text-slate-300 text-[10px] font-bold rounded-lg px-3 py-2 border border-white/5 w-full">
+                            <option value="">-- Ignorar campo --</option>
+                            ${options}
+                        </select>
+                    </td>
+                    <td id="preview-${field.id}" class="px-4 py-3 text-[10px] text-slate-500 font-mono italic">${previewText || '---'}</td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    updateMappingPreview(select) {
+        const field = select.dataset.field;
+        const idx = select.value;
+        const previewEl = document.getElementById(`preview-${field}`);
+        if (previewEl) {
+            previewEl.innerText = (idx !== "" && this.state.importSession.rows[0]) 
+                ? this.state.importSession.rows[0][idx] 
+                : '---';
+        }
+    },
+
+    async confirmImport() {
+        const selects = document.querySelectorAll('#import-mapping-tbody select');
+        const mapping = {};
+        selects.forEach(s => { if (s.value !== "") mapping[s.dataset.field] = parseInt(s.value); });
+
+        document.getElementById('modal-import-mapping').classList.add('hidden');
+        document.getElementById('modal-import-progress').classList.remove('hidden');
+        document.getElementById('upload-bar-container').classList.add('opacity-30');
+        document.getElementById('process-bar-container').classList.remove('opacity-30');
+        document.getElementById('import-progress-icon').innerHTML = '<span class="material-symbols-outlined text-4xl text-emerald-500">sync</span>';
+        document.getElementById('import-progress-title').innerText = 'Procesando Datos...';
+
+        try {
+            const res = await this.fetchAPI('/import-confirm', {
+                method: 'POST',
+                body: JSON.stringify({ event_id: this.state.event.id, mapping })
+            });
+
+            if (res.success) {
+                document.getElementById('process-bar').style.width = '100%';
+                document.getElementById('process-perc').innerText = '100%';
+                document.getElementById('import-progress-status').innerText = `✓ ${res.count} invitados importados (${res.skipped} duplicados omitidos).`;
+                document.getElementById('import-success-actions').classList.remove('hidden');
+            } else {
+                alert("Error: " + res.error);
+                document.getElementById('modal-import-progress').classList.add('hidden');
+            }
+        } catch (e) { 
+            alert("Error al confirmar importación.");
+            document.getElementById('modal-import-progress').classList.add('hidden');
+        }
+    },
+
+    closeImportProgress() {
+        document.getElementById('modal-import-progress').classList.add('hidden');
+        this.loadGuests();
+        this.updateStats();
+    },
 };
 
 // --- TAB SWITCHERS DEFINIDOS AL INICIO ---

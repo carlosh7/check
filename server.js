@@ -1056,164 +1056,117 @@ app.get('/api/guests/:eventId', authMiddleware(), (req, res) => {
 app.post('/api/import-preview', authMiddleware(), upload.single('file'), async (req, res) => {
     if (!req.file || !req.body.event_id) return res.status(400).json({ error: 'Data faltante' });
     const eId = castId('events', req.body.event_id);
-    const guests = [];
+    const result = { headers: [], rows: [], totalRows: 0, filePath: req.file.path };
     
     try {
         if (req.file.originalname.endsWith('.pdf')) {
             const dataBuffer = fs.readFileSync(req.file.path);
             const data = await pdfParse(dataBuffer);
-            const text = data.text;
-            
-            // Extraer emails con regex
-            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            const emails = text.match(emailRegex) || [];
-            
-            // Para cada email, intentar extraer nombre asociado
-            emails.forEach(email => {
-                // Buscar texto antes del email (nombre posible)
-                const emailIndex = text.indexOf(email);
-                const beforeText = text.substring(Math.max(0, emailIndex - 150), emailIndex);
-                const lines = beforeText.split('\n');
-                const lastLine = lines[lines.length - 1].trim();
-                
-                // Limpiar nombre: quitar números, caracteres especiales al inicio/final
-                let name = lastLine.replace(/^[0-9\s\.\,\-\:]+/, '').trim();
-                name = name.split(/[0-9]{5,}/)[0].trim(); // Quitar códigos largos
-                
-                // Si el nombre está vacío o es muy corto, usar genérico
-                if (!name || name.length < 2) {
-                    name = email.split('@')[0].replace(/[._]/g, ' ');
-                    name = name.charAt(0).toUpperCase() + name.slice(1);
-                }
-                
-                guests.push({ 
-                    name: name.substring(0, 80), 
-                    email: email.toLowerCase(), 
-                    organization: 'Importado PDF' 
-                });
-            });
-            
-            // Si no se encontraron emails, intentar con teléfonos
-            if (guests.length === 0) {
-                const phoneRegex = /[\+]?[0-9\s\-\(\)]{7,20}/g;
-                const phones = text.match(phoneRegex) || [];
-                phones.forEach(phone => {
-                    const cleanPhone = phone.replace(/\D/g, '');
-                    if (cleanPhone.length >= 8) {
-                        guests.push({ 
-                            name: 'Invitado ' + guests.length, 
-                            email: '', 
-                            phone: phone.trim(),
-                            organization: 'Importado PDF' 
-                        });
-                    }
-                });
-            }
+            // Para PDF simplificamos: devolvemos el texto para que el usuario sepa qué hay
+            result.headers = ['Contenido Detectado'];
+            result.rows = data.text.split('\n').slice(0, 10).map(line => [line.trim()]).filter(l => l[0]);
+            result.isPDF = true;
         } else {
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(req.file.path);
             const sheet = workbook.getWorksheet(1);
             if (sheet) {
                 sheet.eachRow((row, i) => {
-                    if (i > 1) {
-                        const name = row.getCell(1).text;
-                        const email = row.getCell(2).text;
-                        if (name && email) {
-                            const genderRaw = (row.getCell(5).text || 'O').toString().toUpperCase();
-                            const gender = ['M', 'F', 'O'].includes(genderRaw) ? genderRaw : 'O';
-                            guests.push({ 
-                                name, 
-                                email, 
-                                organization: row.getCell(3).text || '', 
-                                phone: row.getCell(4).text || '', 
-                                gender,
-                                dietary_notes: row.getCell(6).text || ''
-                            });
-                        }
+                    const rowData = [];
+                    row.eachCell({ includeEmpty: true }, cell => rowData.push(cell.text));
+                    if (i === 1) {
+                        result.headers = rowData;
+                    } else if (i <= 6) {
+                        result.rows.push(rowData);
                     }
+                    result.totalRows = i - 1;
                 });
             }
         }
         
-        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        
-        // Calcular duplicados contra la BD
-        const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(eId);
-        const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
-        const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
-        
-        let duplicates = 0;
-        const seenEmails = new Set();
-        const seenPhones = new Set();
-        
-        for (const g of guests) {
-            const email = (g.email || '').toLowerCase().trim();
-            const phone = (g.phone || '').replace(/\D/g, '');
-            
-            const isDupEmail = email && (existingEmails.has(email) || seenEmails.has(email));
-            const isDupPhone = phone.length > 6 && (existingPhones.has(phone) || seenPhones.has(phone));
-            
-            if (isDupEmail || isDupPhone) {
-                duplicates++;
-            } else {
-                if (email) seenEmails.add(email);
-                if (phone) seenPhones.add(phone);
-            }
-        }
-        
-        tempImport[req.userId] = { event_id: eId, guests };
-        res.json({ success: true, total: guests.length, valid: guests.length - duplicates, duplicates });
+        tempImport[req.userId] = { event_id: eId, filePath: req.file.path, isPDF: result.isPDF };
+        res.json({ success: true, ...result });
     } catch (e) { 
         if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ error: e.message }); 
     }
 });
 
-app.post('/api/import-confirm', authMiddleware(), (req, res) => {
-    const data = tempImport[req.userId];
-    if (!data || String(data.event_id) !== String(req.body.event_id)) return res.status(400).json({ error: 'Sesión de importación expirada' });
+app.post('/api/import-confirm', authMiddleware(), async (req, res) => {
+    const session = tempImport[req.userId];
+    if (!session || !fs.existsSync(session.filePath)) return res.status(400).json({ error: 'Sesión expirada' });
     
-    // Obtener existentes para filtrar duplicados
-    const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(data.event_id);
-    
-    // Crear sets normalizados para comparación (email y telefono separados)
-    const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
-    const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
-    
-    let duplicates = 0;
-    const newGuests = data.guests.filter(g => {
-        const email = (g.email || '').toLowerCase().trim();
-        const phone = (g.phone || '').replace(/\D/g, '');
-        
-        // Es duplicado si: el email existe Y no está vacío, O el teléfono existe Y tiene más de 6 dígitos
-        const isDuplicateEmail = email && existingEmails.has(email);
-        const isDuplicatePhone = phone.length > 6 && existingPhones.has(phone);
-        
-        if (isDuplicateEmail || isDuplicatePhone) {
-            duplicates++;
-            return false;
-        }
-        
-        // Agregar a los sets para detectar duplicados dentro del mismo archivo
-        if (email) existingEmails.add(email);
-        if (phone) existingPhones.add(phone);
-        
-        return true;
-    });
-    
-    const insertMany = db.transaction((guestList) => {
-        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        for (const g of guestList) {
-            insertGuest.run(getValidId('guests'), data.event_id, g.name, g.email, g.organization, g.phone || '', g.gender || 'O', g.dietary_notes || '', uuidv4());
-        }
-    });
+    const { mapping, event_id } = req.body;
+    const eId = castId('events', event_id);
+    const guests = [];
 
     try {
+        if (session.isPDF) {
+            // Lógica legacy de PDF (mapeo automático por regex ya que el PDF no tiene columnas claras)
+            const text = (await pdfParse(fs.readFileSync(session.filePath))).text;
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const emails = text.match(emailRegex) || [];
+            emails.forEach(email => {
+                guests.push({ name: email.split('@')[0], email: email.toLowerCase(), organization: 'Importado PDF' });
+            });
+        } else {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(session.filePath);
+            const sheet = workbook.getWorksheet(1);
+            const total = sheet.rowCount - 1;
+            
+            sheet.eachRow((row, i) => {
+                if (i > 1) {
+                    const g = {};
+                    if (mapping.name !== undefined) g.name = row.getCell(mapping.name + 1).text;
+                    if (mapping.email !== undefined) g.email = row.getCell(mapping.email + 1).text;
+                    if (mapping.organization !== undefined) g.organization = row.getCell(mapping.organization + 1).text;
+                    if (mapping.phone !== undefined) g.phone = row.getCell(mapping.phone + 1).text;
+                    if (mapping.gender !== undefined) g.gender = row.getCell(mapping.gender + 1).text;
+                    if (mapping.position !== undefined) g.position = row.getCell(mapping.position + 1).text;
+                    if (mapping.dietary_notes !== undefined) g.dietary_notes = row.getCell(mapping.dietary_notes + 1).text;
+                    
+                    if (g.email || g.phone || g.name) guests.push(g);
+                    
+                    // Emitir progreso cada 10 filas
+                    if (i % 10 === 0) io.to(eId).emit('import_progress', { current: i, total });
+                }
+            });
+        }
+
+        // --- DEDUPLICACIÓN V12.1 ---
+        const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(eId);
+        const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
+        const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
+        
+        let duplicates = 0;
+        const newGuests = guests.filter(g => {
+            const email = (g.email || '').toLowerCase().trim();
+            const phone = (g.phone || '').replace(/\D/g, '');
+            if ((email && existingEmails.has(email)) || (phone && phone.length > 6 && existingPhones.has(phone))) {
+                duplicates++;
+                return false;
+            }
+            return true;
+        });
+
+        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, position, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        const insertMany = db.transaction((list) => {
+            for (const g of list) {
+                insertGuest.run(getValidId('guests'), eId, g.name || '', g.email || '', g.organization || '', g.phone || '', g.gender || 'O', g.dietary_notes || '', g.position || '', uuidv4());
+            }
+        });
+
         insertMany(newGuests);
+        if (fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
         delete tempImport[req.userId];
-        io.to(data.event_id).emit('update_stats', data.event_id);
+        
+        io.to(eId).emit('update_stats', eId);
         res.json({ success: true, count: newGuests.length, skipped: duplicates });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) {
+        if (fs.existsSync(session.filePath)) fs.unlinkSync(session.filePath);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ─────────────────────────────────────────────────────────────
