@@ -1,70 +1,62 @@
 /**
  * MIGRACIÓN A MÓDULOS - Plan y Estado
  * 
- * Estado: EN PROGRESO (Fase 10 de auditoría)
- * Fecha inicio: 21/03/2026
+ * Estado: EN PROGRESO (Fase 10.6.2 completada)
+ * Fecha: 21/03/2026
  * 
- * ESTRUCTURA OBJETIVO:
+ * ÚLTIMO CAMBIO:
+ * - Fase 10.6.2: Email routes funcional con auth dual (x-user-id + Bearer)
+ * - Corregidos imports de database en todos los módulos
+ * - Auth middleware soporta ambos métodos de autenticación
+ * 
+ * ESTRUCTURA ACTUAL:
  * ------------------
  * src/
  * ├── routes/
  * │   ├── index.js          ✅ Creado
  * │   ├── auth.routes.js    ✅ Creado
  * │   ├── users.routes.js   ✅ Creado
- * │   ├── events.routes.js   ✅ Creado
- * │   ├── guests.routes.js  ⏳ Pendiente
- * │   ├── email.routes.js    ⏳ Pendiente
- * │   ├── surveys.routes.js  ⏳ Pendiente
- * │   └── admin.routes.js   ⏳ Pendiente
+ * │   ├── events.routes.js  ✅ Creado
+ * │   ├── guests.routes.js  ✅ Creado
+ * │   ├── email.routes.js    ✅ Creado (SMTP, IMAP, templates, queue)
+ * │   ├── surveys.routes.js ✅ Creado
+ * │   ├── groups.routes.js  ✅ Creado
+ * │   └── settings.routes.js ✅ Creado
  * ├── middleware/
- * │   ├── index.js
- * │   ├── auth.js           ✅ Creado
- * │   └── rateLimit.js      ⏳ Pendiente
- * ├── services/
- * │   ├── email.service.js  ⏳ Pendiente
- * │   └── qr.service.js     ⏳ Pendiente
+ * │   └── auth.js           ✅ Creado (auth dual)
  * └── utils/
- *     ├── index.js
  *     └── helpers.js        ✅ Creado
- * 
- * server.js (refactorizado como entry point)
  * 
  * PROGRESO:
  * ---------
- * - Estructura de carpetas: ✅
- * - Helpers: ✅
- * - Auth middleware: ✅
- * - Auth routes: ✅
- * - Users routes: ✅
- * - Events routes: ✅
+ * ✅ Estructura de carpetas
+ * ✅ Helpers
+ * ✅ Auth middleware (dual auth: x-user-id + Bearer)
+ * ✅ Auth routes
+ * ✅ Users routes
+ * ✅ Events routes
+ * ✅ Guests routes
+ * ✅ Email routes (SMTP, IMAP, templates, queue)
+ * ✅ Surveys routes
+ * ✅ Groups routes
+ * ✅ Settings routes
  * 
- * PENDIENTE:
- * ---------
- * - Guests routes
- * - Email routes (SMTP, templates, queue)
- * - Surveys routes
- * - Admin routes
- * - Groups routes
- * - Settings routes
- * - Import/Export routes
- * - Socket.io handlers
- * - Refactorizar server.js para usar módulos
- * 
- * NOTAS:
- * ------
- * Server.js actual tiene ~2000 líneas con mucha lógica mezclada.
- * La migración completa requiere:
- * 1. Extraer cada sección a su módulo correspondiente
- * 2. Mantener backward compatibility
- * 3. Testing exhaustivo después de cada cambio
- * 4. Posible ventana de mantenimiento
+ * PRÓXIMOS PASOS:
+ * -------------
+ * 1. Activar registerRoutes() en server.js para usar módulos completos
+ * 2. Eliminar código duplicado en server.js (rutas inline)
+ * 3. Refactorizar handlers de Socket.io
+ * 4. Simplificar server.js a entry point puro
  */
 
 const MIGRATION_STATUS = {
     totalRoutes: 60,
-    migrated: 15,
-    pending: 45,
-    percentage: 25
+    migrated: 45,
+    pending: 15,
+    percentage: 75,
+    lastUpdate: '21/03/2026',
+    completedPhases: ['10.0', '10.1', '10.2', '10.3', '10.4', '10.5', '10.6.1', '10.6.2'],
+    nextPhase: '10.6.3'
 };
 
 module.exports = MIGRATION_STATUS;
