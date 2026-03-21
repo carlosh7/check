@@ -2503,34 +2503,154 @@ window.App = {
     },
     async updateStats() {
         if (!this.state.event) return;
-        const s = await this.fetchAPI(`/stats/${this.state.event.id}`);
-        const sv = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-        sv('stat-total', s.total);
-        sv('stat-orgs', s.orgs);
-        sv('stat-presence', s.total > 0 ? Math.round((s.checkedIn / s.total) * 100) + '%' : '0%');
-        sv('stat-onsite', s.onsite || 0);
-        sv('stat-health', s.healthAlerts || 0);
-        this.renderChart(s.flowData);
+        try {
+            const s = await this.fetchAPI(`/stats/${this.state.event.id}`);
+            const sv = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            
+            // KPIs Principales
+            sv('stat-total', s.total);
+            sv('stat-orgs', s.orgs);
+            sv('stat-presence', s.total > 0 ? Math.round((s.checkedIn / s.total) * 100) + '%' : '0%');
+            sv('stat-onsite', s.onsite || 0);
+            
+            // Renderizar Dashboard de Analítica
+            this.renderAnalyticsDashboard(s);
+        } catch (e) { console.error('Error actualizando estadísticas:', e); }
     },
-    renderChart(flow) {
-        const canvas = document.getElementById('flowChart');
-        if (!canvas || typeof Chart === 'undefined') return;
-        if (this.state.chart) this.state.chart.destroy();
-        this.state.chart = new Chart(canvas.getContext('2d'), {
-            type: 'line', data: {
+
+    renderAnalyticsDashboard(data) {
+        if (typeof Chart === 'undefined') return;
+        
+        // Inicializar contenedor de gráficas si no existe
+        if (!this.state.charts) this.state.charts = {};
+
+        this.renderFlowChart(data.flowData);
+        this.renderOrgChart(data.orgDistribution);
+        this.renderStatusChart(data);
+        this.renderMailingChart(data.mailingStats);
+    },
+
+    renderFlowChart(flow) {
+        const ctx = document.getElementById('flowChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.flow) this.state.charts.flow.destroy();
+        
+        this.state.charts.flow = new Chart(ctx, {
+            type: 'line',
+            data: {
                 labels: (flow || []).map(d => d.hour + ':00'),
                 datasets: [{
+                    label: 'Registros',
                     data: (flow || []).map(d => d.count),
-                    borderColor: '#7c3aed', backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    tension: 0.4, fill: true, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#fff'
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff'
                 }]
-            }, options: { 
-                responsive: true, maintainAspectRatio: false, 
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { 
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
-                } 
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+                }
+            }
+        });
+    },
+
+    renderOrgChart(orgs) {
+        const ctx = document.getElementById('orgChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.org) this.state.charts.org.destroy();
+        
+        this.state.charts.org = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: (orgs || []).map(o => o.organization),
+                datasets: [{
+                    data: (orgs || []).map(o => o.count),
+                    backgroundColor: ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#64748b'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    },
+
+    renderStatusChart(data) {
+        const ctx = document.getElementById('statusChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.status) this.state.charts.status.destroy();
+        
+        const pending = data.total - data.checkedIn;
+        
+        this.state.charts.status = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Acreditados', 'Pendientes'],
+                datasets: [{
+                    data: [data.checkedIn, pending],
+                    backgroundColor: ['#10b981', 'rgba(255,255,255,0.05)'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    },
+
+    renderMailingChart(stats) {
+        const ctx = document.getElementById('mailingChart')?.getContext('2d');
+        if (!ctx) return;
+        
+        if (this.state.charts.mailing) this.state.charts.mailing.destroy();
+        
+        this.state.charts.mailing = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Enviados', 'Errores'],
+                datasets: [{
+                    data: [stats.sent, stats.errors],
+                    backgroundColor: ['#7c3aed', '#ef4444'],
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11, weight: 'bold' } } }
+                }
             }
         });
     },

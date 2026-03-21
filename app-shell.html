@@ -165,6 +165,47 @@
                             <h4 id="stat-onsite" class="text-3xl font-black font-display text-amber-500">0</h4>
                         </div>
                     </div>
+                    <div id="admin-analytics-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 animate-fade">
+                        <!-- Flujo de Entrada -->
+                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-lg">timeline</span> Flujo de ingreso por hora
+                            </h4>
+                            <div class="h-[250px] relative">
+                                <canvas id="flowChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Distribución por Empresa -->
+                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-lg">pie_chart</span> Top 5 Organizaciones
+                            </h4>
+                            <div class="h-[250px] flex items-center justify-center relative">
+                                <canvas id="orgChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Estado de Acreditación -->
+                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-lg">check_circle</span> Estado de Acreditación
+                            </h4>
+                            <div class="h-[250px] flex items-center justify-center relative">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Rendimiento Mailing -->
+                        <div class="glass-card p-8 rounded-[32px] border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500">
+                            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-lg">mail</span> Alcance de Mailing
+                            </h4>
+                            <div class="h-[250px] flex items-center justify-center relative">
+                                <canvas id="mailingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- GUEST LIST SECTION MEJORADA -->
                     <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
@@ -848,7 +889,7 @@
             <div class="flex items-center gap-6">
                 <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
                 <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
-                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.4.0</span>
+                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.5.0</span>
             </div>
         </div>
                     <div id="sys-content-users" class="hidden animate-fade">

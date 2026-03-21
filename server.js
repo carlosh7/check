@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V11.4.0 (ExcelJS + Express 5 nativo)
+// server.js — Check Elite Pro V11.5.0 (Analytics Dashboard + Phase 7)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -1300,10 +1300,64 @@ app.post('/api/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTI
 
 app.get('/api/stats/:eventId', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.eventId);
-    const gen = db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn, COUNT(DISTINCT organization) as orgs, SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite FROM guests WHERE event_id = ?").get(eId);
+    
+    // Estadísticas generales y On-site
+    const gen = db.prepare(`
+        SELECT 
+            COUNT(*) as total, 
+            SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn, 
+            COUNT(DISTINCT organization) as orgs, 
+            SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite 
+        FROM guests WHERE event_id = ?
+    `).get(eId);
+    
+    // Alertas de salud (dietas/alergias)
     const health = db.prepare("SELECT COUNT(*) as health FROM guests WHERE event_id = ? AND (dietary_notes IS NOT NULL AND dietary_notes != '')").get(eId);
-    const flow = db.prepare("SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1 GROUP BY hour").all(eId);
-    res.json({ ...gen, healthAlerts: health.health, flowData: flow });
+    
+    // Flujo de entrada por hora
+    const flow = db.prepare("SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1 GROUP BY hour ORDER BY hour").all(eId);
+    
+    // Distribución por Organización (Top 5 + Otros)
+    const orgsRaw = db.prepare(`
+        SELECT organization, COUNT(*) as count 
+        FROM guests WHERE event_id = ? AND organization IS NOT NULL AND organization != ''
+        GROUP BY organization ORDER BY count DESC
+    `).all(eId);
+    
+    let orgDistribution = orgsRaw.slice(0, 5);
+    if (orgsRaw.length > 5) {
+        const othersCount = orgsRaw.slice(5).reduce((acc, curr) => acc + curr.count, 0);
+        orgDistribution.push({ organization: 'Otros', count: othersCount });
+    }
+    
+    // Distribución por Género
+    const genderDist = db.prepare(`
+        SELECT gender, COUNT(*) as count 
+        FROM guests WHERE event_id = ? 
+        GROUP BY gender
+    `).all(eId);
+    
+    // Métricas de Mailing para este evento
+    const mailingStats = db.prepare(`
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) as sent,
+            SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as errors
+        FROM email_queue WHERE event_id = ?
+    `).get(eId);
+
+    res.json({ 
+        ...gen, 
+        healthAlerts: health.health, 
+        flowData: flow,
+        orgDistribution,
+        genderDistribution: genderDist,
+        mailingStats: {
+            total: mailingStats.total || 0,
+            sent: mailingStats.sent || 0,
+            errors: mailingStats.errors || 0
+        }
+    });
 });
 
 app.post('/api/register', (req, res) => {
