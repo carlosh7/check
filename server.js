@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V10.2 (ExcelJS + Express 5 nativo)
+// server.js — Check Elite Pro V11.4.0 (ExcelJS + Express 5 nativo)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');

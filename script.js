@@ -1045,6 +1045,7 @@ window.App = {
         } else if (section === 'mailing') {
             App.loadMailingTemplates();
             App.updateMailingStats();
+            App.initDNSGuide();
         }
     },
 
@@ -1446,8 +1447,25 @@ window.App = {
             alert('✓ Plantilla guardada correctamente');
             this.closeTemplateEditor();
             this.loadEmailTemplates();
-            if (this.state.email_admin_section === 'mailing') this.loadMailingTemplates();
+            if (this.state.email_admin_section === 'mailing') {
+                this.loadMailingTemplates();
+                this.initDNSGuide();
+            }
         } catch (e) { alert('Error al guardar: ' + e.message); }
+    },
+
+    initDNSGuide: function() {
+        const isDismissed = localStorage.getItem('dns_guide_dismissed');
+        const banner = document.getElementById('dns-guide-banner');
+        if (banner) {
+            if (isDismissed) banner.classList.add('hidden');
+            else banner.classList.remove('hidden');
+        }
+    },
+
+    dismissDNSGuide: function() {
+        localStorage.setItem('dns_guide_dismissed', 'true');
+        document.getElementById('dns-guide-banner')?.classList.add('hidden');
     },
 
     deleteEmailTemplate: async function(id) {

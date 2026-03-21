@@ -507,6 +507,38 @@
 
                 <!-- CONTENT: Mailing Avanzado (V11.0) -->
                 <div id="email-content-mailing" class="email-content hidden">
+                    <!-- Guía DNS Anti-Spam (Fase 7.1) -->
+                    <div id="dns-guide-banner" class="mb-8 glass-card p-6 rounded-[32px] border border-amber-500/30 bg-amber-500/5 animate-fade">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div class="flex items-start gap-4">
+                                <span class="material-symbols-outlined text-amber-500 text-3xl">verified_user</span>
+                                <div>
+                                    <h5 class="text-sm font-black text-amber-500 uppercase tracking-widest mb-1">Blindaje Anti-Spam Requerido</h5>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed max-w-2xl">
+                                        Para asegurar que tus envíos masivos lleguen a la <b>Bandeja de Entrada</b> y no a Spam, es vital configurar los registros DNS de tu dominio. 
+                                        Añade estos registros en tu proveedor (GoDaddy, HostGator, etc.):
+                                    </p>
+                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[9px]">
+                                        <div class="p-3 bg-black/30 rounded-xl border border-white/5">
+                                            <b class="text-amber-500 block mb-1">SPF (TXT)</b>
+                                            v=spf1 include:_spf.google.com ~all
+                                        </div>
+                                        <div class="p-3 bg-black/30 rounded-xl border border-white/5">
+                                            <b class="text-amber-500 block mb-1">DKIM (TXT)</b>
+                                            Copia la clave desde tu panel de Workspace/MS365.
+                                        </div>
+                                        <div class="p-3 bg-black/30 rounded-xl border border-white/5">
+                                            <b class="text-amber-500 block mb-1">DMARC (TXT)</b>
+                                            v=DMARC1; p=quarantine;
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="App.dismissDNSGuide()" class="px-6 py-3 rounded-xl bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
+                                Ya lo implementé
+                            </button>
+                        </div>
+                    </div>
                     <!-- Progress Bar (Sticky) -->
                     <div id="mailing-progress-card" class="hidden mb-8 glass-card p-6 rounded-[32px] border border-primary/20 bg-primary/5">
                         <div class="flex justify-between items-center mb-4">
@@ -811,6 +843,14 @@
             <!-- VISTAS DE ADMINISTRACIÓN GLOBAL -->
             <section id="view-system" class="hidden">
                 <div class="p-8 md:p-12">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+            <p>© 2026 CHECK PRO ENTERPRISE · SISTEMA DE GESTIÓN DE EVENTOS</p>
+            <div class="flex items-center gap-6">
+                <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
+                <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
+                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.4.0</span>
+            </div>
+        </div>
                     <div id="sys-content-users" class="hidden animate-fade">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
                             <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
