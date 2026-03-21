@@ -889,7 +889,7 @@
             <div class="flex items-center gap-6">
                 <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
                 <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
-                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.5.0</span>
+                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V11.6.0</span>
             </div>
         </div>
                     <div id="sys-content-users" class="hidden animate-fade">
@@ -1077,6 +1077,50 @@
                     </div>
                 </div>
                 
+                <!-- Configuración de Ticket y QR (Fase 8) -->
+                <div class="border-t border-white/10 pt-5 mt-5">
+                    <h4 class="text-lg font-black mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400">qr_code_2</span>
+                        Diseño de Ticket y QR Premium
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color QR (Puntos)</label>
+                                <div class="flex gap-2">
+                                    <input type="color" id="ev-qr-color-dark" value="#000000" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
+                                    <input type="text" id="ev-qr-color-dark-hex" oninput="document.getElementById('ev-qr-color-dark').value = this.value" placeholder="#000000" class="input-field bg-slate-900/50 flex-1 text-xs">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color Fondo QR</label>
+                                <div class="flex gap-2">
+                                    <input type="color" id="ev-qr-color-light" value="#ffffff" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
+                                    <input type="text" id="ev-qr-color-light-hex" oninput="document.getElementById('ev-qr-color-light').value = this.value" placeholder="#ffffff" class="input-field bg-slate-900/50 flex-1 text-xs">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Color Acento Ticket</label>
+                                <div class="flex gap-2">
+                                    <input type="color" id="ev-ticket-accent" value="#7c3aed" class="w-12 h-10 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
+                                    <input type="text" id="ev-ticket-accent-hex" oninput="document.getElementById('ev-ticket-accent').value = this.value" placeholder="#7c3aed" class="input-field bg-slate-900/50 flex-1 text-xs">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo Central QR (URL)</label>
+                                <input type="text" id="ev-qr-logo-url" placeholder="https://ejemplo.com/logo.png" class="input-field bg-slate-900/50">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fondo de Ticket (URL)</label>
+                                <input type="text" id="ev-ticket-bg-url" placeholder="https://ejemplo.com/background.jpg" class="input-field bg-slate-900/50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="flex gap-4 pt-5 border-t border-white/10">
                     <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
                     <button type="button" id="btn-open-email-config" onclick="App.openEventEmailConfig()" class="px-4 py-4 bg-white/5 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/20 hover:text-primary transition-all flex items-center gap-1">
@@ -1331,6 +1375,61 @@
             <div class="flex gap-3 pt-2">
                 <button onclick="App.saveTemplate()" class="btn-primary flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Guardar Plantilla</button>
                 <button onclick="App.closeTemplateEditor()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-black text-xs">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TICKET DIGITAL (Apple Wallet Style) -->
+    <div id="modal-ticket" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-3xl z-[300] flex items-center justify-center p-4">
+        <div class="relative w-full max-w-sm animate-fade-up">
+            <!-- Ticket Container -->
+            <div id="ticket-container" class="relative bg-slate-900 rounded-[40px] overflow-hidden shadow-2xl border border-white/10" style="min-height: 600px;">
+                <!-- Header / Background -->
+                <div id="ticket-header-bg" class="h-48 bg-primary/20 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/90"></div>
+                </div>
+                
+                <!-- Content Area -->
+                <div class="px-8 -mt-24 relative z-10 text-center">
+                    <div id="ticket-event-logo-container" class="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl mx-auto mb-4 border border-white/10 flex items-center justify-center overflow-hidden">
+                        <span class="material-symbols-outlined text-3xl text-primary">event</span>
+                    </div>
+                    <h3 id="ticket-event-name" class="text-xl font-black font-display mb-1">Cargando evento...</h3>
+                    <p id="ticket-guest-name" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Invitado</p>
+                    
+                    <!-- QR Code -->
+                    <div class="glass-card p-4 rounded-3xl bg-white/5 inline-block mb-6 border border-white/10">
+                        <div id="ticket-qr-canvas-container" class="bg-white p-2 rounded-2xl">
+                            <canvas id="ticket-qr-canvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-4 text-left border-t border-white/5 pt-6">
+                        <div>
+                            <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Fecha</p>
+                            <p id="ticket-date" class="text-[10px] font-bold">-- -- ----</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Ubicación</p>
+                            <p id="ticket-location" class="text-[10px] font-bold truncate">Por definir</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-white/5">
+                        <p class="text-[10px] text-slate-500 font-bold mb-4">Presenta este QR al llegar al evento</p>
+                    </div>
+                </div>
+                
+                <!-- Ticket Notch (Decorative) -->
+                <div class="absolute left-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950 rounded-full"></div>
+                <div class="absolute right-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950 rounded-full"></div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="mt-8 flex gap-3">
+                <button id="btn-download-ticket" class="btn-primary flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Descargar</button>
+                <button onclick="document.getElementById('modal-ticket').classList.add('hidden')" class="px-6 py-4 bg-white/5 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest">Cerrar</button>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V11.5.0 (Analytics Dashboard + Phase 7)
+// server.js — Check Elite Pro V11.6.0 (QR Customization + Phase 8)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -1005,7 +1005,8 @@ app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         name, date, location, description, end_date,
         reg_title, reg_welcome_text, reg_policy, reg_success_message,
         reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
-        reg_show_dietary, reg_show_gender, reg_require_agreement
+        reg_show_dietary, reg_show_gender, reg_require_agreement,
+        qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color
     } = req.body;
     const targetId = castId('events', req.params.id);
     
@@ -1013,12 +1014,14 @@ app.put('/api/events/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
         name = ?, date = ?, location = ?, description = ?, end_date = ?,
         reg_title = ?, reg_welcome_text = ?, reg_policy = ?, reg_success_message = ?,
         reg_show_phone = ?, reg_show_org = ?, reg_show_position = ?, reg_show_vegan = ?,
-        reg_show_dietary = ?, reg_show_gender = ?, reg_require_agreement = ?
+        reg_show_dietary = ?, reg_show_gender = ?, reg_require_agreement = ?,
+        qr_color_dark = ?, qr_color_light = ?, qr_logo_url = ?, ticket_bg_url = ?, ticket_accent_color = ?
         WHERE id = ?`).run(
         name, date, location, description, end_date || null,
         reg_title || null, reg_welcome_text || null, reg_policy || null, reg_success_message || null,
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
         reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
+        qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || null, ticket_bg_url || null, ticket_accent_color || '#7c3aed',
         targetId
     );
     res.json({ success: true });

@@ -2359,6 +2359,13 @@ window.App = {
             document.getElementById('ev-reg-dietary').checked = ev.reg_show_dietary !== 0;
             document.getElementById('ev-reg-gender').checked = ev.reg_show_gender === 1;
             document.getElementById('ev-reg-agreement').checked = ev.reg_require_agreement !== 0;
+
+            // --- DISEÑO PREMIUM V11.6 ---
+            document.getElementById('ev-qr-dark').value = ev.qr_color_dark || '#000000';
+            document.getElementById('ev-qr-light').value = ev.qr_color_light || '#ffffff';
+            document.getElementById('ev-qr-logo').value = ev.qr_logo_url || '';
+            document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
+            document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
             
             document.getElementById('modal-event')?.classList.remove('hidden');
         };
@@ -2492,7 +2499,10 @@ window.App = {
                     </button>
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <button class="w-8 h-8 rounded-lg hover:bg-white/5 text-slate-600 hover:text-white transition-all"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="App.renderDigitalTicket('${g.id}')" class="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all" title="Ver Boleto"><span class="material-symbols-outlined text-sm">confirmation_number</span></button>
+                        <button class="w-8 h-8 rounded-lg hover:bg-white/5 text-slate-600 hover:text-white transition-all"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    </div>
                 </td>
             </tr>`;
         }).join('');
@@ -3021,17 +3031,121 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!App.state.event) return alert("Selecciona un evento primero.");
         const url = `${window.location.origin}/register.html?event=${App.state.event.id}`;
         const qrEl = document.getElementById('qr-display');
+        
+        // Colores personalizados V11.6
+        const dark = App.state.event.qr_color_dark || '#000000';
+        const light = App.state.event.qr_color_light || '#ffffff';
+
         if (qrEl && typeof qrcode !== 'undefined') {
-            const qrDataUrl = await qrcode.toDataURL(url, { width: 400, margin: 2 });
+            const qrDataUrl = await qrcode.toDataURL(url, { 
+                width: 400, 
+                margin: 2,
+                color: { dark, light }
+            });
             qrEl.src = qrDataUrl;
             document.getElementById('modal-qr')?.classList.remove('hidden');
         } else if (qrEl) {
             // Fallback: generar QR con Canvas API simple
-            alert("Generando código QR...");
-            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}&color=${dark.replace('#','')}&bgcolor=${light.replace('#','')}`;
             document.getElementById('modal-qr')?.classList.remove('hidden');
         }
     };
+
+    // --- BOLETO DIGITAL PREMIUM V11.6 ---
+    App.renderDigitalTicket = async (guestId) => {
+        const guest = App.state.guests.find(g => String(g.id) === String(guestId));
+        const event = App.state.event;
+        if (!guest || !event) return alert("Error: Datos insuficientes para generar boleto.");
+
+        const modal = document.getElementById('modal-ticket');
+        const card = modal.querySelector('.ticket-card');
+        
+        // Datos Textuales
+        document.getElementById('ticket-event-name').textContent = event.name;
+        document.getElementById('ticket-guest-name').textContent = guest.name;
+        document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('ticket-location').textContent = event.location;
+        
+        // Personalización Visual
+        const accent = event.ticket_accent_color || '#7c3aed';
+        modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
+        if (card) {
+            if (event.ticket_bg_url) {
+                card.style.backgroundImage = `url('${event.ticket_bg_url}')`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+            } else {
+                card.style.backgroundImage = 'none';
+                card.style.backgroundColor = '#1e293b';
+            }
+        }
+
+        // Logo del evento (Cabecera)
+        const logoEl = document.getElementById('ticket-logo');
+        if (logoEl) logoEl.src = event.logo_url || 'https://via.placeholder.com/80/7c3aed/ffffff?text=EVENTO';
+
+        // Generar QR para el boleto
+        const qrContent = JSON.stringify({ g: guest.id, e: event.id });
+        const ticketQrEl = document.getElementById('ticket-qr');
+        if (ticketQrEl && typeof qrcode !== 'undefined') {
+            const dark = event.qr_color_dark || '#000000';
+            const light = event.qr_color_light || '#ffffff';
+            const logoUrl = event.qr_logo_url;
+
+            const qrDataUrl = await qrcode.toDataURL(qrContent, { 
+                width: 600, 
+                margin: 1,
+                color: { dark, light },
+                errorCorrectionLevel: logoUrl ? 'H' : 'M' // Usar alta corrección si hay logo
+            });
+
+            if (logoUrl) {
+                // Procesar logo en el centro con Canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const qrImg = new Image();
+                qrImg.onload = () => {
+                    canvas.width = qrImg.width;
+                    canvas.height = qrImg.height;
+                    ctx.drawImage(qrImg, 0, 0);
+                    
+                    const logoImg = new Image();
+                    logoImg.crossOrigin = "Anonymous";
+                    logoImg.onload = () => {
+                        const s = canvas.width * 0.2; // Tamaño del logo: 20% del QR
+                        const x = (canvas.width - s) / 2;
+                        const y = (canvas.height - s) / 2;
+                        
+                        // Fondo del logo (blanco/claro para contraste)
+                        ctx.fillStyle = light;
+                        ctx.roundRect ? ctx.fillRoundRect(x-5, y-5, s+10, s+10, 10) : ctx.fillRect(x-5, y-5, s+10, s+10);
+                        ctx.fill();
+                        
+                        ctx.drawImage(logoImg, x, y, s, s);
+                        ticketQrEl.src = canvas.toDataURL();
+                    };
+                    logoImg.src = logoUrl;
+                };
+                qrImg.src = qrDataUrl;
+            } else {
+                ticketQrEl.src = qrDataUrl;
+            }
+        }
+
+        modal.classList.remove('hidden');
+    };
+
+    App.downloadTicket = () => {
+        alert("Descargando boleto digital premium...");
+        // Futura integración con html2canvas para descargar como imagen
+    };
+
+    App.closeTicket = () => {
+        document.getElementById('modal-ticket')?.classList.add('hidden');
+    };
+
+    cl('btn-download-ticket', () => App.downloadTicket());
+    cl('btn-close-ticket', () => App.closeTicket());
 
     // Mailing - Abrir config de email del evento
     App.openMailing = () => {
@@ -3193,38 +3307,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const eventId = document.getElementById('ev-id-hidden').value;
         
+        const data = {
+            name: document.getElementById('ev-name').value,
+            date: document.getElementById('ev-date').value,
+            end_date: document.getElementById('ev-end-date').value,
+            location: document.getElementById('ev-location').value,
+            description: document.getElementById('ev-desc').value,
+            reg_title: document.getElementById('ev-reg-title').value,
+            reg_welcome_text: document.getElementById('ev-reg-welcome').value,
+            reg_success_message: document.getElementById('ev-reg-success').value,
+            reg_policy: document.getElementById('ev-reg-policy').value,
+            reg_show_phone: document.getElementById('ev-reg-phone').checked ? 1 : 0,
+            reg_show_org: document.getElementById('ev-reg-org').checked ? 1 : 0,
+            reg_show_position: document.getElementById('ev-reg-position').checked ? 1 : 0,
+            reg_show_vegan: document.getElementById('ev-reg-vegan').checked ? 1 : 0,
+            reg_show_dietary: document.getElementById('ev-reg-dietary').checked ? 1 : 0,
+            reg_show_gender: document.getElementById('ev-reg-gender').checked ? 1 : 0,
+            reg_require_agreement: document.getElementById('ev-reg-agreement').checked ? 1 : 0,
+            // --- DISEÑO V11.6 ---
+            qr_color_dark: document.getElementById('ev-qr-dark').value,
+            qr_color_light: document.getElementById('ev-qr-light').value,
+            qr_logo_url: document.getElementById('ev-qr-logo').value,
+            ticket_bg_url: document.getElementById('ev-ticket-bg').value,
+            ticket_accent_color: document.getElementById('ev-ticket-accent').value
+        };
+
         if (eventId) {
-            // Editar evento existente
-            const data = {
-                name: document.getElementById('ev-name').value,
-                date: document.getElementById('ev-date').value,
-                end_date: document.getElementById('ev-end-date').value,
-                location: document.getElementById('ev-location').value,
-                description: document.getElementById('ev-desc').value,
-                reg_title: document.getElementById('ev-reg-title').value,
-                reg_welcome_text: document.getElementById('ev-reg-welcome').value,
-                reg_success_message: document.getElementById('ev-reg-success').value,
-                reg_policy: document.getElementById('ev-reg-policy').value,
-                reg_show_phone: document.getElementById('ev-reg-phone').checked,
-                reg_show_org: document.getElementById('ev-reg-org').checked,
-                reg_show_position: document.getElementById('ev-reg-position').checked,
-                reg_show_vegan: document.getElementById('ev-reg-vegan').checked,
-                reg_show_dietary: document.getElementById('ev-reg-dietary').checked,
-                reg_show_gender: document.getElementById('ev-reg-gender').checked,
-                reg_require_agreement: document.getElementById('ev-reg-agreement').checked
-            };
             App.updateEvent(eventId, data);
         } else {
-            // Crear nuevo evento
-            const fd = new FormData();
-            fd.append('name', document.getElementById('ev-name').value);
-            fd.append('date', document.getElementById('ev-date').value);
-            fd.append('end_date', document.getElementById('ev-end-date').value);
-            fd.append('location', document.getElementById('ev-location').value);
-            fd.append('description', document.getElementById('ev-desc').value);
+            // Para creación, convertimos a FormData si hay logo, o enviamos JSON
             const logo = document.getElementById('ev-logo-file').files[0];
-            if (logo) fd.append('logo', logo);
-            App.createEvent(fd);
+            if (logo) {
+                const fd = new FormData();
+                for (const key in data) fd.append(key, data[key]);
+                fd.append('logo', logo);
+                App.createEvent(fd);
+            } else {
+                // Si no hay logo, enviamos como JSON para consistencia
+                fetch(`${App.constants.API_URL}/events`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': App.state.user.userId 
+                    },
+                    body: JSON.stringify(data)
+                }).then(r => r.json()).then(d => {
+                    if (d.success) {
+                        alert("✓ Evento creado.");
+                        document.getElementById('modal-event').classList.add('hidden');
+                        App.loadEvents();
+                    } else alert("Error: " + d.error);
+                }).catch(() => alert("Error al crear evento."));
+            }
         }
     });
 

@@ -59,6 +59,12 @@ try { db.exec("ALTER TABLE events ADD COLUMN reg_show_vegan INTEGER DEFAULT 1");
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_dietary INTEGER DEFAULT 1"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_show_gender INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_require_agreement INTEGER DEFAULT 1"); } catch (_) {}
+// Campos Fase 8: Personalización de Tickets y QR
+try { db.exec("ALTER TABLE events ADD COLUMN qr_color_dark TEXT DEFAULT '#000000'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN qr_color_light TEXT DEFAULT '#ffffff'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN qr_logo_url TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN ticket_bg_url TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN ticket_accent_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
