@@ -32,7 +32,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.2.1',
+        version: '12.2.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -918,60 +918,25 @@ window.App = {
     loadSMTPConfig: async function() {
         try {
             const config = await this.fetchAPI('/smtp-config');
-            document.getElementById('smtp-host').value = config.smtp_host || '';
-            document.getElementById('smtp-port').value = config.smtp_port || 587;
-            document.getElementById('smtp-user').value = config.smtp_user || '';
-            document.getElementById('smtp-pass').value = config.smtp_pass ? '***' : '';
-            document.getElementById('smtp-secure').checked = config.smtp_secure == 1;
-            document.getElementById('smtp-from-name').value = config.from_name || 'Check';
-            document.getElementById('smtp-from-email').value = config.from_email || '';
-        } catch (e) { console.error('Error loading SMTP config:', e); }
-    },
-    
-    // --- IMAP CONFIG ---
-    loadIMAPConfig: async function() {
-        try {
-            const config = await this.fetchAPI('/imap-config');
-            document.getElementById('imap-host').value = config.imap_host || '';
-            document.getElementById('imap-port').value = config.imap_port || 993;
-            document.getElementById('imap-user').value = config.imap_user || '';
-            document.getElementById('imap-pass').value = config.imap_pass ? '***' : '';
-            document.getElementById('imap-tls').checked = config.imap_tls == 1;
-        } catch (e) { console.error('Error loading IMAP config:', e); }
-    },
-    
-    saveIMAPConfig: async function() {
-        const data = {
-            imap_host: document.getElementById('imap-host').value,
-            imap_port: parseInt(document.getElementById('imap-port').value) || 993,
-            imap_user: document.getElementById('imap-user').value,
-            imap_pass: document.getElementById('imap-pass').value,
-            imap_tls: document.getElementById('imap-tls').checked
-        };
-        try {
-            await this.fetchAPI('/imap-config', { method: 'PUT', body: JSON.stringify(data) });
-            alert('✓ Configuración IMAP guardada');
-        } catch (e) { alert('Error al guardar configuración IMAP'); }
-    },
-    
-    testIMAPConnection: async function() {
-        const data = {
-            imap_host: document.getElementById('imap-host').value,
-            imap_port: parseInt(document.getElementById('imap-port').value) || 993,
-            imap_user: document.getElementById('imap-user').value,
-            imap_pass: document.getElementById('imap-pass').value,
-            imap_tls: document.getElementById('imap-tls').checked
-        };
-        try {
-            const result = await this.fetchAPI('/imap-test', { method: 'POST', body: JSON.stringify(data) });
-            if (result.success) {
-                alert('✓ Conexión IMAP exitosa');
-            } else {
-                alert('✗ Error: ' + (result.error || 'Desconocido'));
+            if (config) {
+                const h = document.getElementById('smtp-host');
+                const p = document.getElementById('smtp-port');
+                const u = document.getElementById('smtp-user');
+                const ps = document.getElementById('smtp-pass');
+                const s = document.getElementById('smtp-secure');
+                const fn = document.getElementById('smtp-from-name');
+                const fe = document.getElementById('smtp-from-email');
+
+                if (h) h.value = config.smtp_host || '';
+                if (p) p.value = config.smtp_port || 587;
+                if (u) u.value = config.smtp_user || '';
+                if (ps) ps.value = config.smtp_pass ? '***' : '';
+                if (s) s.checked = config.smtp_secure == 1;
+                if (fn) fn.value = config.from_name || 'Check';
+                if (fe) fe.value = config.from_email || '';
             }
-        } catch (e) { alert('Error al probar conexión IMAP'); }
+        } catch (e) { console.error('[SMTP] Error loading config:', e); }
     },
-    
     toggleEmailSection: function() {
         const submenu = document.getElementById('nav-email-submenu');
         const arrow = document.getElementById('email-section-arrow');
@@ -1233,29 +1198,6 @@ window.App = {
         // Load data
         if (service === 'smtp') this.loadSMTPConfig();
         if (service === 'imap') this.loadIMAPConfig();
-    },
-
-    loadSMTPConfig: async function() {
-        try {
-            const config = await this.fetchAPI('/smtp-config');
-            if (config) {
-                const h = document.getElementById('smtp-host');
-                const p = document.getElementById('smtp-port');
-                const u = document.getElementById('smtp-user');
-                const ps = document.getElementById('smtp-pass');
-                const s = document.getElementById('smtp-secure');
-                const fn = document.getElementById('smtp-from-name');
-                const fe = document.getElementById('smtp-from-email');
-
-                if (h) h.value = config.smtp_host || '';
-                if (p) p.value = config.smtp_port || 587;
-                if (u) u.value = config.smtp_user || '';
-                if (ps) ps.value = config.smtp_pass || '';
-                if (s) s.checked = config.smtp_secure == 1;
-                if (fn) fn.value = config.from_name || '';
-                if (fe) fe.value = config.from_email || '';
-            }
-        } catch (e) { console.error('[SMTP] Error loading config:', e); }
     },
 
     testSMTPConnection: async function() {
@@ -1727,24 +1669,6 @@ window.App = {
         }
     },
     
-    
-    switchEmailService: function(service) {
-        // Ocultar todos los formularios y tabs
-        document.querySelectorAll('.email-form').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.email-service-tab').forEach(el => {
-            el.classList.remove('bg-primary', 'text-white', 'shadow-xl');
-            el.classList.add('bg-white/5', 'text-slate-400');
-        });
-        
-        // Mostrar el formulario seleccionado
-        const form = document.getElementById('form-' + service);
-        const tab = document.getElementById('tab-btn-' + service);
-        if (form) form.classList.remove('hidden');
-        if (tab) {
-            tab.classList.remove('bg-white/5', 'text-slate-400');
-            tab.classList.add('bg-primary', 'text-white', 'shadow-xl');
-        }
-    },
     
     loadEmailTemplates: async function() {
         try {
@@ -3724,7 +3648,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     App.loadLegalTexts = async () => {
         App.initQuill();
         try {
-            const s = await fetch('/api/settings').then(r => r.json());
+            // Usar App.fetchAPI para mayor consistencia y control
+            const s = await App.fetchAPI('/settings');
+            
             const defaultPolicy = `<h2>Política de Protección de Datos Personales</h2>
 <p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la República de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la información suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
 <p><b>Finalidades:</b></p>
@@ -3745,15 +3671,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 </ol>
 <p>El uso indebido de la plataforma podrá resultar en la cancelación del registro.</p>`;
             
-            App.quillPolicy.root.innerHTML = s.policy_data || defaultPolicy;
-            App.quillTerms.root.innerHTML = s.terms_conditions || defaultTerms;
+            // Usar clipboard para asegurar que el HTML se interprete correctamente en Quill
+            if (App.quillPolicy) App.quillPolicy.clipboard.dangerouslyPasteHTML(s.policy_data || defaultPolicy);
+            if (App.quillTerms) App.quillTerms.clipboard.dangerouslyPasteHTML(s.terms_conditions || defaultTerms);
 
-            // V12.2.1: Sincronizar checkbox de visibilidad
+            // V12.2.2: Sincronizar checkbox de visibilidad
             const chk = document.getElementById('check-show-legal-login');
             if (chk) chk.checked = s.show_legal_login !== '0';
             
             App.applyUISettings(s);
-        } catch {}
+        } catch (e) {
+            console.error('[LEGAL] Error al cargar textos:', e);
+        }
     };
 
     App.applyUISettings = (settings) => {

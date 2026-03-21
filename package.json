@@ -1,9 +1,10 @@
 {
   "name": "registro",
-  "version": "12.2.1",
+  "version": "12.2.2",
   "description": "Una aplicación web moderna y elegante para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.",
   "main": "script.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +20,7 @@
   },
   "homepage": "https://github.com/carlosh7/check#readme",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.8.0",
     "chart.js": "^4.5.1",
     "cors": "^2.8.6",
@@ -34,7 +35,7 @@
     "jspdf-autotable": "^5.0.7",
     "mailparser": "^3.9.4",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.3",
+    "nodemailer": "^6.9.16",
     "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.3",

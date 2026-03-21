@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro V12.2.1 (Legal Control & Enhanced UI)
+// server.js — Check Elite Pro v12.2.2 (Quill Fix & Robust Sync)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -25,10 +25,17 @@ let tempImport = {};
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS whitelist desde variable de entorno
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
+
 const io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] }
+    cors: {
+        origin: ALLOWED_ORIGINS,
+        methods: ["GET", "POST"]
+    }
 });
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // --- ID COMPATIBILITY WRAPPER (V10.4.3) ---
 const getValidId = (tableName) => {
@@ -416,15 +423,27 @@ global.sendEventEmailAuto = async function(eventId, to, templateType, data = {})
 // SERVER V12.2.1 - ARQUITECTURA DISTRIBUIDA Y SEGURA 🛡️🚀
 app.use(helmet({
     contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    hsts: false // Desactivar HSTS por ahora (requiere HTTPS)
 }));
-app.use(cors());
+app.use(cors({
+    origin: function (origin, callback) {
+        // Permitir requests sin origin (mobile apps, Postman) o origins en whitelist
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log(`[CORS] Bloqueado origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 app.use(express.json()); // Nativo en Express 5 — body-parser ya no es necesario
 
 // --- RATE LIMITING ---
 app.set('trust proxy', 1);
 const skipLocal = (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1';
-const apiLimiter = rateLimit({ windowMs: 15*60*1000, max: 2000, skip: skipLocal, message: { error: 'Demasiadas peticiones.' } });
+const apiLimiter = rateLimit({ windowMs: 15*60*1000, max: 200, skip: skipLocal, message: { error: 'Demasiadas peticiones. Espera 15 minutos.' } });
 const authLimiter = rateLimit({ windowMs: 15*60*1000, max: 50, skip: skipLocal, message: { error: 'Demasiados intentos.' } });
 app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
@@ -451,7 +470,32 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const upload = multer({ dest: 'uploads/' });
+
+// Validación de uploads - tipos permitidos y tamaño máximo
+const upload = multer({
+    dest: 'uploads/',
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB máximo
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+            'application/vnd.ms-excel', // xls
+            'text/csv'
+        ];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            console.log(`[UPLOAD] Archivo bloqueado: ${file.originalname} (${file.mimetype})`);
+            cb(new Error('Tipo de archivo no permitido'), false);
+        }
+    }
+});
 
 // --- ENRUTAMIENTO SPA (V9) ---
 app.get('/:eventName/registro', (req, res) => {
@@ -530,9 +574,10 @@ app.post('/api/signup', (req, res) => {
     const { username, password, role } = req.body;
     const id = getValidId('users');
     const status = (role === 'ADMIN') ? 'APPROVED' : 'PENDING';
+    const hashedPassword = bcrypt.hashSync(password, 10);
     try {
         db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(id, username, password, role || 'PRODUCTOR', status, new Date().toISOString());
+          .run(id, username, hashedPassword, role || 'PRODUCTOR', status, new Date().toISOString());
         res.json({ success: true, userId: id, status });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
@@ -541,11 +586,27 @@ app.post('/api/signup', (req, res) => {
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    const row = db.prepare("SELECT * FROM users WHERE username = ? AND password = ?").get(username, password);
-    if (row && row.status === 'APPROVED') {
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
+    }
+    
+    const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+    
+    if (!row) {
+        return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+    }
+    
+    if (row.status !== 'APPROVED') {
+        return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
+    }
+    
+    // Verificar contraseña con bcrypt
+    const passwordMatch = bcrypt.compareSync(password, row.password);
+    
+    if (passwordMatch) {
         res.json({ success: true, userId: row.id, role: row.role, username: row.username });
     } else {
-        res.status(401).json({ success: false, message: 'Credenciales inválidas o cuenta no aprobada' });
+        res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 });
 
@@ -710,8 +771,9 @@ app.post('/api/users/invite', authMiddleware(['ADMIN']), (req, res) => {
     }
     
     try {
+        const hashedPassword = bcrypt.hashSync(password, 10);
         db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
-          .run(id, username.toLowerCase(), password, role || 'PRODUCTOR', display_name || username, phone || '', group_id || null, new Date().toISOString());
+          .run(id, username.toLowerCase(), hashedPassword, role || 'PRODUCTOR', display_name || username, phone || '', group_id || null, new Date().toISOString());
         
         const newUser = { 
             id, 
@@ -809,7 +871,8 @@ app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
         // Generar contraseña temporal si no tiene
         if (!user.password || user.password.length === 0) {
             const tempPassword = Math.random().toString(36).slice(-8);
-            db.prepare("UPDATE users SET password = ? WHERE id = ?").run(tempPassword, targetId);
+            const hashedPassword = bcrypt.hashSync(tempPassword, 10);
+            db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
             user.temp_password = tempPassword;
         }
         
@@ -826,7 +889,9 @@ app.put('/api/users/:id/password', authMiddleware(), (req, res) => {
     const targetId = castId('users', req.params.id);
     const requesterId = req.userId; // YA CASTEADO
     if (req.userRole !== 'ADMIN' && requesterId !== targetId) return res.status(403).json({ error: 'Acceso Denegado' });
-    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(req.body.password, targetId);
+    
+    const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
     res.json({ success: true });
 });
 
@@ -907,8 +972,9 @@ app.post('/api/password-reset-verify', (req, res) => {
     }
     
     if (new_password) {
-        // Actualizar contraseña
-        db.prepare("UPDATE users SET password = ? WHERE id = ?").run(new_password, user.id);
+        // Hashear y actualizar contraseña
+        const hashedPassword = bcrypt.hashSync(new_password, 10);
+        db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
         // Marcar código como usado
         db.prepare("UPDATE password_resets SET used = 1 WHERE id = ?").run(reset.id);
         return res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
@@ -926,8 +992,9 @@ app.post('/signup', async (req, res) => {
     
     try {
         const id = getValidId('users');
+        const hashedPassword = bcrypt.hashSync(password, 10);
         db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(id, username.toLowerCase(), password, role, 'PENDING', new Date().toISOString());
+          .run(id, username.toLowerCase(), hashedPassword, role, 'PENDING', new Date().toISOString());
         
         res.json({ success: true, message: 'Solicitud enviada. Un administrador debe aprobar tu acceso.' });
     } catch (e) {
