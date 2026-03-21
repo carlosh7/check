@@ -19,10 +19,6 @@ const { simpleParser } = require('mailparser');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
-// --- MÓDULOS (Fase 10 - Modularización) ---
-const { registerRoutes } = require('./src/routes');
-const { getValidId: modGetValidId, castId: modCastId } = require('./src/utils/helpers');
-
 // --- VERSIÓN DINÁMICA V10.3 ---
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const APP_VERSION = pkg.version;
@@ -1992,9 +1988,5 @@ app.use((req, res, next) => {
         next();
     }
 });
-
-// --- REGISTRAR RUTAS MODULARES (Fase 10) ---
-// Por ahora las rutas están definidas en server.js
-// registerRoutes(app, io); // Descomentar cuando se complete migración
 
 server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));
