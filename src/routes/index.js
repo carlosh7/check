@@ -13,10 +13,8 @@ const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 
 function registerRoutes(app, io) {
-    // Auth
-    app.use('/api/login', authRoutes);
-    app.use('/signup', authRoutes);
-    app.use('/api/password-reset', authRoutes);
+    // Auth (login, signup, password reset)
+    app.use('/api', authRoutes);
     
     // Users
     app.use('/api/users', usersRoutes);

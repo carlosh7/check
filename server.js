@@ -573,48 +573,6 @@ const hasEventAccess = (userId, eventId, role) => {
     return !!assigned;
 };
 
-// ═══ AUTH ENDPOINTS
-// ─────────────────────────────────────────────────────────────
-app.post('/api/signup', (req, res) => {
-    const { username, password, role } = req.body;
-    const id = getValidId('users');
-    const status = (role === 'ADMIN') ? 'APPROVED' : 'PENDING';
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    try {
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(id, username, hashedPassword, role || 'PRODUCTOR', status, new Date().toISOString());
-        res.json({ success: true, userId: id, status });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
-});
-
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
-    }
-    
-    const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
-    
-    if (!row) {
-        return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-    }
-    
-    if (row.status !== 'APPROVED') {
-        return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
-    }
-    
-    // Verificar contraseña con bcrypt
-    const passwordMatch = bcrypt.compareSync(password, row.password);
-    
-    if (passwordMatch) {
-        res.json({ success: true, userId: row.id, role: row.role, username: row.username });
-    } else {
-        res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-    }
-});
-
 // --- REGISTRAR RUTAS MODULARES ---
 registerRoutes(app, io);
 
