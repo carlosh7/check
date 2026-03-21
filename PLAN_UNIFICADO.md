@@ -12,7 +12,7 @@
 | 🟢 **Seguridad** | ✅ 100% | JWT, Zod, CAPTCHA, audit logs |
 | 🔵 **Limpieza** | ✅ 100% | Código muerto eliminado |
 | 🟣 **Performance** | ✅ 100% | Redis✅, gzip✅, lazy loading✅, índices✅ |
-| 🟠 **UX/Features** | 🟡 En progreso | Webhooks✅, push✅, PDF⏳, dark theme⏳ |
+| 🟠 **UX/Features** | 🟡 En progreso | Webhooks✅, push✅, PDF✅, dark theme⏳ |
 
 ---
 
@@ -139,7 +139,7 @@ Registro/
 ### 🟠 UX/Features (En progreso)
 - [x] Webhooks para integraciones externas (Slack, Discord) ✅
 - [✅] Notificaciones push (Web Push API)
-- [ ] Exportar reportes en PDF mejorados
+- [✅] Exportar reportes en PDF mejorados
 - [ ] Tema oscuro (dark theme)
 - [ ] Dashboard analítico con gráficos
 - [ ] Sistema de tickets QR personalizados

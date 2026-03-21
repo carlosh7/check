@@ -79,10 +79,10 @@ Registro/
 - [x] Lazy loading (imágenes, scripts Quill, scripts async)
 - [x] Índices adicionales (25 índices implementados)
 
-### 🟠 UX/Features (En progreso - 1/4 completado)
+### 🟠 UX/Features (En progreso - 3/4 completado)
 - [x] Webhooks para integraciones (Slack, Discord, etc.) ✅
 - [x] Notificaciones push
-- [ ] Exportar PDF reportes
+- [x] Exportar PDF reportes
 - [ ] Tema oscuro
 
 ---

@@ -3342,32 +3342,429 @@ window.App = {
         doc.save(`Reporte_Check_${event.name.replace(/\s+/g, '_')}.pdf`);
     },
 
+
+
+    // ═══ PDF MEJORADOS CON DISEÑOS PROFESIONALES ═══
+    
+    // Asegurar que las librerías PDF estén cargadas
+    async ensurePDFLibsLoaded() {
+        if (typeof window.jspdf === 'undefined') {
+            await this.loadJsPDF();
+        }
+        // Esperar un momento para que se registre autoTable
+        await new Promise(resolve => setTimeout(resolve, 100));
+    },
+
+    // Cargar imagen para usar en PDF
+    async loadImageForPDF(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
+    },
+
+    // Generar certificado mejorado con logo y plantillas
+    async generateEnhancedCertificate(guestId, template = 'premium') {
+        await this.ensurePDFLibsLoaded();
+        const g = this.state.guests.find(x => x.id === guestId);
+        if (!g || !this.state.event) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const event = this.state.event;
+        const accent = event.ticket_accent_color || '#7c3aed';
+        const logoUrl = event.logo_url;
+        
+        // Fondo según plantilla
+        if (template === 'premium') {
+            doc.setFillColor(15, 23, 42); // slate-900
+            doc.rect(0, 0, 297, 210, 'F');
+        } else if (template === 'light') {
+            doc.setFillColor(255, 255, 255);
+            doc.rect(0, 0, 297, 210, 'F');
+        } else if (template === 'corporate') {
+            doc.setFillColor(240, 249, 255); // azul claro
+            doc.rect(0, 0, 297, 210, 'F');
+        }
+        
+        // Marco decorativo
+        doc.setDrawColor(accent);
+        doc.setLineWidth(2);
+        doc.rect(10, 10, 277, 190);
+        doc.setLineWidth(0.5);
+        doc.rect(13, 13, 271, 184);
+        
+        // Logo del evento (si existe)
+        if (logoUrl) {
+            try {
+                const logoData = await this.loadImageForPDF(logoUrl);
+                doc.addImage(logoData, 'PNG', 20, 15, 30, 30);
+            } catch (e) {
+                console.warn('No se pudo cargar logo:', e);
+            }
+        }
+        
+        // Contenido principal
+        doc.setTextColor(template === 'light' ? 15 : 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(40);
+        doc.text('CERTIFICADO', 148.5, 60, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(accent);
+        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
+        
+        doc.setTextColor(template === 'light' ? 51 : 255);
+        doc.setFontSize(16);
+        doc.text('Se otorga el presente reconocimiento a:', 148.5, 100, { align: 'center' });
+        
+        doc.setFontSize(32);
+        doc.setFont('helvetica', 'bold');
+        doc.text(g.name.toUpperCase(), 148.5, 120, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
+        
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(accent);
+        doc.text(event.name, 148.5, 155, { align: 'center' });
+        
+        // Información del evento
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        doc.text(`${event.location || 'S/L'} - ${dateStr}`, 148.5, 180, { align: 'center' });
+        
+        // Código único
+        doc.setFontSize(8);
+        doc.text(`ID: ${g.id.substring(0, 8).toUpperCase()}`, 148.5, 190, { align: 'center' });
+        
+        doc.save(`Certificado_${event.name.replace(/\s+/g, '_')}_${g.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    // Generar lista de invitados en PDF con filtros
+    async generateGuestListPDF(filters = {}) {
+        await this.ensurePDFLibsLoaded();
+        if (!this.state.event) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const event = this.state.event;
+        const logoUrl = event.logo_url;
+        const accent = event.ticket_accent_color || '#7c3aed';
+        
+        // Cabecera con logo
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LISTA DE INVITADOS', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(event.name, 105, 28, { align: 'center' });
+        
+        // Logo
+        if (logoUrl) {
+            try {
+                const logoData = await this.loadImageForPDF(logoUrl);
+                doc.addImage(logoData, 'PNG', 15, 5, 20, 20);
+            } catch (e) {
+                console.warn('No se pudo cargar logo:', e);
+            }
+        }
+        
+        // Información de generación
+        doc.setFontSize(8);
+        doc.setTextColor(200, 200, 200);
+        doc.text(`Generado: ${new Date().toLocaleString()}`, 15, 38);
+        
+        // Estadísticas rápidas
+        const stats = await this.fetchAPI(`/stats/${event.id}`);
+        const statsText = `Total: ${stats.total} | Presentes: ${stats.checkedIn} | Ausentes: ${stats.total - stats.checkedIn}`;
+        doc.setTextColor(accent);
+        doc.setFontSize(10);
+        doc.text(statsText, 105, 45, { align: 'center' });
+        
+        // Obtener invitados (con filtros si se proporcionan)
+        let guests = this.state.guests;
+        if (filters.status === 'checked_in') {
+            guests = guests.filter(g => g.checked_in);
+        } else if (filters.status === 'not_checked_in') {
+            guests = guests.filter(g => !g.checked_in);
+        }
+        if (filters.search) {
+            const search = filters.search.toLowerCase();
+            guests = guests.filter(g => 
+                g.name.toLowerCase().includes(search) ||
+                g.email?.toLowerCase().includes(search) ||
+                g.organization?.toLowerCase().includes(search)
+            );
+        }
+        
+        // Preparar datos para la tabla
+        const tableData = guests.map(g => [
+            g.name,
+            g.email || '---',
+            g.organization || '---',
+            g.phone || '---',
+            g.checked_in ? '✅ SÍ' : '❌ NO',
+            g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
+        ]);
+        
+        // Generar tabla
+        doc.autoTable({
+            startY: 55,
+            head: [['Nombre', 'Email', 'Empresa', 'Teléfono', 'Presente', 'Hora']],
+            body: tableData,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [51, 65, 85] },
+            alternateRowStyles: { fillColor: [240, 240, 240] },
+            margin: { left: 10, right: 10 }
+        });
+        
+        // Pie de página
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`Check Pro v${this.state.version}`, 105, 295, { align: 'center' });
+        }
+        
+        doc.save(`Lista_Invitados_${event.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    // Generar reporte ejecutivo mejorado con gráficos
+    async generateEnhancedEventReport() {
+        await this.ensurePDFLibsLoaded();
+        if (!this.state.event) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const event = this.state.event;
+        const logoUrl = event.logo_url;
+        const accent = event.ticket_accent_color || '#7c3aed';
+        const stats = await this.fetchAPI(`/stats/${event.id}`);
+        
+        // Portada
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 297, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REPORTE EJECUTIVO', 105, 120, { align: 'center' });
+        doc.setFontSize(18);
+        doc.text(event.name, 105, 140, { align: 'center' });
+        
+        if (logoUrl) {
+            try {
+                const logoData = await this.loadImageForPDF(logoUrl);
+                doc.addImage(logoData, 'PNG', 75, 40, 60, 60);
+            } catch (e) {
+                console.warn('No se pudo cargar logo:', e);
+            }
+        }
+        
+        doc.setFontSize(12);
+        doc.text(`Generado: ${new Date().toLocaleDateString()}`, 105, 160, { align: 'center' });
+        doc.text(`Check Pro v${this.state.version}`, 105, 170, { align: 'center' });
+        
+        doc.addPage();
+        
+        // Resumen ejecutivo
+        doc.setFillColor(accent);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.text('RESUMEN EJECUTIVO', 15, 20);
+        doc.setFontSize(10);
+        doc.text(`Evento: ${event.name}`, 15, 30);
+        
+        // KPIs en tarjetas
+        const kpis = [
+            { label: 'Total Invitados', value: stats.total, color: [124, 58, 237] },
+            { label: 'Acreditados', value: stats.checkedIn, color: [34, 197, 94] },
+            { label: 'Ausentes', value: stats.total - stats.checkedIn, color: [239, 68, 68] },
+            { label: '% Asistencia', value: stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0, suffix: '%', color: [59, 130, 246] }
+        ];
+        
+        let yPos = 55;
+        kpis.forEach((kpi, i) => {
+            const x = i % 2 === 0 ? 15 : 115;
+            if (i % 2 === 0 && i > 0) yPos += 40;
+            
+            doc.setFillColor(...kpi.color);
+            doc.roundedRect(x, yPos, 85, 30, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.text(kpi.label, x + 42.5, yPos + 10, { align: 'center' });
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${kpi.value}${kpi.suffix || ''}`, x + 42.5, yPos + 22, { align: 'center' });
+        });
+        
+        // Tabla de asistencia por hora (si hay datos)
+        const checkinTimes = this.state.guests
+            .filter(g => g.checkin_time)
+            .map(g => new Date(g.checkin_time).getHours())
+            .reduce((acc, hour) => {
+                acc[hour] = (acc[hour] || 0) + 1;
+                return acc;
+            }, {});
+        
+        if (Object.keys(checkinTimes).length > 0) {
+            doc.addPage();
+            doc.setFillColor(accent);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.text('ANÁLISIS POR HORARIO', 15, 20);
+            
+            const hourData = Object.entries(checkinTimes)
+                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                .map(([hour, count]) => [hour + ':00', count.toString()]);
+            
+            doc.autoTable({
+                startY: 55,
+                head: [['Hora', 'Acreditaciones']],
+                body: hourData,
+                headStyles: { fillColor: [51, 65, 85] }
+            });
+        }
+        
+        // Lista detallada (página separada)
+        doc.addPage();
+        doc.setFillColor(accent);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.text('LISTADO DETALLADO', 15, 20);
+        
+        const guestData = this.state.guests.map(g => [
+            g.name,
+            g.organization || '---',
+            g.checked_in ? 'SÍ' : 'NO',
+            g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
+        ]);
+        
+        doc.autoTable({
+            startY: 55,
+            head: [['Nombre', 'Empresa', 'Presente', 'Hora']],
+            body: guestData,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [51, 65, 85] },
+            pageBreak: 'auto'
+        });
+        
+        // Pie de página en todas las páginas
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Página ${i} de ${pageCount} - Check Pro v${this.state.version}`, 105, 290, { align: 'center' });
+        }
+        
+        doc.save(`Reporte_Ejecutivo_${event.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    // ═══ FUNCIONES PUENTE PARA COMPATIBILIDAD ═══
+    
+    // Generar lista de invitados en PDF (compatibilidad con botón existente)
+    async generateGuestListPdf() {
+        return this.generateGuestListPDF();
+    },
+
+    // Generar certificados para invitados
+    async generateCertificates() {
+        if (!this.state.event || this.state.guests.length === 0) {
+            return alert('No hay invitados para generar certificados.');
+        }
+        
+        const choice = confirm('¿Generar certificados para todos los invitados? (Cancelar para generar solo uno)');
+        if (choice) {
+            // Generar certificados en lote (podría ser pesado)
+            alert('Generar certificados en lote está en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
+        } else {
+            // Mostrar selector de invitado
+            const guestName = prompt('Ingresa el nombre del invitado para generar certificado:');
+            if (!guestName) return;
+            
+            const guest = this.state.guests.find(g => 
+                g.name.toLowerCase().includes(guestName.toLowerCase()) ||
+                g.email?.toLowerCase().includes(guestName.toLowerCase())
+            );
+            
+            if (guest) {
+                await this.generateEnhancedCertificate(guest.id, 'premium');
+            } else {
+                alert('Invitado no encontrado.');
+            }
+        }
+    },
+
+    // Mejorar reporte de evento existente
+    async generateEventReport() {
+        // Usar la versión mejorada por defecto
+        return this.generateEnhancedEventReport();
+    },
+
+    // Generar ticket PDF mejorado
     async generatePDFTicket(gId = null) {
+        await this.ensurePDFLibsLoaded();
         const guestId = gId || this.state.ticketGuest?.id;
         const g = this.state.guests.find(x => x.id === guestId);
         if (!g || !this.state.event) return;
         
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: 'mm', format: [100, 150] }); // Formato tipo ticket
+        const doc = new jsPDF({ unit: 'mm', format: [100, 150] });
+        const event = this.state.event;
+        const accent = event.ticket_accent_color || '#7c3aed';
+        const ticketBgUrl = event.ticket_bg_url;
         
-        // Diseño Ticket
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, 100, 150, 'F');
+        // Fondo personalizado si existe
+        if (ticketBgUrl) {
+            try {
+                const bgData = await this.loadImageForPDF(ticketBgUrl);
+                doc.addImage(bgData, 'PNG', 0, 0, 100, 150);
+            } catch (e) {
+                console.warn('No se pudo cargar fondo de ticket:', e);
+                doc.setFillColor(15, 23, 42);
+                doc.rect(0, 0, 100, 150, 'F');
+            }
+        } else {
+            doc.setFillColor(15, 23, 42);
+            doc.rect(0, 0, 100, 150, 'F');
+        }
         
+        // Contenido del ticket
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text(this.state.event.name, 50, 15, { align: 'center' });
+        doc.text(event.name, 50, 15, { align: 'center' });
         
         doc.setFontSize(8);
-        doc.setTextColor(124, 58, 237);
+        doc.setTextColor(accent);
         doc.text('BOLETO DIGITAL DE ACCESO', 50, 22, { align: 'center' });
         
-        // Línea divisoria
         doc.setDrawColor(255, 255, 255, 0.1);
         doc.line(10, 28, 90, 28);
         
-        // Info Invitado
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(12);
         doc.text(g.name, 50, 40, { align: 'center' });
@@ -3375,7 +3772,7 @@ window.App = {
         doc.setTextColor(100, 116, 139);
         doc.text(g.organization || 'INVITADO ESPECIAL', 50, 45, { align: 'center' });
         
-        // QR (Obtener de la UI si posible, o generar temporal)
+        // QR
         const qrEl = document.querySelector('#ticket-qr-container canvas');
         if (qrEl) {
             const qrData = qrEl.toDataURL('image/png');
@@ -3386,13 +3783,18 @@ window.App = {
         doc.setFontSize(9);
         doc.text(g.qr_token || '---', 50, 115, { align: 'center' });
         
-        // Footer
+        // Información adicional
+        const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        doc.setFontSize(6);
+        doc.setTextColor(200, 200, 200);
+        doc.text(`Evento: ${dateStr} - ${event.location || 'S/L'}`, 50, 125, { align: 'center' });
+        
         doc.setFontSize(6);
         doc.setTextColor(100, 116, 139);
         doc.text('Presente este QR en la entrada del evento.', 50, 135, { align: 'center' });
-        doc.text('Check Attendance Systems v12.2', 50, 140, { align: 'center' });
+        doc.text(`Check Pro v${this.state.version}`, 50, 140, { align: 'center' });
         
-        doc.save(`Ticket_Check_${g.name.split(' ')[0]}.pdf`);
+        doc.save(`Ticket_${event.name.replace(/\s+/g, '_')}_${g.name.split(' ')[0]}.pdf`);
     },
 };
 
