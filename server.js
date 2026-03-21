@@ -253,11 +253,11 @@ async function syncEmails() {
     });
 }
 
-async function sendUserApprovedEmail(user) {
+async function sendUserApprovedEmail(user, options = {}) {
     const template = await getEmailTemplate('user_approved');
     if (!template) return { success: false, error: 'Template not found' };
     
-    const password = options?.password || user.temp_password || 'Tu contraseña actual';
+    const password = options.password || user.temp_password || 'Tu contraseña actual';
     
     const subject = replaceTemplateVariables(template.subject, {
         user_name: user.display_name || user.username
@@ -808,58 +808,7 @@ app.put('/api/users/:id/role', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Asignar usuario a grupo
-app.put('/api/users/:id/group', authMiddleware(['ADMIN']), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    const { group_id } = req.body;
-    db.prepare("UPDATE users SET group_id = ? WHERE id = ?").run(group_id || null, targetId);
-    res.json({ success: true });
-});
-
-// Asignar usuario a eventos (reemplaza todas las asignaciones)
-app.put('/api/users/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    const { events } = req.body;
-    
-    // Verificar que PRODUCTOR solo asigne a usuarios de su grupo
-    if (req.userRole === 'PRODUCTOR') {
-        const userGroups = getProducerGroups(req.userId);
-        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
-        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
-            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
-        }
-    }
-    
-    // Eliminar asignaciones actuales
-    db.prepare("DELETE FROM user_events WHERE user_id = ?").run(targetId);
-    
-    // Insertar nuevas asignaciones
-    if (events && events.length > 0) {
-        const insert = db.prepare("INSERT INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)");
-        events.forEach(eventId => {
-            insert.run(getValidId('user_events'), targetId, eventId, new Date().toISOString());
-        });
-    }
-    
-    res.json({ success: true });
-});
-
-// Quitar un evento específico de un usuario
-app.delete('/api/users/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    const eventId = castId('events', req.params.eventId);
-    
-    if (req.userRole === 'PRODUCTOR') {
-        const userGroups = getProducerGroups(req.userId);
-        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
-        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
-            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
-        }
-    }
-    
-    db.prepare("DELETE FROM user_events WHERE user_id = ? AND event_id = ?").run(targetId, eventId);
-    res.json({ success: true });
-});
+// Rutas de users/:id/* movidas a users.routes.js (modular)
 
 app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
@@ -890,41 +839,7 @@ app.put('/api/users/:id/status', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-app.put('/api/users/:id/password', authMiddleware(), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    const requesterId = req.userId; // YA CASTEADO
-    if (req.userRole !== 'ADMIN' && requesterId !== targetId) return res.status(403).json({ error: 'Acceso Denegado' });
-    
-    const hashedPassword = bcrypt.hashSync(req.body.password, 10);
-    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, targetId);
-    res.json({ success: true });
-});
-
-// Actualizar perfil de usuario
-app.put('/api/users/:id/profile', authMiddleware(), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    const requesterId = req.userId;
-    
-    // Solo el propio usuario o admin puede actualizar
-    if (req.userRole !== 'ADMIN' && requesterId !== targetId) {
-        return res.status(403).json({ error: 'Acceso Denegado' });
-    }
-    
-    const { display_name, phone, group_id } = req.body;
-    
-    // Users can only update their own profile, admins can update group_id
-    if (req.userRole === 'ADMIN') {
-        db.prepare("UPDATE users SET display_name = ?, phone = ?, group_id = ? WHERE id = ?")
-          .run(display_name || '', phone || '', group_id || null, targetId);
-    } else {
-        db.prepare("UPDATE users SET display_name = ?, phone = ? WHERE id = ?")
-          .run(display_name || '', phone || '', targetId);
-    }
-    
-    // Return updated user data
-    const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
-    res.json({ success: true, user });
-});
+// Rutas /users/:id/password y /users/:id/profile movidas a users.routes.js (modular)
 
 // Solicitar recuperación de contraseña
 app.post('/api/password-reset-request', (req, res) => {
@@ -1609,31 +1524,7 @@ app.put('/api/events/:eventId/email-templates/:type', authMiddleware(['ADMIN', '
     res.json({ success: true });
 });
 
-// Obtener agenda de evento
-app.get('/api/events/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const agenda = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY sort_order, start_time").all(eventId);
-    res.json(agenda);
-});
-
-// Guardar agenda de evento
-app.put('/api/events/:eventId/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const { agenda_items } = req.body;
-    
-    // Eliminar agenda actual
-    db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(eventId);
-    
-    // Insertar nueva agenda
-    if (agenda_items && agenda_items.length > 0) {
-        const insert = db.prepare("INSERT INTO event_agenda (id, event_id, title, description, start_time, end_time, speaker, location, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        agenda_items.forEach((item, index) => {
-            insert.run(getValidId('ea'), eventId, item.title || '', item.description || '', item.start_time || '', item.end_time || '', item.speaker || '', item.location || '', index);
-        });
-    }
-    
-    res.json({ success: true });
-});
+// Rutas /events/:eventId/agenda movidas a surveys.routes.js (modular)
 
 // Enviar email de prueba para evento
 app.post('/api/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
@@ -1657,84 +1548,7 @@ app.post('/api/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR'
     res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
 });
 
-// Obtener sugerencias de un evento
-app.get('/api/events/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const suggestions = db.prepare(`
-        SELECT gs.*, g.name as guest_name, g.email as guest_email
-        FROM guest_suggestions gs
-        LEFT JOIN guests g ON gs.guest_id = g.id
-        WHERE gs.event_id = ?
-        ORDER BY gs.submitted_at DESC
-    `).all(eventId);
-    res.json(suggestions);
-});
-
-// Enviar sugerencia (público)
-app.post('/api/events/:eventId/suggestions', (req, res) => {
-    const eventId = castId('events', req.params.eventId);
-    const { guest_id, suggestion } = req.body;
-    
-    if (!suggestion || suggestion.trim().length === 0) {
-        return res.status(400).json({ error: 'Sugerencia requerida' });
-    }
-    
-    const id = getValidId('gs');
-    db.prepare("INSERT INTO guest_suggestions (id, event_id, guest_id, suggestion, submitted_at) VALUES (?, ?, ?, ?, ?)")
-      .run(id, eventId, guest_id || null, suggestion.trim(), new Date().toISOString());
-    
-    res.json({ success: true, message: '¡Gracias por tu sugerencia!' });
-});
-
-// ─────────────────────────────────────────────────────────────
-// ENCUESTAS DINÁMICAS (V11.6.1)
-// ─────────────────────────────────────────────────────────────
-
-// Obtener preguntas de la encuesta de un evento
-app.get('/api/events/:eventId/surveys', (req, res) => {
-    const eId = castId('events', req.params.eventId);
-    const rows = db.prepare("SELECT * FROM surveys WHERE event_id = ?").all(eId);
-    res.json(rows);
-});
-
-// Guardar/Actualizar encuesta de un evento
-app.put('/api/events/:eventId/surveys', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const eId = castId('events', req.params.eventId);
-    const { questions } = req.body; // Array de objetos { question, type, options }
-
-    try {
-        db.transaction(() => {
-            // Limpiar anteriores para este evento
-            db.prepare("DELETE FROM surveys WHERE event_id = ?").run(eId);
-            
-            // Insertar nuevas
-            const insert = db.prepare("INSERT INTO surveys (id, event_id, question, type, options) VALUES (?, ?, ?, ?, ?)");
-            if (questions && questions.length > 0) {
-                questions.forEach(q => {
-                    insert.run(uuidv4(), eId, q.question, q.type || 'stars', q.options || '');
-                });
-            }
-        })();
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// Enviar respuestas de encuesta (Público)
-app.post('/api/events/:eventId/surveys/responses', (req, res) => {
-    const eId = castId('events', req.params.eventId);
-    const { guest_id, responses } = req.body; // responses es un objeto JSON
-
-    try {
-        const id = uuidv4();
-        db.prepare("INSERT INTO survey_responses (id, event_id, guest_id, responses_json, submitted_at) VALUES (?, ?, ?, ?, ?)")
-          .run(id, eId, guest_id || null, JSON.stringify(responses), new Date().toISOString());
-        res.json({ success: true, message: '¡Gracias por tus respuestas!' });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
+// Rutas /events/:eventId/suggestions y /events/:eventId/surveys movidas a surveys.routes.js (modular)
 
 // --- SPA FALLBACK (V10.5) ---
 app.use((req, res, next) => {

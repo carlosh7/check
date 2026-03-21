@@ -105,4 +105,83 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// Cambiar rol de usuario (ADMIN)
+router.put('/:id/role', authMiddleware(['ADMIN']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(req.body.role, targetId);
+    res.json({ success: true });
+});
+
+// Asignar usuario a grupo (ADMIN)
+router.put('/:id/group', authMiddleware(['ADMIN']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const { group_id } = req.body;
+    db.prepare("UPDATE users SET group_id = ? WHERE id = ?").run(group_id || null, targetId);
+    res.json({ success: true });
+});
+
+// Asignar usuario a eventos (ADMIN/PRODUCTOR)
+router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const { events } = req.body;
+    
+    if (req.userRole === 'PRODUCTOR') {
+        const userGroups = getProducerGroups(req.userId);
+        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        }
+    }
+    
+    db.prepare("DELETE FROM user_events WHERE user_id = ?").run(targetId);
+    
+    if (events && events.length > 0) {
+        const insert = db.prepare("INSERT INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)");
+        events.forEach(eventId => {
+            insert.run(getValidId('user_events'), targetId, eventId, new Date().toISOString());
+        });
+    }
+    
+    res.json({ success: true });
+});
+
+// Quitar un evento de un usuario (ADMIN/PRODUCTOR)
+router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    const eventId = castId('events', req.params.eventId);
+    
+    if (req.userRole === 'PRODUCTOR') {
+        const userGroups = getProducerGroups(req.userId);
+        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        }
+    }
+    
+    db.prepare("DELETE FROM user_events WHERE user_id = ? AND event_id = ?").run(targetId, eventId);
+    res.json({ success: true });
+});
+
+// Actualizar perfil de usuario
+router.put('/:id/profile', authMiddleware(), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    
+    if (req.userRole !== 'ADMIN' && req.userId !== targetId) {
+        return res.status(403).json({ error: 'Acceso Denegado' });
+    }
+    
+    const { display_name, phone, group_id } = req.body;
+    
+    if (req.userRole === 'ADMIN') {
+        db.prepare("UPDATE users SET display_name = ?, phone = ?, group_id = ? WHERE id = ?")
+          .run(display_name || '', phone || '', group_id || null, targetId);
+    } else {
+        db.prepare("UPDATE users SET display_name = ?, phone = ? WHERE id = ?")
+          .run(display_name || '', phone || '', targetId);
+    }
+    
+    const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
+    res.json({ success: true, user });
+});
+
 module.exports = router;

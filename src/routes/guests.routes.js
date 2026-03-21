@@ -180,5 +180,14 @@ router.post('/clear/:eventId', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// Estadísticas de evento
+router.get('/stats/:eventId', authMiddleware(), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const total = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ?").get(eId).count;
+    const checkedIn = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1").get(eId).count;
+    const newRegistrations = db.prepare("SELECT COUNT(*) as count FROM guests WHERE event_id = ? AND is_new_registration = 1").get(eId).count;
+    res.json({ total, checkedIn, percentage: total > 0 ? Math.round((checkedIn / total) * 100) : 0, newRegistrations });
+});
+
 module.exports = router;
 module.exports.tempImport = tempImport;
