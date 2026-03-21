@@ -8,7 +8,7 @@
 | Métrica | Valor |
 |---------|-------|
 | Versión | 12.2.2 |
-| Líneas server.js | **552** (desde 1780) |
+| Líneas server.js | **459** (desde 1780) |
 | Rutas modulares | **100%** (72/72) |
 | Tests | 26/26 ✅ |
 | Docker | Puerto 8080 ✅ |
@@ -28,10 +28,11 @@
 - [x] Índices de base de datos (15 índices)
 - [x] Sistema de migrations
 - [x] **Modularización de rutas 100%** (72/72 rutas)
-- [x] **server.js: 1780 → 555 líneas** (-1225)
+- [x] **server.js: 1780 → 459 líneas** (-1321)
 - [x] **SPA routes migradas** (root, registro)
 - [x] **Auth routes 100% modulares**
 - [x] **Public routes 100% modulares**
+- [x] **Código muerto eliminado** (tempImport, authMiddleware, helpers, imports no usados)
 
 ### Estructura Modular
 ```
@@ -66,8 +67,8 @@ src/routes/
 - **Solución**: Se liberarán automáticamente o reiniciar PC
 
 #### 2. Limpiar código comentado
-- Quedan ~400 líneas comentadas en server.js
-- Opcional pero mejora legibilidad
+- [x] ~~~400 líneas comentadas en server.js~~ - Código muerto eliminado (99 líneas removidas)
+- ~~Pendiente~~ - Completado
 
 ### 🟡 Corto Plazo - 100% COMPLETADO ✅
 
@@ -176,6 +177,10 @@ Registro/
 ## 📝 GIT COMMITS RECIENTES
 
 ```
+8d13d49 refactor: clean unused code - removed 99 lines from server.js (558->459)
+8409182 feat: corto plazo - swagger api docs, pagination, socket.io module
+0d068de fix: uuid v9 for CommonJS compatibility, all 26 tests passing
+```
 8409182 feat: corto plazo - swagger api docs, pagination, socket.io module
 0d068de fix: uuid v9 for CommonJS compatibility, all 26 tests passing
 4f22bde feat: high priority tasks - server.js 652 lines, jest tests
@@ -202,4 +207,4 @@ Registro/
 
 ---
 
-**Última sesión**: 21/03/2026 - Corto plazo COMPLETO: Swagger, Paginación, Socket.io module. 26/26 tests passing
+**Última sesión**: 21/03/2026 - Limpieza completa: server.js 1780→459 líneas. 26/26 tests passing

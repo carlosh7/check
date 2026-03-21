@@ -65,11 +65,11 @@ const MIGRATION_STATUS = {
     inlineRoutes: 0,
     percentage: 100,
     serverLinesOriginal: 1780,
-    serverLinesCurrent: 555,
+    serverLinesCurrent: 459,
     serverLinesActive: ~250,
     lastUpdate: '21/03/2026',
     completedPhases: ['10.0', '10.1', '10.2', '10.3', '10.4', '10.5', '10.6.1', '10.6.2', '10.6.3', '10.6.4', '10.6.5', '10.6.6', '10.6.7', '10.6.8'],
-    status: 'COMPLETA - 100% modular (72/72 rutas), server.js 555 líneas'
+    status: 'COMPLETA - 100% modular (72/72 rutas), server.js 459 líneas'
 };
 
 module.exports = MIGRATION_STATUS;
