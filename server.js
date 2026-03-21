@@ -4,29 +4,19 @@ const http = require('http');
 const cors = require('cors');
 const path = require('path');
 const { db, createEventEmailTemplates } = require('./database');
-const multer = require('multer');
-const ExcelJS = require('exceljs');
-const qrcode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
 const { simpleParser } = require('mailparser');
-const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
-
 // --- MÓDULOS (Fase 10 - Modularización) ---
 const { registerRoutes } = require('./src/routes');
-const { getValidId: modGetValidId, castId: modCastId } = require('./src/utils/helpers');
 const { init: initSocket, getIO: socketGetIO } = require('./src/socket');
 
 // --- VERSIÓN DINÁMICA V10.3 ---
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-const APP_VERSION = pkg.version;
-let tempImport = {};
+const APP_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version;
 
 const app = express();
 const server = http.createServer(app);
@@ -36,25 +26,6 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
 
 const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
 const port = process.env.PORT || 3000;
-
-// --- ID COMPATIBILITY WRAPPER (V10.4.3) ---
-const getValidId = (tableName) => {
-    try {
-        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const idCol = info.find(c => c.name === 'id');
-        return (idCol && idCol.type === 'INTEGER') ? null : uuidv4();
-    } catch(e) { return uuidv4(); }
-};
-
-const castId = (tableName, id) => {
-    if (id === null || id === undefined) return id;
-    try {
-        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const idCol = info.find(c => c.name === 'id');
-        if (idCol && idCol.type === 'INTEGER' && !isNaN(id)) return parseInt(id, 10);
-        return id;
-    } catch(e) { return id; }
-};
 
 // --- EMAIL SERVICE V10.6 ---
 async function getSMTPConfig() {
@@ -130,11 +101,7 @@ async function sendEmail(to, subject, html, options = {}) {
 }
 
 // ═══ MOTOR DE COLAS (QUEUE ENGINE) V11.0 ═══
-let isQueuePaused = false;
-
 async function processEmailQueue() {
-    if (isQueuePaused) return;
-
     // Buscar el siguiente correo pendiente
     const nextMail = db.prepare(`SELECT * FROM email_queue WHERE status = 'PENDING' ORDER BY scheduled_at ASC LIMIT 1`).get();
 
@@ -463,72 +430,6 @@ app.use(express.static(path.join(__dirname, '/'), {
 }));
 
 // Uploads y middleware de validación se manejan en registerRoutes
-
-// ─────────────────────────────────────────────────────────────
-// MIDDLEWARE DE AUTH — better-sqlite3: síncrono
-// ─────────────────────────────────────────────────────────────
-const authMiddleware = (roles = []) => {
-    return (req, res, next) => {
-        let userId = req.headers['x-user-id'] || req.query['x-user-id'];
-        if (!userId) return res.status(401).json({ error: 'No autorizado' });
-        userId = castId('users', userId); // ASEGURAR TIPO DE DATO
-        const row = db.prepare("SELECT role, status FROM users WHERE id = ?").get(userId);
-        if (!row) return res.status(401).json({ error: 'Usuario inexistente' });
-        if (row.status !== 'APPROVED') return res.status(403).json({ error: 'Cuenta pendiente de aprobación' });
-        if (roles.length > 0 && !roles.includes(row.role)) return res.status(403).json({ error: 'Acceso denegado' });
-        req.userId = userId; // Inyectar ID casteado
-        req.userRole = row.role;
-        req.userGroupId = row.group_id;
-        next();
-    };
-};
-
-// ═══ FUNCIONES HELPER PARA PERMISOS JERÁRQUICOS V10.5 ═══
-
-// Obtener grupos que administra un PRODUCTOR
-const getProducerGroups = (userId) => {
-    const groupUsers = db.prepare("SELECT group_id FROM group_users WHERE user_id = ?").all(userId);
-    return groupUsers.map(g => g.group_id);
-};
-
-// Obtener eventos a los que tiene acceso un usuario (por grupo o asignados)
-const getUserEventIds = (userId, role) => {
-    if (role === 'ADMIN') {
-        const all = db.prepare("SELECT id FROM events").all();
-        return all.map(e => e.id);
-    }
-    
-    const userGroups = db.prepare("SELECT group_id FROM group_users WHERE user_id = ?").all(userId);
-    const groupIds = userGroups.map(g => g.group_id);
-    
-    let eventIds = [];
-    if (groupIds.length > 0) {
-        const placeholders = groupIds.map(() => '?').join(',');
-        const eventsByGroup = db.prepare(`SELECT id FROM events WHERE group_id IN (${placeholders})`).all(...groupIds);
-        eventIds = eventsByGroup.map(e => e.id);
-    }
-    
-    const userEvents = db.prepare("SELECT event_id FROM user_events WHERE user_id = ?").all(userId);
-    const assignedIds = userEvents.map(e => e.event_id);
-    
-    return [...new Set([...eventIds, ...assignedIds])];
-};
-
-// Verificar si usuario tiene acceso a un evento específico
-const hasEventAccess = (userId, eventId, role) => {
-    if (role === 'ADMIN') return true;
-    
-    const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(eventId);
-    if (!event) return false;
-    
-    if (event.group_id) {
-        const inGroup = db.prepare("SELECT 1 FROM group_users WHERE user_id = ? AND group_id = ?").get(userId, event.group_id);
-        if (inGroup) return true;
-    }
-    
-    const assigned = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);
-    return !!assigned;
-};
 
 // --- SWAGGER UI ---
 const swaggerUi = require('swagger-ui-express');
