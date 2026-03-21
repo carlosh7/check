@@ -24,6 +24,7 @@
 | 5 | Seguridad básica | ✅ COMPLETA | 21/03/2026 |
 | 6 | Hash de contraseñas | ✅ COMPLETA | 21/03/2026 |
 | 7 | Commit y documentación | ✅ COMPLETA | 21/03/2026 |
+| 8 | Índices de base de datos | ✅ COMPLETA | 21/03/2026 |
 
 ---
 
@@ -111,6 +112,26 @@
 - **Notas:**
   - ⚠️ REQUIERE REINICIAR SERVIDOR
   - Si login falla: `cp server_backup_fase6.js server.js`
+
+---
+
+### Fase 8: Índices de base de datos ✅
+- **Fecha:** 21/03/2026
+- **Estado:** COMPLETADA
+- **Índices creados:**
+  - idx_guests_event_email, idx_guests_event_phone
+  - idx_guests_checkin_time, idx_guests_unsubscribe_token
+  - idx_events_group, idx_events_user, idx_events_status
+  - idx_pre_reg_event_status
+  - idx_email_queue_status, idx_email_logs_event
+  - idx_user_events_user, idx_user_events_event
+  - idx_group_users_group, idx_group_users_user
+  - idx_password_resets_user
+- **Scripts creados:**
+  - `scripts/create_indexes.js` - Migración de índices
+- **Notas:**
+  - 15 índices creados
+  - Rendimiento mejorado en búsquedas frecuentes
 
 ---
 
