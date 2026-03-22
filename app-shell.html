@@ -1,1795 +1,398 @@
-<div id="app-container">
-        <!-- Sidebar Global: Estilo macOS/Chrome -->
-        <aside id="global-sidebar">
-            
-            <!-- Logo area -->
-            <div class="p-6 mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white text-lg">verified_user</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="font-bold text-base tracking-tight">Check<span class="text-primary">.</span></span>
-                    </div>
+<div id="app-container" class="flex h-screen bg-slate-950 text-slate-200 overflow-hidden font-sans selection:bg-primary/30">
+    <!-- Sidebar Global: Estilo macOS/Chrome -->
+    <aside id="global-sidebar" class="w-72 bg-slate-900/50 border-r border-white/5 flex flex-col backdrop-blur-3xl z-50">
+        
+        <!-- Logo area -->
+        <div class="p-8 mb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-white text-xl">verified_user</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-black text-xl tracking-tight leading-none">CHECK<span class="text-primary">.</span>PRO</span>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Enterprise UI</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navegación Refinada -->
+        <nav id="sidebar-nav" class="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar">
+            <div id="nav-section-global">
+                <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Administración</p>
+                <div class="space-y-1">
+                    <a href="#" onclick="App.navigate('system')" id="nav-btn-system" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">group</span> 
+                        <span class="flex-1">Equipo y Accesos</span>
+                    </a>
+                    <a href="#" onclick="App.navigate('groups')" id="nav-btn-groups" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">corporate_fare</span> 
+                        <span class="flex-1">Empresas</span>
+                    </a>
+                    <a href="#" onclick="App.navigate('legal')" id="nav-btn-legal" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">gavel</span> 
+                        <span class="flex-1">Legales y Privacidad</span>
+                    </a>
+                    <a href="#" onclick="App.navigateEmailSection('config')" id="nav-btn-smtp" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">mail</span> 
+                        <span class="flex-1">Gestión Email</span>
+                    </a>
+                    <a href="#" onclick="App.navigate('account')" id="nav-btn-account" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">manage_accounts</span> 
+                        <span class="flex-1">Mi Perfil</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Producción</p>
+                <div class="space-y-1">
+                    <a href="#" onclick="App.navigate('my-events')" id="nav-btn-my-events" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">event_repeat</span> Mis Eventos
+                    </a>
+                </div>
+            </div>
+
+            <div id="nav-section-event" class="hidden mt-8 animate-fade-in">
+                <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4" id="nav-event-name">Evento Actual</p>
+                <div class="space-y-1">
+                    <a href="#" onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">dashboard</span> Panel Control
+                    </a>
+                    <a href="#" onclick="App.navigate('pre-registrations')" id="nav-btn-pre-registrations" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">how_to_reg</span> Pre-registros
+                    </a>
+                    <a href="#" onclick="App.navigate('survey-manager')" id="nav-btn-survey-manager" class="nav-item group">
+                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">quiz</span> Encuesta QR
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Footer Sidebar -->
+        <div class="p-6 mt-auto border-t border-white/5 bg-slate-900/80">
+            <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl mb-4 border border-white/5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-white/10">
+                    <span class="material-symbols-outlined text-slate-400 text-lg">account_circle</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p id="sidebar-username" class="text-xs font-black truncate text-white uppercase tracking-wider">Usuario</p>
+                    <p id="sidebar-role" class="text-[9px] text-primary font-black uppercase tracking-widest mt-0.5">Rol de Sistema</p>
                 </div>
             </div>
             
-            <!-- Navegación Refinada -->
-            <nav id="sidebar-nav" class="flex-1 space-y-1">
-                <div id="nav-section-global">
-                    <p class="px-6 text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">Administración</p>
-                    <a href="#" onclick="App.navigate('system')" id="nav-btn-system" class="nav-item">
-                        <span class="material-symbols-outlined">group</span> Equipo
-                    </a>
-                    <a href="#" onclick="App.navigate('groups')" id="nav-btn-groups" class="nav-item">
-                        <span class="material-symbols-outlined">folder</span> Empresas
-                    </a>
-                    <a href="#" onclick="App.navigate('legal')" id="nav-btn-legal" class="nav-item">
-                        <span class="material-symbols-outlined">gavel</span> Legales
-                    </a>
-                    <a href="#" onclick="App.navigateEmailSection('config')" id="nav-btn-email-admin" class="nav-item">
-                        <span class="material-symbols-outlined">mail</span> Email Admin
-                    </a>
-                    <a href="#" onclick="App.navigate('account')" id="nav-btn-account" class="nav-item">
-                        <span class="material-symbols-outlined">manage_accounts</span> Mi Cuenta
-                    </a>
-                </div>
-
-                <div class="mt-8">
-                    <p class="px-6 text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">Producción</p>
-                    <a href="#" onclick="App.navigate('my-events')" id="nav-btn-my-events" class="nav-item">
-                        <span class="material-symbols-outlined">event_repeat</span> Eventos
-                    </a>
-                </div>
-
-                <div id="nav-section-event" class="hidden mt-8">
-                    <p class="px-6 text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">Evento Actual</p>
-                    <a href="#" onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-item">
-                        <span class="material-symbols-outlined">dashboard</span> Dashboard
-                    </a>
-                    <a href="#" onclick="App.openMailing()" class="nav-item">
-                        <span class="material-symbols-outlined">mail</span> Mailing
-                    </a>
-                </div>
-            </nav>
-            
-            <!-- Footer Sidebar -->
-            <div class="p-4 mt-auto border-t border-border-light">
-                <div class="flex items-center gap-3 p-3 bg-border-light rounded-lg mb-3">
-                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary text-sm">person</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p id="sidebar-username" class="text-xs font-semibold truncate">Usuario</p>
-                        <p id="sidebar-role" class="text-[10px] text-text-secondary uppercase">Rol</p>
-                    </div>
-                </div>
-                
-                <div class="flex gap-1">
-                    <button onclick="App.toggleTheme()" class="flex-1 p-2 bg-border-light hover:bg-border rounded text-text-secondary transition-colors" title="Cambiar tema">
-                        <span class="material-symbols-outlined text-sm">dark_mode</span>
-                    </button>
-                    <button onclick="App.logout()" class="flex-1 p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded transition-colors" title="Cerrar sesión">
-                        <span class="material-symbols-outlined text-sm">logout</span>
-                    </button>
-                </div>
-            
-                <div class="mt-4 text-center">
-                    <span id="version-display" class="text-[9px] font-bold text-text-muted uppercase tracking-widest opacity-50">v12.2.3</span>
-                </div>
+            <div class="flex gap-2">
+                <button onclick="App.toggleTheme()" class="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 transition-all border border-white/5 flex items-center justify-center" title="Cambiar tema">
+                    <span class="material-symbols-outlined text-sm">dark_mode</span>
+                </button>
+                <button onclick="App.logout()" class="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/10 flex items-center justify-center" title="Cerrar sesión">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                </button>
             </div>
-        </aside>
+        
+            <div class="mt-6 text-center">
+                <span id="version-display" class="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] opacity-50">v12.2.3</span>
+            </div>
+        </div>
+    </aside>
 
-        <!-- Main Content Area -->
-        <main id="app-main-content" class="flex-1 overflow-auto relative bg-slate-950">
-                      <!-- VIEW: MY EVENTS -->
-            <div id="view-my-events" class="hidden">
-                <header class="flex justify-between items-end mb-8">
+    <!-- Main Content Area -->
+    <main id="app-main-content" class="flex-1 overflow-auto relative bg-slate-950 flex flex-col">
+        
+        <!-- CONTENEDOR DE VISTAS DINÁMICAS -->
+        <div id="views-container" class="flex-1 p-8 md:p-12 relative animate-fade-in custom-scrollbar">
+
+            <!-- VIEW: MY EVENTS -->
+            <section id="view-my-events" class="hidden space-y-12">
+                <header class="flex flex-col md:flex-row justify-between items-end gap-6">
                     <div>
-                        <h1 class="mb-1">Mis Eventos</h1>
-                        <p class="text-secondary">Gestiona tus producciones activas desde un solo lugar.</p>
+                        <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Panel de Producción
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight">Mis Eventos</h1>
+                        <p class="text-slate-500 text-sm mt-2">Gestiona tus producciones activas desde un solo lugar.</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <div class="px-4 py-2 border border-border rounded-md font-mono text-lg" id="events-list-clock">00:00:00</div>
-                        <button id="btn-create-event-open" class="btn-primary">Nuevo Evento</button>
+                        <div class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl font-mono text-2xl font-black text-white shadow-inner" id="events-list-clock">00:00:00</div>
+                        <button id="btn-create-event-open" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 font-black uppercase tracking-widest text-xs">Nuevo Evento</button>
                     </div>
                 </header>
-                <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12"></div>
-            </div>            <div id="view-admin-simple" class="hidden">
-                <header class="flex justify-between items-end mb-8">
-                    <div>
-                        <h1 class="mb-1" id="admin-event-title-simple">Cargando Evento...</h1>
-                        <p class="text-secondary" id="admin-event-location-simple">Ubicación no definida</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="App.showQR()" class="btn-primary">Ver QR</button>
-                        <button onclick="App.exportExcel()" class="bg-border-light hover:bg-border p-2 rounded text-text-secondary transition-colors" title="Exportar Excel">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                        </button>
-                    </div>
-                </header>
+                <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12"></div>
+            </section>
 
-                <div id="admin-main-dashboard-simple">
-                    <div class="card overflow-hidden">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Invitado</th>
-                                    <th>Empresa</th>
-                                    <th class="text-center">Estado</th>
-                                    <th class="text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="guests-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: PRE-INSCRIPCIONES (NUEVO V11.6) -->
-            <div id="view-pre-registrations" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
-                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+            <!-- VIEW: ADMIN DASHBOARD (SINGLE EVENT) -->
+            <section id="view-admin" class="hidden space-y-12">
+                <header class="flex flex-col lg:flex-row justify-between items-start gap-8">
                     <div class="flex-1">
                         <div class="flex items-center gap-3 mb-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
-                            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Solicitudes Externas
+                            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span> Evento Activo
                         </div>
-                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Pre-inscripciones</h1>
-                        <p class="text-slate-500 text-sm">Aprueba o rechaza a los asistentes que se registraron vía link público.</p>
-                    </div>
-                    <button onclick="App.loadPreRegistrations()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
-                        <span class="material-symbols-outlined text-sm">refresh</span> Actualizar
-                    </button>
-                </header>
-
-                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-white/2 text-[9px] uppercase font-black text-slate-500 tracking-widest">
-                                <tr>
-                                    <th class="px-6 py-4">Asistente</th>
-                                    <th class="px-6 py-4">Empresa / Cargo</th>
-                                    <th class="px-6 py-4">Fecha Solicitud</th>
-                                    <th class="px-6 py-4 text-center">Estado</th>
-                                    <th class="px-6 py-4 text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pre-reg-tbody" class="divide-y divide-white/5">
-                                <!-- Cargado vía JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: GESTIÓN DE ENCUESTAS QR (NUEVO V11.6) -->
-            <div id="view-survey-manager" class="hidden min-h-full p-8 md:p-12 animate-fade overflow-y-auto">
-                <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2 text-amber-500 font-black text-[10px] uppercase tracking-[0.3em]">
-                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> Feedback Interactivo
+                        <h1 id="admin-event-title" class="text-5xl font-black font-display tracking-tight mb-2">Cargando...</h1>
+                        <div class="flex items-center gap-2 text-slate-500 font-bold ml-1">
+                            <span class="material-symbols-outlined text-sm">location_on</span>
+                            <span id="admin-event-location" class="text-xs uppercase tracking-widest">Ubicación no definida</span>
                         </div>
-                        <h1 class="text-5xl font-black font-display tracking-tight mb-2">Encuesta QR</h1>
-                        <p class="text-slate-500 text-sm">Configura las preguntas que tus asistentes responderán al escanear el QR.</p>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="App.openSurveyEditor()" class="btn-primary !py-3 !px-6 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                            <span class="material-symbols-outlined">add_circle</span> Nueva Pregunta
-                        </button>
-                        <button onclick="App.showQR()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
-                            <span class="material-symbols-outlined text-sm">qr_code_2</span> Ver QR
-                        </button>
-                    </div>
-                </header>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-4" id="survey-questions-list">
-                        <!-- Cargado vía JS -->
-                    </div>
-                    <div class="space-y-6">
-                        <div class="glass-card p-8 rounded-[40px] border border-white/10 bg-slate-900/40">
-                            <h4 class="text-[10px] font-black text-white uppercase tracking-widest mb-6">Analítica de Encuesta</h4>
-                            <div class="flex items-center gap-4 mb-8">
-                                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-primary text-2xl">poll</span>
-                                </div>
-                                <div>
-                                    <p class="text-3xl font-black text-white" id="survey-response-count">0</p>
-                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Respuestas</p>
-                                </div>
+                    
+                    <div class="glass-card p-6 flex flex-col md:flex-row gap-4 min-w-fit border border-white/10 rounded-[32px]">
+                        <div class="flex items-center gap-6 px-6 border-r border-white/10">
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Hora Local</p>
+                                <p id="admin-clock-real" class="text-xl font-black font-mono text-white">00:00:00</p>
                             </div>
-                            <button onclick="App.exportSurveyResponses()" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-white/5">
-                                <span class="material-symbols-outlined text-sm">download</span> Descargar Resultados
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-red-500 mb-1">Countdown</p>
+                                <p id="admin-clock-countdown" class="text-xl font-black font-mono text-red-500">00:00:00</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                            <button onclick="App.showQR()" class="btn-primary !p-3 rounded-xl flex flex-col items-center justify-center gap-1">
+                                <span class="material-symbols-outlined">qr_code_2</span>
+                                <span class="text-[8px] font-black uppercase">Feedback</span>
+                            </button>
+                            <button onclick="App.exportExcel()" class="bg-emerald-500/10 text-emerald-500 p-3 rounded-xl flex flex-col items-center justify-center gap-1 border border-emerald-500/10 hover:bg-emerald-500/20 transition-all">
+                                <span class="material-symbols-outlined">description</span>
+                                <span class="text-[8px] font-black uppercase">Excel</span>
+                            </button>
+                            <button onclick="App.generateGuestListPdf()" class="bg-red-500/10 text-red-500 p-3 rounded-xl flex flex-col items-center justify-center gap-1 border border-red-500/10 hover:bg-red-500/20 transition-all">
+                                <span class="material-symbols-outlined">picture_as_pdf</span>
+                                <span class="text-[8px] font-black uppercase">PDF</span>
                             </button>
                         </div>
                     </div>
-                </div>
-                      <!-- VIEW: SYSTEM (GESTIÓN DE EQUIPO) -->
-            <div id="view-system-simple" class="hidden">
-                <header class="flex justify-between items-end mb-8">
-                    <div>
-                        <h1 class="mb-1">Gestión de Equipo</h1>
-                        <p class="text-secondary">Administra los usuarios y sus permisos globales.</p>
-                    </div>
-                    <button id="btn-open-invite" class="btn-primary">Añadir Usuario</button>
                 </header>
 
-                <!-- Filtros Compactos -->
-                <div class="mb-6 flex gap-3">
-                    <div class="flex-1 relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">search</span>
-                        <input type="text" id="user-search" onkeyup="App.filterUsers()" placeholder="Buscar usuarios..." class="input-field w-full pl-10">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="glass-card !p-8 rounded-[40px] border border-white/10 hover:border-primary/30 transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors"></div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                             <span class="material-symbols-outlined text-primary text-base">group</span> Invitados Totales
+                        </p>
+                        <h2 id="stat-total" class="text-5xl font-black font-display">0</h2>
+                        <div class="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary w-[70%] rounded-full shadow-[0_0_10px_rgba(124,58,237,0.5)]"></div>
+                        </div>
                     </div>
-                    <select id="filter-group" onchange="App.filterUsers()" class="input-field">
-                        <option value="">Todas las empresas</option>
-                    </select>
+                    <!-- ... más stats (simplificados para esta versión) ... -->
                 </div>
 
-                <div class="card overflow-hidden">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Configuración</th>
-                                <th class="text-right">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-tbody-simple"></tbody>
-                    </table>
+                <div class="glass-card rounded-[48px] overflow-hidden border border-white/10 shadow-2xl">
+                    <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                        <h3 class="text-xl font-black flex items-center gap-3 font-display">
+                            <span class="w-2 h-8 bg-primary rounded-full"></span> Listado de Asistenes
+                        </h3>
+                        <div class="relative w-full max-w-md">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                            <input id="guest-search" type="text" placeholder="Buscar por nombre, email o empresa..." class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm focus:bg-white/10 focus:border-primary/50 transition-all outline-none">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/[0.01]">
+                                    <th class="px-8 py-6">Invitado / Organización</th>
+                                    <th class="px-8 py-6">Canal / Registro</th>
+                                    <th class="px-8 py-6 text-center">Estado de Asistencia</th>
+                                    <th class="px-8 py-6 text-right">Acciones Rápidas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guests-tbody" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-           </div>
+            </section>
 
-            <!-- VIEW: EMPRESAS (V10.5) -->
-            <div id="view-groups" class="hidden min-h-full p-8 md:p-12 animate-fade">
-                <div class="flex justify-between items-center mb-10">
-                    <h2 class="text-4xl font-black font-display">Gestión de <span class="text-primary">Empresas</span></h2>
-                    <button id="btn-create-group" class="btn-primary !px-8 !py-4 rounded-xl font-black text-[10px] uppercase">Crear Empresa</button>
+            <!-- VIEW: SYSTEM (USERS, LEGAL, ACCOUNT) -->
+            <section id="view-system" class="hidden space-y-12 animate-fade-in">
+                <!-- Sub-Navegación de Sistema -->
+                <div class="flex gap-1 p-1 bg-white/5 rounded-2xl w-fit border border-white/5 backdrop-blur-md">
+                    <button onclick="window.switchSystemTab('users')" id="sys-nav-users" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Equipo</button>
+                    <button onclick="window.switchSystemTab('legal')" id="sys-nav-legal" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Legales</button>
+                    <button onclick="window.switchSystemTab('account')" id="sys-nav-account" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Mi Perfil</button>
                 </div>
-                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+
+                <!-- CONTENIDO: EQUIPO -->
+                <div id="sys-content-users" class="hidden animate-fade-in">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
+                        <div>
+                            <h2 class="text-4xl font-black font-display tracking-tight">Gestión de <span class="text-primary">Equipo</span></h2>
+                            <p class="text-slate-500 text-sm mt-1">Controla quién tiene acceso al backend y su nivel de permisos.</p>
+                        </div>
+                        <button onclick="App.openInviteModal()" class="btn-primary !px-10 !py-5 rounded-2x font-black">AÑADIR COLABORADOR</button>
+                    </div>
+                    <div class="glass-card rounded-[40px] overflow-hidden border border-white/10">
+                        <table class="w-full text-left">
+                            <thead class="bg-white/5 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                                <tr>
+                                    <th class="px-8 py-5">Colaborador / Nickname</th>
+                                    <th class="px-8 py-5">Rol en el Sistema</th>
+                                    <th class="px-8 py-5 text-center">Estado</th>
+                                    <th class="px-8 py-5 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: LEGALES -->
+                <div id="sys-content-legal" class="hidden animate-fade-in space-y-8">
+                    <div class="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/10">
+                        <div>
+                            <h3 class="text-xl font-black font-display">Políticas Globales</h3>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Configuración requerida por GDPR / Ley LOPD</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="check-show-legal-login" class="w-6 h-6 accent-primary rounded-lg">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">Mostrar links en Login</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Privacidad</h4>
+                                <button id="btn-save-policy" class="px-6 py-2 bg-primary/20 text-primary border border-primary/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
+                            </div>
+                            <div id="editor-policy" class="bg-slate-900/50 rounded-2xl min-h-[400px]"></div>
+                        </div>
+                        <div class="glass-card p-8 rounded-[40px] border border-white/10 flex flex-col gap-6">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-indigo-400">gavel</span> Términos del Servicio</h4>
+                                <button id="btn-save-terms" class="px-6 py-2 bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">Guardar</button>
+                            </div>
+                            <div id="editor-terms" class="bg-slate-900/50 rounded-2xl min-h-[400px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: MI PERFIL -->
+                <div id="sys-content-account" class="hidden animate-fade-in max-w-4xl mx-auto space-y-8">
+                     <div class="glass-card p-10 rounded-[48px] border border-white/10 space-y-10">
+                        <div class="flex items-center gap-8 border-b border-white/5 pb-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-primary/20 to-indigo-600/20 rounded-[32px] flex items-center justify-center border border-white/10">
+                                <span class="material-symbols-outlined text-5xl text-primary">account_circle</span>
+                            </div>
+                            <div>
+                                <h3 id="profile-full-name" class="text-4xl font-black font-display tracking-tight">Cargando Nombre...</h3>
+                                <p id="profile-role-badge" class="px-3 py-1 bg-primary/20 text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-full w-fit mt-2">ADMINISTRADOR</p>
+                            </div>
+                        </div>
+                        <form id="profile-form" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nombre Público</label>
+                                <input type="text" id="profile-display-name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-primary/50 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Teléfono de Enlace</label>
+                                <input type="tel" id="profile-phone" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-primary/50 outline-none transition-all">
+                            </div>
+                            <div class="md:col-span-2 flex justify-end">
+                                <button type="submit" class="btn-primary !px-12 !py-4 rounded-2xl font-black">GUARDAR PERFIL</button>
+                            </div>
+                        </form>
+                     </div>
+                </div>
+            </section>
+
+            <!-- VIEW: EMPRESAS -->
+            <section id="view-groups" class="hidden space-y-12 animate-fade-in">
+                 <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-5xl font-black font-display tracking-tight">Gestión de <span class="text-primary italic">Empresas</span></h2>
+                    <button id="btn-create-group" class="btn-primary !px-10 !py-5 rounded-2xl font-black text-xs uppercase tracking-widest">Registrar Empresa</button>
+                </div>
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10 shadow-2xl">
                     <table class="w-full text-left">
-                        <thead class="bg-white/5 border-b border-white/10">
+                        <thead class="bg-white/5 text-[9px] uppercase font-black text-slate-500 tracking-widest">
                             <tr>
-                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Nombre</th>
-                                <th class="px-8 py-5 text-left text-sm font-black uppercase tracking-wider text-primary">Contacto</th>
-                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Estado</th>
-                                <th class="px-8 py-5 text-center text-sm font-black uppercase tracking-wider text-primary">Usuarios</th>
-                                <th class="px-8 py-5 text-right text-sm font-black uppercase tracking-wider text-primary">Acciones</th>
+                                <th class="px-8 py-6">Organización</th>
+                                <th class="px-8 py-6">Punto de Contacto</th>
+                                <th class="px-8 py-6 text-center">Registrados</th>
+                                <th class="px-8 py-6 text-right">Administración</th>
                             </tr>
                         </thead>
                         <tbody id="groups-tbody" class="divide-y divide-white/5"></tbody>
                     </table>
                 </div>
-            </div>
+            </section>
 
-        <!-- VIEW: LEGALES -->
-            <div id="view-legal" class="hidden">
-                <header class="mb-8">
-                    <h1 class="mb-1">Textos Legales</h1>
-                    <p class="text-secondary">Configuración de políticas y términos del sistema.</p>
+             <!-- VIEW: SMTP / EMAIL ADMIN -->
+            <section id="view-smtp" class="hidden space-y-12 animate-fade-in">
+                 <header class="flex flex-col lg:flex-row justify-between items-end gap-6 mb-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2 text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em]">
+                            <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span> Mailing Enterprise
+                        </div>
+                        <h1 class="text-5xl font-black font-display tracking-tight">Administración de Correo</h1>
+                        <p class="text-slate-500 text-sm mt-2">Puerta de enlace para invitaciones y comunicaciones automáticas.</p>
+                    </div>
                 </header>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    <div class="card flex flex-col gap-6">
-                        <h2 class="flex items-center gap-3"><span class="material-symbols-outlined">policy</span> Política de Datos</h2>
-                        <div id="editor-policy" class="flex-1"></div>
-                        <button id="btn-save-policy" class="btn-primary self-end px-10">Guardar Política</button>
-                    </div>
-                    <div class="card flex flex-col gap-6">
-                        <h2 class="flex items-center gap-3"><span class="material-symbols-outlined">gavel</span> Términos y Condiciones</h2>
-                        <div id="editor-terms" class="flex-1"></div>
-                        <button id="btn-save-terms" class="btn-primary self-end px-10">Guardar Términos</button>
-                    </div>
+                
+                <div class="flex gap-1 p-1 bg-white/5 rounded-2xl w-fit border border-white/5 mb-12">
+                    <button onclick="App.navigateEmailSection('config')" id="email-nav-config" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Configuración</button>
+                    <button onclick="App.navigateEmailSection('templates')" id="email-nav-templates" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Plantillas</button>
+                    <button onclick="App.navigateEmailSection('mailing')" id="email-nav-mailing" class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Envío Masivo</button>
                 </div>
-            </div>
-
-            <!-- VIEW: MI CUENTA -->
-            <div id="view-account" class="hidden">
-                <header class="mb-8">
-                    <h1 class="mb-1">Mi Cuenta</h1>
-                </header>
-                <div class="max-w-2xl space-y-8">
-                    <div class="card">
-                        <h2 class="mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">person</span> Datos Personales</h2>
-                        <form id="profile-form" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-[10px] uppercase font-bold text-secondary ml-1">Nombre / Nickname</label>
-                                    <input type="text" id="profile-display-name" placeholder="Tu nombre" class="input-field w-full">
+                
+                <div id="email-content-config" class="email-content hidden animate-fade-in">
+                    <div class="glass-card p-10 rounded-[48px] border border-white/10 max-w-3xl">
+                        <form id="form-smtp" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Servidor SMTP</label>
+                                    <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-primary/50 outline-none transition-all">
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] uppercase font-bold text-secondary ml-1">Teléfono</label>
-                                    <input type="tel" id="profile-phone" placeholder="+57 300 123 4567" class="input-field w-full">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Puerto</label>
+                                    <input type="number" id="smtp-port" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-primary/50 outline-none transition-all">
                                 </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Email (Usuario)</label>
-                                <input type="email" id="profile-email" disabled class="input-field w-full bg-border-light cursor-not-allowed">
+                            <div class="flex justify-end gap-4 mt-8">
+                                <button type="button" id="btn-test-smtp" class="px-8 py-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all">Probar Conexión</button>
+                                <button type="submit" class="btn-primary !px-12 !py-4 rounded-2xl font-black">GUARDAR CONFIGURACIÓN</button>
                             </div>
-                            <div class="space-y-1" id="profile-company-container">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Empresa</label>
-                                <select id="profile-company" class="input-field w-full">
-                                    <option value="">-- Sin empresa asignada --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn-primary w-full mt-4">Guardar Cambios</button>
-                        </form>
-                    </div>
-                    
-                    <div class="card">
-                        <h2 class="mb-6 flex items-center gap-3"><span class="material-symbols-outlined text-primary">lock_reset</span> Cambiar Contraseña</h2>
-                        <form id="change-pass-form" class="space-y-4">
-                            <input type="password" id="new-pass-1" required placeholder="Nueva contraseña" class="input-field w-full">
-                            <input type="password" id="new-pass-2" required placeholder="Repetir nueva contraseña" class="input-field w-full">
-                            <button type="submit" class="btn-primary w-full mt-4">Actualizar Contraseña</button>
                         </form>
                     </div>
                 </div>
-            </div>
 
-            <!-- VIEW: EMAIL ADMIN -->
-            <div id="view-smtp" class="hidden">
-                <header class="mb-8">
-                    <h1 class="mb-1">Administración de Email</h1>
-                    <p class="text-secondary">Configura servidores, plantillas y campañas de correo.</p>
-                </header>
-                
-                <!-- Sub-Navegación Compacta -->
-                <div class="flex gap-1 mb-8 border-b border-border-light pb-2">
-                    <button onclick="App.navigateEmailSection('config')" id="email-nav-config" class="nav-item !m-0 active">Configuración</button>
-                    <button onclick="App.navigateEmailSection('templates')" id="email-nav-templates" class="nav-item !m-0">Plantillas</button>
-                    <button onclick="App.navigateEmailSection('mailbox')" id="email-nav-mailbox" class="nav-item !m-0">Buzón</button>
-                    <button onclick="App.navigateEmailSection('mailing')" id="email-nav-mailing" class="nav-item !m-0">Mailing</button>
-                </div>
-                
-                <!-- CONTENT: Configuración -->
-                <div id="email-content-config" class="email-content">
-                    <div class="flex gap-2 mb-6">
-                        <button onclick="App.switchEmailService('smtp')" id="tab-btn-smtp" class="btn-primary">SMTP (Envío)</button>
-                        <button onclick="App.switchEmailService('imap')" id="tab-btn-imap" class="bg-border-light hover:bg-border px-4 py-2 rounded-md text-text-secondary text-sm transition-colors">IMAP (Recepción)</button>
-                    </div>
-                    
-                    <form id="form-smtp" class="email-form card space-y-4 max-w-2xl">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Servidor SMTP</label>
-                                <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Puerto</label>
-                                <input type="number" id="smtp-port" value="587" class="input-field w-full">
-                            </div>
-                        </div>
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-border-light rounded transition-colors">
-                            <input type="checkbox" id="smtp-secure" class="w-4 h-4 accent-primary">
-                            <span class="text-xs font-medium text-secondary">Usar SSL/TLS (Seguro)</span>
-                        </label>
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-secondary ml-1">Usuario / Email</label>
-                            <input type="email" id="smtp-user" placeholder="tu@email.com" class="input-field w-full">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-secondary ml-1">Contraseña</label>
-                            <input type="password" id="smtp-pass" placeholder="••••••••" class="input-field w-full">
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Nombre Remitente</label>
-                                <input type="text" id="smtp-from-name" placeholder="Check Attendance" class="input-field w-full">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Email Remitente</label>
-                                <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="input-field w-full">
-                            </div>
-                        </div>
-                        <div class="flex gap-3 pt-4 border-t border-border-light">
-                            <button type="submit" class="btn-primary flex-1">Guardar SMTP</button>
-                            <button type="button" id="btn-test-smtp" class="bg-green-500/10 text-green-600 hover:bg-green-500/20 px-6 py-2 rounded-md font-medium text-sm transition-colors">Probar Conexión</button>
-                        </div>
-                    </form>
-                    
-                    <form id="form-imap" class="email-form hidden card space-y-4 max-w-2xl">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Servidor IMAP</label>
-                                <input type="text" id="imap-host" placeholder="imap.gmail.com" class="input-field w-full">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] uppercase font-bold text-secondary ml-1">Puerto</label>
-                                <input type="number" id="imap-port" value="993" class="input-field w-full">
-                            </div>
-                        </div>
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-border-light rounded transition-colors">
-                            <input type="checkbox" id="imap-tls" class="w-4 h-4 accent-primary" checked>
-                            <span class="text-xs font-medium text-secondary">Usar TLS</span>
-                        </label>
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-secondary ml-1">Usuario / Email</label>
-                            <input type="email" id="imap-user" placeholder="tu@email.com" class="input-field w-full">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-secondary ml-1">Contraseña</label>
-                            <input type="password" id="imap-pass" placeholder="••••••••" class="input-field w-full">
-                        </div>
-                        <div class="flex gap-3 pt-4 border-t border-border-light">
-                            <button type="submit" class="btn-primary flex-1">Guardar IMAP</button>
-                            <button type="button" id="btn-test-imap" class="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 px-6 py-2 rounded-md font-medium text-sm transition-colors">Probar Conexión</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- CONTENT: Plantillas -->
-                <div id="email-content-templates" class="email-content hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-bold">Mis Plantillas</h2>
-                        <button onclick="App.showCreateTemplateModal('event')" class="btn-primary">Nueva Plantilla</button>
-                    </div>
-                    <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Templates loaded by JS -->
-                    </div>
-                </div>
-                
-                <!-- CONTENT: Buzón -->
-                <div id="email-content-mailbox" class="email-content hidden">
-                    <div class="card">
-                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-                            <div>
-                                <h2 class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">inbox</span> Buzón Inteligente</h2>
-                                <p class="text-[10px] text-secondary uppercase font-bold tracking-wider">Sincronizado vía IMAP/SMTP</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="App.syncEmails()" class="bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-md font-bold text-xs flex items-center gap-2 transition-all">
-                                    <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Mailbox Sub-Tabs -->
-                        <div class="flex gap-1 mb-6 bg-border-light p-1 rounded-lg w-fit">
-                            <button onclick="App.switchMailboxFolder('INBOX')" id="mail-folder-inbox" class="px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all active bg-white shadow-sm">Recibidos</button>
-                            <button onclick="App.switchMailboxFolder('SENT')" id="mail-folder-sent" class="px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all">Enviados</button>
-                            <button onclick="App.switchMailboxFolder('TRASH')" id="mail-folder-trash" class="px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all">Papelera</button>
-                        </div>
-
-                        <!-- Email List Layout -->
-                        <div id="email-mailbox-container" class="min-h-[400px] border border-border-light rounded-xl overflow-hidden bg-background">
-                            <div id="email-mailbox-list" class="divide-y divide-border-light">
-                                <!-- Emails loaded by JS -->
-                                <div class="text-secondary text-center py-20">
-                                    <span class="material-symbols-outlined text-6xl opacity-20 animate-pulse">mail</span>
-                                    <p class="mt-4 font-bold text-sm">Cargando mensajes...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- CONTENT: Mailing Avanzado -->
-                <div id="email-content-mailing" class="email-content hidden">
-                    <!-- Guía DNS Anti-Spam -->
-                    <div id="dns-guide-banner" class="mb-8 border border-amber-500/30 bg-amber-500/5 p-6 rounded-xl animate-fade">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div class="flex items-start gap-4">
-                                <span class="material-symbols-outlined text-amber-500 text-3xl">verified_user</span>
-                                <div>
-                                    <h2 class="text-sm font-bold text-amber-500 uppercase tracking-wider mb-1">Blindaje Anti-Spam Requerido</h2>
-                                    <p class="text-[11px] text-secondary leading-relaxed max-w-2xl">
-                                        Para asegurar que tus envíos masivos lleguen a la <b>Bandeja de Entrada</b> y no a Spam, es vital configurar los registros DNS de tu dominio. 
-                                    </p>
-                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[9px]">
-                                        <div class="p-3 bg-black/5 rounded-lg border border-border-light">
-                                            <b class="text-amber-600 block mb-1">SPF (TXT)</b>
-                                            v=spf1 include:_spf.google.com ~all
-                                        </div>
-                                        <div class="p-3 bg-black/5 rounded-lg border border-border-light">
-                                            <b class="text-amber-600 block mb-1">DKIM (TXT)</b>
-                                            Copia la clave desde tu panel.
-                                        </div>
-                                        <div class="p-3 bg-black/5 rounded-lg border border-border-light">
-                                            <b class="text-amber-600 block mb-1">DMARC (TXT)</b>
-                                            v=DMARC1; p=quarantine;
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="App.dismissDNSGuide()" class="bg-amber-500 text-white px-6 py-2 rounded-md font-bold text-[10px] uppercase tracking-widest shadow hover:scale-105 transition-all whitespace-nowrap">
-                                Ya lo implementé
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div id="mailing-progress-card" class="hidden mb-8 card bg-primary/5">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-primary animate-spin">sync</span>
-                                <div>
-                                    <p class="text-sm font-bold uppercase tracking-wider">Enviando Correos...</p>
-                                    <p id="mailing-status-text" class="text-[10px] text-secondary">Procesando cola de envío</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="App.controlMailingQueue('pause')" id="btn-pause-mailing" class="p-2 rounded-md hover:bg-border-light text-secondary transition-all">
-                                    <span class="material-symbols-outlined text-sm">pause</span>
-                                </button>
-                                <button onclick="App.controlMailingQueue('resume')" id="btn-resume-mailing" class="hidden p-2 rounded-md bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-all">
-                                    <span class="material-symbols-outlined text-sm">play_arrow</span>
-                                </button>
-                                <button onclick="App.controlMailingQueue('stop')" class="p-2 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
-                                    <span class="material-symbols-outlined text-sm">stop</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="w-full h-2 bg-border-light rounded-full overflow-hidden">
-                            <div id="mailing-progress-bar" class="h-full bg-primary transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between mt-2 text-[10px] font-bold text-secondary uppercase tracking-tighter">
-                            <span id="mailing-count-text">0 / 0 enviados</span>
-                            <span id="mailing-percent-text">0%</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-1 space-y-6">
-                            <div class="card">
-                                <h2 class="mb-6">Configurar Envío</h2>
-                                <div class="space-y-4">
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] font-bold uppercase text-secondary ml-1">Seleccionar Plantilla</label>
-                                        <div class="flex gap-2">
-                                            <select id="mailing-template-select" class="input-field flex-1" onchange="App.previewMailingTemplate()">
-                                                <option value="">-- Selecciona una plantilla --</option>
-                                            </select>
-                                            <button onclick="App.showCreateTemplateModal('event')" class="w-10 h-10 bg-border-light hover:bg-border rounded-md flex items-center justify-center transition-all" title="Nueva Plantilla">
-                                                <span class="material-symbols-outlined text-sm">add</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] font-bold uppercase text-secondary ml-1">Asunto Personalizado</label>
-                                        <input type="text" id="mailing-subject" placeholder="Asunto del correo" class="input-field w-full">
-                                    </div>
-                                    <button onclick="App.startBroadcast()" class="btn-primary w-full mt-4">Iniciar Envío Masivo</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="lg:col-span-2">
-                            <div class="card min-h-full">
-                                <div class="flex justify-between items-center mb-6">
-                                    <h2 class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">visibility</span> Vista Previa Real</h2>
-                                    <button onclick="App.refreshMailingPreview()" class="p-2 rounded-md hover:bg-border-light text-secondary" title="Cambiar Persona">
-                                        <span class="material-symbols-outlined text-sm">shuffle</span>
-                                    </button>
-                                </div>
-                                <div id="mailing-preview-container" class="rounded-xl p-6 min-h-[400px] overflow-y-auto border border-border-light bg-background shadow-inner">
-                                    <div class="flex flex-col items-center justify-center h-full text-secondary py-20">
-                                        <span class="material-symbols-outlined text-6xl opacity-10">person_search</span>
-                                        <p class="mt-4 font-bold text-sm">Selecciona una plantilla para previsualizar</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- VIEW: EVENT DASHBOARD (Legacy - Para compatibilidad) -->
-    <div id="view-admin" class="hidden animate-fade overflow-y-auto w-full h-full p-8 md:p-12">
-        <div class="admin-layout-content max-w-7xl mx-auto">
-
-        <main class="main-content relative">
-            <!-- DASHBOARD PRINCIPAL -->
-            <section id="admin-main-dashboard">
-            <!-- Header -->
-            <header class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2 text-primary font-bold text-[10px] uppercase tracking-wider">
-                        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span> Panel del Evento
-                    </div>
-                    <h1 id="admin-event-title" class="mb-2">Cargando...</h1>
-                    <div class="flex items-center gap-2 text-secondary text-sm mb-6">
-                        <span class="material-symbols-outlined text-sm">location_on</span>
-                        <span id="admin-event-location">Ubicación no definida</span>
-                    </div>
-                    
-                    <div class="card p-4 inline-flex items-center gap-6">
-                        <div class="text-center border-r border-border-light pr-6">
-                            <p class="text-[9px] font-bold uppercase tracking-wider text-secondary mb-1">Hora Local</p>
-                            <p id="admin-clock-real" class="text-lg font-mono font-bold text-text">00:00:00</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[9px] font-bold uppercase tracking-wider text-red-500 mb-1">Cuenta Atrás</p>
-                            <p id="admin-clock-countdown" class="text-2xl font-mono font-bold text-red-600">00:00:00</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card flex flex-col gap-4 min-w-[300px]">
-                    <button id="btn-show-qr" class="btn-primary w-full">
-                        QR FEEDBACK <span class="material-symbols-outlined text-sm ml-2">qr_code_2</span>
-                    </button>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scan-qr" class="bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 p-2 rounded-md font-bold text-xs flex items-center justify-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-base">qr_code_scanner</span> Escanear
-                        </button>
-                        <button id="btn-bulk-tickets" class="bg-violet-500/10 text-violet-700 hover:bg-violet-500/20 p-2 rounded-md font-bold text-xs flex items-center justify-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-base">confirmation_number</span> Tickets
-                        </button>
-                        <button id="btn-export-excel" class="bg-green-500/10 text-green-700 hover:bg-green-500/20 p-2 rounded-md font-bold text-xs flex items-center justify-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-base">description</span> Excel
-                        </button>
-                        <button id="btn-export-analytics" class="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 p-2 rounded-md font-bold text-xs flex items-center justify-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-base">analytics</span> Analítica
-                        </button>
-                    </div>
-                    <button id="btn-clear-db" class="w-full text-red-500 hover:text-red-700 font-bold text-[10px] uppercase tracking-widest mt-2 transition-colors">
-                        Limpiar Base de Datos
-                    </button>
-                </div>
-            </header>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="card !p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined">group</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Total Invitados</p>
-                    </div>
-                    <h2 id="stat-total" class="text-4xl font-bold font-mono">0</h2>
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
-                            <span class="material-symbols-outlined">apartment</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Empresas</p>
-                    </div>
-                    <h2 id="stat-orgs" class="text-4xl font-bold font-mono">0</h2>
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow border-l-4 border-l-emerald-500">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
-                            <span class="material-symbols-outlined">checklist_rtl</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Presencia Real</p>
-                    </div>
-                    <h2 id="stat-presence" class="text-4xl font-bold font-mono text-emerald-600">0%</h2>
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow border-l-4 border-l-amber-500">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-500">
-                            <span class="material-symbols-outlined">how_to_reg</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Registros On-Site</p>
-                    </div>
-                    <h2 id="stat-onsite" class="text-4xl font-bold font-mono text-amber-600">0</h2>
-                </div>
-            </div>
-
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-                <div class="xl:col-span-2 card !p-8 h-[450px]">
-                    <div class="flex justify-between items-center mb-10">
-                        <h2 class="text-base font-bold">Flujo de Asistencia</h2>
-                        <span class="bg-primary/10 text-primary text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tiempo Real</span>
-                    </div>
-                    <div class="h-[300px] w-full">
-                        <canvas id="flowChart"></canvas>
-                    </div>
-                </div>
-                <div class="xl:col-span-1 card !p-8 flex flex-col h-[450px]">
-                    <h2 class="text-base font-bold mb-8">Alertas de Salud</h2>
-                    <div class="space-y-4 flex-1">
-                        <div class="p-4 bg-red-500/5 rounded-xl border border-red-500/10 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500">
-                                    <span class="material-symbols-outlined">medical_services</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold">Restricciones</p>
-                                    <p class="text-[9px] text-secondary uppercase font-bold">Dietas / Alergias</p>
-                                </div>
-                            </div>
-                            <span id="stat-health" class="text-2xl font-bold font-mono text-red-600">0</span>
-                        </div>
-                        <div class="p-4 bg-border-light rounded-xl flex items-center justify-between opacity-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white shadow-sm rounded-lg flex items-center justify-center text-secondary">
-                                    <span class="material-symbols-outlined">security</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold">Incidencias</p>
-                                    <p class="text-[9px] text-secondary uppercase font-bold">Reportadas</p>
-                                </div>
-                            </div>
-                            <span class="text-2xl font-bold font-mono">0</span>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-center text-secondary font-bold uppercase tracking-wider mt-4">Actualizado cada 5s</p>
-                </div>
-            </div>
-
-            <!-- Additional Charts Section -->
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
-                <div class="card !p-8 h-[400px]">
-                    <h2 class="text-base font-bold mb-8">Distribución por Género</h2>
-                    <div class="h-[250px] w-full">
-                        <canvas id="genderChart"></canvas>
-                    </div>
-                </div>
-                <div class="card !p-8 h-[400px]">
-                    <h2 class="text-base font-bold mb-8">Distribución por Dieta</h2>
-                    <div class="h-[250px] w-full">
-                        <canvas id="dietaryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- GUEST LIST SECTION -->
-            <section class="card !p-0 overflow-hidden mb-12">
-                <div class="p-6 border-b border-border-light flex flex-col md:flex-row justify-between items-center gap-6">
-                    <h2 class="flex items-center gap-2">
-                        <span class="w-1 h-6 bg-primary rounded-full"></span> 
-                        Listado de Invitados
-                    </h2>
-                    <div class="relative w-full max-w-md">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">person_search</span>
-                        <input id="guest-search" type="text" placeholder="Búsqueda rápida..." class="input-field !pl-10 !py-2 w-full">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="App.toggleColumnConfig()" class="p-2 rounded-md hover:bg-border-light text-secondary transition-colors" title="Columnas">
-                            <span class="material-symbols-outlined text-sm">view_column</span>
-                        </button>
-                        <button onclick="App.generateEventReport()" class="p-2 rounded-md bg-green-500/10 text-green-700 hover:bg-green-500/20 transition-colors" title="Reporte">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                        </button>
-                        <button onclick="App.generateGuestListPdf()" class="p-2 rounded-md bg-red-500/10 text-red-700 hover:bg-red-500/20 transition-colors" title="PDF">
-                            <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
-                        </button>
-                    </div>
+                <div id="email-content-templates" class="email-content hidden animate-fade-in">
+                    <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
                 </div>
 
-                <div id="column-config-menu" class="hidden absolute right-10 top-20 w-56 bg-white border border-border rounded-lg shadow-xl p-4 z-50">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-secondary mb-3">Mostrar Columnas</p>
-                    <div class="space-y-2" id="column-options-list"></div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th id="th-name">Perfil Invitado</th>
-                                <th id="th-org">Organización</th>
-                                <th id="th-status" class="text-center">Estado</th>
-                                <th class="text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="guests-tbody-admin">
-                            <!-- JS Rendered -->
-                        </tbody>
-                    </table>
+                <div id="email-content-mailing" class="email-content hidden animate-fade-in">
+                    <div class="glass-card p-8 rounded-[40px] border border-white/10 text-center py-20">
+                         <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">campaign</span>
+                         <h3 class="text-xl font-black text-slate-500">Módulo de Envío Masivo</h3>
+                         <p class="text-slate-600 text-xs font-bold uppercase tracking-widest">En desarrollo para V12.3</p>
+                    </div>
                 </div>
             </section>
-            <!-- VISTAS DE ADMINISTRACIÓN GLOBAL -->
-            <section id="view-system" class="hidden">
-                <div class="p-8 md:p-12">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-            <p>© 2026 CHECK PRO ENTERPRISE · SISTEMA DE GESTIÓN DE EVENTOS</p>
-            <div class="flex items-center gap-6">
-                <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
-                <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
-                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V12.2.1</span>
-            </div>
+
+             <!-- VIEW: PRE-REGISTRATIONS -->
+            <section id="view-pre-registrations" class="hidden space-y-12 animate-fade-in">
+                <!-- Similar a la anterior pero limpia -->
+                <h1 class="text-5xl font-black font-display tracking-tight">Pre-inscripciones</h1>
+                <div class="glass-card rounded-[40px] overflow-hidden border border-white/10 shadow-2xl">
+                     <table class="w-full text-left">
+                         <thead class="bg-white/5 text-[9px] uppercase font-black text-slate-500 tracking-widest">
+                            <tr><th>Asistente</th><th>Empresa</th><th>Fecha</th><th class="text-center">Estado</th><th class="text-right">Acciones</th></tr>
+                         </thead>
+                         <tbody id="pre-reg-tbody" class="divide-y divide-white/5"></tbody>
+                     </table>
+                </div>
+            </section>
+
+             <!-- VIEW: SURVEY MANAGER -->
+            <section id="view-survey-manager" class="hidden space-y-12 animate-fade-in">
+                <h1 class="text-5xl font-black font-display tracking-tight">Gestión de Encuestas</h1>
+                <div id="survey-questions-list" class="space-y-4"></div>
+            </section>
+
         </div>
-                    <div id="sys-content-users" class="hidden animate-fade">
-                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-                            <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
-                                <span class="w-2 h-10 bg-primary rounded-full"></span> Equipo y Accesos
-                            </h3>
-                            <button id="btn-open-invite-admin" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 w-full md:w-fit font-black uppercase tracking-widest text-xs">
-                                AÑADIR USUARIO <span class="material-symbols-outlined text-sm ml-2">person_add</span>
-                            </button>
-                        </div>
-                        <div id="pending-requests-section" class="hidden mb-12 bg-amber-500/5 border border-amber-500/10 p-8 rounded-[40px] backdrop-blur-md">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-base">warning</span> Solicitudes Pendientes
-                                <span id="pending-badge" class="hidden bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full text-[9px]">0</span>
-                            </p>
-                            <div id="pending-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                        </div>
-                        <div class="glass-card rounded-[40px] overflow-hidden border border-white/5 shadow-2xl">
-                            <table class="w-full text-left">
-                                <thead class="bg-white/2 border-b border-white/5 uppercase text-[10px] font-black tracking-widest text-slate-500">
-                                    <tr><th class="px-8 py-5">Usuario / Fecha</th><th class="px-8 py-5">Rol / Nivel</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acción</th></tr>
-                                </thead>
-                                <tbody id="users-tbody" class="divide-y divide-white/2"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- CONTENIDO: LEGALES (V12.2.1) -->
-                    <div id="sys-content-legal" class="hidden animate-fade space-y-8">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div>
-                                <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
-                                    <span class="w-2 h-10 bg-primary rounded-full"></span> Textos Legales y Privacidad
-                                </h3>
-                                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-2 ml-6">Configuración global de políticas y términos del sistema</p>
-                            </div>
-                            <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" id="check-show-legal-login" class="w-5 h-5 accent-primary">
-                                    <span class="text-xs font-bold text-slate-300">Mostrar en Login</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <!-- Política de Datos -->
-                            <div class="glass-card p-8 rounded-[40px] border border-white/10 space-y-6">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Datos</h4>
-                                    <button id="btn-save-policy" class="px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
-                                </div>
-                                <div id="editor-policy" class="bg-slate-900/50 rounded-2xl" style="height: 400px; border: none;"></div>
-```
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
-                            <span class="material-symbols-outlined">apartment</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Empresas</p>
-                    </div>
-                    <h2 id="stat-orgs" class="text-4xl font-bold font-mono">0</h2>
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow border-l-4 border-l-emerald-500">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
-                            <span class="material-symbols-outlined">checklist_rtl</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Presencia Real</p>
-                    </div>
-                    <h2 id="stat-presence" class="text-4xl font-bold font-mono text-emerald-600">0%</h2>
-                </div>
-                <div class="card !p-6 hover:shadow-md transition-shadow border-l-4 border-l-amber-500">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-500">
-                            <span class="material-symbols-outlined">how_to_reg</span>
-                        </div>
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-secondary">Registros On-Site</p>
-                    </div>
-                    <h2 id="stat-onsite" class="text-4xl font-bold font-mono text-amber-600">0</h2>
-                </div>
-            </div>
-
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-                <div class="xl:col-span-2 card !p-8 h-[450px]">
-                    <div class="flex justify-between items-center mb-10">
-                        <h2 class="text-base font-bold">Flujo de Asistencia</h2>
-                        <span class="bg-primary/10 text-primary text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tiempo Real</span>
-                    </div>
-                    <div class="h-[300px] w-full">
-                        <canvas id="flowChart"></canvas>
-                    </div>
-                </div>
-                <div class="xl:col-span-1 card !p-8 flex flex-col h-[450px]">
-                    <h2 class="text-base font-bold mb-8">Alertas de Salud</h2>
-                    <div class="space-y-4 flex-1">
-                        <div class="p-4 bg-red-500/5 rounded-xl border border-red-500/10 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500">
-                                    <span class="material-symbols-outlined">medical_services</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold">Restricciones</p>
-                                    <p class="text-[9px] text-secondary uppercase font-bold">Dietas / Alergias</p>
-                                </div>
-                            </div>
-                            <span id="stat-health" class="text-2xl font-bold font-mono text-red-600">0</span>
-                        </div>
-                        <div class="p-4 bg-border-light rounded-xl flex items-center justify-between opacity-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white shadow-sm rounded-lg flex items-center justify-center text-secondary">
-                                    <span class="material-symbols-outlined">security</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold">Incidencias</p>
-                                    <p class="text-[9px] text-secondary uppercase font-bold">Reportadas</p>
-                                </div>
-                            </div>
-                            <span class="text-2xl font-bold font-mono">0</span>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-center text-secondary font-bold uppercase tracking-wider mt-4">Actualizado cada 5s</p>
-                </div>
-            </div>
-
-            <!-- Additional Charts Section -->
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
-                <div class="card !p-8 h-[400px]">
-                    <h2 class="text-base font-bold mb-8">Distribución por Género</h2>
-                    <div class="h-[250px] w-full">
-                        <canvas id="genderChart"></canvas>
-                    </div>
-                </div>
-                <div class="card !p-8 h-[400px]">
-                    <h2 class="text-base font-bold mb-8">Distribución por Dieta</h2>
-                    <div class="h-[250px] w-full">
-                        <canvas id="dietaryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- GUEST LIST SECTION -->
-            <section class="card !p-0 overflow-hidden mb-12">
-                <div class="p-6 border-b border-border-light flex flex-col md:flex-row justify-between items-center gap-6">
-                    <h2 class="flex items-center gap-2">
-                        <span class="w-1 h-6 bg-primary rounded-full"></span> 
-                        Listado de Invitados
-                    </h2>
-                    <div class="relative w-full max-w-md">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">person_search</span>
-                        <input id="guest-search" type="text" placeholder="Búsqueda rápida..." class="input-field !pl-10 !py-2 w-full">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="App.toggleColumnConfig()" class="p-2 rounded-md hover:bg-border-light text-secondary transition-colors" title="Columnas">
-                            <span class="material-symbols-outlined text-sm">view_column</span>
-                        </button>
-                        <button onclick="App.generateEventReport()" class="p-2 rounded-md bg-green-500/10 text-green-700 hover:bg-green-500/20 transition-colors" title="Reporte">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                        </button>
-                        <button onclick="App.generateGuestListPdf()" class="p-2 rounded-md bg-red-500/10 text-red-700 hover:bg-red-500/20 transition-colors" title="PDF">
-                            <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="column-config-menu" class="hidden absolute right-10 top-20 w-56 bg-white border border-border rounded-lg shadow-xl p-4 z-50">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-secondary mb-3">Mostrar Columnas</p>
-                    <div class="space-y-2" id="column-options-list"></div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th id="th-name">Perfil Invitado</th>
-                                <th id="th-org">Organización</th>
-                                <th id="th-status" class="text-center">Estado</th>
-                                <th class="text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="guests-tbody-admin">
-                            <!-- JS Rendered -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            <!-- VISTAS DE ADMINISTRACIÓN GLOBAL -->
-            <section id="view-system" class="hidden">
-                <div class="p-8 md:p-12">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-            <p>© 2026 CHECK PRO ENTERPRISE · SISTEMA DE GESTIÓN DE EVENTOS</p>
-            <div class="flex items-center gap-6">
-                <a href="#" class="hover:text-primary transition-colors">Soporte Técnico</a>
-                <a href="#" class="hover:text-primary transition-colors">Documentación API</a>
-                <span class="px-3 py-1 bg-white/5 rounded-full border border-white/5">V12.2.1</span>
-            </div>
-        </div>
-                    <div id="sys-content-users" class="hidden animate-fade">
-                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-                            <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
-                                <span class="w-2 h-10 bg-primary rounded-full"></span> Equipo y Accesos
-                            </h3>
-                            <button id="btn-open-invite-admin" class="btn-primary !px-10 !py-5 rounded-2xl shadow-xl shadow-primary/30 w-full md:w-fit font-black uppercase tracking-widest text-xs">
-                                AÑADIR USUARIO <span class="material-symbols-outlined text-sm ml-2">person_add</span>
-                            </button>
-                        </div>
-                        <div id="pending-requests-section" class="hidden mb-12 bg-amber-500/5 border border-amber-500/10 p-8 rounded-[40px] backdrop-blur-md">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-base">warning</span> Solicitudes Pendientes
-                                <span id="pending-badge" class="hidden bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full text-[9px]">0</span>
-                            </p>
-                            <div id="pending-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                        </div>
-                        <div class="glass-card rounded-[40px] overflow-hidden border border-white/5 shadow-2xl">
-                            <table class="w-full text-left">
-                                <thead class="bg-white/2 border-b border-white/5 uppercase text-[10px] font-black tracking-widest text-slate-500">
-                                    <tr><th class="px-8 py-5">Usuario / Fecha</th><th class="px-8 py-5">Rol / Nivel</th><th class="px-8 py-5 text-center">Estado</th><th class="px-8 py-5 text-right">Acción</th></tr>
-                                </thead>
-                                <tbody id="users-tbody" class="divide-y divide-white/2"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- CONTENIDO: LEGALES (V12.2.1) -->
-                    <div id="sys-content-legal" class="hidden animate-fade space-y-8">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div>
-                                <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4">
-                                    <span class="w-2 h-10 bg-primary rounded-full"></span> Textos Legales y Privacidad
-                                </h3>
-                                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-2 ml-6">Configuración global de políticas y términos del sistema</p>
-                            </div>
-                            <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" id="check-show-legal-login" class="w-5 h-5 accent-primary">
-                                    <span class="text-xs font-bold text-slate-300">Mostrar en Login</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <!-- Política de Datos -->
-                            <div class="glass-card p-8 rounded-[40px] border border-white/10 space-y-6">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">policy</span> Política de Datos</h4>
-                                    <button id="btn-save-policy" class="px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
-                                </div>
-                                <div id="editor-policy" class="bg-slate-900/50 rounded-2xl" style="height: 400px; border: none;"></div>
-                            </div>
-
-                            <!-- Términos y Condiciones -->
-                            <div class="glass-card p-8 rounded-[40px] border border-white/10 space-y-6">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-lg font-black flex items-center gap-3"><span class="material-symbols-outlined text-primary">gavel</span> Términos de Uso</h4>
-                                    <button id="btn-save-terms" class="px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar</button>
-                                </div>
-                                <div id="editor-terms" class="bg-slate-900/50 rounded-2xl" style="height: 400px; border: none;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CONTENIDO: MI CUENTA -->
-                    <div id="sys-content-account" class="hidden animate-fade max-w-2xl">
-                        <h3 class="text-3xl font-black font-display tracking-tight flex items-center gap-4 mb-10">
-                            <span class="w-2 h-10 bg-primary rounded-full"></span> Mi Cuenta
-                        </h3>
-                        <div class="card p-10">
-                            <form id="change-pass-form" class="space-y-6">
-                                <h4 class="text-xs font-bold uppercase tracking-widest text-secondary mb-4">Seguridad / Contraseña</h4>
-                                <div class="space-y-4">
-                                    <input type="password" id="new-pass-1" required placeholder="Nueva Contraseña" class="input-field w-full">
-                                    <input type="password" id="new-pass-2" required placeholder="Confirmar Contraseña" class="input-field w-full">
-                                </div>
-                                <button type="submit" class="btn-primary w-full mt-4">Actualizar Acceso</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </section>
-                </div>
     </main>
-    </div>
 
-    <!-- MODAL: INVITAR USUARIO -->
-    <div id="modal-invite" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
-        <div class="card max-w-lg w-full">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Crear / Invitar Usuario</h2>
-                <button id="btn-close-invite" class="p-2 hover:bg-border-light rounded-full transition-colors"><span class="material-symbols-outlined">close</span></button>
-            </div>
-            <form id="invite-user-form" class="space-y-4">
-                <input type="text" id="invite-display-name" required placeholder="Nombre" class="input-field w-full">
-                <input type="email" id="invite-username" required placeholder="tu@email.com" class="input-field w-full">
-                <input type="password" id="invite-password" required placeholder="••••••••" class="input-field w-full">
-                <div id="invite-role-container">
-                    <label class="text-[10px] uppercase font-bold text-secondary mb-1 block">Rol de Acceso</label>
-                    <select id="invite-role" class="input-field w-full"></select>
-                </div>
-                <button type="submit" class="btn-primary w-full mt-2">Crear Usuario</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: QR FEEDBACK -->
-    <div id="modal-qr" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-6 animate-fade">
-        <div class="card max-w-md w-full text-center">
-            <h2 class="text-2xl font-bold mb-4">Feedback QR</h2>
-            <div class="bg-white p-6 rounded-2xl mb-8 inline-block shadow-inner"><img id="qr-display" class="w-64 h-64"></div>
-            <button id="close-qr" class="w-full btn-primary bg-border-light !text-text-secondary hover:!bg-border">Cerrar</button>
-        </div>
-    </div>
-
-    <!-- MODAL: QR SCANNER -->
-    <div id="modal-qr-scanner" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-6 animate-fade">
-        <div class="card max-w-2xl w-full border-t-4 border-t-amber-500">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Escanear Ticket QR</h2>
-                <button onclick="document.getElementById('modal-qr-scanner').classList.add('hidden')" class="p-2 hover:bg-border-light rounded-full transition-colors"><span class="material-symbols-outlined">close</span></button>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="space-y-4">
-                    <div id="qr-scanner-preview" class="relative aspect-square bg-black rounded-xl overflow-hidden shadow-2xl">
-                        <video id="qr-video" class="w-full h-full object-cover" autoplay playsinline></video>
-                        <canvas id="qr-canvas" class="hidden"></canvas>
-                        <div class="absolute inset-0 border-2 border-amber-500/50 rounded-xl pointer-events-none"></div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="btn-start-scan" class="btn-primary flex-1 py-3 font-bold flex items-center justify-center gap-2">Iniciar</button>
-                        <button id="btn-stop-scan" disabled class="px-4 bg-border-light text-secondary rounded-lg font-bold flex items-center justify-center gap-2">Parar</button>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <div id="scan-result" class="hidden p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
-                        <h4 class="text-emerald-600 font-bold mb-1">Check-in OK</h4>
-                        <p id="result-message" class="text-xs text-secondary"></p>
-                    </div>
-                    <div id="scan-error" class="hidden p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
-                        <h4 class="text-red-600 font-bold mb-1">Error</h4>
-                        <p id="error-message" class="text-xs text-secondary"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: BULK TICKETS GENERATION -->
-    <div id="modal-bulk-tickets" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 animate-fade">
-        <div class="glass-card p-8 rounded-[40px] max-w-md w-full text-center border-t-8 border-t-violet-500 shadow-[0_0_100px_rgba(139,92,246,0.2)]">
-            <h3 class="text-2xl font-black font-display mb-6">Generando Tickets Masivos</h3>
-            <p class="text-slate-400 text-sm mb-8">Estamos creando imágenes de tickets para cada invitado. Esto puede tomar unos segundos.</p>
-            <div class="space-y-4">
-                <div class="h-4 bg-white/5 rounded-full overflow-hidden">
-                    <div id="bulk-progress" class="h-full bg-violet-500 transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p id="bulk-progress-text" class="text-[10px] font-black uppercase tracking-widest text-slate-500">0/0</p>
-            </div>
-            <div class="mt-8 pt-6 border-t border-white/10">
-                <p class="text-[10px] text-slate-600">No cierres esta ventana hasta que se complete la descarga.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: EVENT CONFIG -->
-    <div id="modal-event" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] overflow-y-auto py-4 md:py-8">
-        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-3xl w-full mx-auto shadow-2xl border border-white/10 relative">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black font-display tracking-tight">Configuración del Evento</h3>
-                <button onclick="document.getElementById('modal-event').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            </div>
-            <h3 class="text-2xl font-black mb-6 font-display tracking-tight text-center">Configuración del Evento</h3>
-            <form id="new-event-form" class="space-y-5">
-                <input type="hidden" id="ev-id-hidden">
-                
-                <!-- Datos básicos -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre del Evento *</label>
-                        <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field bg-slate-900/50">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo del Evento</label>
-                        <input type="file" id="ev-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Inicio *</label>
-                        <input type="datetime-local" id="ev-date" required class="input-field bg-slate-900/50">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Fin *</label>
-                        <input type="datetime-local" id="ev-end-date" required class="input-field bg-slate-900/50">
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Ubicación</label>
-                    <input type="text" id="ev-location" placeholder="Ciudad, Hotel, Centro de Convenciones" class="input-field bg-slate-900/50">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Descripción</label>
-                    <textarea id="ev-desc" placeholder="Detalles corporativos o agenda..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
-                </div>
-                
-                <!-- Configuración de Registro Público -->
-                <div class="border-t border-white/10 pt-5 mt-5">
-                    <h4 class="text-lg font-black mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">how_to_reg</span>
-                        Página de Registro Público
-                    </h4>
-                    
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Título de la página</label>
-                                <input type="text" id="ev-reg-title" placeholder="Ej: Registro de Invitados" class="input-field bg-slate-900/50">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Logo para registro</label>
-                                <input type="file" id="ev-reg-logo-file" accept="image/*" class="input-field bg-slate-900/50 text-xs py-2">
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Texto de bienvenida</label>
-                            <input type="text" id="ev-reg-welcome" placeholder="Ej: Bienvenido a nuestro evento" class="input-field bg-slate-900/50">
-                        </div>
-                        
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Mensaje de éxito</label>
-                            <input type="text" id="ev-reg-success" placeholder="Ej: ¡Registro exitoso! Te esperamos." class="input-field bg-slate-900/50">
-                        </div>
-                        
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Política de tratamiento de datos</label>
-                            <textarea id="ev-reg-policy" placeholder="Texto legal de aceptación de tratamiento de datos personales..." class="input-field bg-slate-900/50 h-24 resize-none"></textarea>
-                        </div>
-                        
-                        <!-- Campos a mostrar -->
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2 mb-3 block">Campos a solicitar <span class="text-primary">(Nombre y Email siempre requeridos)</span></label>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors opacity-50">
-                                    <input type="checkbox" checked disabled class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Nombre *</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors opacity-50">
-                                    <input type="checkbox" checked disabled class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Email *</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-phone" checked class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Teléfono</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-org" checked class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Empresa</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-position" class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Cargo/Puesto</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-vegan" checked class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Vegano</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-dietary" checked class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Alergias</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                    <input type="checkbox" id="ev-reg-gender" class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Sexo</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors md:col-span-2">
-                                    <input type="checkbox" id="ev-reg-agreement" checked class="w-4 h-4 accent-primary">
-                                    <span class="text-sm">Requerir aceptación de política de datos</span>
-                                </label>
-                            </div>
-                        </div>
-                        <!-- Filtros de Dominio (V11.6.2) -->
-                        <div class="border-t border-white/10 pt-6 mt-6">
-                            <div class="flex items-center gap-3 mb-4">
-                                <span class="material-symbols-outlined text-emerald-500">verified_user</span>
-                                <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Seguridad de Registro (Filtros de Dominio)</h4>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Whitelist (Permitir solo @...)</label>
-                                    <input type="text" id="ev-reg-whitelist" placeholder="ej: miempresa.com, socia.co" class="input-field bg-slate-900/50 text-xs py-3">
-                                    <p class="text-[9px] text-slate-500 italic ml-2">En blanco para permitir todos. Separa por comas.</p>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Blacklist (Bloquear @...)</label>
-                                    <input type="text" id="ev-reg-blacklist" placeholder="ej: gmail.com, hotmail.com" class="input-field bg-slate-900/50 text-xs py-3">
-                                    <p class="text-[9px] text-slate-500 italic ml-2">Bloquea dominios específicos. Separa por comas.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Diseño Premium de Boleto y QR (Fase 8.1) -->
-                <div class="border-t border-white/10 pt-6 mt-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="material-symbols-outlined text-primary">palette</span>
-                        <h4 class="text-sm font-black uppercase tracking-widest text-primary">Personalización de Marca y Acceso</h4>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                        <!-- Controles -->
-                        <div class="space-y-6">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Color QR Dark</label>
-                                    <div class="flex gap-2">
-                                        <input type="color" id="ev-qr-dark" class="w-10 h-10 rounded-lg bg-transparent border-0 cursor-pointer p-0" value="#000000">
-                                        <input type="text" id="ev-qr-dark-hex" oninput="document.getElementById('ev-qr-dark').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#000000">
-                                    </div>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Color QR Light</label>
-                                    <div class="flex gap-2">
-                                        <input type="color" id="ev-qr-light" class="w-10 h-10 rounded-lg bg-transparent border-0 cursor-pointer p-0" value="#ffffff">
-                                        <input type="text" id="ev-qr-light-hex" oninput="document.getElementById('ev-qr-light').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#FFFFFF">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Logo Central QR (URL)</label>
-                                <input type="url" id="ev-qr-logo" placeholder="https://..." class="input-field bg-slate-900/50">
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Color Acento Ticket</label>
-                                    <input type="color" id="ev-ticket-accent" class="w-full h-10 rounded-xl bg-transparent border-0 cursor-pointer p-0" value="#7c3aed">
-                                </div>
-                                <div class="space-y-2 pt-6">
-                                    <input type="text" id="ev-ticket-accent-hex" oninput="document.getElementById('ev-ticket-accent').value = this.value" class="input-field py-2 text-center font-mono text-[10px]" placeholder="#7C3AED">
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Imagen de Fondo Ticket (URL)</label>
-                                <input type="url" id="ev-ticket-bg" placeholder="https://..." class="input-field bg-slate-900/50">
-                            </div>
-                        </div>
-
-                        <!-- LIVE PREVIEW PANEL -->
-                        <div class="glass-card p-6 rounded-[32px] border border-white/10 bg-slate-950/50 flex flex-col items-center">
-                            <p class="text-[9px] font-black uppercase text-slate-500 mb-6 tracking-[0.2em] border-b border-white/5 pb-2 w-full text-center">Vista Previa Real-Time</p>
-                            <div class="relative group">
-                                <div id="ev-qr-preview-container" class="p-4 bg-white rounded-3xl shadow-2xl transition-transform group-hover:scale-105 duration-500">
-                                    <img id="ev-qr-preview-img" class="w-40 h-40">
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <img id="ev-qr-preview-logo" src="" class="w-10 h-10 rounded-xl hidden shadow-lg bg-white p-1 border border-white/10">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-6 w-full space-y-3">
-                                <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
-                                    <span>Escaneabilidad</span>
-                                    <span id="preview-status" class="text-emerald-500">ÓPTIMA</span>
-                                </div>
-                                <div class="h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <div class="h-full bg-emerald-500 w-[95%] shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex gap-4 pt-5 border-t border-white/10">
-                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Evento</button>
-                    <button type="button" id="btn-open-email-config" onclick="App.openEventEmailConfig()" class="px-4 py-4 bg-white/5 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/20 hover:text-primary transition-all flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">mail</span> Emails
-                    </button>
-                    <button type="button" id="close-modal" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: EVENT EMAIL CONFIG (V10.6) -->
-    <div id="modal-event-email" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[200] overflow-y-auto py-4 md:py-8">
-        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-4xl w-full mx-auto shadow-2xl border border-white/10 relative">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Emails - <span id="email-event-name" class="text-primary"></span></h3>
-                <button onclick="App.closeEventEmailConfig()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="flex gap-2 mb-6 border-b border-white/10 pb-4">
-                <button onclick="App.switchEmailTab('smtp')" id="tab-smtp" class="email-tab-btn active px-4 py-2 rounded-lg text-xs font-bold">SMTP</button>
-                <button onclick="App.switchEmailTab('templates')" id="tab-templates" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Plantillas</button>
-                <button onclick="App.switchEmailTab('agenda')" id="tab-agenda" class="email-tab-btn px-4 py-2 rounded-lg text-xs font-bold">Agenda</button>
-            </div>
-            
-            <!-- SMTP Tab -->
-            <div id="content-smtp" class="email-tab-content">
-                <div class="space-y-4">
-                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                        <input type="checkbox" id="ev-smtp-enabled" class="w-5 h-5 accent-primary">
-                        <span class="font-bold text-sm">Habilitar emails personalizados para este evento</span>
-                    </label>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Servidor SMTP</label>
-                            <input type="text" id="ev-smtp-host" placeholder="smtp.gmail.com" class="input-field bg-slate-900/50">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Puerto</label>
-                            <input type="number" id="ev-smtp-port" placeholder="587" value="587" class="input-field bg-slate-900/50">
-                        </div>
-                    </div>
-                    
-                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl">
-                        <input type="checkbox" id="ev-smtp-secure" class="w-4 h-4 accent-primary">
-                        <span class="text-sm">Usar conexión segura (SSL/TLS)</span>
-                    </label>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Usuario (Email)</label>
-                            <input type="email" id="ev-smtp-user" placeholder="tu@email.com" class="input-field bg-slate-900/50">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Contraseña</label>
-                            <input type="password" id="ev-smtp-pass" placeholder="Contraseña de aplicación" class="input-field bg-slate-900/50">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Nombre Remitente</label>
-                            <input type="text" id="ev-smtp-from-name" placeholder="Nombre del Evento" class="input-field bg-slate-900/50">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500 ml-2">Email Remitente</label>
-                            <input type="email" id="ev-smtp-from-email" placeholder="noreply@evento.com" class="input-field bg-slate-900/50">
-                        </div>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <button onclick="App.saveEventEmailConfig()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar SMTP</button>
-                        <button onclick="App.testEventEmail()" class="px-6 py-3 bg-white/5 text-slate-400 rounded-xl font-bold text-sm hover:bg-white/10">Probar Conexión</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Templates Tab -->
-            <div id="content-templates" class="email-tab-content hidden">
-                <div id="event-email-templates-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                    <!-- Templates loaded by JS -->
-                </div>
-            </div>
-            
-            <!-- Agenda Tab -->
-            <div id="content-agenda" class="email-tab-content hidden">
-                <p class="text-slate-400 text-sm mb-4">Configura la agenda de tu evento. Se incluirá automáticamente en los emails de bienvenida.</p>
-                <div id="event-agenda-list" class="space-y-3 max-h-[400px] overflow-y-auto mb-4">
-                    <!-- Agenda items loaded by JS -->
-                </div>
-                <button onclick="App.addAgendaItem()" class="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-sm">add</span> Agregar momento de agenda
-                </button>
-                <div class="flex gap-3 mt-4">
-                    <button onclick="App.saveEventAgenda()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Guardar Agenda</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: COMPANY CONFIG (V10.6) -->
-    <div id="modal-company" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] overflow-y-auto py-4 md:py-8">
-        <div class="glass-card p-6 md:p-8 rounded-[32px] max-w-xl w-full mx-auto shadow-2xl border border-white/10 relative">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black font-display tracking-tight">Configuración de Empresa</h3>
-                <button onclick="document.getElementById('modal-company').classList.add('hidden')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            </div>
-            
-            <form id="company-form" class="space-y-5">
-                <input type="hidden" id="company-id-hidden">
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre de la Empresa *</label>
-                    <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field bg-slate-900/50">
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Descripción</label>
-                    <textarea id="company-description" placeholder="Descripción de la empresa..." class="input-field bg-slate-900/50 h-20 resize-none"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Correo de Contacto</label>
-                        <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field bg-slate-900/50">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Teléfono</label>
-                        <input type="tel" id="company-phone" placeholder="+57 300 123 4567" class="input-field bg-slate-900/50">
-                    </div>
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Estado</label>
-                    <select id="company-status" class="input-field bg-slate-900/50">
-                        <option value="ACTIVE">Activo</option>
-                        <option value="INACTIVE">Inactivo</option>
-                    </select>
-                </div>
-                
-                <div class="flex gap-4 pt-5 border-t border-white/10">
-                    <button type="submit" class="btn-primary flex-1 py-4 uppercase font-black tracking-widest rounded-2xl text-xs shadow-xl shadow-primary/30">Guardar Empresa</button>
-                    <button type="button" id="close-company-modal" onclick="document.getElementById('modal-company').classList.add('hidden')" class="px-6 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: IMPORT RESULTS (V5.5 Reinforced) -->
-    <div id="modal-import-results" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
-        <div class="glass-card p-12 rounded-[56px] max-w-xl w-full shadow-2xl border border-white/10">
-            <div class="text-center mb-10">
-                <div class="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
-                </div>
-                <h3 class="text-3xl font-black font-display tracking-tight">Análisis de Datos</h3>
-                <p class="text-slate-500 text-sm mt-2">Hemos analizado tu archivo. Revisa los resultados antes de procesarlos.</p>
-            </div>
-            
-            <div id="import-summary-content" class="space-y-6 mb-10">
-                <!-- JS Rendered Summary -->
-            </div>
-            
-            <div class="flex flex-col gap-4">
-                <button id="btn-confirm-import" class="btn-primary w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20">Procesar e Importar Ahora</button>
-                <button id="close-import-modal" class="w-full py-5 rounded-2xl bg-white/5 text-slate-500 font-black uppercase tracking-widest text-[10px]">Descartar Lectura</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden File Inputs -->
-    <input type="file" id="admin-file-import-excel" class="hidden" accept=".xlsx,.xls">
-    <input type="file" id="admin-file-import-pdf" class="hidden" accept=".pdf">
-    
-    <!-- MODAL: POLÍTICA / TÉRMINOS -->
-    <div id="modal-legal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
-        <div class="glass-card p-10 rounded-[48px] max-w-2xl w-full shadow-2xl border border-white/10 max-h-[80vh] flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <h3 id="modal-legal-title" class="text-2xl font-black font-display">Política</h3>
-                <button id="btn-close-legal" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
-            </div>
-            <div id="modal-legal-content" class="overflow-y-auto flex-1 text-slate-400 text-sm leading-relaxed prose prose-invert max-w-none"></div>
-        </div>
-    </div>
-
-    <!-- MODAL: EDITOR DE PLANTILLAS (QUILL WYSIWYG + HTML) -->
-    <div id="modal-template-editor" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
-        <div class="glass-card p-8 rounded-[40px] max-w-5xl w-full shadow-2xl border border-white/10 max-h-[92vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="template-editor-title" class="text-xl font-black font-display">Editar Plantilla</h3>
-                <button onclick="App.closeTemplateEditor()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
-            </div>
-            
-            <div class="space-y-3 mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre de Plantilla</label>
-                        <input type="text" id="tpl-name" placeholder="Confirmación de Registro" class="input-field bg-slate-900/60">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Asunto del Email</label>
-                        <input type="text" id="tpl-subject" placeholder="¡Tu registro está confirmado!" class="input-field bg-slate-900/60">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Variables Palette -->
-            <div class="mb-3">
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-2 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-xs text-primary">code</span> Variables disponibles — clic para insertar
-                </p>
-                <div class="flex flex-wrap gap-1.5" id="tpl-variables-palette">
-                    <!-- Variables se cargan por JS -->
-                </div>
-            </div>
-
-            <!-- Tabs Visual / Código -->
-            <div class="flex gap-2 mb-3">
-                <button onclick="App.switchTemplateEditorTab('visual')" id="tab-btn-visual" class="px-4 py-2 rounded-lg font-black text-xs transition-all bg-primary text-white shadow">
-                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_note</span> Visual</span>
-                </button>
-                <button onclick="App.switchTemplateEditorTab('code')" id="tab-btn-code" class="px-4 py-2 rounded-lg font-black text-xs transition-all bg-white/5 text-slate-400 hover:bg-white/10">
-                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">code</span> Código HTML</span>
-                </button>
-                <button onclick="App.switchTemplateEditorTab('preview')" id="tab-btn-preview" class="px-4 py-2 rounded-lg font-black text-xs transition-all bg-white/5 text-slate-400 hover:bg-white/10 ml-auto">
-                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">preview</span> Vista Previa</span>
-                </button>
-            </div>
-
-            <!-- Editor Visual (Quill) -->
-            <div id="editor-visual-container" class="tpl-preview-bg rounded-2xl overflow-hidden mb-3" style="min-height: 500px;">
-                <div id="tpl-quill-editor" style="height: 500px;"></div>
-            </div>
-
-            <!-- Editor Código (HTML) -->
-            <div id="editor-code-container" class="hidden mb-3">
-                <textarea id="tpl-code-editor" class="w-full bg-slate-900 text-slate-300 font-mono text-sm p-4 rounded-2xl border border-white/10 focus:border-primary focus:outline-none resize-none" style="min-height: 500px;" placeholder="&lt;html&gt;...&lt;/html&gt;"></textarea>
-            </div>
-
-            <!-- Preview -->
-            <div id="editor-preview-container" class="hidden mb-3 tpl-preview-bg rounded-2xl overflow-hidden" style="min-height: 500px;">
-                <iframe id="tpl-preview-frame" class="w-full" style="height: 500px; border: none;"></iframe>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex gap-3 pt-2">
-                <button onclick="App.saveTemplate()" class="btn-primary flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Guardar Plantilla</button>
-                <button onclick="App.closeTemplateEditor()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-black text-xs">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: TICKET DIGITAL (Apple Wallet Style) -->
-    <div id="modal-ticket" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-3xl z-[300] flex items-center justify-center p-4">
-        <div class="relative w-full max-w-sm animate-fade-up">
-            <!-- Ticket Container -->
-            <div id="ticket-container" class="relative bg-slate-900 rounded-[40px] overflow-hidden shadow-2xl border border-white/10" style="min-height: 600px;">
-                <!-- Header / Background -->
-                <div id="ticket-header-bg" class="h-48 bg-primary/20 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/90"></div>
-                </div>
-                
-                <!-- Content Area -->
-                <div class="px-8 -mt-24 relative z-10 text-center">
-                    <div id="ticket-event-logo-container" class="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl mx-auto mb-4 border border-white/10 flex items-center justify-center overflow-hidden">
-                        <span class="material-symbols-outlined text-3xl text-primary">event</span>
-                    </div>
-                    <h3 id="ticket-event-name" class="text-xl font-black font-display mb-1">Cargando evento...</h3>
-                    <p id="ticket-guest-name" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Invitado</p>
-                    
-                    <!-- QR Code -->
-                    <div class="glass-card p-4 rounded-3xl bg-white/5 inline-block mb-6 border border-white/10">
-                        <div id="ticket-qr-canvas-container" class="bg-white p-2 rounded-2xl">
-                            <canvas id="ticket-qr-canvas"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- Info Grid -->
-                    <div class="grid grid-cols-2 gap-4 text-left border-t border-white/5 pt-6">
-                        <div>
-                            <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Fecha</p>
-                            <p id="ticket-date" class="text-[10px] font-bold">-- -- ----</p>
-                        </div>
-                        <div>
-                            <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mb-1">Ubicación</p>
-                            <p id="ticket-location" class="text-[10px] font-bold truncate">Por definir</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8 pt-6 border-t border-white/5">
-                        <p class="text-[10px] text-slate-500 font-bold mb-4">Presenta este QR al llegar al evento</p>
-                    </div>
-                </div>
-                
-                <!-- Ticket Notch (Decorative) -->
-                <div class="absolute left-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950 rounded-full"></div>
-                <div class="absolute right-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950 rounded-full"></div>
-            </div>
-            
-            <!-- Actions -->
-            <div class="mt-8 flex gap-3 no-print">
-                <button id="btn-download-ticket" class="btn-primary flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">download</span> Guardar Imagen
-                </button>
-                <button id="btn-share-whatsapp" class="w-14 h-14 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl flex items-center justify-center transition-all" title="Compartir por WhatsApp">
-                    <span class="material-symbols-outlined">share</span>
-                </button>
-                <button onclick="document.getElementById('modal-ticket').classList.add('hidden')" class="px-6 py-4 bg-white/5 text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-colors">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: SURVEY EDITOR (NUEVO V11.6) -->
-    <div id="modal-survey-editor" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[999999] flex items-center justify-center p-4">
-        <div class="glass-card p-10 rounded-[48px] max-w-lg w-full shadow-2xl border border-white/10">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-2xl font-black font-display">Configurar Pregunta</h3>
-                <button onclick="document.getElementById('modal-survey-editor').classList.add('hidden')" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <form id="survey-question-form" class="space-y-6">
-                <input type="hidden" id="survey-question-id">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Enunciado de la Pregunta</label>
-                    <input type="text" id="survey-question-title" required placeholder="Ej: ¿Qué te pareció la charla?" class="input-field bg-slate-900/50">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Tipo de Respuesta</label>
-                    <select id="survey-question-type" class="input-field bg-slate-900/50" onchange="App.toggleSurveyOptions()">
-                        <option value="text">Texto Libre (Abierta)</option>
-                        <option value="binary">Sí / No</option>
-                        <option value="rating">Calificación (1-5 Estrellas)</option>
-                        <option value="multiple">Opción Múltiple</option>
-                    </select>
-                </div>
-                <div id="survey-options-container" class="hidden space-y-3">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Opciones (separadas por coma)</label>
-                    <input type="text" id="survey-question-options" placeholder="Opc 1, Opc 2, Opc 3" class="input-field bg-slate-900/50">
-                </div>
-                <button type="submit" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/30">Guardar Pregunta</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: IMPORT MAPPING (NUEVO V12.1) -->
-    <div id="modal-import-mapping" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[999999] flex items-center justify-center p-4">
-        <div class="glass-card p-8 rounded-[40px] max-w-4xl w-full shadow-2xl border border-white/10 max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-2xl font-black font-display tracking-tight">Mapeo Inteligente de Columnas</h3>
-                    <p class="text-xs text-slate-500 font-bold mt-1">Asigna las columnas de tu archivo a los campos del sistema</p>
-                </div>
-                <button onclick="document.getElementById('modal-import-mapping').classList.add('hidden')" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <!-- Tabla de Mapeo -->
-            <div class="flex-1 overflow-y-auto pr-2 mb-6">
-                <table class="w-full text-left border-separate border-spacing-y-2">
-                    <thead>
-                        <tr class="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                            <th class="px-4 pb-2">Campo del Sistema</th>
-                            <th class="px-4 pb-2">Columna en tu Archivo</th>
-                            <th class="px-4 pb-2">Vista Previa (Fila 1)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="import-mapping-tbody">
-                        <!-- Generado por JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex gap-4 p-6 bg-white/5 rounded-3xl border border-white/5">
-                <button onclick="App.confirmImport()" class="btn-primary flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/30">
-                    Comenzar Importación
-                </button>
-                <button onclick="document.getElementById('modal-import-mapping').classList.add('hidden')" class="px-8 py-4 bg-white/5 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: IMPORT PROGRESS (NUEVO V12.1) -->
-    <div id="modal-import-progress" class="hidden fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[9999999] flex items-center justify-center p-4">
-        <div class="glass-card p-10 rounded-[48px] max-w-md w-full shadow-2xl border border-white/10 text-center">
-            <div id="import-progress-icon" class="w-20 h-20 bg-primary/20 rounded-3xl mx-auto mb-6 flex items-center justify-center animate-pulse">
-                <span class="material-symbols-outlined text-4xl text-primary">upload_file</span>
-            </div>
-            
-            <h3 id="import-progress-title" class="text-xl font-black mb-2">Subiendo Archivo...</h3>
-            <p id="import-progress-status" class="text-xs text-slate-500 font-bold mb-8">Por favor, no cierres esta ventana</p>
-
-            <div class="space-y-6">
-                <!-- Barra de Subida -->
-                <div id="upload-bar-container" class="space-y-2">
-                    <div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
-                        <span>Progreso de Subida</span>
-                        <span id="upload-perc">0%</span>
-                    </div>
-                    <div class="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
-                        <div id="upload-bar" class="h-full bg-primary rounded-full w-0 transition-all duration-300 shadow-[0_0_15px_rgba(124,58,237,0.5)]"></div>
-                    </div>
-                </div>
-
-                <!-- Barra de Procesamiento -->
-                <div id="process-bar-container" class="space-y-2 opacity-30">
-                    <div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
-                        <span>Procesando Datos</span>
-                        <span id="process-perc">0%</span>
-                    </div>
-                    <div class="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
-                        <div id="process-bar" class="h-full bg-emerald-500 rounded-full w-0 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="import-success-actions" class="hidden mt-10 animate-fade-in">
-                <div class="bg-emerald-500/10 text-emerald-400 p-4 rounded-2xl border border-emerald-500/20 mb-6 flex items-center gap-3">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    <span class="text-xs font-black uppercase tracking-tight">¡Importación Exitosa!</span>
-                </div>
-                <button onclick="App.closeImportProgress()" class="btn-primary w-full py-4 rounded-2xl font-black uppercase tracking-widest">Ver Invitados</button>
-            </div>
-        </div>
-    </div>
+    <!-- UI COMPONENTS COMPLEMENTARIOS -->
+    <div id="modal-container" class="z-[999999] relative"></div>
 
 </div>

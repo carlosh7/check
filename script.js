@@ -2,6 +2,8 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // MASTER SCRIPT V12.2.3 - ARQUITECTURA ESM 🛡️🚀💎
+window.LS = LS;
+window.lazyLoad = lazyLoad;
 console.log("CHECK V12.2.3: Iniciando Sistema Modular...");
 console.log('[INIT] Script loaded as ESM, LS available');
 
@@ -32,35 +34,7 @@ window.App = {
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
 
     // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
-    navigate(viewId) {
-        console.log('[NAV] Navegando a:', viewId);
-        const mainViews = [
-            'view-my-events', 'view-admin-simple', 'view-system',
-            'view-smtp', 'view-email-mailbox', 'view-email-templates', 'view-email-mailing'
-        ];
-        mainViews.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
-        });
-        if (['system', 'legal', 'account'].includes(viewId)) {
-            const sysView = document.getElementById('view-system');
-            if (sysView) sysView.classList.remove('hidden');
-            let tab = viewId === 'system' ? 'users' : viewId;
-            if (window.switchSystemTab) window.switchSystemTab(tab);
-            this._updateSidebarUI(viewId);
-            return;
-        }
-        const target = document.getElementById('view-' + viewId);
-        if (target) {
-            target.classList.remove('hidden');
-            if (viewId === 'my-events') this.loadEvents();
-            if (viewId === 'admin') {
-                if (this.state.event) this.loadEventStats(this.state.event.id);
-                else this.navigate('my-events');
-            }
-        }
-        this._updateSidebarUI(viewId);
-    },
+    
 
     navigateEmailSection(tab) {
         this.navigate('smtp');
@@ -2152,119 +2126,81 @@ window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
+        console.log('[VIEW] Mostrando:', viewName);
         
-        // 0. Verificar sesión solo si no hay usuario en estado
-        if (viewName !== 'login') {
-            if (!this.state.user) {
-                const savedUser = LS.get('user');
-                if (!savedUser || savedUser === "undefined" || savedUser === "null") {
-                    viewName = 'login';
-                } else {
-                    try {
-                        this.state.user = JSON.parse(savedUser);
-                    } catch(e) {
-                        viewName = 'login';
-                    }
-                }
-            }
-        }
-        
-        // 1. Mostrar/Ocultar Contenedores Principales
-        const isLogin = viewName === 'login';
-        const loginEl = document.getElementById('view-login');
-        const appEl = document.getElementById('app-container');
-        
-        if (isLogin) {
-            // Solo limpiar sesión si es un logout explícito
-            if (clearSession) {
-                LS.remove('user');
-                LS.remove('selected_event_id');
-                LS.remove('selected_event_name');
-                this.state.user = null;
-                this.state.event = null;
-            }
-            
-            // Mostrar login, ocultar app
-            if (loginEl) { 
-                loginEl.classList.remove('hidden'); 
-                loginEl.style.display = 'flex'; 
-            }
-            if (appEl) { 
-                appEl.classList.add('hidden'); 
-                appEl.style.display = 'none'; 
-            }
+        if (viewName === 'login') {
+            document.getElementById('view-login')?.classList.remove('hidden');
+            if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex';
+            document.getElementById('app-container')?.classList.add('hidden');
+            if (clearSession) { window.LS.remove('user'); this.state.user = null; }
             return;
         } else {
-            // Ocultar login, mostrar app
-            if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
-            if (appEl) { appEl.classList.remove('hidden'); appEl.style.display = 'flex'; }
+            document.getElementById('view-login')?.classList.add('hidden');
+            document.getElementById('app-container')?.classList.remove('hidden');
+            if (document.getElementById('app-container')) document.getElementById('app-container').style.display = 'flex';
         }
 
-        // 2. Switchear vistas internas
-        const viewIds = ["view-my-events", "view-admin", "view-admin-simple", "view-system", "view-system-simple", "view-groups", "view-legal", "view-account", "view-smtp", "view-pre-registrations", "view-survey-manager"];
+        // Ocultar todas las secciones del app-shell
+        const viewIds = ["view-my-events", "view-admin", "view-system", "view-groups", "view-smtp", "view-pre-registrations", "view-survey-manager"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
 
-        // Mapear rutas virtuales a vistas reales
-        let targetViewId = "view-" + viewName;
-        if (viewName === "system") {
-            targetViewId = "view-system-simple";
-        }
+        // Mapear y mostrar
+        let targetId = "view-" + viewName;
+        if (['legal', 'account'].includes(viewName)) targetId = "view-system";
         
-        // Admin/Dashboard siempre usa la versión simple dentro del nuevo layout
-        if (viewName === 'admin') {
-            targetViewId = "view-admin-simple";
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.classList.remove('hidden');
         }
 
-        if (viewName === 'survey-manager') {
-            targetViewId = "view-survey-manager";
-        }
+        // UI Sidebar
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active', 'bg-primary/10', 'text-primary'));
+        let btnId = 'nav-btn-' + viewName;
+        if (['legal', 'account'].includes(viewName)) btnId = 'nav-btn-system';
+        if (viewName === 'smtp') btnId = 'nav-btn-smtp';
         
-        const target = document.getElementById(targetViewId);
-        if (target) target.classList.remove('hidden');
+        const activeBtn = document.getElementById(btnId);
+        if (activeBtn) activeBtn.classList.add('active', 'bg-primary/10', 'text-primary');
 
-        // 3. Actualizar Sidebar Tabs (Visual)
-        document.querySelectorAll('#sidebar-nav button').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
-        const activeBtn = document.getElementById('nav-btn-' + viewName);
-        if (activeBtn) activeBtn.classList.add('active', 'bg-primary', 'text-white');
-
-        // Mostrar sección de evento en sidebar si hay un evento cargado
-        const evSection = document.getElementById('nav-section-event');
-        if (evSection) evSection.classList.toggle('hidden', !this.state.event);
-        
-        // El selector de eventos siempre está en la sección Production
         window.scrollTo(0, 0);
     },
 
     navigate(viewName, params = {}, push = true) {
+        console.log('[NAV] Navegando a:', viewName, params);
+        
         if (push) {
             const url = viewName === 'my-events' ? '/' : `/${viewName}`;
             history.pushState({ view: viewName, params }, '', url);
         }
+
         this.showView(viewName);
         
+        // Lógica específica por vista
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') {
-            window.switchSystemTab('users');
+        if (viewName === 'system') window.switchSystemTab('users');
+        if (viewName === 'legal') window.switchSystemTab('legal');
+        if (viewName === 'account') window.switchSystemTab('account');
+        
+        if (viewName === 'admin') {
+            if (params.id) {
+                this.loadEventStats(params.id);
+            } else if (this.state.event) {
+                this.loadEventStats(this.state.event.id);
+            } else {
+                this.navigate('my-events');
+            }
         }
-        if (viewName === 'legal') {
-            App.loadLegalTexts();
-        }
-        if (viewName === 'account') {
-            App.loadProfileData();
-        }
+
         if (viewName === 'groups') this.loadGroups();
+        if (viewName === 'pre-registrations') this.loadPreRegistrations();
+        if (viewName === 'survey-manager') this.loadSurveyQuestions();
+        
         if (viewName === 'smtp') {
-            const savedSection = LS.get('email_admin_section') || 'config';
-            this.navigateEmailSection(savedSection);
-        }
-        if (viewName === 'pre-registrations') {
-            this.loadPreRegistrations();
-        }
-        if (viewName === 'survey-manager') {
-            this.loadSurveyQuestions();
+            const section = params.section || 'config';
+            this.navigateEmailSection(section);
         }
     },
 
