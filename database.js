@@ -239,6 +239,12 @@ db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND sett
 // 7.1 Configuración de Visibilidad (V12.2.1)
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('show_legal_login', '1');
 
+// 7.2 Configuración de IA (V12.3.0)
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_enabled', '1');
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_openrouter_key', '');
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_model', 'google/gemini-2.0-flash-lite-preview-02-05:free');
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_system_prompt', 'Eres un asistente experto en gestión de eventos para la plataforma Check Pro. Ayudas a redactar correos, analizar datos de invitados y responder dudas logísticas.');
+
 // 8. Logs de Auditoría (V10)
 db.exec(`CREATE TABLE IF NOT EXISTS logs (
     id TEXT PRIMARY KEY,
