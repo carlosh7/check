@@ -16,19 +16,28 @@ router.post('/login', (req, res) => {
     const v = validate(schemas.login, req.body);
     if (!v.valid) return res.status(400).json({ success: false, errors: v.errors });
 
-    const { username, password } = v.data;
+    let { username, password } = v.data;
+    username = username ? username.toLowerCase() : '';
+    
+    console.log(`[AUTH] Intento de login: ${username}`);
+    
     const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
-
+    
     if (!row) {
+        console.warn(`[AUTH] Usuario no encontrado: ${username}`);
         logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'user_not_found' });
         return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
-
+    
+    console.log(`[AUTH] Usuario encontrado: ${row.username}, status: ${row.status}`);
+    
     if (row.status !== 'APPROVED') {
+        console.warn(`[AUTH] Usuario no aprobado: ${username}`);
         return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
     }
-
+    
     const passwordMatch = bcrypt.compareSync(password, row.password);
+    console.log(`[AUTH] Password match: ${passwordMatch}`);
 
     if (passwordMatch) {
         const token = generateToken({

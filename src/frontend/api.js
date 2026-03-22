@@ -9,10 +9,13 @@ export const API = {
     
     async fetchAPI(endpoint, options = {}) {
         const url = endpoint.startsWith('http') ? endpoint : `${this.BASE_URL}${endpoint}`;
-        const user = JSON.parse(LS.get('user') || '{}');
+        const userStr = LS.get('user');
+        const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+        const token = user.token || LS.get('token'); // Fallback por compatibilidad
+        
         const defaultHeaders = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${LS.get('token')}`
+            'Authorization': token ? `Bearer ${token}` : ''
         };
         
         if (user && user.userId) {

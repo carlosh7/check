@@ -73,6 +73,10 @@
                         <span class="material-symbols-outlined text-sm">logout</span>
                     </button>
                 </div>
+            
+                <div class="mt-4 text-center">
+                    <span id="version-display" class="text-[9px] font-bold text-text-muted uppercase tracking-widest opacity-50">v12.2.2</span>
+                </div>
             </div>
         </aside>
 
@@ -572,63 +576,8 @@
     </div>
 
     <!-- VIEW: EVENT DASHBOARD (Legacy - Para compatibilidad) -->
-    <div id="view-admin" class="hidden admin-layout bg-slate-950 animate-fade">
-        <aside class="sidebar bg-slate-950/40 p-8 flex flex-col backdrop-blur-3xl">
-            <div class="flex items-center gap-5 mb-16 px-1">
-                <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
-                    <span class="material-symbols-outlined text-primary text-2xl">shield_checked</span>
-                </div>
-                <span class="font-black font-display text-2xl tracking-tighter">Check<span class="text-primary italic">.</span></span>
-                <span class="ml-2 px-2 py-0.5 bg-primary/20 text-primary text-[8px] font-black rounded-lg">V11.3.0</span>
-            </div>
-            <nav class="flex-1 space-y-1 overflow-y-auto">
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Panel Principal</p>
-                <button id="nav-tab-dashboard" class="nav-tab-btn active w-full flex items-center gap-3 px-5 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 transition-all">
-                    <span class="material-symbols-outlined">dashboard</span> Dashboard
-                </button>
-                <button id="btn-events-list-nav" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">event_repeat</span> Cambiar Evento
-                </button>
-                <button id="btn-edit-event" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">settings_suggest</span> Ajustes Evento
-                </button>
-                
-                <div class="h-px bg-white/5 my-4"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Datos e Importación</p>
-                <button id="admin-import-excel-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">table_view</span> Importar Excel
-                </button>
-                <button id="admin-import-pdf-btn" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">picture_as_pdf</span> Importar PDF
-                </button>
-
-                <div class="h-px bg-white/5 my-4"></div>
-                <!-- SECCIÓN MOVIDA A view-system (Flujo V10.3) -->
-
-                <div class="h-px bg-white/5 my-4"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4 px-4">Complementos</p>
-                <button id="btn-edit-survey" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">poll</span> Encuestas
-                </button>
-                <button id="btn-open-mailing" class="nav-btn-alt w-full flex items-center gap-3 px-5 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined">mail</span> Mailing Auto
-                </button>
-
-                <div class="mt-6 flex-1"></div>
-                <button id="btn-delete-event" class="w-full flex items-center gap-3 px-5 py-4 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest">
-                    <span class="material-symbols-outlined text-sm">delete_forever</span> Eliminar Evento
-                </button>
-            </nav>
-            <div class="mt-6 pt-6 border-t border-white/5">
-                <div class="flex items-center gap-3 px-4 mb-4">
-                    <div class="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-primary text-lg">person</span>
-                    </div>
-                    <div class="min-w-0">
-                    <span class="material-symbols-outlined text-sm">logout</span> Cerrar Sesión
-                </button>
-            </div>
-        </aside>
+    <div id="view-admin" class="hidden animate-fade overflow-y-auto w-full h-full p-8 md:p-12">
+        <div class="admin-layout-content max-w-7xl mx-auto">
 
         <main class="main-content relative">
             <!-- DASHBOARD PRINCIPAL -->
@@ -1113,7 +1062,8 @@
                     </div>
                 </div>
             </section>
-        </main>
+                </div>
+    </main>
     </div>
 
     <!-- MODAL: INVITAR USUARIO -->
