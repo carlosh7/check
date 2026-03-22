@@ -144,7 +144,8 @@ const schemas = {
 function validate(schema, data) {
     const result = schema.safeParse(data);
     if (!result.success) {
-        const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+        const issues = result.error.issues || result.error.errors || [];
+        const errors = issues.map(e => `${e.path.join('.')}: ${e.message}`);
         return { valid: false, errors };
     }
     return { valid: true, data: result.data };
