@@ -13,51 +13,56 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const router = express.Router();
 
 router.post('/login', (req, res) => {
-    const v = validate(schemas.login, req.body);
-    if (!v.valid) return res.status(400).json({ success: false, errors: v.errors });
+    try {
+        const v = validate(schemas.login, req.body);
+        if (!v.valid) return res.status(400).json({ success: false, errors: v.errors });
 
-    let { username, password } = v.data;
-    username = username ? username.toLowerCase() : '';
-    
-    console.log(`[AUTH] Intento de login: ${username}`);
-    
-    const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
-    
-    if (!row) {
-        console.warn(`[AUTH] Usuario no encontrado: ${username}`);
-        logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'user_not_found' });
-        return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-    }
-    
-    console.log(`[AUTH] Usuario encontrado: ${row.username}, status: ${row.status}`);
-    
-    if (row.status !== 'APPROVED') {
-        console.warn(`[AUTH] Usuario no aprobado: ${username}`);
-        return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
-    }
-    
-    const passwordMatch = bcrypt.compareSync(password, row.password);
-    console.log(`[AUTH] Password match: ${passwordMatch}`);
+        let { username, password } = v.data;
+        username = username ? username.toLowerCase() : '';
+        
+        console.log(`[AUTH] Intento de login: ${username}`);
+        
+        const row = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+        
+        if (!row) {
+            console.warn(`[AUTH] Usuario no encontrado: ${username}`);
+            logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'user_not_found' });
+            return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+        }
+        
+        console.log(`[AUTH] Usuario encontrado: ${row.username}, status: ${row.status}`);
+        
+        if (row.status !== 'APPROVED') {
+            console.warn(`[AUTH] Usuario no aprobado: ${username}`);
+            return res.status(401).json({ success: false, message: 'Cuenta no aprobada' });
+        }
+        
+        const passwordMatch = bcrypt.compareSync(password, row.password);
+        console.log(`[AUTH] Password match: ${passwordMatch}`);
 
-    if (passwordMatch) {
-        const token = generateToken({
-            userId: row.id,
-            username: row.username,
-            role: row.role
-        });
+        if (passwordMatch) {
+            const token = generateToken({
+                userId: row.id,
+                username: row.username,
+                role: row.role
+            });
 
-        logAction(req, AUDIT_ACTIONS.LOGIN, { username: row.username, role: row.role });
+            logAction(req, AUDIT_ACTIONS.LOGIN, { username: row.username, role: row.role });
 
-        res.json({
-            success: true,
-            token,
-            userId: row.id,
-            role: row.role,
-            username: row.username
-        });
-    } else {
-        logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'wrong_password' });
-        res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+            res.json({
+                success: true,
+                token,
+                userId: row.id,
+                role: row.role,
+                username: row.username
+            });
+        } else {
+            logAction(req, AUDIT_ACTIONS.LOGIN_FAILED, { username, reason: 'wrong_password' });
+            res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+        }
+    } catch (error) {
+        console.error('[AUTH] Critical Error during login:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 });
 

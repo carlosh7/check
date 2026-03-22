@@ -1,23 +1,9 @@
-// MASTER SCRIPT V7.0 - ARQUITECTURA LIMPIA E INDUSTRIAL Ã°Å¸â€ºÂ¡Ã¯Â¸ÂÃ°Å¸Å¡â‚¬Ã°Å¸â€™Å½
-console.log("CHECK V7.0: Iniciando Sistema Centralizado...");
+import { LS, lazyLoad } from './src/frontend/utils.js';
+import { API } from './src/frontend/api.js';
 
-// --- localStorage WRAPPER (soporta Tracking Prevention de Edge) ---
-// LS movido a utils.js
-console.log('[INIT] Script loaded, LS available');
-
-// --- ANTI-FLASH: Ocultar app cuando la pÃƒÂ¡gina se hace visible (prerender) ---
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        const appEl = document.getElementById('app-container');
-        if (appEl && !appEl.classList.contains('hidden')) {
-            const savedUser = LS.get('user');
-            if (!savedUser || savedUser === "undefined" || savedUser === "null") {
-                appEl.classList.add('hidden');
-                appEl.style.display = 'none';
-            }
-        }
-    }
-});
+// MASTER SCRIPT V12.2.3 - ARQUITECTURA ESM 🛡️🚀💎
+console.log("CHECK V12.2.3: Iniciando Sistema Modular...");
+console.log('[INIT] Script loaded as ESM, LS available');
 
 window.App = {
     state: {
@@ -27,7 +13,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.2.2',
+        version: '12.2.3',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -36,15 +22,16 @@ window.App = {
             name: { label: 'Nombre', visible: true, order: 0 },
             email: { label: 'Email', visible: true, order: 1 },
             organization: { label: 'Empresa', visible: true, order: 2 },
-            phone: { label: 'TelÃƒÂ©fono', visible: false, order: 3 },
+            phone: { label: 'Teléfono', visible: false, order: 3 },
             position: { label: 'Cargo', visible: false, order: 4 },
             status: { label: 'Estado', visible: true, order: 5 }
         },
         importSession: null,
     },
     constants: { API_URL: '/api' },
+    fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
 
-    // --- NAVEGACIÃƒâ€œN CENTRALIZADA (MODERN PRO) ---
+    // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
     navigate(viewId) {
         console.log('[NAV] Navegando a:', viewId);
         const mainViews = [
@@ -92,7 +79,7 @@ window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PERMISOS JERÃƒÂRQUICOS V10.5 Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PERMISOS JERáRQUICOS V10.5 Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -125,14 +112,14 @@ window.App = {
             roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
                 <option value="ADMIN">ADMIN (Super Administrador)</option>
-                <option value="PRODUCTOR" selected>PRODUCTOR (GestiÃƒÂ³n de Eventos)</option>
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
                 <option value="OTROS">OTROS (Acceso Restringido)</option>`;
         } else if (role === 'PRODUCTOR') {
             roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
-                <option value="PRODUCTOR" selected>PRODUCTOR (GestiÃƒÂ³n de Eventos)</option>
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
                 <option value="OTROS">OTROS (Acceso Restringido)</option>`;
@@ -157,11 +144,11 @@ window.App = {
         return this.getSystemTheme();
     },
     
-    // Aplicar transiciÃƒÂ³n suave al cambiar tema
+    // Aplicar transición suave al cambiar tema
     applyThemeTransition: function() {
-        // Agregar clase de transiciÃƒÂ³n
+        // Agregar clase de transición
         document.documentElement.classList.add('theme-transition');
-        // Remover despuÃƒÂ©s de la transiciÃƒÂ³n
+        // Remover después de la transición
         setTimeout(() => {
             document.documentElement.classList.remove('theme-transition');
         }, 300);
@@ -177,7 +164,7 @@ window.App = {
         document.documentElement.classList.add(newTheme);
         LS.set('theme', newTheme);
         
-        // Actualizar todos los ÃƒÂ­conos de tema
+        // Actualizar todos los íconos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
         });
@@ -188,7 +175,7 @@ window.App = {
         console.log(`Tema cambiado a: ${newTheme}`);
     },
     
-    // Inicializar tema al cargar la aplicaciÃƒÂ³n
+    // Inicializar tema al cargar la aplicación
     initTheme: function() {
         const theme = this.getCurrentTheme();
         const icon = document.getElementById('theme-icon');
@@ -200,7 +187,7 @@ window.App = {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         }
         
-        // Actualizar todos los ÃƒÂ­conos de tema
+        // Actualizar todos los íconos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         });
@@ -208,7 +195,7 @@ window.App = {
         // Escuchar cambios en la preferencia del sistema (solo una vez)
         if (!window._themeListenerAdded) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                // Solo cambiar si no hay tema guardado explÃƒÂ­citamente
+                // Solo cambiar si no hay tema guardado explícitamente
                 if (!LS.get('theme')) {
                     const newTheme = e.matches ? 'dark' : 'light';
                     document.documentElement.classList.remove('dark', 'light');
@@ -224,7 +211,7 @@ window.App = {
         console.log(`Tema inicializado: ${theme}`);
     },
     
-    // Verificar versiÃƒÂ³n de la aplicaciÃƒÂ³n
+    // Verificar versión de la aplicación
     checkVersion: async function() {
         try {
         
@@ -241,7 +228,7 @@ window.App = {
     // â•â•â• NOTIFICACIONES PUSH (Web Push API) â•â•â•
     initPushNotifications: async function() {
         try {
-            // Registrar service worker si no estÃƒÂ¡ registrado
+            // Registrar service worker si no está registrado
             const registration = await navigator.serviceWorker.register('/sw.js');
             console.log('Service Worker registrado:', registration);
             
@@ -252,10 +239,10 @@ window.App = {
                 return false;
             }
             
-            // Obtener clave pÃƒÂºblica VAPID del servidor
+            // Obtener clave pública VAPID del servidor
             const vapidPublicKey = await this.getVAPIDPublicKey();
             if (!vapidPublicKey) {
-                console.error('No se pudo obtener la clave pÃƒÂºblica VAPID.');
+                console.error('No se pudo obtener la clave pública VAPID.');
                 return false;
             }
             
@@ -265,7 +252,7 @@ window.App = {
                 applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
             });
             
-            // Enviar suscripciÃƒÂ³n al servidor
+            // Enviar suscripción al servidor
             await this.sendPushSubscription(subscription);
             
             console.log('Usuario suscrito a notificaciones push:', subscription);
@@ -281,7 +268,7 @@ window.App = {
             const res = await this.fetchAPI('/push/vapid-public-key');
             return res.publicKey;
         } catch (error) {
-            console.error('Error al obtener clave pÃƒÂºblica VAPID:', error);
+            console.error('Error al obtener clave pública VAPID:', error);
             return null;
         }
     },
@@ -292,9 +279,9 @@ window.App = {
                 method: 'POST',
                 body: JSON.stringify(subscription)
             });
-            console.log('SuscripciÃƒÂ³n enviada al servidor.');
+            console.log('Suscripción enviada al servidor.');
         } catch (error) {
-            console.error('Error al enviar suscripciÃƒÂ³n:', error);
+            console.error('Error al enviar suscripción:', error);
         }
     },
     
@@ -308,10 +295,10 @@ window.App = {
                     method: 'POST',
                     body: JSON.stringify({ endpoint: subscription.endpoint })
                 });
-                console.log('SuscripciÃƒÂ³n eliminada.');
+                console.log('Suscripción eliminada.');
             }
         } catch (error) {
-            console.error('Error al eliminar suscripciÃƒÂ³n:', error);
+            console.error('Error al eliminar suscripción:', error);
         }
     },
     
@@ -336,22 +323,22 @@ window.App = {
                 method: 'POST',
                 body: JSON.stringify({ title, body })
             });
-            console.log('NotificaciÃƒÂ³n de prueba enviada.');
+            console.log('Notificación de prueba enviada.');
         } catch (error) {
-            console.error('Error al enviar notificaciÃƒÂ³n de prueba:', error);
+            console.error('Error al enviar notificación de prueba:', error);
         }
     },
     
-    // Mostrar/ocultar elementos segÃƒÂºn permisos
+    // Mostrar/ocultar elementos según permisos
     updateUIPermissions() {
-        // Admin: mostrar todo el menÃƒÂº de administraciÃƒÂ³n global
+        // Admin: mostrar todo el menú de administración global
         if (this.state.user?.role === 'ADMIN') {
             document.getElementById('nav-section-global')?.classList.remove('hidden');
         } else {
             document.getElementById('nav-section-global')?.classList.add('hidden');
         }
         
-        // Ocultar botÃƒÂ³n de eliminar base de datos para no-admin
+        // Ocultar botón de eliminar base de datos para no-admin
         if (!this.canAccess('delete_db')) {
             const deleteBtns = document.querySelectorAll('[id*="delete-db"], [id*="btn-clear-db"]');
             deleteBtns.forEach(btn => btn?.classList.add('hidden'));
@@ -364,6 +351,7 @@ window.App = {
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
+            if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
             
@@ -418,7 +406,7 @@ window.App = {
     showUserSelectorForGroup: function(groupId) {
         const users = (this.state.allUsers || []).filter(u => u.group_id !== groupId);
         if (users.length === 0) {
-            alert('No hay mÃƒÂ¡s usuarios disponibles para agregar.');
+            alert('No hay más usuarios disponibles para agregar.');
             return;
         }
         
@@ -473,7 +461,7 @@ window.App = {
         const availableUsers = users.filter(u => !assignedUserIds.includes(u.id));
         
         if (availableUsers.length === 0) {
-            alert('No hay mÃƒÂ¡s usuarios disponibles para agregar.');
+            alert('No hay más usuarios disponibles para agregar.');
             return;
         }
         
@@ -563,7 +551,7 @@ window.App = {
     },
     
     renderUsersTable: function(users, groups, events) {
-        if (!this.state.user) return; // No renderizar si no hay sesiÃƒÂ³n
+        if (!this.state.user) return; // No renderizar si no hay sesión
         // Cargar opciones de filtros si no existen
         const filterGroup = document.getElementById('filter-group');
         const filterEvent = document.getElementById('filter-event');
@@ -652,7 +640,7 @@ window.App = {
                 const statusLabel = u.status === 'APPROVED' ? 'Aprobado' : u.status === 'PENDING' ? 'Pendiente' : 'Rechazado';
                 const statusBadge = `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${statusLabel}</span>`;
                 
-                // BotÃƒÂ³n activar/desactivar
+                // Botón activar/desactivar
                 const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
                     `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
                     `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
@@ -660,7 +648,7 @@ window.App = {
                 const eventCountBadge = u.events && u.events.length > 0 ? 
                     `<span class="ml-1 px-1.5 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-bold">${u.events.length}</span>` : '';
                 
-                // LÃƒÂ­nea separadora sutil
+                // Línea separadora sutil
                 const separator = index > 0 ? '<div class="border-t border-white/5"></div>' : '';
                 
                 return `${separator}<tr class="hover:bg-white/[0.02]">
@@ -691,7 +679,7 @@ window.App = {
                     <td class="px-4 py-3 align-top">
                         <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Estado</p>
                         <div class="mb-2">${statusBadge}</div>
-                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">AcciÃƒÂ³n</p>
+                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Acción</p>
                         ${actionBtn}
                     </td>
                 </tr>`;
@@ -701,14 +689,14 @@ window.App = {
     
     // Filtrar usuarios
     filterUsers: function() {
-        if (!this.state.user) return; // No filtrar si no hay sesiÃƒÂ³n
+        if (!this.state.user) return; // No filtrar si no hay sesión
         const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
         const groupFilter = document.getElementById('filter-group')?.value || '';
         const eventFilter = document.getElementById('filter-event')?.value || '';
         
         let filtered = this.state.allUsers || [];
         
-        // Filtro de bÃƒÂºsqueda
+        // Filtro de búsqueda
         if (searchTerm) {
             filtered = filtered.filter(u => 
                 (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
@@ -731,11 +719,11 @@ window.App = {
         this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
     },
     
-    // Crear empresa rÃƒÂ¡pido desde modal
+    // Crear empresa rápido desde modal
     quickCreateGroup: async function() {
         const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
-        const description = prompt('DescripciÃƒÂ³n (opcional):') || '';
+        const description = prompt('Descripción (opcional):') || '';
         try {
             const res = await this.fetchAPI('/groups', { 
                 method: 'POST', 
@@ -747,10 +735,10 @@ window.App = {
             } else {
                 alert('Error: ' + res.error);
             }
-        } catch { alert('Error de conexiÃƒÂ³n'); }
+        } catch { alert('Error de conexión'); }
     },
     
-    // Crear evento rÃƒÂ¡pido desde modal
+    // Crear evento rápido desde modal
     quickCreateEvent: async function() {
         const name = prompt('Nombre del nuevo evento:');
         if (!name || !name.trim()) return;
@@ -766,7 +754,7 @@ window.App = {
             } else {
                 alert('Error: ' + res.error);
             }
-        } catch { alert('Error de conexiÃƒÂ³n'); }
+        } catch { alert('Error de conexión'); }
     },
     
     // Asignar usuario a un grupo
@@ -807,7 +795,7 @@ window.App = {
         } catch(e) { console.error('Error removing group:', e); }
     },
     
-    // Quitar un evento especÃƒÂ­fico de un usuario
+    // Quitar un evento específico de un usuario
     removeUserEvent: async function(userId, eventId) {
         try {
             const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
@@ -870,7 +858,7 @@ window.App = {
     openCreateGroupModal: function() {
         const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
-        const description = prompt('DescripciÃƒÂ³n (opcional):') || '';
+        const description = prompt('Descripción (opcional):') || '';
         
         fetch('/api/groups', {
             method: 'POST',
@@ -895,7 +883,7 @@ window.App = {
         const availableEvents = events.filter(e => !assignedIds.includes(e.id));
         
         if (availableEvents.length === 0) {
-            alert('No hay mÃƒÂ¡s eventos disponibles para asignar.');
+            alert('No hay más eventos disponibles para asignar.');
             return;
         }
         
@@ -987,7 +975,7 @@ window.App = {
             });
             const d = await res.json();
             if (d.success) {
-                alert("Ã¢Å“â€œ Evento creado con ÃƒÂ©xito.");
+                alert("Ã¢Å“â€œ Evento creado con éxito.");
                 document.getElementById('modal-event').classList.add('hidden');
                 document.getElementById('new-event-form').reset();
                 this.loadEvents();
@@ -1147,7 +1135,7 @@ window.App = {
         }
     },
     
-    // Cerrar menÃƒÂº al hacer clic afuera
+    // Cerrar menú al hacer clic afuera
     closeEmailAdminMenu: function() {
         const menu = document.getElementById('email-admin-menu');
         const arrow = document.getElementById('email-admin-arrow');
@@ -1158,11 +1146,11 @@ window.App = {
     },
     
     navigateEmailSection: function(section) {
-        // Verificar que view-smtp estÃƒÂ© visible, si no navegar
+        // Verificar que view-smtp esté visible, si no navegar
         const smtpView = document.getElementById('view-smtp');
         if (!smtpView || smtpView.classList.contains('hidden')) {
             this.navigate('smtp');
-            // Esperar a que se cargue la vista antes de mostrar secciÃƒÂ³n
+            // Esperar a que se cargue la vista antes de mostrar sección
             setTimeout(() => this._showEmailSection(section), 50);
             return;
         }
@@ -1190,7 +1178,7 @@ window.App = {
         // Guardar preferencia en localStorage
         LS.set('email_admin_section', section);
         
-        // Cargar datos segÃƒÂºn secciÃƒÂ³n
+        // Cargar datos según sección
         if (section === 'config') {
             App.loadSMTPConfig();
             App.loadIMAPConfig();
@@ -1219,7 +1207,7 @@ window.App = {
         const container = document.getElementById('email-mailbox-list');
         if (!container) return;
         
-        container.innerHTML = '<div class="p-12 text-center animate-pulse"><span class="material-symbols-outlined text-4xl text-primary block mb-2">sync</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cargando buzÃƒÂ³n...</p></div>';
+        container.innerHTML = '<div class="p-12 text-center animate-pulse"><span class="material-symbols-outlined text-4xl text-primary block mb-2">sync</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cargando buzón...</p></div>';
         
         try {
             const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
@@ -1261,7 +1249,7 @@ window.App = {
                 `;
             }).join('');
         } catch (e) {
-            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzÃƒÂ³n: ${e.message}</p></div>`;
+            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón: ${e.message}</p></div>`;
         }
     },
 
@@ -1288,12 +1276,12 @@ window.App = {
             const res = await this.fetchAPI('/emails/sync', { method: 'POST' });
             if (res.success) {
                 this.loadMailbox('INBOX');
-                alert(`Ã¢Å“â€œ SincronizaciÃƒÂ³n completada. Nuevos: ${res.newEmails || 0}`);
+                alert(`Ã¢Å“â€œ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
             } else {
                 alert('Error al sincronizar: ' + (res.error || 'Error desconocido'));
             }
         } catch (e) {
-            alert('Error de conexiÃƒÂ³n: ' + e.message);
+            alert('Error de conexión: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
     },
 
@@ -1332,7 +1320,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('Ã¢Å“â€œ ConfiguraciÃƒÂ³n IMAP guardada');
+            alert('Ã¢Å“â€œ Configuración IMAP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -1347,14 +1335,14 @@ window.App = {
 
         if (!data.imap_host || !data.imap_user || !data.imap_pass) return alert('Completa los datos para probar');
 
-        if (typeof showLoading === 'function') showLoading('Probando conexiÃƒÂ³n IMAP...');
+        if (typeof showLoading === 'function') showLoading('Probando conexión IMAP...');
         try {
             const res = await this.fetchAPI('/imap-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('Ã¢Å“â€œ Ã‚Â¡ConexiÃƒÂ³n exitosa!');
-            else alert('Error: ' + (res.error || 'Fallo en la conexiÃƒÂ³n'));
+            if (res.success) alert('Ã¢Å“â€œ Ã‚Â¡Conexión exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
         } catch (e) {
             alert('Error de red: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
@@ -1393,14 +1381,14 @@ window.App = {
 
         if (!data.smtp_host || !data.smtp_user || !data.smtp_pass) return alert('Completa los datos para probar');
 
-        if (typeof showLoading === 'function') showLoading('Probando conexiÃƒÂ³n SMTP...');
+        if (typeof showLoading === 'function') showLoading('Probando conexión SMTP...');
         try {
             const res = await this.fetchAPI('/smtp-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('Ã¢Å“â€œ Ã‚Â¡ConexiÃƒÂ³n SMTP exitosa!');
-            else alert('Error: ' + (res.error || 'Fallo en la conexiÃƒÂ³n'));
+            if (res.success) alert('Ã¢Å“â€œ Ã‚Â¡Conexión SMTP exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
         } catch (e) {
             alert('Error de red: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
@@ -1424,7 +1412,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('Ã¢Å“â€œ ConfiguraciÃƒÂ³n SMTP guardada');
+            alert('Ã¢Å“â€œ Configuración SMTP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -1451,7 +1439,7 @@ window.App = {
         // Set subject
         document.getElementById('mailing-subject').value = template.subject || '';
 
-        // Simular previsualizaciÃƒÂ³n con el primer invitado si existe
+        // Simular previsualización con el primer invitado si existe
         let guest = this.state.guests?.[0] || { name: 'INVITADO DE PRUEBA', email: 'prueba@ejemplo.com', unsubscribe_token: 'test-token' };
         
         let body = template.body;
@@ -1477,7 +1465,7 @@ window.App = {
         if (!templateId || !subject) return alert('Selecciona una plantilla y asunto');
         if (!this.state.event) return alert('Selecciona un evento primero');
 
-        if (!confirm('Ã‚Â¿EstÃƒÂ¡s seguro de iniciar el envÃƒÂ­o masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
+        if (!confirm('Ã‚Â¿Estás seguro de iniciar el envío masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
 
         try {
             const body = container.innerHTML;
@@ -1491,7 +1479,7 @@ window.App = {
                 })
             });
             
-            alert('Ã¢Å“â€œ EnvÃƒÂ­o masivo iniciado. Revisa el progreso en la parte superior.');
+            alert('Ã¢Å“â€œ Envío masivo iniciado. Revisa el progreso en la parte superior.');
             document.getElementById('mailing-progress-card').classList.remove('hidden');
             this.updateMailingStats();
             
@@ -1499,7 +1487,7 @@ window.App = {
             if (this._mailingPolling) clearInterval(this._mailingPolling);
             this._mailingPolling = setInterval(() => this.updateMailingStats(), 3000);
 
-        } catch (e) { alert('Error al iniciar envÃƒÂ­o: ' + e.message); }
+        } catch (e) { alert('Error al iniciar envío: ' + e.message); }
     },
 
     controlMailingQueue: async function(action) {
@@ -1549,10 +1537,10 @@ window.App = {
                 }
             } else if (total > 0 && pending === 0 && stats.sending === 0) {
                 // Finalizado
-                document.getElementById('mailing-status-text').textContent = 'EnvÃƒÂ­o completado';
+                document.getElementById('mailing-status-text').textContent = 'Envío completado';
                 clearInterval(this._mailingPolling);
                 this._mailingPolling = null;
-                setTimeout(() => card?.classList.add('hidden'), 10000); // Ocultar despuÃƒÂ©s de 10s
+                setTimeout(() => card?.classList.add('hidden'), 10000); // Ocultar después de 10s
             }
         } catch (e) { console.error('Error updating mailing stats:', e); }
     },
@@ -1635,7 +1623,7 @@ window.App = {
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
         if (!template) {
             this._templateEditorOpening = false;
-            return alert('Plantilla no encontrada. Recarga la pÃƒÂ¡gina.');
+            return alert('Plantilla no encontrada. Recarga la página.');
         }
         this.state.editingTemplate = template;
         document.getElementById('template-editor-title').textContent = 'Editar: ' + (template.name || templateName);
@@ -1691,7 +1679,7 @@ window.App = {
         
         this.state.quillEditor = new Quill('#tpl-quill-editor', {
             theme: 'snow',
-            placeholder: 'Escribe el contenido de tu email aquÃƒÂ­...',
+            placeholder: 'Escribe el contenido de tu email aquí...',
             modules: {
                 toolbar: [
                     [{ 'header': [1, 2, 3, false] }],
@@ -1783,7 +1771,7 @@ window.App = {
         
         if (tab === 'visual') {
             document.getElementById('editor-visual-container')?.classList.remove('hidden');
-            // Sincronizar desde CÃƒÂ³digo a Visual si venimos de allÃƒÂ¡
+            // Sincronizar desde Código a Visual si venimos de allá
             if (prevTab === 'code' && this.state.quillEditor) {
                 const codeContent = document.getElementById('tpl-code-editor').value;
                 this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(codeContent));
@@ -1791,7 +1779,7 @@ window.App = {
             setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {
             document.getElementById('editor-code-container')?.classList.remove('hidden');
-            // Sincronizar desde Visual a CÃƒÂ³digo
+            // Sincronizar desde Visual a Código
             const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
             document.getElementById('tpl-code-editor').value = body;
             setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
@@ -1964,8 +1952,8 @@ window.App = {
                 method: 'PUT', 
                 body: JSON.stringify(data) 
             });
-            alert('Ã¢Å“â€œ ConfiguraciÃƒÂ³n SMTP guardada');
-        } catch (e) { alert('Error al guardar configuraciÃƒÂ³n'); }
+            alert('Ã¢Å“â€œ Configuración SMTP guardada');
+        } catch (e) { alert('Error al guardar configuración'); }
     },
     
     testEventEmail: async function() {
@@ -1982,7 +1970,7 @@ window.App = {
             } else {
                 alert('Error: ' + (res.error || 'No se pudo enviar'));
             }
-        } catch (e) { alert('Error al probar conexiÃƒÂ³n'); }
+        } catch (e) { alert('Error al probar conexión'); }
     },
     
     loadEventEmailTemplates: async function(eventId) {
@@ -1993,7 +1981,7 @@ window.App = {
             const container = document.getElementById('event-email-templates-list');
             if (container) {
                 const templateNames = {
-                    'registration_confirm': 'ConfirmaciÃƒÂ³n de registro',
+                    'registration_confirm': 'Confirmación de registro',
                     'checkin_welcome': 'Bienvenida con agenda',
                     'event_thanks': 'Agradecimiento post-evento',
                     'suggestion_request': 'Solicitud de sugerencias'
@@ -2003,7 +1991,7 @@ window.App = {
                     'registration_confirm': 'Al registrarse',
                     'checkin_welcome': 'Al hacer check-in',
                     'event_thanks': 'Post-evento',
-                    'suggestion_request': '1 dÃƒÂ­a despuÃƒÂ©s'
+                    'suggestion_request': '1 día después'
                 };
                 
                 container.innerHTML = templates.map(t => `
@@ -2111,7 +2099,7 @@ window.App = {
                 <div class="flex-1 grid grid-cols-4 gap-2">
                     <input type="time" value="${item.start_time || ''}" data-field="start_time" class="w-28">
                     <input type="time" value="${item.end_time || ''}" data-field="end_time" class="w-28">
-                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="TÃƒÂ­tulo" class="flex-1">
+                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="Título" class="flex-1">
                     <input type="text" value="${item.speaker || ''}" data-field="speaker" placeholder="Ponente" class="flex-1">
                 </div>
                 <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
@@ -2131,7 +2119,7 @@ window.App = {
             <div class="flex-1 grid grid-cols-4 gap-2">
                 <input type="time" value="" data-field="start_time" class="w-28">
                 <input type="time" value="" data-field="end_time" class="w-28">
-                <input type="text" value="" data-field="title" placeholder="TÃƒÂ­tulo" class="flex-1">
+                <input type="text" value="" data-field="title" placeholder="Título" class="flex-1">
                 <input type="text" value="" data-field="speaker" placeholder="Ponente" class="flex-1">
             </div>
             <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
@@ -2165,7 +2153,7 @@ window.App = {
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
         
-        // 0. Verificar sesiÃƒÂ³n solo si no hay usuario en estado
+        // 0. Verificar sesión solo si no hay usuario en estado
         if (viewName !== 'login') {
             if (!this.state.user) {
                 const savedUser = LS.get('user');
@@ -2187,7 +2175,7 @@ window.App = {
         const appEl = document.getElementById('app-container');
         
         if (isLogin) {
-            // Solo limpiar sesiÃƒÂ³n si es un logout explÃƒÂ­cito
+            // Solo limpiar sesión si es un logout explícito
             if (clearSession) {
                 LS.remove('user');
                 LS.remove('selected_event_id');
@@ -2225,7 +2213,7 @@ window.App = {
             targetViewId = "view-system-simple";
         }
         
-        // Admin/Dashboard siempre usa la versiÃƒÂ³n simple dentro del nuevo layout
+        // Admin/Dashboard siempre usa la versión simple dentro del nuevo layout
         if (viewName === 'admin') {
             targetViewId = "view-admin-simple";
         }
@@ -2242,11 +2230,11 @@ window.App = {
         const activeBtn = document.getElementById('nav-btn-' + viewName);
         if (activeBtn) activeBtn.classList.add('active', 'bg-primary', 'text-white');
 
-        // Mostrar secciÃƒÂ³n de evento en sidebar si hay un evento cargado
+        // Mostrar sección de evento en sidebar si hay un evento cargado
         const evSection = document.getElementById('nav-section-event');
         if (evSection) evSection.classList.toggle('hidden', !this.state.event);
         
-        // El selector de eventos siempre estÃƒÂ¡ en la secciÃƒÂ³n Production
+        // El selector de eventos siempre está en la sección Production
         window.scrollTo(0, 0);
     },
 
@@ -2281,7 +2269,7 @@ window.App = {
     },
 
     initRouter() {
-        // Manejar navegaciÃƒÂ³n con el historial
+        // Manejar navegación con el historial
         window.onpopstate = (e) => {
             const savedUser = LS.get('user');
             if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
@@ -2317,7 +2305,7 @@ window.App = {
     // --- AUTH ---
     async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
-        console.log("CHECK: Cerrando sesiÃƒÂ³n segura.");
+        console.log("CHECK: Cerrando sesión segura.");
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
@@ -2338,7 +2326,7 @@ window.App = {
                 .then(html => {
                     document.body.insertAdjacentHTML('beforeend', html);
                     console.log('[APP-SHELL] app-shell.html cargado exitosamente');
-                    // Re-inicializar listeners despuÃƒÂ©s de cargar
+                    // Re-inicializar listeners después de cargar
                     this.attachAppListeners();
                     resolve();
                 })
@@ -2354,13 +2342,13 @@ window.App = {
         const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
         
-        // Mostrar versiÃƒÂ³n del servidor al cargar
+        // Mostrar versión del servidor al cargar
         this.fetchAPI('/app-version').then(res => {
             const vd = document.getElementById('version-display');
             if (vd) vd.textContent = 'V' + res.version;
         }).catch(() => {});;
 
-        // Actualizar ÃƒÂ­conos del tema despuÃƒÂ©s de cargar app-shell
+        // Actualizar íconos del tema después de cargar app-shell
         this.initTheme();
         
         // Navigation
@@ -2376,7 +2364,7 @@ window.App = {
         
         // SMTP listeners
         cl('btn-test-smtp', async () => {
-            alert('FunciÃƒÂ³n de prueba de conexiÃƒÂ³n SMTP en desarrollo.');
+            alert('Función de prueba de conexión SMTP en desarrollo.');
         });
         cl('btn-save-template', () => App.saveEmailTemplate());
         
@@ -2450,7 +2438,7 @@ window.App = {
     },
 
     async updatePreRegStatus(id, status) {
-        if (!confirm(`Ã‚Â¿EstÃƒÂ¡s seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
+        if (!confirm(`Ã‚Â¿Estás seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
         try {
             await this.fetchAPI(`/pre-registrations/${id}/status`, {
                 method: 'PUT',
@@ -2476,7 +2464,7 @@ window.App = {
                     list.innerHTML = `
                         <div class="glass-card p-12 rounded-[40px] border border-dashed border-white/10 text-center">
                             <span class="material-symbols-outlined text-6xl text-slate-800 mb-4">poll</span>
-                            <p class="text-slate-500 font-bold">No has creado preguntas todavÃƒÂ­a.</p>
+                            <p class="text-slate-500 font-bold">No has creado preguntas todavía.</p>
                             <p class="text-[10px] text-slate-600 uppercase mt-2">Personaliza la encuesta QR de tu evento</p>
                         </div>
                     `;
@@ -2492,7 +2480,7 @@ window.App = {
                                 <div>
                                     <h5 class="text-sm font-bold text-white">${q.title}</h5>
                                     <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'CalificaciÃƒÂ³n' : 'OpciÃƒÂ³n MÃƒÂºltiple'}
+                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificación' : 'Opción Múltiple'}
                                     </p>
                                 </div>
                             </div>
@@ -2592,7 +2580,7 @@ window.App = {
                     <span class="material-symbols-outlined text-primary text-xl">event_available</span>
                 </div>
                 <h3 class="text-xl font-black mb-2 text-white font-display">${ev.name}</h3>
-                <p class="text-slate-500 text-xs line-clamp-2 mb-4">${ev.description || 'Evento sin descripciÃƒÂ³n.'}</p>
+                <p class="text-slate-500 text-xs line-clamp-2 mb-4">${ev.description || 'Evento sin descripción.'}</p>
                 <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar'}
                 </div>
@@ -2612,7 +2600,7 @@ window.App = {
             </div>
         `).join('');
         
-        // FunciÃƒÂ³n para copiar link de registro
+        // Función para copiar link de registro
         window.App.copyRegistrationLink = (id) => {
             const link = `${window.location.origin}/registro.html?event=${id}`;
             navigator.clipboard.writeText(link).then(() => {
@@ -2626,7 +2614,7 @@ window.App = {
             const ev = this.state.events.find(e => String(e.id) === String(id));
             if (!ev) return;
             
-            // Datos bÃƒÂ¡sicos
+            // Datos básicos
             document.getElementById('ev-id-hidden').value = ev.id;
             document.getElementById('ev-name').value = ev.name || '';
             document.getElementById('ev-location').value = ev.location || '';
@@ -2634,7 +2622,7 @@ window.App = {
             document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
             document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
             
-            // ConfiguraciÃƒÂ³n de registro
+            // Configuración de registro
             document.getElementById('ev-reg-title').value = ev.reg_title || '';
             document.getElementById('ev-reg-welcome').value = ev.reg_welcome_text || '';
             document.getElementById('ev-reg-success').value = ev.reg_success_message || '';
@@ -2726,7 +2714,7 @@ window.App = {
         this.renderGuestsTarget(this.state.guests);
     },
     
-    // --- COLUMNAS DINÃƒÂMICAS V12.1 ---
+    // --- COLUMNAS DINáMICAS V12.1 ---
     initColumnConfig() {
         const saved = LS.get('column_config_' + (this.state.event?.id || 'default'));
         if (saved) {
@@ -2874,21 +2862,21 @@ window.App = {
             sv('stat-presence', s.total > 0 ? Math.round((s.checkedIn / s.total) * 100) + '%' : '0%');
             sv('stat-onsite', s.onsite || 0);
             
-            // Restricciones dietÃƒÂ©ticas
+            // Restricciones dietéticas
             const dietaryRestrictions = s.dietaryDistribution?.reduce((sum, d) => 
                 d.diet_type !== 'Sin restricciones' ? sum + d.count : sum, 0
             ) || 0;
             sv('stat-health', dietaryRestrictions);
             
-            // Renderizar Dashboard de AnalÃƒÂ­tica
+            // Renderizar Dashboard de Analítica
             this.renderAnalyticsDashboard(s);
-        } catch (e) { console.error('Error actualizando estadÃƒÂ­sticas:', e); }
+        } catch (e) { console.error('Error actualizando estadísticas:', e); }
     },
 
     renderAnalyticsDashboard(data) {
         if (typeof Chart === 'undefined') return;
         
-        // Inicializar contenedor de grÃƒÂ¡ficas si no existe
+        // Inicializar contenedor de gráficas si no existe
         if (!this.state.charts) this.state.charts = {};
 
         this.renderFlowChart(data.flowData);
@@ -3030,7 +3018,7 @@ window.App = {
         
         if (this.state.charts.gender) this.state.charts.gender.destroy();
         
-        // Mapear cÃƒÂ³digos de gÃƒÂ©nero a etiquetas
+        // Mapear códigos de género a etiquetas
         const genderLabels = {
             'M': 'Masculino',
             'F': 'Femenino',
@@ -3101,7 +3089,7 @@ window.App = {
         try {
             const evs = await this.fetchAPI('/events');
             if (evs.length > 0) {
-                // Si viene un nombre en la URL, buscamos el evento especÃƒÂ­fico. Si no, tomamos el primero activo.
+                // Si viene un nombre en la URL, buscamos el evento específico. Si no, tomamos el primero activo.
                 let targetEvent = evs[0];
                 if (eventNameParam) {
                     const found = evs.find(e => e.name.replace(/\s+/g, '-').toLowerCase() === eventNameParam.toLowerCase());
@@ -3156,7 +3144,7 @@ window.App = {
             };
 
             xhr.send(formData);
-        } catch (e) { alert("Error de conexiÃƒÂ³n al importar."); }
+        } catch (e) { alert("Error de conexión al importar."); }
     },
 
     showImportMapping(data) {
@@ -3168,14 +3156,14 @@ window.App = {
             { id: 'name', label: 'Nombre Completo', keywords: ['nombre', 'name', 'invitado', 'full name'] },
             { id: 'email', label: 'Email / Correo', keywords: ['email', 'correo', 'mail', 'usuario'] },
             { id: 'organization', label: 'Empresa / Entidad', keywords: ['empresa', 'org', 'entidad', 'compan', 'company'] },
-            { id: 'phone', label: 'TelÃƒÂ©fono / MÃƒÂ³vil', keywords: ['tel', 'cel', 'phone', 'movil'] },
-            { id: 'gender', label: 'GÃƒÂ©nero (M/F/O)', keywords: ['sexo', 'genero', 'gender'] },
+            { id: 'phone', label: 'Teléfono / Móvil', keywords: ['tel', 'cel', 'phone', 'movil'] },
+            { id: 'gender', label: 'Género (M/F/O)', keywords: ['sexo', 'genero', 'gender'] },
             { id: 'position', label: 'Cargo', keywords: ['cargo', 'puesto', 'position', 'rol'] },
             { id: 'dietary_notes', label: 'Alergias / Dieta', keywords: ['alergia', 'dieta', 'salud', 'obs', 'coment'] }
         ];
 
         tbody.innerHTML = dbFields.map(field => {
-            // Auto-detectar ÃƒÂ­ndice
+            // Auto-detectar índice
             let detectedIdx = data.headers.findIndex(h => 
                 field.keywords.some(k => h.toLowerCase().includes(k))
             );
@@ -3240,7 +3228,7 @@ window.App = {
                 document.getElementById('modal-import-progress').classList.add('hidden');
             }
         } catch (e) { 
-            alert("Error al confirmar importaciÃƒÂ³n.");
+            alert("Error al confirmar importación.");
             document.getElementById('modal-import-progress').classList.add('hidden');
         }
     },
@@ -3279,7 +3267,7 @@ window.App = {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(accent);
-        doc.text('DE ASISTENCIA Y PARTICIPACIÃƒâ€œN', 148.5, 75, { align: 'center' });
+        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(16);
@@ -3291,7 +3279,7 @@ window.App = {
         
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Por su valiosa participaciÃƒÂ³n en el evento:`, 148.5, 140, { align: 'center' });
+        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
         
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
@@ -3357,7 +3345,7 @@ window.App = {
             g.name,
             g.email || '---',
             g.organization || '---',
-            g.checked_in ? 'SÃƒÂ' : 'NO',
+            g.checked_in ? 'Sá' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -3376,7 +3364,7 @@ window.App = {
 
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PDF MEJORADOS CON DISEÃƒâ€˜OS PROFESIONALES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     
-    // Asegurar que las librerÃƒÂ­as PDF estÃƒÂ©n cargadas
+    // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
         if (typeof window.jspdf === 'undefined') {
             await this.loadJsPDF();
@@ -3415,7 +3403,7 @@ window.App = {
         const accent = event.ticket_accent_color || '#7c3aed';
         const logoUrl = event.logo_url;
         
-        // Fondo segÃƒÂºn plantilla
+        // Fondo según plantilla
         if (template === 'premium') {
             doc.setFillColor(15, 23, 42); // slate-900
             doc.rect(0, 0, 297, 210, 'F');
@@ -3453,7 +3441,7 @@ window.App = {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(accent);
-        doc.text('DE ASISTENCIA Y PARTICIPACIÃƒâ€œN', 148.5, 75, { align: 'center' });
+        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
         
         doc.setTextColor(template === 'light' ? 51 : 255);
         doc.setFontSize(16);
@@ -3465,21 +3453,21 @@ window.App = {
         
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Por su valiosa participaciÃƒÂ³n en el evento:`, 148.5, 140, { align: 'center' });
+        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
         
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(accent);
         doc.text(event.name, 148.5, 155, { align: 'center' });
         
-        // InformaciÃƒÂ³n del evento
+        // Información del evento
         doc.setTextColor(100, 116, 139);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
         doc.text(`${event.location || 'S/L'} - ${dateStr}`, 148.5, 180, { align: 'center' });
         
-        // CÃƒÂ³digo ÃƒÂºnico
+        // Código único
         doc.setFontSize(8);
         doc.text(`ID: ${g.id.substring(0, 8).toUpperCase()}`, 148.5, 190, { align: 'center' });
         
@@ -3517,12 +3505,12 @@ window.App = {
             }
         }
         
-        // InformaciÃƒÂ³n de generaciÃƒÂ³n
+        // Información de generación
         doc.setFontSize(8);
         doc.setTextColor(200, 200, 200);
         doc.text(`Generado: ${new Date().toLocaleString()}`, 15, 38);
         
-        // EstadÃƒÂ­sticas rÃƒÂ¡pidas
+        // Estadísticas rápidas
         const stats = await this.fetchAPI(`/stats/${event.id}`);
         const statsText = `Total: ${stats.total} | Presentes: ${stats.checkedIn} | Ausentes: ${stats.total - stats.checkedIn}`;
         doc.setTextColor(accent);
@@ -3551,14 +3539,14 @@ window.App = {
             g.email || '---',
             g.organization || '---',
             g.phone || '---',
-            g.checked_in ? 'Ã¢Å“â€¦ SÃƒÂ' : 'Ã¢ÂÅ’ NO',
+            g.checked_in ? 'Ã¢Å“â€¦ Sá' : 'Ã¢ÂÅ’ NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
         // Generar tabla
         doc.autoTable({
             startY: 55,
-            head: [['Nombre', 'Email', 'Empresa', 'TelÃƒÂ©fono', 'Presente', 'Hora']],
+            head: [['Nombre', 'Email', 'Empresa', 'Teléfono', 'Presente', 'Hora']],
             body: tableData,
             styles: { fontSize: 8 },
             headStyles: { fillColor: [51, 65, 85] },
@@ -3566,20 +3554,20 @@ window.App = {
             margin: { left: 10, right: 10 }
         });
         
-        // Pie de pÃƒÂ¡gina
+        // Pie de página
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`PÃƒÂ¡gina ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
             doc.text(`Check Pro v${this.state.version}`, 105, 295, { align: 'center' });
         }
         
         doc.save(`Lista_Invitados_${event.name.replace(/\s+/g, '_')}.pdf`);
     },
 
-    // Generar reporte ejecutivo mejorado con grÃƒÂ¡ficos
+    // Generar reporte ejecutivo mejorado con gráficos
     async generateEnhancedEventReport() {
         await this.ensurePDFLibsLoaded();
         if (!this.state.event) return;
@@ -3663,7 +3651,7 @@ window.App = {
             doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
-            doc.text('ANÃƒÂLISIS POR HORARIO', 15, 20);
+            doc.text('ANáLISIS POR HORARIO', 15, 20);
             
             const hourData = Object.entries(checkinTimes)
                 .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -3677,7 +3665,7 @@ window.App = {
             });
         }
         
-        // Lista detallada (pÃƒÂ¡gina separada)
+        // Lista detallada (página separada)
         doc.addPage();
         doc.setFillColor(accent);
         doc.rect(0, 0, 210, 40, 'F');
@@ -3688,7 +3676,7 @@ window.App = {
         const guestData = this.state.guests.map(g => [
             g.name,
             g.organization || '---',
-            g.checked_in ? 'SÃƒÂ' : 'NO',
+            g.checked_in ? 'Sá' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -3701,13 +3689,13 @@ window.App = {
             pageBreak: 'auto'
         });
         
-        // Pie de pÃƒÂ¡gina en todas las pÃƒÂ¡ginas
+        // Pie de página en todas las páginas
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`PÃƒÂ¡gina ${i} de ${pageCount} - Check Pro v${this.state.version}`, 105, 290, { align: 'center' });
+            doc.text(`Página ${i} de ${pageCount} - Check Pro v${this.state.version}`, 105, 290, { align: 'center' });
         }
         
         doc.save(`Reporte_Ejecutivo_${event.name.replace(/\s+/g, '_')}.pdf`);
@@ -3715,7 +3703,7 @@ window.App = {
 
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FUNCIONES PUENTE PARA COMPATIBILIDAD Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     
-    // Generar lista de invitados en PDF (compatibilidad con botÃƒÂ³n existente)
+    // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
         return this.generateGuestListPDF();
     },
@@ -3728,8 +3716,8 @@ window.App = {
         
         const choice = confirm('Ã‚Â¿Generar certificados para todos los invitados? (Cancelar para generar solo uno)');
         if (choice) {
-            // Generar certificados en lote (podrÃƒÂ­a ser pesado)
-            alert('Generar certificados en lote estÃƒÂ¡ en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
+            // Generar certificados en lote (podría ser pesado)
+            alert('Generar certificados en lote está en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
         } else {
             // Mostrar selector de invitado
             const guestName = prompt('Ingresa el nombre del invitado para generar certificado:');
@@ -3750,7 +3738,7 @@ window.App = {
 
     // Mejorar reporte de evento existente
     async generateEventReport() {
-        // Usar la versiÃƒÂ³n mejorada por defecto
+        // Usar la versión mejorada por defecto
         return this.generateEnhancedEventReport();
     },
 
@@ -3813,7 +3801,7 @@ window.App = {
         doc.setFontSize(9);
         doc.text(g.qr_token || '---', 50, 115, { align: 'center' });
         
-        // InformaciÃƒÂ³n adicional
+        // Información adicional
         const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
         doc.setFontSize(6);
         doc.setTextColor(200, 200, 200);
@@ -3882,7 +3870,7 @@ window.switchAdminTab = function(tabName) {
 
 // --- DOM READY BOOTSTRAP V10.2 ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 0. Helpers CrÃƒÂ­ticos (Hoisting manual)
+    // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
@@ -3976,8 +3964,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.App.state.socket.on('email_queue_progress', () => App.updateMailingStats());
     }
 
-    // Listeners System (Se maneja en attachAppListeners para evitar duplicaciÃƒÂ³n)
-    // Se mantienen solo los que no estÃƒÂ¡n en app-shell o son globales fuera del shell
+    // Listeners System (Se maneja en attachAppListeners para evitar duplicación)
+    // Se mantienen solo los que no están en app-shell o son globales fuera del shell
     
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
 
@@ -4001,7 +3989,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await App.loadAppShell();
                 } catch(err) {
                     console.error('[LOGIN] Error cargando app-shell:', err);
-                    alert('Error al cargar la aplicaciÃƒÂ³n.');
+                    alert('Error al cargar la aplicación.');
                     return;
                 }
                 
@@ -4025,10 +4013,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     App.loadEvents();
                 }
-            } else alert(d.message || 'Credenciales invÃƒÂ¡lidas.');
+            } else alert(d.message || 'Credenciales inválidas.');
         } catch (err) { 
             console.error("[LOGIN] Error:", err);
-            alert('Error de conexiÃƒÂ³n con el servidor.'); 
+            alert('Error de conexión con el servidor.'); 
         }
     });
 
@@ -4052,7 +4040,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             else alert('No se pudo enviar la solicitud.');
             document.getElementById('signup-form')?.classList.add('hidden');
             document.getElementById('login-form')?.classList.remove('hidden');
-        } catch(err) { alert('Error de conexiÃƒÂ³n.'); }
+        } catch(err) { alert('Error de conexión.'); }
     });
 
     // Modales Legales (Links del Login)
@@ -4065,8 +4053,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             modal?.classList.remove('hidden');
         } catch(e) { alert('No se pudo cargar el texto legal.'); }
     }
-    cl('btn-open-policy', () => openLegalModal('policy_data', 'PolÃƒÂ­tica de Tratamiento de Datos'));
-    cl('btn-open-terms', () => openLegalModal('terms_conditions', 'TÃƒÂ©rminos y Condiciones'));
+    cl('btn-open-policy', () => openLegalModal('policy_data', 'Política de Tratamiento de Datos'));
+    cl('btn-open-terms', () => openLegalModal('terms_conditions', 'Términos y Condiciones'));
     cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
 
     // Logout
@@ -4104,7 +4092,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     App.handleDeleteEvent = async () => {
         if (!App.state.event) return;
-        if (!confirm(`Ã¢ËœÂ¢Ã¯Â¸Â Ã‚Â¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acciÃƒÂ³n es irreversible.`)) return;
+        if (!confirm(`Ã¢ËœÂ¢Ã¯Â¸Â Ã‚Â¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acción es irreversible.`)) return;
         
         try {
             const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
@@ -4125,14 +4113,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
     cl('btn-export-analytics', async () => {
-        if (!App.state.event || typeof window.jspdf === 'undefined') return alert("LibrerÃƒÂ­a PDF no disponible");
+        if (!App.state.event || typeof window.jspdf === 'undefined') return alert("Librería PDF no disponible");
         try {
             const s = await App.fetchAPI(`/stats/${App.state.event.id}`);
             const doc = new window.jspdf.jsPDF();
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 50, 'F');
             doc.setTextColor(255,255,255); doc.setFontSize(28); doc.text("CHECK ANALYTICS", 15, 25);
             doc.setFontSize(10); doc.setTextColor(124,58,237); doc.text(`REPORT V${App.state.version} | ${App.state.event.name.toUpperCase()}`, 15, 35);
-            doc.autoTable({ startY: 60, head: [['MÃƒÂ©trica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas MÃƒÂ©dicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
+            doc.autoTable({ startY: 60, head: [['Métrica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas Médicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
             doc.save(`Analitica_V${App.state.version}_${App.state.event.name.replace(/\s+/g,'_')}.pdf`);
         } catch(e) { alert("Error al generar PDF."); }
     });
@@ -4186,7 +4174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         document.getElementById('ticket-location').textContent = event.location;
         
-        // PersonalizaciÃƒÂ³n Visual
+        // Personalización Visual
         const accent = event.ticket_accent_color || '#7c3aed';
         modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
         if (card) {
@@ -4276,7 +4264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const guest = App.state.currentTicketGuest;
         if (!guest) return;
         const url = `${window.location.origin}/ticket.html?g=${guest.id}&e=${App.state.event.id}`;
-        const text = encodeURIComponent(`Ã‚Â¡Hola ${guest.name}! AquÃƒÂ­ tienes tu boleto para ${App.state.event.name}: ${url}`);
+        const text = encodeURIComponent(`Ã‚Â¡Hola ${guest.name}! Aquí tienes tu boleto para ${App.state.event.name}: ${url}`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
     };
 
@@ -4287,7 +4275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         interval: null,
         async start() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Tu navegador no soporta acceso a cÃƒÂ¡mara.');
+                alert('Tu navegador no soporta acceso a cámara.');
                 return;
             }
             try {
@@ -4303,8 +4291,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('btn-start-scan').disabled = true;
                 document.getElementById('btn-stop-scan').disabled = false;
             } catch (err) {
-                console.error('Error al acceder a la cÃƒÂ¡mara:', err);
-                alert('No se pudo acceder a la cÃƒÂ¡mara. AsegÃƒÂºrate de permitir los permisos.');
+                console.error('Error al acceder a la cámara:', err);
+                alert('No se pudo acceder a la cámara. Asegúrate de permitir los permisos.');
             }
         },
         stop() {
@@ -4371,7 +4359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         this.showResult('Error al registrar check-in.', 'error');
                     }
                 } else {
-                    this.showResult('QR no vÃƒÂ¡lido.', 'error');
+                    this.showResult('QR no válido.', 'error');
                 }
             } catch (e) {
                 // If not JSON, maybe it's a guest ID directly
@@ -4529,7 +4517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     cl('btn-mailing', () => App.openMailing());
 
-    // Listener para importaciÃƒÂ³n (Ya definido en App.handleImport)
+    // Listener para importación (Ya definido en App.handleImport)
 
     cl('btn-confirm-import', async () => {
         const btn = document.getElementById('btn-confirm-import');
@@ -4537,17 +4525,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await App.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ event_id: App.state.event.id }) });
             if (res.success) {
-                alert(`Ã¢Å“â€œ ImportaciÃƒÂ³n exitosa: ${res.count} invitados aÃƒÂ±adidos.`);
+                alert(`Ã¢Å“â€œ Importación exitosa: ${res.count} invitados añadidos.`);
                 document.getElementById('modal-import-results')?.classList.add('hidden');
                 App.loadGuests();
             } else { alert("Error: " + res.error); }
-        } catch(e) { alert("Fallo en la importaciÃƒÂ³n."); }
+        } catch(e) { alert("Fallo en la importación."); }
         finally { btn.innerText = "PROCESAR E IMPORTAR AHORA"; btn.disabled = false; }
     });
 
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
-    // ------- V11: TEXTOS LEGALES (MÃƒâ€œDULO PREMIUM) -------
+    // ------- V11: TEXTOS LEGALES (MÓDULO PREMIUM) -------
     App.initQuill = async () => {
         if (App.quillPolicy) return;
         
@@ -4576,25 +4564,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Usar App.fetchAPI para mayor consistencia y control
             const s = await App.fetchAPI('/settings');
             
-            const defaultPolicy = `<h2>PolÃƒÂ­tica de ProtecciÃƒÂ³n de Datos Personales</h2>
-<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la RepÃƒÂºblica de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la informaciÃƒÂ³n suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
+            const defaultPolicy = `<h2>Política de Protección de Datos Personales</h2>
+<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la República de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la información suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
 <p><b>Finalidades:</b></p>
 <ul>
-  <li>GestiÃƒÂ³n administrativa, logÃƒÂ­stica y control de acceso al evento.</li>
-  <li>EnvÃƒÂ­o de informaciÃƒÂ³n sobre la agenda, cambios de ÃƒÂºltimo momento y materiales post-evento.</li>
-  <li>GeneraciÃƒÂ³n de estadÃƒÂ­sticas, reportes de asistencia y certificados de participaciÃƒÂ³n.</li>
+  <li>Gestión administrativa, logística y control de acceso al evento.</li>
+  <li>Envío de información sobre la agenda, cambios de último momento y materiales post-evento.</li>
+  <li>Generación de estadísticas, reportes de asistencia y certificados de participación.</li>
 </ul>
-<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresiÃƒÂ³n de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
+<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
             
-            const defaultTerms = `<h2>TÃƒÂ©rminos y Condiciones de Uso</h2>
-<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptaciÃƒÂ³n de los siguientes tÃƒÂ©rminos:</p>
+            const defaultTerms = `<h2>Términos y Condiciones de Uso</h2>
+<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptación de los siguientes términos:</p>
 <ol>
-  <li><b>Veracidad:</b> El usuario garantiza que la informaciÃƒÂ³n proporcionada es veraz, completa y actualizada.</li>
-  <li><b>Uso del CÃƒÂ³digo:</b> El cÃƒÂ³digo QR o link de acceso generado es personal e intransferible.</li>
-  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisiÃƒÂ³n y permanencia segÃƒÂºn los protocolos establecidos.</li>
-  <li><b>Privacidad:</b> Sus datos serÃƒÂ¡n tratados bajo estrictos protocolos de seguridad industrial.</li>
+  <li><b>Veracidad:</b> El usuario garantiza que la información proporcionada es veraz, completa y actualizada.</li>
+  <li><b>Uso del Código:</b> El código QR o link de acceso generado es personal e intransferible.</li>
+  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisión y permanencia según los protocolos establecidos.</li>
+  <li><b>Privacidad:</b> Sus datos serán tratados bajo estrictos protocolos de seguridad industrial.</li>
 </ol>
-<p>El uso indebido de la plataforma podrÃƒÂ¡ resultar en la cancelaciÃƒÂ³n del registro.</p>`;
+<p>El uso indebido de la plataforma podrá resultar en la cancelación del registro.</p>`;
             
             // Usar clipboard para asegurar que el HTML se interprete correctamente en Quill
             if (App.quillPolicy) App.quillPolicy.clipboard.dangerouslyPasteHTML(s.policy_data || defaultPolicy);
@@ -4621,14 +4609,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const html = App.quillPolicy.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html, show_legal_login: show }) });
-        alert('Ã¢Å“â€œ PolÃƒÂ­tica de datos guardada exitosamente.');
+        alert('Ã¢Å“â€œ Política de datos guardada exitosamente.');
     });
 
     cl('btn-save-terms', async () => {
         const html = App.quillTerms.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html, show_legal_login: show }) });
-        alert('Ã¢Å“â€œ TÃƒÂ©rminos y Condiciones guardados exitosamente.');
+        alert('Ã¢Å“â€œ Términos y Condiciones guardados exitosamente.');
     });
 
     // ------- V10: CAMBIO DE CONTRASEÃƒâ€˜A -------
@@ -4636,13 +4624,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const p1 = document.getElementById('new-pass-1').value;
         const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseÃƒÂ±as no coinciden.');
+        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('Ã¢Å“â€œ ContraseÃƒÂ±a actualizada exitosamente.');
+            alert('Ã¢Å“â€œ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseÃƒÂ±a.'); }
+        } catch { alert('Error al actualizar contraseña.'); }
     });
     
     // ------- V10.6: PERFIL -------
@@ -4690,11 +4678,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await App.saveIMAPConfig();
     });
 
-    // 6. InicializaciÃƒÂ³n V10.5
+    // 6. Inicialización V10.5
     // Init removido - se usa DOMContentLoaded
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
-    // Modal de InvitaciÃƒÂ³n
+    // Modal de Invitación
     cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
     cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
     cl('btn-open-invite-admin', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
@@ -4743,7 +4731,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (eventId) {
             App.updateEvent(eventId, data);
         } else {
-            // Para creaciÃƒÂ³n, convertimos a FormData si hay logo, o enviamos JSON
+            // Para creación, convertimos a FormData si hay logo, o enviamos JSON
             const logo = document.getElementById('ev-logo-file').files[0];
             if (logo) {
                 const fd = new FormData();
@@ -4770,7 +4758,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Form de invitaciÃƒÂ³n de usuario
+    // Form de invitación de usuario
     sf('invite-user-form', async (e) => {
         e.preventDefault();
         const displayName = document.getElementById('invite-display-name').value;
@@ -4781,21 +4769,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
             if (res.success) { alert(`Ã¢Å“â€œ Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
-        } catch { alert('Error de conexiÃƒÂ³n.'); }
+        } catch { alert('Error de conexión.'); }
     });
 
-    // Form de cambio de contraseÃƒÂ±a
+    // Form de cambio de contraseña
     sf('change-pass-form', async (e) => {
         e.preventDefault();
         const p1 = document.getElementById('new-pass-1').value;
         const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseÃƒÂ±as no coinciden.');
+        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('Ã¢Å“â€œ ContraseÃƒÂ±a actualizada exitosamente.');
+            alert('Ã¢Å“â€œ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseÃƒÂ±a.'); }
+        } catch { alert('Error al actualizar contraseña.'); }
     });
 
     // Clocks
@@ -4865,12 +4853,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     cl('btn-create-group', async () => {
         const name = prompt('Nombre del grupo:');
         if (!name) return;
-        const description = prompt('DescripciÃƒÂ³n del grupo (opcional):');
+        const description = prompt('Descripción del grupo (opcional):');
         try {
             const res = await App.fetchAPI('/groups', { method: 'POST', body: JSON.stringify({ name, description }) });
             if (res.success) { alert('Ã¢Å“â€œ Grupo creado'); App.loadGroups(); }
             else alert('Error: ' + res.error);
-        } catch { alert('Error de conexiÃƒÂ³n.'); }
+        } catch { alert('Error de conexión.'); }
     });
 });
 
