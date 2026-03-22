@@ -2,11 +2,7 @@
 console.log("CHECK V7.0: Iniciando Sistema Centralizado...");
 
 // --- localStorage WRAPPER (soporta Tracking Prevention de Edge) ---
-const LS = {
-    get: (k) => { try { return localStorage.getItem(k); } catch(e) { console.warn('[LS] Error get:', k, e); return null; } },
-    set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) { console.warn('[LS] Error set:', k, e); } },
-    remove: (k) => { try { localStorage.removeItem(k); } catch(e) { console.warn('[LS] Error remove:', k, e); } }
-};
+// LS movido a utils.js
 console.log('[INIT] Script loaded, LS available');
 
 // --- ANTI-FLASH: Ocultar app cuando la página se hace visible (prerender) ---
@@ -24,116 +20,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // --- LAZY LOADING UTILITY (Performance V12.3) ---
-window.lazyLoad = {
-    observer: null,
-    loadedScripts: new Set(),
-    loadedStyles: new Set(),
-    
-    init() {
-        if ('IntersectionObserver' in window) {
-            this.observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const el = entry.target;
-                        const src = el.dataset.src;
-                        if (src) {
-                            el.src = src;
-                            el.removeAttribute('data-src');
-                            this.observer.unobserve(el);
-                        }
-                        // Lazy load background images
-                        const bgSrc = el.dataset.bgSrc;
-                        if (bgSrc) {
-                            el.style.backgroundImage = `url('${bgSrc}')`;
-                            el.removeAttribute('data-bg-src');
-                            this.observer.unobserve(el);
-                        }
-                    }
-                });
-            }, { rootMargin: '100px', threshold: 0.1 });
-        }
-    },
-    
-    observe(el) {
-        if (this.observer && (el.dataset.src || el.dataset.bgSrc)) {
-            this.observer.observe(el);
-        } else if (el.src && !el.src.includes('data:')) {
-            // Already loaded
-        }
-    },
-    
-    observeAll(selector = '[data-src], [data-bg-src]') {
-        if (!this.observer) return;
-        document.querySelectorAll(selector).forEach(el => this.observe(el));
-    },
-    
-    async loadScript(url, options = {}) {
-        if (this.loadedScripts.has(url)) {
-            return Promise.resolve();
-        }
-        
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = url;
-            script.async = true;
-            
-            if (options.integrity) script.integrity = options.integrity;
-            if (options.crossOrigin) script.crossOrigin = options.crossOrigin;
-            
-            script.onload = () => {
-                this.loadedScripts.add(url);
-                resolve();
-            };
-            
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    },
-    
-    async loadStyle(url, options = {}) {
-        if (this.loadedStyles.has(url)) {
-            return Promise.resolve();
-        }
-        
-        return new Promise((resolve, reject) => {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = url;
-            
-            if (options.integrity) link.integrity = options.integrity;
-            if (options.crossOrigin) link.crossOrigin = options.crossOrigin;
-            
-            link.onload = () => {
-                this.loadedStyles.add(url);
-                resolve();
-            };
-            
-            link.onerror = reject;
-            document.head.appendChild(link);
-        });
-    },
-    
-    async loadChartJS() {
-        return this.loadScript('https://cdn.jsdelivr.net/npm/chart.js');
-    },
-    
-    async loadHtml2Canvas() {
-        return this.loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
-    },
-    
-    async loadJsPDF() {
-        return this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    },
-    
-    async loadQRCode() {
-        return this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js');
-    },
-    
-    async loadQuill() {
-        await this.loadStyle('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css');
-        return this.loadScript('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js');
-    }
-};
+// lazyLoad movido a utils.js
 
 // --- ESTADO CENTRALIZADO (STATE MANAGEMENT) ---
 window.App = {
@@ -2406,23 +2293,7 @@ window.App = {
     },
 
     // --- AUTH ---
-    async fetchAPI(endpoint, options = {}) {
-        const headers = { 'Content-Type': 'application/json' };
-        if (this.state.user) headers['x-user-id'] = this.state.user.userId;
-        const url = `${this.constants.API_URL}${endpoint}`;
-        console.log('[API] Request:', url, 'userId:', this.state.user?.userId);
-        
-        try {
-            const res = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
-            if (res.status === 401 || res.status === 403) throw new Error('Auth fail');
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
-        } catch (e) {
-            console.error('[API] Error:', url, e);
-            if (e.message === 'Auth fail') this.logout();
-            throw e;
-        }
-    },
+    async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
         console.log("CHECK: Cerrando sesión segura.");
         LS.remove('user');

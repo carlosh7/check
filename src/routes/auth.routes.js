@@ -89,7 +89,7 @@ router.post('/password-reset-request', (req, res) => {
     db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")
       .run(getValidId('password_resets'), user.id, code, expires, new Date().toISOString());
 
-    res.json({ success: true, message: 'Código enviado (simulado)', code });
+    res.json({ success: true, message: 'Código enviado por email (simulado)' });
 });
 
 router.post('/verify-reset-code', (req, res) => {
