@@ -35,18 +35,6 @@ window.App = {
 
     // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
     
-
-    navigateEmailSection(tab) {
-        this.navigate('smtp');
-        const sections = ['config', 'mailbox', 'templates', 'mailing'];
-        sections.forEach(s => {
-            const el = document.getElementById('email-content-' + s);
-            if (el) el.classList.add('hidden');
-        });
-        const active = document.getElementById('email-content-' + tab);
-        if (active) active.classList.remove('hidden');
-    },
-
     _updateSidebarUI(viewId) {
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById('nav-btn-' + viewId);
@@ -1242,6 +1230,10 @@ window.App = {
             
             document.getElementById('modal-mail-view').classList.remove('hidden');
         } catch (e) { alert('Error al cargar detalle: ' + e.message); }
+    },
+
+    closeMailView: function() {
+        document.getElementById('modal-mail-view').classList.add('hidden');
     },
 
     syncEmails: async function() {
@@ -3750,32 +3742,28 @@ window.App = {
         
         doc.save(`Ticket_${event.name.replace(/\s+/g, '_')}_${g.name.split(' ')[0]}.pdf`);
     },
-};
 
-// --- TAB SWITCHERS DEFINIDOS AL INICIO ---
-const ALL_TAB_IDS = ['tab-users', 'tab-legal', 'tab-account'];
-const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
+    switchSystemTab(tabName) {
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
+        ALL_SYS_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        document.querySelectorAll('#view-system [id^="sys-nav-"]').forEach(b => {
+            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
+            b.classList.add('text-slate-400');
+        });
 
-window.switchSystemTab = function(tabName) {
-    console.log('CHECK V10.3: switchSystemTab ->', tabName);
-    ALL_SYS_IDS.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-    });
-    document.querySelectorAll('#view-system .nav-tab-btn').forEach(b => {
-        b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
-        b.classList.add('text-slate-400');
-    });
-
-    const panel = document.getElementById('sys-content-' + tabName);
-    if (panel) panel.classList.remove('hidden');
-    const activeBtn = document.getElementById('sys-nav-' + tabName);
-    if (activeBtn) {
-        activeBtn.classList.remove('text-slate-400');
-        activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
-    }
-    if (tabName === 'users') App.loadUsersTable();
-    if (tabName === 'legal') App.loadLegalTexts();
+        const panel = document.getElementById('sys-content-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+        const activeBtn = document.getElementById('sys-nav-' + tabName);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+        }
+        if (tabName === 'users') this.loadUsersTable();
+        if (tabName === 'legal') this.loadLegalTexts();
+    },
 };
 
 window.switchAdminTab = function(tabName) {
