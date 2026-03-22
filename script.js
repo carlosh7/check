@@ -1,4 +1,4 @@
-﻿// MASTER SCRIPT V7.0 - ARQUITECTURA LIMPIA E INDUSTRIAL Ã°Å¸â€ºÂ¡Ã¯Â¸ÂÃ°Å¸Å¡â‚¬Ã°Å¸â€™Å½
+// MASTER SCRIPT V7.0 - ARQUITECTURA LIMPIA E INDUSTRIAL Ã°Å¸â€ºÂ¡Ã¯Â¸ÂÃ°Å¸Å¡â‚¬Ã°Å¸â€™Å½
 console.log("CHECK V7.0: Iniciando Sistema Centralizado...");
 
 // --- localStorage WRAPPER (soporta Tracking Prevention de Edge) ---
@@ -217,6 +217,10 @@ window.App = {
                         icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
                     });
                     console.log(`Tema cambiado por preferencia del sistema: ${newTheme}`);
+                }
+            });
+            window._themeListenerAdded = true;
+        }
         console.log(`Tema inicializado: ${theme}`);
     },
     
