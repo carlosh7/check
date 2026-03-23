@@ -415,10 +415,47 @@ app.use(compression({
     level: 6,
     threshold: 1024
 }));
+
+// --- HELMET: Security headers mejorados (SEC-012, SEC-013, SEC-024) ---
+app.disable('x-powered-by'); // Deshabilitar exposición de tecnología
+
 app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    hsts: false // Desactivar HSTS por ahora (requiere HTTPS)
+    // Content Security Policy (CSP) - proteger contra XSS e inyecciones
+    contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: ["'self'", "wss:", "https:"],
+            mediaSrc: ["'self'", "https:"],
+            objectSrc: ["'none'"],
+            frameSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
+        }
+    },
+    // HSTS - Solo habilitar si hay HTTPS
+    hsts: process.env.NODE_ENV === 'production' ? {
+        maxAge: 31536000, // 1 año
+        includeSubDomains: true,
+        preload: true
+    } : false,
+    // Cross-Origin policies
+    crossOriginEmbedderPolicy: false, // Deshabilitado por compatibilidad con fonts
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    // Denegar embedding en iframes
+    frameguard: { action: 'deny' },
+    // Prevenir MIME sniffing
+    noSniff: true,
+    // Origen referrer
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // XSS filter (legacy pero útil)
+    xssFilter: true
 }));
 app.use(cors({
     origin: function (origin, callback) {
@@ -544,5 +581,45 @@ app.use((req, res, next) => {
 // - /                   → SPA root (usa path.join(__dirname, 'index.html'))
 // - /:eventName/registro → Registro público (usa path.basename para logos)
 // Estas rutas NO pueden migrarse a módulos porque necesitan variables del scope de server.js
+
+// --- ERROR HANDLER GLOBAL (SEC-014) ---
+// Prevenir exposición de stack traces en producción
+app.use((err, req, res, next) => {
+    // Loguear error completo para debugging
+    console.error('[ERROR]', {
+        message: err.message,
+        stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+    });
+    
+    // No exponer detalles del error en producción
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Manejar errores específicos
+    if (err.type === 'entity.parse.failed') {
+        return res.status(400).json({ error: 'JSON inválido' });
+    }
+    
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({ error: 'Payload demasiado grande' });
+    }
+    
+    if (err.message && err.message.includes('CSV')) {
+        return res.status(400).json({ error: err.message });
+    }
+    
+    // Respuesta genérica
+    res.status(err.status || 500).json({
+        error: isProduction ? 'Error interno del servidor' : err.message,
+        ...(isProduction && { code: 'INTERNAL_ERROR' })
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Recurso no encontrado' });
+});
 
 server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));
