@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.3
+ * Version: V12.3.4
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.3.3: Iniciando Sistema Modular...');
+console.log('CHECK V12.3.4: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.3',
+        version: '12.3.4',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -643,7 +643,7 @@ const App = window.App = {
 
                 // --- COLUMNA 3: ROL & ESTADO ---
                 const roleSelect = canEdit ? `
-                    <select data-action="changeUserRole" data-user-id="${u.id}" class="w-full bg-slate-900/60 text-white text-[11px] font-black rounded-2xl px-4 py-2.5 border border-white/10 focus:border-primary/50 outline-none transition-all cursor-pointer backdrop-blur-md">
+                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-900/50 text-white text-[11px] font-black rounded-xl px-3 py-2 border border-white/10 focus:border-primary/50 outline-none transition-all">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select>` : `
                     <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${u.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-primary/10 text-primary border border-primary/20'}">${u.role}</span>`;
@@ -652,41 +652,41 @@ const App = window.App = {
                 const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black border ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}">${statusLabel}</span>`;
 
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-1.5 py-2.5 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 hover:from-emerald-500/20 hover:to-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg shadow-emerald-500/5">Activar Usuario</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-1.5 py-2.5 bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 text-red-400 border border-red-500/20 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg shadow-red-500/5">Suspender</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-2 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase transition-all">Activar Usuario</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase transition-all">Suspender</button>`) : '';
 
                 return `
-                <tr class="group hover:bg-white/[0.03] transition-all border-b border-white/5 last:border-none">
-                    <td class="px-6 py-5">
+                <tr class="group hover:bg-white/[0.02] transition-all border-b border-white/5 last:border-none">
+                    <td class="px-6 py-6">
                         <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary/30 to-blue-500/30 border border-white/10 flex items-center justify-center text-primary font-black text-lg shadow-lg shadow-primary/10 group-hover:scale-105 transition-transform duration-300">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary/20 to-blue-500/20 border border-white/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover:scale-105 transition-transform">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-sm tracking-tight">${u.display_name || u.username}</h4>
-                                <p class="text-[10px] text-slate-500 font-mono tracking-tighter opacity-70">${u.username}</p>
+                                <h4 class="font-bold text-white text-sm">${u.display_name || u.username}</h4>
+                                <p class="text-[11px] text-slate-500 font-mono tracking-tight">${u.username}</p>
                             </div>
                         </div>
-                        <div class="flex flex-col gap-2">
-                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-slate-600 font-medium italic opacity-50">Sin eventos</span>'}</div>
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-slate-600 font-bold italic">Sin eventos asignados</span>'}</div>
                             ${eventActions}
                         </div>
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <div class="flex flex-col gap-2 pt-1">
+                    <td class="px-6 py-6 align-top">
+                        <div class="mt-1">
                             ${groupDisplay}
                             ${groupActions}
                         </div>
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <div class="flex flex-col gap-4">
-                            <div class="flex flex-col gap-2">
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Permisos & Rol</span>
+                    <td class="px-6 py-6 align-top">
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Permisos & Rol</p>
                                 ${roleSelect}
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Estado Operativo</span>
-                                <div class="flex flex-col gap-2">
+                            <div>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Estado de Acceso</p>
+                                <div class="flex flex-col">
                                     <div class="flex">${statusBadge}</div>
                                     ${accessBtn}
                                 </div>
@@ -2517,7 +2517,85 @@ const App = window.App = {
         cl('btn-cancel-invite', () => hideModal('modal-invite'));
         cl('btn-cancel-company', () => hideModal('modal-company'));
 
-        // Los listeners específicos para IDs estáticos permanecen aquí
+        // EVENT DELEGATION para botones dinámicos (reemplaza onclick inline violando CSP)
+        // Los templates dinámicos usan data-action y data-params-* en lugar de onclick
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            
+            const action = target.dataset.action;
+            const p = target.dataset; // shortcut to dataset
+            const _App = window.App; // Garantizar acceso al objeto global
+            
+            try {
+                switch(action) {
+                    // Groups management
+                    case 'removeUserFromGroup': _App.removeUserFromGroup(p.userId, p.groupId); break;
+                    case 'showUserSelectorForGroup': _App.showUserSelectorForGroup(p.groupId); break;
+                    case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
+                    case 'assignUserToGroupFromSelector': _App.assignUserToGroupFromSelector(p.groupId); break;
+                    case 'closeUserSelectorGroup': _App.closeUserSelectorGroup(); break;
+                    case 'assignUserToEventFromSelector': _App.assignUserToEventFromSelector(p.eventId); break;
+                    case 'closeUserSelectorEvent': _App.closeUserSelectorEvent(); break;
+                    
+                    // Users management
+                    case 'approveUser': _App.approveUser(p.userId, p.status); break;
+                    case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
+                    case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
+                    case 'removeUserEvent': _App.removeUserEvent(p.userId, p.eventId); break;
+                    case 'showEventSelector': 
+                        let evs = [];
+                        try { evs = JSON.parse(p.events || '[]'); } catch(e) { console.error("Error parsing events", e); }
+                        _App.showEventSelector(p.userId, evs); 
+                        break;
+                    case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
+                    case 'navigateToCreateGroup': _App.navigateToCreateGroup(p.userId); break;
+                    case 'closeGroupSelector': _App.closeGroupSelector(); break;
+                    case 'assignEventFromSelector': _App.assignEventFromSelector(p.userId); break;
+                    case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
+                    case 'closeEventSelector': _App.closeEventSelector(); break;
+                    
+                    // Email
+                    case 'viewMailDetail': _App.viewMailDetail(p.mailId); break;
+                    case 'insertVariable': _App.insertVariable(p.varName); break;
+                    case 'showTemplateEditor': _App.showTemplateEditor(p.templateId, p.templateName); break;
+                    case 'deleteEmailTemplate': _App.deleteEmailTemplate(p.templateId); break;
+                    case 'saveEventEmailTemplate': _App.saveEventEmailTemplate(p.templateType); break;
+                    case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
+                    
+                    // Pre-reg
+                    case 'updatePreRegStatus': _App.updatePreRegStatus(p.prId, p.status); break;
+                    
+                    // Survey
+                    case 'openSurveyEditor': _App.openSurveyEditor(p.questionId); break;
+                    case 'deleteSurveyQuestion': _App.deleteSurveyQuestion(p.questionId); break;
+                    
+                    // Events
+                    case 'openEvent': _App.openEvent(p.eventId); break;
+                    case 'editEvent': _App.editEvent(p.eventId); break;
+                    case 'deleteEvent': _App.deleteEvent(p.eventId); break;
+                    case 'copyRegistrationLink': _App.copyRegistrationLink(p.eventId); break;
+                    case 'showUserSelectorForEvent': _App.showUserSelectorForEvent(p.eventId); break;
+                    
+                    // Guests
+                    case 'generateCertificate': _App.generateCertificate(p.guestId); break;
+                    case 'showTicket': _App.showTicket(p.guestId); break;
+                    case 'editGuest': _App.editGuest(p.guestId); break;
+                    case 'deleteGuest': _App.deleteGuest(p.guestId); break;
+                }
+            } catch(err) {
+                console.error("[DELEGATION] Error executing action:", action, err);
+            }
+        });
+
+        // EVENT DELEGATION para selects dinámicos (changeUserRole)
+        document.body.addEventListener('change', (e) => {
+            const select = e.target.closest('select[data-action]');
+            if (!select) return;
+            if (select.dataset.action === 'changeUserRole') {
+                App.changeUserRole(select.dataset.userId, select.value);
+            }
+        });
     },
     
     openCreateEventModal: function() {
@@ -5007,70 +5085,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
 window.logout = () => App.logout();
-
-// --- SISTEMA DE DELEGACIÓN GLOBAL V12.3.3 ---
-// Captura eventos para elementos generados dinámicamente en cualquier vista
-document.body.addEventListener('click', (e) => {
-    const target = e.target.closest('[data-action]');
-    if (!target) return;
-    
-    const action = target.dataset.action;
-    const p = target.dataset;
-    const _App = window.App;
-    
-    try {
-        switch(action) {
-            case 'removeUserFromGroup': _App.removeUserFromGroup(p.userId, p.groupId); break;
-            case 'showUserSelectorForGroup': _App.showUserSelectorForGroup(p.groupId); break;
-            case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
-            case 'assignUserToGroupFromSelector': _App.assignUserToGroupFromSelector(p.groupId); break;
-            case 'closeUserSelectorGroup': _App.closeUserSelectorGroup(); break;
-            case 'assignUserToEventFromSelector': _App.assignUserToEventFromSelector(p.eventId); break;
-            case 'closeUserSelectorEvent': _App.closeUserSelectorEvent(); break;
-            case 'approveUser': _App.approveUser(p.userId, p.status); break;
-            case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
-            case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
-            case 'removeUserEvent': _App.removeUserEvent(p.userId, p.eventId); break;
-            case 'showEventSelector': 
-                let evs = [];
-                try { evs = JSON.parse(p.events || '[]'); } catch(e) { console.error("Error parsing events", e); }
-                _App.showEventSelector(p.userId, evs); 
-                break;
-            case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
-            case 'navigateToCreateGroup': _App.navigateToCreateGroup(p.userId); break;
-            case 'closeGroupSelector': _App.closeGroupSelector(); break;
-            case 'assignEventFromSelector': _App.assignEventFromSelector(p.userId); break;
-            case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
-            case 'closeEventSelector': _App.closeEventSelector(); break;
-            case 'viewMailDetail': _App.viewMailDetail(p.mailId); break;
-            case 'insertVariable': _App.insertVariable(p.varName); break;
-            case 'showTemplateEditor': _App.showTemplateEditor(p.templateId, p.templateName); break;
-            case 'deleteEmailTemplate': _App.deleteEmailTemplate(p.templateId); break;
-            case 'saveEventEmailTemplate': _App.saveEventEmailTemplate(p.templateType); break;
-            case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
-            case 'updatePreRegStatus': _App.updatePreRegStatus(p.prId, p.status); break;
-            case 'openSurveyEditor': _App.openSurveyEditor(p.questionId); break;
-            case 'deleteSurveyQuestion': _App.deleteSurveyQuestion(p.questionId); break;
-            case 'openEvent': _App.openEvent(p.eventId); break;
-            case 'editEvent': _App.editEvent(p.eventId); break;
-            case 'deleteEvent': _App.deleteEvent(p.eventId); break;
-            case 'copyRegistrationLink': _App.copyRegistrationLink(p.eventId); break;
-            case 'showUserSelectorForEvent': _App.showUserSelectorForEvent(p.eventId); break;
-            case 'generateCertificate': _App.generateCertificate(p.guestId); break;
-            case 'showTicket': _App.showTicket(p.guestId); break;
-            case 'editGuest': _App.editGuest(p.guestId); break;
-            case 'deleteGuest': _App.deleteGuest(p.guestId); break;
-        }
-    } catch(err) {
-        console.error("[DELEGATION] Error:", action, err);
-    }
-});
-
-document.body.addEventListener('change', (e) => {
-    const select = e.target.closest('select[data-action]');
-    if (!select) return;
-    if (select.dataset.action === 'changeUserRole') {
-        window.App.changeUserRole(select.dataset.userId, select.value);
-    }
-});
 
