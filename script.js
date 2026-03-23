@@ -4838,7 +4838,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 });
-});
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
