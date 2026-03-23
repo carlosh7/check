@@ -5,54 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check Attendance</title>
     <link rel="stylesheet" href="/styles.css?v=12.2.3">
-    <!-- ... scripts ... -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
     <link rel="stylesheet" href="modern.css?v=13.0.1">
-
 </head>
 
-<body class="antialiased font-sans">
+<body class="antialiased">
 
     <!-- VIEW: LOGIN -->
-    <div id="view-login" class="fixed inset-0 flex items-center justify-center p-6 bg-app">
-        <div class="w-full max-w-[360px]">
-            <div class="card p-10">
-                <div class="flex flex-col items-center mb-10">
-                    <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-white text-3xl">verified_user</span>
+    <div id="view-login" class="fixed inset-0 flex items-center justify-center p-6 bg-[var(--bg-app)]">
+        <div class="w-full max-w-[340px]">
+            <div class="card p-8">
+                <div class="flex flex-col items-center mb-8">
+                    <div class="w-11 h-11 bg-[var(--primary)] rounded-xl flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-white text-2xl">verified_user</span>
                     </div>
-                    <h1 class="mb-0">Check.</h1>
-                    <p class="text-secondary uppercase tracking-[0.2em] font-semibold text-[9px] mt-1">Attendance Management</p>
+                    <h1 class="text-2xl font-semibold tracking-tight">Check<span class="text-[var(--primary)]">.</span></h1>
+                    <p class="text-[var(--text-secondary)] text-xs uppercase tracking-widest font-medium mt-1">Attendance Management</p>
                 </div>
 
                 <form id="login-form" class="space-y-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase font-bold text-secondary ml-1">Usuario</label>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Usuario</label>
                         <input type="text" id="login-user" required placeholder="nombre@empresa.com" class="input-field w-full">
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase font-bold text-secondary ml-1">Contraseña</label>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contraseña</label>
                         <input type="password" id="login-pass" required placeholder="••••••••" class="input-field w-full">
                     </div>
-                    <button type="submit" class="btn-primary w-full py-3 mt-4">Iniciar Sesión</button>
+                    <button type="submit" class="btn-primary w-full py-2.5 mt-4">Iniciar Sesión</button>
                     <div class="text-center pt-2">
-                        <a href="#" id="go-to-signup" class="text-primary text-xs font-medium hover:underline">Solicitar acceso</a>
+                        <a href="#" id="go-to-signup" class="text-[var(--primary)] text-xs font-medium hover:underline">Solicitar acceso</a>
                     </div>
                 </form>
 
                 <form id="signup-form" class="hidden space-y-4">
-                    <h2 class="text-center mb-6">Solicitar Acceso</h2>
+                    <h2 class="text-center text-lg font-semibold mb-4">Solicitar Acceso</h2>
                     <input type="text" id="signup-user" required placeholder="Correo" class="input-field w-full">
                     <input type="password" id="signup-pass" required placeholder="Contraseña Sugerida" class="input-field w-full">
-                    <button type="submit" class="btn-primary w-full py-3">Enviar Solicitud</button>
-                    <button id="go-to-login" type="button" class="w-full text-xs text-secondary mt-2 hover:text-text-main transition-colors text-center">Volver al login</button>
+                    <button type="submit" class="btn-primary w-full py-2.5">Enviar Solicitud</button>
+                    <button id="go-to-login" type="button" class="w-full text-xs text-[var(--text-secondary)] mt-2 hover:text-[var(--text-main)] transition-colors text-center">Volver al login</button>
                 </form>
             </div>
             
-            <div class="flex justify-center gap-6 mt-8">
-                <button id="btn-open-policy" class="text-[10px] text-secondary hover:text-primary transition-colors uppercase tracking-widest font-bold">Privacidad</button>
-                <button id="btn-open-terms" class="text-[10px] text-secondary hover:text-primary transition-colors uppercase tracking-widest font-bold">Términos</button>
+            <div class="flex justify-center gap-8 mt-6">
+                <button id="btn-open-policy" class="text-[10px] text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors uppercase tracking-widest font-medium">Privacidad</button>
+                <button id="btn-open-terms" class="text-[10px] text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors uppercase tracking-widest font-medium">Términos</button>
             </div>
         </div>
     </div>
