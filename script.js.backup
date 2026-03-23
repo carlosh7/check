@@ -41,7 +41,7 @@ window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // ─── PERMISOS JERÁRQUICOS V10.5 ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â PERMISOS JERáRQUICOS V10.5 Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -90,7 +90,7 @@ window.App = {
         }
     },
 
-    // ─── TEMA OSCURO/CLARO MEJORADO ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â TEMA OSCURO/CLARO MEJORADO Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     
     // Obtener tema del sistema
     getSystemTheme: function() {
@@ -326,7 +326,7 @@ window.App = {
                             <span class="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
                             ${u.display_name || u.username}
                             <span class="text-[8px] text-slate-400">${u.role}</span>
-                            <button onclick="App.removeUserFromGroup('${u.id}', '${g.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">×</button>
+                            <button onclick="App.removeUserFromGroup('${u.id}', '${g.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">Ãƒ€”</button>
                         </span>`).join('');
                     
                     return `
@@ -471,7 +471,7 @@ window.App = {
                 this.state.allUsers = users;
                 this.loadUsersTable();
                 this.closeUserSelectorEvent();
-                alert('✓ Usuario agregado al evento');
+                alert('Ã¢Å“€œ Usuario agregado al evento');
             }
         } catch(e) { console.error('Error assigning user to event:', e); }
     },
@@ -692,7 +692,7 @@ window.App = {
                 body: JSON.stringify({ name: name.trim(), description }) 
             });
             if (res.success) { 
-                alert('✓ Empresa creada exitosamente');
+                alert('Ã¢Å“€œ Empresa creada exitosamente');
                 this.loadUsersTable();
             } else {
                 alert('Error: ' + res.error);
@@ -711,7 +711,7 @@ window.App = {
                 body: JSON.stringify({ name: name.trim(), date, location: '', description: '' }) 
             });
             if (res.success) { 
-                alert('✓ Evento creado exitosamente');
+                alert('Ã¢Å“€œ Evento creado exitosamente');
                 this.loadUsersTable();
             } else {
                 alert('Error: ' + res.error);
@@ -828,7 +828,7 @@ window.App = {
             body: JSON.stringify({ name: name.trim(), description })
         }).then(r => r.json()).then(d => {
             if (d.success) {
-                alert('✓ Empresa creada');
+                alert('Ã¢Å“€œ Empresa creada');
                 this.loadGroups();
             }
         }).catch(() => alert('Error al crear empresa'));
@@ -937,7 +937,7 @@ window.App = {
             });
             const d = await res.json();
             if (d.success) {
-                alert("✓ Evento creado con éxito.");
+                alert("Ã¢Å“€œ Evento creado con éxito.");
                 document.getElementById('modal-event').classList.add('hidden');
                 document.getElementById('new-event-form').reset();
                 this.loadEvents();
@@ -954,7 +954,7 @@ window.App = {
                 body: JSON.stringify(data)
             });
             if (res.success) {
-                alert("✓ Evento actualizado.");
+                alert("Ã¢Å“€œ Evento actualizado.");
                 document.getElementById('modal-event').classList.add('hidden');
                 this.loadEvents();
             } else {
@@ -995,13 +995,13 @@ window.App = {
                     method: 'PUT', 
                     body: JSON.stringify(data)
                 });
-                alert('✓ Empresa actualizada');
+                alert('Ã¢Å“€œ Empresa actualizada');
             } else {
                 await this.fetchAPI('/groups', { 
                     method: 'POST', 
                     body: JSON.stringify(data)
                 });
-                alert('✓ Empresa creada');
+                alert('Ã¢Å“€œ Empresa creada');
             }
             this.closeCompanyModal();
             this.loadGroups();
@@ -1040,7 +1040,7 @@ window.App = {
             if (res.success) {
                 this.state.user = { ...this.state.user, ...data };
                 LS.set('user', JSON.stringify(this.state.user));
-                alert('✓ Perfil actualizado');
+                alert('Ã¢Å“€œ Perfil actualizado');
                 this.loadProfileData();
             }
         } catch (e) { alert('Error al actualizar perfil'); }
@@ -1155,7 +1155,7 @@ window.App = {
         }
     },
 
-    // ─── MAILING & MAILBOX LOGIC V11.1 ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â MAILING & MAILBOX LOGIC V11.1 Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     
     switchMailboxFolder: function(folder) {
         document.querySelectorAll('.mail-folder-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
@@ -1285,7 +1285,7 @@ window.App = {
             const res = await this.fetchAPI('/emails/sync', { method: 'POST' });
             if (res.success) {
                 this.loadMailbox('INBOX');
-                alert(`✓ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
+                alert(`Ã¢Å“€œ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
             } else {
                 alert('Error al sincronizar: ' + (res.error || 'Error desconocido'));
             }
@@ -1329,7 +1329,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('✓ Configuración IMAP guardada');
+            alert('Ã¢Å“€œ Configuración IMAP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -1350,7 +1350,7 @@ window.App = {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('✓ ¡Conexión exitosa!');
+            if (res.success) alert('Ã¢Å“€œ ¡Conexión exitosa!');
             else alert('Error: ' + (res.error || 'Fallo en la conexión'));
         } catch (e) {
             alert('Error de red: ' + e.message);
@@ -1396,7 +1396,7 @@ window.App = {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('✓ ¡Conexión SMTP exitosa!');
+            if (res.success) alert('Ã¢Å“€œ ¡Conexión SMTP exitosa!');
             else alert('Error: ' + (res.error || 'Fallo en la conexión'));
         } catch (e) {
             alert('Error de red: ' + e.message);
@@ -1421,7 +1421,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('✓ Configuración SMTP guardada');
+            alert('Ã¢Å“€œ Configuración SMTP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -1488,7 +1488,7 @@ window.App = {
                 })
             });
             
-            alert('✓ Envío masivo iniciado. Revisa el progreso en la parte superior.');
+            alert('Ã¢Å“€œ Envío masivo iniciado. Revisa el progreso en la parte superior.');
             document.getElementById('mailing-progress-card').classList.remove('hidden');
             this.updateMailingStats();
             
@@ -1535,7 +1535,7 @@ window.App = {
             const card = document.getElementById('mailing-progress-card');
 
             if (bar) bar.style.width = percent + '%';
-            if (countText) countText.textContent = `${sent} / ${total} enviados · ${errors} errores`;
+            if (countText) countText.textContent = `${sent} / ${total} enviados Ã‚Â· ${errors} errores`;
             if (percentText) percentText.textContent = percent + '%';
 
             // Si hay algo pendiente, mostrar la tarjeta si no estaba
@@ -1574,7 +1574,7 @@ window.App = {
                 })
             });
             
-            alert('✓ Plantilla guardada correctamente');
+            alert('Ã¢Å“€œ Plantilla guardada correctamente');
             this.closeTemplateEditor();
             this.loadEmailTemplates();
             if (this.state.email_admin_section === 'mailing') {
@@ -1851,7 +1851,7 @@ window.App = {
                     body: JSON.stringify({ name, subject, body })
                 });
             }
-            alert('✓ Plantilla guardada');
+            alert('Ã¢Å“€œ Plantilla guardada');
             this.closeTemplateEditor();
             this.loadEmailTemplates();
         } catch (e) { 
@@ -1961,7 +1961,7 @@ window.App = {
                 method: 'PUT', 
                 body: JSON.stringify(data) 
             });
-            alert('✓ Configuración SMTP guardada');
+            alert('Ã¢Å“€œ Configuración SMTP guardada');
         } catch (e) { alert('Error al guardar configuración'); }
     },
     
@@ -1975,7 +1975,7 @@ window.App = {
                 body: JSON.stringify({ test_email: testEmail })
             });
             if (res.success) {
-                alert('✓ Email de prueba enviado (revisa la consola del servidor)');
+                alert('Ã¢Å“€œ Email de prueba enviado (revisa la consola del servidor)');
             } else {
                 alert('Error: ' + (res.error || 'No se pudo enviar'));
             }
@@ -2050,7 +2050,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify({ subject, body })
             });
-            alert('✓ Plantilla guardada');
+            alert('Ã¢Å“€œ Plantilla guardada');
         } catch (e) { alert('Error al guardar plantilla'); }
     },
     
@@ -2155,7 +2155,7 @@ window.App = {
                 method: 'PUT',
                 body: JSON.stringify({ agenda_items: items })
             });
-            alert('✓ Agenda guardada');
+            alert('Ã¢Å“€œ Agenda guardada');
         } catch (e) { alert('Error al guardar agenda'); }
     },
     
@@ -2696,7 +2696,7 @@ window.App = {
         this.renderGuestsTarget(this.state.guests);
     },
     
-    // --- COLUMNAS DINÁMICAS V12.1 ---
+    // --- COLUMNAS DINáMICAS V12.1 ---
     initColumnConfig() {
         const saved = LS.get('column_config_' + (this.state.event?.id || 'default'));
         if (saved) {
@@ -2793,7 +2793,7 @@ window.App = {
                             <p class="font-black text-white text-sm tracking-tight">${g.name}</p>
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[10px]">mail</span> ${g.email || 'S/E'}
-                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1">·</span> <span class="material-symbols-outlined text-[10px]">call</span> ${g.phone}` : ''}
+                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1">Ã‚Â·</span> <span class="material-symbols-outlined text-[10px]">call</span> ${g.phone}` : ''}
                             </p>
                             ${cfg.position.visible && g.position ? `<p class="text-[9px] text-primary/60 font-black uppercase mt-0.5">${g.position}</p>` : ''}
                         </div>
@@ -3203,7 +3203,7 @@ window.App = {
             if (res.success) {
                 document.getElementById('process-bar').style.width = '100%';
                 document.getElementById('process-perc').innerText = '100%';
-                document.getElementById('import-progress-status').innerText = `✓ ${res.count} invitados importados (${res.skipped} duplicados omitidos).`;
+                document.getElementById('import-progress-status').innerText = `Ã¢Å“€œ ${res.count} invitados importados (${res.skipped} duplicados omitidos).`;
                 document.getElementById('import-success-actions').classList.remove('hidden');
             } else {
                 alert("Error: " + res.error);
@@ -3327,7 +3327,7 @@ window.App = {
             g.name,
             g.email || '---',
             g.organization || '---',
-            g.checked_in ? 'SÍ' : 'NO',
+            g.checked_in ? 'Sá' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -3344,7 +3344,7 @@ window.App = {
 
 
 
-    // ─── PDF MEJORADOS CON DISEÑOS PROFESIONALES ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â PDF MEJORADOS CON DISEÑOS PROFESIONALES Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     
     // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
@@ -3521,7 +3521,7 @@ window.App = {
             g.email || '---',
             g.organization || '---',
             g.phone || '---',
-            g.checked_in ? '✓  SÍ' : '× NO',
+            g.checked_in ? 'Ã¢Å“€¦ Sá' : 'Ã¢ÂÅ’ NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -3633,7 +3633,7 @@ window.App = {
             doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
-            doc.text('ANÁLISIS POR HORARIO', 15, 20);
+            doc.text('ANáLISIS POR HORARIO', 15, 20);
             
             const hourData = Object.entries(checkinTimes)
                 .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -3658,7 +3658,7 @@ window.App = {
         const guestData = this.state.guests.map(g => [
             g.name,
             g.organization || '---',
-            g.checked_in ? 'SÍ' : 'NO',
+            g.checked_in ? 'Sá' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -3683,7 +3683,7 @@ window.App = {
         doc.save(`Reporte_Ejecutivo_${event.name.replace(/\s+/g, '_')}.pdf`);
     },
 
-    // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â FUNCIONES PUENTE PARA COMPATIBILIDAD Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     
     // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
@@ -4016,7 +4016,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const p = document.getElementById('signup-pass').value;
         try {
             const d = await App.fetchAPI('/signup', { method: 'POST', body: JSON.stringify({ username: u, password: p, role: 'PRODUCTOR' }) });
-            if (d.success) alert('✓ Solicitud enviada. Un administrador debe aprobar tu acceso.');
+            if (d.success) alert('Ã¢Å“€œ Solicitud enviada. Un administrador debe aprobar tu acceso.');
             else alert('No se pudo enviar la solicitud.');
             document.getElementById('signup-form')?.classList.add('hidden');
             document.getElementById('login-form')?.classList.remove('hidden');
@@ -4050,7 +4050,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`${App.constants.API_URL}/register`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(b) });
             const data = await res.json();
-            if (data.success) { alert("✓ Registro Confirmado."); e.target.reset(); }
+            if (data.success) { alert("Ã¢Å“€œ Registro Confirmado."); e.target.reset(); }
             else alert("Error: " + data.error);
         } catch { alert("Error de red."); }
         finally { btn.innerText = orig; btn.disabled = false; }
@@ -4072,12 +4072,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     App.handleDeleteEvent = async () => {
         if (!App.state.event) return;
-        if (!confirm(`⚠ ¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acción es irreversible.`)) return;
+        if (!confirm(`⚠Â¢Ã¯Â¸Â ¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acción es irreversible.`)) return;
         
         try {
             const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
             if (res.success) {
-                alert("✓ Evento eliminado.");
+                alert("Ã¢Å“€œ Evento eliminado.");
                 App.state.event = null;
                 App.navigate('my-events');
             }
@@ -4087,8 +4087,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin Actions
     cl('btn-clear-db', async () => {
         if (!App.state.event) return;
-        if (!confirm("⚠ PELIGRO: Va a borrar TODOS los invitados de este evento. ¿Continuar?")) return;
-        try { await App.fetchAPI(`/clear-db/${App.state.event.id}`, {method: 'POST'}); App.loadGuests(); App.updateStats(); alert("✓ Base de datos purgada."); }
+        if (!confirm("⚠Â¢Ã¯Â¸Â PELIGRO: Va a borrar TODOS los invitados de este evento. ¿Continuar?")) return;
+        try { await App.fetchAPI(`/clear-db/${App.state.event.id}`, {method: 'POST'}); App.loadGuests(); App.updateStats(); alert("Ã¢Å“€œ Base de datos purgada."); }
         catch(e) { alert("Error."); }
     });
     cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
@@ -4424,7 +4424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Hide progress
         if (modal) modal.classList.add('hidden');
-        alert(`✓ Generados ${processed} tickets en ZIP.`);
+        alert(`Ã¢Å“€œ Generados ${processed} tickets en ZIP.`);
     };
 
     function loadScript(src) {
@@ -4505,7 +4505,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await App.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ event_id: App.state.event.id }) });
             if (res.success) {
-                alert(`✓ Importación exitosa: ${res.count} invitados añadidos.`);
+                alert(`Ã¢Å“€œ Importación exitosa: ${res.count} invitados añadidos.`);
                 document.getElementById('modal-import-results')?.classList.add('hidden');
                 App.loadGuests();
             } else { alert("Error: " + res.error); }
@@ -4589,14 +4589,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const html = App.quillPolicy.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html, show_legal_login: show }) });
-        alert('✓ Política de datos guardada exitosamente.');
+        alert('Ã¢Å“€œ Política de datos guardada exitosamente.');
     });
 
     cl('btn-save-terms', async () => {
         const html = App.quillTerms.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html, show_legal_login: show }) });
-        alert('✓ Términos y Condiciones guardados exitosamente.');
+        alert('Ã¢Å“€œ Términos y Condiciones guardados exitosamente.');
     });
 
     // ------- V10: CAMBIO DE CONTRASEÑA -------
@@ -4608,7 +4608,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
+            alert('Ã¢Å“€œ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
         } catch { alert('Error al actualizar contraseña.'); }
     });
@@ -4729,7 +4729,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify(data)
                 }).then(r => r.json()).then(d => {
                     if (d.success) {
-                        alert("✓ Evento creado.");
+                        alert("Ã¢Å“€œ Evento creado.");
                         document.getElementById('modal-event').classList.add('hidden');
                         App.loadEvents();
                     } else alert("Error: " + d.error);
@@ -4769,7 +4769,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
+            alert('Ã¢Å“€œ Contraseña actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
         } catch { alert('Error al actualizar contraseña.'); }
     });
@@ -4794,7 +4794,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 1000);
     
-    // ─── DISEÑO PREMIUM V11.6.1 Live Preview ───
+    // Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â DISEÑO PREMIUM V11.6.1 Live Preview Ã¢€¢ÂÃ¢€¢ÂÃ¢€¢Â
     App.updateQRPreview = async () => {
         const img = document.getElementById('ev-qr-preview-img');
         const logo = document.getElementById('ev-qr-preview-logo');

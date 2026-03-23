@@ -1,11 +1,26 @@
 /**
  * Utilidades del servidor
+ * ⚠️ SECURITY: Validaciones críticas para prevenir SQL Injection
  */
 
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 
+// Tablas permitidas para castId - previene SQL injection en tableName
+const ALLOWED_TABLES = new Set([
+    'users', 'events', 'guests', 'groups', 'surveys', 'settings',
+    'email_templates', 'email_logs', 'email_queue', 'webhooks',
+    'user_events', 'group_users', 'pre_registrations', 'password_resets',
+    'smtp_config', 'imap_config', 'event_email_config', 'event_email_templates',
+    'event_agenda', 'audit_logs'
+]);
+
 function getValidId(tableName) {
+    // Validar nombre de tabla permitido
+    if (!ALLOWED_TABLES.has(tableName)) {
+        console.warn(`[SECURITY] Intento de usar tabla no permitida: ${tableName}`);
+        return null;
+    }
     try {
         const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
         const idCol = info.find(c => c.name === 'id');
@@ -13,14 +28,60 @@ function getValidId(tableName) {
     } catch(e) { return uuidv4(); }
 }
 
+/**
+ * Convierte y valida IDs para consultas de base de datos
+ * @param {string} tableName - Nombre de la tabla
+ * @param {string|number} id - ID a validar
+ * @returns {number|string} ID validado o null si es inválido
+ */
 function castId(tableName, id) {
     if (id === null || id === undefined) return id;
+    
+    // Validar tabla permitida
+    if (!ALLOWED_TABLES.has(tableName)) {
+        console.warn(`[SECURITY] castId: Tabla no permitida: ${tableName}`);
+        return null;
+    }
+    
+    // Validar formato del ID
+    const idStr = String(id).trim();
+    
+    // Verificar si es un UUID válido (formato estándar)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    // Verificar si es un número válido
+    const numRegex = /^\d+$/;
+    
+    // Prevenir SQL injection en el ID mismo (caracteres peligrosos)
+    if (/[;'"\\<>\/]/.test(idStr)) {
+        console.warn(`[SECURITY] castId: Caracteres sospechosos en ID: ${idStr}`);
+        return null;
+    }
+    
     try {
         const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
         const idCol = info.find(c => c.name === 'id');
-        if (idCol && idCol.type === 'INTEGER' && !isNaN(id)) return parseInt(id, 10);
-        return id;
-    } catch(e) { return id; }
+        
+        if (idCol && idCol.type === 'INTEGER') {
+            // Tabla con ID numérico
+            if (!numRegex.test(idStr)) {
+                console.warn(`[SECURITY] castId: ID no válido para tabla numérica: ${idStr}`);
+                return null;
+            }
+            return parseInt(idStr, 10);
+        }
+        
+        // Tabla con ID UUID - verificar formato
+        if (!uuidRegex.test(idStr)) {
+            console.warn(`[SECURITY] castId: UUID malformado: ${idStr}`);
+            return null;
+        }
+        
+        return idStr;
+    } catch(e) { 
+        console.error('[SECURITY] castId error:', e.message);
+        return null; 
+    }
 }
 
 function successResponse(res, data = {}) {
