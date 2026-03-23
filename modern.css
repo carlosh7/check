@@ -4,65 +4,65 @@
  */
 
 :root {
-    /* Fondos - Tonos neutros limpios */
-    --bg-app: #f8f8f8;
+    /* Fondos - Tonos neutros cálidos (estilo Apple) */
+    --bg-app: #fafafa;
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
-    --bg-input: #ffffff;
-    --bg-hover: #f2f2f7;
-    --bg-active: #e8e8ed;
+    --bg-input: #f5f5f7;
+    --bg-hover: #f0f0f0;
+    --bg-active: #e5e5e5;
     
-    /* Primary - Azul elegante */
-    --primary: #0071e3;
-    --primary-hover: #0077ed;
-    --primary-light: rgba(0, 113, 227, 0.08);
+    /* Primary - Indigo/Purple muted premium (estilo Apple Pro) */
+    --primary: #5856d6;
+    --primary-hover: #4844b8;
+    --primary-light: rgba(88, 86, 214, 0.08);
     
-    /* Textos - Jerarquía tipográfica */
-    --text-main: #1d1d1f;
+    /* Textos - Jerarquía tipográfica refinada */
+    --text-main: #3d3d3d;
     --text-secondary: #86868b;
     --text-muted: #a1a1a6;
     --text-inverse: #ffffff;
     
     /* Bordes - Ultra sutiles */
-    --border: rgba(0, 0, 0, 0.06);
-    --border-light: rgba(0, 0, 0, 0.04);
-    --border-focus: rgba(0, 113, 227, 0.3);
+    --border: rgba(0, 0, 0, 0.045);
+    --border-light: rgba(0, 0, 0, 0.025);
+    --border-focus: rgba(0, 113, 227, 0.2);
     
     /* Radios - Bordes redondeados limpios */
     --radius-xs: 6px;
     --radius-sm: 8px;
     --radius-md: 10px;
     --radius-lg: 14px;
-    --radius-xl: 20px;
+    --radius-xl: 18px;
     
     /* Sombras - Suaves y minimalistas */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 8px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.04);
+    --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.015);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.015), 0 2px 4px rgba(0, 0, 0, 0.01);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.025), 0 4px 16px rgba(0, 0, 0, 0.015);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.035), 0 8px 32px rgba(0, 0, 0, 0.02);
     
     /* Espaciado */
     --sidebar-width: 220px;
     --content-padding: 32px;
 }
 
-/* Modo Oscuro - Elegante y refinado */
+/* Modo Oscuro - Premium y refinado */
 .dark {
-    --bg-app: #000000;
-    --bg-sidebar: #0a0a0a;
-    --bg-card: #141414;
-    --bg-input: #1c1c1e;
-    --bg-hover: #242428;
-    --bg-active: #2c2c2e;
-    --text-main: #f5f5f7;
-    --text-secondary: #98989d;
+    --bg-app: #0d0d0d;
+    --bg-sidebar: #141414;
+    --bg-card: #1a1a1a;
+    --bg-input: #242424;
+    --bg-hover: #2a2a2a;
+    --bg-active: #303030;
+    --text-main: #e5e5e5;
+    --text-secondary: #8e8e93;
     --text-muted: #636366;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-light: rgba(255, 255, 255, 0.04);
-    --border-focus: rgba(0, 113, 227, 0.4);
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --border: rgba(255, 255, 255, 0.055);
+    --border-light: rgba(255, 255, 255, 0.03);
+    --border-focus: rgba(88, 86, 214, 0.3);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 /* Reset base */
@@ -136,8 +136,7 @@ body {
 
 .btn-primary:hover {
     background-color: var(--primary-hover) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.25);
+    box-shadow: 0 2px 8px rgba(88, 86, 214, 0.25);
 }
 
 .btn-primary:active {
