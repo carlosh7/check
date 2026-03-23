@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.5
+ * Version: V12.3.6
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.3.5: Iniciando Sistema Modular...');
+console.log('CHECK V12.3.6: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.5',
+        version: '12.3.6',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -583,8 +583,8 @@ const App = window.App = {
                             <span class="material-symbols-outlined">person_add</span>
                         </div>
                         <div>
-                            <p class="font-bold text-sm text-white">${u.display_name || u.username}</p>
-                            <p class="text-[10px] text-slate-400 font-mono">${u.username}</p>
+                            <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
+                            <p class="text-[10px] text-[var(--text-secondary)] font-mono">${u.username}</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -599,7 +599,7 @@ const App = window.App = {
         
         if (tbody) {
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-slate-500 font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
                 return;
             }
 
@@ -612,83 +612,83 @@ const App = window.App = {
                 // --- COLUMNA 1: PERFIL & EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold rounded-lg group/chip">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--primary-light)] text-[var(--primary)] border border-transparent text-[10px] font-bold rounded-lg group/chip">
                         ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
-                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center hover:bg-red-500/20 text-red-400 rounded-full transition-colors">×</button>` : ''}
+                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center hover:bg-red-500/20 text-red-500 rounded-full transition-colors">×</button>` : ''}
                     </span>
                 `).join('');
 
                 const eventActions = canEdit ? `
-                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="mt-2 text-[10px] font-black text-primary hover:text-white uppercase tracking-tighter flex items-center gap-1 transition-all">
+                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="mt-2 text-[10px] font-black text-[var(--primary)] hover:opacity-80 uppercase tracking-tighter flex items-center gap-1 transition-all">
                         <span class="material-symbols-outlined text-[14px]">add_circle</span> Agregar Evento
                     </button>` : '';
 
                 // --- COLUMNA 2: EMPRESA ---
                 const userGroup = groups.find(g => String(g.id) === String(u.group_id));
                 const groupDisplay = userGroup ? `
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 border border-white/5 rounded-xl">
-                        <span class="material-symbols-outlined text-xs text-slate-400">corporate_fare</span>
-                        <span class="text-xs font-bold text-white">${userGroup.name}</span>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-hover)] border border-[var(--border)] rounded-xl">
+                        <span class="material-symbols-outlined text-xs text-[var(--text-secondary)]">corporate_fare</span>
+                        <span class="text-xs font-bold text-[var(--text-main)]">${userGroup.name}</span>
                         ${canEdit ? `
-                        <button data-action="removeUserGroup" data-user-id="${u.id}" class="ml-1 text-red-400 hover:text-red-300 transition-colors">
+                        <button data-action="removeUserGroup" data-user-id="${u.id}" class="ml-1 text-red-400 hover:text-red-500 transition-colors">
                             <span class="material-symbols-outlined text-sm">cancel</span>
                         </button>` : ''}
                     </div>` : `
-                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-3 py-1.5 border border-dashed border-white/5 rounded-xl inline-block">Sin Empresa</div>`;
+                    <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest px-3 py-1.5 border border-dashed border-[var(--border)] rounded-xl inline-block">Sin Empresa</div>`;
 
                 const groupActions = (isAdmin && canEdit) ? `
-                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="mt-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-tighter flex items-center gap-1 transition-all">
+                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="mt-2 text-[10px] font-black text-[var(--text-secondary)] hover:text-[var(--text-main)] uppercase tracking-tighter flex items-center gap-1 transition-all">
                         <span class="material-symbols-outlined text-[14px]">business</span> Asignar Empresa
                     </button>` : '';
 
                 // --- COLUMNA 3: ROL & ESTADO ---
                 const roleSelect = canEdit ? `
-                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-900/50 text-white text-[11px] font-black rounded-xl px-3 py-2 border border-white/10 focus:border-primary/50 outline-none transition-all">
+                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-black rounded-xl px-3 py-2 border border-[var(--border)] focus:border-[var(--primary)] outline-none transition-all">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select>` : `
-                    <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${u.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-primary/10 text-primary border border-primary/20'}">${u.role}</span>`;
+                    <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${u.role === 'ADMIN' ? 'bg-red-500/10 text-red-500' : 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent'}">${u.role}</span>`;
 
                 const statusLabel = u.status === 'APPROVED' ? 'ACTIVO' : u.status === 'PENDING' ? 'PENDIENTE' : 'SUSPENDIDO';
-                const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black border ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}">${statusLabel}</span>`;
+                const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black ${u.status === 'APPROVED' ? 'status-active' : u.status === 'PENDING' ? 'status-pending' : 'status-error'}">${statusLabel}</span>`;
 
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-2 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase transition-all">Activar Usuario</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase transition-all">Suspender</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-2 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-xl text-[10px] font-black uppercase transition-all">Activar Usuario</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase transition-all">Suspender</button>`) : '';
 
                 return `
-                <tr class="group hover:bg-white/[0.02] transition-all border-b border-white/5 last:border-none">
-                    <td class="px-6 py-6">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary/20 to-blue-500/20 border border-white/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover:scale-105 transition-transform">
+                <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-[var(--bg-hover)] flex items-center justify-center text-[var(--text-main)] font-black text-sm shadow-sm relative">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-sm">${u.display_name || u.username}</h4>
-                                <p class="text-[11px] text-slate-500 font-mono tracking-tight">${u.username}</p>
+                                <h4 class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</h4>
+                                <p class="text-[11px] text-[var(--text-secondary)] font-mono flex items-center gap-1">${u.username}</p>
                             </div>
                         </div>
                         <div class="space-y-1">
-                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-slate-600 font-bold italic">Sin eventos asignados</span>'}</div>
+                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-[var(--text-muted)] font-bold italic">Sin eventos asignados</span>'}</div>
                             ${eventActions}
                         </div>
                     </td>
-                    <td class="px-6 py-6 align-top">
+                    <td class="px-6 py-4 align-top">
                         <div class="mt-1">
                             ${groupDisplay}
                             ${groupActions}
                         </div>
                     </td>
-                    <td class="px-6 py-6 align-top">
+                    <td class="px-6 py-4 align-top">
                         <div class="flex flex-col gap-3">
                             <div>
-                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Permisos & Rol</p>
+                                <p class="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Permisos & Rol</p>
                                 ${roleSelect}
                             </div>
                             <div>
-                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Estado de Acceso</p>
-                                <div class="flex flex-col">
-                                    <div class="flex">${statusBadge}</div>
-                                    ${accessBtn}
+                                <p class="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Estado de Acceso</p>
+                                <div class="flex flex-col items-start w-full">
+                                    <div class="mb-1 w-full flex">${statusBadge}</div>
+                                    <div class="w-full">${accessBtn}</div>
                                 </div>
                             </div>
                         </div>
