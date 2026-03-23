@@ -568,7 +568,7 @@ window.App = {
                     <div class="flex items-center gap-1 flex-wrap">
                         <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
                             ${userGroup.name}
-                            <button onclick="App.removeUserGroup('${u.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">Ãƒâ€”</button>
+                            <button onclick="App.removeUserGroup('${u.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">×</button>
                         </span>
                     </div>` : `<span class="text-[10px] text-slate-500">Sin empresa</span>`;
                 const groupSelect = isAdmin && canEdit ? `
@@ -581,7 +581,7 @@ window.App = {
                 const eventChips = userEvents.map(e => 
                     `<span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-[10px] rounded-lg mb-1">
                         ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        <button onclick="App.removeUserEvent('${u.id}', '${e.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">Ãƒâ€”</button>
+                        <button onclick="App.removeUserEvent('${u.id}', '${e.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
                     </span>`
                 ).join('');
                 const eventSelect = canEdit ? `
@@ -605,7 +605,7 @@ window.App = {
                 // Botón activar/desactivar
                 const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
                     `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
-                    `<button onclick="App.approveUser('${u.id}','REJECTED')" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
+                    `<button onclick="App.approveUser('${u.id}','SUSPENDED')" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
                 
                 const eventCountBadge = u.events && u.events.length > 0 ? 
                     `<span class="ml-1 px-1.5 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-bold">${u.events.length}</span>` : '';
