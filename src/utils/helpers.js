@@ -2,7 +2,7 @@
  * Utilidades del servidor
  * ⚠️ SECURITY: Validaciones críticas para prevenir SQL Injection
  * @module utils/helpers
- * @version 12.3.2.2
+ * @version 12.3.3
  */
 
 const { v4: uuidv4 } = require('uuid');

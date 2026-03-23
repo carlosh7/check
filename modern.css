@@ -50,25 +50,25 @@
 
 /* Chrome Dark Mode Palette */
 .dark {
-    --bg-app: #202124;
-    --bg-sidebar: #292a2d;
-    --bg-card: #292a2d;
-    --bg-input: #35363a;
-    --bg-hover: #3c4043;
-    --bg-active: #4a4d51;
+    --bg-app: #121212; /* Deeper dark */
+    --bg-sidebar: #1a1a1b;
+    --bg-card: rgba(30, 31, 34, 0.7); /* Deep transparency */
+    --bg-input: #2b2c2f;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.1);
     
-    --primary: #8ab4f8; /* Softer blue for dark mode */
+    --primary: #8ab4f8; 
     --primary-hover: #aecbfa;
-    --primary-light: rgba(138, 180, 248, 0.15);
+    --primary-light: rgba(138, 180, 248, 0.2);
     
-    --text-main: #e8eaed;
-    --text-secondary: #9aa0a6;
-    --text-muted: #80868b;
+    --text-main: #f1f3f4;
+    --text-secondary: #bdc1c6;
+    --text-muted: #9aa0a6;
     
-    --border: #3c4043;
-    --border-light: #303134;
-    --border-focus: rgba(138, 180, 248, 0.5);
-    --bg-card-rgb: 41, 42, 45;
+    --border: rgba(255, 255, 255, 0.1); /* Subtle white border */
+    --border-light: rgba(255, 255, 255, 0.05);
+    --border-focus: rgba(138, 180, 248, 0.6);
+    --bg-card-rgb: 30, 31, 34;
 }
 
 /* Reset base */
@@ -167,8 +167,9 @@ body {
 .glass-card {
     background-color: var(--bg-card);
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-md);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 /* Botón Primario - Minimalista */
