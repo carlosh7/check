@@ -129,13 +129,14 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
 
 // Cambiar rol de usuario (ADMIN)
 router.put('/:id/role', authMiddleware(['ADMIN']), (req, res) => {
-    const v = validate(z => z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS', 'LOGISTICO']), req.body.role);
-    if (!v.valid) return res.status(400).json({ errors: v.errors });
+    const roleSchema = z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS', 'LOGISTICO']);
+    const result = roleSchema.safeParse(req.body.role);
+    if (!result.success) return res.status(400).json({ errors: result.error.issues });
 
     const targetId = castId('users', req.params.id);
-    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(v.data, targetId);
+    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(result.data, targetId);
 
-    logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, action: 'role_change', newRole: v.data });
+    logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, action: 'role_change', newRole: result.data });
 
     res.json({ success: true });
 });
