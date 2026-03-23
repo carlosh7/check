@@ -1240,6 +1240,39 @@ window.App = {
         document.getElementById('modal-event')?.classList.add('hidden');
     },
 
+    closeInvite: function() {
+        document.getElementById('modal-invite')?.classList.add('hidden');
+    },
+
+    closeSurveyEditor: function() {
+        document.getElementById('modal-survey-editor')?.classList.add('hidden');
+    },
+
+    startScanner: function() {
+        const video = document.getElementById('qr-video');
+        const canvas = document.getElementById('qr-canvas');
+        if (!video) return;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(e => alert('Error al acceder a la cámara: ' + e.message));
+    },
+
+    stopScanner: function() {
+        const video = document.getElementById('qr-video');
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(t => t.stop());
+        }
+        document.getElementById('modal-qr-scanner')?.classList.add('hidden');
+    },
+
+    manualCheckin: function() {
+        const id = document.getElementById('manual-guest-id')?.value;
+        if (id) App.processGuestCheckin(id);
+    },
+
     syncEmails: async function() {
         if (typeof showLoading === 'function') showLoading('Sincronizando correos...');
         try {
@@ -4708,10 +4741,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const r = document.getElementById('invite-role').value;
         try {
             const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
-            if (res.success) { alert(`Ã¢Å“â€œ Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
+            if (res.success) { alert(`✓ Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
         } catch { alert('Error de conexión.'); }
     });
+
+    // Survey form
+    sf('survey-form', async (e) => {
+        e.preventDefault();
+        await App.saveSurveyQuestion();
+    });
+
+    cl('btn-create-survey', () => App.openSurveyEditor());
 
     // Form de cambio de contraseña
     sf('change-pass-form', async (e) => {

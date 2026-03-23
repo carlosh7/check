@@ -615,4 +615,412 @@
         </div>
     </div>
 
+    <!-- MODAL: INVITE USER (COLLABORATOR) -->
+    <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">person_add</span>
+                    <h3 class="text-2xl font-black">Añadir Colaborador</h3>
+                </div>
+                <button onclick="App.closeInvite()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <form id="invite-user-form" class="p-8 overflow-y-auto flex-1 space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Nombre</label>
+                    <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Email/Usuario</label>
+                    <input type="text" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Contraseña</label>
+                    <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Rol</label>
+                    <select id="invite-role" class="input-field w-full">
+                        <option value="ADMIN">Administrador</option>
+                        <option value="PRODUCTOR">Productor</option>
+                        <option value="STAFF">Staff</option>
+                        <option value="CLIENTE">Cliente</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="App.closeInvite()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: COMPANY CRUD -->
+    <div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">corporate_fare</span>
+                    <h3 class="text-2xl font-black">Empresa</h3>
+                </div>
+                <button onclick="App.closeCompanyModal()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <form id="company-form" class="p-8 overflow-y-auto flex-1 space-y-6">
+                <input type="hidden" id="company-id-hidden" value="">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Nombre</label>
+                    <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Descripción</label>
+                    <textarea id="company-description" rows="3" placeholder="Descripción" class="input-field w-full"></textarea>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Email</label>
+                    <input type="email" id="company-email" placeholder="email@empresa.com" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Teléfono</label>
+                    <input type="tel" id="company-phone" placeholder="+54 11 1234 5678" class="input-field w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Estado</label>
+                    <select id="company-status" class="input-field w-full">
+                        <option value="ACTIVE">Activo</option>
+                        <option value="INACTIVE">Inactivo</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="App.closeCompanyModal()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: LEGAL (Privacy/Terms) -->
+    <div id="modal-legal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 id="modal-legal-title" class="text-2xl font-black">Legal</h3>
+                <button id="btn-close-legal" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div id="modal-legal-content" class="p-8 overflow-y-auto flex-1 prose prose-invert max-w-none"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: QR DISPLAY -->
+    <div id="modal-qr" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">qr_code</span>
+                    <h3 class="text-2xl font-black">Código QR</h3>
+                </div>
+                <button onclick="document.getElementById('modal-qr').classList.add('hidden')" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div class="p-8 flex flex-col items-center justify-center flex-1">
+                <img id="qr-display" src="" alt="QR Code" class="max-w-full rounded-2xl">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QR SCANNER -->
+    <div id="modal-qr-scanner" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">qr_code_scanner</span>
+                    <h3 class="text-2xl font-black">Escanear QR</h3>
+                </div>
+                <button onclick="App.stopScanner()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div class="p-8 flex flex-col items-center justify-center flex-1 space-y-6">
+                <video id="qr-video" class="w-full rounded-2xl" autoplay playsinline></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <div id="scan-result" class="text-center"></div>
+                <div id="scan-error" class="text-red-400 text-center hidden"></div>
+                <div class="flex gap-4">
+                    <button id="btn-start-scan" onclick="App.startScanner()" class="btn-primary px-6 py-3 rounded-xl font-bold text-sm">Iniciar</button>
+                    <button id="btn-manual-checkin" onclick="App.manualCheckin()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm">Manual</button>
+                </div>
+                <input type="text" id="manual-guest-id" placeholder="ID de invitado" class="input-field w-full hidden">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TICKET VIEWER -->
+    <div id="modal-ticket" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">confirmation_number</span>
+                    <h3 class="text-2xl font-black">Entrada</h3>
+                </div>
+                <button id="btn-close-ticket" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div id="ticket-content" class="p-8 flex flex-col items-center justify-center flex-1"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT RESULTS -->
+    <div id="modal-import-results" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">upload_file</span>
+                    <h3 class="text-2xl font-black">Importación</h3>
+                </div>
+                <button onclick="document.getElementById('modal-import-results').classList.add('hidden')" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div id="import-results-content" class="p-8 overflow-y-auto flex-1 space-y-4"></div>
+            <div class="p-8 border-t border-white/5 flex justify-end gap-4">
+                <button onclick="document.getElementById('modal-import-results').classList.add('hidden')" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT PROGRESS -->
+    <div id="modal-import-progress" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">progress_activity</span>
+                    <h3 class="text-2xl font-black">Importando...</h3>
+                </div>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Subiendo archivo</span>
+                        <span id="upload-perc">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div id="upload-bar" class="h-full bg-primary transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Procesando registros</span>
+                        <span id="process-perc">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div id="process-bar" class="h-full bg-primary transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p id="import-progress-status" class="text-center text-sm text-slate-400">Preparando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT MAPPING -->
+    <div id="modal-import-mapping" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">table_chart</span>
+                    <h3 class="text-2xl font-black">Mapear Columnas</h3>
+                </div>
+            </div>
+            <div class="p-8 overflow-y-auto flex-1">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-400 text-xs uppercase">
+                            <th class="pb-4 pr-4">Campo</th>
+                            <th class="pb-4 pr-4">Columna del Archivo</th>
+                            <th class="pb-4">Vista Previa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="import-mapping-tbody"></tbody>
+                </table>
+            </div>
+            <div class="p-8 border-t border-white/5 flex justify-end gap-4">
+                <button onclick="App.confirmImport()" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Importar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TEMPLATE EDITOR -->
+    <div id="modal-template-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">mail</span>
+                    <h3 id="template-editor-title" class="text-2xl font-black">Editar Plantilla</h3>
+                </div>
+                <button onclick="App.closeTemplateEditor()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div class="p-8 overflow-y-auto flex-1 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Nombre</label>
+                        <input type="text" id="tpl-name" placeholder="Nombre de plantilla" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Asunto</label>
+                        <input type="text" id="tpl-subject" placeholder="Asunto del email" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Contenido</label>
+                    <div id="tpl-quill-editor" class="bg-white/5 rounded-xl min-h-[200px]"></div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Variables disponibles</label>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="px-2 py-1 bg-white/5 rounded text-slate-400">{{guest_name}}</span>
+                        <span class="px-2 py-1 bg-white/5 rounded text-slate-400">{{event_name}}</span>
+                        <span class="px-2 py-1 bg-white/5 rounded text-slate-400">{{event_date}}</span>
+                        <span class="px-2 py-1 bg-white/5 rounded text-slate-400">{{ticket_id}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8 border-t border-white/5 flex justify-end gap-4">
+                <button onclick="App.closeTemplateEditor()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                <button onclick="App.saveTemplate()" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EVENT EMAIL CONFIG -->
+    <div id="modal-event-email" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">email</span>
+                    <h3 class="text-2xl font-black">Email del Evento</h3>
+                </div>
+                <button onclick="App.closeEventEmailConfig()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div class="p-8 overflow-y-auto flex-1 space-y-6">
+                <div class="space-y-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="ev-smtp-enabled" class="w-4 h-4 rounded accent-primary">
+                        <span class="text-sm text-slate-300">Usar SMTP específico para este evento</span>
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Host SMTP</label>
+                        <input type="text" id="ev-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Puerto</label>
+                        <input type="number" id="ev-smtp-port" value="587" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Usuario</label>
+                        <input type="text" id="ev-smtp-user" placeholder="email@empresa.com" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Contraseña</label>
+                        <input type="password" id="ev-smtp-pass" placeholder="Contraseña" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Nombre Remitente</label>
+                        <input type="text" id="ev-smtp-from-name" placeholder="Check Pro" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Email Remitente</label>
+                        <input type="email" id="ev-smtp-from-email" placeholder="noreply@check.com" class="input-field w-full">
+                    </div>
+                </div>
+            </div>
+            <div class="p-8 border-t border-white/5 flex justify-end gap-4">
+                <button onclick="App.closeEventEmailConfig()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                <button onclick="App.saveEventEmailConfig()" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SURVEY EDITOR -->
+    <div id="modal-survey-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">quiz</span>
+                    <h3 class="text-2xl font-black">Pregunta</h3>
+                </div>
+                <button onclick="App.closeSurveyEditor()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <form id="survey-form" class="p-8 overflow-y-auto flex-1 space-y-6">
+                <input type="hidden" id="survey-question-id" value="">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Tipo</label>
+                    <select id="survey-question-type" class="input-field w-full">
+                        <option value="text">Texto libre</option>
+                        <option value="binary">Sí/No</option>
+                        <option value="rating">Valoración (1-5)</option>
+                        <option value="multiple">Opción múltiple</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Pregunta</label>
+                    <input type="text" id="survey-question-title" required placeholder="¿Qué tal fue tu experiencia?" class="input-field w-full">
+                </div>
+                <div id="survey-options-container" class="space-y-2 hidden">
+                    <label class="text-xs uppercase font-bold text-slate-400">Opciones (una por línea)</label>
+                    <textarea id="survey-question-options" rows="4" placeholder="Opción 1&#10;Opción 2&#10;Opción 3" class="input-field w-full"></textarea>
+                </div>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="App.closeSurveyEditor()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BULK TICKETS -->
+    <div id="modal-bulk-tickets" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">copy</span>
+                    <h3 class="text-2xl font-black">Generar Entradas</h3>
+                </div>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Progreso</span>
+                        <span id="bulk-progress-text">0/0</span>
+                    </div>
+                    <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div id="bulk-progress" class="h-full bg-primary transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p id="bulk-status" class="text-center text-sm text-slate-400">Generando entradas...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: USER SELECTOR FOR GROUP (dynamic) -->
+    <!-- MODAL: USER SELECTOR FOR EVENT (dynamic) -->
+    <!-- MODAL: GROUP SELECTOR FOR USER (dynamic) -->
+    <!-- MODAL: EVENT SELECTOR FOR USER (dynamic) -->
+
 </div>
