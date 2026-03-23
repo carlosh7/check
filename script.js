@@ -15,7 +15,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.2.3',
+        version: '12.2.4',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
