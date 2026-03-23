@@ -2172,9 +2172,9 @@ window.App = {
         
         // Lógica específica por vista
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') window.switchSystemTab('users');
-        if (viewName === 'legal') window.switchSystemTab('legal');
-        if (viewName === 'account') window.switchSystemTab('account');
+        if (viewName === 'system') { this.showView('system'); window.switchSystemTab('users'); }
+        if (viewName === 'legal') { this.showView('system'); window.switchSystemTab('legal'); }
+        if (viewName === 'account') { this.showView('system'); window.switchSystemTab('account'); }
         
         if (viewName === 'admin') {
             if (params.id) {
