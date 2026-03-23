@@ -2192,7 +2192,10 @@ window.App = {
         
         if (viewName === 'smtp') {
             const section = params.section || 'config';
-            this.navigateEmailSection(section);
+            const smtpView = document.getElementById('view-smtp');
+            if (smtpView && !smtpView.classList.contains('hidden')) {
+                this.navigateEmailSection(section);
+            }
         }
     },
 
