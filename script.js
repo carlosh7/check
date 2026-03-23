@@ -187,6 +187,35 @@ window.App = {
         }
     },
 
+    // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
+    toggleSidebar() {
+        const sidebar = document.getElementById('global-sidebar');
+        if (!sidebar) return;
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        LS.set('sidebarCollapsed', isCollapsed);
+        
+        // Cambiar icono del botón
+        const btn = document.getElementById('btn-toggle-sidebar');
+        if (btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (icon) icon.textContent = isCollapsed ? 'menu' : 'menu_open';
+        }
+    },
+
+    initSidebar() {
+        const isCollapsed = LS.get('sidebarCollapsed') === true;
+        if (isCollapsed) {
+            const sidebar = document.getElementById('global-sidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+            
+            const btn = document.getElementById('btn-toggle-sidebar');
+            if (btn) {
+                const icon = btn.querySelector('.material-symbols-outlined');
+                if (icon) icon.textContent = 'menu';
+            }
+        }
+    },
+
     // ──── NOTIFICACIONES PUSH (Web Push API) ────
     initPushNotifications: async function() {
         try {
@@ -2332,8 +2361,10 @@ window.App = {
 
         // Actualizar tema después de cargar app-shell
         this.initTheme();
+        this.initSidebar();
         
         // Navigation - Sidebar
+        cl('btn-toggle-sidebar', () => this.toggleSidebar());
         cl('nav-btn-system', () => this.navigate('system'));
         cl('nav-btn-groups', () => this.navigate('groups'));
         cl('nav-btn-legal', () => this.navigate('legal'));

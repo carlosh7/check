@@ -4,65 +4,69 @@
  */
 
 :root {
-    /* Fondos - Tonos neutros cálidos (estilo Apple) */
-    --bg-app: #fafafa;
+    /* Chrome Light Palette */
+    --bg-app: #f1f3f4;
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
-    --bg-input: #f5f5f7;
-    --bg-hover: #f0f0f0;
-    --bg-active: #e5e5e5;
+    --bg-input: #ffffff;
+    --bg-hover: #e8eaed;
+    --bg-active: #dfe1e5;
     
-    /* Primary - Indigo/Purple muted premium (estilo Apple Pro) */
-    --primary: #5856d6;
-    --primary-hover: #4844b8;
-    --primary-light: rgba(88, 86, 214, 0.08);
+    /* Chrome Primary Blue */
+    --primary: #1a73e8;
+    --primary-hover: #1765cc;
+    --primary-light: rgba(26, 115, 232, 0.1);
     
-    /* Textos - Jerarquía tipográfica refinada */
-    --text-main: #3d3d3d;
-    --text-secondary: #86868b;
-    --text-muted: #a1a1a6;
+    /* Typography hierarchy */
+    --text-main: #202124;
+    --text-secondary: #5f6368;
+    --text-muted: #70757a;
     --text-inverse: #ffffff;
     
-    /* Bordes - Ultra sutiles */
-    --border: rgba(0, 0, 0, 0.045);
-    --border-light: rgba(0, 0, 0, 0.025);
-    --border-focus: rgba(88, 86, 214, 0.2);
+    /* Borders & Outlines */
+    --border: #dadce0;
+    --border-light: #f1f3f4;
+    --border-focus: rgba(26, 115, 232, 0.4);
     
-    /* Radios - Bordes redondeados limpios */
-    --radius-xs: 6px;
+    /* Radii - Chrome look (8px-12px) */
+    --radius-xs: 4px;
     --radius-sm: 8px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-xl: 18px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
     
-    /* Sombras - Suaves y minimalistas */
-    --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.015);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.015), 0 2px 4px rgba(0, 0, 0, 0.01);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.025), 0 4px 16px rgba(0, 0, 0, 0.015);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.035), 0 8px 32px rgba(0, 0, 0, 0.02);
+    /* Shadows - Subtle Google Style */
+    --shadow-xs: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
     
-    /* Espaciado */
-    --sidebar-width: 220px;
+    /* Layout */
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 64px;
     --content-padding: 32px;
+    --transition-speed: 0.2s;
 }
 
-/* Modo Oscuro - Premium y refinado */
+/* Chrome Dark Mode Palette */
 .dark {
-    --bg-app: #0d0d0d;
-    --bg-sidebar: #141414;
-    --bg-card: #1a1a1a;
-    --bg-input: #242424;
-    --bg-hover: #2a2a2a;
-    --bg-active: #303030;
-    --text-main: #e5e5e5;
-    --text-secondary: #8e8e93;
-    --text-muted: #636366;
-    --border: rgba(255, 255, 255, 0.055);
-    --border-light: rgba(255, 255, 255, 0.03);
-    --border-focus: rgba(88, 86, 214, 0.3);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --bg-app: #202124;
+    --bg-sidebar: #292a2d;
+    --bg-card: #292a2d;
+    --bg-input: #35363a;
+    --bg-hover: #3c4043;
+    --bg-active: #4a4d51;
+    
+    --primary: #8ab4f8; /* Softer blue for dark mode */
+    --primary-hover: #aecbfa;
+    --primary-light: rgba(138, 180, 248, 0.15);
+    
+    --text-main: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --text-muted: #80868b;
+    
+    --border: #3c4043;
+    --border-light: #303134;
+    --border-focus: rgba(138, 180, 248, 0.5);
 }
 
 /* Reset base */
@@ -97,12 +101,41 @@ body {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+#global-sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+#global-sidebar.collapsed .sidebar-text,
+#global-sidebar.collapsed .nav-section-title,
+#global-sidebar.collapsed .sidebar-footer-text,
+#global-sidebar.collapsed .version-display {
+    display: none;
+}
+
+#global-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+    margin: 2px 8px;
+}
+
+#global-sidebar.collapsed .logo-container {
+    justify-content: center;
+    padding: 20px 0;
+}
+
+#global-sidebar.collapsed .logo-text {
+    display: none;
 }
 
 #app-main-content {
     flex: 1;
     overflow-y: auto;
     padding: var(--content-padding);
+    background-color: var(--bg-app);
 }
 
 /* Cards - Limpias y elegantes */
