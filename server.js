@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro v12.2.2 (Quill Fix & Robust Sync)
+// server.js — Check Elite Pro v12.3.0 (Security Hardening)
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -12,6 +12,9 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
 const { simpleParser } = require('mailparser');
+
+// Middleware de seguridad
+const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
 // --- GZIP COMPRESSION (Performance) ---
 const compression = require('compression');
 
@@ -429,15 +432,62 @@ app.use(cors({
     },
     credentials: true
 }));
-app.use(express.json()); // Nativo en Express 5 — body-parser ya no es necesario
+// ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
+app.use(express.json({ limit: '10mb' })); // Límite de 10MB para uploads JSON
 
-// --- RATE LIMITING ---
+// --- RATE LIMITING POR ENDPOINT ---
 app.set('trust proxy', 1);
 const skipLocal = (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1';
-const apiLimiter = rateLimit({ windowMs: 15*60*1000, max: 200, skip: skipLocal, message: { error: 'Demasiadas peticiones. Espera 15 minutos.' } });
-const authLimiter = rateLimit({ windowMs: 15*60*1000, max: 50, skip: skipLocal, message: { error: 'Demasiados intentos.' } });
+
+// Rate limit general: 200 pet/15min
+const apiLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 200, 
+    skip: skipLocal, 
+    message: { error: 'Demasiadas peticiones. Espera 15 minutos.' } 
+});
+
+// Rate limit estricto para auth: 10 pet/15min
+const authLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 10, 
+    skip: skipLocal, 
+    message: { error: 'Demasiados intentos de login. Espera 15 minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Rate limit para guests: 50 pet/15min (prevenir enumeración)
+const guestLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 50, 
+    skip: skipLocal, 
+    message: { error: 'Demasiadas consultas. Espera 15 minutos.' } 
+});
+
+// Rate limit para email: 20 pet/15min
+const emailLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 20, 
+    skip: skipLocal, 
+    message: { error: 'Demasiados emails. Espera 15 minutos.' } 
+});
+
+// Rate limit para uploads: 10 pet/15min
+const uploadLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 10, 
+    skip: skipLocal, 
+    message: { error: 'Demasiadas cargas. Espera 15 minutos.' } 
+});
+
 app.use('/api/', apiLimiter);
 app.use('/api/login', authLimiter);
+app.use('/api/signup', authLimiter);  // Prevenir creación masiva de cuentas
+app.use('/api/password-reset', authLimiter);  // Prevenir abuso de reset
+app.use('/api/guests', guestLimiter);
+app.use('/api/events', guestLimiter);
+app.use('/api/email', emailLimiter);
 
 // --- STATIC FILES ---
 app.use(express.static(path.join(__dirname, '/'), {
@@ -453,15 +503,30 @@ app.use(express.static(path.join(__dirname, '/'), {
     }
 }));
 
+// --- SEGURIDAD: Headers y CSRF ---
+app.use(securityHeaders); // Headers de seguridad
+app.use(csrfMiddleware); // Protección CSRF para state-changing requests
+
 // Uploads y middleware de validación se manejan en registerRoutes
 
 // --- SWAGGER UI ---
+// ⚠️ SECURITY: Proteger Swagger en producción
 const swaggerUi = require('swagger-ui-express');
 const { swaggerSpec } = require('./src/docs/swagger');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Check Pro API Docs'
-}));
+
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+    // En producción, devolver 404 para evitar exponer la API
+    app.use('/api-docs', (req, res) => {
+        res.status(404).json({ error: 'API Docs no disponible en producción' });
+    });
+    console.log('⚠️  Swagger UI deshabilitado en producción');
+} else {
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Check Pro API Docs'
+    }));
+}
 
 // --- REGISTRAR RUTAS MODULARES ---
 registerRoutes(app);

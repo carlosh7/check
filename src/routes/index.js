@@ -18,6 +18,42 @@ const versionRoutes = require('./version.routes');
 const webhooksRoutes = require('./webhooks.routes');
 const pushRoutes = require('./push.routes');
 
+// Configuración segura de multer
+const upload = multer({
+    dest: 'uploads/',
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB máximo
+        files: 1 // Solo 1 archivo a la vez
+    },
+    fileFilter: (req, file, cb) => {
+        // Tipos de archivo permitidos
+        const allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/csv'
+        ];
+        
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Tipo de archivo no permitido'), false);
+        }
+    }
+});
+
+// Middleware de protección path traversal
+function preventPathTraversal(req, res, next) {
+    const filePath = req.path;
+    // Verificar si contiene sequences de path traversal
+    if (filePath.includes('..') || filePath.includes('%2e%2e') || filePath.includes('//')) {
+        console.warn(`[SECURITY] Path traversal attempt detected: ${filePath}`);
+        return res.status(403).json({ error: 'Acceso denegado' });
+    }
+    next();
+}
+
 function registerRoutes(app, rootDir) {
     const path = require('path');
     rootDir = rootDir || __dirname + '/../..';
@@ -34,8 +70,15 @@ function registerRoutes(app, rootDir) {
         res.sendFile(path.join(rootDir, 'registro.html'));
     });
     
-    // Static files
-    app.use('/uploads', express.static(path.join(rootDir, 'uploads')));
+    // Static files - CON protección path traversal
+    app.use('/uploads', 
+        preventPathTraversal,
+        express.static(path.join(rootDir, 'uploads'), {
+            dotfiles: 'deny', // Denegar archivos que empiezan con .
+            index: false, // No servir index.html de directorios
+            maxAge: '1d'
+        })
+    );
     
     // Auth (login, signup, password reset)
     app.use('/api', authRoutes);

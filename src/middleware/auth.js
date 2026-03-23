@@ -1,6 +1,7 @@
 /**
  * Middleware de autenticación
- * Soporta: x-user-id (legacy), Authorization: Bearer JWT (nuevo)
+ * ⚠️ SEGURIDAD: Solo JWT soportado desde v12.3
+ * Legacy x-user-id header DEPRECADO - será eliminado en próxima versión
  */
 
 const { verifyToken } = require('../security/jwt');
@@ -18,22 +19,29 @@ try {
 function authMiddleware(roles = []) {
     return (req, res, next) => {
         const authHeader = req.headers.authorization;
+        
+        // DEPRECATED: x-user-id header - eliminado por seguridad
+        // Un atacante puede impersonar cualquier usuario enviando este header
         const userIdHeader = req.headers['x-user-id'];
+        if (userIdHeader) {
+            console.warn(`[DEPRECATED] Legacy auth x-user-id usado por IP: ${req.ip}. Por favor actualice a JWT.`);
+            // Por ahora permitimos pero con warning - en v12.4 rechazar completamente
+            // return res.status(410).json({ error: 'Legacy auth eliminado. Usa JWT.' });
+        }
 
         let userId = null;
 
+        // SOLO JWT - única forma de autenticación válida
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
             const decoded = verifyToken(token);
             if (decoded) {
                 userId = decoded.userId;
             }
-        } else if (userIdHeader) {
-            userId = userIdHeader;
         }
 
         if (!userId) {
-            return res.status(401).json({ error: 'Token requerido' });
+            return res.status(401).json({ error: 'Token requerido. Usa Authorization: Bearer <token>' });
         }
 
         try {
