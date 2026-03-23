@@ -3,7 +3,7 @@
  * Esquemas de validación para inputs de API
  */
 
-const { z } = require('zod');
+const z = require('zod');
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'La contraseña debe tener al menos 6 caracteres');
