@@ -2168,6 +2168,7 @@ window.App = {
 
     navigate(viewName, params = {}, push = true) {
         console.log('[NAV] Navegando a:', viewName, params);
+        if (viewName === 'system') { console.trace('[NAV] Source of navigate(system)'); }
         
         if (push) {
             const url = viewName === 'my-events' ? '/' : `/${viewName}`;
