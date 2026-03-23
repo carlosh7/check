@@ -467,4 +467,152 @@
         </div>
     </div>
 
+    <!-- MODAL: CREATE/EDIT EVENT -->
+    <div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[40px] border border-white/10 m-8 flex flex-col">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">event</span>
+                    <h3 class="text-2xl font-black">Nuevo Evento</h3>
+                </div>
+                <button onclick="App.closeModal()" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <form id="new-event-form" class="p-8 overflow-y-auto flex-1 space-y-6">
+                <input type="hidden" id="ev-id-hidden" value="">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Nombre del Evento</label>
+                        <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Ubicación</label>
+                        <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Fecha Inicio</label>
+                        <input type="datetime-local" id="ev-date" required class="input-field w-full">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase font-bold text-slate-400">Fecha Fin</label>
+                        <input type="datetime-local" id="ev-end-date" class="input-field w-full">
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-xs uppercase font-bold text-slate-400">Descripción</label>
+                    <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                </div>
+                
+                <div class="border-t border-white/5 pt-6">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Personalización de Registro</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Título del Formulario</label>
+                            <input type="text" id="ev-reg-title" value="Registro de Asistencia" class="input-field w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Mensaje de Bienvenida</label>
+                            <input type="text" id="ev-reg-welcome" value="Bienvenido a" class="input-field w-full">
+                        </div>
+                    </div>
+                    <div class="space-y-2 mt-4">
+                        <label class="text-xs uppercase font-bold text-slate-400">Mensaje de Éxito</label>
+                        <input type="text" id="ev-reg-success" value="¡Registro exitoso!" class="input-field w-full">
+                    </div>
+                    <div class="space-y-2 mt-4">
+                        <label class="text-xs uppercase font-bold text-slate-400">Política/ Términos</label>
+                        <textarea id="ev-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/5 pt-6">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Campos del Formulario</h4>
+                    <div class="grid grid-cols-3 gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-phone" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Teléfono</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-org" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Empresa</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-position" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Cargo</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-vegan" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Vegano</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-dietary" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Restricciones</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-gender" class="w-4 h-4 rounded accent-primary">
+                            <span class="text-xs text-slate-300">Género</span>
+                        </label>
+                    </div>
+                    <div class="mt-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-agreement" class="w-4 h-4 rounded accent-primary" checked>
+                            <span class="text-xs text-slate-300">Requerir aceptación de términos</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/5 pt-6">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Diseño de Ticket/QR</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Color QR Oscuro</label>
+                            <input type="color" id="ev-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Color QR Claro</label>
+                            <input type="color" id="ev-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Logo QR (URL)</label>
+                            <input type="text" id="ev-qr-logo" placeholder="https://..." class="input-field w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Fondo Ticket (URL)</label>
+                            <input type="text" id="ev-ticket-bg" placeholder="https://..." class="input-field w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Color Acento Ticket</label>
+                            <input type="color" id="ev-ticket-accent" value="#007aff" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/5 pt-6">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Filtros de Email</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Lista Blanca (emails permitidos)</label>
+                            <input type="text" id="ev-reg-whitelist" placeholder="@empresa.com, @otro.com" class="input-field w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase font-bold text-slate-400">Lista Negra (emails bloqueados)</label>
+                            <input type="text" id="ev-reg-blacklist" placeholder="@spam.com" class="input-field w-full">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="App.closeModal()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="btn-primary px-8 py-3 rounded-xl font-bold text-sm">Guardar Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>

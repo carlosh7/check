@@ -1236,6 +1236,10 @@ window.App = {
         document.getElementById('modal-mail-view').classList.add('hidden');
     },
 
+    closeModal: function() {
+        document.getElementById('modal-event')?.classList.add('hidden');
+    },
+
     syncEmails: async function() {
         if (typeof showLoading === 'function') showLoading('Sincronizando correos...');
         try {
