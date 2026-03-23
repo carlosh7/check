@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro v12.3.7
+// server.js — Check Elite Pro v12.4.0
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
