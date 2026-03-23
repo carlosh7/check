@@ -142,6 +142,15 @@ const schemas = {
 };
 
 function validate(schema, data) {
+    console.log('[VALIDATE DEBUG] Schema type:', typeof schema);
+    console.log('[VALIDATE DEBUG] Schema keys:', schema ? Object.keys(schema) : 'null');
+    console.log('[VALIDATE DEBUG] Schema.safeParse exists:', schema && typeof schema.safeParse);
+    
+    if (!schema || typeof schema.safeParse !== 'function') {
+        console.error('[VALIDATE ERROR] Invalid schema provided:', schema);
+        return { valid: false, errors: ['Invalid validation schema'] };
+    }
+    
     const result = schema.safeParse(data);
     if (!result.success) {
         const issues = result.error.issues || result.error.errors || [];
