@@ -326,7 +326,7 @@ window.App = {
                             <span class="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
                             ${u.display_name || u.username}
                             <span class="text-[8px] text-slate-400">${u.role}</span>
-                            <button onclick="App.removeUserFromGroup('${u.id}', '${g.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">×</button>
+                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">×</button>
                         </span>`).join('');
                     
                     return `
@@ -343,12 +343,12 @@ window.App = {
                         <td class="px-8 py-5 text-center">
                             <div class="flex flex-wrap gap-1 max-w-[150px]">${userChips || '<span class="text-slate-500 text-xs">Sin usuarios</span>'}</div>
                             <div class="flex gap-1 mt-2">
-                                <button onclick="App.showUserSelectorForGroup('${g.id}')" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold">+ Usuario</button>
+                                <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold">+ Usuario</button>
                             </div>
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex gap-2 justify-end">
-                                <button onclick="App.openCompanyModal('${g.id}')" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
+                                <button data-action="openCompanyModal" data-group-id="${g.id}" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
                             </div>
                         </td>
                     </tr>`;
@@ -387,8 +387,8 @@ window.App = {
                     ${options}
                 </select>
                 <div class="flex gap-3">
-                    <button onclick="App.assignUserToGroupFromSelector('${groupId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
-                    <button onclick="App.closeUserSelectorGroup()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                    <button data-action="assignUserToGroupFromSelector" data-group-id="${groupId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
+                    <button data-action="closeUserSelectorGroup" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -444,8 +444,8 @@ window.App = {
                     ${options}
                 </select>
                 <div class="flex gap-3">
-                    <button onclick="App.assignUserToEventFromSelector('${eventId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
-                    <button onclick="App.closeUserSelectorEvent()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                    <button data-action="assignUserToEventFromSelector" data-event-id="${eventId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
+                    <button data-action="closeUserSelectorEvent" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -546,7 +546,7 @@ window.App = {
                         <p class="text-[10px] text-slate-500">${u.username}</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="App.approveUser('${u.id}', 'APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[10px] font-bold uppercase">Aprobar</button>
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[10px] font-bold uppercase">Aprobar</button>
                     </div>
                 </div>`).join('');
         }
@@ -568,12 +568,12 @@ window.App = {
                     <div class="flex items-center gap-1 flex-wrap">
                         <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
                             ${userGroup.name}
-                            <button onclick="App.removeUserGroup('${u.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">×</button>
+                            <button data-action="removeUserGroup" data-user-id="${u.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">×</button>
                         </span>
                     </div>` : `<span class="text-[10px] text-slate-500">Sin empresa</span>`;
                 const groupSelect = isAdmin && canEdit ? `
                     <div class="mb-2">${groupChip}</div>
-                    <button onclick="App.showGroupSelector('${u.id}', '${userGroup?.id || ''}')" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Asignar empresa">+ Asignar</button>` : 
+                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Asignar empresa">+ Asignar</button>` : 
                     `<div class="mb-2">${groupChip}</div>`;
                 
                 // Chips de eventos asignados
@@ -581,19 +581,19 @@ window.App = {
                 const eventChips = userEvents.map(e => 
                     `<span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-[10px] rounded-lg mb-1">
                         ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        <button onclick="App.removeUserEvent('${u.id}', '${e.id}')" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
+                        <button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
                     </span>`
                 ).join('');
                 const eventSelect = canEdit ? `
                     <div class="flex items-start gap-1">
                         <div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>
                     </div>
-                    <button onclick="App.showEventSelector('${u.id}', ${JSON.stringify(u.events || []).replace(/"/g, '&quot;')})" class="mt-1 px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Agregar evento">+ Agregar</button>` : 
+                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || []).replace(/'/g, "&apos;")}' class="mt-1 px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Agregar evento">+ Agregar</button>` : 
                     `<div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>`;
                 
                 // Selector de rol
                 const roleSelect = canEdit ? 
-                    `<select onchange="App.changeUserRole('${u.id}', this.value)" class="bg-slate-800 text-white text-[11px] font-bold rounded-lg px-2 py-1.5 border border-white/10">
+                    `<select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-800 text-white text-[11px] font-bold rounded-lg px-2 py-1.5 border border-white/10">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select>` : 
                     `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
@@ -604,8 +604,8 @@ window.App = {
                 
                 // Botón activar/desactivar
                 const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button onclick="App.approveUser('${u.id}','APPROVED')" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
-                    `<button onclick="App.approveUser('${u.id}','SUSPENDED')" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
                 
                 const eventCountBadge = u.events && u.events.length > 0 ? 
                     `<span class="ml-1 px-1.5 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-bold">${u.events.length}</span>` : '';
@@ -789,9 +789,9 @@ window.App = {
                     ${options}
                 </select>
                 <div class="flex gap-3">
-                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
-                    <button onclick="App.navigateToCreateGroup('${userId}')" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
-                    <button onclick="App.closeGroupSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
+                    <button data-action="navigateToCreateGroup" data-user-id="${userId}" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
+                    <button data-action="closeGroupSelector" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -866,9 +866,9 @@ window.App = {
                     ${options}
                 </select>
                 <div class="flex gap-3">
-                    <button onclick="App.assignEventFromSelector('${userId}')" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
-                    <button onclick="App.navigateToCreateEvent('${userId}')" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
-                    <button onclick="App.closeEventSelector()" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+                    <button data-action="assignEventFromSelector" data-user-id="${userId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
+                    <button data-action="navigateToCreateEvent" data-user-id="${userId}" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
+                    <button data-action="closeEventSelector" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -1193,7 +1193,7 @@ window.App = {
                 const previewText = mail.body_html ? mail.body_html.replace(/<[^>]*>?/gm, ' ').substring(0, 100) : '(Sin contenido)';
 
                 return `
-                <div onclick="App.viewMailDetail('${mail.id}')" class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
+                <div data-action="viewMailDetail" data-mail-id="${mail.id}" class="group flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all">
                     <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs shadow-inner">
                         ${(mail.from_email || 'S').charAt(0).toUpperCase()}
                     </div>
@@ -1737,7 +1737,7 @@ window.App = {
         if (!palette) return;
         
         palette.innerHTML = vars.map(v => 
-            `<button onclick="App.insertVariable('${v}')" class="px-2 py-1 bg-slate-800/60 hover:bg-primary/20 hover:text-primary text-slate-400 rounded-lg text-[10px] font-mono font-bold border border-white/5 transition-all">${v}</button>`
+            `<button data-action="insertVariable" data-var-name="${v}" class="px-2 py-1 bg-slate-800/60 hover:bg-primary/20 hover:text-primary text-slate-400 rounded-lg text-[10px] font-mono font-bold border border-white/5 transition-all">${v}</button>`
         ).join('');
     },
     
@@ -1878,8 +1878,8 @@ window.App = {
                             </div>
                             <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
                             <div class="flex gap-2">
-                                <button onclick="App.showTemplateEditor('${t.id}', '${(t.name || '').replace(/'/g, "\\'")}')" class="flex-1 px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar</button>
-                                <button onclick="App.deleteEmailTemplate('${t.id}')" class="w-10 h-10 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-all" title="Eliminar">
+                                <button data-action="showTemplateEditor" data-template-id="${t.id}" data-template-name="${(t.name || '').replace(/'/g, "&apos;")}" class="flex-1 px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar</button>
+                                <button data-action="deleteEmailTemplate" data-template-id="${t.id}" class="w-10 h-10 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-all" title="Eliminar">
                                     <span class="material-symbols-outlined text-sm">delete</span>
                                 </button>
                             </div>
@@ -2032,7 +2032,7 @@ window.App = {
                             <div class="text-[10px] text-slate-500">
                                 Variables: {{guest_name}}, {{guest_email}}, {{event_name}}, {{event_date}}, {{event_location}}, {{checkin_time}}, {{agenda}}, {{organization}}
                             </div>
-                            <button onclick="App.saveEventEmailTemplate('${t.template_type}')" class="w-full py-2 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Guardar Plantilla</button>
+                            <button data-action="saveEventEmailTemplate" data-template-type="${t.template_type}" class="w-full py-2 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Guardar Plantilla</button>
                         </div>
                     </div>
                 `).join('');
@@ -2111,7 +2111,7 @@ window.App = {
                     <input type="text" value="${item.title || ''}" data-field="title" placeholder="Título" class="flex-1">
                     <input type="text" value="${item.speaker || ''}" data-field="speaker" placeholder="Ponente" class="flex-1">
                 </div>
-                <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                <button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
                     <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
             </div>
@@ -2131,9 +2131,9 @@ window.App = {
                 <input type="text" value="" data-field="title" placeholder="Título" class="flex-1">
                 <input type="text" value="" data-field="speaker" placeholder="Ponente" class="flex-1">
             </div>
-            <button onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
-                <span class="material-symbols-outlined text-sm">delete</span>
-            </button>
+<button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
         `;
         container.appendChild(div);
     },
@@ -2320,50 +2320,176 @@ window.App = {
     },
     
     attachAppListeners() {
-        // Re-attach critical listeners para elementos del app-shell
-        const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+        // Click listeners para elementos del app-shell
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+        const hideModal = (id) => { const m = document.getElementById(id); if (m) m.classList.add('hidden'); };
         
         // Mostrar versión del servidor al cargar
         this.fetchAPI('/app-version').then(res => {
             const vd = document.getElementById('version-display');
             if (vd) vd.textContent = 'V' + res.version;
-        }).catch(() => {});;
+        }).catch(() => {});
 
-        // Actualizar íconos del tema después de cargar app-shell
+        // Actualizar tema después de cargar app-shell
         this.initTheme();
         
-        // Navigation
+        // Navigation - Sidebar
+        cl('nav-btn-system', () => this.navigate('system'));
+        cl('nav-btn-groups', () => this.navigate('groups'));
+        cl('nav-btn-legal', () => this.navigate('legal'));
+        cl('nav-btn-smtp', () => this.navigateEmailSection('config'));
+        cl('nav-btn-account', () => this.navigate('account'));
+        cl('nav-btn-my-events', () => this.navigate('my-events'));
+        cl('nav-btn-admin', () => this.navigate('admin'));
+        cl('nav-btn-pre-registrations', () => this.navigate('pre-registrations'));
+        cl('nav-btn-survey-manager', () => this.navigate('survey-manager'));
+        
+        // Sidebar footer
+        cl('btn-toggle-theme', () => this.toggleTheme());
+        cl('btn-logout', () => this.logout());
+        
+        // Admin view - action buttons
+        cl('btn-show-qr', () => this.showQR());
+        cl('btn-export-excel', () => this.exportExcel());
+        cl('btn-generate-pdf', () => this.generateGuestListPdf());
+        cl('btn-create-event-open', () => this.openCreateEventModal());
+        cl('btn-create-group', () => this.openCompanyModal());
+        
+        // System tabs
         cl('sys-nav-users', () => window.switchSystemTab('users'));
         cl('sys-nav-legal', () => window.switchSystemTab('legal'));
         cl('sys-nav-account', () => window.switchSystemTab('account'));
         cl('sys-nav-events', () => this.loadEvents());
+        cl('btn-open-invite', () => this.openInviteModal());
+        
+        // Email section tabs
+        cl('email-nav-config', () => this.navigateEmailSection('config'));
+        cl('email-nav-mailbox', () => this.navigateEmailSection('mailbox'));
+        cl('email-nav-templates', () => this.navigateEmailSection('templates'));
+        cl('email-nav-mailing', () => this.navigateEmailSection('mailing'));
+        cl('btn-sync-emails', () => this.syncEmails());
+        cl('mail-folder-inbox', () => this.switchMailboxFolder('INBOX'));
+        cl('mail-folder-sent', () => this.switchMailboxFolder('SENT'));
         
         // Legal modal
         cl('btn-open-policy', () => this.showLegalModal('policy'));
         cl('btn-open-terms', () => this.showLegalModal('terms'));
-        cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
+        cl('btn-close-legal', () => hideModal('modal-legal'));
+        cl('btn-save-policy', () => this.saveLegalText('policy'));
+        cl('btn-save-terms', () => this.saveLegalText('terms'));
         
-        // SMTP listeners
-        cl('btn-test-smtp', async () => {
-            alert('Función de prueba de conexión SMTP en desarrollo.');
-        });
-        cl('btn-save-template', () => App.saveEmailTemplate());
-        
-        // IMAP listeners
-        cl('btn-test-imap', async () => {
-            await this.testIMAPConnection();
-        });
-        sf('imap-form', async (e) => {
-            e.preventDefault();
-            await this.saveIMAPConfig();
+        // Modal close buttons
+        cl('btn-close-mail-view', () => this.closeMailView());
+        cl('btn-close-event-modal', () => hideModal('modal-event'));
+        cl('btn-close-invite', () => hideModal('modal-invite'));
+        cl('btn-close-company', () => hideModal('modal-company'));
+        cl('btn-close-qr', () => hideModal('modal-qr'));
+        cl('btn-close-ticket', () => hideModal('modal-ticket'));
+        cl('btn-close-import-results', () => hideModal('modal-import-results'));
+        cl('btn-close-import-results-2', () => hideModal('modal-import-results'));
+        cl('btn-stop-scanner', () => this.stopScanner());
+        cl('btn-start-scan', () => this.startScanner());
+        cl('btn-manual-checkin', () => this.manualCheckin());
+        cl('btn-close-template-editor', () => this.closeTemplateEditor());
+        cl('btn-cancel-template', () => this.closeTemplateEditor());
+        cl('btn-close-event-email', () => this.closeEventEmailConfig());
+        cl('btn-cancel-event-email', () => this.closeEventEmailConfig());
+        cl('btn-close-survey-editor', () => this.closeSurveyEditor());
+        cl('btn-cancel-survey', () => this.closeSurveyEditor());
+        cl('btn-confirm-import', () => this.confirmImport());
+        cl('btn-save-event-email', () => this.saveEventEmailConfig());
+        cl('btn-cancel-event', () => hideModal('modal-event'));
+        cl('btn-cancel-invite', () => hideModal('modal-invite'));
+        cl('btn-cancel-company', () => hideModal('modal-company'));
+
+        // EVENT DELEGATION para botones dinámicos (reemplaza onclick inline violando CSP)
+        // Los templates dinámicos usan data-action y data-params-* en lugar de onclick
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            
+            const action = btn.dataset.action;
+            const p = btn.dataset; // shortcut to dataset
+            
+            switch(action) {
+                // Groups management
+                case 'removeUserFromGroup': App.removeUserFromGroup(p.userId, p.groupId); break;
+                case 'showUserSelectorForGroup': App.showUserSelectorForGroup(p.groupId); break;
+                case 'openCompanyModal': App.openCompanyModal(p.groupId); break;
+                case 'assignUserToGroupFromSelector': App.assignUserToGroupFromSelector(p.groupId); break;
+                case 'closeUserSelectorGroup': App.closeUserSelectorGroup(); break;
+                case 'assignUserToEventFromSelector': App.assignUserToEventFromSelector(p.eventId); break;
+                case 'closeUserSelectorEvent': App.closeUserSelectorEvent(); break;
+                
+                // Users management
+                case 'approveUser': App.approveUser(p.userId, p.status); break;
+                case 'removeUserGroup': App.removeUserGroup(p.userId); break;
+                case 'showGroupSelector': App.showGroupSelector(p.userId, p.groupId || ''); break;
+                case 'removeUserEvent': App.removeUserEvent(p.userId, p.eventId); break;
+                case 'showEventSelector': App.showEventSelector(p.userId, JSON.parse(p.events || '[]')); break;
+                case 'assignUserGroupFromSelector': App.assignUserGroupFromSelector(p.userId); break;
+                case 'navigateToCreateGroup': App.navigateToCreateGroup(p.userId); break;
+                case 'closeGroupSelector': App.closeGroupSelector(); break;
+                case 'assignEventFromSelector': App.assignEventFromSelector(p.userId); break;
+                case 'navigateToCreateEvent': App.navigateToCreateEvent(p.userId); break;
+                case 'closeEventSelector': App.closeEventSelector(); break;
+                
+                // Email
+                case 'viewMailDetail': App.viewMailDetail(p.mailId); break;
+                case 'insertVariable': App.insertVariable(p.varName); break;
+                case 'showTemplateEditor': App.showTemplateEditor(p.templateId, p.templateName); break;
+                case 'deleteEmailTemplate': App.deleteEmailTemplate(p.templateId); break;
+                case 'saveEventEmailTemplate': App.saveEventEmailTemplate(p.templateType); break;
+                case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
+                
+                // Pre-reg
+                case 'updatePreRegStatus': App.updatePreRegStatus(p.prId, p.status); break;
+                
+                // Survey
+                case 'openSurveyEditor': App.openSurveyEditor(p.questionId); break;
+                case 'deleteSurveyQuestion': App.deleteSurveyQuestion(p.questionId); break;
+                
+                // Events
+                case 'openEvent': window.App.openEvent(p.eventId); break;
+                case 'editEvent': window.App.editEvent(p.eventId); break;
+                case 'deleteEvent': window.App.deleteEvent(p.eventId); break;
+                case 'copyRegistrationLink': window.App.copyRegistrationLink(p.eventId); break;
+                case 'showUserSelectorForEvent': window.App.showUserSelectorForEvent(p.eventId); break;
+                
+                // Guests
+                case 'generateCertificate': App.generateCertificate(p.guestId); break;
+                case 'showTicket': App.showTicket(p.guestId); break;
+                case 'editGuest': App.editGuest(p.guestId); break;
+                case 'deleteGuest': App.deleteGuest(p.guestId); break;
+            }
         });
 
-        // Survey Form
-        sf('survey-question-form', async (e) => {
-            e.preventDefault();
-            await this.saveSurveyQuestion();
+        // EVENT DELEGATION para selects dinámicos (changeUserRole)
+        document.body.addEventListener('change', (e) => {
+            const select = e.target.closest('select[data-action]');
+            if (!select) return;
+            if (select.dataset.action === 'changeUserRole') {
+                App.changeUserRole(select.dataset.userId, select.value);
+            }
         });
+    },
+    
+    openCreateEventModal: function() {
+        document.getElementById('new-event-form')?.reset();
+        document.getElementById('ev-id-hidden').value = '';
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    },
+    
+    saveLegalText: async function(type) {
+        const editorId = type === 'policy' ? 'editor-policy' : 'editor-terms';
+        const content = document.getElementById(editorId)?.textContent || '';
+        try {
+            await this.fetchAPI('/settings/legal', {
+                method: 'PUT',
+                body: JSON.stringify({ type, content })
+            });
+            alert('✓ Configuración guardada.');
+        } catch(e) { alert('Error al guardar.'); }
     },
     async loadAppVersion() {
         try {
@@ -2405,10 +2531,10 @@ window.App = {
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end gap-2">
-                                <button onclick="App.updatePreRegStatus('${pr.id}', 'APPROVED')" class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-all" title="Aprobar">
+                                <button data-action="updatePreRegStatus" data-pr-id="${pr.id}" data-status="APPROVED" class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-all" title="Aprobar">
                                     <span class="material-symbols-outlined text-sm">check_circle</span>
                                 </button>
-                                <button onclick="App.updatePreRegStatus('${pr.id}', 'REJECTED')" class="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all" title="Rechazar">
+                                <button data-action="updatePreRegStatus" data-pr-id="${pr.id}" data-status="REJECTED" class="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all" title="Rechazar">
                                     <span class="material-symbols-outlined text-sm">cancel</span>
                                 </button>
                             </div>
@@ -2467,10 +2593,10 @@ window.App = {
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="App.openSurveyEditor('${q.id}')" class="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
+                                <button data-action="openSurveyEditor" data-question-id="${q.id}" class="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                 </button>
-                                <button onclick="App.deleteSurveyQuestion('${q.id}')" class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
+                                <button data-action="deleteSurveyQuestion" data-question-id="${q.id}" class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
                                     <span class="material-symbols-outlined text-sm">delete</span>
                                 </button>
                             </div>
@@ -2549,12 +2675,12 @@ window.App = {
         const c = document.getElementById('events-list-container');
         if (!c) return;
         c.innerHTML = this.state.events.map(ev => `
-            <div onclick="window.App.openEvent('${ev.id}')" class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group cursor-pointer">
+            <div data-action="openEvent" data-event-id="${ev.id}" class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group cursor-pointer">
                 <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button onclick="event.stopPropagation(); window.App.editEvent('${ev.id}')" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all" title="Editar">
+                    <button data-action="editEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="event.stopPropagation(); window.App.deleteEvent('${ev.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-all" title="Eliminar">
+                    <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-all" title="Eliminar">
                         <span class="material-symbols-outlined text-sm">delete</span>
                     </button>
                 </div>
@@ -2569,12 +2695,12 @@ window.App = {
                 <div class="mt-4 pt-4 border-t border-white/5">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] text-slate-500">${new Date(ev.date).toLocaleDateString('es-ES')}</span>
-                        <button onclick="event.stopPropagation(); window.App.copyRegistrationLink('${ev.id}')" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
+                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">link</span> Link
                         </button>
                     </div>
                     <div class="flex gap-2 mt-2" onclick="event.stopPropagation()">
-                        <button onclick="window.App.showUserSelectorForEvent('${ev.id}')" class="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
+                        <button data-action="showUserSelectorForEvent" data-event-id="${ev.id}" class="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
                             <span class="material-symbols-outlined text-sm">group_add</span> Personal
                         </button>
                     </div>
@@ -2810,17 +2936,17 @@ window.App = {
                 <td class="px-10 py-6 text-right">
                     <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         ${isChecked ? `
-                            <button onclick="App.generateCertificate('${g.id}')" class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado de Asistencia">
+                            <button data-action="generateCertificate" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado de Asistencia">
                                 <span class="material-symbols-outlined text-sm">workspace_premium</span>
                             </button>
                         ` : ''}
-                        <button onclick="App.showTicket('${g.id}')" class="w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Ver Ticket">
+                        <button data-action="showTicket" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Ver Ticket">
                             <span class="material-symbols-outlined text-sm">qr_code</span>
                         </button>
-                        <button onclick="App.editGuest('${g.id}')" class="w-10 h-10 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
+                        <button data-action="editGuest" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm">edit</span>
                         </button>
-                        <button onclick="App.deleteGuest('${g.id}')" class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                        <button data-action="deleteGuest" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                     </div>

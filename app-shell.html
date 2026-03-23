@@ -20,23 +20,23 @@
             <div id="nav-section-global" class="pt-2">
                 <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Administración</p>
                 <div class="space-y-0.5">
-                    <a href="#" onclick="App.navigate('system')" id="nav-btn-system" class="nav-item">
+                    <a href="#" id="nav-btn-system" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">group</span> 
                         <span>Equipo y Accesos</span>
                     </a>
-                    <a href="#" onclick="App.navigate('groups')" id="nav-btn-groups" class="nav-item">
+                    <a href="#" id="nav-btn-groups" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">corporate_fare</span> 
                         <span>Empresas</span>
                     </a>
-                    <a href="#" onclick="App.navigate('legal')" id="nav-btn-legal" class="nav-item">
+                    <a href="#" id="nav-btn-legal" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">gavel</span> 
                         <span>Legales y Privacidad</span>
                     </a>
-                    <a href="#" onclick="App.navigateEmailSection('config')" id="nav-btn-smtp" class="nav-item">
+                    <a href="#" id="nav-btn-smtp" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">mail</span> 
                         <span>Gestión Email</span>
                     </a>
-                    <a href="#" onclick="App.navigate('account')" id="nav-btn-account" class="nav-item">
+                    <a href="#" id="nav-btn-account" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">manage_accounts</span> 
                         <span>Mi Perfil</span>
                     </a>
@@ -46,7 +46,7 @@
             <div class="pt-6">
                 <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Producción</p>
                 <div class="space-y-0.5">
-                    <a href="#" onclick="App.navigate('my-events')" id="nav-btn-my-events" class="nav-item">
+                    <a href="#" id="nav-btn-my-events" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">event_repeat</span> Mis Eventos
                     </a>
                 </div>
@@ -55,13 +55,13 @@
             <div id="nav-section-event" class="hidden pt-6">
                 <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2" id="nav-event-name">Evento Actual</p>
                 <div class="space-y-0.5">
-                    <a href="#" onclick="App.navigate('admin')" id="nav-btn-admin" class="nav-item">
+                    <a href="#" id="nav-btn-admin" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">dashboard</span> Panel Control
                     </a>
-                    <a href="#" onclick="App.navigate('pre-registrations')" id="nav-btn-pre-registrations" class="nav-item">
+                    <a href="#" id="nav-btn-pre-registrations" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">how_to_reg</span> Pre-registros
                     </a>
-                    <a href="#" onclick="App.navigate('survey-manager')" id="nav-btn-survey-manager" class="nav-item">
+                    <a href="#" id="nav-btn-survey-manager" class="nav-item">
                         <span class="material-symbols-outlined text-[var(--text-secondary)]">quiz</span> Encuesta QR
                     </a>
                 </div>
@@ -81,10 +81,10 @@
             </div>
             
             <div class="flex gap-2">
-                <button onclick="App.toggleTheme()" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-center" title="Cambiar tema">
+                <button id="btn-toggle-theme" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-center" title="Cambiar tema">
                     <span class="material-symbols-outlined text-sm">dark_mode</span>
                 </button>
-                <button onclick="App.logout()" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 transition-colors flex items-center justify-center" title="Cerrar sesión">
+                <button id="btn-logout" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 transition-colors flex items-center justify-center" title="Cerrar sesión">
                     <span class="material-symbols-outlined text-sm">logout</span>
                 </button>
             </div>
@@ -140,15 +140,15 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <button onclick="App.showQR()" class="btn-primary !p-3 flex flex-col items-center justify-center gap-1 min-w-[60px]">
+                            <button id="btn-show-qr" class="btn-primary !p-3 flex flex-col items-center justify-center gap-1 min-w-[60px]">
                                 <span class="material-symbols-outlined text-lg">qr_code_2</span>
                                 <span class="text-[8px] font-medium uppercase">QR</span>
                             </button>
-                            <button onclick="App.exportExcel()" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
+                            <button id="btn-export-excel" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
                                 <span class="material-symbols-outlined text-lg">description</span>
                                 <span class="text-[8px] font-medium uppercase">Excel</span>
                             </button>
-                            <button onclick="App.generateGuestListPdf()" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
+                            <button id="btn-generate-pdf" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
                                 <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
                                 <span class="text-[8px] font-medium uppercase">PDF</span>
                             </button>
@@ -196,9 +196,9 @@
             <section id="view-system" class="hidden space-y-8">
                 <!-- Sub-Navegación -->
                 <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
-                    <button onclick="window.switchSystemTab('users')" id="sys-nav-users" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Equipo</button>
-                    <button onclick="window.switchSystemTab('legal')" id="sys-nav-legal" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Legales</button>
-                    <button onclick="window.switchSystemTab('account')" id="sys-nav-account" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Mi Perfil</button>
+                    <button id="sys-nav-users" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Equipo</button>
+                    <button id="sys-nav-legal" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Legales</button>
+                    <button id="sys-nav-account" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Mi Perfil</button>
                 </div>
 
                 <!-- CONTENIDO: EQUIPO -->
@@ -208,7 +208,7 @@
                             <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
                             <p class="text-[var(--text-secondary)] text-sm mt-1">Controla quién tiene acceso al sistema.</p>
                         </div>
-                        <button onclick="App.openInviteModal()" class="btn-primary !px-5 !py-2.5">Añadir Colaborador</button>
+                        <button id="btn-open-invite" class="btn-primary !px-5 !py-2.5">Añadir Colaborador</button>
                     </div>
                     <div class="card rounded-xl overflow-hidden">
                         <table class="w-full text-left">
@@ -318,10 +318,10 @@
                 </header>
                 
                 <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
-                    <button onclick="App.navigateEmailSection('config')" id="email-nav-config" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Configuración</button>
-                    <button onclick="App.navigateEmailSection('mailbox')" id="email-nav-mailbox" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Buzón</button>
-                    <button onclick="App.navigateEmailSection('templates')" id="email-nav-templates" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Plantillas</button>
-                    <button onclick="App.navigateEmailSection('mailing')" id="email-nav-mailing" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Envío Masivo</button>
+                    <button id="email-nav-config" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Configuración</button>
+                    <button id="email-nav-mailbox" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Buzón</button>
+                    <button id="email-nav-templates" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Plantillas</button>
+                    <button id="email-nav-mailing" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Envío Masivo</button>
                 </div>
                 
                 <div id="email-content-config" class="email-content hidden space-y-6">
@@ -402,13 +402,13 @@
                             <h3 class="text-sm font-semibold flex items-center gap-2">
                                 <span class="material-symbols-outlined text-[var(--primary)]">inbox</span> Buzón
                             </h3>
-                            <button onclick="App.syncEmails()" class="px-3 py-1.5 bg-[var(--primary-light)] text-[var(--primary)] rounded-lg text-xs font-medium flex items-center gap-1 hover:bg-[var(--primary)] hover:text-white transition-colors">
+                            <button id="btn-sync-emails" class="px-3 py-1.5 bg-[var(--primary-light)] text-[var(--primary)] rounded-lg text-xs font-medium flex items-center gap-1 hover:bg-[var(--primary)] hover:text-white transition-colors">
                                 <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
                             </button>
                         </div>
                         <div class="flex gap-1 p-2 bg-[var(--bg-hover)] border-b border-[var(--border)]">
-                            <button onclick="App.switchMailboxFolder('INBOX')" id="mail-folder-inbox" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Recibidos</button>
-                            <button onclick="App.switchMailboxFolder('SENT')" id="mail-folder-sent" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">Enviados</button>
+                            <button id="mail-folder-inbox" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Recibidos</button>
+                            <button id="mail-folder-sent" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">Enviados</button>
                         </div>
                         <div id="email-mailbox-list" class="divide-y divide-[var(--border-light)] min-h-[300px]"></div>
                     </div>
@@ -460,7 +460,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
                     <h3 class="text-lg font-semibold">Ver Mensaje</h3>
                 </div>
-                <button onclick="App.closeMailView()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-mail-view" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -491,7 +491,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">event</span>
                     <h3 class="text-lg font-semibold">Nuevo Evento</h3>
                 </div>
-                <button onclick="App.closeModal()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-event-modal" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -603,7 +603,7 @@
                 </div>
                 
                 <div class="flex justify-end gap-3 pt-3">
-                    <button type="button" onclick="App.closeModal()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
                     <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
                 </div>
             </form>
@@ -618,7 +618,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">person_add</span>
                     <h3 class="text-lg font-semibold">Añadir Colaborador</h3>
                 </div>
-                <button onclick="App.closeInvite()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-invite" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -645,7 +645,7 @@
                     </select>
                 </div>
                 <div class="flex justify-end gap-3 pt-3">
-                    <button type="button" onclick="App.closeInvite()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
                     <button type="submit" class="btn-primary !px-5 !py-2">Crear</button>
                 </div>
             </form>
@@ -660,7 +660,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">corporate_fare</span>
                     <h3 class="text-lg font-semibold">Empresa</h3>
                 </div>
-                <button onclick="App.closeCompanyModal()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-company" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -686,7 +686,7 @@
                     </select>
                 </div>
                 <div class="flex justify-end gap-3 pt-3">
-                    <button type="button" onclick="App.closeCompanyModal()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button id="btn-cancel-company" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
                     <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
                 </div>
             </form>
@@ -714,7 +714,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">qr_code</span>
                     <h3 class="text-lg font-semibold">Código QR</h3>
                 </div>
-                <button onclick="document.getElementById('modal-qr').classList.add('hidden')" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-qr" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -732,7 +732,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">qr_code_scanner</span>
                     <h3 class="text-lg font-semibold">Escanear QR</h3>
                 </div>
-                <button onclick="App.stopScanner()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-stop-scanner" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -742,8 +742,8 @@
                 <div id="scan-result" class="text-center"></div>
                 <div id="scan-error" class="text-red-500 text-center hidden"></div>
                 <div class="flex gap-3">
-                    <button id="btn-start-scan" onclick="App.startScanner()" class="btn-primary !px-5 !py-2">Iniciar</button>
-                    <button id="btn-manual-checkin" onclick="App.manualCheckin()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Manual</button>
+                    <button id="btn-start-scan" class="btn-primary !px-5 !py-2">Iniciar</button>
+                    <button id="btn-manual-checkin" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Manual</button>
                 </div>
                 <input type="text" id="manual-guest-id" placeholder="ID de invitado" class="input-field w-full hidden">
             </div>
@@ -774,13 +774,13 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">upload_file</span>
                     <h3 class="text-lg font-semibold">Importación</h3>
                 </div>
-                <button onclick="document.getElementById('modal-import-results').classList.add('hidden')" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-import-results" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div id="import-results-content" class="p-5 overflow-y-auto flex-1 space-y-3"></div>
             <div class="p-5 border-t border-[var(--border)] flex justify-end">
-                <button onclick="document.getElementById('modal-import-results').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cerrar</button>
+                <button id="btn-close-import-results-2" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cerrar</button>
             </div>
         </div>
     </div>
@@ -840,7 +840,7 @@
                 </table>
             </div>
             <div class="p-5 border-t border-[var(--border)] flex justify-end">
-                <button onclick="App.confirmImport()" class="btn-primary !px-5 !py-2">Importar</button>
+                <button id="btn-confirm-import" class="btn-primary !px-5 !py-2">Importar</button>
             </div>
         </div>
     </div>
@@ -853,7 +853,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
                     <h3 id="template-editor-title" class="text-lg font-semibold">Editar Plantilla</h3>
                 </div>
-                <button onclick="App.closeTemplateEditor()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-template-editor" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -883,8 +883,8 @@
                 </div>
             </div>
             <div class="p-5 border-t border-[var(--border)] flex justify-end gap-3">
-                <button onclick="App.closeTemplateEditor()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
-                <button onclick="App.saveTemplate()" class="btn-primary !px-5 !py-2">Guardar</button>
+                <button id="btn-cancel-template" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                <button id="btn-save-template" class="btn-primary !px-5 !py-2">Guardar</button>
             </div>
         </div>
     </div>
@@ -897,7 +897,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">email</span>
                     <h3 class="text-lg font-semibold">Email del Evento</h3>
                 </div>
-                <button onclick="App.closeEventEmailConfig()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-event-email" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -926,8 +926,8 @@
                 </div>
             </div>
             <div class="p-5 border-t border-[var(--border)] flex justify-end gap-3">
-                <button onclick="App.closeEventEmailConfig()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
-                <button onclick="App.saveEventEmailConfig()" class="btn-primary !px-5 !py-2">Guardar</button>
+                <button id="btn-cancel-event-email" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                <button id="btn-save-event-email" class="btn-primary !px-5 !py-2">Guardar</button>
             </div>
         </div>
     </div>
@@ -940,7 +940,7 @@
                     <span class="material-symbols-outlined text-[var(--primary)]">quiz</span>
                     <h3 class="text-lg font-semibold">Pregunta</h3>
                 </div>
-                <button onclick="App.closeSurveyEditor()" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <button id="btn-close-survey-editor" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
@@ -964,7 +964,7 @@
                     <textarea id="survey-question-options" rows="3" placeholder="Opción 1&#10;Opción 2&#10;Opción 3" class="input-field w-full"></textarea>
                 </div>
                 <div class="flex justify-end gap-3 pt-3">
-                    <button type="button" onclick="App.closeSurveyEditor()" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                    <button id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
                     <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
                 </div>
             </form>
