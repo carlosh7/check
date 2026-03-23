@@ -2168,11 +2168,12 @@ window.App = {
 
     navigate(viewName, params = {}, push = true) {
         console.log('[NAV] Navegando a:', viewName, params);
-        if (viewName === 'system') { console.trace('[NAV] Source of navigate(system)'); }
         
         if (push) {
+            this._isPushingState = true;
             const url = viewName === 'my-events' ? '/' : `/${viewName}`;
             history.pushState({ view: viewName, params }, '', url);
+            setTimeout(() => { this._isPushingState = false; }, 100);
         }
 
         this.showView(viewName);
@@ -2209,6 +2210,7 @@ window.App = {
     initRouter() {
         // Manejar navegación con el historial
         window.onpopstate = (e) => {
+            if (this._isPushingState) return;
             const savedUser = LS.get('user');
             if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
                 try {
@@ -2225,7 +2227,6 @@ window.App = {
                         
                         if (user.role === 'ADMIN') {
                             this.navigate('system', {}, false);
-                            setTimeout(() => window.switchSystemTab('users'), 50);
                         } else {
                             this.navigate('my-events', {}, false);
                         }
