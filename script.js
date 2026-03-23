@@ -2120,6 +2120,17 @@ window.App = {
     showView(viewName, clearSession = false) {
         console.log('[VIEW] Mostrando:', viewName);
         
+        // Mapear y mostrar
+        let targetId = "view-" + viewName;
+        if (['legal', 'account'].includes(viewName)) targetId = "view-system";
+        
+        // Si la vista objetivo ya está visible, no hacer nada
+        const target = document.getElementById(targetId);
+        if (target && !target.classList.contains('hidden')) {
+            console.log('[VIEW] Ya visible:', viewName);
+            return;
+        }
+        
         if (viewName === 'login') {
             document.getElementById('view-login')?.classList.remove('hidden');
             if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex';
@@ -2138,12 +2149,7 @@ window.App = {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
-
-        // Mapear y mostrar
-        let targetId = "view-" + viewName;
-        if (['legal', 'account'].includes(viewName)) targetId = "view-system";
         
-        const target = document.getElementById(targetId);
         if (target) {
             target.classList.remove('hidden');
         }
@@ -2162,10 +2168,6 @@ window.App = {
 
     navigate(viewName, params = {}, push = true) {
         console.log('[NAV] Navegando a:', viewName, params);
-        
-        if (this._isNavigating) return;
-        this._isNavigating = true;
-        setTimeout(() => { this._isNavigating = false; }, 100);
         
         if (push) {
             const url = viewName === 'my-events' ? '/' : `/${viewName}`;
