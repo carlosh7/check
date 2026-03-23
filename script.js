@@ -3,17 +3,17 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.2.1
+ * Version: V12.3.2.2
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.3.2: Iniciando Sistema Modular...');
+console.log('CHECK V12.3.2.2: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
-window.App = {
+const App = window.App = {
     state: {
         event: null,
         events: [],
@@ -21,7 +21,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.2.1',
+        version: '12.3.2.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -823,7 +823,7 @@ window.App = {
         const groups = this.state.allGroups || [];
         
         const options = groups.map(g => 
-            `<option value="${g.id}" ${g.id === currentGroupId ? 'selected' : ''}>${g.name}</option>`
+            `<option value="${g.id}" ${String(g.id) === String(currentGroupId) ? 'selected' : ''}>${g.name}</option>`
         ).join('');
         
         const modal = document.createElement('div');
@@ -906,8 +906,8 @@ window.App = {
     // Mostrar selector de eventos para agregar
     showEventSelector: function(userId, currentEvents) {
         const events = this.state.allEvents || [];
-        const assignedIds = currentEvents || [];
-        const availableEvents = events.filter(e => !assignedIds.includes(e.id));
+        const assignedIds = (currentEvents || []).map(id => String(id));
+        const availableEvents = events.filter(e => !assignedIds.includes(String(e.id)));
         
         if (availableEvents.length === 0) {
             alert('No hay más eventos disponibles para asignar.');
@@ -4066,7 +4066,7 @@ window.App = {
 window.switchSystemTab = App.switchSystemTab.bind(App);
 
 window.switchAdminTab = function(tabName) {
-    console.log('CHECK V12.3.2.1: switchAdminTab ->', tabName || 'dashboard');
+    console.log('CHECK V12.3.2.2: switchAdminTab ->', tabName || 'dashboard');
     const mainDash = document.getElementById('admin-main-dashboard');
     if (mainDash) mainDash.style.display = 'none';
     ALL_TAB_IDS.forEach(id => {
@@ -4091,7 +4091,7 @@ window.switchAdminTab = function(tabName) {
     }
 };
 
-// --- DOM READY BOOTSTRAP V12.3.2.1 ---
+// --- DOM READY BOOTSTRAP V12.3.2.2 ---
 document.addEventListener('DOMContentLoaded', async () => {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
