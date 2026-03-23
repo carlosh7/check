@@ -1,6 +1,15 @@
 /**
  * Zod Validation Schemas
  * Esquemas de validación para inputs de API
+ * @module security/validation
+ * @version 12.3.0
+ * 
+ * @example
+ * const { schemas, validate } = require('./security/validation');
+ * const result = validate(schemas.login, { username: 'test@test.com', password: 'pass123' });
+ * if (!result.valid) {
+ *     console.log('Errores:', result.errors);
+ * }
  */
 
 const z = require('zod');
@@ -9,12 +18,18 @@ const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'La contraseña debe tener al menos 6 caracteres');
 const uuidSchema = z.string().min(1, 'ID requerido');
 
+/**
+ * Esquemas de validación Zod
+ * @type {Object}
+ */
 const schemas = {
+    /** @type {z.ZodSchema} Login credentials */
     login: z.object({
         username: z.string().min(1, 'Email requerido'),
         password: z.string().min(1, 'Contraseña requerida')
     }),
 
+    /** @type {z.ZodSchema} User registration */
     signup: z.object({
         username: emailSchema,
         password: passwordSchema,
@@ -141,6 +156,18 @@ const schemas = {
     })
 };
 
+/**
+ * Valida datos usando un schema Zod
+ * @param {z.ZodSchema} schema - Schema Zod a usar para validación
+ * @param {Object} data - Datos a validar
+ * @returns {{valid: boolean, data?: Object, errors?: string[]}} Resultado de validación
+ * 
+ * @example
+ * const result = validate(schemas.login, req.body);
+ * if (!result.valid) {
+ *     return res.status(400).json({ errors: result.errors });
+ * }
+ */
 function validate(schema, data) {
     if (!schema || typeof schema.safeParse !== 'function') {
         console.error('[VALIDATE ERROR] Invalid schema provided:', typeof schema);

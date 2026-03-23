@@ -1,6 +1,8 @@
 /**
  * Utilidades del servidor
  * ⚠️ SECURITY: Validaciones críticas para prevenir SQL Injection
+ * @module utils/helpers
+ * @version 12.3.0
  */
 
 const { v4: uuidv4 } = require('uuid');
@@ -15,6 +17,11 @@ const ALLOWED_TABLES = new Set([
     'event_agenda', 'audit_logs'
 ]);
 
+/**
+ * Genera un ID válido para una tabla
+ * @param {string} tableName - Nombre de la tabla
+ * @returns {string|null} UUID si la tabla usa TEXT ID, null si usa INTEGER
+ */
 function getValidId(tableName) {
     // Validar nombre de tabla permitido
     if (!ALLOWED_TABLES.has(tableName)) {
@@ -33,6 +40,12 @@ function getValidId(tableName) {
  * @param {string} tableName - Nombre de la tabla
  * @param {string|number} id - ID a validar
  * @returns {number|string} ID validado o null si es inválido
+ */
+/**
+ * Convierte y valida IDs para consultas de base de datos
+ * @param {string} tableName - Nombre de la tabla
+ * @param {string|number} id - ID a validar
+ * @returns {number|string|null} ID validado o null si es inválido
  */
 function castId(tableName, id) {
     if (id === null || id === undefined) return id;
