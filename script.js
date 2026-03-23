@@ -4837,16 +4837,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('modal-event')?.classList.remove('hidden');
     });
 
-    cl('btn-create-group', async () => {
-        const name = prompt('Nombre del grupo:');
-        if (!name) return;
-        const description = prompt('Descripción del grupo (opcional):');
-        try {
-            const res = await App.fetchAPI('/groups', { method: 'POST', body: JSON.stringify({ name, description }) });
-            if (res.success) { alert('Ã¢Å“â€œ Grupo creado'); App.loadGroups(); }
-            else alert('Error: ' + res.error);
-        } catch { alert('Error de conexión.'); }
-    });
+});
 });
 
 // Retrocompatibilidad
