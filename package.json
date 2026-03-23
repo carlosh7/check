@@ -5,6 +5,8 @@
   "main": "script.js",
   "scripts": {
     "start": "node server.js",
+    "build:css": "npx postcss src/styles/main.css -o styles.css",
+    "watch:css": "npx postcss src/styles/main.css -o styles.css --watch",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch"
   },
@@ -51,7 +53,14 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/postcss": "^4.2.2",
+    "autoprefixer": "^10.4.27",
     "jest": "^30.3.0",
-    "supertest": "^7.2.2"
+    "postcss": "^8.5.8",
+    "postcss-cli": "^11.0.1",
+    "supertest": "^7.2.2",
+    "tailwindcss": "^4.2.2"
   }
 }
