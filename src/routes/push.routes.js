@@ -69,7 +69,7 @@ router.post('/subscribe', async (req, res) => {
                 WHERE endpoint = ?
             `).run(userId, subscription.keys.p256dh, subscription.keys.auth, now, subscription.endpoint);
             
-            logAction(req.userId || 'anonymous', AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
+            logAction(req, AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
                 subscriptionId: existing.id,
                 action: 'updated'
             });
@@ -82,7 +82,7 @@ router.post('/subscribe', async (req, res) => {
                 VALUES (?, ?, ?, ?, ?, ?)
             `).run(id, userId, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth, now);
             
-            logAction(req.userId || 'anonymous', AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
+            logAction(req, AUDIT_ACTIONS.PUSH_SUBSCRIBE, {
                 subscriptionId: id,
                 action: 'created'
             });
@@ -113,7 +113,7 @@ router.post('/unsubscribe', async (req, res) => {
         if (subscription) {
             db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
             
-            logAction(req.userId || 'anonymous', AUDIT_ACTIONS.PUSH_UNSUBSCRIBE, {
+            logAction(req, AUDIT_ACTIONS.PUSH_UNSUBSCRIBE, {
                 subscriptionId: subscription.id,
                 userId: subscription.user_id
             });
@@ -177,7 +177,7 @@ router.post('/send-test', authMiddleware(['ADMIN']), async (req, res) => {
         const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
         const failed = results.length - successful;
         
-        logAction(req.userId, AUDIT_ACTIONS.PUSH_SEND_TEST, {
+        logAction(req, AUDIT_ACTIONS.PUSH_SEND_TEST, {
             total: subscriptions.length,
             successful,
             failed

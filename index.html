@@ -1,50 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check Attendance</title>
     <link rel="stylesheet" href="/styles.css?v=12.2.4">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <link rel="stylesheet" href="modern.css?v=12.2.4">
+    <link rel="stylesheet" href="/modern.css?v=12.3.1">
 </head>
 
 <body class="antialiased">
 
     <!-- VIEW: LOGIN -->
     <div id="view-login" class="fixed inset-0 flex items-center justify-center p-6 bg-[var(--bg-app)]">
-        <div class="w-full max-w-[340px]">
-            <div class="card p-8">
-                <div class="flex flex-col items-center mb-8">
-                    <div class="w-11 h-11 bg-[var(--primary)] rounded-xl flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-white text-2xl">verified_user</span>
+        <!-- Fondo decorativo sutil -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+            <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-[var(--primary)] blur-[120px] rounded-full"></div>
+            <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[var(--primary)] blur-[120px] rounded-full"></div>
+        </div>
+
+        <div class="w-full max-w-[340px] relative z-10">
+            <div class="card login-glass p-8 border-white/10">
+                <div class="flex flex-col items-center mb-10">
+                    <div class="w-14 h-14 bg-gradient-to-tr from-[var(--primary)] to-blue-400 rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-blue-500/20">
+                        <span class="material-symbols-outlined text-white text-3xl">verified_user</span>
                     </div>
-                    <h1 class="text-2xl font-semibold tracking-tight">Check<span class="text-[var(--primary)]">.</span></h1>
-                    <p class="text-[var(--text-secondary)] text-xs uppercase tracking-widest font-medium mt-1">Attendance Management</p>
+                    <h1 class="text-3xl font-bold tracking-tight mb-1">Check<span class="text-[var(--primary)]">.</span></h1>
+                    <p class="text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">Attendance Elite Pro</p>
                 </div>
 
-                <form id="login-form" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Usuario</label>
+                <form id="login-form" class="space-y-5">
+                    <div class="form-group">
+                        <label class="form-label">Usuario</label>
                         <input type="text" id="login-user" required placeholder="nombre@empresa.com" class="input-field w-full">
                     </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contraseña</label>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña</label>
                         <input type="password" id="login-pass" required placeholder="••••••••" class="input-field w-full">
                     </div>
-                    <button type="submit" class="btn-primary w-full py-2.5 mt-4">Iniciar Sesión</button>
-                    <div class="text-center pt-2">
-                        <a href="#" id="go-to-signup" class="text-[var(--primary)] text-xs font-medium hover:underline">Solicitar acceso</a>
+                    <button type="submit" class="btn-primary w-full py-3 mt-4 text-sm font-bold shadow-md shadow-blue-500/20">Iniciar Sesión</button>
+                    <div class="text-center pt-4">
+                        <a href="#" id="go-to-signup" class="text-[var(--primary)] text-xs font-semibold hover:underline">¿No tienes cuenta? Solicitar acceso</a>
                     </div>
                 </form>
 
-                <form id="signup-form" class="hidden space-y-4">
-                    <h2 class="text-center text-lg font-semibold mb-4">Solicitar Acceso</h2>
-                    <input type="text" id="signup-user" required placeholder="Correo" class="input-field w-full">
-                    <input type="password" id="signup-pass" required placeholder="Contraseña Sugerida" class="input-field w-full">
-                    <button type="submit" class="btn-primary w-full py-2.5">Enviar Solicitud</button>
-                    <button id="go-to-login" type="button" class="w-full text-xs text-[var(--text-secondary)] mt-2 hover:text-[var(--text-main)] transition-colors text-center">Volver al login</button>
+                <form id="signup-form" class="hidden space-y-5">
+                    <div class="text-center mb-6">
+                        <h2 class="text-xl font-bold">Solicitar Acceso</h2>
+                        <p class="text-[var(--text-secondary)] text-xs mt-1">Nuestro equipo validará tu solicitud.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo Corporativo</label>
+                        <input type="text" id="signup-user" required placeholder="email@empresa.com" class="input-field w-full">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña Sugerida</label>
+                        <input type="password" id="signup-pass" required placeholder="Tu contraseña" class="input-field w-full">
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-3">Enviar Solicitud</button>
+                    <button id="go-to-login" type="button" class="w-full text-xs text-[var(--text-secondary)] mt-4 hover:text-[var(--text-main)] transition-colors text-center font-medium">Volver al inicio de sesión</button>
                 </form>
             </div>
             
@@ -59,6 +77,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     
-    <script type="module" src="/script.js?v=12.2.4"></script>
+    <script type="module" src="/script.js?v=12.3.1"></script>
+
 </body>
 </html>

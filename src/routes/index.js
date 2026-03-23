@@ -17,6 +17,7 @@ const publicRoutes = require('./public.routes');
 const versionRoutes = require('./version.routes');
 const webhooksRoutes = require('./webhooks.routes');
 const pushRoutes = require('./push.routes');
+const statsRoutes = require('./stats.routes');
 
 // Configuración segura de multer
 const upload = multer({
@@ -115,6 +116,9 @@ function registerRoutes(app, rootDir) {
     
     // Push notifications (Web Push API)
     app.use('/api/push', pushRoutes.router);
+    
+    // Stats (Dashboard Analítica)
+    app.use('/api', statsRoutes);
     
     console.log('✓ Rutas registradas (modulares)');
 }

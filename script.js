@@ -1,10 +1,16 @@
 import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
-// MASTER SCRIPT V12.2.3 - ARQUITECTURA ESM 🛡️🚀💎
+/**
+ * MASTER SCRIPT
+ * Version: V12.3.1
+ * Author: Antigravity
+ * 
+ * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
+ */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log("CHECK V12.2.3: Iniciando Sistema Modular...");
+console.log('CHECK V12.3.1: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 window.App = {
@@ -15,7 +21,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.2.4',
+        version: '12.3.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -351,34 +357,33 @@ window.App = {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.group_id === g.id);
                     const userChips = groupUsers.map(u => `
-                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
-                            <span class="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-[10px] font-bold rounded-md border border-[var(--border)]">
+                            <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
                             ${u.display_name || u.username}
-                            <span class="text-[8px] text-slate-400">${u.role}</span>
-                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold">×</button>
+                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="hover:text-red-500 transition-colors ml-1 font-bold">×</button>
                         </span>`).join('');
                     
                     return `
-                    <tr class="hover:bg-white/[0.02] border-b border-white/5">
-                        <td class="px-8 py-5">
-                            <div class="font-bold text-base text-white">${g.name}</div>
-                            <div class="text-[10px] text-slate-500 mt-1">${g.description || ''}</div>
+                    <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-1">${g.description || 'Sin descripción'}</div>
                         </td>
-                        <td class="px-8 py-5">
-                            <div class="text-slate-400 text-sm">${g.email || '-'}</div>
-                            <div class="text-slate-500 text-xs">${g.phone || ''}</div>
+                        <td class="px-6 py-4">
+                            <div class="text-[var(--text-main)] text-xs font-medium">${g.email || '-'}</div>
+                            <div class="text-[var(--text-secondary)] text-[11px] mt-0.5">${g.phone || ''}</div>
                         </td>
-                        <td class="px-8 py-5 text-center"><span class="px-4 py-2 rounded-xl text-sm font-black ${g.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</span></td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex flex-wrap gap-1 max-w-[150px]">${userChips || '<span class="text-slate-500 text-xs">Sin usuarios</span>'}</div>
-                            <div class="flex gap-1 mt-2">
-                                <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold">+ Usuario</button>
-                            </div>
+                        <td class="px-6 py-4 text-center">
+                            <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
+                                ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                            </span>
                         </td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex gap-2 justify-end">
-                                <button data-action="openCompanyModal" data-group-id="${g.id}" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl text-sm font-black">Editar</button>
-                            </div>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${userChips || '<span class="text-[10px] text-[var(--text-secondary)]">Sin usuarios</span>'}</div>
+                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 px-2 py-1 bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white rounded-md text-[10px] font-bold transition-all">+ Usuario</button>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button data-action="openCompanyModal" data-group-id="${g.id}" class="px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-main)] hover:bg-[var(--border)] rounded-lg text-xs font-bold transition-all">Editar</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -569,13 +574,13 @@ window.App = {
         if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
         if (pendingList) {
             pendingList.innerHTML = pending.map(u => `
-                <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl border border-amber-500/20">
+                <div class="flex items-center justify-between card p-4 mb-3 border-amber-200/50 dark:border-amber-800/20 bg-amber-50/10 active-hover">
                     <div>
-                        <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
-                        <p class="text-[10px] text-slate-500">${u.username}</p>
+                        <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
+                        <p class="text-[11px] text-[var(--text-secondary)] font-mono">${u.username}</p>
                     </div>
                     <div class="flex gap-2">
-                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[10px] font-bold uppercase">Aprobar</button>
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="btn-primary px-4 py-1.5 text-[11px]">Aprobar</button>
                     </div>
                 </div>`).join('');
         }
@@ -642,36 +647,45 @@ window.App = {
                 // Línea separadora sutil
                 const separator = index > 0 ? '<div class="border-t border-white/5"></div>' : '';
                 
-                return `${separator}<tr class="hover:bg-white/[0.02]">
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-xs">
+                return `
+                <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)] to-[#4285f4] flex items-center justify-center text-white font-bold text-sm shadow-sm">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <p class="font-bold text-xs text-white">${u.display_name || u.username}</p>
-                                    <span class="px-1.5 py-0.5 text-[8px] font-black rounded ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-400'}">${u.role}</span>
+                                    <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
+                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-md ${u.role === 'ADMIN' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-[var(--primary-light)] text-[var(--primary)]'}">${u.role}</span>
                                 </div>
-                                <p class="text-[10px] text-slate-500">${u.username}</p>
+                                <p class="text-[11px] text-[var(--text-secondary)] font-mono">${u.username}</p>
                             </div>
                         </div>
-                        <div class="ml-11">
-                            <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Eventos ${eventCountBadge}</p>
+                        <div class="ml-14">
+                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest flex items-center">Eventos asignados ${eventCountBadge}</p>
                             ${eventSelect}
                         </div>
                     </td>
-                    <td class="px-4 py-3 align-top">
-                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Rol</p>
-                        <div class="mb-2">${roleSelect}</div>
-                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Empresa</p>
-                        ${groupSelect}
+                    <td class="px-6 py-5 align-top">
+                        <div class="mb-4">
+                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Configuración de Rol</p>
+                            ${roleSelect}
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Empresa / Grupo</p>
+                            ${groupSelect}
+                        </div>
                     </td>
-                    <td class="px-4 py-3 align-top">
-                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Estado</p>
-                        <div class="mb-2">${statusBadge}</div>
-                        <p class="text-[9px] font-black uppercase text-slate-600 mb-1 tracking-wider">Acción</p>
-                        ${actionBtn}
+                    <td class="px-6 py-5 align-top">
+                        <div class="mb-4">
+                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Estado Actual</p>
+                            ${statusBadge}
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Control de Acceso</p>
+                            ${actionBtn}
+                        </div>
                     </td>
                 </tr>`;
             }).join('');
@@ -2243,7 +2257,8 @@ window.App = {
         
         if (push) {
             this._isPushingState = true;
-            const url = viewName === 'my-events' ? '/' : `/${viewName}`;
+            let url = viewName === 'my-events' ? '/' : `/${viewName}`;
+            if (viewName === 'admin' && params.id) url = `/admin/${params.id}`;
             history.pushState({ view: viewName, params }, '', url);
             setTimeout(() => { this._isPushingState = false; }, 100);
         }
@@ -2257,10 +2272,35 @@ window.App = {
         if (viewName === 'account') window.switchSystemTab('account');
         
         if (viewName === 'admin') {
-            if (params.id) {
-                this.loadEventStats(params.id);
-            } else if (this.state.event) {
-                this.loadEventStats(this.state.event.id);
+            const id = params.id || (this.state.event ? this.state.event.id : null);
+            if (id) {
+                if (!this.state.event || String(this.state.event.id) !== String(id)) {
+                    this.state.event = this.state.events.find(e => String(e.id) === String(id));
+                }
+                if (this.state.event) {
+                    const event = this.state.event;
+                    document.getElementById('admin-event-title').textContent = event.name;
+                    document.getElementById('admin-event-location').textContent = event.location || 'UBICACIÓN';
+                    
+                    const logoImg = document.getElementById('admin-event-logo');
+                    const logoPlaceholder = document.getElementById('admin-event-logo-placeholder');
+                    if (logoImg && logoPlaceholder) {
+                        if (event.logo_url) {
+                            logoImg.src = event.logo_url;
+                            logoImg.classList.remove('hidden');
+                            logoPlaceholder.classList.add('hidden');
+                        } else {
+                            logoImg.classList.add('hidden');
+                            logoPlaceholder.classList.remove('hidden');
+                        }
+                    }
+
+                    this.updateStats();
+                    this.loadGuests();
+                }
+ else {
+                    this.navigate('my-events');
+                }
             } else {
                 this.navigate('my-events');
             }
@@ -2283,34 +2323,39 @@ window.App = {
         // Manejar navegación con el historial
         window.onpopstate = (e) => {
             if (this._isPushingState) return;
-            const savedUser = LS.get('user');
-            if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
-                try {
-                    const user = JSON.parse(savedUser);
-                    if (user && (user.userId || user.token)) {
-                        if (!this.state.user) {
-                            this.state.user = user;
-                        }
-                        
-                        if (e.state && e.state.view && e.state.view !== 'login') {
-                            this.navigate(e.state.view, e.state.params || {}, false);
-                            return;
-                        }
-                        
-                        if (user.role === 'ADMIN') {
-                            this.navigate('system', {}, false);
-                        } else {
-                            this.navigate('my-events', {}, false);
-                        }
-                        return;
-                    }
-                } catch(e) {}
-            }
             
-            history.replaceState(null, '', '/');
-            this.showView('login', true);
+            if (e.state && e.state.view) {
+                this.navigate(e.state.view, e.state.params || {}, false);
+            } else {
+                this.handleInitialNavigation();
+            }
         };
+    },
+
+    handleInitialNavigation() {
+        const path = window.location.pathname;
+        const parts = path.split('/').filter(p => p);
         
+        const view = parts[0] || 'my-events';
+        const params = {};
+        
+        if (view === 'admin' && parts[1]) {
+            params.id = parts[1];
+        }
+
+        // Si es ADMIN y no hay vista específica, o es la raíz, redirigir a lo apropiado
+        const user = this.state.user;
+        if (!user) {
+            this.showView('login');
+            return;
+        }
+
+        if (view === 'my-events' || view === '' || view === 'index.html') {
+            this.navigate('my-events', {}, false);
+        } else {
+
+            this.navigate(view, params, false);
+        }
     },
 
     // --- AUTH ---
@@ -2439,8 +2484,8 @@ window.App = {
             const target = e.target.closest('[data-action]');
             if (!target) return;
             
-            const action = btn.dataset.action;
-            const p = btn.dataset; // shortcut to dataset
+            const action = target.dataset.action;
+            const p = target.dataset; // shortcut to dataset
             
             switch(action) {
                 // Groups management
@@ -2558,7 +2603,7 @@ window.App = {
                             ${new Date(pr.created_at).toLocaleString()}
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span class="px-3 py-1 bg-amber-500/10 text-amber-500 text-[9px] font-black rounded-full border border-amber-500/20 uppercase">Pendiente</span>
+                            <span class="status-pill status-pending">Pendiente</span>
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end gap-2">
@@ -2585,7 +2630,7 @@ window.App = {
             });
             this.loadPreRegistrations();
             if (status === 'APPROVED' && this.state.event) {
-                this.loadEventStats(this.state.event.id);
+                this.updateStats();
             }
         } catch (e) { alert('Error al actualizar estado'); }
     },
@@ -2706,33 +2751,25 @@ window.App = {
         const c = document.getElementById('events-list-container');
         if (!c) return;
         c.innerHTML = this.state.events.map(ev => `
-            <div data-action="openEvent" data-event-id="${ev.id}" class="glass-card p-6 rounded-[32px] hover:border-primary/40 transition-all border border-white/5 bg-slate-900/40 shadow-xl relative group cursor-pointer">
-                <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button data-action="editEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-all" title="Eliminar">
-                        <span class="material-symbols-outlined text-sm">delete</span>
+            <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
+                <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <button data-action="editEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all">
+                        <span class="material-symbols-outlined text-base">edit</span>
                     </button>
                 </div>
-                <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-primary text-xl">event_available</span>
+                <div class="w-12 h-12 bg-[var(--primary-light)] text-[var(--primary)] rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                    <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
                 </div>
-                <h3 class="text-xl font-black mb-2 text-white font-display">${ev.name}</h3>
-                <p class="text-slate-500 text-xs line-clamp-2 mb-4">${ev.description || 'Evento sin descripción.'}</p>
-                <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <span class="material-symbols-outlined text-sm text-primary">location_on</span> ${ev.location || 'Consultar'}
+                <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">${ev.name}</h3>
+                <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripción adicional para este evento.'}</p>
+                <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">
+                    <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicación por confirmar'}
                 </div>
-                <div class="mt-4 pt-4 border-t border-white/5">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] text-slate-500">${new Date(ev.date).toLocaleDateString('es-ES')}</span>
-                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-[10px] text-primary hover:text-primary/80 font-bold flex items-center gap-1">
+                <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    <div class="flex gap-3" onclick="event.stopPropagation()">
+                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">link</span> Link
-                        </button>
-                    </div>
-                    <div class="flex gap-2 mt-2" onclick="event.stopPropagation()">
-                        <button data-action="showUserSelectorForEvent" data-event-id="${ev.id}" class="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
-                            <span class="material-symbols-outlined text-sm">group_add</span> Personal
                         </button>
                     </div>
                 </div>
@@ -2840,7 +2877,8 @@ window.App = {
     },
     async loadGuests() {
         if (!this.state.event) return;
-        this.state.guests = await this.fetchAPI(`/guests/${this.state.event.id}`);
+        const res = await this.fetchAPI(`/guests/${this.state.event.id}`);
+        this.state.guests = Array.isArray(res) ? res : (res.data || []);
         
         const filterOrg = document.getElementById('filter-guest-org');
         if (filterOrg) {
@@ -2939,45 +2977,45 @@ window.App = {
             const healthAlert = (g.dietary_notes || '').length > 0;
             
             return `
-            <tr class="hover:bg-white/[0.04] border-b border-white/5 group transition-colors">
-                <td class="px-10 py-6" style="display: ${cfg.name.visible ? '' : 'none'}">
+            <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
+                <td class="px-6 py-4" style="display: ${cfg.name.visible ? '' : 'none'}">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${isChecked ? 'from-emerald-500/20 to-emerald-500/5' : 'from-slate-800 to-slate-900'} flex items-center justify-center border border-white/5 relative">
-                            <span class="material-symbols-outlined ${isChecked ? 'text-emerald-400' : 'text-slate-500'} text-xl">${isChecked ? 'verified' : 'person'}</span>
-                            ${healthAlert ? '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-950 animate-bounce"></span>' : ''}
+                        <div class="w-10 h-10 rounded-full ${isChecked ? 'bg-[var(--primary)]' : 'bg-[var(--bg-hover)]'} flex items-center justify-center text-white relative shadow-sm">
+                            <span class="material-symbols-outlined text-xl">${isChecked ? 'verified' : 'person'}</span>
+                            ${healthAlert ? '<span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-[var(--bg-card)]"></span>' : ''}
                         </div>
                         <div>
-                            <p class="font-black text-white text-sm tracking-tight">${g.name}</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[10px]">mail</span> ${g.email || 'S/E'}
-                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1">·</span> <span class="material-symbols-outlined text-[10px]">call</span> ${g.phone}` : ''}
+                            <p class="font-bold text-sm text-[var(--text-main)]">${g.name}</p>
+                            <p class="text-[11px] text-[var(--text-secondary)] font-mono flex items-center gap-1">
+                                ${g.email || 'S/E'}
+                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1 opacity-30">|</span> ${g.phone}` : ''}
                             </p>
-                            ${cfg.position.visible && g.position ? `<p class="text-[9px] text-primary/60 font-black uppercase mt-0.5">${g.position}</p>` : ''}
+                            ${cfg.position.visible && g.position ? `<p class="text-[10px] text-[var(--primary)] font-bold uppercase mt-1">${g.position}</p>` : ''}
                         </div>
                     </div>
                 </td>
-                <td class="px-10 py-6" style="display: ${cfg.organization.visible ? '' : 'none'}">
-                    <div class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">${g.organization || '---'}</div>
+                <td class="px-6 py-4" style="display: ${cfg.organization.visible ? '' : 'none'}">
+                    <div class="text-xs font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-main)] transition-colors">${g.organization || '---'}</div>
                 </td>
-                <td class="px-10 py-6 text-center" style="display: ${cfg.status.visible ? '' : 'none'}">
-                    <span class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${isChecked ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/5'}">
+                <td class="px-6 py-4 text-center" style="display: ${cfg.status.visible ? '' : 'none'}">
+                    <span class="status-pill ${isChecked ? 'status-active' : 'status-pending'}">
                         ${isChecked ? 'Acreditado' : 'Pendiente'}
                     </span>
                 </td>
-                <td class="px-10 py-6 text-right">
-                    <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <td class="px-6 py-4 text-right">
+                    <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         ${isChecked ? `
-                            <button data-action="generateCertificate" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado de Asistencia">
+                            <button data-action="generateCertificate" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado">
                                 <span class="material-symbols-outlined text-sm">workspace_premium</span>
                             </button>
                         ` : ''}
-                        <button data-action="showTicket" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Ver Ticket">
+                        <button data-action="showTicket" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all flex items-center justify-center" title="QR">
                             <span class="material-symbols-outlined text-sm">qr_code</span>
                         </button>
-                        <button data-action="editGuest" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
+                        <button data-action="editGuest" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-all flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm">edit</span>
                         </button>
-                        <button data-action="deleteGuest" data-guest-id="${g.id}" class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                        <button data-action="deleteGuest" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                     </div>
@@ -4063,13 +4101,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
                 
                 if (user.role === 'ADMIN') {
-                    App.showView('system');
                     App.updateUIPermissions();
                     App.updateRoleOptions();
-                    setTimeout(() => window.switchSystemTab('users'), 100);
-                } else {
-                    App.loadEvents();
                 }
+                
+                // Cargar eventos inicialmente para tener la lista lista
+                await App.loadEvents();
+                
+                // Ruteo inteligente inicial
+                App.handleInitialNavigation();
             } else {
                 console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');
@@ -4144,12 +4184,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 App.updateUIPermissions();
                 App.updateRoleOptions();
                 
-                if (d.role === 'ADMIN') {
-                    App.navigate('system');
-                    setTimeout(() => window.switchSystemTab('users'), 100);
-                } else {
-                    App.loadEvents();
-                }
+                // Ruteo inteligente post-login
+                App.handleInitialNavigation();
+
             } else alert(d.message || 'Credenciales inválidas.');
         } catch (err) { 
             console.error("[LOGIN] Error:", err);

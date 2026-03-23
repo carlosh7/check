@@ -127,7 +127,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         
         const webhook = createWebhook(data);
         
-        logAction(req.userId, AUDIT_ACTIONS.WEBHOOK_CREATED, {
+        logAction(req, AUDIT_ACTIONS.WEBHOOK_CREATED, {
             webhook_id: webhook.id,
             event_id: webhook.event_id,
             name: webhook.name
@@ -184,7 +184,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         
         const updated = updateWebhook(req.params.id, data);
         
-        logAction(req.userId, AUDIT_ACTIONS.WEBHOOK_UPDATED, {
+        logAction(req, AUDIT_ACTIONS.WEBHOOK_UPDATED, {
             webhook_id: updated.id,
             changes: Object.keys(data)
         });
@@ -214,7 +214,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
         
         deleteWebhook(req.params.id);
         
-        logAction(req.userId, AUDIT_ACTIONS.WEBHOOK_DELETED, {
+        logAction(req, AUDIT_ACTIONS.WEBHOOK_DELETED, {
             webhook_id: webhook.id,
             name: webhook.name
         });

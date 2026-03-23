@@ -3,19 +3,20 @@
     <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200">
         
         <!-- Logo & Toggle -->
-        <div class="p-6 mb-2 flex items-center justify-between logo-container">
+        <div class="p-6 mb-4 flex items-center justify-between logo-container">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-[var(--primary)] rounded-lg flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-white text-xl">verified_user</span>
+                <div class="w-10 h-10 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-white text-2xl">verified_user</span>
                 </div>
                 <div class="flex flex-col logo-text">
-                    <span class="font-semibold text-base tracking-tight leading-none">Check<span class="text-[var(--primary)]">.</span>Pro</span>
-                    <span class="text-[9px] font-medium text-[var(--text-secondary)] uppercase tracking-widest mt-0.5">Attendance</span>
+                    <span class="font-bold text-lg tracking-tight leading-none text-[var(--text-main)]">Check<span class="text-[var(--primary)]">.</span>Pro</span>
+                    <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.2em] mt-1">Attendance</span>
                 </div>
             </div>
-            <button id="btn-toggle-sidebar" class="w-8 h-8 rounded-full hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors sidebar-text">
-                <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">menu_open</span>
+            <button id="btn-toggle-sidebar" class="w-9 h-9 rounded-full hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-[var(--text-secondary)] text-xl">menu_open</span>
             </button>
+
         </div>
         
         <!-- Navegación -->
@@ -97,7 +98,7 @@
             </div>
         
             <div class="mt-4 text-center version-display">
-                <span id="version-display" class="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">v12.2.3</span>
+                <span id="version-display" class="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">v12.3.0</span>
             </div>
         </div>
     </aside>
@@ -123,74 +124,84 @@
                 <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- VIEW: ADMIN DASHBOARD -->
-            <section id="view-admin" class="hidden space-y-8">
-                <header class="flex flex-col lg:flex-row justify-between items-start gap-6">
-                    <div>
-                        <p class="text-[10px] font-medium text-[var(--primary)] uppercase tracking-widest mb-2">Evento Activo</p>
-                        <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight">Cargando...</h1>
-                        <div class="flex items-center gap-2 text-[var(--text-secondary)] mt-1">
-                            <span class="material-symbols-outlined text-sm">location_on</span>
-                            <span id="admin-event-location" class="text-xs uppercase tracking-wider">Ubicación no definida</span>
+            <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
+            <section id="view-admin" class="hidden">
+                <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
+                    <div class="flex items-center gap-6">
+                        <div id="admin-event-logo-container" class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
+                            <img id="admin-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                            <span id="admin-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Panel de Control</p>
+                            <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
+                            <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+                                <span class="material-symbols-outlined text-sm">location_on</span>
+                                <span id="admin-event-location" class="text-xs uppercase tracking-wider">Ubicación</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="card flex flex-col md:flex-row gap-4 p-4">
+                    <div class="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] p-2 rounded-2xl shadow-xs">
                         <div class="flex items-center gap-6 px-4 border-r border-[var(--border)]">
                             <div class="text-center">
-                                <p class="text-[9px] font-medium uppercase tracking-wider text-[var(--text-muted)] mb-1">Hora Local</p>
-                                <p id="admin-clock-real" class="text-lg font-semibold font-mono">00:00:00</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1">Hora Local</p>
+                                <p id="admin-clock-real" class="text-lg font-bold font-mono">00:00:00</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-[9px] font-medium uppercase tracking-wider text-red-500 mb-1">Countdown</p>
-                                <p id="admin-clock-countdown" class="text-lg font-semibold font-mono text-red-500">00:00:00</p>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Countdown</p>
+                                <p id="admin-clock-countdown" class="text-lg font-bold font-mono text-red-500">00:00:00</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button id="btn-show-qr" class="btn-primary !p-3 flex flex-col items-center justify-center gap-1 min-w-[60px]">
+                        <div class="flex gap-2 p-1">
+                            <button id="btn-show-qr" class="btn-primary !p-2 px-4 flex items-center gap-2" title="Mostrar código QR de registro">
                                 <span class="material-symbols-outlined text-lg">qr_code_2</span>
-                                <span class="text-[8px] font-medium uppercase">QR</span>
+                                <span class="text-xs font-bold uppercase">Registro QR</span>
                             </button>
-                            <button id="btn-export-excel" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
-                                <span class="material-symbols-outlined text-lg">description</span>
-                                <span class="text-[8px] font-medium uppercase">Excel</span>
-                            </button>
-                            <button id="btn-generate-pdf" class="!p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]">
-                                <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
-                                <span class="text-[8px] font-medium uppercase">PDF</span>
-                            </button>
+                            <div class="flex gap-1 border-l border-[var(--border)] ml-1 pl-2">
+                                <button id="btn-export-excel" class="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-all" title="Exportar Excel">
+                                    <span class="material-symbols-outlined text-xl">description</span>
+                                </button>
+                                <button id="btn-generate-pdf" class="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-all" title="Exportar Analítica PDF">
+                                    <span class="material-symbols-outlined text-xl">picture_as_pdf</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </header>
 
                 <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="card !p-6 rounded-xl hover:shadow-lg transition-shadow">
-                        <p class="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
-                             <span class="material-symbols-outlined text-[var(--primary)] text-base">group</span> Invitados Totales
-                        </p>
-                        <h2 id="stat-total" class="text-4xl font-semibold">0</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card !p-8 flex items-center justify-between group">
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)] mb-2">Total Invitados</p>
+                            <h2 id="stat-total" class="text-4xl font-bold">0</h2>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">group</span>
+                        </div>
                     </div>
+                    <!-- Se pueden añadir más stats aquí -->
                 </div>
 
-                <div class="card rounded-xl overflow-hidden">
-                    <div class="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-hover)]">
-                        <h3 class="text-base font-semibold flex items-center gap-2">
-                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Asistenes
+                <div class="card !p-0 overflow-hidden">
+                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Asistentes
                         </h3>
-                        <div class="relative w-full max-w-xs">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg">search</span>
-                            <input id="guest-search" type="text" placeholder="Buscar..." class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-[var(--primary)] transition-colors outline-none">
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                            <input id="guest-search" type="text" placeholder="Buscar por nombre, empresa o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
+                        <table class="data-table">
                             <thead>
-                                <tr class="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--bg-hover)]">
-                                    <th class="px-5 py-4">Invitado / Organización</th>
-                                    <th class="px-5 py-4">Canal / Registro</th>
-                                    <th class="px-5 py-4 text-center">Estado</th>
-                                    <th class="px-5 py-4 text-right">Acciones</th>
+                                <tr>
+                                    <th id="th-name">Invitado / Información</th>
+                                    <th id="th-org">Organización</th>
+                                    <th id="th-status" class="text-center">Estado</th>
+                                    <th class="text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="guests-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
@@ -202,10 +213,10 @@
             <!-- VIEW: SYSTEM (USERS, LEGAL, ACCOUNT) -->
             <section id="view-system" class="hidden space-y-8">
                 <!-- Sub-Navegación -->
-                <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
-                    <button id="sys-nav-users" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Equipo</button>
-                    <button id="sys-nav-legal" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Legales</button>
-                    <button id="sys-nav-account" class="px-5 py-2 rounded-md text-xs font-medium transition-all">Mi Perfil</button>
+                <div class="sub-nav-container">
+                    <button id="sys-nav-users" class="sub-nav-btn active">Equipo</button>
+                    <button id="sys-nav-legal" class="sub-nav-btn">Legales</button>
+                    <button id="sys-nav-account" class="sub-nav-btn">Mi Perfil</button>
                 </div>
 
                 <!-- CONTENIDO: EQUIPO -->
@@ -217,18 +228,30 @@
                         </div>
                         <button id="btn-open-invite" class="btn-primary !px-5 !py-2.5">Añadir Colaborador</button>
                     </div>
-                    <div class="card rounded-xl overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-[var(--bg-hover)] text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                                <tr>
-                                    <th class="px-5 py-4">Colaborador</th>
-                                    <th class="px-5 py-4">Rol</th>
-                                    <th class="px-5 py-4 text-center">Estado</th>
-                                    <th class="px-5 py-4 text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                        </table>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Colaboradores del Sistema
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="user-search" type="text" placeholder="Buscar por nombre, email o rol..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Colaborador</th>
+                                        <th class="px-5 py-4">Rol / Acceso</th>
+                                        <th class="px-5 py-4 text-center">Estado</th>
+                                        <th class="px-5 py-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -293,26 +316,41 @@
                 </div>
             </section>
 
-<!-- VIEW: EMPRESAS -->
             <section id="view-groups" class="hidden space-y-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                    <button id="btn-create-group" class="btn-primary !px-5 !py-2.5 text-xs">Registrar Empresa</button>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Administra las organizaciones registradas.</p>
+                    </div>
+                    <button id="btn-create-group" class="btn-primary !px-5 !py-2.5">Registrar Empresa</button>
                 </div>
-                <div class="card rounded-xl overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-[var(--bg-hover)] text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                            <tr>
-                                <th class="px-5 py-4">Organización</th>
-                                <th class="px-5 py-4">Contacto</th>
-                                <th class="px-5 py-4 text-center">Registrados</th>
-                                <th class="px-5 py-4 text-right">Administración</th>
-                            </tr>
-                        </thead>
-                        <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                    </table>
+
+                <div class="card !p-0 overflow-hidden">
+                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Organizaciones
+                        </h3>
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                            <input id="group-search" type="text" placeholder="Buscar por nombre, contacto o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-5 py-4">Organización</th>
+                                    <th class="px-5 py-4">Información de Contacto</th>
+                                    <th class="px-5 py-4 text-center">Registrados</th>
+                                    <th class="px-5 py-4 text-right">Administración</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
+
 
              <!-- VIEW: SMTP / EMAIL ADMIN -->
             <section id="view-smtp" class="hidden space-y-8">
@@ -333,71 +371,68 @@
                 
                 <div id="email-content-config" class="email-content hidden space-y-6">
                     <div class="card p-6 rounded-xl max-w-2xl">
-                        <form id="smtp-form" class="space-y-5">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Servidor SMTP</label>
+                        <form id="smtp-form" class="space-y-6">
+                            <h3 class="form-section-title flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)] text-lg">send</span> Configuración SMTP
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div class="form-group">
+                                    <label class="form-label">Servidor SMTP</label>
                                     <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Puerto</label>
+                                <div class="form-group">
+                                    <label class="form-label">Puerto</label>
                                     <input type="number" id="smtp-port" placeholder="587" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Usuario / Email</label>
-                                    <input type="email" id="smtp-user" placeholder="tu@email.com" class="w-full">
+                                <div class="form-group">
+                                    <label class="form-label">Usuario</label>
+                                    <input type="text" id="smtp-user" placeholder="tu@email.com" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contraseña</label>
-                                    <input type="password" id="smtp-pass" placeholder="App Password" class="w-full">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre Remitente</label>
-                                    <input type="text" id="smtp-from-name" placeholder="Check Attendance" class="w-full">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email Remitente</label>
-                                    <input type="email" id="smtp-from-email" placeholder="noreply@check.com" class="w-full">
+                                <div class="form-group">
+                                    <label class="form-label">Contraseña</label>
+                                    <input type="password" id="smtp-pass" placeholder="Contraseña" class="w-full">
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 p-3 bg-[var(--bg-hover)] rounded-lg">
+                            <div class="flex items-center gap-3 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
                                 <input type="checkbox" id="smtp-secure" class="w-4 h-4 rounded accent-[var(--primary)]">
-                                <label for="smtp-secure" class="text-xs font-medium">Usar SSL/TLS (Puerto 465)</label>
+                                <label for="smtp-secure" class="text-xs font-semibold text-[var(--text-secondary)]">Usar SSL/TLS (Puerto 465)</label>
                             </div>
-                            <div class="flex justify-end gap-3">
-                                <button type="button" id="btn-test-smtp" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-xs font-medium transition-colors">Probar Conexión</button>
-                                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+                            <div class="flex justify-end gap-3 pt-2">
+                                <button type="button" id="btn-test-smtp" class="btn-secondary">Probar Conexión</button>
+                                <button type="submit" class="btn-primary !px-6">Guardar</button>
                             </div>
                         </form>
                     </div>
                     <div class="card p-6 rounded-xl max-w-2xl">
-                        <form id="imap-form" class="space-y-5">
-                            <h3 class="text-sm font-semibold flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-[var(--primary)]">mail</span> Configuración IMAP</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Servidor IMAP</label>
+                        <form id="imap-form" class="space-y-6">
+                            <h3 class="form-section-title flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)] text-lg">mail</span> Configuración IMAP
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div class="form-group">
+                                    <label class="form-label">Servidor IMAP</label>
                                     <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Puerto</label>
+                                <div class="form-group">
+                                    <label class="form-label">Puerto</label>
                                     <input type="number" id="imap-port" placeholder="993" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Usuario</label>
+                                <div class="form-group">
+                                    <label class="form-label">Usuario</label>
                                     <input type="text" id="imap-user" placeholder="tu@email.com" class="w-full">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contraseña</label>
+                                <div class="form-group">
+                                    <label class="form-label">Contraseña</label>
                                     <input type="password" id="imap-pass" placeholder="Contraseña" class="w-full">
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 p-3 bg-[var(--bg-hover)] rounded-lg">
+                            <div class="flex items-center gap-3 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
                                 <input type="checkbox" id="imap-tls" class="w-4 h-4 rounded accent-[var(--primary)]">
-                                <label for="imap-tls" class="text-xs font-medium">Usar TLS/SSL</label>
+                                <label for="imap-tls" class="text-xs font-semibold text-[var(--text-secondary)]">Usar TLS/SSL</label>
                             </div>
-                            <div class="flex justify-end gap-3">
-                                <button type="button" id="btn-test-imap" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-xs font-medium transition-colors">Probar Conexión</button>
-                                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+                            <div class="flex justify-end gap-3 pt-2">
+                                <button type="button" id="btn-test-imap" class="btn-secondary">Probar Conexión</button>
+                                <button type="submit" class="btn-primary !px-6">Guardar</button>
                             </div>
                         </form>
                     </div>
@@ -434,15 +469,23 @@
                 </div>
             </section>
 
-             <!-- VIEW: PRE-REGISTRATIONS -->
             <section id="view-pre-registrations" class="hidden space-y-8">
-                <h1 class="text-2xl font-semibold tracking-tight">Pre-inscripciones</h1>
-                <div class="card rounded-xl overflow-hidden">
-                     <table class="w-full text-left">
-                         <thead class="bg-[var(--bg-hover)] text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                            <tr><th class="px-5 py-4">Asistente</th><th class="px-5 py-4">Empresa</th><th class="px-5 py-4">Fecha</th><th class="px-5 py-4 text-center">Estado</th><th class="px-5 py-4 text-right">Acciones</th></tr>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight">Pre-inscripciones</h1>
+                    <p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de solicitudes de acceso y registros previos.</p>
+                </div>
+                <div class="card !p-0 overflow-hidden">
+                     <table class="data-table">
+                         <thead>
+                            <tr>
+                                <th class="px-5 py-4">Asistente</th>
+                                <th class="px-5 py-4">Empresa</th>
+                                <th class="px-5 py-4">Fecha</th>
+                                <th class="px-5 py-4 text-center">Estado</th>
+                                <th class="px-5 py-4 text-right">Acciones</th>
+                            </tr>
                          </thead>
-                         <tbody id="pre-reg-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                         <tbody id="pre-reg-tbody"></tbody>
                      </table>
                 </div>
             </section>
@@ -471,35 +514,34 @@
                     <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
-            <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                <div class="flex items-center gap-3 p-3 bg-[var(--bg-hover)] rounded-lg">
-                    <div class="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center">
-                        <span class="material-symbols-outlined text-[var(--primary)]">person</span>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="flex items-center gap-4 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
+                    <div class="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center shadow-inner">
+                        <span class="material-symbols-outlined text-white text-2xl">person</span>
                     </div>
                     <div class="flex-1">
-                        <p id="mail-view-from" class="text-sm font-medium"></p>
-                        <p id="mail-view-to" class="text-xs text-[var(--text-secondary)]"></p>
+                        <p id="mail-view-from" class="text-sm font-bold text-[var(--text-main)]"></p>
+                        <p id="mail-view-to" class="text-xs text-[var(--text-secondary)] font-medium"></p>
                     </div>
-                    <p id="mail-view-date" class="text-xs text-[var(--text-muted)] font-mono"></p>
+                    <p id="mail-view-date" class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider"></p>
                 </div>
-                <div>
-                    <h4 id="mail-view-subject" class="text-base font-semibold mb-3"></h4>
-                    <div id="mail-view-body"></div>
+                <div class="space-y-4">
+                    <h4 id="mail-view-subject" class="text-lg font-bold text-[var(--text-main)] border-b border-[var(--border-light)] pb-4"></h4>
+                    <div id="mail-view-body" class="text-[var(--text-main)] leading-relaxed"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: CREATE/EDIT EVENT -->
     <div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">event</span>
-                    <h3 class="text-lg font-semibold">Nuevo Evento</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
+                    <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Gestión de Evento</h3>
                 </div>
-                <button id="btn-close-event-modal" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
@@ -617,16 +659,15 @@
         </div>
     </div>
 
-    <!-- MODAL: INVITE USER -->
     <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">person_add</span>
-                    <h3 class="text-lg font-semibold">Añadir Colaborador</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
                 </div>
-                <button id="btn-close-invite" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <form id="invite-user-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -659,16 +700,15 @@
         </div>
     </div>
 
-    <!-- MODAL: COMPANY CRUD -->
     <div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">corporate_fare</span>
-                    <h3 class="text-lg font-semibold">Empresa</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">corporate_fare</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Gestión de Empresa</h3>
                 </div>
-                <button id="btn-close-company" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -676,6 +716,10 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre</label>
                     <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Descripción</label>
+                    <textarea id="company-description" placeholder="Breve descripción..." class="input-field w-full" rows="2"></textarea>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
@@ -700,29 +744,30 @@
         </div>
     </div>
 
-    <!-- MODAL: LEGAL -->
     <div id="modal-legal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
-                <h3 id="modal-legal-title" class="text-lg font-semibold">Legal</h3>
-                <button id="btn-close-legal" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">gavel</span>
+                    <h3 id="modal-legal-title" class="text-sm font-bold uppercase tracking-wider">Documento Legal</h3>
+                </div>
+                <button id="btn-close-legal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div id="modal-legal-content" class="p-5 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
-    <!-- MODAL: QR DISPLAY -->
     <div id="modal-qr" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">qr_code</span>
-                    <h3 class="text-lg font-semibold">Código QR</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">qr_code</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Código QR</h3>
                 </div>
-                <button id="btn-close-qr" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-qr" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div class="p-5 flex flex-col items-center justify-center flex-1">
@@ -731,16 +776,15 @@
         </div>
     </div>
 
-    <!-- MODAL: QR SCANNER -->
     <div id="modal-qr-scanner" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-lg max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">qr_code_scanner</span>
-                    <h3 class="text-lg font-semibold">Escanear QR</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">qr_code_scanner</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Escáner de Acceso</h3>
                 </div>
-                <button id="btn-stop-scanner" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-stop-scanner" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div class="p-5 flex flex-col items-center justify-center flex-1 space-y-4">
@@ -757,32 +801,30 @@
         </div>
     </div>
 
-    <!-- MODAL: TICKET VIEWER -->
     <div id="modal-ticket" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">confirmation_number</span>
-                    <h3 class="text-lg font-semibold">Entrada</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">confirmation_number</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Entrada Digital</h3>
                 </div>
-                <button id="btn-close-ticket" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-ticket" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div id="ticket-content" class="p-5 flex flex-col items-center justify-center flex-1"></div>
         </div>
     </div>
 
-    <!-- MODAL: IMPORT RESULTS -->
     <div id="modal-import-results" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">upload_file</span>
-                    <h3 class="text-lg font-semibold">Importación</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">upload_file</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Resultado de Importación</h3>
                 </div>
-                <button id="btn-close-import-results" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-import-results" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div id="import-results-content" class="p-5 overflow-y-auto flex-1 space-y-3"></div>
@@ -825,13 +867,12 @@
         </div>
     </div>
 
-    <!-- MODAL: IMPORT MAPPING -->
     <div id="modal-import-mapping" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">table_chart</span>
-                    <h3 class="text-lg font-semibold">Mapear Columnas</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">table_chart</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Mapear Columnas</h3>
                 </div>
             </div>
             <div class="p-5 overflow-y-auto flex-1">
@@ -852,40 +893,39 @@
         </div>
     </div>
 
-    <!-- MODAL: TEMPLATE EDITOR -->
     <div id="modal-template-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                    <h3 id="template-editor-title" class="text-lg font-semibold">Editar Plantilla</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
+                    <h3 id="template-editor-title" class="text-sm font-bold uppercase tracking-wider">Editar Plantilla</h3>
                 </div>
-                <button id="btn-close-template-editor" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-template-editor" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
-            <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre</label>
-                        <input type="text" id="tpl-name" placeholder="Nombre de plantilla" class="input-field w-full">
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label">Nombre de Plantilla</label>
+                        <input type="text" id="tpl-name" placeholder="Ej: Invitación VIP" class="input-field w-full">
                     </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Asunto</label>
-                        <input type="text" id="tpl-subject" placeholder="Asunto del email" class="input-field w-full">
+                    <div class="form-group">
+                        <label class="form-label">Asunto del Email</label>
+                        <input type="text" id="tpl-subject" placeholder="Ej: ¡Te esperamos!" class="input-field w-full">
                     </div>
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contenido</label>
-                    <div id="tpl-quill-editor" class="bg-[var(--bg-hover)] rounded-lg min-h-[180px]"></div>
+                <div class="form-group">
+                    <label class="form-label">Contenido (Rich Text)</label>
+                    <div id="tpl-quill-editor" class="bg-[var(--bg-input)] rounded-xl border border-[var(--border)] min-h-[220px] overflow-hidden"></div>
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Variables disponibles</label>
-                    <div class="flex flex-wrap gap-2 text-xs">
-                        <span class="px-2 py-1 bg-[var(--bg-hover)] rounded text-[var(--text-secondary)]">{{guest_name}}</span>
-                        <span class="px-2 py-1 bg-[var(--bg-hover)] rounded text-[var(--text-secondary)]">{{event_name}}</span>
-                        <span class="px-2 py-1 bg-[var(--bg-hover)] rounded text-[var(--text-secondary)]">{{event_date}}</span>
-                        <span class="px-2 py-1 bg-[var(--bg-hover)] rounded text-[var(--text-secondary)]">{{ticket_id}}</span>
+                <div class="form-group">
+                    <label class="form-label">Etiquetas Dinámicas</label>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{guest_name}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{event_name}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{event_date}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{ticket_id}}</span>
                     </div>
                 </div>
             </div>
@@ -896,16 +936,15 @@
         </div>
     </div>
 
-    <!-- MODAL: EVENT EMAIL CONFIG -->
     <div id="modal-event-email" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">email</span>
-                    <h3 class="text-lg font-semibold">Email del Evento</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">email</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Email del Evento</h3>
                 </div>
-                <button id="btn-close-event-email" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-event-email" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <div class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -939,16 +978,15 @@
         </div>
     </div>
 
-    <!-- MODAL: SURVEY EDITOR -->
     <div id="modal-survey-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <div class="premium-modal-header">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)]">quiz</span>
-                    <h3 class="text-lg font-semibold">Pregunta</h3>
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">quiz</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Editar Pregunta</h3>
                 </div>
-                <button id="btn-close-survey-editor" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                 </button>
             </div>
             <form id="survey-form" class="p-5 overflow-y-auto flex-1 space-y-4">
@@ -1003,3 +1041,5 @@
     </div>
 
 </div>
+
+<script type="module" src="/script.js?v=12.3.1"></script>

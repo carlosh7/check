@@ -425,8 +425,8 @@ app.use(helmet({
         useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "wss:", "https:"],
@@ -572,10 +572,17 @@ registerRoutes(app);
 app.use((req, res, next) => {
     if (req.path === '/registro.html') return res.sendFile(path.join(__dirname, 'registro.html'));
     if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'survey.html'));
+    
+    // Solo servir index.html para rutas que no son API/social y que aceptan HTML
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    } else { next(); }
+        const accept = req.headers.accept || '';
+        if (accept.includes('text/html')) {
+            return res.sendFile(path.join(__dirname, 'index.html'));
+        }
+    }
+    next();
 });
+
 
 // ═══ RUTAS INLINE NECESARIAS (requieren acceso directo a variables de server.js) ═══
 // - /                   → SPA root (usa path.join(__dirname, 'index.html'))
