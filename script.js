@@ -3766,6 +3766,8 @@ window.App = {
     },
 };
 
+window.switchSystemTab = App.switchSystemTab.bind(App);
+
 window.switchAdminTab = function(tabName) {
     console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
     const mainDash = document.getElementById('admin-main-dashboard');
