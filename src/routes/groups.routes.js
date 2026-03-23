@@ -6,6 +6,7 @@ const express = require('express');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
+const { CACHE_KEYS, del } = require('../utils/cache');
 
 const router = express.Router();
 
@@ -86,6 +87,26 @@ router.delete('/:groupId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']),
     const userId = castId('users', req.params.userId);
     
     db.prepare("DELETE FROM group_users WHERE group_id = ? AND user_id = ?").run(groupId, userId);
+    res.json({ success: true });
+});
+
+// Asignar eventos a un grupo (Mutabilidad Empresarial V12.5.0)
+router.put('/:groupId/events', authMiddleware(['ADMIN']), async (req, res) => {
+    const groupId = castId('groups', req.params.groupId);
+    const { events } = req.body;
+    
+    // Primero, liberar todos los eventos actuales de esta empresa
+    db.prepare("UPDATE events SET group_id = NULL WHERE group_id = ?").run(groupId);
+    
+    // Asignar los nuevos eventos
+    if (events && Array.isArray(events) && events.length > 0) {
+        const placeholders = events.map(() => '?').join(',');
+        db.prepare(`UPDATE events SET group_id = ? WHERE id IN (${placeholders})`).run(groupId, ...events);
+    }
+    
+    // Invalidate caches
+    await del(CACHE_KEYS.EVENT_LIST);
+    
     res.json({ success: true });
 });
 

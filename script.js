@@ -342,25 +342,34 @@ const App = window.App = {
         }
     },
     
-    // Cargar empresas con usuarios
+    // Cargar empresas con usuarios y eventos
     loadGroups: async function() {
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
+            const events = await this.fetchAPI('/events');
             if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
+            this.state.allEvents = events;
             
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.group_id === g.id);
                     const userChips = groupUsers.map(u => `
-                        <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-[10px] font-bold rounded-md border border-[var(--border)]">
-                            <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[8px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-semibold rounded-md border border-[var(--border)] shadow-sm">
+                            <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
                             ${u.display_name || u.username}
-                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="hover:text-red-500 transition-colors ml-1 font-bold">×</button>
+                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="hover:text-red-500 transition-colors ml-1.5 font-bold text-sm leading-none flex items-center">&times;</button>
+                        </span>`).join('');
+                    
+                    const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
+                    const eventChips = groupEvents.map(e => `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                            <button data-action="removeEventFromCompany" data-event-id="${e.id}" data-group-id="${g.id}" class="hover:text-red-500 ml-1.5 text-sm leading-none flex items-center">&times;</button>
                         </span>`).join('');
                     
                     return `
@@ -373,14 +382,18 @@ const App = window.App = {
                             <div class="text-[var(--text-main)] text-xs font-medium">${g.email || '-'}</div>
                             <div class="text-[var(--text-secondary)] text-[11px] mt-0.5">${g.phone || ''}</div>
                         </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
+                            <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin usuarios</span>'}</div>
+                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Usuario</button>
+                        </td>
                         <td class="px-6 py-4 text-center">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                                 ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                             </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${userChips || '<span class="text-[10px] text-[var(--text-secondary)]">Sin usuarios</span>'}</div>
-                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 px-2 py-1 bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white rounded-md text-[10px] font-bold transition-all">+ Usuario</button>
                         </td>
                         <td class="px-6 py-4 text-right">
                             <button data-action="openCompanyModal" data-group-id="${g.id}" class="px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-main)] hover:bg-[var(--border)] rounded-lg text-xs font-bold transition-all">Editar</button>
@@ -397,6 +410,23 @@ const App = window.App = {
             await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
             this.loadGroups();
         } catch(e) { console.error('Error removing user from group:', e); }
+    },
+    
+    removeEventFromCompany: async function(eventId, groupId) {
+        if(eventId && typeof eventId === 'object') {
+            const btn = eventId.target.closest('[data-action]');
+            eventId = btn.dataset.eventId;
+            groupId = btn.dataset.groupId;
+        }
+        if (!confirm('¿Desvincular este evento de la empresa?')) return;
+        try {
+            const events = this.state.allEvents.filter(e => String(e.group_id) === String(groupId));
+            const newEvents = events.filter(e => String(e.id) !== String(eventId)).map(e => e.id);
+            await this.fetchAPI(`/groups/${groupId}/events`, { 
+                method: 'PUT', body: JSON.stringify({ events: newEvents })
+            });
+            this.loadGroups();
+        } catch(e) { console.error('Error', e); }
     },
     
     showUserSelectorForGroup: function(groupId) {
@@ -448,8 +478,196 @@ const App = window.App = {
     closeUserSelectorGroup: function() {
         document.getElementById('modal-user-selector-group')?.remove();
     },
+
+    showEventSelectorForCompany: async function(groupId) {
+        if(groupId && typeof groupId === 'object') groupId = groupId.target?.closest('[data-action]')?.dataset.groupId;
+        const groups = this.state.groups || [];
+        const group = groups.find(g => String(g.id) === String(groupId));
+        if(!group) return;
+        
+        const allEvents = this.state.allEvents || [];
+        
+        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
+        allEvents.forEach(e => {
+            const isChecked = String(e.group_id) === String(groupId) ? 'checked' : '';
+            html += `
+                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
+                    <input type="checkbox" class="company-event-multi w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent" value="${e.id}" ${isChecked}>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold text-[var(--text-main)]">${e.name}</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">${e.date}</span>
+                    </div>
+                </label>
+            `;
+        });
+        html += '</div>';
+
+        const { value: selectedEvents, isConfirmed } = await Swal.fire({
+            title: '<span class="text-[var(--text-main)] font-black text-xl">Eventos de Empresa</span>',
+            html: html,
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Configuración',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
+                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
+                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
+            },
+            preConfirm: () => {
+                const checkboxes = document.querySelectorAll('.company-event-multi');
+                return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            }
+        });
+
+        if (isConfirmed && selectedEvents) {
+            try {
+                const res = await this.fetchAPI(`/groups/${groupId}/events`, { 
+                    method: 'PUT', 
+                    body: JSON.stringify({ events: selectedEvents }) 
+                });
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success', title: '¡Operación Exitosa!', text: 'Eventos asignados a la empresa.',
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
+                    });
+                    this.loadGroups();
+                } else alert('Error: ' + res.error);
+            } catch(e) { console.error(e); }
+        }
+    },
     
-    // --- EVENT USER MANAGEMENT V10.6 ---
+    // --- EVENT USER MANAGEMENT V10.6 & V12.5.0 ---
+    
+    // Checklist Modal para asignar Usuarios a un Evento
+    showEventSelector: async function(userId) {
+        if(userId && typeof userId === 'object') userId = userId.target?.closest('[data-action]')?.dataset.userId; // Fallback x Event
+        const users = this.state.allUsers || [];
+        const user = users.find(u => String(u.id) === String(userId));
+        if(!user) return;
+        const events = this.state.allEvents || [];
+        const userEvents = user.events ? user.events.map(e=>String(e)) : [];
+        
+        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
+        events.forEach(e => {
+            const isChecked = userEvents.includes(String(e.id)) ? 'checked' : '';
+            html += `
+                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
+                    <input type="checkbox" class="event-checkbox-multi w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent" value="${e.id}" ${isChecked}>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold text-[var(--text-main)]">${e.name}</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">${e.date}</span>
+                    </div>
+                </label>
+            `;
+        });
+        html += '</div>';
+
+        const { value: selectedEvents, isConfirmed } = await Swal.fire({
+            title: '<span class="text-[var(--text-main)] font-black text-xl">Asignar Eventos</span>',
+            html: html,
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Configuración',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
+                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
+                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
+            },
+            preConfirm: () => {
+                const checkboxes = document.querySelectorAll('.event-checkbox-multi');
+                return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            }
+        });
+
+        if (isConfirmed && selectedEvents) {
+            try {
+                const res = await this.fetchAPI(`/users/${userId}/events`, { 
+                    method: 'PUT', 
+                    body: JSON.stringify({ events: selectedEvents }) 
+                });
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success', title: '¡Operación Exitosa!', text: 'Los eventos han sido asignados correctamente.',
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
+                    });
+                    this.loadUsersTable();
+                } else alert('Error: ' + res.error);
+            } catch(e) { console.error(e); }
+        }
+    },
+
+    showGroupSelector: async function(userId) {
+        if(userId && typeof userId === 'object') userId = userId.target?.closest('[data-action]')?.dataset.userId; // Fallback
+        const users = this.state.allUsers || [];
+        const user = users.find(u => String(u.id) === String(userId));
+        if(!user) return;
+        const groups = this.state.allGroups || [];
+        
+        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
+        const isNoneChecked = !user.group_id ? 'checked' : '';
+        html += `
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
+                <input type="radio" name="group-radio-multi" class="w-5 h-5 border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent cursor-pointer" value="" ${isNoneChecked}>
+                <span class="text-sm font-bold text-[var(--text-muted)] italic">-- Sin Empresa Asignada --</span>
+            </label>
+        `;
+
+        groups.forEach(g => {
+            const isChecked = String(user.group_id) === String(g.id) ? 'checked' : '';
+            html += `
+                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
+                    <input type="radio" name="group-radio-multi" class="w-5 h-5 border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent cursor-pointer" value="${g.id}" ${isChecked}>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold text-[var(--text-main)]">${g.name}</span>
+                    </div>
+                </label>
+            `;
+        });
+        html += '</div>';
+
+        const { value: selectedGroup, isConfirmed } = await Swal.fire({
+            title: '<span class="text-[var(--text-main)] font-black text-xl">Asignar Empresa</span>',
+            html: html,
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Configuración',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
+                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
+                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
+            },
+            preConfirm: () => {
+                const radio = document.querySelector('input[name="group-radio-multi"]:checked');
+                return radio ? radio.value : null;
+            }
+        });
+
+        if (isConfirmed) {
+            try {
+                if(user.group_id && user.group_id !== selectedGroup) {
+                    await this.fetchAPI(`/groups/${user.group_id}/users/${userId}`, { method: 'DELETE' });
+                }
+                if(selectedGroup) {
+                    await this.fetchAPI(`/groups/${selectedGroup}/users`, { 
+                        method: 'POST', body: JSON.stringify({ userId, role_in_group: user.role })
+                    });
+                }
+                Swal.fire({
+                    icon: 'success', title: 'Empresa Actualizada', toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
+                });
+                this.loadUsersTable();
+                this.loadGroups();
+            } catch(e) { console.error(e); }
+        }
+    },
+    
     showUserSelectorForEvent: function(eventId) {
         const users = this.state.allUsers || [];
         const eventUsers = users.filter(u => u.events && u.events.includes(eventId));
@@ -612,9 +830,9 @@ const App = window.App = {
                 // --- EVENTOS (Para Columna 1) ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-hover)] border border-[var(--border)] text-[9px] font-medium rounded text-[var(--text-secondary)] mt-1">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] mt-1 shadow-sm">
                         ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="hover:text-red-500 ml-1 text-xs leading-none">&times;</button>` : ''}
+                        ${canEdit ? `<button data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="hover:text-red-500 ml-1.5 text-sm leading-none flex items-center">&times;</button>` : ''}
                     </span>
                 `).join('');
 
@@ -628,10 +846,10 @@ const App = window.App = {
                 // --- COLUMNA 2: ROL / ACCESO ---
                 const userGroup = groups.find(g => String(g.id) === String(u.group_id));
                 const groupDisplay = userGroup ? `
-                    <span class="material-symbols-outlined text-[13px] text-[var(--text-secondary)]">corporate_fare</span>
-                    <span class="truncate max-w-[120px]" title="${userGroup.name}">${userGroup.name}</span>
-                    ${canEdit ? `<button data-action="removeUserGroup" data-user-id="${u.id}" class="hover:text-red-500 font-bold ml-1 text-xs leading-none">&times;</button>` : ''}
-                ` : `<span class="italic text-[var(--text-muted)]">Sin Empresa</span>`;
+                    <span class="material-symbols-outlined text-[16px] text-[var(--text-secondary)]">corporate_fare</span>
+                    <span class="truncate max-w-[150px] text-xs font-bold" title="${userGroup.name}">${userGroup.name}</span>
+                    ${canEdit ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="hover:text-red-500 font-bold ml-1 text-sm leading-none flex items-center">&times;</button>` : ''}
+                ` : `<span class="italic text-[var(--text-muted)] text-xs">Sin Empresa</span>`;
 
                 const roleSelect = canEdit ? `
                     <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-medium rounded px-2 py-1 border border-[var(--border)] outline-none w-[130px] focus:border-[var(--primary)] mt-1.5">
