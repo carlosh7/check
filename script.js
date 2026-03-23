@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.1
+ * Version: V12.3.2
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.3.1: Iniciando Sistema Modular...');
+console.log('CHECK V12.3.2: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 window.App = {
@@ -21,7 +21,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.1',
+        version: '12.3.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -548,7 +548,8 @@ window.App = {
     
     renderUsersTable: function(users, groups, events) {
         if (!this.state.user) return; // No renderizar si no hay sesión
-        // Cargar opciones de filtros si no existen
+        
+        // Sincronizar filtros de la interfaz
         const filterGroup = document.getElementById('filter-group');
         const filterEvent = document.getElementById('filter-event');
         
@@ -566,21 +567,28 @@ window.App = {
             filterEvent.value = currentVal;
         }
         
+        // Gestión de solicitudes pendientes (Amber Style)
         const pending = users.filter(u => u.status === 'PENDING');
         const badge = document.getElementById('pending-badge');
         const pendingSection = document.getElementById('pending-requests-section');
         const pendingList = document.getElementById('pending-users-list');
+        
         if (badge) badge.classList.toggle('hidden', pending.length === 0);
         if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
-        if (pendingList) {
+        if (pendingList && pending.length > 0) {
             pendingList.innerHTML = pending.map(u => `
-                <div class="flex items-center justify-between card p-4 mb-3 border-amber-200/50 dark:border-amber-800/20 bg-amber-50/10 active-hover">
-                    <div>
-                        <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
-                        <p class="text-[11px] text-[var(--text-secondary)] font-mono">${u.username}</p>
+                <div class="flex items-center justify-between glass-card p-4 mb-3 border-amber-500/20 bg-amber-500/5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
+                            <span class="material-symbols-outlined">person_add</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-white">${u.display_name || u.username}</p>
+                            <p class="text-[10px] text-slate-400 font-mono">${u.username}</p>
+                        </div>
                     </div>
                     <div class="flex gap-2">
-                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="btn-primary px-4 py-1.5 text-[11px]">Aprobar</button>
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-4 py-2 bg-amber-500 text-white font-bold text-[10px] rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition-all">APROBAR ACCESO</button>
                     </div>
                 </div>`).join('');
         }
@@ -590,107 +598,106 @@ window.App = {
         const isProductor = this.state.user.role === 'PRODUCTOR';
         
         if (tbody) {
-            tbody.innerHTML = users.map((u, index) => {
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-slate-500 font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map((u) => {
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                 
-                // Chips de empresa asignada
-                const userGroup = groups.find(g => String(g.id) === String(u.group_id));
-                const groupChip = userGroup ? `
-                    <div class="flex items-center gap-1 flex-wrap">
-                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-white text-[10px] rounded-lg">
-                            ${userGroup.name}
-                            <button data-action="removeUserGroup" data-user-id="${u.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar empresa">×</button>
-                        </span>
-                    </div>` : `<span class="text-[10px] text-slate-500">Sin empresa</span>`;
-                const groupSelect = isAdmin && canEdit ? `
-                    <div class="mb-2">${groupChip}</div>
-                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Asignar empresa">+ Asignar</button>` : 
-                    `<div class="mb-2">${groupChip}</div>`;
-                
-                // Chips de eventos asignados
+                // --- COLUMNA 1: PERFIL & EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
-                const eventChips = userEvents.map(e => 
-                    `<span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-[10px] rounded-lg mb-1">
-                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        <button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-300 rounded-full text-[8px] font-bold ml-1" title="Quitar evento">×</button>
-                    </span>`
-                ).join('');
-                const eventSelect = canEdit ? `
-                    <div class="flex items-start gap-1">
-                        <div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>
-                    </div>
-                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || []).replace(/'/g, "&apos;")}' class="mt-1 px-2 py-1 bg-primary/20 text-primary hover:bg-primary/40 rounded-lg text-[10px] font-bold" title="Agregar evento">+ Agregar</button>` : 
-                    `<div class="flex flex-wrap gap-1">${eventChips || '<span class="text-[10px] text-slate-500">Sin eventos</span>'}</div>`;
-                
-                // Selector de rol
-                const roleSelect = canEdit ? 
-                    `<select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-800 text-white text-[11px] font-bold rounded-lg px-2 py-1.5 border border-white/10">
+                const eventChips = userEvents.map(e => `
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold rounded-lg group/chip">
+                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
+                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center hover:bg-red-500/20 text-red-400 rounded-full transition-colors">×</button>` : ''}
+                    </span>
+                `).join('');
+
+                const eventActions = canEdit ? `
+                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="mt-2 text-[10px] font-black text-primary hover:text-white uppercase tracking-tighter flex items-center gap-1 transition-all">
+                        <span class="material-symbols-outlined text-[14px]">add_circle</span> Agregar Evento
+                    </button>` : '';
+
+                // --- COLUMNA 2: EMPRESA ---
+                const userGroup = groups.find(g => String(g.id) === String(u.group_id));
+                const groupDisplay = userGroup ? `
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 border border-white/5 rounded-xl">
+                        <span class="material-symbols-outlined text-xs text-slate-400">corporate_fare</span>
+                        <span class="text-xs font-bold text-white">${userGroup.name}</span>
+                        ${canEdit ? `
+                        <button data-action="removeUserGroup" data-user-id="${u.id}" class="ml-1 text-red-400 hover:text-red-300 transition-colors">
+                            <span class="material-symbols-outlined text-sm">cancel</span>
+                        </button>` : ''}
+                    </div>` : `
+                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-3 py-1.5 border border-dashed border-white/5 rounded-xl inline-block">Sin Empresa</div>`;
+
+                const groupActions = (isAdmin && canEdit) ? `
+                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="mt-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-tighter flex items-center gap-1 transition-all">
+                        <span class="material-symbols-outlined text-[14px]">business</span> Asignar Empresa
+                    </button>` : '';
+
+                // --- COLUMNA 3: ROL & ESTADO ---
+                const roleSelect = canEdit ? `
+                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-900/50 text-white text-[11px] font-black rounded-xl px-3 py-2 border border-white/10 focus:border-primary/50 outline-none transition-all">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                    </select>` : 
-                    `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : u.role === 'PRODUCTOR' ? 'bg-primary/20 text-primary' : 'bg-slate-500/20 text-slate-300'}">${u.role}</span>`;
-                
-                // Badge de estado
-                const statusLabel = u.status === 'APPROVED' ? 'Aprobado' : u.status === 'PENDING' ? 'Pendiente' : 'Rechazado';
-                const statusBadge = `<span class="px-2 py-1.5 rounded-lg text-[11px] font-bold ${u.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : u.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">${statusLabel}</span>`;
-                
-                // Botón activar/desactivar
-                const actionBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 rounded-lg text-[11px] font-bold">Activar</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded-lg text-[11px] font-bold">Desactivar</button>`) : '';
-                
-                const eventCountBadge = u.events && u.events.length > 0 ? 
-                    `<span class="ml-1 px-1.5 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-bold">${u.events.length}</span>` : '';
-                
-                // Línea separadora sutil
-                const separator = index > 0 ? '<div class="border-t border-white/5"></div>' : '';
-                
+                    </select>` : `
+                    <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${u.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-primary/10 text-primary border border-primary/20'}">${u.role}</span>`;
+
+                const statusLabel = u.status === 'APPROVED' ? 'ACTIVO' : u.status === 'PENDING' ? 'PENDIENTE' : 'SUSPENDIDO';
+                const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black border ${u.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : u.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}">${statusLabel}</span>`;
+
+                const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-2 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase transition-all">Activar Usuario</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase transition-all">Suspender</button>`) : '';
+
                 return `
-                <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
-                    <td class="px-6 py-5">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)] to-[#4285f4] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                <tr class="group hover:bg-white/[0.02] transition-all border-b border-white/5 last:border-none">
+                    <td class="px-6 py-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary/20 to-blue-500/20 border border-white/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover:scale-105 transition-transform">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <div class="flex items-center gap-2">
-                                    <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
-                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-md ${u.role === 'ADMIN' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-[var(--primary-light)] text-[var(--primary)]'}">${u.role}</span>
-                                </div>
-                                <p class="text-[11px] text-[var(--text-secondary)] font-mono">${u.username}</p>
+                                <h4 class="font-bold text-white text-sm">${u.display_name || u.username}</h4>
+                                <p class="text-[11px] text-slate-500 font-mono tracking-tight">${u.username}</p>
                             </div>
                         </div>
-                        <div class="ml-14">
-                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest flex items-center">Eventos asignados ${eventCountBadge}</p>
-                            ${eventSelect}
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-slate-600 font-bold italic">Sin eventos asignados</span>'}</div>
+                            ${eventActions}
                         </div>
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <div class="mb-4">
-                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Configuración de Rol</p>
-                            ${roleSelect}
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Empresa / Grupo</p>
-                            ${groupSelect}
+                    <td class="px-6 py-6 align-top">
+                        <div class="mt-1">
+                            ${groupDisplay}
+                            ${groupActions}
                         </div>
                     </td>
-                    <td class="px-6 py-5 align-top">
-                        <div class="mb-4">
-                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Estado Actual</p>
-                            ${statusBadge}
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-2 tracking-widest">Control de Acceso</p>
-                            ${actionBtn}
+                    <td class="px-6 py-6 align-top">
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Permisos & Rol</p>
+                                ${roleSelect}
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Estado de Acceso</p>
+                                <div class="flex flex-col">
+                                    <div class="flex">${statusBadge}</div>
+                                    ${accessBtn}
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>`;
             }).join('');
         }
     },
+
     
     // Filtrar usuarios
     filterUsers: function() {
@@ -821,20 +828,35 @@ window.App = {
         
         const modal = document.createElement('div');
         modal.id = 'modal-select-group';
-        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
         modal.innerHTML = `
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">folder</span> Asignar Empresa
-                </h3>
-                <select id="select-group-target" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
-                    <option value="">-- Seleccionar empresa --</option>
-                    ${options}
-                </select>
-                <div class="flex gap-3">
-                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
-                    <button data-action="navigateToCreateGroup" data-user-id="${userId}" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
-                    <button data-action="closeGroupSelector" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresa</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Gestión de Colaboradores</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Organización</label>
+                        <select id="select-group-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
+                            <option value="">-- Sin asignar --</option>
+                            ${options}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <div class="flex gap-3">
+                        <button data-action="navigateToCreateGroup" data-user-id="${userId}" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button data-action="closeGroupSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    </div>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -898,20 +920,35 @@ window.App = {
         
         const modal = document.createElement('div');
         modal.id = 'modal-select-event';
-        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
+        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
         modal.innerHTML = `
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">event</span> Agregar Evento
-                </h3>
-                <select id="select-event-target" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
-                    <option value="">-- Seleccionar evento --</option>
-                    ${options}
-                </select>
-                <div class="flex gap-3">
-                    <button data-action="assignEventFromSelector" data-user-id="${userId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
-                    <button data-action="navigateToCreateEvent" data-user-id="${userId}" class="px-4 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">+ Crear</button>
-                    <button data-action="closeEventSelector" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">event_available</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight">Agregar Evento</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Permisos de Producción</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Evento</label>
+                        <select id="select-event-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
+                            <option value="">-- Seleccionar --</option>
+                            ${options}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button data-action="assignEventFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Vincular Evento</button>
+                    <div class="flex gap-3">
+                        <button data-action="navigateToCreateEvent" data-user-id="${userId}" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Evento</button>
+                        <button data-action="closeEventSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    </div>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -2243,7 +2280,9 @@ window.App = {
         // UI Sidebar
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active', 'bg-primary/10', 'text-primary'));
         let btnId = 'nav-btn-' + viewName;
-        if (['legal', 'account'].includes(viewName)) btnId = 'nav-btn-system';
+        if (viewName === 'system') btnId = 'nav-btn-groups'; // Redirige a Empresas/Grupos por defecto
+        if (viewName === 'legal') btnId = 'nav-btn-legal';
+        if (viewName === 'account') btnId = 'nav-btn-account';
         if (viewName === 'smtp') btnId = 'nav-btn-smtp';
         
         const activeBtn = document.getElementById(btnId);
@@ -2486,57 +2525,66 @@ window.App = {
             
             const action = target.dataset.action;
             const p = target.dataset; // shortcut to dataset
+            const _App = window.App; // Garantizar acceso al objeto global
             
-            switch(action) {
-                // Groups management
-                case 'removeUserFromGroup': App.removeUserFromGroup(p.userId, p.groupId); break;
-                case 'showUserSelectorForGroup': App.showUserSelectorForGroup(p.groupId); break;
-                case 'openCompanyModal': App.openCompanyModal(p.groupId); break;
-                case 'assignUserToGroupFromSelector': App.assignUserToGroupFromSelector(p.groupId); break;
-                case 'closeUserSelectorGroup': App.closeUserSelectorGroup(); break;
-                case 'assignUserToEventFromSelector': App.assignUserToEventFromSelector(p.eventId); break;
-                case 'closeUserSelectorEvent': App.closeUserSelectorEvent(); break;
-                
-                // Users management
-                case 'approveUser': App.approveUser(p.userId, p.status); break;
-                case 'removeUserGroup': App.removeUserGroup(p.userId); break;
-                case 'showGroupSelector': App.showGroupSelector(p.userId, p.groupId || ''); break;
-                case 'removeUserEvent': App.removeUserEvent(p.userId, p.eventId); break;
-                case 'showEventSelector': App.showEventSelector(p.userId, JSON.parse(p.events || '[]')); break;
-                case 'assignUserGroupFromSelector': App.assignUserGroupFromSelector(p.userId); break;
-                case 'navigateToCreateGroup': App.navigateToCreateGroup(p.userId); break;
-                case 'closeGroupSelector': App.closeGroupSelector(); break;
-                case 'assignEventFromSelector': App.assignEventFromSelector(p.userId); break;
-                case 'navigateToCreateEvent': App.navigateToCreateEvent(p.userId); break;
-                case 'closeEventSelector': App.closeEventSelector(); break;
-                
-                // Email
-                case 'viewMailDetail': App.viewMailDetail(p.mailId); break;
-                case 'insertVariable': App.insertVariable(p.varName); break;
-                case 'showTemplateEditor': App.showTemplateEditor(p.templateId, p.templateName); break;
-                case 'deleteEmailTemplate': App.deleteEmailTemplate(p.templateId); break;
-                case 'saveEventEmailTemplate': App.saveEventEmailTemplate(p.templateType); break;
-                case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
-                
-                // Pre-reg
-                case 'updatePreRegStatus': App.updatePreRegStatus(p.prId, p.status); break;
-                
-                // Survey
-                case 'openSurveyEditor': App.openSurveyEditor(p.questionId); break;
-                case 'deleteSurveyQuestion': App.deleteSurveyQuestion(p.questionId); break;
-                
-                // Events
-                case 'openEvent': window.App.openEvent(p.eventId); break;
-                case 'editEvent': window.App.editEvent(p.eventId); break;
-                case 'deleteEvent': window.App.deleteEvent(p.eventId); break;
-                case 'copyRegistrationLink': window.App.copyRegistrationLink(p.eventId); break;
-                case 'showUserSelectorForEvent': window.App.showUserSelectorForEvent(p.eventId); break;
-                
-                // Guests
-                case 'generateCertificate': App.generateCertificate(p.guestId); break;
-                case 'showTicket': App.showTicket(p.guestId); break;
-                case 'editGuest': App.editGuest(p.guestId); break;
-                case 'deleteGuest': App.deleteGuest(p.guestId); break;
+            try {
+                switch(action) {
+                    // Groups management
+                    case 'removeUserFromGroup': _App.removeUserFromGroup(p.userId, p.groupId); break;
+                    case 'showUserSelectorForGroup': _App.showUserSelectorForGroup(p.groupId); break;
+                    case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
+                    case 'assignUserToGroupFromSelector': _App.assignUserToGroupFromSelector(p.groupId); break;
+                    case 'closeUserSelectorGroup': _App.closeUserSelectorGroup(); break;
+                    case 'assignUserToEventFromSelector': _App.assignUserToEventFromSelector(p.eventId); break;
+                    case 'closeUserSelectorEvent': _App.closeUserSelectorEvent(); break;
+                    
+                    // Users management
+                    case 'approveUser': _App.approveUser(p.userId, p.status); break;
+                    case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
+                    case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
+                    case 'removeUserEvent': _App.removeUserEvent(p.userId, p.eventId); break;
+                    case 'showEventSelector': 
+                        let evs = [];
+                        try { evs = JSON.parse(p.events || '[]'); } catch(e) { console.error("Error parsing events", e); }
+                        _App.showEventSelector(p.userId, evs); 
+                        break;
+                    case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
+                    case 'navigateToCreateGroup': _App.navigateToCreateGroup(p.userId); break;
+                    case 'closeGroupSelector': _App.closeGroupSelector(); break;
+                    case 'assignEventFromSelector': _App.assignEventFromSelector(p.userId); break;
+                    case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
+                    case 'closeEventSelector': _App.closeEventSelector(); break;
+                    
+                    // Email
+                    case 'viewMailDetail': _App.viewMailDetail(p.mailId); break;
+                    case 'insertVariable': _App.insertVariable(p.varName); break;
+                    case 'showTemplateEditor': _App.showTemplateEditor(p.templateId, p.templateName); break;
+                    case 'deleteEmailTemplate': _App.deleteEmailTemplate(p.templateId); break;
+                    case 'saveEventEmailTemplate': _App.saveEventEmailTemplate(p.templateType); break;
+                    case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
+                    
+                    // Pre-reg
+                    case 'updatePreRegStatus': _App.updatePreRegStatus(p.prId, p.status); break;
+                    
+                    // Survey
+                    case 'openSurveyEditor': _App.openSurveyEditor(p.questionId); break;
+                    case 'deleteSurveyQuestion': _App.deleteSurveyQuestion(p.questionId); break;
+                    
+                    // Events
+                    case 'openEvent': _App.openEvent(p.eventId); break;
+                    case 'editEvent': _App.editEvent(p.eventId); break;
+                    case 'deleteEvent': _App.deleteEvent(p.eventId); break;
+                    case 'copyRegistrationLink': _App.copyRegistrationLink(p.eventId); break;
+                    case 'showUserSelectorForEvent': _App.showUserSelectorForEvent(p.eventId); break;
+                    
+                    // Guests
+                    case 'generateCertificate': _App.generateCertificate(p.guestId); break;
+                    case 'showTicket': _App.showTicket(p.guestId); break;
+                    case 'editGuest': _App.editGuest(p.guestId); break;
+                    case 'deleteGuest': _App.deleteGuest(p.guestId); break;
+                }
+            } catch(err) {
+                console.error("[DELEGATION] Error executing action:", action, err);
             }
         });
 
