@@ -3,7 +3,7 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.2
+ * Version: V12.3.2.1
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -21,7 +21,7 @@ window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.2',
+        version: '12.3.2.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -2280,7 +2280,7 @@ window.App = {
         // UI Sidebar
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active', 'bg-primary/10', 'text-primary'));
         let btnId = 'nav-btn-' + viewName;
-        if (viewName === 'system') btnId = 'nav-btn-groups'; // Redirige a Empresas/Grupos por defecto
+        if (viewName === 'system') btnId = 'nav-btn-system';
         if (viewName === 'legal') btnId = 'nav-btn-legal';
         if (viewName === 'account') btnId = 'nav-btn-account';
         if (viewName === 'smtp') btnId = 'nav-btn-smtp';
@@ -4066,7 +4066,7 @@ window.App = {
 window.switchSystemTab = App.switchSystemTab.bind(App);
 
 window.switchAdminTab = function(tabName) {
-    console.log('CHECK V10: switchAdminTab ->', tabName || 'dashboard');
+    console.log('CHECK V12.3.2.1: switchAdminTab ->', tabName || 'dashboard');
     const mainDash = document.getElementById('admin-main-dashboard');
     if (mainDash) mainDash.style.display = 'none';
     ALL_TAB_IDS.forEach(id => {
@@ -4091,7 +4091,7 @@ window.switchAdminTab = function(tabName) {
     }
 };
 
-// --- DOM READY BOOTSTRAP V10.2 ---
+// --- DOM READY BOOTSTRAP V12.3.2.1 ---
 document.addEventListener('DOMContentLoaded', async () => {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
