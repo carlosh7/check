@@ -1240,6 +1240,11 @@ window.App = {
         document.getElementById('modal-event')?.classList.add('hidden');
     },
 
+    openInviteModal: function() {
+        document.getElementById('invite-user-form')?.reset();
+        document.getElementById('modal-invite')?.classList.remove('hidden');
+    },
+
     closeInvite: function() {
         document.getElementById('modal-invite')?.classList.add('hidden');
     },
