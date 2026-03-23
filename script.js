@@ -1242,6 +1242,7 @@ window.App = {
 
     openInviteModal: function() {
         document.getElementById('invite-user-form')?.reset();
+        this.updateRoleOptions();
         document.getElementById('modal-invite')?.classList.remove('hidden');
     },
 
