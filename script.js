@@ -2163,6 +2163,10 @@ window.App = {
     navigate(viewName, params = {}, push = true) {
         console.log('[NAV] Navegando a:', viewName, params);
         
+        if (this._isNavigating) return;
+        this._isNavigating = true;
+        setTimeout(() => { this._isNavigating = false; }, 100);
+        
         if (push) {
             const url = viewName === 'my-events' ? '/' : `/${viewName}`;
             history.pushState({ view: viewName, params }, '', url);
