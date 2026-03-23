@@ -551,7 +551,7 @@ window.App = {
                 </div>`).join('');
         }
         
-        const tbody = document.getElementById('users-tbody-simple');
+        const tbody = document.getElementById('users-tbody');
         const isAdmin = this.state.user.role === 'ADMIN';
         const isProductor = this.state.user.role === 'PRODUCTOR';
         
