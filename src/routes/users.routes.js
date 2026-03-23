@@ -2,6 +2,7 @@
  * Rutas de usuarios
  */
 
+const { z } = require('zod');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { db } = require('../../database');
