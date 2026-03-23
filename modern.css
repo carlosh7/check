@@ -26,7 +26,7 @@
     /* Bordes - Ultra sutiles */
     --border: rgba(0, 0, 0, 0.045);
     --border-light: rgba(0, 0, 0, 0.025);
-    --border-focus: rgba(0, 113, 227, 0.2);
+    --border-focus: rgba(88, 86, 214, 0.2);
     
     /* Radios - Bordes redondeados limpios */
     --radius-xs: 6px;
