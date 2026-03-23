@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro v12.3.6 (Team Table Refactor)
+// server.js — Check Elite Pro v12.3.7
 require('dotenv').config();
 const express = require('express');
 const http = require('http');

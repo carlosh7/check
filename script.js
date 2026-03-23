@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.3.6
+ * Version: V12.3.7
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.3.6: Iniciando Sistema Modular...');
+console.log('CHECK V12.3.7: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.3.6',
+        version: '12.3.7',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -609,90 +609,67 @@ const App = window.App = {
                     ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                 
-                // --- COLUMNA 1: PERFIL & EVENTOS ---
+                // --- EVENTOS (Para Columna 1) ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--primary-light)] text-[var(--primary)] border border-transparent text-[10px] font-bold rounded-lg group/chip">
-                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
-                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-4 h-4 flex items-center justify-center hover:bg-red-500/20 text-red-500 rounded-full transition-colors">×</button>` : ''}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-hover)] border border-[var(--border)] text-[9px] font-medium rounded text-[var(--text-secondary)] mt-1">
+                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        ${canEdit ? `<button data-action="removeUserEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="hover:text-red-500 ml-1 text-xs leading-none">&times;</button>` : ''}
                     </span>
                 `).join('');
 
-                const eventActions = canEdit ? `
-                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="mt-2 text-[10px] font-black text-[var(--primary)] hover:opacity-80 uppercase tracking-tighter flex items-center gap-1 transition-all">
-                        <span class="material-symbols-outlined text-[14px]">add_circle</span> Agregar Evento
-                    </button>` : '';
+                // --- COLUMNA 1: COLABORADOR ---
+                const col1 = `
+                    <div class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</div>
+                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                    <div class="flex flex-wrap gap-1 mt-1">${eventChips}</div>
+                `;
 
-                // --- COLUMNA 2: EMPRESA ---
+                // --- COLUMNA 2: ROL / ACCESO ---
                 const userGroup = groups.find(g => String(g.id) === String(u.group_id));
                 const groupDisplay = userGroup ? `
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-hover)] border border-[var(--border)] rounded-xl">
-                        <span class="material-symbols-outlined text-xs text-[var(--text-secondary)]">corporate_fare</span>
-                        <span class="text-xs font-bold text-[var(--text-main)]">${userGroup.name}</span>
-                        ${canEdit ? `
-                        <button data-action="removeUserGroup" data-user-id="${u.id}" class="ml-1 text-red-400 hover:text-red-500 transition-colors">
-                            <span class="material-symbols-outlined text-sm">cancel</span>
-                        </button>` : ''}
-                    </div>` : `
-                    <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest px-3 py-1.5 border border-dashed border-[var(--border)] rounded-xl inline-block">Sin Empresa</div>`;
+                    <span class="material-symbols-outlined text-[13px] text-[var(--text-secondary)]">corporate_fare</span>
+                    <span class="truncate max-w-[120px]" title="${userGroup.name}">${userGroup.name}</span>
+                    ${canEdit ? `<button data-action="removeUserGroup" data-user-id="${u.id}" class="hover:text-red-500 font-bold ml-1 text-xs leading-none">&times;</button>` : ''}
+                ` : `<span class="italic text-[var(--text-muted)]">Sin Empresa</span>`;
 
-                const groupActions = (isAdmin && canEdit) ? `
-                    <button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="mt-2 text-[10px] font-black text-[var(--text-secondary)] hover:text-[var(--text-main)] uppercase tracking-tighter flex items-center gap-1 transition-all">
-                        <span class="material-symbols-outlined text-[14px]">business</span> Asignar Empresa
-                    </button>` : '';
-
-                // --- COLUMNA 3: ROL & ESTADO ---
                 const roleSelect = canEdit ? `
-                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-black rounded-xl px-3 py-2 border border-[var(--border)] focus:border-[var(--primary)] outline-none transition-all">
+                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-medium rounded px-2 py-1 border border-[var(--border)] outline-none w-[130px] focus:border-[var(--primary)] mt-1.5">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                    </select>` : `
-                    <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${u.role === 'ADMIN' ? 'bg-red-500/10 text-red-500' : 'bg-[var(--primary-light)] text-[var(--primary)] border border-transparent'}">${u.role}</span>`;
+                    </select>` : `<div class="text-xs font-semibold mt-1.5">${u.role}</div>`;
 
+                const col2 = `
+                    <div class="text-[11px] font-medium text-[var(--text-main)] flex items-center gap-1.5 mb-1">${groupDisplay}</div>
+                    ${roleSelect}
+                `;
+
+                // --- COLUMNA 3: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'ACTIVO' : u.status === 'PENDING' ? 'PENDIENTE' : 'SUSPENDIDO';
-                const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black ${u.status === 'APPROVED' ? 'status-active' : u.status === 'PENDING' ? 'status-pending' : 'status-error'}">${statusLabel}</span>`;
+                const statusClass = u.status === 'APPROVED' ? 'status-active' : u.status === 'PENDING' ? 'status-pending' : 'status-error';
+                const col3 = `<span class="status-pill inline-block ${statusClass}">${statusLabel}</span>`;
 
+                // --- COLUMNA 4: ACCIONES ---
+                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
+                const actionAssignEvent = canEdit ? `<button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>` : '';
+                
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="w-full mt-2 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-xl text-[10px] font-black uppercase transition-all">Activar Usuario</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase transition-all">Suspender</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="text-[11px] font-medium text-emerald-500 hover:text-emerald-400 transition-colors whitespace-nowrap">Activar</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="text-[11px] font-medium text-red-500 hover:text-red-400 transition-colors whitespace-nowrap">Suspender</button>`) : '';
+
+                const col4 = `
+                    <div class="flex flex-col items-end gap-2 text-right">
+                        ${actionAssignCompany}
+                        ${actionAssignEvent}
+                        ${accessBtn}
+                    </div>
+                `;
 
                 return `
-                <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-10 h-10 rounded-full bg-[var(--bg-hover)] flex items-center justify-center text-[var(--text-main)] font-black text-sm shadow-sm relative">
-                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</h4>
-                                <p class="text-[11px] text-[var(--text-secondary)] font-mono flex items-center gap-1">${u.username}</p>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex flex-wrap gap-1.5">${eventChips || '<span class="text-[10px] text-[var(--text-muted)] font-bold italic">Sin eventos asignados</span>'}</div>
-                            ${eventActions}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 align-top">
-                        <div class="mt-1">
-                            ${groupDisplay}
-                            ${groupActions}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 align-top">
-                        <div class="flex flex-col gap-3">
-                            <div>
-                                <p class="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Permisos & Rol</p>
-                                ${roleSelect}
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Estado de Acceso</p>
-                                <div class="flex flex-col items-start w-full">
-                                    <div class="mb-1 w-full flex">${statusBadge}</div>
-                                    <div class="w-full">${accessBtn}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
+                <tr class="hover:bg-[var(--bg-hover)] transition-colors">
+                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)]">${col1}</td>
+                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)]">${col2}</td>
+                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)] text-center">${col3}</td>
+                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)] text-right">${col4}</td>
                 </tr>`;
             }).join('');
         }
