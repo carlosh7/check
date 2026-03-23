@@ -228,9 +228,9 @@ window.App = {
     getVAPIDPublicKey: async function() {
         try {
             const res = await this.fetchAPI('/push/vapid-public-key');
+            if (!res.publicKey) return null;
             return res.publicKey;
         } catch (error) {
-            console.error('Error al obtener clave pública VAPID:', error);
             return null;
         }
     },

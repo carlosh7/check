@@ -33,9 +33,9 @@ if (!vapidPublicKey || !vapidPrivateKey) {
  */
 router.get('/vapid-public-key', (req, res) => {
     if (!vapidPublicKey) {
-        return res.status(500).json({ error: 'VAPID keys no configuradas' });
+        return res.status(400).json({ error: 'VAPID keys no configuradas', configured: false });
     }
-    res.json({ publicKey: vapidPublicKey });
+    res.json({ publicKey: vapidPublicKey, configured: true });
 });
 
 /**
