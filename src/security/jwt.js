@@ -1,7 +1,7 @@
 /**
  * JWT Utilities - Módulo de tokens JWT
  * @module security/jwt
- * @version 12.3.0
+ * @version 12.3.1
  */
 
 const jwt = require('jsonwebtoken');

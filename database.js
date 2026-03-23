@@ -239,7 +239,7 @@ db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND sett
 // 7.1 Configuración de Visibilidad (V12.2.1)
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('show_legal_login', '1');
 
-// 7.2 Configuración de IA (V12.3.0)
+// 7.2 Configuración de IA (V12.3.1)
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_enabled', '1');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_openrouter_key', '');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_model', 'google/gemini-2.0-flash-lite-preview-02-05:free');

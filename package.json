@@ -1,6 +1,6 @@
 {
   "name": "registro",
-  "version": "12.2.4",
+  "version": "12.3.1",
   "description": "Una aplicación web moderna y elegante para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.",
   "main": "script.js",
   "scripts": {

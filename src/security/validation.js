@@ -2,7 +2,7 @@
  * Zod Validation Schemas
  * Esquemas de validación para inputs de API
  * @module security/validation
- * @version 12.3.0
+ * @version 12.3.1
  * 
  * @example
  * const { schemas, validate } = require('./security/validation');
