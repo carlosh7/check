@@ -4843,6 +4843,13 @@ const App = window.App = {
         }
     },
 
+    clearMailingSearch() {
+        const input = document.getElementById('mailing-search');
+        if (input) {
+            input.value = '';
+            this.filterMailingGuests();
+            input.focus();
+        }
     },
 
     updateMailingSummaryUI() {
