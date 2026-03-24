@@ -5757,7 +5757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const status = actionEl.dataset.status;
             
             // Call the matched App function with arguments
-            if (action === 'removeUserFromEvent') App.removeUserEvent(userId, eventId);
+            if (action === 'removeUserFromEvent') App.removeUserFromEvent(userId, eventId);
             else if (action === 'removeUserFromGroup') App.removeUserFromGroup(userId, groupId);
             else if (action === 'removeEventStaff') App.removeEventStaff(userId);
             else if (action === 'removeEventFromCompany') App.removeEventFromCompany(eventId, groupId);
