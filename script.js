@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.11.0
+ * Version: V12.12.0
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.11.0: Iniciando Sistema Modular...');
+console.log('CHECK V12.12.0: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.11.0',
+        version: '12.12.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4810,6 +4810,8 @@ const App = window.App = {
 
         const totalSelected = (this.state.mailingGuests || []).filter(g => g.selected).length;
         count.innerHTML = `${filtered.length} <span class="text-[var(--text-secondary)] opacity-50 mx-1">/</span> <span class="text-[var(--primary)]">${totalSelected} seleccionados</span>`;
+        
+        this.updateMailingSummaryUI(); // V12.12.0
         
         if (filtered.length === 0) {
             list.innerHTML = `<div class="text-center py-6">
