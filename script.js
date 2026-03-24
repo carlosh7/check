@@ -409,11 +409,13 @@ const App = window.App = {
     },
     
     removeUserFromGroup: async function(userId, groupId) {
-        if (!confirm('¿Quitar este usuario de la empresa?')) return;
-        try {
-            await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
-            this.loadGroups();
-        } catch(e) { console.error('Error removing user from group:', e); }
+        if (await this._confirmAction('¿Quitar usuario de empresa?', 'El usuario perderá acceso a los recursos de esta empresa.')) {
+            try {
+                await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+                this.loadGroups();
+                this.loadUsersTable(); // Refrescar tabla de usuarios si está visible
+            } catch(e) { console.error('Error removing user from group:', e); }
+        }
     },
     
     removeEventFromCompany: async function(eventId, groupId) {
@@ -422,15 +424,16 @@ const App = window.App = {
             eventId = btn.dataset.eventId;
             groupId = btn.dataset.groupId;
         }
-        if (!confirm('¿Desvincular este evento de la empresa?')) return;
-        try {
-            const events = this.state.allEvents.filter(e => String(e.group_id) === String(groupId));
-            const newEvents = events.filter(e => String(e.id) !== String(eventId)).map(e => e.id);
-            await this.fetchAPI(`/groups/${groupId}/events`, { 
-                method: 'PUT', body: JSON.stringify({ events: newEvents })
-            });
-            this.loadGroups();
-        } catch(e) { console.error('Error', e); }
+        if (await this._confirmAction('¿Desvincular evento?', 'El evento ya no estará asociado a esta empresa.')) {
+            try {
+                const events = (this.state.allEvents || []).filter(e => String(e.group_id) === String(groupId));
+                const newEvents = events.filter(e => String(e.id) !== String(eventId)).map(e => e.id);
+                await this.fetchAPI(`/groups/${groupId}/events`, { 
+                    method: 'PUT', body: JSON.stringify({ events: newEvents })
+                });
+                this.loadGroups();
+            } catch(e) { console.error('Error', e); }
+        }
     },
     
     showUserSelectorForGroup: function(groupId) {
