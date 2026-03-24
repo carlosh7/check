@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.7.0',
+        version: '12.7.3',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4750,6 +4750,52 @@ const App = window.App = {
             }
         }
     },
+
+    // --- AUTENTICACIÓN (RESTAURADO V12.7.3) ---
+    async login(username, password) {
+        console.log("[AUTH] Intentando login:", username);
+        try {
+            const data = await this.fetchAPI('/login', { 
+                method: 'POST', 
+                body: JSON.stringify({ username, password }) 
+            });
+            
+            if (data.success) {
+                this.state.user = data;
+                LS.set('user', JSON.stringify(data));
+                
+                // Inicializar push
+                this.initPushNotifications().catch(err => console.error('Push error:', err));
+                
+                // Cargar interfaz
+                await this.loadAppShell();
+                
+                // Actualizar Sidebar
+                const sbu = document.getElementById('sidebar-username');
+                const sbr = document.getElementById('sidebar-role');
+                if (sbu) sbu.textContent = data.username || 'Usuario';
+                if (sbr) sbr.textContent = data.role || 'Staff';
+                
+                // UI transition
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+                
+                this.updateUIPermissions();
+                this.updateRoleOptions();
+                this.handleInitialNavigation();
+                this.initAppShell();
+                
+                return { success: true };
+            } else {
+                this._notifyAction('Error de Acceso', data.message || 'Credenciales inválidas.', 'error');
+                return { success: false, message: data.message };
+            }
+        } catch (err) {
+            console.error("[AUTH] Error fatal:", err);
+            this._notifyAction('Fallo de Conexión', 'No se pudo contactar con el servidor.', 'error');
+            return { success: false, error: err };
+        }
+    },
 };
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
@@ -4889,48 +4935,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Login Form
     sf('form-login', async (e) => {
         e.preventDefault();
-        const u = document.getElementById('login-email').value; const p = document.getElementById('login-password').value;
-        console.log("[LOGIN] Intentando login con:", u);
-        try {
-            const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
-            console.log("[LOGIN] Respuesta:", d);
-            if (d.success) { 
-                App.state.user = d; LS.set('user', JSON.stringify(d));
-                // Inicializar notificaciones push
-                App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
-                
-                // CARGAR APP-SHELL
-                try {
-                    await App.loadAppShell();
-                    
-                    // Actualizar sidebar info
-                    const sbu = document.getElementById('sidebar-username');
-                    const sbr = document.getElementById('sidebar-role');
-                    if (sbu) sbu.textContent = d.username || 'Usuario';
-                    if (sbr) sbr.textContent = d.role || 'Staff';
-                    
-                    // Ocultar login, mostrar app
-                    const loginEl = document.getElementById('view-login');
-                    if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
-                    
-                    // Actualizar permisos UI
-                    App.updateUIPermissions();
-                    App.updateRoleOptions();
-                    
-                    // Ruteo inteligente post-login
-                    App.handleInitialNavigation();
-                    
-                    App.initAppShell();
-                } catch(err) {
-                    console.error('[LOGIN] Error cargando app-shell:', err);
-                    App._notifyAction('Error Crítico', 'No se pudo cargar la interfaz de usuario.', 'error');
-                    return;
-                }
-            } else App._notifyAction('Error de Acceso', d.message || 'Credenciales inválidas.', 'error');
-        } catch (err) { 
-            console.error("[LOGIN] Error:", err);
-            App._notifyAction('Fallo de Conexión', 'No se pudo contactar con el servidor.', 'error'); 
-        }
+        const u = document.getElementById('login-email').value; 
+        const p = document.getElementById('login-password').value;
+        await App.login(u, p);
     });
 
     // Signup Form (Solicitar Cuenta)
@@ -5020,7 +5027,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Admin Actions
-    });
     cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
     cl('btn-export-analytics', async () => {
         if (!App.state.event || typeof window.jspdf === 'undefined') return alert("Librería PDF no disponible");
