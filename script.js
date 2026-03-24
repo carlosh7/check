@@ -4843,13 +4843,34 @@ const App = window.App = {
         }
     },
 
-    clearMailingSearch() {
-        const input = document.getElementById('mailing-search');
-        if (input) {
-            input.value = '';
-            this.filterMailingGuests();
-            input.focus();
+    },
+
+    updateMailingSummaryUI() {
+        const container = document.getElementById('mailing-summary-preview');
+        const list = document.getElementById('mailing-summary-list');
+        const badge = document.getElementById('mailing-selection-count-badge');
+        
+        if (!container || !list) return;
+
+        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
+        
+        if (selected.length === 0) {
+            container.classList.add('hidden');
+            return;
         }
+
+        container.classList.remove('hidden');
+        if (badge) badge.textContent = `${selected.length} seleccionados`;
+        
+        list.innerHTML = selected.map(g => `
+            <div class="flex items-center gap-2 p-1.5 bg-white/5 rounded-lg border border-white/5">
+                <span class="material-symbols-outlined text-[10px] text-green-500">check_circle</span>
+                <div class="flex flex-col truncate">
+                    <span class="text-white truncate font-bold">${g.name}</span>
+                    <span class="text-[8px] text-slate-500 truncate">${g.email}</span>
+                </div>
+            </div>
+        `).join('');
     },
 
     showSelectionSummary() {
