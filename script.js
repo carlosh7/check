@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.6.0',
+        version: '12.7.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -408,17 +408,17 @@ const App = window.App = {
         } catch(e) { console.error('Error loading groups:', e); }
     },
     
-    removeUserFromGroup: async function(userId, groupId) {
+    async removeUserFromGroup(userId, groupId) {
         if (await this._confirmAction('¿Quitar usuario de empresa?', 'El usuario perderá acceso a los recursos de esta empresa.')) {
             try {
                 await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
                 this.loadGroups();
-                this.loadUsersTable(); // Refrescar tabla de usuarios si está visible
+                this.loadUsersTable();
             } catch(e) { console.error('Error removing user from group:', e); }
         }
     },
     
-    removeEventFromCompany: async function(eventId, groupId) {
+    async removeEventFromCompany(eventId, groupId) {
         if(eventId && typeof eventId === 'object') {
             const btn = eventId.target.closest('[data-action]');
             eventId = btn.dataset.eventId;
@@ -743,6 +743,9 @@ const App = window.App = {
                 this.loadUsersTable();
                 this.closeUserSelectorEvent();
                 alert('✓ Usuario agregado al evento');
+                this._notifyAction('Éxito', 'Usuario agregado al evento', 'success');
+            } else {
+                this._notifyAction('Error', 'Error al agregar usuario al evento: ' + res.error, 'error');
             }
         } catch(e) { console.error('Error assigning user to event:', e); }
     },
@@ -750,9 +753,34 @@ const App = window.App = {
     closeUserSelectorEvent: function() {
         document.getElementById('modal-user-selector-event')?.remove();
     },
+
+    async handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Atención', 'Selecciona un evento para importar.', 'info');
+            return;
+        }
+
+        this._notifyAction('Procesando', 'Analizando archivo...', 'info');
+    },
+
+    async purgeDatabase() {
+        if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
+            try {
+                await this.fetchAPI('/admin/purge', { method: 'POST' });
+                this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
+                location.reload();
+            } catch (e) {
+                this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
+            }
+        }
+    },
     
     removeUserFromEvent: async function(userId, eventId) {
-        if (!confirm('¿Quitar este usuario del evento?')) return;
+        if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
         try {
             await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
             // Recargar usuarios
@@ -3026,15 +3054,14 @@ const App = window.App = {
     async loadEvents() {
         try {
             this.state.events = await this.fetchAPI('/events');
-            
             const btnAdminNav = document.getElementById('nav-btn-admin');
             if (btnAdminNav) {
                 btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
             }
-
             this.renderEventsGrid();
         } catch (e) { this.showView('login'); }
     },
+
     renderEventsGrid() {
         const c = document.getElementById('events-list-container');
         if (!c) return;
@@ -3063,65 +3090,69 @@ const App = window.App = {
                 </div>
             </div>
         `).join('');
-        
-        // Función para copiar link de registro
-        window.App.copyRegistrationLink = (id) => {
-            const link = `${window.location.origin}/registro.html?event=${id}`;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('Link de registro copiado: ' + link);
-            }).catch(() => {
-                prompt('Copia este link:', link);
-            });
-        };
-        
-        window.App.editEvent = (id) => {
-            const ev = this.state.events.find(e => String(e.id) === String(id));
-            if (!ev) return;
-            
-            // Datos básicos
-            document.getElementById('ev-id-hidden').value = ev.id;
-            document.getElementById('ev-name').value = ev.name || '';
-            document.getElementById('ev-location').value = ev.location || '';
-            document.getElementById('ev-desc').value = ev.description || '';
-            document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
-            document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
-            
-            // Configuración de registro
-            document.getElementById('ev-reg-title').value = ev.reg_title || '';
-            document.getElementById('ev-reg-welcome').value = ev.reg_welcome_text || '';
-            document.getElementById('ev-reg-success').value = ev.reg_success_message || '';
-            document.getElementById('ev-reg-policy').value = ev.reg_policy || '';
-            document.getElementById('ev-reg-phone').checked = ev.reg_show_phone !== 0;
-            document.getElementById('ev-reg-org').checked = ev.reg_show_org !== 0;
-            document.getElementById('ev-reg-position').checked = ev.reg_show_position === 1;
-            document.getElementById('ev-reg-vegan').checked = ev.reg_show_vegan !== 0;
-            document.getElementById('ev-reg-dietary').checked = ev.reg_show_dietary !== 0;
-            document.getElementById('ev-reg-gender').checked = ev.reg_show_gender === 1;
-            document.getElementById('ev-reg-agreement').checked = ev.reg_require_agreement !== 0;
-
-            // --- DISEÑO PREMIUM V11.6 ---
-            document.getElementById('ev-qr-dark').value = ev.qr_color_dark || '#000000';
-            document.getElementById('ev-qr-light').value = ev.qr_color_light || '#ffffff';
-            document.getElementById('ev-qr-logo').value = ev.qr_logo_url || '';
-            document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
-            document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
-            
-            // FILTROS DE DOMINIO V11.6.2
-            document.getElementById('ev-reg-whitelist').value = ev.reg_email_whitelist || '';
-            document.getElementById('ev-reg-blacklist').value = ev.reg_email_blacklist || '';
-            
-            App.updateQRPreview(); // Disparar preview al cargar datos del evento
-            document.getElementById('modal-event')?.classList.remove('hidden');
-        };
-        
-        window.App.deleteEvent = (id) => {
-            if (!confirm('¿Eliminar este evento y todos sus datos?')) return;
-            this.fetchAPI(`/events/${id}`, { method: 'DELETE' }).then(() => {
-                this.loadEvents();
-                alert('Evento eliminado');
-            }).catch(e => alert('Error al eliminar: ' + e.message));
-        };
     },
+
+    async copyRegistrationLink(id) {
+        if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        const link = `${window.location.origin}/registro.html?event=${id}`;
+        try {
+            await navigator.clipboard.writeText(link);
+            this._notifyAction('Enlace Copiado', 'El link de registro se ha copiado al portapapeles.', 'success');
+        } catch (err) {
+            prompt('Copia este link:', link);
+        }
+    },
+
+    editEvent(id) {
+        if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        const ev = this.state.events.find(e => String(e.id) === String(id));
+        if (!ev) return;
+        
+        document.getElementById('ev-id-hidden').value = ev.id;
+        document.getElementById('ev-name').value = ev.name || '';
+        document.getElementById('ev-location').value = ev.location || '';
+        document.getElementById('ev-desc').value = ev.description || '';
+        document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        
+        document.getElementById('ev-reg-title').value = ev.reg_title || '';
+        document.getElementById('ev-reg-welcome').value = ev.reg_welcome_text || '';
+        document.getElementById('ev-reg-success').value = ev.reg_success_message || '';
+        document.getElementById('ev-reg-policy').value = ev.reg_policy || '';
+        document.getElementById('ev-reg-phone').checked = ev.reg_show_phone !== 0;
+        document.getElementById('ev-reg-org').checked = ev.reg_show_org !== 0;
+        document.getElementById('ev-reg-position').checked = ev.reg_show_position === 1;
+        document.getElementById('ev-reg-vegan').checked = ev.reg_show_vegan !== 0;
+        document.getElementById('ev-reg-dietary').checked = ev.reg_show_dietary !== 0;
+        document.getElementById('ev-reg-gender').checked = ev.reg_show_gender === 1;
+        document.getElementById('ev-reg-agreement').checked = ev.reg_require_agreement !== 0;
+        
+        document.getElementById('ev-qr-dark').value = ev.qr_color_dark || '#000000';
+        document.getElementById('ev-qr-light').value = ev.qr_color_light || '#ffffff';
+        document.getElementById('ev-qr-logo').value = ev.qr_logo_url || '';
+        document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
+        document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
+        
+        document.getElementById('ev-reg-whitelist').value = ev.reg_email_whitelist || '';
+        document.getElementById('ev-reg-blacklist').value = ev.reg_email_blacklist || '';
+        
+        this.updateQRPreview();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    },
+
+    async deleteEvent(id) {
+        if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
+            try {
+                await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
+                this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
+                this.loadEvents();
+            } catch (e) { 
+                this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
+            }
+        }
+    },
+
     async openEvent(id) {
         this.state.event = this.state.events.find(e => String(e.id) === String(id));
         if (!this.state.event) return console.error("Evento no encontrado:", id);
@@ -3768,7 +3799,7 @@ const App = window.App = {
     async generateEventReport() {
         if (!this.state.event) return;
         const { jsPDF } = window.jspdf;
-        const doc = jsPDF();
+        const doc = new jsPDF();
         const event = this.state.event;
         const stats = await this.fetchAPI(`/stats/${event.id}`);
         
@@ -4559,6 +4590,20 @@ const App = window.App = {
         return result.isConfirmed;
     },
 
+    // Utilidad para notificaciones Premium (V12.7.0)
+    async _notifyAction(title, text, icon = 'info', timer = 3000) {
+        return Swal.fire({
+            title,
+            text,
+            icon,
+            background: '#292a2d',
+            color: '#e8eaed',
+            confirmButtonColor: '#1a73e8',
+            timer,
+            showConfirmButton: timer === 0
+        });
+    },
+
     // --- EMAIL Y ENVÍO MASIVO (FASE 6) ---
     async navigateEmailSection(section) {
         document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
@@ -4829,36 +4874,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Inicializar notificaciones push
                 App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
                 
-                // CARGAR APP-SHELL PRIMERO
+                // CARGAR APP-SHELL
                 try {
                     await App.loadAppShell();
+                    
+                    // Actualizar sidebar info
+                    const sbu = document.getElementById('sidebar-username');
+                    const sbr = document.getElementById('sidebar-role');
+                    if (sbu) sbu.textContent = d.username || 'Usuario';
+                    if (sbr) sbr.textContent = d.role || 'Staff';
+                    
+                    // Ocultar login, mostrar app
+                    const loginEl = document.getElementById('view-login');
+                    if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+                    
+                    // Actualizar permisos UI
+                    App.updateUIPermissions();
+                    App.updateRoleOptions();
+                    
+                    // Ruteo inteligente post-login
+                    App.handleInitialNavigation();
+                    
+                    App.initAppShell();
                 } catch(err) {
                     console.error('[LOGIN] Error cargando app-shell:', err);
-                    alert('Error al cargar la aplicación.');
+                    App._notifyAction('Error Crítico', 'No se pudo cargar la interfaz de usuario.', 'error');
                     return;
                 }
-                
-                // Actualizar sidebar info
-                const sbu = document.getElementById('sidebar-username');
-                const sbr = document.getElementById('sidebar-role');
-                if (sbu) sbu.textContent = d.username || 'Usuario';
-                if (sbr) sbr.textContent = d.role || 'Staff';
-                
-                // Ocultar login, mostrar app
-                const loginEl = document.getElementById('view-login');
-                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
-                
-                // Actualizar permisos UI
-                App.updateUIPermissions();
-                App.updateRoleOptions();
-                
-                // Ruteo inteligente post-login
-                App.handleInitialNavigation();
-
-            } else alert(d.message || 'Credenciales inválidas.');
+            } else App._notifyAction('Error de Acceso', d.message || 'Credenciales inválidas.', 'error');
         } catch (err) { 
             console.error("[LOGIN] Error:", err);
-            alert('Error de conexión con el servidor.'); 
+            App._notifyAction('Fallo de Conexión', 'No se pudo contactar con el servidor.', 'error'); 
         }
     });
 
@@ -4878,11 +4924,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const p = document.getElementById('signup-pass').value;
         try {
             const d = await App.fetchAPI('/signup', { method: 'POST', body: JSON.stringify({ username: u, password: p, role: 'PRODUCTOR' }) });
-            if (d.success) alert('✓ Solicitud enviada. Un administrador debe aprobar tu acceso.');
-            else alert('No se pudo enviar la solicitud.');
+            if (d.success) App._notifyAction('✓ Solicitud enviada', 'Un administrador debe aprobar tu acceso.', 'success', 0);
+            else App._notifyAction('Error', d.error || 'No se pudo enviar la solicitud.', 'error');
             document.getElementById('signup-form')?.classList.add('hidden');
             document.getElementById('login-form')?.classList.remove('hidden');
-        } catch(err) { alert('Error de conexión.'); }
+        } catch(err) { App._notifyAction('Error', 'Error de conexión.', 'error'); }
     });
 
     // Modales Legales (Links del Login)
@@ -4934,24 +4980,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     App.handleDeleteEvent = async () => {
         if (!App.state.event) return;
-        if (!confirm(`⚠ ¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"? Esta acción es irreversible.`)) return;
-        
-        try {
-            const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
-            if (res.success) {
-                alert("✓ Evento eliminado.");
-                App.state.event = null;
-                App.navigate('my-events');
-            }
-        } catch { alert("No se pudo eliminar el evento."); }
+        if (await App._confirmAction(`¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"?`, 'Esta acción es irreversible y borrará todos los datos asociados.')) {
+            try {
+                const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
+                if (res.success) {
+                    App._notifyAction('✓ Evento eliminado.', 'El evento ha sido eliminado correctamente.', 'success');
+                    App.state.event = null;
+                    App.navigate('my-events');
+                } else {
+                    App._notifyAction('Error', res.error || 'No se pudo eliminar el evento.', 'error');
+                }
+            } catch { App._notifyAction('Error', 'No se pudo eliminar el evento debido a un error de conexión.', 'error'); }
+        }
     };
 
     // Admin Actions
-    cl('btn-clear-db', async () => {
-        if (!App.state.event) return;
-        if (!confirm("⚠ PELIGRO: Va a borrar TODOS los invitados de este evento. ¿Continuar?")) return;
-        try { await App.fetchAPI(`/clear-db/${App.state.event.id}`, {method: 'POST'}); App.loadGuests(); App.updateStats(); alert("✓ Base de datos purgada."); }
-        catch(e) { alert("Error."); }
     });
     cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
     cl('btn-export-analytics', async () => {
@@ -5777,7 +5820,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 });
-
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
