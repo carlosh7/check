@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.8.1
+ * Version: V12.9.0
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.8.1: Iniciando Sistema Modular...');
+console.log('CHECK V12.9.0: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.8.1',
+        version: '12.9.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4636,19 +4636,37 @@ const App = window.App = {
             const templates = await this.fetchAPI('/email-templates');
             this.state.emailTemplates = templates;
             grid.innerHTML = templates.map(t => `
-                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center">
+                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative z-10 flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined">mail</span>
                         </div>
                         <div class="flex-1">
                             <h4 class="text-sm font-bold text-white">${t.name}</h4>
-                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">${t.subject || 'Sin Asunto'}</p>
+                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">${t.subject || 'Sin Asunto'}</p>
                         </div>
+                    </div>
+                    <div class="relative z-10 pt-4 border-t border-white/5 flex gap-2">
+                        <button onclick="App.selectTemplateFromLibrary('${t.id}')" class="btn-primary !py-1.5 !px-3 text-[10px] flex-1">
+                            <span class="material-symbols-outlined text-xs">send</span> USAR PARA ENVÍO
+                        </button>
                     </div>
                 </div>
             `).join('');
         } catch(e) { console.error('Error templates:', e); }
+    },
+
+    async selectTemplateFromLibrary(id) {
+        await this.navigateEmailSection('mailing');
+        setTimeout(() => {
+            const selector = document.getElementById('mailing-template-selector');
+            if (selector) {
+                selector.value = id;
+                this.onTemplateChange();
+                this._notifyAction('Plantilla Cargada', 'Lista para envío masivo.', 'success');
+            }
+        }, 100);
     },
 
     async loadMailbox() {
@@ -4745,8 +4763,9 @@ const App = window.App = {
         if (template) {
             const previewArea = document.getElementById('email-preview-area');
             if (previewArea) {
-                const body = template.body || ''; // V12.8.1 Fix: Use body instead of content
-                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full h-[300px] border-none"></iframe>`;
+                const body = template.body || ''; 
+                // Fix V12.9.0: Clear and expand
+                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full h-[500px] border-none animate-fade-in"></iframe>`;
             }
         }
     },
@@ -4784,8 +4803,10 @@ const App = window.App = {
 
     toggleAllRecipients() {
         const checks = document.querySelectorAll('.mailing-check');
-        const allChecked = Array.from(checks).every(c => c.checked);
-        checks.forEach(c => c.checked = !allChecked);
+        if (checks.length === 0) return;
+        // Determine if we should check all or uncheck all based on the first visible check
+        const newState = !checks[0].checked;
+        checks.forEach(c => c.checked = newState);
     },
 
     async sendMassEmail() {
