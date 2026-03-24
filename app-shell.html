@@ -154,6 +154,14 @@
                     </div>
                 </header>
 
+                <!-- Sub-navegación Premium Evento (V12.6.1) -->
+                <div class="sub-nav-container mb-8">
+                    <button class="sub-nav-btn active" onclick="App.switchEventTab('dashboard')">Panel</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('staff')">Personal</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('guests')">Invitados</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('settings')">Ajustes</button>
+                </div>
+
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="card !p-8 flex items-center justify-between group">
@@ -244,12 +252,12 @@
             <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.6.0) -->
             <section id="view-system" class="hidden space-y-8">
                 <!-- Sub-Navegación Configuración -->
-                <div class="sub-nav-container">
-                    <button id="sys-nav-users" class="sub-nav-btn active">Equipo</button>
-                    <button id="sys-nav-groups" class="sub-nav-btn">Empresas</button>
-                    <button id="sys-nav-legal" class="sub-nav-btn">Legales</button>
-                    <button id="sys-nav-email" class="sub-nav-btn">Emails</button>
-                    <button id="sys-nav-account" class="sub-nav-btn">Mi Perfil</button>
+                <div class="sub-nav-container mb-8">
+                    <button class="sub-nav-btn active" onclick="App.switchSystemTab('users')">Equipo</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('groups')">Empresas</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('legal')">Legales</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('email')">Emails</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('account')">Mi Perfil</button>
                 </div>
 
                 <!-- CONTENIDO: EQUIPO -->
@@ -367,11 +375,11 @@
                         </div>
                     </header>
                     
-                    <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
-                        <button id="email-nav-config" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Configuración</button>
-                        <button id="email-nav-mailbox" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Buzón</button>
-                        <button id="email-nav-templates" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Plantillas</button>
-                        <button id="email-nav-mailing" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Envío Masivo</button>
+                    <div class="sub-nav-container mb-6">
+                        <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
+                        <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
+                        <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
+                        <button id="email-nav-mailing" class="sub-nav-btn">Envío Masivo</button>
                     </div>
                     
                     <!-- Sub-contenidos Email (se mantienen igual pero dentro del Hub) -->
@@ -405,6 +413,36 @@
                                 </div>
                             </form>
                         </div>
+                        
+                        <div class="card p-6 rounded-xl max-w-2xl">
+                            <form id="imap-form" class="space-y-6">
+                                <h3 class="form-section-title flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-lg">inbox</span> Configuración IMAP (Recibir)
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Servidor IMAP</label>
+                                        <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Puerto</label>
+                                        <input type="number" id="imap-port" placeholder="993" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usuario</label>
+                                        <input type="text" id="imap-user" placeholder="tu@email.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Contraseña</label>
+                                        <input type="password" id="imap-pass" placeholder="Contraseña de aplicación" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" id="btn-test-imap" class="btn-secondary">Probar Conexión</button>
+                                    <button type="submit" class="btn-primary !px-6">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <div id="email-content-mailbox" class="email-content hidden">
                         <!-- Content remains same -->
@@ -433,6 +471,16 @@
                                      </select>
                                  </div>
                              </div>
+                             <div id="mailing-progress-container" class="hidden space-y-4 border-t border-[var(--border)] pt-6">
+                                 <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+                                     <span id="mailing-status-text" class="text-[var(--primary)] animate-pulse">Enviando correos...</span>
+                                     <span id="mailing-percentage">0%</span>
+                                 </div>
+                                 <div class="w-full bg-[var(--bg-hover)] h-2.5 rounded-full overflow-hidden">
+                                     <div id="mailing-progress-bar" class="bg-[var(--primary)] h-full transition-all duration-300" style="width: 0%"></div>
+                                 </div>
+                                 <div class="bg-[var(--bg-app)] rounded-lg p-3 text-[10px] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto border border-[var(--border)] text-[var(--text-secondary)]" id="mailing-logs"> Esperando inicio...</div>
+                              </div>
 
                              <div id="mailing-recipients-container" class="hidden space-y-3">
                                  <div class="flex justify-between items-center">
@@ -444,9 +492,11 @@
                                  </div>
                              </div>
 
-                             <div class="flex justify-end pt-4">
-                                 <button id="btn-send-mass-email" class="btn-primary !px-8 !py-3">Iniciar Campaña</button>
-                             </div>
+                             <div class="flex justify-between items-center pt-4 border-t border-[var(--border)]">
+                                  <button id="btn-stop-mailing" class="btn-secondary !text-red-500 !border-red-500/20 hidden">Detener Envío</button>
+                                  <div class="flex-1"></div>
+                                  <button id="btn-send-mass-email" class="btn-primary !px-8 !py-3">Iniciar Campaña</button>
+                              </div>
                         </div>
                     </div>
                 </div>

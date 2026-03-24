@@ -235,30 +235,29 @@ input[type="email"]:focus {
 }
 
 .sub-nav-btn {
-    padding: 8px 16px !important;
+    padding: 10px 24px !important;
     border-radius: var(--radius-sm) !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
     border: none !important;
     background: transparent !important;
     color: var(--text-secondary) !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .sub-nav-btn:hover {
     color: var(--text-main) !important;
-    background-color: rgba(0, 0, 0, 0.05) !important;
-}
-
-.dark .sub-nav-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--bg-active) !important;
 }
 
 .sub-nav-btn.active {
     background-color: var(--bg-card) !important;
     color: var(--primary) !important;
-    box-shadow: var(--shadow-xs) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transform: translateY(-1px);
 }
 
 /* Status Badges - Chrome Look */

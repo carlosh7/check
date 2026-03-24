@@ -463,9 +463,12 @@ const App = window.App = {
     },
     
     assignUserToGroupFromSelector: async function(groupId) {
-        const select = document.getElementById('select-user-for-group');
-        const userId = select.value;
-        if (!userId) return alert('Selecciona un usuario');
+        const select = document.getElementById('assign-user-select');
+        const userId = select ? select.value : null;
+        if (!userId) {
+            Swal.fire({ title: 'Error', text: 'Selecciona un usuario de la lista', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
         
         try {
             const res = await this.fetchAPI(`/groups/${groupId}/users`, { 
@@ -473,10 +476,16 @@ const App = window.App = {
                 body: JSON.stringify({ userId, role_in_group: 'PRODUCTOR' }) 
             });
             if (res.success) {
+                Swal.fire({ title: 'Éxito', text: 'Usuario asignado correctamente', icon: 'success', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
                 this.loadGroups();
                 this.closeUserSelectorGroup();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar el usuario', 'error');
             }
-        } catch(e) { console.error('Error assigning user to group:', e); }
+        } catch(e) { 
+            console.error('Error assigning user to group:', e);
+            Swal.fire('Error', 'Error de red al asignar usuario', 'error'); 
+        }
     },
     
     closeUserSelectorGroup: function() {
@@ -708,9 +717,12 @@ const App = window.App = {
     },
     
     assignUserToEventFromSelector: async function(eventId) {
-        const select = document.getElementById('select-user-for-event');
-        const userId = select.value;
-        if (!userId) return alert('Selecciona un usuario');
+        const select = document.getElementById('assign-event-user-select');
+        const userId = select ? select.value : null;
+        if (!userId) {
+             Swal.fire({ title: 'Error', text: 'Selecciona un usuario de la lista', icon: 'error', background: '#0f172a', color: '#fff' });
+             return;
+        }
         
         const users = this.state.allUsers || [];
         const user = users.find(u => u.id === userId);
@@ -1012,14 +1024,18 @@ const App = window.App = {
     },
     
     // Quitar un evento específico de un usuario
-    removeUserEvent: async function(userId, eventId) {
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
-            if (res.success) {
-                console.log('Evento quitado');
-                this.loadUsersTable();
-            }
-        } catch(e) { console.error('Error removing event:', e); }
+    removeUserFromEvent: async function(userId, eventId) {
+        if (await this._confirmAction('¿Quitar acceso al evento?', 'El usuario ya no podrá gestionar este evento.')) {
+            try {
+                const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+                if (res.success) {
+                    Swal.fire({ title: 'Éxito', text: 'Acceso revocado', icon: 'success', timer: 1000, showConfirmButton: false });
+                    this.loadUsersTable();
+                } else {
+                    Swal.fire('Error', res.error || 'No se pudo quitar el evento', 'error');
+                }
+            } catch { Swal.fire('Error', 'Error de red', 'error'); }
+        }
     },
     
     // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
@@ -2763,7 +2779,7 @@ const App = window.App = {
                     case 'approveUser': _App.approveUser(p.userId, p.status); break;
                     case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
                     case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
-                    case 'removeUserEvent': _App.removeUserEvent(p.userId, p.eventId); break;
+                    case 'removeUserFromEvent': _App.removeUserFromEvent(p.userId, p.eventId); break;
                     case 'showEventSelector': 
                         let evs = [];
                         try { evs = JSON.parse(p.events || '[]'); } catch(e) { console.error("Error parsing events", e); }
@@ -4271,22 +4287,19 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        // Desactivar todos los botones de navegación
-        document.querySelectorAll('.sub-nav-btn').forEach(b => {
-             b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
-             b.classList.add('text-slate-400');
-        });
+        // Configuración de botones de sub-navegación (V12.6.1)
+        const subNavContainer = document.querySelector('#view-system .sub-nav-container');
+        if (subNavContainer) {
+            const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            // Intentar encontrar el botón por su onclick o posición si no tiene ID
+            const targetBtn = Array.from(btns).find(b => b.getAttribute('onclick')?.includes(`'${tabName}'`));
+            if (targetBtn) targetBtn.classList.add('active');
+        }
 
         // Mostrar panel activo
         const panel = document.getElementById('sys-content-' + tabName);
         if (panel) panel.classList.remove('hidden');
-
-        // Activar botón correspondiente
-        const activeBtn = document.getElementById('sys-nav-' + tabName);
-        if (activeBtn) {
-            activeBtn.classList.remove('text-slate-400');
-            activeBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
-        }
 
         // Carga de datos específicos
         if (tabName === 'users') this.loadUsersTable();
@@ -4298,25 +4311,32 @@ const App = window.App = {
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
     switchEventTab(tabName) {
-        ['guests', 'staff'].forEach(t => {
-            const el = document.getElementById('ev-content-' + t);
-            if (el) el.classList.toggle('hidden', t !== tabName);
-            
-            const btn = document.getElementById('ev-nav-' + t);
-            if (btn) {
-                if (t === tabName) {
-                    btn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
-                    btn.classList.remove('text-slate-400', 'bg-white/5');
-                } else {
-                    btn.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
-                    btn.classList.add('text-slate-400', 'bg-white/5');
-                }
-            }
+        console.log('[EVENT] Switching to tab:', tabName);
+        const ALL_EVENT_IDS = ['ev-content-guests', 'ev-content-staff']; // Updated to match actual IDs
+        ALL_EVENT_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
         });
-        
-        if (tabName === 'staff' && this.state.event) {
-            this.loadEventStaff(this.state.event.id);
+
+        // Update sub-navigation buttons (V12.6.1)
+        const subNav = document.querySelector('#view-admin .sub-nav-container');
+        if (subNav) {
+            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                b.classList.add('text-slate-400', 'bg-white/5'); // Reset to default state
+                if (b.id === `ev-nav-${tabName}`) { // Check by ID for consistency
+                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    b.classList.remove('text-slate-400', 'bg-white/5');
+                }
+            });
         }
+
+        const panel = document.getElementById('ev-content-' + tabName); // Updated to match actual IDs
+        if (panel) panel.classList.remove('hidden');
+
+        // Load specific data
+        if (tabName === 'guests') this.loadGuests(); // Assuming loadGuests handles event.id
+        if (tabName === 'staff') this.loadEventStaff(this.state.event?.id);
     },
 
     async loadEventStaff(eventId) {
@@ -4502,28 +4522,67 @@ const App = window.App = {
         } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
     },
 
+    async testIMAP() {
+        const host = document.getElementById('imap-host').value;
+        const user = document.getElementById('imap-user').value;
+        if (!host || !user) return Swal.fire('Error', 'Completa host y usuario', 'warning');
+
+        Swal.fire({ title: 'Probando...', text: 'Conectando con servidor IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        try {
+            const res = await this.fetchAPI('/imap/test', {
+                method: 'POST',
+                body: JSON.stringify({ host, user, port: document.getElementById('imap-port').value, pass: document.getElementById('imap-pass').value })
+            });
+            if (res.success) Swal.fire('Conectado', 'La configuración IMAP es correcta', 'success');
+            else Swal.fire('Error', res.error || 'Fallo de conexión', 'error');
+        } catch { Swal.fire('Error', 'Error de red', 'error'); }
+    },
+
+    // Utilidad privada para confirmaciones Premium (V12.6.1)
+    async _confirmAction(title, text, confirmText = 'Sí, eliminar') {
+        const result = await Swal.fire({
+            title,
+            text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1a73e8',
+            cancelButtonColor: '#3c4043',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Cancelar',
+            background: '#292a2d',
+            color: '#e8eaed'
+        });
+        return result.isConfirmed;
+    },
+
     // --- EMAIL Y ENVÍO MASIVO (FASE 6) ---
     async navigateEmailSection(section) {
         document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
-        document.querySelectorAll('.email-nav-btn').forEach(b => {
-             b.classList.remove('bg-primary', 'text-white');
-             b.classList.add('text-[var(--text-secondary)]');
-        });
+        
+        // Actualizar botones de sub-navegación (V12.6.1)
+        const subNav = document.querySelector('#sys-content-email .sub-nav-container');
+        if (subNav) {
+            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                b.classList.add('text-slate-400', 'bg-white/5'); // Reset to default state
+                if (b.id === `email-nav-${section}`) {
+                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    b.classList.remove('text-slate-400', 'bg-white/5');
+                }
+            });
+        }
 
         const panel = document.getElementById('email-content-' + section);
         if (panel) panel.classList.remove('hidden');
-        
-        const btn = document.getElementById('email-nav-' + section);
-        if (btn) {
-            btn.classList.add('bg-primary', 'text-white');
-            btn.classList.remove('text-[var(--text-secondary)]');
-        }
 
         if (section === 'templates') this.loadEmailTemplates();
         if (section === 'mailing') this.loadMailingData();
+        if (section === 'mailbox') this.loadMailbox();
     },
 
     async loadMailingData() {
+        console.log('[MAIL] Loading mailing data...');
         try {
             const events = await this.fetchAPI('/events');
             const eventSelector = document.getElementById('mailing-event-selector');
@@ -4547,9 +4606,10 @@ const App = window.App = {
             }
             
             const btnSend = document.getElementById('btn-send-mass-email');
-            if (btnSend) {
-                btnSend.onclick = () => this.sendMassEmail();
-            }
+            if (btnSend) btnSend.onclick = () => this.startMassMailing();
+
+            const btnStop = document.getElementById('btn-stop-mailing');
+            if (btnStop) btnStop.onclick = () => this.stopMassMailing();
         } catch(e) { console.error('Error mailing data:', e); }
     },
 
