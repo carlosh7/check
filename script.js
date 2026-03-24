@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.8.0
+ * Version: V12.8.1
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.8.0: Iniciando Sistema Modular...');
+console.log('CHECK V12.8.1: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.8.0',
+        version: '12.8.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4655,7 +4655,8 @@ const App = window.App = {
         const list = document.getElementById('inbox-list');
         if (!list) return;
         try {
-            const logs = await this.fetchAPI('/email-logs?type=INBOX');
+            const res = await this.fetchAPI('/email-logs?type=INBOX');
+            const logs = res.data || []; // V12.8.1 Fix: Backend returns {data: []}
             list.innerHTML = logs.map(l => `
                 <tr class="hover:bg-white/5 transition-colors">
                     <td class="px-4 py-3 text-xs text-white font-medium">${l.sender || 'Sistema'}</td>
@@ -4697,16 +4698,55 @@ const App = window.App = {
                 tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
                     templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             }
+
+            // Initialize recipients state if empty
+            if (!this.state.mailingGuests) this.state.mailingGuests = [];
         } catch(e) { console.error('Error mailing data:', e); }
+    },
+
+    async onMailingEventChange() {
+        const eventId = document.getElementById('mailing-event-selector').value;
+        if (!eventId) return;
+        try {
+            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
+            this.renderMailingRecipients(guests);
+        } catch(e) { console.error('Error loading guests:', e); }
+    },
+
+    addDirectRecipient() {
+        const input = document.getElementById('direct-email-input');
+        const email = input.value.trim();
+        if (!email || !email.includes('@')) return Swal.fire('Error', 'Ingresa un correo válido.', 'error');
+
+        const newGuest = {
+            id: 'manual-' + Date.now(),
+            name: email.split('@')[0],
+            email: email,
+            organization: 'Directo',
+            manual: true
+        };
+
+        if (!this.state.mailingGuests) this.state.mailingGuests = [];
+        
+        // Prevent duplicates
+        if (this.state.mailingGuests.find(g => g.email === email)) {
+            return Swal.fire('Atención', 'Este correo ya está en la lista.', 'info');
+        }
+
+        this.state.mailingGuests.unshift(newGuest);
+        this.filterMailingGuests();
+        input.value = '';
+        this._notifyAction('Añadido', `${email} agregado a la lista.`, 'success');
     },
 
     onTemplateChange() {
         const templateId = document.getElementById('mailing-template-selector').value;
-        const template = this.state.emailTemplates.find(t => t.id == templateId);
+        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
         if (template) {
             const previewArea = document.getElementById('email-preview-area');
             if (previewArea) {
-                previewArea.innerHTML = `<iframe srcdoc="${template.content.replace(/"/g, '&quot;')}" class="w-full h-[300px] border-none"></iframe>`;
+                const body = template.body || ''; // V12.8.1 Fix: Use body instead of content
+                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full h-[300px] border-none"></iframe>`;
             }
         }
     },
