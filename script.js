@@ -4725,6 +4725,31 @@ const App = window.App = {
             } catch(e) { Swal.fire('Error', 'Falla crítica en el servidor de correo.', 'error'); }
         }
     },
+
+    async handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Atención', 'Selecciona un evento para importar.', 'info');
+            return;
+        }
+        this._notifyAction('Procesando', 'Analizando archivo...', 'info');
+        this.handleImport(file);
+    },
+
+    async purgeDatabase() {
+        if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
+            try {
+                await this.fetchAPI('/admin/purge', { method: 'POST' });
+                this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
+                location.reload();
+            } catch (e) {
+                this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
+            }
+        }
+    },
 };
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
