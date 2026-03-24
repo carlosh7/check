@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.9.1
+ * Version: V12.9.2
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.9.1: Iniciando Sistema Modular...');
+console.log('CHECK V12.9.2: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.9.1',
+        version: '12.9.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4724,11 +4724,18 @@ const App = window.App = {
 
     async onMailingEventChange() {
         const eventId = document.getElementById('mailing-event-selector').value;
-        if (!eventId) return;
+        if (!eventId) {
+            // Si limpian el evento, dejamos solo los manuales
+            this.state.mailingGuests = (this.state.mailingGuests || []).filter(g => g.manual);
+            return this.filterMailingGuests();
+        }
         try {
             const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            this.renderMailingRecipients(guests);
-        } catch(e) { console.error('Error loading guests:', e); }
+            const manualOnes = (this.state.mailingGuests || []).filter(g => g.manual);
+            // Combinamos manuales con los del evento
+            this.state.mailingGuests = [...manualOnes, ...guests];
+            this.filterMailingGuests();
+        } catch(e) { console.error('[MAIL] Error fetch guests:', e); }
     },
 
     addDirectRecipient() {
@@ -4776,29 +4783,45 @@ const App = window.App = {
     },
 
     filterMailingGuests() {
-        const query = document.getElementById('mailing-search')?.value.toLowerCase() || '';
-        const filtered = this.state.mailingGuests.filter(g => 
-            (g.name || '').toLowerCase().includes(query) ||
-            (g.email || '').toLowerCase().includes(query) ||
-            (g.organization || '').toLowerCase().includes(query) ||
-            (g.position || '').toLowerCase().includes(query) ||
-            (g.city || '').toLowerCase().includes(query)
-        );
+        const searchInput = document.getElementById('mailing-search');
+        if (!searchInput) return;
+        
+        const query = searchInput.value.toLowerCase().trim();
+        const guests = this.state.mailingGuests || [];
+        
+        const filtered = guests.filter(g => {
+            const name = (g.name || '').toLowerCase();
+            const email = (g.email || '').toLowerCase();
+            const org = (g.organization || '').toLowerCase();
+            const pos = (g.position || '').toLowerCase();
+            const city = (g.city || '').toLowerCase();
+            
+            return name.includes(query) || email.includes(query) || org.includes(query) || pos.includes(query) || city.includes(query);
+        });
 
         const list = document.getElementById('mailing-recipients-list');
         const count = document.getElementById('mailing-count');
         if (!list) return;
 
         count.textContent = filtered.length;
+        
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="text-center py-6">
+                <span class="material-symbols-outlined text-slate-600 text-3xl mb-2 opacity-20">search_off</span>
+                <p class="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Sin resultados para "${query}"</p>
+            </div>`;
+            return;
+        }
+
         list.innerHTML = filtered.map(g => `
-            <label class="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-                <input type="checkbox" class="mailing-check w-4 h-4 rounded accent-primary border-white/10 bg-slate-800" value="${g.email}" checked data-name="${g.name}">
-                <div class="flex flex-col flex-1 truncate">
+            <label class="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-all group border border-transparent hover:border-white/5">
+                <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary border-white/10 bg-slate-900/50" value="${g.email}" checked data-name="${g.name}">
+                <div class="flex flex-col flex-1 min-w-0">
                     <span class="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">${g.name}</span>
-                    <span class="text-[9px] text-slate-500 truncate">${g.email} • ${g.organization || 'S/E'}</span>
+                    <span class="text-[9px] text-slate-500 truncate font-medium">${g.email} • ${g.organization || 'S/E'} ${g.manual ? '• (Manual)' : ''}</span>
                 </div>
             </label>
-        `).join('') || '<div class="text-center py-4 text-xs text-slate-500">Sin resultados</div>';
+        `).join('');
     },
 
     toggleAllRecipients() {
