@@ -556,6 +556,20 @@
                                         <span>TOTAL: <span id="mailing-total-count">0</span></span>
                                     </div>
                                 </div>
+                                    <div class="flex gap-4 pt-6 border-t border-[var(--border)]">
+                                        <button id="btn-pause-mailing" onclick="App.controlQueue('pause')" class="btn-secondary !text-yellow-500 !border-yellow-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">pause</span> Pausar
+                                        </button>
+                                        <button id="btn-resume-mailing" onclick="App.controlQueue('resume')" class="btn-secondary !text-green-500 !border-green-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">play_arrow</span> Reanudar
+                                        </button>
+                                        <button id="btn-stop-mailing" onclick="App.controlQueue('stop')" class="btn-secondary !text-red-500 !border-red-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">stop</span> Detener
+                                        </button>
+                                        <button id="btn-send-mass-email" onclick="App.sendMassEmail()" class="btn-primary flex-1 !h-12 !text-base shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                                            <span class="material-symbols-outlined text-lg">rocket_launch</span> Iniciar Campaña
+                                        </button>
+                                    </div>
 
                                 <div class="card p-6 rounded-xl space-y-4">
                                     <div class="flex items-center justify-between border-b border-[var(--border)] pb-3">
@@ -586,20 +600,6 @@
                                         </div>
                                     </div>
 
-                                    <div class="flex gap-4 pt-6 border-t border-[var(--border)]">
-                                        <button id="btn-pause-mailing" onclick="App.controlQueue('pause')" class="btn-secondary !text-yellow-500 !border-yellow-500/20 hidden flex-1">
-                                            <span class="material-symbols-outlined text-sm">pause</span> Pausar
-                                        </button>
-                                        <button id="btn-resume-mailing" onclick="App.controlQueue('resume')" class="btn-secondary !text-green-500 !border-green-500/20 hidden flex-1">
-                                            <span class="material-symbols-outlined text-sm">play_arrow</span> Reanudar
-                                        </button>
-                                        <button id="btn-stop-mailing" onclick="App.controlQueue('stop')" class="btn-secondary !text-red-500 !border-red-500/20 hidden flex-1">
-                                            <span class="material-symbols-outlined text-sm">stop</span> Detener
-                                        </button>
-                                        <button id="btn-send-mass-email" onclick="App.sendMassEmail()" class="btn-primary flex-1 !h-12 !text-base shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                                            <span class="material-symbols-outlined text-lg">rocket_launch</span> Iniciar Campaña
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
