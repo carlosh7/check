@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.9.4
+ * Version: V12.9.5
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.9.4: Iniciando Sistema Modular...');
+console.log('CHECK V12.9.5: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.9.4',
+        version: '12.9.5',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4732,8 +4732,9 @@ const App = window.App = {
         try {
             const guests = await this.fetchAPI(`/events/${eventId}/guests`);
             const manualOnes = (this.state.mailingGuests || []).filter(g => g.manual);
-            // Combinamos manuales con los del evento
-            this.state.mailingGuests = [...manualOnes, ...guests];
+            // Inicializar propiedad selected para persistencia
+            const formattedGuests = guests.map(g => ({ ...g, selected: true }));
+            this.state.mailingGuests = [...manualOnes, ...formattedGuests];
             this.filterMailingGuests();
         } catch(e) { console.error('[MAIL] Error fetch guests:', e); }
     },
@@ -4748,7 +4749,8 @@ const App = window.App = {
             name: email.split('@')[0],
             email: email,
             organization: 'Directo',
-            manual: true
+            manual: true,
+            selected: true
         };
 
         if (!this.state.mailingGuests) this.state.mailingGuests = [];
@@ -4782,22 +4784,11 @@ const App = window.App = {
         this.filterMailingGuests();
     },
 
-    filterMailingGuests() {
-        const searchInput = document.getElementById('mailing-search');
-        if (!searchInput) return;
-        
-        const query = searchInput.value.toLowerCase().trim();
-        const guests = this.state.mailingGuests || [];
-        
-        const filtered = guests.filter(g => {
-            const name = (g.name || '').toLowerCase();
-            const email = (g.email || '').toLowerCase();
-            const org = (g.organization || '').toLowerCase();
-            const pos = (g.position || '').toLowerCase();
-            const city = (g.city || '').toLowerCase();
-            
             return name.includes(query) || email.includes(query) || org.includes(query) || pos.includes(query) || city.includes(query);
         });
+
+        // Cache filtered result for toggle action
+        this.state.lastFilteredRecipients = filtered;
 
         const list = document.getElementById('mailing-recipients-list');
         const count = document.getElementById('mailing-count');
@@ -4815,7 +4806,10 @@ const App = window.App = {
 
         list.innerHTML = filtered.map(g => `
             <label class="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-all group border border-transparent hover:border-white/5">
-                <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary border-white/10 bg-slate-900/50" value="${g.email}" checked data-name="${g.name}">
+                <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary border-white/10 bg-slate-900/50" 
+                    value="${g.email}" ${g.selected ? 'checked' : ''} 
+                    onchange="App.updateGuestSelection('${g.id}', this.checked)"
+                    data-name="${g.name}">
                 <div class="flex flex-col flex-1 min-w-0">
                     <span class="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">${g.name}</span>
                     <span class="text-[9px] text-slate-500 truncate font-medium">${g.email} • ${g.organization || 'S/E'} ${g.manual ? '• (Manual)' : ''}</span>
@@ -4824,24 +4818,31 @@ const App = window.App = {
         `).join('');
     },
 
+    updateGuestSelection(guestId, isChecked) {
+        const guest = (this.state.mailingGuests || []).find(g => g.id == guestId);
+        if (guest) {
+            guest.selected = isChecked;
+        }
+    },
+
     toggleAllRecipients() {
-        const checks = document.querySelectorAll('.mailing-check');
-        if (checks.length === 0) return;
-        // Determine if we should check all or uncheck all based on the first visible check
-        const newState = !checks[0].checked;
-        checks.forEach(c => c.checked = newState);
+        const filtered = this.state.lastFilteredRecipients || [];
+        if (filtered.length === 0) return;
+        
+        // Determinar si activar o desactivar basándonos en el primero
+        const newState = !filtered[0].selected;
+        filtered.forEach(g => g.selected = newState);
+        
+        // Re-renderizar respetando el filtro actual
+        this.filterMailingGuests();
     },
 
     async sendMassEmail() {
         const eventId = document.getElementById('mailing-event-selector').value;
         const templateId = document.getElementById('mailing-template-selector').value;
-        const checks = document.querySelectorAll('.mailing-check:checked');
-        
-        if (!templateId || checks.length === 0) {
-            return Swal.fire('Atención', 'Selecciona una plantilla y destinatarios.', 'info');
-        }
-
-        const recipients = Array.from(checks).map(c => ({ email: c.value, name: c.dataset.name }));
+        const recipients = (this.state.mailingGuests || [])
+            .filter(g => g.selected)
+            .map(g => ({ email: g.email, name: g.name }));
         
         if (await this._confirmAction('¿Lanzar Campaña?', `Se enviarán ${recipients.length} correos.`, 'Sí, iniciar')) {
             try {
