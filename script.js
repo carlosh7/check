@@ -4784,6 +4784,20 @@ const App = window.App = {
         this.filterMailingGuests();
     },
 
+    filterMailingGuests() {
+        const searchInput = document.getElementById('mailing-search');
+        if (!searchInput) return;
+        
+        const query = searchInput.value.toLowerCase().trim();
+        const guests = this.state.mailingGuests || [];
+        
+        const filtered = guests.filter(g => {
+            const name = (g.name || '').toLowerCase();
+            const email = (g.email || '').toLowerCase();
+            const org = (g.organization || '').toLowerCase();
+            const pos = (g.position || '').toLowerCase();
+            const city = (g.city || '').toLowerCase();
+            
             return name.includes(query) || email.includes(query) || org.includes(query) || pos.includes(query) || city.includes(query);
         });
 
