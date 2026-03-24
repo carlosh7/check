@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.9.5
+ * Version: V12.9.6
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.9.5: Iniciando Sistema Modular...');
+console.log('CHECK V12.9.6: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.9.5',
+        version: '12.9.6',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4808,7 +4808,8 @@ const App = window.App = {
         const count = document.getElementById('mailing-count');
         if (!list) return;
 
-        count.textContent = filtered.length;
+        const totalSelected = (this.state.mailingGuests || []).filter(g => g.selected).length;
+        count.innerHTML = `${filtered.length} <span class="text-[var(--text-secondary)] opacity-50 mx-1">/</span> <span class="text-[var(--primary)]">${totalSelected} seleccionados</span>`;
         
         if (filtered.length === 0) {
             list.innerHTML = `<div class="text-center py-6">
@@ -4836,7 +4837,36 @@ const App = window.App = {
         const guest = (this.state.mailingGuests || []).find(g => g.id == guestId);
         if (guest) {
             guest.selected = isChecked;
+            this.filterMailingGuests(); // Actualizar contador
         }
+    },
+
+    showSelectionSummary() {
+        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
+        if (selected.length === 0) return Swal.fire('Lista Vacía', 'No hay destinatarios seleccionados.', 'info');
+
+        const html = `
+            <div class="max-h-64 overflow-y-auto text-left space-y-2 pr-2 custom-scrollbar">
+                ${selected.map(g => `
+                    <div class="flex flex-col p-2 bg-white/5 rounded-lg border border-white/5">
+                        <span class="text-[11px] font-bold text-white">${g.name}</span>
+                        <span class="text-[9px] text-slate-500">${g.email}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        Swal.fire({
+            title: `<span class="text-lg font-bold">Resumen de Selección</span>`,
+            html: html,
+            width: '400px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
+        });
     },
 
     toggleAllRecipients() {
