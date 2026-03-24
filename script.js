@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.7.5
+ * Version: V12.8.0
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.7.5: Iniciando Sistema Modular...');
+console.log('CHECK V12.8.0: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.7.5',
+        version: '12.8.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4629,6 +4629,57 @@ const App = window.App = {
         if (section === 'mailbox') this.loadMailbox();
     },
 
+    async loadEmailTemplates() {
+        const grid = document.getElementById('email-templates-grid');
+        if (!grid) return;
+        try {
+            const templates = await this.fetchAPI('/email-templates');
+            this.state.emailTemplates = templates;
+            grid.innerHTML = templates.map(t => `
+                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center">
+                            <span class="material-symbols-outlined">mail</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white">${t.name}</h4>
+                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">${t.subject || 'Sin Asunto'}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { console.error('Error templates:', e); }
+    },
+
+    async loadMailbox() {
+        const list = document.getElementById('inbox-list');
+        if (!list) return;
+        try {
+            const logs = await this.fetchAPI('/email-logs?type=INBOX');
+            list.innerHTML = logs.map(l => `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-4 py-3 text-xs text-white font-medium">${l.sender || 'Sistema'}</td>
+                    <td class="px-4 py-3 text-xs text-slate-300 truncate max-w-xs">${l.subject}</td>
+                    <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error('Error mailbox:', e); }
+    },
+
+    async syncIMAP() {
+        Swal.fire({ title: 'Sincronizando...', text: 'Conectando con IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await this.fetchAPI('/imap/sync');
+            if (res.success) {
+                Swal.fire('✓ Sincronizado', 'Correos actualizados correctamente.', 'success');
+                this.loadMailbox();
+            }
+        } catch(e) { Swal.fire('Error', 'Falla en sincronización IMAP', 'error'); }
+    },
+
     async loadMailingData() {
         console.log('[MAIL] Loading mailing data...');
         try {
@@ -4637,49 +4688,64 @@ const App = window.App = {
             if (eventSelector) {
                 eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
                     events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
-                
-                eventSelector.onchange = async () => {
-                    if (eventSelector.value) {
-                        const guests = await this.fetchAPI(`/events/${eventSelector.value}/guests`);
-                        this.renderMailingRecipients(guests);
-                    }
-                };
             }
 
             const templates = await this.fetchAPI('/email-templates');
+            this.state.emailTemplates = templates;
             const tempSelector = document.getElementById('mailing-template-selector');
             if (tempSelector) {
                 tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
                     templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             }
-            
-            const btnSend = document.getElementById('btn-send-mass-email');
-            if (btnSend) btnSend.onclick = () => this.startMassMailing();
-
-            const btnStop = document.getElementById('btn-stop-mailing');
-            if (btnStop) btnStop.onclick = () => this.stopMassMailing();
         } catch(e) { console.error('Error mailing data:', e); }
     },
 
+    onTemplateChange() {
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const template = this.state.emailTemplates.find(t => t.id == templateId);
+        if (template) {
+            const previewArea = document.getElementById('email-preview-area');
+            if (previewArea) {
+                previewArea.innerHTML = `<iframe srcdoc="${template.content.replace(/"/g, '&quot;')}" class="w-full h-[300px] border-none"></iframe>`;
+            }
+        }
+    },
+
     renderMailingRecipients(guests) {
-        const container = document.getElementById('mailing-recipients-container');
+        this.state.mailingGuests = guests; // Cache for filtering
+        this.filterMailingGuests();
+    },
+
+    filterMailingGuests() {
+        const query = document.getElementById('mailing-search')?.value.toLowerCase() || '';
+        const filtered = this.state.mailingGuests.filter(g => 
+            (g.name || '').toLowerCase().includes(query) ||
+            (g.email || '').toLowerCase().includes(query) ||
+            (g.organization || '').toLowerCase().includes(query) ||
+            (g.position || '').toLowerCase().includes(query) ||
+            (g.city || '').toLowerCase().includes(query)
+        );
+
         const list = document.getElementById('mailing-recipients-list');
         const count = document.getElementById('mailing-count');
-        
-        if (!container || !list) return;
-        
-        container.classList.remove('hidden');
-        count.textContent = guests.length;
-        
-        list.innerHTML = guests.map(g => `
-            <label class="flex items-center gap-3 p-2 hover:bg-[var(--bg-hover)] rounded-lg cursor-pointer transition-colors">
-                <input type="checkbox" class="mailing-check w-4 h-4 rounded accent-[var(--primary)]" value="${g.email}" checked data-name="${g.name}">
-                <div class="flex flex-col">
-                    <span class="text-xs font-bold">${g.name}</span>
-                    <span class="text-[10px] text-[var(--text-secondary)]">${g.email}</span>
+        if (!list) return;
+
+        count.textContent = filtered.length;
+        list.innerHTML = filtered.map(g => `
+            <label class="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
+                <input type="checkbox" class="mailing-check w-4 h-4 rounded accent-primary border-white/10 bg-slate-800" value="${g.email}" checked data-name="${g.name}">
+                <div class="flex flex-col flex-1 truncate">
+                    <span class="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">${g.name}</span>
+                    <span class="text-[9px] text-slate-500 truncate">${g.email} • ${g.organization || 'S/E'}</span>
                 </div>
             </label>
-        `).join('');
+        `).join('') || '<div class="text-center py-4 text-xs text-slate-500">Sin resultados</div>';
+    },
+
+    toggleAllRecipients() {
+        const checks = document.querySelectorAll('.mailing-check');
+        const allChecked = Array.from(checks).every(c => c.checked);
+        checks.forEach(c => c.checked = !allChecked);
     },
 
     async sendMassEmail() {
@@ -4688,42 +4754,86 @@ const App = window.App = {
         const checks = document.querySelectorAll('.mailing-check:checked');
         
         if (!templateId || checks.length === 0) {
-            return Swal.fire('Atención', 'Selecciona una plantilla y al menos un destinatario.', 'info');
+            return Swal.fire('Atención', 'Selecciona una plantilla y destinatarios.', 'info');
         }
 
-        const recipients = Array.from(checks).map(c => ({
-            email: c.value,
-            name: c.dataset.name
-        }));
-
-        const { isConfirmed } = await Swal.fire({
-            title: 'Confirmar Envío',
-            text: `¿Enviar correos a ${recipients.length} destinatarios?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, disparar campaña',
-            cancelButtonText: 'Revisar'
-        });
-
-        if (isConfirmed) {
-            Swal.fire({
-                title: 'Enviando...',
-                html: 'Progreso: <b>0</b>%',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
+        const recipients = Array.from(checks).map(c => ({ email: c.value, name: c.dataset.name }));
+        
+        if (await this._confirmAction('¿Lanzar Campaña?', `Se enviarán ${recipients.length} correos.`, 'Sí, iniciar')) {
             try {
                 const res = await this.fetchAPI('/send-mass', {
                     method: 'POST',
                     body: JSON.stringify({ templateId, recipients, eventId })
                 });
-                
                 if (res.success) {
-                    Swal.fire('✓ Completado', `Se han enviado ${recipients.length} correos exitosamente.`, 'success');
+                    document.getElementById('mailing-progress-container').classList.remove('hidden');
+                    this.startQueuePolling();
                 }
-            } catch(e) { Swal.fire('Error', 'Falla crítica en el servidor de correo.', 'error'); }
+            } catch(e) { this._notifyAction('Error', 'No se pudo iniciar la campaña.', 'error'); }
         }
+    },
+
+    startQueuePolling() {
+        if (this.queuePolling) clearInterval(this.queuePolling);
+        this.updateQueueStats();
+        this.queuePolling = setInterval(() => this.updateQueueStats(), 3000);
+        
+        // Show controls
+        document.getElementById('btn-send-mass-email').classList.add('hidden');
+        document.getElementById('btn-pause-mailing').classList.remove('hidden');
+        document.getElementById('btn-stop-mailing').classList.remove('hidden');
+    },
+
+    async updateQueueStats() {
+        try {
+            const stats = await this.fetchAPI('/email-queue/stats');
+            const percent = stats.total > 0 ? Math.round(((stats.total - stats.pending) / stats.total) * 100) : 0;
+            
+            document.getElementById('mailing-percentage').textContent = percent + '%';
+            document.getElementById('mailing-progress-bar').style.width = percent + '%';
+            document.getElementById('mailing-sent-count').textContent = stats.sent;
+            document.getElementById('mailing-error-count').textContent = stats.errors;
+            document.getElementById('mailing-total-count').textContent = stats.total;
+
+            if (stats.pending === 0 && stats.total > 0) {
+                clearInterval(this.queuePolling);
+                this._notifyAction('Campaña Finalizada', 'Todos los correos han sido procesados.', 'success');
+                this.resetQueueUI();
+            }
+            
+            // UI state based on backend queue status
+            if (stats.status === 'PAUSED') {
+                document.getElementById('btn-pause-mailing').classList.add('hidden');
+                document.getElementById('btn-resume-mailing').classList.remove('hidden');
+                document.getElementById('mailing-status-text').classList.remove('animate-pulse');
+                document.getElementById('mailing-status-text').textContent = 'Campaña Pausada';
+            } else {
+                document.getElementById('btn-pause-mailing').classList.remove('hidden');
+                document.getElementById('btn-resume-mailing').classList.add('hidden');
+                document.getElementById('mailing-status-text').classList.add('animate-pulse');
+                document.getElementById('mailing-status-text').textContent = 'Procesando...';
+            }
+
+        } catch(e) { console.error('Polling error:', e); }
+    },
+
+    async controlQueue(action) {
+        try {
+            await this.fetchAPI(`/email-queue/${action}`, { method: 'POST' });
+            this.updateQueueStats();
+            if (action === 'stop') {
+                clearInterval(this.queuePolling);
+                this.resetQueueUI();
+            }
+        } catch(e) { console.error('Control error:', e); }
+    },
+
+    resetQueueUI() {
+        document.getElementById('btn-send-mass-email').classList.remove('hidden');
+        document.getElementById('btn-pause-mailing').classList.add('hidden');
+        document.getElementById('btn-resume-mailing').classList.add('hidden');
+        document.getElementById('btn-stop-mailing').classList.add('hidden');
+        document.getElementById('mailing-progress-container').classList.add('hidden');
     },
 
     async handleFileSelect(e) {

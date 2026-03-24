@@ -444,59 +444,127 @@
                             </form>
                         </div>
                     </div>
-                    <div id="email-content-mailbox" class="email-content hidden">
-                        <!-- Content remains same -->
+                    <div id="email-content-mailbox" class="email-content hidden animate-fade-in">
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex justify-between items-center border-b border-[var(--border)] pb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">inbox</span>
+                                    <h3 class="text-lg font-semibold text-white">Bandeja de Entrada (IMAP)</h3>
+                                </div>
+                                <button onclick="App.syncIMAP()" class="btn-secondary !py-2 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="text-[var(--text-secondary)] text-[10px] uppercase tracking-wider border-b border-[var(--border)]">
+                                        <tr>
+                                            <th class="px-4 py-3 font-bold">Remitente</th>
+                                            <th class="px-4 py-3 font-bold">Asunto</th>
+                                            <th class="px-4 py-3 font-bold">Fecha</th>
+                                            <th class="px-4 py-3 font-bold text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inbox-list" class="divide-y divide-[var(--border)]">
+                                        <!-- Se carga dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <div id="email-content-templates" class="email-content hidden">
                         <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                     </div>
-                    <div id="email-content-mailing" class="email-content hidden">
-                        <div class="card p-8 rounded-xl space-y-6 max-w-3xl">
-                             <div class="flex items-center gap-3 border-b border-[var(--border)] pb-4">
-                                 <span class="material-symbols-outlined text-[var(--primary)] text-2xl">campaign</span>
-                                 <h3 class="text-lg font-semibold">Envío Masivo de Invitaciones</h3>
-                             </div>
-                             
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                 <div class="space-y-1.5">
-                                     <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Seleccionar Base de Datos (Evento)</label>
-                                     <select id="mailing-event-selector" class="w-full">
-                                         <option value="">-- Seleccionar Evento --</option>
-                                     </select>
-                                 </div>
-                                 <div class="space-y-1.5">
-                                     <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Plantilla de Correo</label>
-                                     <select id="mailing-template-selector" class="w-full">
-                                         <option value="">-- Seleccionar Plantilla --</option>
-                                     </select>
-                                 </div>
-                             </div>
-                             <div id="mailing-progress-container" class="hidden space-y-4 border-t border-[var(--border)] pt-6">
-                                 <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
-                                     <span id="mailing-status-text" class="text-[var(--primary)] animate-pulse">Enviando correos...</span>
-                                     <span id="mailing-percentage">0%</span>
-                                 </div>
-                                 <div class="w-full bg-[var(--bg-hover)] h-2.5 rounded-full overflow-hidden">
-                                     <div id="mailing-progress-bar" class="bg-[var(--primary)] h-full transition-all duration-300" style="width: 0%"></div>
-                                 </div>
-                                 <div class="bg-[var(--bg-app)] rounded-lg p-3 text-[10px] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto border border-[var(--border)] text-[var(--text-secondary)]" id="mailing-logs"> Esperando inicio...</div>
-                              </div>
+                    <div id="email-content-mailing" class="email-content hidden animate-fade-in">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                            <!-- Lado Izquierdo: Configuración y Destinatarios -->
+                            <div class="card p-8 rounded-xl space-y-6">
+                                <div class="flex items-center gap-3 border-b border-[var(--border)] pb-4">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">campaign</span>
+                                    <h3 class="text-lg font-semibold">Configuración de Campaña</h3>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1.5">
+                                        <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Evento Destino</label>
+                                        <select id="mailing-event-selector" onchange="App.loadMailingData()" class="w-full"></select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Plantilla</label>
+                                        <select id="mailing-template-selector" onchange="App.onTemplateChange()" class="w-full"></select>
+                                    </div>
+                                </div>
 
-                             <div id="mailing-recipients-container" class="hidden space-y-3">
-                                 <div class="flex justify-between items-center">
-                                     <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Destinatarios Seleccionados (<span id="mailing-count">0</span>)</h4>
-                                     <button id="btn-toggle-all-recipients" class="text-[10px] text-[var(--primary)] font-bold hover:underline">Seleccionar Todos</button>
-                                 </div>
-                                 <div class="max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--bg-app)] p-2">
-                                     <div id="mailing-recipients-list" class="space-y-1"></div>
-                                 </div>
-                             </div>
+                                <div id="mailing-recipients-container" class="space-y-3 pt-4 border-t border-[var(--border)]">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Destinatarios (<span id="mailing-count">0</span>)</h4>
+                                        <div class="flex gap-3">
+                                            <button onclick="App.toggleAllRecipients()" class="text-[10px] text-[var(--primary)] font-bold hover:underline">Alternar Todos</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Buscador Integral solicitado por el usuario -->
+                                    <div class="relative group">
+                                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] group-focus-within:text-[var(--primary)] transition-colors">search</span>
+                                        <input type="text" id="mailing-search" onkeyup="App.filterMailingGuests()" placeholder="Buscar por nombre, empresa, cargo, ciudad..." 
+                                            class="w-full bg-[var(--bg-app)] border border-[var(--border)] rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all">
+                                    </div>
 
-                             <div class="flex justify-between items-center pt-4 border-t border-[var(--border)]">
-                                  <button id="btn-stop-mailing" class="btn-secondary !text-red-500 !border-red-500/20 hidden">Detener Envío</button>
-                                  <div class="flex-1"></div>
-                                  <button id="btn-send-mass-email" class="btn-primary !px-8 !py-3">Iniciar Campaña</button>
-                              </div>
+                                    <div class="max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--bg-app)] p-2 custom-scrollbar">
+                                        <div id="mailing-recipients-list" class="space-y-1"></div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3 pt-4 border-t border-[var(--border)]">
+                                    <button id="btn-pause-mailing" onclick="App.controlQueue('pause')" class="btn-secondary !text-yellow-500 !border-yellow-500/20 hidden flex-1">
+                                        <span class="material-symbols-outlined text-sm">pause</span> Pausar
+                                    </button>
+                                    <button id="btn-resume-mailing" onclick="App.controlQueue('resume')" class="btn-secondary !text-green-500 !border-green-500/20 hidden flex-1">
+                                        <span class="material-symbols-outlined text-sm">play_arrow</span> Reanudar
+                                    </button>
+                                    <button id="btn-stop-mailing" onclick="App.controlQueue('stop')" class="btn-secondary !text-red-500 !border-red-500/20 hidden flex-1">
+                                        <span class="material-symbols-outlined text-sm">stop</span> Detener
+                                    </button>
+                                    <button id="btn-send-mass-email" onclick="App.sendMassEmail()" class="btn-primary flex-1 !px-8">
+                                        <span class="material-symbols-outlined text-sm">send</span> Iniciar Campaña
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lado Derecho: Estado y Previsualización -->
+                            <div class="space-y-6">
+                                <div id="mailing-progress-container" class="card p-6 rounded-xl hidden space-y-4 animate-fade-in border-l-4 border-l-[var(--primary)]">
+                                    <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+                                        <span id="mailing-status-text" class="text-[var(--primary)] animate-pulse flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">slow_motion_video</span> Procesando...
+                                        </span>
+                                        <span id="mailing-percentage" class="bg-[var(--primary-light)] text-[var(--primary)] px-2 py-0.5 rounded-full">0%</span>
+                                    </div>
+                                    <div class="w-full bg-[var(--bg-hover)] h-2 rounded-full overflow-hidden">
+                                        <div id="mailing-progress-bar" class="bg-gradient-to-r from-[var(--primary)] to-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-[var(--text-secondary)] font-bold">
+                                        <span>ENVIADOS: <span id="mailing-sent-count">0</span></span>
+                                        <span>ERRORES: <span id="mailing-error-count" class="text-red-400">0</span></span>
+                                        <span>TOTAL: <span id="mailing-total-count">0</span></span>
+                                    </div>
+                                </div>
+
+                                <div class="card p-6 rounded-xl space-y-4">
+                                    <div class="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                                        <h4 class="text-sm font-semibold flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[var(--primary)] text-lg">visibility</span> Previsualización
+                                        </h4>
+                                        <span class="text-[10px] text-[var(--text-secondary)]">Vista Desktop</span>
+                                    </div>
+                                    <div id="email-preview-area" class="bg-white rounded-lg min-h-[300px] overflow-hidden shadow-inner border border-white/5 flex items-center justify-center">
+                                        <div class="text-center p-8">
+                                            <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">mark_email_read</span>
+                                            <p class="text-slate-400 text-xs">Selecciona una plantilla para previsualizar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1145,6 +1213,6 @@
 
 </div>
 
-<link rel="stylesheet" href="/styles.css?v=12.7.5">
-<link rel="stylesheet" href="/modern.css?v=12.7.5">
-<script type="module" src="/script.js?v=12.7.5"></script>
+<link rel="stylesheet" href="/styles.css?v=12.8.0">
+<link rel="stylesheet" href="/modern.css?v=12.8.0">
+<script type="module" src="/script.js?v=12.8.0"></script>
