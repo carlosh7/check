@@ -4754,9 +4754,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Listeners generales
 
     // Login Form
-    sf('login-form', async (e) => {
+    sf('form-login', async (e) => {
         e.preventDefault();
-        const u = document.getElementById('login-user').value; const p = document.getElementById('login-pass').value;
+        const u = document.getElementById('login-email').value; const p = document.getElementById('login-password').value;
         console.log("[LOGIN] Intentando login con:", u);
         try {
             const d = await App.fetchAPI('/login', { method: 'POST', body: JSON.stringify({username: u, password: p}) });
