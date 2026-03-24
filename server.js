@@ -1,4 +1,4 @@
-// server.js — Check Elite Pro v12.9.0
+// server.js — Check Elite Pro v12.9.9
 // Regla de Oro V12 - Sistema Modular con Glassmorphismg();
 require('dotenv').config();
 const express = require('express');
