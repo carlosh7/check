@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.4.0
+ * Version: V12.5.1
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.4.0: Iniciando Sistema Modular...');
+console.log('CHECK V12.5.1: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.4.0',
+        version: '12.5.1',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -538,7 +538,7 @@ const App = window.App = {
         }
     },
     
-    // --- EVENT USER MANAGEMENT V10.6 & V12.5.0 ---
+    // --- EVENT USER MANAGEMENT V10.6 & V12.5.1 ---
     
     // Checklist Modal para asignar Usuarios a un Evento
     showEventSelector: async function(userId) {
