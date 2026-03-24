@@ -359,18 +359,22 @@ const App = window.App = {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.group_id === g.id);
                     const userChips = groupUsers.map(u => `
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-semibold rounded-md border border-[var(--border)] shadow-sm">
-                            <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
-                            ${u.display_name || u.username}
-                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="hover:text-red-500 transition-colors ml-1.5 font-bold text-sm leading-none flex items-center">&times;</button>
-                        </span>`).join('');
+                        <div class="inline-flex items-center gap-1 mt-1">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-semibold rounded-md border border-[var(--border)] shadow-sm">
+                                <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
+                                ${u.display_name || u.username}
+                            </span>
+                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Usuario"><span class="material-symbols-outlined text-[14px]">close</span></button>
+                        </div>`).join('');
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                     const eventChips = groupEvents.map(e => `
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                            <button data-action="removeEventFromCompany" data-event-id="${e.id}" data-group-id="${g.id}" class="hover:text-red-500 ml-1.5 text-sm leading-none flex items-center">&times;</button>
-                        </span>`).join('');
+                        <div class="inline-flex items-center gap-1 mt-1">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
+                                ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                            </span>
+                            <button data-action="removeEventFromCompany" data-event-id="${e.id}" data-group-id="${g.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></button>
+                        </div>`).join('');
                     
                     return `
                     <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
@@ -830,10 +834,12 @@ const App = window.App = {
                 // --- EVENTOS (Para Columna 1) ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] mt-1 shadow-sm">
-                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        ${canEdit ? `<button data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="hover:text-red-500 ml-1.5 text-sm leading-none flex items-center">&times;</button>` : ''}
-                    </span>
+                    <div class="inline-flex items-center gap-1 mt-1">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        </span>
+                        ${canEdit ? `<button data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
+                    </div>
                 `).join('');
 
                 // --- COLUMNA 1: COLABORADOR ---
@@ -843,13 +849,16 @@ const App = window.App = {
                     <div class="flex flex-wrap gap-1 mt-1">${eventChips}</div>
                 `;
 
-                // --- COLUMNA 2: ROL / ACCESO ---
-                const userGroup = groups.find(g => String(g.id) === String(u.group_id));
-                const groupDisplay = userGroup ? `
-                    <span class="material-symbols-outlined text-[16px] text-[var(--text-secondary)]">corporate_fare</span>
-                    <span class="truncate max-w-[150px] text-xs font-bold" title="${userGroup.name}">${userGroup.name}</span>
-                    ${canEdit ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="hover:text-red-500 font-bold ml-1 text-sm leading-none flex items-center">&times;</button>` : ''}
-                ` : `<span class="italic text-[var(--text-muted)] text-xs">Sin Empresa</span>`;
+                // --- COLUMNA 2: ROL / ACCESO (MULTITENANT) ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <div class="inline-flex items-center gap-1 mt-1 mb-1 mr-1">
+                        <span class="px-2.5 py-1 inline-flex items-center gap-1.5 bg-[var(--bg-hover)] text-xs font-semibold rounded-md text-[var(--text-main)] border border-[var(--border)] shadow-sm">
+                            <span class="material-symbols-outlined text-[14px] text-[var(--text-secondary)]">corporate_fare</span>
+                            <span class="truncate max-w-[150px]" title="${userGroup.name}">${userGroup.name}</span>
+                        </span>
+                        ${canEdit ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
+                    </div>
+                `).join('') : `<span class="italic text-[var(--text-muted)] text-xs mt-1 mb-1 block">Sin Empresa</span>`;
 
                 const roleSelect = canEdit ? `
                     <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-medium rounded px-2 py-1 border border-[var(--border)] outline-none w-[130px] focus:border-[var(--primary)] mt-1.5">
@@ -857,7 +866,7 @@ const App = window.App = {
                     </select>` : `<div class="text-xs font-semibold mt-1.5">${u.role}</div>`;
 
                 const col2 = `
-                    <div class="text-[11px] font-medium text-[var(--text-main)] flex items-center gap-1.5 mb-1">${groupDisplay}</div>
+                    <div class="text-[11px] font-medium text-[var(--text-main)] flex flex-wrap items-center gap-0.5">${groupDisplay}</div>
                     ${roleSelect}
                 `;
 
@@ -867,7 +876,7 @@ const App = window.App = {
                 const col3 = `<span class="status-pill inline-block ${statusClass}">${statusLabel}</span>`;
 
                 // --- COLUMNA 4: ACCIONES ---
-                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" data-group-id="${userGroup?.id || ''}" class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
+                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
                 const actionAssignEvent = canEdit ? `<button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>` : '';
                 
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
@@ -1013,13 +1022,21 @@ const App = window.App = {
         } catch(e) { console.error('Error removing event:', e); }
     },
     
-    // Mostrar selector de empresas para asignar
-    showGroupSelector: function(userId, currentGroupId) {
+    // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
+    showGroupSelector: function(userId) {
         const groups = this.state.allGroups || [];
+        const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
         
-        const options = groups.map(g => 
-            `<option value="${g.id}" ${String(g.id) === String(currentGroupId) ? 'selected' : ''}>${g.name}</option>`
-        ).join('');
+        const options = groups.map(g => `
+            <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 cursor-pointer transition-all">
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-sm font-bold text-white">${g.name}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">${g.description || 'Productor asimilado'}</span>
+                </div>
+                <input type="checkbox" name="multi-group-select" value="${g.id}" ${currentGroupIds.includes(String(g.id)) ? 'checked' : ''} class="w-5 h-5 accent-primary rounded cursor-pointer border-white/10 bg-slate-900/50">
+            </label>
+        `).join('');
         
         const modal = document.createElement('div');
         modal.id = 'modal-select-group';
@@ -1031,19 +1048,13 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-2xl">corporate_fare</span>
                     </div>
                     <div>
-                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresa</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Gestión de Colaboradores</p>
+                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
                     </div>
                 </div>
                 
-                <div class="space-y-4 mb-8">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Organización</label>
-                        <select id="select-group-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">-- Sin asignar --</option>
-                            ${options}
-                        </select>
-                    </div>
+                <div class="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
+                    ${options || '<p class="text-xs text-slate-500 italic text-center py-4">No hay empresas creadas. Crea una primero.</p>'}
                 </div>
 
                 <div class="flex flex-col gap-3">
@@ -1063,18 +1074,19 @@ const App = window.App = {
     },
     
     assignUserGroupFromSelector: async function(userId) {
-        const select = document.getElementById('select-group-target');
-        const groupId = select.value;
+        const checkboxes = document.querySelectorAll('input[name="multi-group-select"]:checked');
+        const selectedGroupIds = Array.from(checkboxes).map(chk => chk.value);
+        
         try {
             const res = await this.fetchAPI(`/users/${userId}/group`, { 
                 method: 'PUT', 
-                body: JSON.stringify({ group_id: groupId || null }) 
+                body: JSON.stringify({ group_id: selectedGroupIds }) 
             });
             if (res.success) {
                 this.loadUsersTable();
                 this.closeGroupSelector();
             }
-        } catch(e) { console.error('Error assigning group:', e); }
+        } catch(e) { console.error('Error assigning groups:', e); }
     },
     
     openCreateGroupModal: function() {
@@ -2499,11 +2511,15 @@ const App = window.App = {
 
         this.showView(viewName);
         
-        // Lógica específica por vista
+        // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') window.switchSystemTab('users');
-        if (viewName === 'legal') window.switchSystemTab('legal');
-        if (viewName === 'account') window.switchSystemTab('account');
+        if (viewName === 'system') window.switchSystemTab(params.tab || 'users');
+        
+        // Redirecciones de compatibilidad para el Hub unificado
+        if (viewName === 'groups') { this.navigate('system', { tab: 'groups' }); return; }
+        if (viewName === 'legal') { this.navigate('system', { tab: 'legal' }); return; }
+        if (viewName === 'account') { this.navigate('system', { tab: 'account' }); return; }
+        if (viewName === 'smtp') { this.navigate('system', { tab: 'email' }); return; }
         
         if (viewName === 'admin') {
             const id = params.id || (this.state.event ? this.state.event.id : null);
@@ -2642,13 +2658,10 @@ const App = window.App = {
         this.initTheme();
         this.initSidebar();
         
-        // Navigation - Sidebar
+        // Navigation - Sidebar (Unified V12.6.0)
         cl('btn-toggle-sidebar', () => this.toggleSidebar());
         cl('nav-btn-system', () => this.navigate('system'));
-        cl('nav-btn-groups', () => this.navigate('groups'));
-        cl('nav-btn-legal', () => this.navigate('legal'));
-        cl('nav-btn-smtp', () => this.navigateEmailSection('config'));
-        cl('nav-btn-account', () => this.navigate('account'));
+        cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-admin', () => this.navigate('admin'));
         cl('nav-btn-pre-registrations', () => this.navigate('pre-registrations'));
@@ -2665,12 +2678,25 @@ const App = window.App = {
         cl('btn-create-event-open', () => this.openCreateEventModal());
         cl('btn-create-group', () => this.openCompanyModal());
         
-        // System tabs
+        // System tabs (Unified 5-Tab Hub)
         cl('sys-nav-users', () => window.switchSystemTab('users'));
+        cl('sys-nav-groups', () => window.switchSystemTab('groups'));
         cl('sys-nav-legal', () => window.switchSystemTab('legal'));
+        cl('sys-nav-email', () => window.switchSystemTab('email'));
         cl('sys-nav-account', () => window.switchSystemTab('account'));
-        cl('sys-nav-events', () => this.loadEvents());
+        
         cl('btn-open-invite', () => this.openInviteModal());
+        
+        // Profile Security Forms (Phase 5)
+        const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+        sf('change-email-form', (e) => this.handleEmailChange(e));
+        sf('change-pass-form', (e) => this.handlePasswordChange(e));
+        
+        // Event Tabs (Fase 3: Multi-Tab en Evento)
+        cl('ev-nav-guests', () => window.switchEventTab('guests'));
+        cl('ev-nav-staff', () => window.switchEventTab('staff'));
+        cl('btn-ev-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
+        cl('btn-ev-staff-new', () => this.openInviteModal());
         
         // Email section tabs
         cl('email-nav-config', () => this.navigateEmailSection('config'));
@@ -4236,29 +4262,365 @@ const App = window.App = {
     },
 
     switchSystemTab(tabName) {
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-legal', 'sys-content-account'];
+        console.log('[SYS] Switching to tab:', tabName);
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
+        
+        // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
-        document.querySelectorAll('#view-system [id^="sys-nav-"]').forEach(b => {
-            b.classList.remove('bg-primary', 'text-white', 'shadow-xl', 'active');
-            b.classList.add('text-slate-400');
+
+        // Desactivar todos los botones de navegación
+        document.querySelectorAll('.sub-nav-btn').forEach(b => {
+             b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+             b.classList.add('text-slate-400');
         });
 
+        // Mostrar panel activo
         const panel = document.getElementById('sys-content-' + tabName);
         if (panel) panel.classList.remove('hidden');
+
+        // Activar botón correspondiente
         const activeBtn = document.getElementById('sys-nav-' + tabName);
         if (activeBtn) {
             activeBtn.classList.remove('text-slate-400');
-            activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
+            activeBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
         }
+
+        // Carga de datos específicos
         if (tabName === 'users') this.loadUsersTable();
+        if (tabName === 'groups') this.loadGroups();
         if (tabName === 'legal') this.loadLegalTexts();
+        if (tabName === 'email') this.navigateEmailSection('config');
+        if (tabName === 'account') this.loadUserProfile();
+    },
+
+    // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
+    switchEventTab(tabName) {
+        ['guests', 'staff'].forEach(t => {
+            const el = document.getElementById('ev-content-' + t);
+            if (el) el.classList.toggle('hidden', t !== tabName);
+            
+            const btn = document.getElementById('ev-nav-' + t);
+            if (btn) {
+                if (t === tabName) {
+                    btn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    btn.classList.remove('text-slate-400', 'bg-white/5');
+                } else {
+                    btn.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    btn.classList.add('text-slate-400', 'bg-white/5');
+                }
+            }
+        });
+        
+        if (tabName === 'staff' && this.state.event) {
+            this.loadEventStaff(this.state.event.id);
+        }
+    },
+
+    async loadEventStaff(eventId) {
+        try {
+            const users = await this.fetchAPI(`/events/${eventId}/users`);
+            const tbody = document.getElementById('ev-staff-tbody');
+            if (!tbody) return;
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-[var(--text-muted)] italic text-sm">No hay personal asignado a este evento.</td></tr>`;
+                return;
+            }
+            
+            const isAdmin = this.state.user?.role === 'ADMIN';
+            const canEdit = isAdmin || this.state.user?.role === 'PRODUCTOR';
+            
+            tbody.innerHTML = users.map(u => `
+                <tr class="hover:bg-[var(--bg-hover)] transition-colors group">
+                    <td class="px-5 py-4">
+                        <div class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</div>
+                        <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                    </td>
+                    <td class="px-5 py-4 text-center">
+                        <span class="px-2.5 py-1 inline-flex text-[11px] font-semibold rounded-md bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-main)] shadow-sm">
+                            ${u.role}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                        ${canEdit ? `<button data-action="removeEventStaff" data-user-id="${u.id}" class="w-8 h-8 inline-flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors shadow-sm ml-auto opacity-70 group-hover:opacity-100" title="Desvincular del Evento"><span class="material-symbols-outlined text-[16px]">close</span></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            
+        } catch(e) { console.error('Error loading event staff:', e); }
+    },
+
+    async removeEventStaff(userId) {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        const result = await Swal.fire({
+            title: '¿Desvincular Personal?',
+            text: 'El colaborador perderá acceso inmediato a este evento.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Sí, remover',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
+                this.loadEventStaff(eventId);
+            } catch(e) { console.error('Error:', e); }
+        }
+    },
+
+    showUserSelectorForEvent(eventId) {
+        const allSystemUsers = this.state.allUsers || [];
+        const options = allSystemUsers.map(u => 
+            `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`
+        ).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-select-event-staff';
+        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
+        modal.innerHTML = `
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">person_add</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight">Vincular Staff</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Asignación Rápida</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Colaborador</label>
+                        <select id="select-staff-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
+                            <option value="">-- Seleccionar --</option>
+                            ${options}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Añadir al Evento</button>
+                    <button id="btn-close-staff-selector" class="w-full py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        
+        document.getElementById('btn-close-staff-selector').onclick = () => document.body.removeChild(modal);
+        document.getElementById('btn-confirm-staff-assign').onclick = async () => {
+            const userId = document.getElementById('select-staff-target').value;
+            if (!userId) return;
+            try {
+                const res = await this.fetchAPI(`/events/${eventId}/users`, { 
+                    method: 'POST', body: JSON.stringify({ userId }) 
+                });
+                if (res.success) {
+                    document.body.removeChild(modal);
+                    this.loadEventStaff(eventId);
+                }
+            } catch(e) { console.error(e); }
+        };
+    },
+
+    // --- PERFIL Y SEGURIDAD (FASE 5) ---
+    async loadUserProfile() {
+        try {
+            const user = await this.fetchAPI('/me');
+            if (user) {
+                this.state.user = { ...this.state.user, ...user };
+                const fn = document.getElementById('profile-full-name');
+                const rb = document.getElementById('profile-role-badge');
+                const dn = document.getElementById('profile-display-name');
+                const ph = document.getElementById('profile-phone');
+                const em = document.getElementById('profile-email');
+                
+                if (fn) fn.textContent = user.name || 'Usuario';
+                if (rb) rb.textContent = user.role || 'GUEST';
+                if (dn) dn.value = user.name || '';
+                if (ph) ph.value = user.phone || '';
+                if (em) em.value = user.email || '';
+            }
+        } catch(e) { console.error('Error loading profile:', e); }
+    },
+
+    async handleEmailChange(e) {
+        e.preventDefault();
+        const newEmail = document.getElementById('profile-email').value;
+        if (!newEmail) return;
+        
+        const { isConfirmed } = await Swal.fire({
+            title: '¿Cambiar Email?',
+            text: "Se cerrará la sesión actual y deberás ingresar con el nuevo correo.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (isConfirmed) {
+            try {
+                const res = await this.fetchAPI('/me/email', {
+                    method: 'PUT',
+                    body: JSON.stringify({ email: newEmail })
+                });
+                if (res.success) {
+                    Swal.fire('Actualizado', 'Correo cambiado con éxito.', 'success')
+                        .then(() => this.logout());
+                }
+            } catch(err) { Swal.fire('Error', 'No se pudo cambiar el correo.', 'error'); }
+        }
+    },
+
+    async handlePasswordChange(e) {
+        e.preventDefault();
+        const p1 = document.getElementById('new-pass-1').value;
+        const p2 = document.getElementById('new-pass-2').value;
+        
+        if (!p1 || p1 !== p2) {
+            return Swal.fire('Error', 'Las contraseñas no coinciden.', 'error');
+        }
+
+        try {
+            const res = await this.fetchAPI('/me/password', {
+                method: 'PUT',
+                body: JSON.stringify({ password: p1 })
+            });
+            if (res.success) {
+                Swal.fire('✓ Éxito', 'Contraseña actualizada correctamente.', 'success');
+                e.target.reset();
+            }
+        } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
+    },
+
+    // --- EMAIL Y ENVÍO MASIVO (FASE 6) ---
+    async navigateEmailSection(section) {
+        document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.email-nav-btn').forEach(b => {
+             b.classList.remove('bg-primary', 'text-white');
+             b.classList.add('text-[var(--text-secondary)]');
+        });
+
+        const panel = document.getElementById('email-content-' + section);
+        if (panel) panel.classList.remove('hidden');
+        
+        const btn = document.getElementById('email-nav-' + section);
+        if (btn) {
+            btn.classList.add('bg-primary', 'text-white');
+            btn.classList.remove('text-[var(--text-secondary)]');
+        }
+
+        if (section === 'templates') this.loadEmailTemplates();
+        if (section === 'mailing') this.loadMailingData();
+    },
+
+    async loadMailingData() {
+        try {
+            const events = await this.fetchAPI('/events');
+            const eventSelector = document.getElementById('mailing-event-selector');
+            if (eventSelector) {
+                eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
+                    events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
+                
+                eventSelector.onchange = async () => {
+                    if (eventSelector.value) {
+                        const guests = await this.fetchAPI(`/events/${eventSelector.value}/guests`);
+                        this.renderMailingRecipients(guests);
+                    }
+                };
+            }
+
+            const templates = await this.fetchAPI('/email-templates');
+            const tempSelector = document.getElementById('mailing-template-selector');
+            if (tempSelector) {
+                tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
+                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+            
+            const btnSend = document.getElementById('btn-send-mass-email');
+            if (btnSend) {
+                btnSend.onclick = () => this.sendMassEmail();
+            }
+        } catch(e) { console.error('Error mailing data:', e); }
+    },
+
+    renderMailingRecipients(guests) {
+        const container = document.getElementById('mailing-recipients-container');
+        const list = document.getElementById('mailing-recipients-list');
+        const count = document.getElementById('mailing-count');
+        
+        if (!container || !list) return;
+        
+        container.classList.remove('hidden');
+        count.textContent = guests.length;
+        
+        list.innerHTML = guests.map(g => `
+            <label class="flex items-center gap-3 p-2 hover:bg-[var(--bg-hover)] rounded-lg cursor-pointer transition-colors">
+                <input type="checkbox" class="mailing-check w-4 h-4 rounded accent-[var(--primary)]" value="${g.email}" checked data-name="${g.name}">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold">${g.name}</span>
+                    <span class="text-[10px] text-[var(--text-secondary)]">${g.email}</span>
+                </div>
+            </label>
+        `).join('');
+    },
+
+    async sendMassEmail() {
+        const eventId = document.getElementById('mailing-event-selector').value;
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const checks = document.querySelectorAll('.mailing-check:checked');
+        
+        if (!templateId || checks.length === 0) {
+            return Swal.fire('Atención', 'Selecciona una plantilla y al menos un destinatario.', 'info');
+        }
+
+        const recipients = Array.from(checks).map(c => ({
+            email: c.value,
+            name: c.dataset.name
+        }));
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirmar Envío',
+            text: `¿Enviar correos a ${recipients.length} destinatarios?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, disparar campaña',
+            cancelButtonText: 'Revisar'
+        });
+
+        if (isConfirmed) {
+            Swal.fire({
+                title: 'Enviando...',
+                html: 'Progreso: <b>0</b>%',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const res = await this.fetchAPI('/send-mass', {
+                    method: 'POST',
+                    body: JSON.stringify({ templateId, recipients, eventId })
+                });
+                
+                if (res.success) {
+                    Swal.fire('✓ Completado', `Se han enviado ${recipients.length} correos exitosamente.`, 'success');
+                }
+            } catch(e) { Swal.fire('Error', 'Falla crítica en el servidor de correo.', 'error'); }
+        }
     },
 };
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
+window.switchEventTab = App.switchEventTab.bind(App);
 
 window.switchAdminTab = function(tabName) {
     console.log('CHECK V12.3.2.2: switchAdminTab ->', tabName || 'dashboard');
@@ -5275,7 +5637,84 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('modal-event')?.classList.remove('hidden');
     });
 
+    // --- DELEGACIÓN GLOBAL DE ACCIONES (V12.6.0) ---
+    document.addEventListener('change', async (e) => {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+        
+        if (action === 'changeUserRole') {
+            const userId = actionEl.dataset.userId;
+            const newRole = actionEl.value;
+            if (!userId) return;
+            
+            // SweetAlert Confirm
+            const result = await Swal.fire({
+                title: '¿Confirmar Cambio de Rol?',
+                text: `Estás a punto de reasignar los permisos de este usuario a ${newRole}.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#7c3aed',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, cambiar rol',
+                cancelButtonText: 'Cancelar',
+                background: '#0f172a',
+                color: '#fff'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const res = await App.fetchAPI(`/users/${userId}/role`, { 
+                        method: 'PUT', 
+                        body: JSON.stringify({ role: newRole }) 
+                    });
+                    if (res.success) {
+                        Swal.fire({ title: 'Actualizado', text: 'El rol ha sido cambiado exitosamente.', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
+                        App.loadUsersTable();
+                    } else {
+                        Swal.fire('Error', res.error || 'No se pudo cambiar el rol', 'error');
+                        App.loadUsersTable(); // Revertir select visual
+                    }
+                } catch (e) { 
+                    Swal.fire('Error', 'Error de red', 'error');
+                    App.loadUsersTable();
+                }
+            } else {
+                App.loadUsersTable(); // Revertir visualmente el select
+            }
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+        
+        if (typeof App[action] === 'function') {
+            const userId = actionEl.dataset.userId;
+            const groupId = actionEl.dataset.groupId;
+            const eventId = actionEl.dataset.eventId;
+            const status = actionEl.dataset.status;
+            
+            // Call the matched App function with arguments
+            if (action === 'removeUserFromEvent') App.removeUserEvent(userId, eventId);
+            else if (action === 'removeUserFromGroup') App.removeUserFromGroup(userId, groupId);
+            else if (action === 'removeEventStaff') App.removeEventStaff(userId);
+            else if (action === 'removeEventFromCompany') App.removeEventFromCompany(eventId, groupId);
+            else if (action === 'showEventSelectorForCompany' || action === 'showUserSelectorForGroup' || action === 'showGroupSelector' || action === 'showEventSelector' || action === 'approveUser' || action === 'openCompanyModal') {
+                // If the function triggers a modal or standard call
+                if (action === 'showEventSelectorForCompany') App.showEventSelectorForCompany(groupId);
+                else if (action === 'showUserSelectorForGroup') App.showUserSelectorForGroup(groupId);
+                else if (action === 'showGroupSelector') App.showGroupSelector(userId, groupId);
+                else if (action === 'showEventSelector') App.showEventSelector(userId, JSON.parse(actionEl.dataset.events || '[]'));
+                else if (action === 'approveUser') App.approveUser(userId, status);
+                else if (action === 'openCompanyModal') App.openCompanyModal(groupId);
+            }
+        }
+    });
+
 });
+
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);

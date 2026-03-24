@@ -16,23 +16,32 @@ const router = express.Router();
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     let rows;
     if (req.userRole === 'ADMIN') {
-        rows = db.prepare("SELECT id, username, display_name, phone, role, role_detail, status, created_at, group_id FROM users ORDER BY display_name || username ASC").all();
+        rows = db.prepare("SELECT id, username, display_name, phone, role, role_detail, status, created_at FROM users ORDER BY display_name || username ASC").all();
     } else {
         const groupIds = getProducerGroups(req.userId);
         if (groupIds.length === 0) {
             rows = [];
         } else {
             const placeholders = groupIds.map(() => '?').join(',');
-            rows = db.prepare(`SELECT id, username, display_name, phone, role, role_detail, status, created_at, group_id FROM users WHERE group_id IN (${placeholders}) ORDER BY display_name || username ASC`).all(...groupIds);
+            // Buscar usuarios que estén asignados a los grupos del PRODUCTOR
+            const validUsers = db.prepare(`SELECT DISTINCT user_id FROM group_users WHERE group_id IN (${placeholders})`).all(...groupIds).map(u => u.user_id);
+            if (validUsers.length === 0) {
+                rows = [];
+            } else {
+                const uPlaceholders = validUsers.map(() => '?').join(',');
+                rows = db.prepare(`SELECT id, username, display_name, phone, role, role_detail, status, created_at FROM users WHERE id IN (${uPlaceholders}) ORDER BY display_name || username ASC`).all(...validUsers);
+            }
         }
     }
 
     const usersWithDetails = rows.map(u => {
-        const group = u.group_id ? db.prepare("SELECT name FROM groups WHERE id = ?").get(u.group_id) : null;
+        // Obtenemos tooooodos los grupos a los que pertenece el usuario desde la tabla pivot
+        const userGroups = db.prepare("SELECT g.id, g.name FROM group_users gu JOIN groups g ON gu.group_id = g.id WHERE gu.user_id = ?").all(u.id);
         const events = db.prepare("SELECT event_id FROM user_events WHERE user_id = ?").all(u.id);
+        
         return {
             ...u,
-            group_name: group?.name || null,
+            groups: userGroups, // Ahora es un Array de objetos {id, name}
             events: events.map(e => e.event_id)
         };
     });
@@ -66,8 +75,19 @@ router.post('/invite', authMiddleware(['ADMIN']), (req, res) => {
 
     try {
         const hashedPassword = bcrypt.hashSync(password, 10);
-        db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
-          .run(id, username.toLowerCase(), hashedPassword, role, display_name || username, phone || '', group_id || null, new Date().toISOString());
+        
+        // Insertamos el usuario (mantenemos group_id por retrocompatibilidad inmediata si no la hemos purgado de DB schema pero lo ideal es dejarlo nulo)
+        db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
+          .run(id, username.toLowerCase(), hashedPassword, role, display_name || username, phone || '', new Date().toISOString());
+
+        // Inserción multi-tenant en group_users
+        if (group_id) {
+            const groupsArray = Array.isArray(group_id) ? group_id : [group_id];
+            const insertGroup = db.prepare("INSERT INTO group_users (id, group_id, user_id, created_at) VALUES (?, ?, ?, ?)");
+            groupsArray.forEach(gId => {
+                insertGroup.run(getValidId('group_users'), gId, id, new Date().toISOString());
+            });
+        }
 
         logAction(req, AUDIT_ACTIONS.USER_CREATED, { userId: id, username, role });
 
@@ -142,12 +162,31 @@ router.put('/:id/role', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Asignar usuario a grupo (ADMIN)
+// Asignar usuario a múltiples grupos (ADMIN) V12.6.0
 router.put('/:id/group', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
-    const { group_id } = req.body;
-    db.prepare("UPDATE users SET group_id = ? WHERE id = ?").run(group_id || null, targetId);
-    res.json({ success: true });
+    const { group_id } = req.body; 
+    
+    // Convertimos la entrada a un array sin importar lo que regrese para que soporte N Empresas
+    const groupsArray = Array.isArray(group_id) ? group_id : (group_id ? [group_id] : []);
+    
+    // Transacción para limpiar e insertar
+    const deleteGroupUser = db.prepare("DELETE FROM group_users WHERE user_id = ?");
+    const insertGroupUser = db.prepare("INSERT INTO group_users (id, group_id, user_id, created_at) VALUES (?, ?, ?, ?)");
+    
+    try {
+        db.transaction(() => {
+            deleteGroupUser.run(targetId);
+            groupsArray.forEach(gId => {
+                insertGroupUser.run(getValidId('group_users'), gId, targetId, new Date().toISOString());
+            });
+            // Re-vincular de manera legacy si hace falta a null
+            db.prepare("UPDATE users SET group_id = NULL WHERE id = ?").run(targetId);
+        })();
+        res.json({ success: true });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
 });
 
 // Asignar usuario a eventos (ADMIN/PRODUCTOR)

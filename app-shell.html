@@ -25,24 +25,8 @@
                 <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 nav-section-title">Administración</p>
                 <div class="space-y-0.5">
                     <a href="#" id="nav-btn-system" class="nav-item">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">group</span> 
-                        <span class="sidebar-text">Equipo y Accesos</span>
-                    </a>
-                    <a href="#" id="nav-btn-groups" class="nav-item">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">corporate_fare</span> 
-                        <span class="sidebar-text">Empresas</span>
-                    </a>
-                    <a href="#" id="nav-btn-legal" class="nav-item">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">gavel</span> 
-                        <span class="sidebar-text">Legales y Privacidad</span>
-                    </a>
-                    <a href="#" id="nav-btn-smtp" class="nav-item">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">mail</span> 
-                        <span class="sidebar-text">Gestión Email</span>
-                    </a>
-                    <a href="#" id="nav-btn-account" class="nav-item">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">manage_accounts</span> 
-                        <span class="sidebar-text">Mi Perfil</span>
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">settings</span> 
+                        <span class="sidebar-text">Configuración</span>
                     </a>
                 </div>
             </div>
@@ -184,7 +168,14 @@
                     <!-- Se pueden añadir más stats aquí -->
                 </div>
 
-                <div class="card !p-0 overflow-hidden">
+                <!-- Sub-Navegación Evento (Fase 3: Multi-Tab) -->
+                <div class="sub-nav-container mb-6">
+                    <button id="ev-nav-guests" class="sub-nav-btn active" data-tab-target="ev-content-guests">Invitados</button>
+                    <button id="ev-nav-staff" class="sub-nav-btn" data-tab-target="ev-content-staff">Personal Asignado</button>
+                </div>
+
+                <!-- CONTENIDO: INVITADOS -->
+                <div id="ev-content-guests" class="card !p-0 overflow-hidden">
                     <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
                         <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
                             <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Asistentes
@@ -208,20 +199,62 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- CONTENIDO: PERSONAL ASIGNADO (V12.6.0) -->
+                <div id="ev-content-staff" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Staff del <span class="text-[var(--primary)]">Evento</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-ev-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
+                            <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
+                        </div>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Personal Asignado
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="ev-staff-search" type="text" placeholder="Buscar staff por nombre..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Colaborador</th>
+                                        <th class="px-5 py-4 text-center">Rol en Sistema</th>
+                                        <th class="px-5 py-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ev-staff-tbody" class="divide-y divide-[var(--border-light)]">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <!-- VIEW: SYSTEM (USERS, LEGAL, ACCOUNT) -->
+            <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.6.0) -->
             <section id="view-system" class="hidden space-y-8">
-                <!-- Sub-Navegación -->
+                <!-- Sub-Navegación Configuración -->
                 <div class="sub-nav-container">
                     <button id="sys-nav-users" class="sub-nav-btn active">Equipo</button>
+                    <button id="sys-nav-groups" class="sub-nav-btn">Empresas</button>
                     <button id="sys-nav-legal" class="sub-nav-btn">Legales</button>
+                    <button id="sys-nav-email" class="sub-nav-btn">Emails</button>
                     <button id="sys-nav-account" class="sub-nav-btn">Mi Perfil</button>
                 </div>
 
                 <!-- CONTENIDO: EQUIPO -->
-                <div id="sys-content-users" class="hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div id="sys-content-users" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                         <div>
                             <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
                             <p class="text-[var(--text-secondary)] text-sm mt-1">Controla quién tiene acceso al sistema.</p>
@@ -250,6 +283,44 @@
                                     </tr>
                                 </thead>
                                 <tbody id="users-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: EMPRESAS -->
+                <div id="sys-content-groups" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Administra las organizaciones registradas.</p>
+                        </div>
+                        <button id="btn-create-group" class="btn-primary !px-5 !py-2.5">Registrar Empresa</button>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Organizaciones
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="group-search" type="text" placeholder="Buscar por nombre, contacto o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Organización</th>
+                                        <th class="px-5 py-4">Información de Contacto</th>
+                                        <th class="px-5 py-4">Eventos Asignados</th>
+                                        <th class="px-5 py-4">Personal Base</th>
+                                        <th class="px-5 py-4 text-center">Estado</th>
+                                        <th class="px-5 py-4 text-right">Administración</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
                             </table>
                         </div>
                     </div>
@@ -287,189 +358,169 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO: MI PERFIL -->
-                <div id="sys-content-account" class="hidden max-w-2xl">
-                     <div class="card p-8 rounded-xl space-y-6">
-                        <div class="flex items-center gap-5 border-b border-[var(--border)] pb-6">
-                            <div class="w-16 h-16 bg-[var(--bg-hover)] rounded-2xl flex items-center justify-center">
-                                <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)]">account_circle</span>
-                            </div>
-                            <div>
-                                <h3 id="profile-full-name" class="text-xl font-semibold">Cargando...</h3>
-                                <p id="profile-role-badge" class="px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] text-[9px] font-medium uppercase tracking-wider rounded-full w-fit mt-1">Administrador</p>
-                            </div>
+                <!-- CONTENIDO: EMAIL -->
+                <div id="sys-content-email" class="hidden space-y-6">
+                    <header class="flex justify-between items-center mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Administración de <span class="text-[var(--primary)]">Correo</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de invitaciones y comunicaciones.</p>
                         </div>
-                        <form id="profile-form" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre</label>
-                                <input type="text" id="profile-display-name" class="w-full">
+                    </header>
+                    
+                    <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
+                        <button id="email-nav-config" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Configuración</button>
+                        <button id="email-nav-mailbox" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Buzón</button>
+                        <button id="email-nav-templates" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Plantillas</button>
+                        <button id="email-nav-mailing" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Envío Masivo</button>
+                    </div>
+                    
+                    <!-- Sub-contenidos Email (se mantienen igual pero dentro del Hub) -->
+                    <div id="email-content-config" class="email-content hidden space-y-6">
+                        <div class="card p-6 rounded-xl max-w-2xl">
+                            <form id="smtp-form" class="space-y-6">
+                                <h3 class="form-section-title flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-lg">send</span> Configuración SMTP
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Servidor SMTP</label>
+                                        <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Puerto</label>
+                                        <input type="number" id="smtp-port" placeholder="587" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usuario</label>
+                                        <input type="text" id="smtp-user" placeholder="tu@email.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Contraseña</label>
+                                        <input type="password" id="smtp-pass" placeholder="Contraseña" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" id="btn-test-smtp" class="btn-secondary">Probar Conexión</button>
+                                    <button type="submit" class="btn-primary !px-6">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="email-content-mailbox" class="email-content hidden">
+                        <!-- Content remains same -->
+                    </div>
+                    <div id="email-content-templates" class="email-content hidden">
+                        <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+                    <div id="email-content-mailing" class="email-content hidden">
+                        <div class="card p-8 rounded-xl space-y-6 max-w-3xl">
+                             <div class="flex items-center gap-3 border-b border-[var(--border)] pb-4">
+                                 <span class="material-symbols-outlined text-[var(--primary)] text-2xl">campaign</span>
+                                 <h3 class="text-lg font-semibold">Envío Masivo de Invitaciones</h3>
+                             </div>
+                             
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                 <div class="space-y-1.5">
+                                     <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Seleccionar Base de Datos (Evento)</label>
+                                     <select id="mailing-event-selector" class="w-full">
+                                         <option value="">-- Seleccionar Evento --</option>
+                                     </select>
+                                 </div>
+                                 <div class="space-y-1.5">
+                                     <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Plantilla de Correo</label>
+                                     <select id="mailing-template-selector" class="w-full">
+                                         <option value="">-- Seleccionar Plantilla --</option>
+                                     </select>
+                                 </div>
+                             </div>
+
+                             <div id="mailing-recipients-container" class="hidden space-y-3">
+                                 <div class="flex justify-between items-center">
+                                     <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Destinatarios Seleccionados (<span id="mailing-count">0</span>)</h4>
+                                     <button id="btn-toggle-all-recipients" class="text-[10px] text-[var(--primary)] font-bold hover:underline">Seleccionar Todos</button>
+                                 </div>
+                                 <div class="max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--bg-app)] p-2">
+                                     <div id="mailing-recipients-list" class="space-y-1"></div>
+                                 </div>
+                             </div>
+
+                             <div class="flex justify-end pt-4">
+                                 <button id="btn-send-mass-email" class="btn-primary !px-8 !py-3">Iniciar Campaña</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: MI PERFIL (FASE 5) -->
+                <div id="sys-content-account" class="hidden max-w-4xl space-y-6">
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Perfil Básico -->
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex items-center gap-5 border-b border-[var(--border)] pb-6">
+                                <div class="w-16 h-16 bg-[var(--bg-hover)] rounded-2xl flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)]">account_circle</span>
+                                </div>
+                                <div>
+                                    <h3 id="profile-full-name" class="text-xl font-semibold">Cargando...</h3>
+                                    <p id="profile-role-badge" class="px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] text-[9px] font-medium uppercase tracking-wider rounded-full w-fit mt-1">Cargando...</p>
+                                </div>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Teléfono</label>
-                                <input type="tel" id="profile-phone" class="w-full">
-                            </div>
-                            <div class="md:col-span-2 flex justify-end">
-                                <button type="submit" class="btn-primary !px-6 !py-2.5">Guardar Perfil</button>
-                            </div>
-                        </form>
+                            <form id="profile-form" class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre para mostrar</label>
+                                    <input type="text" id="profile-display-name" class="w-full" placeholder="Tu nombre">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Teléfono de contacto</label>
+                                    <input type="tel" id="profile-phone" class="w-full" placeholder="+123456789">
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="btn-primary !px-6 !py-2.5 w-full md:w-auto">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Seguridad y Acceso -->
+                        <div class="card p-8 rounded-xl space-y-6 border-l-4 border-l-[var(--primary)]">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">security</span> Seguridad y Acceso
+                            </h3>
+                            
+                            <!-- Cambio de Email -->
+                            <form id="change-email-form" class="space-y-4 pt-2">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Correo Electrónico</label>
+                                    <div class="flex gap-2">
+                                        <input type="email" id="profile-email" class="w-full !bg-[var(--bg-hover)]" placeholder="nuevo@email.com">
+                                        <button type="submit" class="btn-secondary !text-[10px] uppercase tracking-widest !px-4 whitespace-nowrap">Actualizar</button>
+                                    </div>
+                                    <p class="text-[9px] text-[var(--text-muted)] ml-1 italic">* Requerirá nuevo inicio de sesión.</p>
+                                </div>
+                            </form>
+
+                            <hr class="border-[var(--border)]">
+
+                            <!-- Cambio de Contraseña -->
+                            <form id="change-pass-form" class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nueva Contraseña</label>
+                                    <input type="password" id="new-pass-1" class="w-full" placeholder="••••••••">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirmar Contraseña</label>
+                                    <input type="password" id="new-pass-2" class="w-full" placeholder="••••••••">
+                                </div>
+                                <button type="submit" class="btn-secondary w-full !text-[10px] uppercase tracking-widest !py-3">Cambiar Clave de Acceso</button>
+                            </form>
+                        </div>
                      </div>
                 </div>
             </section>
 
-            <section id="view-groups" class="hidden space-y-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Administra las organizaciones registradas.</p>
-                    </div>
-                    <button id="btn-create-group" class="btn-primary !px-5 !py-2.5">Registrar Empresa</button>
-                </div>
-
-                <div class="card !p-0 overflow-hidden">
-                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
-                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
-                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Organizaciones
-                        </h3>
-                        <div class="relative w-full max-w-sm">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
-                            <input id="group-search" type="text" placeholder="Buscar por nombre, contacto o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="px-5 py-4">Organización</th>
-                                    <th class="px-5 py-4">Información de Contacto</th>
-                                    <th class="px-5 py-4">Eventos Asignados</th>
-                                    <th class="px-5 py-4">Personal Base</th>
-                                    <th class="px-5 py-4 text-center">Estado</th>
-                                    <th class="px-5 py-4 text-right">Administración</th>
-                                </tr>
-                            </thead>
-                            <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
 
 
-             <!-- VIEW: SMTP / EMAIL ADMIN -->
-            <section id="view-smtp" class="hidden space-y-8">
-                 <header class="flex flex-col lg:flex-row justify-between items-start gap-4 mb-6">
-                    <div>
-                        <p class="text-[10px] font-medium text-[var(--primary)] uppercase tracking-widest mb-2">Mailing Enterprise</p>
-                        <h1 class="text-2xl font-semibold tracking-tight">Administración de Correo</h1>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de invitaciones y comunicaciones.</p>
-                    </div>
-                </header>
-                
-                <div class="flex gap-1 p-1 bg-[var(--bg-hover)] rounded-lg w-fit">
-                    <button id="email-nav-config" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Configuración</button>
-                    <button id="email-nav-mailbox" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Buzón</button>
-                    <button id="email-nav-templates" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Plantillas</button>
-                    <button id="email-nav-mailing" class="email-nav-btn px-5 py-2 rounded-md text-xs font-medium transition-all">Envío Masivo</button>
-                </div>
-                
-                <div id="email-content-config" class="email-content hidden space-y-6">
-                    <div class="card p-6 rounded-xl max-w-2xl">
-                        <form id="smtp-form" class="space-y-6">
-                            <h3 class="form-section-title flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)] text-lg">send</span> Configuración SMTP
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                <div class="form-group">
-                                    <label class="form-label">Servidor SMTP</label>
-                                    <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Puerto</label>
-                                    <input type="number" id="smtp-port" placeholder="587" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Usuario</label>
-                                    <input type="text" id="smtp-user" placeholder="tu@email.com" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Contraseña</label>
-                                    <input type="password" id="smtp-pass" placeholder="Contraseña" class="w-full">
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
-                                <input type="checkbox" id="smtp-secure" class="w-4 h-4 rounded accent-[var(--primary)]">
-                                <label for="smtp-secure" class="text-xs font-semibold text-[var(--text-secondary)]">Usar SSL/TLS (Puerto 465)</label>
-                            </div>
-                            <div class="flex justify-end gap-3 pt-2">
-                                <button type="button" id="btn-test-smtp" class="btn-secondary">Probar Conexión</button>
-                                <button type="submit" class="btn-primary !px-6">Guardar</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="card p-6 rounded-xl max-w-2xl">
-                        <form id="imap-form" class="space-y-6">
-                            <h3 class="form-section-title flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)] text-lg">mail</span> Configuración IMAP
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                <div class="form-group">
-                                    <label class="form-label">Servidor IMAP</label>
-                                    <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Puerto</label>
-                                    <input type="number" id="imap-port" placeholder="993" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Usuario</label>
-                                    <input type="text" id="imap-user" placeholder="tu@email.com" class="w-full">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Contraseña</label>
-                                    <input type="password" id="imap-pass" placeholder="Contraseña" class="w-full">
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
-                                <input type="checkbox" id="imap-tls" class="w-4 h-4 rounded accent-[var(--primary)]">
-                                <label for="imap-tls" class="text-xs font-semibold text-[var(--text-secondary)]">Usar TLS/SSL</label>
-                            </div>
-                            <div class="flex justify-end gap-3 pt-2">
-                                <button type="button" id="btn-test-imap" class="btn-secondary">Probar Conexión</button>
-                                <button type="submit" class="btn-primary !px-6">Guardar</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
 
-                <div id="email-content-mailbox" class="email-content hidden">
-                    <div class="card rounded-xl overflow-hidden">
-                        <div class="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-hover)]">
-                            <h3 class="text-sm font-semibold flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">inbox</span> Buzón
-                            </h3>
-                            <button id="btn-sync-emails" class="px-3 py-1.5 bg-[var(--primary-light)] text-[var(--primary)] rounded-lg text-xs font-medium flex items-center gap-1 hover:bg-[var(--primary)] hover:text-white transition-colors">
-                                <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
-                            </button>
-                        </div>
-                        <div class="flex gap-1 p-2 bg-[var(--bg-hover)] border-b border-[var(--border)]">
-                            <button id="mail-folder-inbox" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all bg-[var(--primary)] text-white">Recibidos</button>
-                            <button id="mail-folder-sent" class="mail-folder-btn px-4 py-1.5 rounded-md text-xs font-medium transition-all text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">Enviados</button>
-                        </div>
-                        <div id="email-mailbox-list" class="divide-y divide-[var(--border-light)] min-h-[300px]"></div>
-                    </div>
-                </div>
 
-                <div id="email-content-templates" class="email-content hidden">
-                    <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                </div>
-
-                <div id="email-content-mailing" class="email-content hidden">
-                    <div class="card rounded-xl text-center py-16">
-                         <span class="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-3">campaign</span>
-                         <h3 class="text-base font-semibold text-[var(--text-secondary)]">Módulo de Envío Masivo</h3>
-                         <p class="text-xs text-[var(--text-muted)] mt-1">En desarrollo para V12.3</p>
-                    </div>
-                </div>
-            </section>
 
             <section id="view-pre-registrations" class="hidden space-y-8">
                 <div>
