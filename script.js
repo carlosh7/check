@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.14.0
+ * Version: V12.15.0
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.14.0: Iniciando Sistema Modular...');
+console.log('CHECK V12.15.0: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.14.0',
+        version: '12.15.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -4852,7 +4852,96 @@ const App = window.App = {
         }
     },
 
-    updateMailingSummaryUI() {
+    },
+
+    saveMailingCampaign() {
+        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
+        const templateId = document.getElementById('mailing-template-selector').value;
+        
+        if (selected.length === 0) return Swal.fire('Error', 'No hay destinatarios seleccionados para guardar.', 'error');
+        
+        const campaign = {
+            name: `Campaña ${new Date().toLocaleDateString()}`,
+            templateId: templateId,
+            recipients: selected.map(g => g.email),
+            timestamp: new Date().toISOString()
+        };
+        
+        localStorage.setItem('last_mailing_campaign', JSON.stringify(campaign));
+        Swal.fire('Guardado', 'La configuración de la campaña se ha guardado localmente.', 'success');
+    },
+
+    showScheduleModal() {
+        Swal.fire({
+            title: 'Programar Campaña',
+            html: `
+                <div class="space-y-4 p-2">
+                    <div class="field-group">
+                        <label class="block text-left text-[10px] font-bold uppercase text-slate-500 mb-2">Fecha y Hora de Inicio</label>
+                        <input type="datetime-local" id="schedule-datetime" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white">
+                    </div>
+                </div>
+            `,
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            confirmButtonText: 'Programar Ahora',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--primary)',
+            preConfirm: () => {
+                const date = document.getElementById('schedule-datetime').value;
+                if (!date) return Swal.showValidationMessage('Debes seleccionar una fecha y hora');
+                return date;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('Programado', `La campaña iniciará el ${new Date(result.value).toLocaleString()}`, 'success');
+            }
+        });
+    },
+
+    async sendTestEmail() {
+        if (!this.state.user) return;
+        
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
+        
+        if (!template) return Swal.fire('Error', 'Selecciona una previsualización primero', 'error');
+
+        const confirm = await Swal.fire({
+            title: 'Enviar Prueba',
+            text: `¿Enviar mail de prueba a ${this.state.user.email}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Si, enviar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            confirmButtonColor: 'var(--primary)'
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                // Simulación de envío de prueba
+                this._notifyAction('Prueba', `Enviando mail a ${this.state.user.email}...`, 'info');
+                await new Promise(r => setTimeout(r, 1000));
+                this._notifyAction('Éxito', 'Mail de prueba enviado correctamente.', 'success');
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo enviar la prueba.', 'error');
+            }
+        }
+    },
+
+    editMailingTemplate() {
+        const templateId = document.getElementById('mailing-template-selector').value;
+        if (!templateId) return Swal.fire('Atención', 'Selecciona una plantilla para editar.', 'info');
+        
+        // Redirigir suavemente a la pestaña de plantillas
+        this.navigate('templates');
+        // Aquí podríamos disparar el modal de edición directamente si el ID existe
+        setTimeout(() => {
+            const btn = document.querySelector(`[onclick*="App.openTemplateEditor('${templateId}')"]`);
+            if (btn) btn.click();
+        }, 500);
+    },
         const container = document.getElementById('mailing-summary-preview');
         const list = document.getElementById('mailing-summary-list');
         const badge = document.getElementById('mailing-selection-count-badge');

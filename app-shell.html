@@ -577,6 +577,29 @@
                                             <span class="material-symbols-outlined text-[var(--primary)] text-lg">visibility</span> Previsualización
                                         </h4>
                                         <span class="text-[10px] text-[var(--text-secondary)]">Vista Desktop</span>
+                                     <!-- Barra de Herramientas de Campaa V12.15.0 -->
+                                     <div class="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-app)]/50 p-3 rounded-xl border border-white/5 shadow-sm">
+                                         <div class="flex items-center gap-2">
+                                             <button id="btn-edit-template" onclick="App.editMailingTemplate()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                 <span class="material-symbols-outlined text-sm">edit_square</span> Editar
+                                             </button>
+                                             <button id="btn-save-campaign" onclick="App.saveMailingCampaign()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                 <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                             </button>
+                                             <button id="btn-schedule-campaign" onclick="App.showScheduleModal()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                 <span class="material-symbols-outlined text-sm">calendar_month</span> Programar
+                                             </button>
+                                         </div>
+                                         <div class="flex items-center gap-3">
+                                             <div class="flex items-center gap-1.5 text-[9px] text-slate-500 font-medium px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                                 <span class="material-symbols-outlined text-[10px] text-primary">info</span>
+                                                 Variables: <span class="text-white/60">{{nombre}}</span>, <span class="text-white/60">{{empresa}}</span>
+                                             </div>
+                                             <button id="btn-test-email" onclick="App.sendTestEmail()" class="btn-primary !py-1.5 !px-3 !text-[10px] !shadow-lg">
+                                                 <span class="material-symbols-outlined text-sm">contact_mail</span> Enviar Prueba
+                                             </button>
+                                         </div>
+                                     </div>
                                     </div>
                                      </div>
                                     <div id="email-preview-area" class="bg-white rounded-lg min-h-[600px] h-auto shadow-inner border border-white/5 relative">
