@@ -4852,8 +4852,6 @@ const App = window.App = {
         }
     },
 
-    },
-
     saveMailingCampaign() {
         const selected = (this.state.mailingGuests || []).filter(g => g.selected);
         const templateId = document.getElementById('mailing-template-selector').value;
@@ -4894,6 +4892,7 @@ const App = window.App = {
             }
         }).then((result) => {
             if (result.isConfirmed) {
+                this.state.scheduledMailingDate = result.value;
                 Swal.fire('Programado', `La campaña iniciará el ${new Date(result.value).toLocaleString()}`, 'success');
             }
         });
@@ -4942,6 +4941,7 @@ const App = window.App = {
             if (btn) btn.click();
         }, 500);
     },
+    updateMailingSummaryUI() {
         const container = document.getElementById('mailing-summary-preview');
         const list = document.getElementById('mailing-summary-list');
         const badge = document.getElementById('mailing-selection-count-badge');
@@ -4959,10 +4959,10 @@ const App = window.App = {
         if (badge) badge.textContent = `${selected.length} seleccionados`;
         
         list.innerHTML = selected.map(g => `
-            <div class="flex items-center gap-2 p-1.5 bg-white/5 rounded-lg border border-white/5">
+            <div class="flex items-center gap-2 p-1.5 bg-white/5 rounded-xl border border-white/5">
                 <span class="material-symbols-outlined text-[10px] text-green-500">check_circle</span>
                 <div class="flex flex-col truncate">
-                    <span class="text-white truncate font-bold">${g.name}</span>
+                    <span class="text-white truncate font-bold text-[10px]">${g.name}</span>
                     <span class="text-[8px] text-slate-500 truncate">${g.email}</span>
                 </div>
             </div>
@@ -5012,17 +5012,29 @@ const App = window.App = {
     async sendMassEmail() {
         const eventId = document.getElementById('mailing-event-selector').value;
         const templateId = document.getElementById('mailing-template-selector').value;
+        const scheduledAt = this.state.scheduledMailingDate || null;
+        
         const recipients = (this.state.mailingGuests || [])
             .filter(g => g.selected)
-            .map(g => ({ email: g.email, name: g.name }));
+            .map(g => ({ 
+                email: g.email, 
+                name: g.name,
+                organization: g.organization,
+                city: g.city
+            }));
         
-        if (await this._confirmAction('¿Lanzar Campaña?', `Se enviarán ${recipients.length} correos.`, 'Sí, iniciar')) {
+        if (recipients.length === 0) return Swal.fire('Atención', 'Selecciona destinatarios primero.', 'info');
+
+        const label = scheduledAt ? `Programar para ${new Date(scheduledAt).toLocaleString()}` : `Lanzar ahora para ${recipients.length} correos`;
+        
+        if (await this._confirmAction('¿Lanzar Campaña?', label, 'Sí, iniciar')) {
             try {
                 const res = await this.fetchAPI('/send-mass', {
                     method: 'POST',
-                    body: JSON.stringify({ templateId, recipients, eventId })
+                    body: JSON.stringify({ templateId, recipients, eventId, scheduledAt })
                 });
                 if (res.success) {
+                    this.state.scheduledMailingDate = null; // Reset
                     document.getElementById('mailing-progress-container').classList.remove('hidden');
                     this.startQueuePolling();
                 }

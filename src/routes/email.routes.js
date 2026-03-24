@@ -176,7 +176,7 @@ router.get('/imap/sync', authMiddleware(['ADMIN']), async (req, res) => {
 
 // Alias para envío masivo (v12.8.0)
 router.post('/send-mass', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const { templateId, recipients, eventId } = req.body;
+    const { templateId, recipients, eventId, scheduledAt } = req.body;
     try {
         const batchId = uuidv4();
         const insertQueue = db.prepare(`INSERT INTO email_queue (id, event_id, to_email, subject, body_html, status, scheduled_at) VALUES (?, ?, ?, ?, ?, 'PENDING', ?)`);
@@ -184,10 +184,17 @@ router.post('/send-mass', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
         const template = db.prepare("SELECT * FROM email_templates WHERE id = ?").get(templateId);
         if (!template) return res.status(404).json({ error: 'Plantilla no encontrada' });
 
+        const startTime = scheduledAt || new Date().toISOString();
+
         db.transaction(() => {
             for (const r of recipients) {
-                const body = template.body.replace(/{{name}}/g, r.name).replace(/{{email}}/g, r.email);
-                insertQueue.run(uuidv4(), castId('events', eventId), r.email, template.subject, body, new Date().toISOString());
+                const body = template.body
+                    .replace(/{{nombre}}/g, r.name || '')
+                    .replace(/{{name}}/g, r.name || '')
+                    .replace(/{{empresa}}/g, r.organization || '')
+                    .replace(/{{ciudad}}/g, r.city || '')
+                    .replace(/{{email}}/g, r.email || '');
+                insertQueue.run(uuidv4(), castId('events', eventId), r.email, template.subject, body, startTime);
             }
         })();
 
