@@ -9,6 +9,7 @@ const { getValidId, castId } = require('../utils/helpers');
 const { schemas, validate } = require('../security/validation');
 const { generateToken, verifyToken } = require('../security/jwt');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
+const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 

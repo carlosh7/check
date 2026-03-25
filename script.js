@@ -10,7 +10,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.16.1';
+const VERSION = '12.16.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 console.log('[INIT] Script loaded as ESM, LS available');
 
