@@ -82,7 +82,7 @@
             </div>
         
             <div class="mt-4 text-center version-display">
-                <span id="version-display" class="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">v12.3.4</span>
+                <span id="version-display" class="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">V12.16.0</span>
             </div>
         </div>
     </aside>
@@ -355,7 +355,6 @@
                                 <button id="btn-save-policy" class="px-4 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors">Guardar</button>
                             </div>
                             <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
-                        </div>
                         <div class="card p-6 rounded-xl flex flex-col gap-4">
                             <div class="flex justify-between items-center">
                                 <h4 class="text-sm font-semibold flex items-center gap-2"><span class="material-symbols-outlined text-[var(--primary)]">gavel</span> Términos del Servicio</h4>
@@ -365,6 +364,8 @@
                         </div>
                     </div>
                 </div>
+
+
 
                 <!-- CONTENIDO: EMAIL -->
                 <div id="sys-content-email" class="hidden space-y-6">
@@ -380,6 +381,7 @@
                         <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
                         <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
                         <button id="email-nav-mailing" class="sub-nav-btn">Envío Masivo</button>
+                        <button id="email-nav-history" class="sub-nav-btn">Historial</button>
                     </div>
                     
                     <!-- Sub-contenidos Email (se mantienen igual pero dentro del Hub) -->
@@ -442,6 +444,43 @@
                                     <button type="submit" class="btn-primary !px-6">Guardar</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                    
+                    <!-- NUEVO: Contenido Historial de Campañas V12.16.0 -->
+                    <div id="email-content-history" class="email-content hidden animate-fade-in">
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex justify-between items-center border-b border-[var(--border)] pb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl flex items-center justify-center">
+                                        <span class="material-symbols-outlined">history</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-white uppercase tracking-widest">Historial de Campañas</h3>
+                                        <p class="text-[10px] text-slate-500">Gestión de envíos realizados y programados.</p>
+                                    </div>
+                                </div>
+                                <button onclick="App.clearCampaignHistory()" class="btn-secondary !text-red-500 !border-red-500/20 !py-1 !px-3 !text-[10px]">
+                                    <span class="material-symbols-outlined text-xs">delete_sweep</span> Limpiar Historial
+                                </button>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                                            <th class="px-4 py-3">Campaña / Fecha</th>
+                                            <th class="px-4 py-3">Evento / Plantilla</th>
+                                            <th class="px-4 py-3">Alcance</th>
+                                            <th class="px-4 py-3">Estado</th>
+                                            <th class="px-4 py-3 text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mailing-history-tbody">
+                                        <!-- Se llena vía JS -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div id="email-content-mailbox" class="email-content hidden animate-fade-in">
@@ -577,37 +616,50 @@
                                             <span class="material-symbols-outlined text-[var(--primary)] text-lg">visibility</span> Previsualización
                                         </h4>
                                         <span class="text-[10px] text-[var(--text-secondary)]">Vista Desktop</span>
-                                     <!-- Barra de Herramientas de Campaña V12.16.0 -->
-                                     <div class="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-app)]/50 p-3 rounded-xl border border-white/5 shadow-sm">
-                                         <div class="flex items-center gap-2">
-                                             <button id="btn-edit-template" onclick="App.editMailingTemplate()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
-                                                 <span class="material-symbols-outlined text-sm">edit_square</span> Editar
-                                             </button>
-                                             <button id="btn-save-campaign" onclick="App.saveMailingCampaign()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
-                                                 <span class="material-symbols-outlined text-sm">save</span> Guardar
-                                             </button>
-                                             <button id="btn-schedule-campaign" onclick="App.showScheduleModal()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
-                                                 <span class="material-symbols-outlined text-sm">calendar_month</span> Programar
-                                             </button>
-                                             <button id="btn-history-campaign" onclick="App.showSavedCampaigns()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-[var(--primary)]/10 !text-[var(--primary)] !border-[var(--primary)]/20">
-                                                 <span class="material-symbols-outlined text-sm">history</span> Historial
-                                             </button>
-                                         </div>
-                                         <div class="flex items-center gap-3">
-                                             <div class="flex items-center gap-1.5 text-[9px] text-slate-500 font-medium px-2 py-1 bg-white/5 rounded-lg border border-white/5">
-                                                 <span class="material-symbols-outlined text-[10px] text-primary">info</span>
-                                                 Variables: <span class="text-white/60">{{nombre}}</span>, <span class="text-white/60">{{empresa}}</span>
-                                             </div>
-                                             <button id="btn-test-email" onclick="App.sendTestEmail()" class="btn-primary !py-1.5 !px-3 !text-[10px] !shadow-lg">
-                                                 <span class="material-symbols-outlined text-sm">contact_mail</span> Enviar Prueba
-                                             </button>
-                                         </div>
-                                     </div>
                                     </div>
-                                     </div>
+                                    
+                                    <!-- Toolbar reubicada para evitar superposición V12.16.0 -->
+                                    <div class="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-app)]/50 p-3 rounded-xl border border-white/5 shadow-sm mt-3">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <button id="btn-edit-template" onclick="App.editMailingTemplate()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">edit_square</span> Editar
+                                            </button>
+                                            <button id="btn-save-campaign" onclick="App.saveMailingCampaign()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                            </button>
+                                            <button id="btn-schedule-campaign" onclick="App.showScheduleModal()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">calendar_month</span> Programar
+                                            </button>
+                                            <button id="btn-history-tab" onclick="App.navigateEmailSection('history')" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-[var(--primary)]/10 !text-[var(--primary)] !border-[var(--primary)]/20">
+                                                <span class="material-symbols-outlined text-sm">history</span> Ir a Historial
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="hidden sm:flex items-center gap-1.5 text-[9px] text-slate-500 font-medium px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                                <span class="material-symbols-outlined text-[10px] text-primary">info</span>
+                                                Variables: <span class="text-white/60">{{nombre}}</span>, <span class="text-white/60">{{empresa}}</span>
+                                            </div>
+                                            <button id="btn-test-email" onclick="App.sendTestEmail()" class="btn-primary !py-1.5 !px-3 !text-[10px] !shadow-lg">
+                                                <span class="material-symbols-outlined text-sm">contact_mail</span> Enviar Prueba
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div id="email-preview-area" class="bg-white rounded-lg min-h-[600px] h-auto shadow-inner border border-white/5 relative">
                                         <div class="flex items-center justify-center h-full">
                                             <div class="text-center">
+                                                <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">mark_email_read</span>
+                                                <p class="text-slate-400 text-xs">Selecciona una plantilla para previsualizar</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <!-- Resumen dinmico V12.12.0 -->
+                                     <div id="mailing-summary-preview" class="hidden bg-[var(--bg-app)] border border-white/5 rounded-xl p-4 space-y-3 animate-fade-in mb-4 shadow-inner">
+                                         <div class="flex justify-between items-center border-b border-white/5 pb-2 mb-1">
+                                             <div class="flex items-center gap-2 text-[var(--primary)]">
+                                                 <span class="material-symbols-outlined text-sm">group</span>
+                                                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Destinatarios Seleccionados</span>
+                                             </div>
                                                 <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">mark_email_read</span>
                                                 <p class="text-slate-400 text-xs">Selecciona una plantilla para previsualizar</p>
                                             </div>

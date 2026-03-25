@@ -837,94 +837,7 @@ const App = window.App = {
         }).catch(() => alert('Error al crear empresa'));
     },
     
-    closeGroupSelector: function() {
-        document.getElementById('modal-select-group')?.remove();
-    },
-    
-    // Mostrar selector de eventos para agregar
-    showEventSelector: function(userId, currentEvents) {
-        const events = this.state.allEvents || [];
-        const assignedIds = (currentEvents || []).map(id => String(id));
-        const availableEvents = events.filter(e => !assignedIds.includes(String(e.id)));
-        
-        if (availableEvents.length === 0) {
-            alert('No hay más eventos disponibles para asignar.');
-            return;
-        }
-        
-        const options = availableEvents.map(e => 
-            `<option value="${e.id}">${e.name}</option>`
-        ).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-select-event';
-        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
-        modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-2xl">event_available</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-white tracking-tight">Agregar Evento</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Permisos de Producción</p>
-                    </div>
-                </div>
-                
-                <div class="space-y-4 mb-8">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Evento</label>
-                        <select id="select-event-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">-- Seleccionar --</option>
-                            ${options}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button data-action="assignEventFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Vincular Evento</button>
-                    <div class="flex gap-3">
-                        <button data-action="navigateToCreateEvent" data-user-id="${userId}" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Evento</button>
-                        <button data-action="closeEventSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
-                    </div>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    },
-    
-    navigateToCreateEvent: function(userId) {
-        this.closeEventSelector();
-        this.navigate('my-events');
-        setTimeout(() => {
-            document.getElementById('btn-create-event-open')?.click();
-        }, 200);
-    },
-    
-    assignEventFromSelector: async function(userId) {
-        const select = document.getElementById('select-event-target');
-        const eventId = select.value;
-        if (!eventId) return alert('Selecciona un evento');
-        
-        // Obtener eventos actuales del usuario desde la tabla en pantalla
-        const userRow = this.state.allUsers?.find(u => u.id === userId);
-        const currentEvents = userRow?.events || [];
-        
-        try {
-            // Enviar TODOS los eventos (los actuales + el nuevo)
-            const res = await this.fetchAPI(`/users/${userId}/events`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ events: [...currentEvents, eventId] }) 
-            });
-            if (res.success) {
-                this.loadUsersTable();
-                this.closeEventSelector();
-            }
-        } catch(e) { console.error('Error adding event:', e); }
-    },
-    
-    closeEventSelector: function() {
-        document.getElementById('modal-select-event')?.remove();
-    },
+    // Versiones obsoletas eliminadas para unificación V12.16.0
     
     approveUser: async function(id, status) {
         await this.fetchAPI(`/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
@@ -4210,27 +4123,42 @@ const App = window.App = {
 
     // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
     
+    // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
+    
     async showUserSelectorForGroup(groupId) {
         let users = [];
         try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
         
         const html = `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Usuario</span>
-                    <button onclick="App.navigateToCreateUser()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">add</span> NUEVO USUARIO
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar a Empresa</span>
+                        <span class="text-xs text-slate-400">Selecciona los usuarios para vincular</span>
+                    </div>
+                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">person_add</span> NUEVO USUARIO
                     </button>
                 </div>
-                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar usuario..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${users.map(u => `
-                        <div onclick="App.assignUserToGroup('${u.id}', '${groupId}')" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover:scale-110 transition-transform">
+                        <div onclick="App.assignUserToGroup('${u.id}', '${groupId}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold group-hover:scale-105 transition-transform">
                                 ${u.username[0].toUpperCase()}
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-xs font-bold text-white">${u.username}</span>
-                                <span class="text-[10px] text-slate-500">${u.role}</span>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${u.username}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${u.role}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-primary/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">check</span>
                             </div>
                         </div>
                     `).join('')}
@@ -4238,12 +4166,72 @@ const App = window.App = {
             </div>`;
 
         Swal.fire({
-            title: '<span class="text-lg font-bold">Asignar a Grupo</span>',
+            title: '',
             html,
-            background: '#0f172a',
-            color: '#fff',
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
             showConfirmButton: false,
-            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
+
+    async showUserSelectorForEvent(eventId) {
+        let users = [];
+        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Staff al Evento</span>
+                        <span class="text-xs text-slate-400">Busca y selecciona colaboradores</span>
+                    </div>
+                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">person_add</span> NUEVO STAFF
+                    </button>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Filtrar por nombre o rol..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${users.map(u => `
+                        <div onclick="App.assignUserToEvent('${u.id}', '${eventId}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                ${u.username[0].toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${u.username}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${u.role}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
         });
     },
 
@@ -4256,47 +4244,44 @@ const App = window.App = {
             if (res.success) {
                 this._notifyAction('Asignado', 'Usuario añadido al grupo.', 'success');
                 this.loadGroups();
+                Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
         } catch(e) { console.error(e); }
     },
 
-    async showUserSelectorForEvent(eventId) {
-        let users = [];
-        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+    async assignUserToEvent(userId, eventId) {
+        try {
+            const res = await this.fetchAPI(`/events/${eventId}/staff`, {
+                method: 'POST',
+                body: JSON.stringify({ userId })
+            });
+            if (res.success) {
+                this._notifyAction('Éxito', 'Staff asignado correctamente.', 'success');
+                this.loadEventStaff(eventId);
+                Swal.close();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
+            }
+        } catch(e) { console.error(e); }
+    },
 
-        const html = `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Staff</span>
-                    <button onclick="App.navigateToCreateUser()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">add</span> NUEVO USUARIO
-                    </button>
-                </div>
-                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${users.map(u => `
-                        <div onclick="App.assignUserToEvent('${u.id}', '${eventId}')" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-xs font-bold group-hover:scale-110 transition-transform">
-                                ${u.username[0].toUpperCase()}
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold text-white">${u.username}</div>
-                                <div class="text-[9px] text-slate-500">${u.role}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            title: '<span class="text-lg font-bold">Asignar Staff</span>',
-            html,
-            background: '#0f172a',
-            color: '#fff',
-            showConfirmButton: false,
-            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+    filterSelectorItems(input, selector) {
+        const query = input.value.toLowerCase();
+        document.querySelectorAll(selector).forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(query) ? 'flex' : 'none';
         });
+    },
+
+    navigateToCreateUser() {
+        this.switchSystemTab('users');
+        Swal.close();
+        setTimeout(() => {
+            const btn = document.getElementById('btn-open-invite');
+            if (btn) btn.click();
+        }, 300);
     },
 
     async assignUserToEvent(userId, eventId) {
@@ -4319,35 +4304,53 @@ const App = window.App = {
         try { groups = await this.fetchAPI('/groups'); } catch(e) { console.error(e); }
 
         const html = `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Empresa</span>
-                    <button onclick="App.navigateToCreateGroup()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">add</span> NUEVA EMPRESA
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
+                        <span class="text-xs text-slate-400">Vincular usuario a organización</span>
+                    </div>
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">add_business</span> NUEVA EMPRESA
                     </button>
                 </div>
-                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${groups.map(g => `
-                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm ${String(g.id) === String(currentGroupId) ? 'ring-2 ring-primary bg-primary/10' : ''}">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xs font-bold">
-                                    <span class="material-symbols-outlined text-sm">corporate_fare</span>
-                                </div>
-                                <span class="text-xs font-bold text-white">${g.name}</span>
+                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${String(g.id) === String(currentGroupId) ? 'ring-1 ring-blue-500/50 bg-blue-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">corporate_fare</span>
                             </div>
-                            ${String(g.id) === String(currentGroupId) ? '<span class="text-[8px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded">ACTUAL</span>' : ''}
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${g.email || 'Sin contacto'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-blue-500 ${String(g.id) === String(currentGroupId) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
             </div>`;
 
         Swal.fire({
-            title: '<span class="text-lg font-bold">Asignar Empresa</span>',
+            title: '',
             html,
-            background: '#0f172a',
-            color: '#fff',
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
             showConfirmButton: false,
-            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
         });
     },
 
@@ -4360,6 +4363,7 @@ const App = window.App = {
             if (res.success) {
                 this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
+                Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
@@ -4371,73 +4375,86 @@ const App = window.App = {
         try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
 
         const html = `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos</span>
-                    <button onclick="App.navigateToCreateEvent()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
-                        <span class="material-symbols-outlined text-xs">add</span> NUEVO EVENTO
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
+                        <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
+                    </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">calendar_add_on</span> NUEVO EVENTO
                     </button>
                 </div>
-                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(ev => {
-                        const isSelected = selectedEventIds.includes(ev.id);
-                        return `
-                        <div onclick="App.toggleEventToUser('${userId}', '${ev.id}', ${isSelected})" class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group ${isSelected ? 'border-primary/50 bg-primary/5' : ''}">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                                    <span class="material-symbols-outlined text-sm">event</span>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-white">${ev.name}</span>
-                                    <span class="text-[9px] text-slate-500">${new Date(ev.date).toLocaleDateString()}</span>
-                                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-orange-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar evento por nombre..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.assignEventToUser('${userId}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
                             </div>
-                            <div class="w-5 h-5 rounded-full border-2 ${isSelected ? 'bg-primary border-primary flex items-center justify-center' : 'border-white/20'}">
-                                ${isSelected ? '<span class="material-symbols-outlined text-[10px] text-white">check</span>' : ''}
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">${e.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.city || 'Ubicación remota'}</div>
                             </div>
-                        </div>`;
-                    }).join('')}
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-orange-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>`;
 
         Swal.fire({
-            title: '<span class="text-lg font-bold">Gestión de Eventos</span>',
+            title: '',
             html,
-            background: '#0f172a',
-            color: '#fff',
-            confirmButtonText: 'Listo',
-            confirmButtonColor: '#1a73e8',
-            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
         });
     },
 
-    async toggleEventToUser(userId, eventId, isCurrentlySelected) {
-        const method = isCurrentlySelected ? 'DELETE' : 'POST';
+    async assignEventToUser(userId, eventId) {
+        // En este sistema, un usuario puede tener múltiples eventos vinculados (V12.16.0 Pro)
         try {
-            await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method });
-            // Recargar el selector para actualizar estado visual
-            const user = (this.state.users || []).find(u => u.id === userId);
-            const updatedEvents = isCurrentlySelected 
-                ? (user.assignedEvents || []).filter(id => id !== eventId)
-                : [...(user.assignedEvents || []), eventId];
-            this.showEventSelector(userId, updatedEvents);
-            this.loadUsersTable();
+            const res = await this.fetchAPI(`/users/${userId}/events`, {
+                method: 'POST',
+                body: JSON.stringify({ eventId })
+            });
+            if (res.success) {
+                this._notifyAction('Éxito', 'Evento vinculado correctamente.', 'success');
+                this.loadUsersTable();
+                Swal.close();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo vincular.', 'error');
+            }
         } catch(e) { console.error(e); }
     },
 
     navigateToCreateGroup() {
-        this.navigate('groups');
+        this.switchSystemTab('groups');
+        Swal.close();
         setTimeout(() => {
-            const btn = document.querySelector('[data-action="openGroupModal"]');
-            if (btn) btn.click();
+            document.getElementById('btn-create-group')?.click();
         }, 300);
     },
 
     navigateToCreateEvent() {
         this.navigate('my-events');
+        Swal.close();
         setTimeout(() => {
-            const btn = document.getElementById('btn-new-event');
-            if (btn) btn.click();
+            document.getElementById('btn-create-event-open')?.click();
         }, 300);
     },
 
@@ -4464,6 +4481,7 @@ const App = window.App = {
         if (section === 'templates') this.loadEmailTemplates();
         if (section === 'mailing') this.loadMailingData();
         if (section === 'mailbox') this.loadMailbox();
+        if (section === 'history') this.showSavedCampaigns();
     },
 
     async loadEmailTemplates() {
@@ -4781,22 +4799,7 @@ const App = window.App = {
         }
     },
 
-    saveMailingCampaign() {
-        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
-        const templateId = document.getElementById('mailing-template-selector').value;
-        
-        if (selected.length === 0) return Swal.fire('Error', 'No hay destinatarios seleccionados para guardar.', 'error');
-        
-        const campaign = {
-            name: `Campaña ${new Date().toLocaleDateString()}`,
-            templateId: templateId,
-            recipients: selected.map(g => g.email),
-            timestamp: new Date().toISOString()
-        };
-        
-        localStorage.setItem('last_mailing_campaign', JSON.stringify(campaign));
-        Swal.fire('Guardado', 'La configuración de la campaña se ha guardado localmente.', 'success');
-    },
+
 
     showScheduleModal() {
         Swal.fire({
@@ -4872,35 +4875,6 @@ const App = window.App = {
     },
 
     // --- HISTORIAL DE CAMPAÑAS (Integrado desde logic_v16.js) ---
-    saveMailingCampaign() {
-        const tid = document.getElementById("mailing-template-selector")?.value;
-        const eid = document.getElementById("mailing-event-selector")?.value;
-        const gs = (this.state.mailingGuests || []).filter(g => g.selected);
-        
-        if (!tid || gs.length === 0) return Swal.fire("Atención", "Selecciona plantilla y destinatarios.", "info");
-        
-        const camp = { 
-            id: Date.now(), 
-            name: `Campaña ${new Date().toLocaleString()}`, 
-            tid, 
-            eid, 
-            recipients: gs.map(g => g.email), 
-            date: new Date().toISOString() 
-        };
-        
-        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
-        saved.push(camp);
-        localStorage.setItem("check_saved_campaigns", JSON.stringify(saved));
-        
-        Swal.fire({ 
-            title: "¡Guardado!", 
-            text: "Campaña guardada en el historial local.", 
-            icon: "success", 
-            background: "#292a2d", 
-            color: "#fff", 
-            confirmButtonColor: "#1a73e8" 
-        });
-    },
 
     showSavedCampaigns() {
         const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
