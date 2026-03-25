@@ -476,7 +476,17 @@ app.use(express.json({ limit: '10mb' })); // Límite de 10MB para uploads JSON
 
 // --- RATE LIMITING POR ENDPOINT ---
 app.set('trust proxy', 1);
-const skipLocal = (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1';
+const skipLocal = (req) => {
+    // Detectar peticiones locales: localhost, 127.0.0.1, ::1, red docker (172.x.x.x)
+    const ip = req.ip || '';
+    return ip === '::1' || 
+           ip === '127.0.0.1' || 
+           ip === '::ffff:127.0.0.1' ||
+           ip.startsWith('172.') ||    // Docker network
+           ip.startsWith('192.168.') || // Local network
+           ip.startsWith('10.') ||      // Docker/Local network
+           !ip;                          // No IP (internal)
+};
 
 // Rate limit general: 200 pet/15min
 const apiLimiter = rateLimit({ 
