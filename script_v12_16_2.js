@@ -1397,13 +1397,15 @@ const App = window.App = {
                 alert('✓ Empresa creada');
             }
             this.closeCompanyModal();
-            this.loadGroups();
             
             // Si venía del selector, volver a abrirlo con el userId pendiente
             if (fromSelector && pendingUserId) {
                 this._openCompanyModalFromSelector = false;
                 delete this.state._pendingGroupUserId;
+                await this.loadGroups(); // Esperar a que carguen las empresas
                 this.showGroupSelector(pendingUserId);
+            } else {
+                this.loadGroups();
             }
         } catch (e) { 
             console.error('Error saving company:', e);
