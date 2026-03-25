@@ -16,6 +16,17 @@ const router = express.Router();
 
 let tempImport = {};
 
+// Obtener invitado por ID (público - para tickets)
+router.get('/by-id/:guestId', (req, res) => {
+    const gId = castId('guests', req.params.guestId);
+    if (!gId) return res.status(400).json({ error: 'ID de invitado inválido' });
+    
+    const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+    
+    res.json(guest);
+});
+
 // Obtener invitados de evento (con paginación)
 router.get('/:eventId', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.eventId);

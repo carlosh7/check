@@ -87,8 +87,8 @@ function registerRoutes(app, rootDir) {
     // Version and health (público)
     app.use('/api', versionRoutes);
 
-    // Public routes (unsubscribe)
-    app.use('/', publicRoutes);
+    // Public routes (unsubscribe, captcha, public-register)
+    app.use('/api', publicRoutes);
     
     // Users
     app.use('/api/users', usersRoutes);

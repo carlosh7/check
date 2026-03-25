@@ -57,7 +57,7 @@
         const surveyForm = document.getElementById('survey-form');
 
         async function loadSurvey() {
-            const res = await fetch(`/api/surveys/questions/${eventId}`);
+            const res = await fetch(`/api/events/${eventId}/surveys`);
             const questions = await res.json();
             
             if (questions.length > 0) {
@@ -132,14 +132,12 @@
             }
             const finalRating = count > 0 ? Math.round(totalRating / count) : 5;
 
-            const res = await fetch('/api/surveys/respond', {
+            const res = await fetch(`/api/events/${eventId}/surveys/responses`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    event_id: eventId, 
-                    guest_id: null, // Por ahora anónimo
-                    rating: finalRating, 
-                    comment 
+                    guest_id: null,
+                    responses: { rating: finalRating, comment: comment }
                 })
             });
 

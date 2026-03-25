@@ -158,7 +158,7 @@
                 // Cargar datos del evento e invitado
                 const [eventRes, guestRes] = await Promise.all([
                     fetch(`${API_URL}/events/${eventId}`).then(r => r.json()),
-                    fetch(`${API_URL}/guests/${guestId}`).then(r => r.json())
+                    fetch(`${API_URL}/guests/by-id/${guestId}`).then(r => r.json())
                 ]);
 
                 if (!eventRes || !guestRes) {

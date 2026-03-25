@@ -39,12 +39,6 @@ function getValidId(tableName) {
  * Convierte y valida IDs para consultas de base de datos
  * @param {string} tableName - Nombre de la tabla
  * @param {string|number} id - ID a validar
- * @returns {number|string} ID validado o null si es inválido
- */
-/**
- * Convierte y valida IDs para consultas de base de datos
- * @param {string} tableName - Nombre de la tabla
- * @param {string|number} id - ID a validar
  * @returns {number|string|null} ID validado o null si es inválido
  */
 function castId(tableName, id) {

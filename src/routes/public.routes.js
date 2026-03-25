@@ -42,6 +42,63 @@ router.get('/unsubscribe/:token', (req, res) => {
     `);
 });
 
+// Registro público de invitados
+router.post('/public-register', async (req, res) => {
+    const { event_id, name, email, phone, organization, position, gender, dietary_notes } = req.body;
+    
+    if (!event_id || !name || !email) {
+        return res.status(400).json({ success: false, error: 'Datos requeridos: event_id, name, email' });
+    }
+    
+    try {
+        const { getValidId, castId } = require('../utils/helpers');
+        const { v4: uuidv4 } = require('uuid');
+        
+        const eId = castId('events', event_id);
+        if (!eId) {
+            return res.status(400).json({ success: false, error: 'Evento no válido' });
+        }
+        
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        if (!event) {
+            return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+        }
+        
+        // Verificar whitelist/blacklist de emails
+        if (event.reg_email_whitelist) {
+            const whitelist = event.reg_email_whitelist.split(',').map(e => e.trim().toLowerCase());
+            if (!whitelist.some(domain => email.endsWith('@' + domain))) {
+                return res.status(400).json({ success: false, error: 'Email no permitido para este evento' });
+            }
+        }
+        
+        if (event.reg_email_blacklist) {
+            const blacklist = event.reg_email_blacklist.split(',').map(e => e.trim().toLowerCase());
+            if (blacklist.some(domain => email.endsWith('@' + domain))) {
+                return res.status(400).json({ success: false, error: 'Email bloqueado para este evento' });
+            }
+        }
+        
+        // Verificar si ya existe el invitado
+        const existing = db.prepare("SELECT id FROM guests WHERE event_id = ? AND (email = ? OR phone = ?)").get(eId, email, phone || '');
+        if (existing) {
+            return res.status(400).json({ success: false, error: 'Ya estás registrado en este evento' });
+        }
+        
+        const guestId = getValidId('guests');
+        const qrToken = uuidv4();
+        
+        db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
+          .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken);
+        
+        res.json({ success: true, message: 'Registro exitoso', guestId, qrToken });
+    } catch (err) {
+        console.error('[public-register] Error:', err.message);
+        res.status(500).json({ success: false, error: 'Error al procesar registro' });
+    }
+});
+
 router.get('/audit-logs', (req, res) => {
     const { page = 1, limit = 50, action, user_id } = req.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * Math.min(200, Math.max(1, parseInt(limit)));
