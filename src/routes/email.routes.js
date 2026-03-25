@@ -404,4 +404,208 @@ router.post('/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']
     res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
 });
 
+// ═══ CAMPAIGN MANAGEMENT ═══
+
+// Listar campañas
+router.get('/campaigns', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { event_id, status } = req.query;
+    
+    let whereClause = '1=1';
+    let params = [];
+    
+    if (event_id) {
+        whereClause += ' AND event_id = ?';
+        params.push(castId('events', event_id));
+    }
+    if (status) {
+        whereClause += ' AND status = ?';
+        params.push(status);
+    }
+    
+    const campaigns = db.prepare(`
+        SELECT c.*, e.name as event_name, t.name as template_name
+        FROM email_campaigns c
+        LEFT JOIN events e ON c.event_id = e.id
+        LEFT JOIN email_templates t ON c.template_id = t.id
+        WHERE ${whereClause}
+        ORDER BY c.created_at DESC
+    `).all(...params);
+    
+    res.json(campaigns);
+});
+
+// Crear campaña
+router.post('/campaigns', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { name, event_id, template_id, subject, body_html, filters, scheduled_at } = req.body;
+    
+    if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+    
+    const campaignId = getValidId('cmp');
+    const now = new Date().toISOString();
+    
+    // Contar destinatarios según filtros
+    let recipientCount = 0;
+    let guests = [];
+    
+    if (event_id) {
+        const eId = castId('events', event_id);
+        let query = 'SELECT * FROM guests WHERE event_id = ?';
+        let queryParams = [eId];
+        
+        if (filters) {
+            const f = typeof filters === 'string' ? JSON.parse(filters) : filters;
+            if (f.organizations?.length > 0) {
+                query += ' AND organization IN (' + f.organizations.map(() => '?').join(',') + ')';
+                queryParams.push(...f.organizations);
+            }
+            if (f.gender) {
+                query += ' AND gender = ?';
+                queryParams.push(f.gender);
+            }
+            if (f.checked_in !== null && f.checked_in !== undefined) {
+                query += ' AND checked_in = ?';
+                queryParams.push(f.checked_in ? 1 : 0);
+            }
+            if (f.search) {
+                query += ' AND (name LIKE ? OR email LIKE ?)';
+                queryParams.push(`%${f.search}%`, `%${f.search}%`);
+            }
+        }
+        
+        guests = db.prepare(query).all(...queryParams);
+        recipientCount = guests.length;
+    }
+    
+    db.prepare(`INSERT INTO email_campaigns 
+        (id, name, event_id, template_id, subject, body_html, filters, status, total_recipients, scheduled_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?)`)
+        .run(campaignId, name, event_id || null, template_id || null, subject || '', body_html || '', filters || '{}', recipientCount, scheduled_at || null, now, now);
+    
+    // Crear logs de destinatarios
+    const insertLog = db.prepare(`INSERT INTO email_campaign_logs (id, campaign_id, guest_id, to_email, status) VALUES (?, ?, ?, ?, 'PENDING')`);
+    for (const g of guests) {
+        insertLog.run(getValidId('cml'), campaignId, g.id, g.email);
+    }
+    
+    res.json({ success: true, id: campaignId, recipients: recipientCount });
+});
+
+// Obtener campaña específica
+router.get('/campaigns/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const campaign = db.prepare(`
+        SELECT c.*, e.name as event_name, t.name as template_name
+        FROM email_campaigns c
+        LEFT JOIN events e ON c.event_id = e.id
+        LEFT JOIN email_templates t ON c.template_id = t.id
+        WHERE c.id = ?
+    `).get(req.params.id);
+    
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    // Obtener logs recientes
+    const logs = db.prepare(`SELECT * FROM email_campaign_logs WHERE campaign_id = ? ORDER BY sent_at DESC LIMIT 50`).all(req.params.id);
+    
+    res.json({ ...campaign, logs });
+});
+
+// Actualizar campaña
+router.put('/campaigns/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const { name, subject, body_html, filters, status } = req.body;
+    
+    const existing = db.prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    // Solo permitir edición si está en DRAFT
+    if (existing.status !== 'DRAFT' && existing.status !== 'PAUSED') {
+        return res.status(400).json({ error: 'No se puede editar una campaña en ejecución' });
+    }
+    
+    db.prepare(`UPDATE email_campaigns SET name = ?, subject = ?, body_html = ?, filters = ?, updated_at = ? WHERE id = ?`)
+        .run(name || existing.name, subject || existing.subject, body_html || existing.body_html, filters || existing.filters, new Date().toISOString(), req.params.id);
+    
+    res.json({ success: true });
+});
+
+// Iniciar campaña
+router.post('/campaigns/:id/start', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const campaign = db.prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    if (campaign.status === 'RUNNING') {
+        return res.status(400).json({ error: 'La campaña ya está en ejecución' });
+    }
+    
+    // Obtener SMTP config
+    const smtp = db.prepare('SELECT * FROM smtp_config WHERE id = 1').get();
+    if (!smtp || !smtp.smtp_host) {
+        return res.status(400).json({ error: 'SMTP no configurado' });
+    }
+    
+    // Actualizar estado
+    db.prepare(`UPDATE email_campaigns SET status = 'RUNNING', started_at = ? WHERE id = ?`)
+        .run(new Date().toISOString(), req.params.id);
+    
+    // Encolar emails pendientes
+    const pendingLogs = db.prepare(`SELECT * FROM email_campaign_logs WHERE campaign_id = ? AND status = 'PENDING' LIMIT 100`).all(req.params.id);
+    
+    for (const log of pendingLogs) {
+        db.prepare(`INSERT INTO email_queue (id, event_id, guest_id, to_email, subject, body_html, status, scheduled_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)`)
+            .run(getValidId('eq'), campaign.event_id, log.guest_id, log.to_email, campaign.subject, campaign.body_html, new Date().toISOString());
+    }
+    
+    res.json({ success: true, queued: pendingLogs.length });
+});
+
+// Pausar campaña
+router.post('/campaigns/:id/pause', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    db.prepare(`UPDATE email_campaigns SET status = 'PAUSED', updated_at = ? WHERE id = ?`)
+        .run(new Date().toISOString(), req.params.id);
+    db.prepare(`UPDATE email_queue SET status = 'PAUSED' WHERE event_id = (SELECT event_id FROM email_campaigns WHERE id = ?) AND status = 'PENDING'`)
+        .run(req.params.id);
+    res.json({ success: true });
+});
+
+// Reanudar campaña
+router.post('/campaigns/:id/resume', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    db.prepare(`UPDATE email_campaigns SET status = 'RUNNING', updated_at = ? WHERE id = ?`)
+        .run(new Date().toISOString(), req.params.id);
+    db.prepare(`UPDATE email_queue SET status = 'PENDING' WHERE event_id = (SELECT event_id FROM email_campaigns WHERE id = ?) AND status = 'PAUSED'`)
+        .run(req.params.id);
+    res.json({ success: true });
+});
+
+// Cancelar campaña
+router.post('/campaigns/:id/cancel', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    db.prepare(`UPDATE email_campaigns SET status = 'CANCELLED', completed_at = ?, updated_at = ? WHERE id = ?`)
+        .run(new Date().toISOString(), new Date().toISOString(), req.params.id);
+    res.json({ success: true });
+});
+
+// Eliminar campaña
+router.delete('/campaigns/:id', authMiddleware(['ADMIN']), (req, res) => {
+    db.prepare('DELETE FROM email_campaign_logs WHERE campaign_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM email_campaigns WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// Reporte de campaña
+router.get('/campaigns/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const campaign = db.prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    const stats = {
+        total: campaign.total_recipients,
+        sent: db.prepare('SELECT COUNT(*) as count FROM email_campaign_logs WHERE campaign_id = ? AND status = ?').get(req.params.id, 'SENT').count,
+        errors: db.prepare('SELECT COUNT(*) as count FROM email_campaign_logs WHERE campaign_id = ? AND status = ?').get(req.params.id, 'ERROR').count,
+        pending: db.prepare('SELECT COUNT(*) as count FROM email_campaign_logs WHERE campaign_id = ? AND status = ?').get(req.params.id, 'PENDING').count,
+        bounced: db.prepare('SELECT COUNT(*) as count FROM email_campaign_logs WHERE campaign_id = ? AND status = ?').get(req.params.id, 'BOUNCED').count
+    };
+    
+    // Últimos errores
+    const recentErrors = db.prepare(`SELECT * FROM email_campaign_logs WHERE campaign_id = ? AND status = 'ERROR' ORDER BY sent_at DESC LIMIT 10`).all(req.params.id);
+    
+    res.json({ campaign, stats, recentErrors });
+});
+
 module.exports = router;

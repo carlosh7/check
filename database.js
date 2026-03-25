@@ -402,6 +402,46 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_queue (
     FOREIGN KEY (guest_id) REFERENCES guests(id)
 )`);
 
+// 16B. Campañas de Email (Campaigns)
+db.exec(`CREATE TABLE IF NOT EXISTS email_campaigns (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    event_id TEXT,
+    template_id TEXT,
+    subject TEXT,
+    body_html TEXT,
+    filters TEXT, -- JSON: {organizations: [], gender: [], checked_in: null, search: ''}
+    status TEXT DEFAULT 'DRAFT', -- DRAFT, SCHEDULED, RUNNING, PAUSED, COMPLETED, CANCELLED
+    total_recipients INTEGER DEFAULT 0,
+    sent_count INTEGER DEFAULT 0,
+    error_count INTEGER DEFAULT 0,
+    started_at TEXT,
+    completed_at TEXT,
+    scheduled_at TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    FOREIGN KEY (template_id) REFERENCES email_templates(id)
+)`);
+
+// 16C. Tracking de Emails por Campaña
+db.exec(`CREATE TABLE IF NOT EXISTS email_campaign_logs (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    guest_id TEXT,
+    to_email TEXT,
+    status TEXT DEFAULT 'PENDING', -- PENDING, SENT, ERROR, BOUNCED
+    sent_at TEXT,
+    error_message TEXT,
+    FOREIGN KEY (campaign_id) REFERENCES email_campaigns(id),
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+
+// Índices para campañas
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_event ON email_campaigns(event_id)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaign_logs_campaign ON email_campaign_logs(campaign_id)");
+
 // 17. Webhooks para integraciones externas (Slack, Discord, etc)
 db.exec(`CREATE TABLE IF NOT EXISTS webhooks (
     id TEXT PRIMARY KEY,

@@ -302,6 +302,7 @@
                 <div id="sys-content-email" class="hidden space-y-6">
                     <div class="sub-nav-container mb-6">
                         <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
+                        <button id="email-nav-campaigns" class="sub-nav-btn">📢 Campañas</button>
                         <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
                         <button id="email-nav-mailing" class="sub-nav-btn">Mailing</button>
                         <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
@@ -378,8 +379,36 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- SECCIÓN: CAMPAÑAS -->
+                    <div id="email-content-campaigns" class="email-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold">📢 Campañas de Email</h2>
+                            <button onclick="App.openCampaignEditor()" class="btn-primary !py-2 !px-4 text-xs">➕ Nueva Campaña</button>
+                        </div>
+                        
+                        <!-- Lista de Campañas -->
+                        <div id="campaigns-list" class="space-y-4">
+                            <div class="p-8 text-center text-slate-500">Cargando campañas...</div>
+                        </div>
+                    </div>
+                    
                     <div id="email-content-mailbox" class="email-content hidden">
-                        <div id="mailbox-container" class="space-y-4"></div>
+                        <!-- Toolbar del Buzón -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex gap-2">
+                                <button id="mail-folder-inbox" onclick="App.switchMailboxFolder('INBOX')" class="mail-folder-btn btn-secondary !py-2 !px-3 text-xs">📥 Bandeja</button>
+                                <button id="mail-folder-sent" onclick="App.switchMailboxFolder('SENT')" class="mail-folder-btn btn-secondary !py-2 !px-3 text-xs">📤 Enviados</button>
+                            </div>
+                            <button onclick="App.syncIMAP()" class="btn-primary !py-2 !px-3 text-xs">🔄 Sincronizar</button>
+                        </div>
+                        <!-- Lista de Emails -->
+                        <div id="email-mailbox-list" class="space-y-4">
+                            <div class="p-12 text-center text-slate-600">
+                                <span class="material-symbols-outlined text-4xl block mb-2">inbox</span>
+                                <p class="text-sm font-bold">Selecciona una carpeta</p>
+                            </div>
+                        </div>
                     </div>
                     <div id="email-content-mailing" class="email-content hidden space-y-6">
                         <!-- Selector de Evento y Plantilla -->
@@ -675,7 +704,106 @@
     </div>
 </div>
 
+<!-- Modal: Editor de Campañas -->
+<div id="modal-campaign-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">campaign</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Editor de Campaña</h3>
+            </div>
+            <button onclick="document.getElementById('modal-campaign-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4 overflow-y-auto flex-1">
+            <input type="hidden" id="campaign-id">
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Nombre de la Campaña</label>
+                <input type="text" id="campaign-name" placeholder="Ej: Recordatorio Evento 2024" class="input-field w-full">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Evento (opcional)</label>
+                    <select id="campaign-event-select" class="input-field w-full">
+                        <option value="">-- Seleccionar Evento --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Plantilla</label>
+                    <select id="campaign-template-select" onchange="App.onCampaignTemplateChange()" class="input-field w-full">
+                        <option value="">-- Seleccionar Plantilla --</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Asunto del Email</label>
+                <input type="text" id="campaign-subject" placeholder="Asunto que verán los destinatarios" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Cuerpo del Email (HTML)</label>
+                <textarea id="campaign-body" rows="8" placeholder="Cuerpo del email..." class="input-field w-full font-mono text-sm"></textarea>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <h4 class="font-bold text-primary text-sm mb-3">Filtros de Destinatarios</h4>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400">Buscar</label>
+                        <input type="text" id="campaign-filter-search" placeholder="Por nombre o email" class="input-field w-full text-xs">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400">Género</label>
+                        <select id="campaign-filter-gender" class="input-field w-full text-xs">
+                            <option value="">Todos</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                            <option value="O">Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400">Check-in</label>
+                        <select id="campaign-filter-checkedin" class="input-field w-full text-xs">
+                            <option value="">Todos</option>
+                            <option value="1">Solo check-in</option>
+                            <option value="0">Sin check-in</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.saveCampaign()" class="btn-primary flex-1">💾 Guardar Campaña</button>
+                <button onclick="document.getElementById('modal-campaign-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Reporte de Campaña -->
+<div id="modal-campaign-report" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">analytics</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Reporte de Campaña</h3>
+            </div>
+            <button onclick="document.getElementById('modal-campaign-report').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div id="campaign-report-content" class="p-5 overflow-y-auto">
+            <!-- contenido dinámico -->
+        </div>
+    </div>
+</div>
+
 <!-- SCRIPTS & STYLES -->
-<link rel="stylesheet" href="/styles.css?v=12.16.3">
-<link rel="stylesheet" href="/modern.css?v=12.16.3">
-<script type="module" src="/script_v12_16_2.js?v=12.16.3"></script>
+<link rel="stylesheet" href="/styles.css?v=12.16.4">
+<link rel="stylesheet" href="/modern.css?v=12.16.4">
+<script type="module" src="/script_v12_16_2.js?v=12.16.4"></script>

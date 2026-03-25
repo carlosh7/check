@@ -1552,9 +1552,10 @@ const App = window.App = {
         } else if (section === 'mailbox') {
             App.switchMailboxFolder('INBOX');
         } else if (section === 'mailing') {
-            App.loadMailingTemplates();
+            App.loadMailingData();  // Carga eventos y plantillas
             App.updateMailingStats();
-            App.initDNSGuide();
+        } else if (section === 'campaigns') {
+            App.loadCampaigns();  // Cargar campañas
         }
     },
 
@@ -2368,6 +2369,267 @@ const App = window.App = {
         } catch (e) { alert('Error al eliminar: ' + e.message); }
     },
 
+    // ─── CAMPAIGNS MANAGEMENT ───
+    
+    loadCampaigns: async function() {
+        const container = document.getElementById('campaigns-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-8 text-center animate-pulse">Cargando campañas...</div>';
+        
+        try {
+            const campaigns = await this.fetchAPI('/email-campaigns');
+            
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="card p-8 text-center">
+                        <span class="material-symbols-outlined text-5xl text-slate-600 block mb-4">campaign</span>
+                        <h3 class="text-lg font-bold text-slate-400 mb-2">No hay campañas</h3>
+                        <p class="text-sm text-slate-500 mb-4">Crea tu primera campaña de email masivo</p>
+                        <button onclick="App.openCampaignEditor()" class="btn-primary">Crear Campaña</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = campaigns.map(c => {
+                const statusColors = {
+                    'DRAFT': 'bg-slate-500',
+                    'SCHEDULED': 'bg-yellow-500',
+                    'RUNNING': 'bg-green-500',
+                    'PAUSED': 'bg-orange-500',
+                    'COMPLETED': 'bg-blue-500',
+                    'CANCELLED': 'bg-red-500'
+                };
+                const statusLabels = {
+                    'DRAFT': 'Borrador',
+                    'SCHEDULED': 'Programada',
+                    'RUNNING': 'Enviando',
+                    'PAUSED': 'Pausada',
+                    'COMPLETED': 'Completada',
+                    'CANCELLED': 'Cancelada'
+                };
+                
+                const progress = c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0;
+                
+                return `
+                <div class="card p-4 border-l-4 ${c.status === 'RUNNING' ? 'border-l-green-500' : 'border-l-primary'}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-bold text-white">${c.name}</h3>
+                            <p class="text-xs text-slate-400">${c.event_name || 'Sin evento'} · ${c.template_name || 'Sin plantilla'}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold text-white ${statusColors[c.status]}">${statusLabels[c.status]}</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-xs text-slate-400 mb-3">
+                        <span>📧 ${c.total_recipients} destinatarios</span>
+                        <span>✓ ${c.sent_count} enviados</span>
+                        <span class="${c.error_count > 0 ? 'text-red-400' : ''}">❌ ${c.error_count} errores</span>
+                    </div>
+                    
+                    ${c.status === 'RUNNING' || c.status === 'PAUSED' ? `
+                    <div class="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+                        <div class="h-full bg-gradient-to-r from-primary to-green-500 transition-all" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="text-xs text-center text-slate-500 mb-3">${progress}% completado</div>
+                    ` : ''}
+                    
+                    <div class="flex gap-2">
+                        ${c.status === 'DRAFT' ? `<button onclick="App.editCampaign('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs">✏️ Editar</button>` : ''}
+                        ${c.status === 'DRAFT' ? `<button onclick="App.startCampaign('${c.id}')" class="btn-primary !py-1 !px-2 text-xs">▶️ Iniciar</button>` : ''}
+                        ${c.status === 'RUNNING' ? `<button onclick="App.pauseCampaign('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs">⏸️ Pausar</button>` : ''}
+                        ${c.status === 'PAUSED' ? `<button onclick="App.resumeCampaign('${c.id}')" class="btn-primary !py-1 !px-2 text-xs">▶️ Reanudar</button>` : ''}
+                        ${c.status === 'RUNNING' || c.status === 'PAUSED' ? `<button onclick="App.cancelCampaign('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs !text-red-400">⏹️ Cancelar</button>` : ''}
+                        ${c.status === 'COMPLETED' ? `<button onclick="App.viewCampaignReport('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs">📊 Reporte</button>` : ''}
+                        <button onclick="App.deleteCampaign('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs !text-red-400">🗑️</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+        } catch (e) {
+            container.innerHTML = `<div class="p-8 text-center text-red-400">Error al cargar: ${e.message}</div>`;
+        }
+    },
+    
+    openCampaignEditor: async function(campaignId = null) {
+        const modal = document.getElementById('modal-campaign-editor');
+        
+        // Cargar eventos y plantillas
+        try {
+            const [events, templates] = await Promise.all([
+                this.fetchAPI('/events'),
+                this.fetchAPI('/email-templates')
+            ]);
+            
+            document.getElementById('campaign-event-select').innerHTML = '<option value="">-- Sin evento específico (todos) --</option>' + 
+                events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            
+            document.getElementById('campaign-template-select').innerHTML = '<option value="">-- Seleccionar plantilla --</option>' + 
+                templates.map(t => `<option value="${t.id}" data-subject="${t.subject}" data-body="${t.body}">${t.name}</option>`).join('');
+            
+            if (campaignId) {
+                const campaign = await this.fetchAPI(`/email-campaigns/${campaignId}`);
+                document.getElementById('campaign-id').value = campaign.id;
+                document.getElementById('campaign-name').value = campaign.name;
+                document.getElementById('campaign-event-select').value = campaign.event_id || '';
+                document.getElementById('campaign-subject').value = campaign.subject || '';
+                document.getElementById('campaign-body').value = campaign.body_html || '';
+                
+                if (campaign.filters) {
+                    const f = typeof campaign.filters === 'string' ? JSON.parse(campaign.filters) : campaign.filters;
+                    document.getElementById('campaign-filter-search').value = f.search || '';
+                    document.getElementById('campaign-filter-gender').value = f.gender || '';
+                    document.getElementById('campaign-filter-checkedin').value = f.checked_in === null ? '' : (f.checked_in ? '1' : '0');
+                }
+            } else {
+                document.getElementById('campaign-id').value = '';
+                document.getElementById('campaign-name').value = '';
+                document.getElementById('campaign-subject').value = '';
+                document.getElementById('campaign-body').value = '';
+            }
+            
+            modal.classList.remove('hidden');
+            
+        } catch (e) {
+            alert('Error al cargar datos: ' + e.message);
+        }
+    },
+    
+    saveCampaign: async function() {
+        const id = document.getElementById('campaign-id').value;
+        const data = {
+            name: document.getElementById('campaign-name').value,
+            event_id: document.getElementById('campaign-event-select').value || null,
+            template_id: document.getElementById('campaign-template-select').value || null,
+            subject: document.getElementById('campaign-subject').value,
+            body_html: document.getElementById('campaign-body').value,
+            filters: JSON.stringify({
+                search: document.getElementById('campaign-filter-search').value,
+                gender: document.getElementById('campaign-filter-gender').value,
+                checked_in: document.getElementById('campaign-filter-checkedin').value === '' ? null : (document.getElementById('campaign-filter-checkedin').value === '1')
+            })
+        };
+        
+        if (!data.name) return alert('El nombre es requerido');
+        
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email-campaigns/${id}` : '/email-campaigns';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+            
+            if (res.success) {
+                alert(id ? '✓ Campaña actualizada' : `✓ Campaña creada con ${res.recipients} destinatarios`);
+                document.getElementById('modal-campaign-editor').classList.add('hidden');
+                this.loadCampaigns();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) {
+            alert('Error al guardar: ' + e.message);
+        }
+    },
+    
+    startCampaign: async function(id) {
+        if (!confirm('¿Iniciar esta campaña? Se comenzará a enviar inmediatamente.')) return;
+        try {
+            const res = await this.fetchAPI(`/email-campaigns/${id}/start`, { method: 'POST' });
+            if (res.success) {
+                alert(`✓ Campaña iniciada. ${res.queued} emails encolados.`);
+                this.loadCampaigns();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) { alert('Error: ' + e.message); }
+    },
+    
+    pauseCampaign: async function(id) {
+        try {
+            await this.fetchAPI(`/email-campaigns/${id}/pause`, { method: 'POST' });
+            this.loadCampaigns();
+        } catch (e) { alert('Error: ' + e.message); }
+    },
+    
+    resumeCampaign: async function(id) {
+        try {
+            await this.fetchAPI(`/email-campaigns/${id}/resume`, { method: 'POST' });
+            this.loadCampaigns();
+        } catch (e) { alert('Error: ' + e.message); }
+    },
+    
+    cancelCampaign: async function(id) {
+        if (!confirm('¿Cancelar esta campaña? Los emails ya enviados no se recuperan.')) return;
+        try {
+            await this.fetchAPI(`/email-campaigns/${id}/cancel`, { method: 'POST' });
+            this.loadCampaigns();
+        } catch (e) { alert('Error: ' + e.message); }
+    },
+    
+    deleteCampaign: async function(id) {
+        if (!confirm('¿Eliminar esta campaña permanentemente?')) return;
+        try {
+            await this.fetchAPI(`/email-campaigns/${id}`, { method: 'DELETE' });
+            this.loadCampaigns();
+        } catch (e) { alert('Error: ' + e.message); }
+    },
+    
+    viewCampaignReport: async function(id) {
+        try {
+            const report = await this.fetchAPI(`/email-campaigns/${id}/report`);
+            
+            const html = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-4 gap-4 text-center">
+                    <div class="p-4 bg-blue-500/20 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-400">${report.stats.total}</div>
+                        <div class="text-xs text-slate-400">Total</div>
+                    </div>
+                    <div class="p-4 bg-green-500/20 rounded-lg">
+                        <div class="text-2xl font-bold text-green-400">${report.stats.sent}</div>
+                        <div class="text-xs text-slate-400">Enviados</div>
+                    </div>
+                    <div class="p-4 bg-yellow-500/20 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-400">${report.stats.pending}</div>
+                        <div class="text-xs text-slate-400">Pendientes</div>
+                    </div>
+                    <div class="p-4 bg-red-500/20 rounded-lg">
+                        <div class="text-2xl font-bold text-red-400">${report.stats.errors}</div>
+                        <div class="text-xs text-slate-400">Errores</div>
+                    </div>
+                </div>
+                ${report.stats.errors > 0 ? `
+                <div class="mt-4">
+                    <h4 class="font-bold text-red-400 mb-2">Últimos Errores</h4>
+                    <div class="space-y-2 max-h-[200px] overflow-y-auto">
+                        ${report.recentErrors.map(e => `
+                            <div class="p-2 bg-red-500/10 rounded text-xs">
+                                <span class="text-red-400">${e.to_email}</span>: ${e.error_message || 'Error desconocido'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            `;
+            
+            document.getElementById('campaign-report-content').innerHTML = html;
+            document.getElementById('modal-campaign-report').classList.remove('hidden');
+            
+        } catch (e) {
+            alert('Error al cargar reporte: ' + e.message);
+        }
+    },
+    
+    onCampaignTemplateChange: function() {
+        const select = document.getElementById('campaign-template-select');
+        const option = select.options[select.selectedIndex];
+        if (option) {
+            document.getElementById('campaign-subject').value = option.dataset.subject || '';
+            document.getElementById('campaign-body').value = option.dataset.body || '';
+        }
+    },
+
     showCreateTemplateModal: async function(type = 'global') {
         if (this._templateEditorOpening) return;
         this._templateEditorOpening = true;
@@ -3090,6 +3352,7 @@ const App = window.App = {
         
         // Email section tabs
         cl('email-nav-config', () => this.navigateEmailSection('config'));
+        cl('email-nav-campaigns', () => this.navigateEmailSection('campaigns'));
         cl('email-nav-mailbox', () => this.navigateEmailSection('mailbox'));
         cl('email-nav-templates', () => this.navigateEmailSection('templates'));
         cl('email-nav-mailing', () => this.navigateEmailSection('mailing'));
