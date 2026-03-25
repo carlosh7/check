@@ -1375,9 +1375,9 @@ const App = window.App = {
         const modal = document.getElementById('modal-company');
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
-        // Mover foco a un elemento visible para evitar warning aria-hidden
-        const focusTarget = document.getElementById('focus-trap') || document.body;
-        focusTarget.focus();
+        // Quitar foco del botón submit antes de cerrar para evitar warning aria-hidden
+        const submitBtn = modal?.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.blur();
     },
     
     saveCompany: async function(data) {
