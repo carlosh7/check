@@ -2141,8 +2141,7 @@ const App = window.App = {
                 this.updateUIPermissions();
                 this.updateRoleOptions();
                 this.handleInitialNavigation();
-                this.initAppShell();
-                
+
                 return { success: true };
             } else {
                 this._notifyAction('Error de Acceso', data.message || 'Credenciales inválidas.', 'error');
