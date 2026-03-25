@@ -957,11 +957,16 @@ const App = window.App = {
     loadUsersTable: async function() {
         if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
         try {
-            const [users, groups, events] = await Promise.all([
+            const [usersRes, groupsRes, eventsRes] = await Promise.all([
                 this.fetchAPI('/users'),
                 this.fetchAPI('/groups'),
                 this.fetchAPI('/events')
             ]);
+            
+            // Verificar que las respuestas sean arrays válidos
+            const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
+            const groups = Array.isArray(groupsRes) ? groupsRes : (groupsRes.data || []);
+            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
             
             // Guardar datos para filtros
             this.state.allUsers = users;
@@ -1569,7 +1574,7 @@ const App = window.App = {
         if (!grid) return;
         try {
             const response = await this.fetchAPI('/email-templates');
-            const templates = response.data || response;
+            const templates = Array.isArray(response) ? response : (response.data || []);
             this.state.emailTemplates = templates;
             grid.innerHTML = `
                 <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
@@ -1730,14 +1735,16 @@ const App = window.App = {
     async loadMailingData() {
         console.log('[MAIL] Loading mailing data...');
         try {
-            const events = await this.fetchAPI('/events');
+            const eventsRes = await this.fetchAPI('/events');
+            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
             const eventSelector = document.getElementById('mailing-event-selector');
             if (eventSelector) {
                 eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
                     events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
             }
 
-            const templates = await this.fetchAPI('/email-templates');
+            const templatesRes = await this.fetchAPI('/email-templates');
+            const templates = Array.isArray(templatesRes) ? templatesRes : (templatesRes.data || []);
             this.state.emailTemplates = templates;
             const tempSelector = document.getElementById('mailing-template-selector');
             if (tempSelector) {

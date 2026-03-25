@@ -9,17 +9,31 @@ export const API = {
     
     async fetchAPI(endpoint, options = {}) {
         const url = endpoint.startsWith('http') ? endpoint : `${this.BASE_URL}${endpoint}`;
-        const userStr = LS.get('user');
-        const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
-        const token = user.token || LS.get('token'); // Fallback por compatibilidad
+        
+        // Usar App.state.user primero (fuente confiable post-login), luego LS como fallback
+        let token = null;
+        let userId = null;
+        
+        if (window.App?.state?.user) {
+            token = window.App.state.user.token;
+            userId = window.App.state.user.userId;
+        }
+        
+        // Fallback a localStorage si no hay token en App.state
+        if (!token) {
+            const userStr = LS.get('user');
+            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+            token = user.token || LS.get('token');
+            userId = userId || user.userId;
+        }
         
         const defaultHeaders = {
             'Content-Type': 'application/json',
             'Authorization': token ? `Bearer ${token}` : ''
         };
         
-        if (user && user.userId) {
-            defaultHeaders['x-user-id'] = user.userId;
+        if (userId) {
+            defaultHeaders['x-user-id'] = userId;
         }
         
         // Unir headers personalizados
