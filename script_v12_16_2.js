@@ -62,6 +62,107 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
+    // ─── NAVEGACIÓN V12.16.3 ───
+    navigate(viewId) {
+        console.log(`[NAV] Navegando a: ${viewId}`);
+        const views = document.querySelectorAll('#views-container > section');
+        views.forEach(v => v.classList.add('hidden'));
+        
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) {
+            target.classList.remove('hidden');
+            this._updateSidebarUI(viewId);
+            
+            // Inicialización por vista
+            if (viewId === 'system') this.switchSystemTab('users');
+            if (viewId === 'my-events') this.loadEvents();
+            if (viewId === 'admin') this.switchEventTab('guests');
+
+            // Scroll al inicio
+            document.getElementById('app-main-content').scrollTop = 0;
+        }
+    },
+
+    switchSystemTab(tabId) {
+        console.log(`[NAV] System Tab: ${tabId}`);
+        document.querySelectorAll('[id^="sys-content-"]').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(`sys-content-${tabId}`);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll('#view-system .sub-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('onclick')?.includes(`'${tabId}'`)) btn.classList.add('active');
+        });
+
+        if (tabId === 'users') this.loadUsersTable();
+        if (tabId === 'groups') this.loadGroups();
+        if (tabId === 'account') this.loadProfileData();
+        if (tabId === 'email') this._showEmailSection('config');
+    },
+
+    switchEventTab(tabId) {
+        console.log(`[NAV] Event Tab: ${tabId}`);
+        document.querySelectorAll('[id^="ev-content-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`ev-content-${tabId}`)?.classList.remove('hidden');
+
+        document.querySelectorAll('#view-admin .sub-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.tabTarget === `ev-content-${tabId}`) btn.classList.add('active');
+        });
+    },
+
+    navigateToCreateUser() { this.openInviteModal(); },
+    navigateToCreateGroup() { this.openCompanyModal(); },
+
+    loadEvents: async function() {
+        try {
+            const events = await this.fetchAPI('/events');
+            this.state.events = events;
+            const container = document.getElementById('events-list-container');
+            if (!container) return;
+
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="col-span-full py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No hay eventos activos</div>';
+                return;
+            }
+
+            container.innerHTML = events.map(e => `
+                <div class="card p-6 h-full flex flex-col hover:border-[var(--primary)] transition-all cursor-pointer group" onclick="App.selectEvent('${e.id}')">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-[var(--bg-hover)] flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-2xl">event</span>
+                        </div>
+                        <span class="status-pill status-active">Activo</span>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">${e.name}</h3>
+                    <p class="text-xs text-[var(--text-secondary)] mb-4 line-clamp-2">${e.description || 'Sin descripción'}</p>
+                    <div class="mt-auto pt-4 border-t border-[var(--border)] flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            <span class="text-[10px] font-bold uppercase">${new Date(e.date).toLocaleDateString()}</span>
+                        </div>
+                        <span class="material-symbols-outlined text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">arrow_forward</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { console.error('Error loading events:', e); }
+    },
+
+    selectEvent: async function(id) {
+        try {
+            const event = await this.fetchAPI(`/events/${id}`);
+            this.state.event = event;
+            this.navigate('admin');
+            
+            // Actualizar UI del panel de control
+            document.getElementById('admin-event-title').textContent = event.name;
+            document.getElementById('admin-event-location').textContent = event.location || 'Sin ubicación';
+            
+            // Cargar invitados
+            this.loadGuests();
+        } catch(e) { console.error('Error selecting event:', e); }
+    },
+
     // ─── PERMISOS JERÁRQUICOS V10.5 ───
     canAccess(permission) {
         const role = this.state.user?.role;
