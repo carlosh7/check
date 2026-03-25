@@ -105,8 +105,8 @@ function registerRoutes(app, rootDir) {
     // Guests
     app.use('/api/guests', guestsRoutes);
     
-    // Email (SMTP, IMAP, templates, queue) - montado en /api/email
-    app.use('/api/email', emailRoutes);
+    // Email (SMTP, IMAP, templates, queue)
+    app.use('/api', emailRoutes);
     
     // Settings
     app.use('/api/settings', settingsRoutes);
