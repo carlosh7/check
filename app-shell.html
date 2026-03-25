@@ -303,6 +303,7 @@
                     <div class="sub-nav-container mb-6">
                         <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
                         <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
+                        <button id="email-nav-mailing" class="sub-nav-btn">Mailing</button>
                         <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
                     </div>
                     <div id="email-content-config" class="email-content space-y-6">
@@ -340,6 +341,68 @@
                     </div>
                     <div id="email-content-mailbox" class="email-content hidden">
                         <div id="mailbox-container" class="space-y-4"></div>
+                    </div>
+                    <div id="email-content-mailing" class="email-content hidden space-y-6">
+                        <!-- Selector de Evento y Plantilla -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="card p-6">
+                                <h3 class="text-lg font-bold mb-4">1. Seleccionar Evento</h3>
+                                <select id="mailing-event-selector" onchange="App.onMailingEventChange()" class="input-field w-full">
+                                    <option value="">-- Seleccionar Evento --</option>
+                                </select>
+                                <div class="mt-4 flex gap-2">
+                                    <button onclick="App.openMailing()" class="btn-secondary !py-2 !px-3 text-xs">+ Manual</button>
+                                </div>
+                            </div>
+                            <div class="card p-6">
+                                <h3 class="text-lg font-bold mb-4">2. Seleccionar Plantilla</h3>
+                                <select id="mailing-template-selector" onchange="App.onTemplateChange()" class="input-field w-full">
+                                    <option value="">-- Seleccionar Plantilla --</option>
+                                </select>
+                                <button onclick="App.previewMailingTemplate()" class="btn-secondary !py-2 !px-3 text-xs mt-3">Previsualizar</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de Destinatarios -->
+                        <div class="card p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold">3. Destinatarios</h3>
+                                <span id="mailing-count" class="text-sm text-slate-400">0 seleccionados</span>
+                            </div>
+                            <input type="text" id="mailing-search" oninput="App.filterMailingGuests()" placeholder="Buscar por nombre o email..." class="input-field w-full mb-4">
+                            <div id="mailing-recipients-list" class="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar"></div>
+                        </div>
+                        
+                        <!-- Vista Previa -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4">4. Previsualización</h3>
+                            <input type="text" id="mailing-subject" placeholder="Asunto del email" class="input-field w-full mb-4">
+                            <div id="mailing-preview-container" class="bg-white/5 rounded-lg p-4 min-h-[150px] text-sm text-slate-300"></div>
+                            <div class="flex gap-2 mt-4">
+                                <button onclick="App.refreshMailingPreview()" class="btn-secondary !py-2 !px-3 text-xs">Otro Preview</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Progreso de Envío -->
+                        <div id="mailing-progress-card" class="hidden card p-6 border border-primary/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-lg font-bold">Progreso de Envío</h3>
+                                <span id="mailing-status-text" class="text-sm text-primary font-bold">Enviando...</span>
+                            </div>
+                            <div class="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+                                <div id="mailing-progress-bar" class="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span id="mailing-count-text">0 / 0 enviados</span>
+                                <span id="mailing-percent-text">0%</span>
+                            </div>
+                            <div class="flex gap-2 mt-4">
+                                <button onclick="App.controlMailingQueue('pause')" id="btn-pause-mailing" class="btn-secondary !py-2 !px-3 text-xs">Pausar</button>
+                                <button onclick="App.controlMailingQueue('resume')" id="btn-resume-mailing" class="btn-secondary !py-2 !px-3 text-xs hidden">Reanudar</button>
+                                <button onclick="App.controlMailingQueue('stop')" class="btn-secondary !py-2 !px-3 text-xs !text-red-400">Detener</button>
+                                <button onclick="App.startBroadcast()" class="btn-primary !py-2 !px-3 text-xs ml-auto">Iniciar Envío</button>
+                            </div>
+                        </div>
                     </div>
                     <div id="email-content-templates" class="email-content hidden">
                         <div class="flex justify-between items-center mb-4">
@@ -525,6 +588,31 @@
             <div id="scan-result" class="text-center"></div>
             <button id="btn-start-scan" class="btn-primary !px-5 !py-2">Iniciar Cámara</button>
         </div>
+    </div>
+</div>
+
+<!-- Modal: Editor de Plantillas de Email -->
+<div id="modal-template-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Editor de Plantilla</h3>
+            </div>
+            <button onclick="document.getElementById('modal-template-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveEmailTemplate()" class="p-5 space-y-4 overflow-y-auto flex-1">
+            <input type="text" id="tpl-name" required placeholder="Nombre de la plantilla" class="input-field w-full">
+            <input type="text" id="tpl-subject" required placeholder="Asunto del email" class="input-field w-full">
+            <div class="text-xs text-slate-400 mb-1">Cuerpo del email (soporta HTML)</div>
+            <div id="tpl-quill-editor" class="bg-white/5 rounded-lg" style="min-height: 200px;"></div>
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button type="submit" class="btn-primary flex-1">Guardar Plantilla</button>
+                <button type="button" onclick="document.getElementById('modal-template-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
+        </form>
     </div>
 </div>
 
