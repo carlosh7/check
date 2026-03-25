@@ -2,8 +2,9 @@ const CACHE_NAME = 'check-v12.16.2-cache';
 const assets = [
   '/',
   '/index.html',
-  '/style.css',
-  '/script.js',
+  '/style_v12_16_2.css',
+  '/modern_v12_16_2.css',
+  '/script_v12_16_2.js',
   '/manifest.json',
   '/socket.io/socket.io.js'
 ];
