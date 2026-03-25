@@ -638,11 +638,11 @@
         <form id="invite-user-form" class="p-5 space-y-4">
             <div>
                 <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
-                <p class="text-[10px] text-[var(--text-secondary)] mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
             </div>
             <div>
                 <input type="email" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
-                <p class="text-[10px] text-[var(--text-secondary)] mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
             </div>
             <div class="relative">
                 <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
@@ -650,7 +650,7 @@
                     <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
             </div>
-            <p class="text-[10px] text-[var(--text-secondary)] -mt-2 ml-1">Mínimo 6 caracteres</p>
+            <p class="text-xs text-[var(--text-secondary)] -mt-2 ml-1">Mínimo 6 caracteres</p>
             <div>
                 <select id="invite-role" class="input-field w-full">
                     <option value="ADMIN">Administrador</option>
@@ -659,7 +659,7 @@
                     <option value="CLIENTE">Cliente</option>
                     <option value="LOGISTICO">Logístico</option>
                 </select>
-                <p class="text-[10px] text-[var(--text-secondary)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
             </div>
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)]">Cancelar</button>
