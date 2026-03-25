@@ -653,7 +653,7 @@
     </div>
 </div>
 
-<div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+<div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm" aria-hidden="true">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
@@ -669,6 +669,11 @@
             <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
             <textarea id="company-description" placeholder="Breve descripción..." class="input-field w-full" rows="2"></textarea>
             <input type="email" id="company-email" placeholder="email@empresa.com" class="input-field w-full">
+            <input type="tel" id="company-phone" placeholder="Teléfono (opcional)" class="input-field w-full">
+            <select id="company-status" class="input-field w-full">
+                <option value="ACTIVE">Activo</option>
+                <option value="INACTIVE">Inactivo</option>
+            </select>
             <button type="submit" class="btn-primary w-full">Guardar</button>
         </form>
     </div>

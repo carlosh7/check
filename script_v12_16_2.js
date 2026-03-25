@@ -1368,10 +1368,13 @@ const App = window.App = {
         }
         
         modal?.classList.remove('hidden');
+        modal?.removeAttribute('aria-hidden');
     },
     
     closeCompanyModal: function() {
-        document.getElementById('modal-company')?.classList.add('hidden');
+        const modal = document.getElementById('modal-company');
+        modal?.classList.add('hidden');
+        modal?.setAttribute('aria-hidden', 'true');
     },
     
     saveCompany: async function(data) {
