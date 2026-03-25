@@ -50,7 +50,7 @@ function authMiddleware(roles = []) {
                 return res.status(401).json({ error: 'Token inválido' });
             }
 
-            if (user.status !== 'APPROVED' && user.role !== 'ADMIN') {
+            if (user.status !== 'APPROVED') {
                 return res.status(403).json({ error: 'Cuenta no aprobada' });
             }
 
