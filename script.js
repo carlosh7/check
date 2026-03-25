@@ -3,14 +3,14 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.15.0
+ * Version: V12.16.0
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.15.0: Iniciando Sistema Modular...');
+console.log('CHECK V12.16.0: Iniciando Sistema Modular...');
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -21,7 +21,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.15.0',
+        version: '12.16.0',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -436,7 +436,7 @@ const App = window.App = {
         }
     },
     
-    // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.15.0) ---
+    // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
 
     async handleFileSelect(e) {
         const file = e.target.files[0];
@@ -2147,7 +2147,7 @@ const App = window.App = {
         }
 
         this.showView(viewName);
-        LS.set('active_view', viewName); // Persistencia de vista V12.15.0
+        LS.set('active_view', viewName); // Persistencia de vista V12.16.0
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
@@ -3913,7 +3913,7 @@ const App = window.App = {
 
     switchSystemTab(tabName) {
         console.log('[SYS] Switching to tab:', tabName);
-        LS.set('active_system_tab', tabName); // Persistencia V12.15.0
+        LS.set('active_system_tab', tabName); // Persistencia V12.16.0
         const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
         
         // Ocultar todos los contenidos
@@ -4208,7 +4208,7 @@ const App = window.App = {
         });
     },
 
-    // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.15.0) ---
+    // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
     
     async showUserSelectorForGroup(groupId) {
         let users = [];
@@ -4865,7 +4865,7 @@ const App = window.App = {
         // Redirigir suavemente a la pestaña de plantillas
         this.navigateEmailSection('templates');
         
-        // Abrir el editor directamente (V12.15.0 robusto)
+        // Abrir el editor directamente (V12.16.0 robusto)
         setTimeout(() => {
             this.openTemplateEditor(templateId);
         }, 300);
