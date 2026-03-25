@@ -1403,6 +1403,8 @@ const App = window.App = {
             }
             this.closeCompanyModal();
             
+            console.log('[DEBUG] saveCompany after close: fromSelector=', fromSelector, 'pendingUserId=', pendingUserId);
+            
             // Si venía del selector, volver a abrirlo con el userId pendiente
             if (fromSelector && pendingUserId) {
                 console.log('[DEBUG] saveCompany: volviendo al selector con userId:', pendingUserId);
@@ -1412,6 +1414,7 @@ const App = window.App = {
                 console.log('[DEBUG] saveCompany: grupos cargados, mostrando selector');
                 this.showGroupSelector(pendingUserId);
             } else {
+                console.log('[DEBUG] saveCompany: NO viene del selector, solo loadGroups');
                 this.loadGroups();
             }
         } catch (e) { 
