@@ -1,0 +1,1334 @@
+﻿<div id="app-container" class="flex h-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden font-sans">
+    <!-- Sidebar: Limpio y Minimalista -->
+    <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200">
+        
+        <!-- Logo & Toggle -->
+        <div class="p-6 mb-4 flex items-center justify-between logo-container">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-white text-2xl">verified_user</span>
+                </div>
+                <div class="flex flex-col logo-text">
+                    <span class="font-bold text-lg tracking-tight leading-none text-[var(--text-main)]">Check<span class="text-[var(--primary)]">.</span>Pro</span>
+                    <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.2em] mt-1">Attendance</span>
+                </div>
+            </div>
+            <button id="btn-toggle-sidebar" class="w-9 h-9 rounded-full hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-[var(--text-secondary)] text-xl">menu_open</span>
+            </button>
+
+        </div>
+        
+        <!-- Navegaci├│n -->
+        <nav id="sidebar-nav" class="flex-1 px-3 overflow-y-auto">
+            <div id="nav-section-global" class="pt-2">
+                <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 nav-section-title">Administraci├│n</p>
+                <div class="space-y-0.5">
+                    <a href="#" id="nav-btn-system" class="nav-item">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">settings</span> 
+                        <span class="sidebar-text">Configuraci├│n</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="pt-6">
+                <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 nav-section-title">Producci├│n</p>
+                <div class="space-y-0.5">
+                    <a href="#" id="nav-btn-my-events" class="nav-item">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">event_repeat</span> 
+                        <span class="sidebar-text">Mis Eventos</span>
+                    </a>
+                </div>
+            </div>
+
+            <div id="nav-section-event" class="hidden pt-6">
+                <p class="px-3 text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 nav-section-title" id="nav-event-name">Evento Actual</p>
+                <div class="space-y-0.5">
+                    <a href="#" id="nav-btn-admin" class="nav-item">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">dashboard</span> 
+                        <span class="sidebar-text">Panel Control</span>
+                    </a>
+                    <a href="#" id="nav-btn-pre-registrations" class="nav-item">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">how_to_reg</span> 
+                        <span class="sidebar-text">Pre-registros</span>
+                    </a>
+                    <a href="#" id="nav-btn-survey-manager" class="nav-item">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">quiz</span> 
+                        <span class="sidebar-text">Encuesta QR</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Footer Sidebar -->
+        <div class="p-4 mt-auto border-t border-[var(--border)]">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-hover)] mb-3">
+                <div class="w-9 h-9 rounded-lg bg-[var(--bg-active)] flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">account_circle</span>
+                </div>
+                <div class="flex-1 min-w-0 sidebar-footer-text">
+                    <p id="sidebar-username" class="text-xs font-medium truncate">Usuario</p>
+                    <p id="sidebar-role" class="text-[9px] text-[var(--primary)] font-medium uppercase tracking-wider">Rol</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="btn-toggle-theme" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-center" title="Cambiar tema">
+                    <span class="material-symbols-outlined text-sm">dark_mode</span>
+                </button>
+                <button id="btn-logout" class="flex-1 py-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 transition-colors flex items-center justify-center" title="Cerrar sesi├│n">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                </button>
+            </div>
+        
+            <div class="mt-4 text-center version-display">
+                <span id="version-display" class="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">V12.16.2</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="app-main-content" class="flex-1 overflow-auto relative bg-[var(--bg-app)] flex flex-col">
+        
+        <!-- Vistas Din├ímicas -->
+        <div id="views-container" class="flex-1 p-8 relative">
+
+            <!-- VIEW: MY EVENTS -->
+            <section id="view-my-events" class="hidden space-y-8">
+                <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div>
+                        <p class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-widest mb-2">Panel de Producci├│n</p>
+                        <h1 class="text-3xl font-semibold tracking-tight">Mis Eventos</h1>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Gestiona tus producciones activas.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="btn-create-event-open" class="btn-primary !px-6 !py-3">Nuevo Evento</button>
+                    </div>
+                </header>
+                <div id="events-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
+            <section id="view-admin" class="hidden">
+                <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
+                    <div class="flex items-center gap-6">
+                        <div id="admin-event-logo-container" class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
+                            <img id="admin-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                            <span id="admin-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Panel de Control</p>
+                            <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
+                            <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+                                <span class="material-symbols-outlined text-sm">location_on</span>
+                                <span id="admin-event-location" class="text-xs uppercase tracking-wider">Ubicaci├│n</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] p-2 rounded-2xl shadow-xs">
+                        <div class="flex items-center gap-6 px-4 border-r border-[var(--border)]">
+                            <div class="text-center">
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1">Hora Local</p>
+                                <p id="admin-clock-real" class="text-lg font-bold font-mono">00:00:00</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Countdown</p>
+                                <p id="admin-clock-countdown" class="text-lg font-bold font-mono text-red-500">00:00:00</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 p-1">
+                            <button id="btn-show-qr" class="btn-primary !p-2 px-4 flex items-center gap-2" title="Mostrar c├│digo QR de registro">
+                                <span class="material-symbols-outlined text-lg">qr_code_2</span>
+                                <span class="text-xs font-bold uppercase">Registro QR</span>
+                            </button>
+                            <div class="flex gap-1 border-l border-[var(--border)] ml-1 pl-2">
+                                <button id="btn-export-excel" class="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-all" title="Exportar Excel">
+                                    <span class="material-symbols-outlined text-xl">description</span>
+                                </button>
+                                <button id="btn-generate-pdf" class="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-all" title="Exportar Anal├¡tica PDF">
+                                    <span class="material-symbols-outlined text-xl">picture_as_pdf</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Sub-navegaci├│n Premium Evento (V12.6.1) -->
+                <div class="sub-nav-container mb-8">
+                    <button class="sub-nav-btn active" onclick="App.switchEventTab('dashboard')">Panel</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('staff')">Personal</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('guests')">Invitados</button>
+                    <button class="sub-nav-btn" onclick="App.switchEventTab('settings')">Ajustes</button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card !p-8 flex items-center justify-between group">
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)] mb-2">Total Invitados</p>
+                            <h2 id="stat-total" class="text-4xl font-bold">0</h2>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">group</span>
+                        </div>
+                    </div>
+                    <!-- Se pueden a├▒adir m├ís stats aqu├¡ -->
+                </div>
+
+                <!-- Sub-Navegaci├│n Evento (Fase 3: Multi-Tab) -->
+                <div class="sub-nav-container mb-6">
+                    <button id="ev-nav-guests" class="sub-nav-btn active" data-tab-target="ev-content-guests">Invitados</button>
+                    <button id="ev-nav-staff" class="sub-nav-btn" data-tab-target="ev-content-staff">Personal Asignado</button>
+                </div>
+
+                <!-- CONTENIDO: INVITADOS -->
+                <div id="ev-content-guests" class="card !p-0 overflow-hidden">
+                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Asistentes
+                        </h3>
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                            <input id="guest-search" type="text" placeholder="Buscar por nombre, empresa o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th id="th-name">Invitado / Informaci├│n</th>
+                                    <th id="th-org">Organizaci├│n</th>
+                                    <th id="th-status" class="text-center">Estado</th>
+                                    <th class="text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guests-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: PERSONAL ASIGNADO (V12.6.0) -->
+                <div id="ev-content-staff" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Staff del <span class="text-[var(--primary)]">Evento</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gesti├│n y log├¡stica de este evento.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-ev-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
+                            <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro R├ípido</button>
+                        </div>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Personal Asignado
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="ev-staff-search" type="text" placeholder="Buscar staff por nombre..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Colaborador</th>
+                                        <th class="px-5 py-4 text-center">Rol en Sistema</th>
+                                        <th class="px-5 py-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ev-staff-tbody" class="divide-y divide-[var(--border-light)]">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: CONFIGURACI├ôN (UNIFIED HUB V12.6.0) -->
+            <section id="view-system" class="hidden space-y-8">
+                <!-- Sub-Navegaci├│n Configuraci├│n -->
+                <div class="sub-nav-container mb-8">
+                    <button class="sub-nav-btn active" onclick="App.switchSystemTab('users')">Equipo</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('groups')">Empresas</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('legal')">Legales</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('email')">Emails</button>
+                    <button class="sub-nav-btn" onclick="App.switchSystemTab('account')">Mi Perfil</button>
+                </div>
+
+                <!-- CONTENIDO: EQUIPO -->
+                <div id="sys-content-users" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Gesti├│n de <span class="text-[var(--primary)]">Equipo</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Controla qui├®n tiene acceso al sistema.</p>
+                        </div>
+                        <button id="btn-open-invite" class="btn-primary !px-5 !py-2.5">A├▒adir Colaborador</button>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Colaboradores del Sistema
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="user-search" type="text" placeholder="Buscar por nombre, email o rol..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Colaborador</th>
+                                        <th class="px-5 py-4">Rol / Acceso</th>
+                                        <th class="px-5 py-4 text-center">Estado</th>
+                                        <th class="px-5 py-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: EMPRESAS -->
+                <div id="sys-content-groups" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Gesti├│n de <span class="text-[var(--primary)]">Empresas</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Administra las organizaciones registradas.</p>
+                        </div>
+                        <button id="btn-create-group" class="btn-primary !px-5 !py-2.5">Registrar Empresa</button>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Organizaciones
+                            </h3>
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                                <input id="group-search" type="text" placeholder="Buscar por nombre, contacto o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-5 py-4">Organizaci├│n</th>
+                                        <th class="px-5 py-4">Informaci├│n de Contacto</th>
+                                        <th class="px-5 py-4">Eventos Asignados</th>
+                                        <th class="px-5 py-4">Personal Base</th>
+                                        <th class="px-5 py-4 text-center">Estado</th>
+                                        <th class="px-5 py-4 text-right">Administraci├│n</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: LEGALES -->
+                <div id="sys-content-legal" class="hidden space-y-6">
+                    <div class="flex justify-between items-center p-5 bg-[var(--bg-hover)] rounded-xl">
+                        <div>
+                            <h3 class="text-base font-semibold">Pol├¡ticas Globales</h3>
+                            <p class="text-xs text-[var(--text-secondary)] mt-0.5">Configuraci├│n GDPR / LOPD</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="check-show-legal-login" class="w-4 h-4 rounded accent-[var(--primary)]">
+                                <span class="text-xs font-medium">Mostrar en Login</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card p-6 rounded-xl flex flex-col gap-4">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-semibold flex items-center gap-2"><span class="material-symbols-outlined text-[var(--primary)]">policy</span> Pol├¡tica de Privacidad</h4>
+                                <button id="btn-save-policy" class="px-4 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors">Guardar</button>
+                            </div>
+                            <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                        <div class="card p-6 rounded-xl flex flex-col gap-4">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-semibold flex items-center gap-2"><span class="material-symbols-outlined text-[var(--primary)]">gavel</span> T├®rminos del Servicio</h4>
+                                <button id="btn-save-terms" class="px-4 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors">Guardar</button>
+                            </div>
+                            <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- CONTENIDO: EMAIL -->
+                <div id="sys-content-email" class="hidden space-y-6">
+                    <header class="flex justify-between items-center mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Administraci├│n de <span class="text-[var(--primary)]">Correo</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Gesti├│n de invitaciones y comunicaciones.</p>
+                        </div>
+                    </header>
+                    
+                    <div class="sub-nav-container mb-6">
+                        <button id="email-nav-config" class="sub-nav-btn active">Configuraci├│n</button>
+                        <button id="email-nav-mailbox" class="sub-nav-btn">Buz├│n</button>
+                        <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
+                        <button id="email-nav-mailing" class="sub-nav-btn">Env├¡o Masivo</button>
+                        <button id="email-nav-history" class="sub-nav-btn">Historial</button>
+                    </div>
+                    
+                    <!-- Sub-contenidos Email (se mantienen igual pero dentro del Hub) -->
+                    <div id="email-content-config" class="email-content hidden space-y-6">
+                        <div class="card p-6 rounded-xl max-w-2xl">
+                            <form id="smtp-form" class="space-y-6">
+                                <h3 class="form-section-title flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-lg">send</span> Configuraci├│n SMTP
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Servidor SMTP</label>
+                                        <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Puerto</label>
+                                        <input type="number" id="smtp-port" placeholder="587" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usuario</label>
+                                        <input type="text" id="smtp-user" placeholder="tu@email.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Contrase├▒a</label>
+                                        <input type="password" id="smtp-pass" placeholder="Contrase├▒a" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" id="btn-test-smtp" class="btn-secondary">Probar Conexi├│n</button>
+                                    <button type="submit" class="btn-primary !px-6">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="card p-6 rounded-xl max-w-2xl">
+                            <form id="imap-form" class="space-y-6">
+                                <h3 class="form-section-title flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-lg">inbox</span> Configuraci├│n IMAP (Recibir)
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Servidor IMAP</label>
+                                        <input type="text" id="imap-host" placeholder="imap.gmail.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Puerto</label>
+                                        <input type="number" id="imap-port" placeholder="993" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usuario</label>
+                                        <input type="text" id="imap-user" placeholder="tu@email.com" class="w-full">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Contrase├▒a</label>
+                                        <input type="password" id="imap-pass" placeholder="Contrase├▒a de aplicaci├│n" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" id="btn-test-imap" class="btn-secondary">Probar Conexi├│n</button>
+                                    <button type="submit" class="btn-primary !px-6">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- NUEVO: Contenido Historial de Campa├▒as V12.16.0 -->
+                    <div id="email-content-history" class="email-content hidden animate-fade-in">
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex justify-between items-center border-b border-[var(--border)] pb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl flex items-center justify-center">
+                                        <span class="material-symbols-outlined">history</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-white uppercase tracking-widest">Historial de Campa├▒as</h3>
+                                        <p class="text-[10px] text-slate-500">Gesti├│n de env├¡os realizados y programados.</p>
+                                    </div>
+                                </div>
+                                <button onclick="App.clearCampaignHistory()" class="btn-secondary !text-red-500 !border-red-500/20 !py-1 !px-3 !text-[10px]">
+                                    <span class="material-symbols-outlined text-xs">delete_sweep</span> Limpiar Historial
+                                </button>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                                            <th class="px-4 py-3">Campa├▒a / Fecha</th>
+                                            <th class="px-4 py-3">Evento / Plantilla</th>
+                                            <th class="px-4 py-3">Alcance</th>
+                                            <th class="px-4 py-3">Estado</th>
+                                            <th class="px-4 py-3 text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mailing-history-tbody">
+                                        <!-- Se llena v├¡a JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="email-content-mailbox" class="email-content hidden animate-fade-in">
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex justify-between items-center border-b border-[var(--border)] pb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">inbox</span>
+                                    <h3 class="text-lg font-semibold text-white">Bandeja de Entrada (IMAP)</h3>
+                                </div>
+                                <button onclick="App.syncIMAP()" class="btn-secondary !py-2 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">sync</span> Sincronizar
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="text-[var(--text-secondary)] text-[10px] uppercase tracking-wider border-b border-[var(--border)]">
+                                        <tr>
+                                            <th class="px-4 py-3 font-bold">Remitente</th>
+                                            <th class="px-4 py-3 font-bold">Asunto</th>
+                                            <th class="px-4 py-3 font-bold">Fecha</th>
+                                            <th class="px-4 py-3 font-bold text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inbox-list" class="divide-y divide-[var(--border)]">
+                                        <!-- Se carga din├ímicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="email-content-templates" class="email-content hidden">
+                        <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+                    <div id="email-content-mailing" class="email-content hidden animate-fade-in">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                            <!-- Lado Izquierdo: Configuraci├│n y Destinatarios -->
+                            <div class="card p-8 rounded-xl space-y-6">
+                                <div class="flex items-center gap-3 border-b border-[var(--border)] pb-4">
+                                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">campaign</span>
+                                    <h3 class="text-lg font-semibold">Configuraci├│n de Campa├▒a</h3>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1.5">
+                                        <label class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Evento Destino</label>
+                                        <select id="mailing-event-selector" onchange="App.onMailingEventChange()" class="w-full"></select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Plantilla</label>
+                                        <select id="mailing-template-selector" onchange="App.onTemplateChange()" class="w-full"></select>
+                                    </div>
+                                </div>
+
+                                <!-- Agregar Destinatario Manual solicitado por el usuario -->
+                                <div class="space-y-1.5 pt-4 border-t border-[var(--border)]">
+                                    <label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider ml-1">Agregar Correo Directo</label>
+                                    <div class="flex gap-2">
+                                        <input type="email" id="direct-email-input" placeholder="ejemplo@correo.com" 
+                                            class="flex-1 bg-[var(--bg-app)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all">
+                                        <button onclick="App.addDirectRecipient()" class="btn-primary !p-2 !rounded-lg w-10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-sm">add</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="mailing-recipients-container" class="space-y-3 pt-4 border-t border-[var(--border)]">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Destinatarios (<span id="mailing-count">0</span>)</h4>
+                                        <div class="flex gap-3 items-center">
+                                            <button onclick="App.showSelectionSummary()" class="text-[11px] text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-xs">visibility</span>
+                                                Resumen
+                                            </button>
+                                            <button onclick="App.toggleAllRecipients()" class="text-[11px] text-[var(--primary)] font-bold hover:underline">Seleccionar todos</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Buscador Integral solicitado por el usuario -->
+                                    <div class="flex gap-2 items-center w-full">
+                                        <div class="relative group flex-1">
+                                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] group-focus-within:text-[var(--primary)] transition-colors">search</span>
+                                            <input type="text" id="mailing-search" oninput="App.filterMailingGuests()" onkeyup="App.filterMailingGuests()" placeholder="Buscar por nombre, empresa, cargo, ciudad..." 
+                                                class="w-full bg-[var(--bg-app)] border border-[var(--border)] rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all">
+                                        </div>
+                                        <button onclick="App.clearMailingSearch()" class="h-8 px-2 flex items-center justify-center text-slate-500 hover:text-white transition-colors rounded-lg border border-[var(--border)] bg-[var(--bg-app)] hover:bg-white/10 active:scale-95 shrink-0" title="Limpiar b├║squeda">
+                                            <span class="material-symbols-outlined text-[16px]">backspace</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--bg-app)] p-2 custom-scrollbar">
+                                        <div id="mailing-recipients-list" class="space-y-1"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Lado Derecho: Estado y Previsualizaci├│n -->
+                            <div class="space-y-6">
+                                <div id="mailing-progress-container" class="card p-6 rounded-xl hidden space-y-4 animate-fade-in border-l-4 border-l-[var(--primary)]">
+                                    <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+                                        <span id="mailing-status-text" class="text-[var(--primary)] animate-pulse flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">slow_motion_video</span> Procesando...
+                                        </span>
+                                        <span id="mailing-percentage" class="bg-[var(--primary-light)] text-[var(--primary)] px-2 py-0.5 rounded-full">0%</span>
+                                    </div>
+                                    <div class="w-full bg-[var(--bg-hover)] h-2 rounded-full overflow-hidden">
+                                        <div id="mailing-progress-bar" class="bg-gradient-to-r from-[var(--primary)] to-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-[var(--text-secondary)] font-bold">
+                                        <span>ENVIADOS: <span id="mailing-sent-count">0</span></span>
+                                        <span>ERRORES: <span id="mailing-error-count" class="text-red-400">0</span></span>
+                                        <span>TOTAL: <span id="mailing-total-count">0</span></span>
+                                    </div>
+                                </div>
+                                    <div class="flex gap-4 pt-6 border-t border-[var(--border)]">
+                                        <button id="btn-pause-mailing" onclick="App.controlQueue('pause')" class="btn-secondary !text-yellow-500 !border-yellow-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">pause</span> Pausar
+                                        </button>
+                                        <button id="btn-resume-mailing" onclick="App.controlQueue('resume')" class="btn-secondary !text-green-500 !border-green-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">play_arrow</span> Reanudar
+                                        </button>
+                                        <button id="btn-stop-mailing" onclick="App.controlQueue('stop')" class="btn-secondary !text-red-500 !border-red-500/20 hidden flex-1">
+                                            <span class="material-symbols-outlined text-sm">stop</span> Detener
+                                        </button>
+                                        <button id="btn-send-mass-email" onclick="App.sendMassEmail()" class="btn-primary flex-1 !h-12 !text-base shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                                            <span class="material-symbols-outlined text-lg">rocket_launch</span> Iniciar Campa├▒a
+                                        </button>
+                                    </div>
+
+                                <div class="card p-6 rounded-xl space-y-4">
+                                    <div class="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                                        <h4 class="text-sm font-semibold flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[var(--primary)] text-lg">visibility</span> Previsualizaci├│n
+                                        </h4>
+                                        <span class="text-[10px] text-[var(--text-secondary)]">Vista Desktop</span>
+                                    </div>
+                                    
+                                    <!-- Toolbar reubicada para evitar superposici├│n V12.16.0 -->
+                                    <div class="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-app)]/50 p-3 rounded-xl border border-white/5 shadow-sm mt-3">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <button id="btn-edit-template" onclick="App.editMailingTemplate()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">edit_square</span> Editar
+                                            </button>
+                                            <button id="btn-save-campaign" onclick="App.saveMailingCampaign()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                            </button>
+                                            <button id="btn-schedule-campaign" onclick="App.showScheduleModal()" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-white/5">
+                                                <span class="material-symbols-outlined text-sm">calendar_month</span> Programar
+                                            </button>
+                                            <button id="btn-history-tab" onclick="App.navigateEmailSection('history')" class="btn-secondary !py-1.5 !px-3 !text-[10px] !bg-[var(--primary)]/10 !text-[var(--primary)] !border-[var(--primary)]/20">
+                                                <span class="material-symbols-outlined text-sm">history</span> Ir a Historial
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="hidden sm:flex items-center gap-1.5 text-[9px] text-slate-500 font-medium px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                                <span class="material-symbols-outlined text-[10px] text-primary">info</span>
+                                                Variables: <span class="text-white/60">{{nombre}}</span>, <span class="text-white/60">{{empresa}}</span>
+                                            </div>
+                                            <button id="btn-test-email" onclick="App.sendTestEmail()" class="btn-primary !py-1.5 !px-3 !text-[10px] !shadow-lg">
+                                                <span class="material-symbols-outlined text-sm">contact_mail</span> Enviar Prueba
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="email-preview-area" class="bg-white rounded-lg min-h-[600px] h-auto shadow-inner border border-white/5 relative">
+                                        <div class="flex items-center justify-center h-full">
+                                            <div class="text-center">
+                                                <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">mark_email_read</span>
+                                                <p class="text-slate-400 text-xs">Selecciona una plantilla para previsualizar</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <!-- Resumen dinmico V12.12.0 -->
+                                     <div id="mailing-summary-preview" class="hidden bg-[var(--bg-app)] border border-white/5 rounded-xl p-4 space-y-3 animate-fade-in mb-4 shadow-inner">
+                                         <div class="flex justify-between items-center border-b border-white/5 pb-2 mb-1">
+                                             <div class="flex items-center gap-2 text-[var(--primary)]">
+                                                 <span class="material-symbols-outlined text-sm">group</span>
+                                                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Destinatarios Seleccionados</span>
+                                             </div>
+                                                <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">mark_email_read</span>
+                                                <p class="text-slate-400 text-xs">Selecciona una plantilla para previsualizar</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <!-- Resumen din´┐¢mico V12.12.0 -->
+                                     <div id="mailing-summary-preview" class="hidden bg-[var(--bg-app)] border border-white/5 rounded-xl p-4 space-y-3 animate-fade-in mb-4 shadow-inner">
+                                         <div class="flex justify-between items-center border-b border-white/5 pb-2 mb-1">
+                                             <div class="flex items-center gap-2 text-[var(--primary)]">
+                                                 <span class="material-symbols-outlined text-sm">group</span>
+                                                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Destinatarios Seleccionados</span>
+                                             </div>
+                                             <span id="mailing-selection-count-badge" class="bg-[var(--primary-light)] text-[var(--primary)] text-[10px] px-2.5 py-0.5 rounded-full font-bold">0 Sel.</span>
+                                         </div>
+                                         <div id="mailing-summary-list" class="max-h-28 overflow-y-auto text-[10px] text-slate-400 font-medium custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-2">
+                                             <!-- Se llena v´┐¢a JS -->
+                                         </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: MI PERFIL (FASE 5) -->
+                <div id="sys-content-account" class="hidden max-w-4xl space-y-6">
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Perfil B├ísico -->
+                        <div class="card p-8 rounded-xl space-y-6">
+                            <div class="flex items-center gap-5 border-b border-[var(--border)] pb-6">
+                                <div class="w-16 h-16 bg-[var(--bg-hover)] rounded-2xl flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)]">account_circle</span>
+                                </div>
+                                <div>
+                                    <h3 id="profile-full-name" class="text-xl font-semibold">Cargando...</h3>
+                                    <p id="profile-role-badge" class="px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] text-[9px] font-medium uppercase tracking-wider rounded-full w-fit mt-1">Cargando...</p>
+                                </div>
+                            </div>
+                            <form id="profile-form" class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre para mostrar</label>
+                                    <input type="text" id="profile-display-name" class="w-full" placeholder="Tu nombre">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Tel├®fono de contacto</label>
+                                    <input type="tel" id="profile-phone" class="w-full" placeholder="+123456789">
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="btn-primary !px-6 !py-2.5 w-full md:w-auto">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Seguridad y Acceso -->
+                        <div class="card p-8 rounded-xl space-y-6 border-l-4 border-l-[var(--primary)]">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">security</span> Seguridad y Acceso
+                            </h3>
+                            
+                            <!-- Cambio de Email -->
+                            <form id="change-email-form" class="space-y-4 pt-2">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Correo Electr├│nico</label>
+                                    <div class="flex gap-2">
+                                        <input type="email" id="profile-email" class="w-full !bg-[var(--bg-hover)]" placeholder="nuevo@email.com">
+                                        <button type="submit" class="btn-secondary !text-[10px] uppercase tracking-widest !px-4 whitespace-nowrap">Actualizar</button>
+                                    </div>
+                                    <p class="text-[9px] text-[var(--text-muted)] ml-1 italic">* Requerir├í nuevo inicio de sesi├│n.</p>
+                                </div>
+                            </form>
+
+                            <hr class="border-[var(--border)]">
+
+                            <!-- Cambio de Contrase├▒a -->
+                            <form id="change-pass-form" class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nueva Contrase├▒a</label>
+                                    <input type="password" id="new-pass-1" class="w-full" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Confirmar Contrase├▒a</label>
+                                    <input type="password" id="new-pass-2" class="w-full" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó">
+                                </div>
+                                <button type="submit" class="btn-secondary w-full !text-[10px] uppercase tracking-widest !py-3">Cambiar Clave de Acceso</button>
+                            </form>
+                        </div>
+                     </div>
+                </div>
+            </section>
+
+
+
+
+
+
+            <section id="view-pre-registrations" class="hidden space-y-8">
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight">Pre-inscripciones</h1>
+                    <p class="text-[var(--text-secondary)] text-sm mt-1">Gesti├│n de solicitudes de acceso y registros previos.</p>
+                </div>
+                <div class="card !p-0 overflow-hidden">
+                     <table class="data-table">
+                         <thead>
+                            <tr>
+                                <th class="px-5 py-4">Asistente</th>
+                                <th class="px-5 py-4">Empresa</th>
+                                <th class="px-5 py-4">Fecha</th>
+                                <th class="px-5 py-4 text-center">Estado</th>
+                                <th class="px-5 py-4 text-right">Acciones</th>
+                            </tr>
+                         </thead>
+                         <tbody id="pre-reg-tbody"></tbody>
+                     </table>
+                </div>
+            </section>
+
+             <!-- VIEW: SURVEY MANAGER -->
+            <section id="view-survey-manager" class="hidden space-y-8">
+                <h1 class="text-2xl font-semibold tracking-tight">Gesti├│n de Encuestas</h1>
+                <div id="survey-questions-list" class="space-y-3"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- UI COMPONENTS COMPLEMENTARIOS -->
+    <div id="modal-container" class="z-[999999] relative"></div>
+
+    <!-- MODAL: MAIL VIEWER -->
+    <div id="modal-mail-view" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
+                    <h3 class="text-lg font-semibold">Ver Mensaje</h3>
+                </div>
+                <button id="btn-close-mail-view" class="w-9 h-9 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="flex items-center gap-4 p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
+                    <div class="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center shadow-inner">
+                        <span class="material-symbols-outlined text-white text-2xl">person</span>
+                    </div>
+                    <div class="flex-1">
+                        <p id="mail-view-from" class="text-sm font-bold text-[var(--text-main)]"></p>
+                        <p id="mail-view-to" class="text-xs text-[var(--text-secondary)] font-medium"></p>
+                    </div>
+                    <p id="mail-view-date" class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider"></p>
+                </div>
+                <div class="space-y-4">
+                    <h4 id="mail-view-subject" class="text-lg font-bold text-[var(--text-main)] border-b border-[var(--border-light)] pb-4"></h4>
+                    <div id="mail-view-body" class="text-[var(--text-main)] leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
+                    <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Gesti├│n de Evento</h3>
+                </div>
+                <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
+                <input type="hidden" id="ev-id-hidden" value="">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre del Evento</label>
+                        <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Ubicaci├│n</label>
+                        <input type="text" id="ev-location" placeholder="Ubicaci├│n" class="input-field w-full">
+                    </div>
+                </div>
+                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Logo del Evento (opcional)</label>
+                    <input type="file" id="ev-logo-file" accept="image/*" class="w-full text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Fecha Inicio</label>
+                        <input type="datetime-local" id="ev-date" required class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Fecha Fin</label>
+                        <input type="datetime-local" id="ev-end-date" class="input-field w-full">
+                    </div>
+                </div>
+                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Descripci├│n</label>
+                    <textarea id="ev-desc" rows="2" placeholder="Descripci├│n del evento" class="input-field w-full"></textarea>
+                </div>
+                
+                <div class="border-t border-[var(--border)] pt-5">
+                    <h4 class="text-xs font-semibold text-[var(--text-main)] mb-3">Personalizaci├│n de Registro</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">T├¡tulo del Formulario</label>
+                            <input type="text" id="ev-reg-title" value="Registro de Asistencia" class="input-field w-full">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Mensaje de Bienvenida</label>
+                            <input type="text" id="ev-reg-welcome" value="Bienvenido a" class="input-field w-full">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 mt-3">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Mensaje de ├ëxito</label>
+                        <input type="text" id="ev-reg-success" value="┬íRegistro exitoso!" class="input-field w-full">
+                    </div>
+                </div>
+                
+                <div class="border-t border-[var(--border)] pt-5">
+                    <h4 class="text-xs font-semibold text-[var(--text-main)] mb-3">Campos del Formulario</h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-phone" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">Tel├®fono</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-org" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">Empresa</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-position" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">Cargo</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-vegan" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">Vegano</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-dietary" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">Restricciones</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-gender" class="w-4 h-4 rounded accent-[var(--primary)]">
+                            <span class="text-xs">G├®nero</span>
+                        </label>
+                    </div>
+                    <div class="mt-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="ev-reg-agreement" class="w-4 h-4 rounded accent-[var(--primary)]" checked>
+                            <span class="text-xs">Requerir aceptaci├│n de t├®rminos</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="border-t border-[var(--border)] pt-5">
+                    <h4 class="text-xs font-semibold text-[var(--text-main)] mb-3">Dise├▒o de Ticket/QR</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Color QR Oscuro</label>
+                            <input type="color" id="ev-qr-dark" value="#000000" class="w-full h-9 rounded cursor-pointer">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Color QR Claro</label>
+                            <input type="color" id="ev-qr-light" value="#ffffff" class="w-full h-9 rounded cursor-pointer">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Color Acento</label>
+                            <input type="color" id="ev-ticket-accent" value="#007aff" class="w-full h-9 rounded cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-3">
+                    <button id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">A├▒adir Colaborador</h3>
+                </div>
+                <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <form id="invite-user-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre</label>
+                    <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email/Usuario</label>
+                    <input type="text" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contrase├▒a</label>
+                    <input type="password" id="invite-password" required placeholder="Contrase├▒a" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Rol</label>
+                    <select id="invite-role" class="input-field w-full">
+                        <option value="ADMIN">Administrador</option>
+                        <option value="PRODUCTOR">Productor</option>
+                        <option value="STAFF">Staff</option>
+                        <option value="CLIENTE">Cliente</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button type="submit" class="btn-primary !px-5 !py-2">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">corporate_fare</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Gesti├│n de Empresa</h3>
+                </div>
+                <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="company-id-hidden" value="">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Nombre</label>
+                    <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Descripci├│n</label>
+                    <textarea id="company-description" placeholder="Breve descripci├│n..." class="input-field w-full" rows="2"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Email</label>
+                    <input type="email" id="company-email" placeholder="email@empresa.com" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Tel├®fono</label>
+                    <input type="tel" id="company-phone" placeholder="+54 11 1234 5678" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Estado</label>
+                    <select id="company-status" class="input-field w-full">
+                        <option value="ACTIVE">Activo</option>
+                        <option value="INACTIVE">Inactivo</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button id="btn-cancel-company" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium transition-colors">Cancelar</button>
+                    <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-legal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">gavel</span>
+                    <h3 id="modal-legal-title" class="text-sm font-bold uppercase tracking-wider">Documento Legal</h3>
+                </div>
+                <button id="btn-close-legal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div id="modal-legal-content" class="p-5 overflow-y-auto flex-1"></div>
+        </div>
+    </div>
+
+    <div id="modal-qr" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">qr_code</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">C├│digo QR</h3>
+                </div>
+                <button id="btn-close-qr" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div class="p-5 flex flex-col items-center justify-center flex-1">
+                <img id="qr-display" src="" alt="QR Code" class="max-w-full rounded-lg">
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-qr-scanner" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-lg max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">qr_code_scanner</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Esc├íner de Acceso</h3>
+                </div>
+                <button id="btn-stop-scanner" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div class="p-5 flex flex-col items-center justify-center flex-1 space-y-4">
+                <video id="qr-video" class="w-full rounded-lg" autoplay playsinline></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <div id="scan-result" class="text-center"></div>
+                <div id="scan-error" class="text-red-500 text-center hidden"></div>
+                <div class="flex gap-3">
+                    <button id="btn-start-scan" class="btn-primary !px-5 !py-2">Iniciar</button>
+                    <button id="btn-manual-checkin" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Manual</button>
+                </div>
+                <input type="text" id="manual-guest-id" placeholder="ID de invitado" class="input-field w-full hidden">
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ticket" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">confirmation_number</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Entrada Digital</h3>
+                </div>
+                <button id="btn-close-ticket" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div id="ticket-content" class="p-5 flex flex-col items-center justify-center flex-1"></div>
+        </div>
+    </div>
+
+    <div id="modal-import-results" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">upload_file</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Resultado de Importaci├│n</h3>
+                </div>
+                <button id="btn-close-import-results" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div id="import-results-content" class="p-5 overflow-y-auto flex-1 space-y-3"></div>
+            <div class="p-5 border-t border-[var(--border)] flex justify-end">
+                <button id="btn-close-import-results-2" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT PROGRESS -->
+    <div id="modal-import-progress" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)]">progress_activity</span>
+                    <h3 class="text-lg font-semibold">Importando...</h3>
+                </div>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs text-[var(--text-secondary)]">
+                        <span>Subiendo archivo</span>
+                        <span id="upload-perc">0%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
+                        <div id="upload-bar" class="h-full bg-[var(--primary)] transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs text-[var(--text-secondary)]">
+                        <span>Procesando registros</span>
+                        <span id="process-perc">0%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
+                        <div id="process-bar" class="h-full bg-[var(--primary)] transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p id="import-progress-status" class="text-center text-sm text-[var(--text-secondary)]">Preparando...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-import-mapping" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">table_chart</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Mapear Columnas</h3>
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-[var(--text-secondary)] text-xs uppercase tracking-wider">
+                            <th class="pb-3 pr-4">Campo</th>
+                            <th class="pb-3 pr-4">Columna del Archivo</th>
+                            <th class="pb-3">Vista Previa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="import-mapping-tbody"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-[var(--border)] flex justify-end">
+                <button id="btn-confirm-import" class="btn-primary !px-5 !py-2">Importar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-template-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
+                    <h3 id="template-editor-title" class="text-sm font-bold uppercase tracking-wider">Editar Plantilla</h3>
+                </div>
+                <button id="btn-close-template-editor" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label">Nombre de Plantilla</label>
+                        <input type="text" id="tpl-name" placeholder="Ej: Invitaci├│n VIP" class="input-field w-full">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Asunto del Email</label>
+                        <input type="text" id="tpl-subject" placeholder="Ej: ┬íTe esperamos!" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contenido (Rich Text)</label>
+                    <div id="tpl-quill-editor" class="bg-[var(--bg-input)] rounded-xl border border-[var(--border)] min-h-[220px] overflow-hidden"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Etiquetas Din├ímicas</label>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{guest_name}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{event_name}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{event_date}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">{{ticket_id}}</span>
+                        <span class="px-3 py-1 bg-[var(--bg-hover)] rounded-full text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-tighter cursor-copy hover:bg-[var(--bg-active)]">Historial</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 border-t border-[var(--border)] flex justify-end gap-3">
+                <button id="btn-cancel-template" onclick="document.getElementById('modal-template-editor').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                <button id="btn-save-template" onclick="App.saveEmailTemplate()" class="btn-primary !px-5 !py-2">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-event-email" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">email</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Email del Evento</h3>
+                </div>
+                <button id="btn-close-event-email" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="ev-smtp-enabled" class="w-4 h-4 rounded accent-[var(--primary)]">
+                    <label for="ev-smtp-enabled" class="text-sm">Usar SMTP espec├¡fico para este evento</label>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Host SMTP</label>
+                        <input type="text" id="ev-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Puerto</label>
+                        <input type="number" id="ev-smtp-port" value="587" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Usuario</label>
+                        <input type="text" id="ev-smtp-user" placeholder="email@empresa.com" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Contrase├▒a</label>
+                        <input type="password" id="ev-smtp-pass" placeholder="Contrase├▒a" class="input-field w-full">
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 border-t border-[var(--border)] flex justify-end gap-3">
+                <button id="btn-cancel-event-email" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                <button id="btn-save-event-email" class="btn-primary !px-5 !py-2">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-survey-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="premium-modal-header">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-xl">quiz</span>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">Editar Pregunta</h3>
+                </div>
+                <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                </button>
+            </div>
+            <form id="survey-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="survey-question-id" value="">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Tipo</label>
+                    <select id="survey-question-type" class="input-field w-full">
+                        <option value="text">Texto libre</option>
+                        <option value="binary">S├¡/No</option>
+                        <option value="rating">Valoraci├│n (1-5)</option>
+                        <option value="multiple">Opci├│n m├║ltiple</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Pregunta</label>
+                    <input type="text" id="survey-question-title" required placeholder="┬┐Qu├® tal fue tu experiencia?" class="input-field w-full">
+                </div>
+                <div id="survey-options-container" class="space-y-1.5 hidden">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider ml-1">Opciones (una por l├¡nea)</label>
+                    <textarea id="survey-question-options" rows="3" placeholder="Opci├│n 1&#10;Opci├│n 2&#10;Opci├│n 3" class="input-field w-full"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] text-sm font-medium">Cancelar</button>
+                    <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BULK TICKETS -->
+    <div id="modal-bulk-tickets" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+            <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)]">copy</span>
+                    <h3 class="text-lg font-semibold">Generar Entradas</h3>
+                </div>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs text-[var(--text-secondary)]">
+                        <span>Progreso</span>
+                        <span id="bulk-progress-text">0/0</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
+                        <div id="bulk-progress" class="h-full bg-[var(--primary)] transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p id="bulk-status" class="text-center text-sm text-[var(--text-secondary)]">Generando entradas...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="/styles.css?v=12.12.0">
+<link rel="stylesheet" href="/modern.css?v=12.12.0">
+<script type="module" src="/script.js?v=12.12.0"></script>

@@ -1,4 +1,4 @@
-import { LS, lazyLoad } from './src/frontend/utils.js';
+﻿import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 /**
@@ -6,11 +6,11 @@ import { API } from './src/frontend/api.js';
  * Version: V12.16.1
  * Author: Antigravity
  * 
- * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
+ * Description: Sistema modular de gesti├│n de asistencia con dise├▒o Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.16.4';
+const VERSION = '12.16.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -21,7 +21,7 @@ if ('caches' in window) {
             for (let name of names) caches.delete(name);
         }).then(() => {
             LS.set('check_app_version', VERSION);
-            console.log(`[VERSION] Cache borrada por actualización a V${VERSION}`);
+            console.log(`[VERSION] Cache borrada por actualizaci├│n a V${VERSION}`);
         });
     }
 }
@@ -36,7 +36,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.16.4',
+        version: '12.16.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -45,7 +45,7 @@ const App = window.App = {
             name: { label: 'Nombre', visible: true, order: 0 },
             email: { label: 'Email', visible: true, order: 1 },
             organization: { label: 'Empresa', visible: true, order: 2 },
-            phone: { label: 'Teléfono', visible: false, order: 3 },
+            phone: { label: 'Tel├®fono', visible: false, order: 3 },
             position: { label: 'Cargo', visible: false, order: 4 },
             status: { label: 'Estado', visible: true, order: 5 }
         },
@@ -54,7 +54,7 @@ const App = window.App = {
     constants: { API_URL: '/api' },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
 
-    // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
+    // --- NAVEGACI├ôN CENTRALIZADA (MODERN PRO) ---
     
     _updateSidebarUI(viewId) {
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -62,127 +62,7 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // ─── NAVEGACIÓN V12.16.3 ───
-    navigate(viewId) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
-        const activeView = document.getElementById('view-' + viewId);
-        if (activeView) {
-            activeView.classList.remove('hidden');
-            this._updateSidebarUI(viewId);
-            
-            // Inicialización por vista
-            if (viewId === 'system') this.switchSystemTab('users');
-            if (viewId === 'my-events') this.loadEvents();
-            if (viewId === 'admin') this.switchEventTab('guests');
-
-            // Scroll al inicio
-            const mainContent = document.getElementById('app-main-content');
-            if (mainContent) mainContent.scrollTop = 0;
-        }
-        LS.set('last_view', viewId);
-    },
-
-    navigateToCreateUser() {
-        this.navigate('system');
-        this.switchSystemTab('users');
-        setTimeout(() => {
-            document.getElementById('modal-invite')?.classList.remove('hidden');
-        }, 100);
-    },
-
-    navigateToCreateEvent() {
-        this.navigate('system'); // Los eventos se crean desde la pestaña de empresas/eventos en sistema
-        this.switchSystemTab('groups');
-        setTimeout(() => {
-            document.getElementById('ev-id-hidden').value = '';
-            const form = document.getElementById('new-event-form');
-            if (form) form.reset();
-            if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
-            document.getElementById('modal-event')?.classList.remove('hidden');
-        }, 100);
-    },
-
-    switchSystemTab(tabId) {
-        console.log(`[NAV] System Tab: ${tabId}`);
-        document.querySelectorAll('[id^="sys-content-"]').forEach(el => el.classList.add('hidden'));
-        const target = document.getElementById(`sys-content-${tabId}`);
-        if (target) target.classList.remove('hidden');
-
-        document.querySelectorAll('#view-system .sub-nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('onclick')?.includes(`'${tabId}'`)) btn.classList.add('active');
-        });
-
-        if (tabId === 'users') this.loadUsersTable();
-        if (tabId === 'groups') this.loadGroups();
-        if (tabId === 'account') this.loadProfileData();
-        if (tabId === 'email') this._showEmailSection('config');
-    },
-
-    switchEventTab(tabId) {
-        console.log(`[NAV] Event Tab: ${tabId}`);
-        document.querySelectorAll('[id^="ev-content-"]').forEach(el => el.classList.add('hidden'));
-        document.getElementById(`ev-content-${tabId}`)?.classList.remove('hidden');
-
-        document.querySelectorAll('#view-admin .sub-nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.tabTarget === `ev-content-${tabId}`) btn.classList.add('active');
-        });
-    },
-
-    navigateToCreateUser() { this.openInviteModal(); },
-    navigateToCreateGroup() { this.openCompanyModal(); },
-
-    loadEvents: async function() {
-        try {
-            const events = await this.fetchAPI('/events');
-            this.state.events = events;
-            const container = document.getElementById('events-list-container');
-            if (!container) return;
-
-            if (!events || events.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No hay eventos activos</div>';
-                return;
-            }
-
-            container.innerHTML = events.map(e => `
-                <div class="card p-6 h-full flex flex-col hover:border-[var(--primary)] transition-all cursor-pointer group" onclick="App.selectEvent('${e.id}')">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[var(--bg-hover)] flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-2xl">event</span>
-                        </div>
-                        <span class="status-pill status-active">Activo</span>
-                    </div>
-                    <h3 class="text-lg font-bold mb-2">${e.name}</h3>
-                    <p class="text-xs text-[var(--text-secondary)] mb-4 line-clamp-2">${e.description || 'Sin descripción'}</p>
-                    <div class="mt-auto pt-4 border-t border-[var(--border)] flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span class="text-[10px] font-bold uppercase">${new Date(e.date).toLocaleDateString()}</span>
-                        </div>
-                        <span class="material-symbols-outlined text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">arrow_forward</span>
-                    </div>
-                </div>
-            `).join('');
-        } catch(e) { console.error('Error loading events:', e); }
-    },
-
-    selectEvent: async function(id) {
-        try {
-            const event = await this.fetchAPI(`/events/${id}`);
-            this.state.event = event;
-            this.navigate('admin');
-            
-            // Actualizar UI del panel de control
-            document.getElementById('admin-event-title').textContent = event.name;
-            document.getElementById('admin-event-location').textContent = event.location || 'Sin ubicación';
-            
-            // Cargar invitados
-            this.loadGuests();
-        } catch(e) { console.error('Error selecting event:', e); }
-    },
-
-    // ─── PERMISOS JERÁRQUICOS V10.5 ───
+    // ÔöÇÔöÇÔöÇ PERMISOS JER├üRQUICOS V10.5 ÔöÇÔöÇÔöÇ
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -215,14 +95,14 @@ const App = window.App = {
             roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
                 <option value="ADMIN">ADMIN (Super Administrador)</option>
-                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gesti├│n de Eventos)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
                 <option value="OTROS">OTROS (Acceso Restringido)</option>`;
         } else if (role === 'PRODUCTOR') {
             roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
-                <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="PRODUCTOR" selected>PRODUCTOR (Gesti├│n de Eventos)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
                 <option value="OTROS">OTROS (Acceso Restringido)</option>`;
@@ -231,7 +111,7 @@ const App = window.App = {
         }
     },
 
-    // ─── TEMA OSCURO/CLARO MEJORADO ───
+    // ÔöÇÔöÇÔöÇ TEMA OSCURO/CLARO MEJORADO ÔöÇÔöÇÔöÇ
     
     // Obtener tema del sistema
     getSystemTheme: function() {
@@ -247,11 +127,11 @@ const App = window.App = {
         return this.getSystemTheme();
     },
     
-    // Aplicar transición suave al cambiar tema
+    // Aplicar transici├│n suave al cambiar tema
     applyThemeTransition: function() {
-        // Agregar clase de transición
+        // Agregar clase de transici├│n
         document.documentElement.classList.add('theme-transition');
-        // Remover después de la transición
+        // Remover despu├®s de la transici├│n
         setTimeout(() => {
             document.documentElement.classList.remove('theme-transition');
         }, 300);
@@ -267,7 +147,7 @@ const App = window.App = {
         document.documentElement.classList.add(newTheme);
         LS.set('theme', newTheme);
         
-        // Actualizar todos los íconos de tema
+        // Actualizar todos los ├¡conos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
         });
@@ -278,7 +158,7 @@ const App = window.App = {
         console.log(`Tema cambiado a: ${newTheme}`);
     },
     
-    // Inicializar tema al cargar la aplicación
+    // Inicializar tema al cargar la aplicaci├│n
     initTheme: function() {
         const theme = this.getCurrentTheme();
         const icon = document.getElementById('theme-icon');
@@ -290,7 +170,7 @@ const App = window.App = {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         }
         
-        // Actualizar todos los íconos de tema
+        // Actualizar todos los ├¡conos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         });
@@ -298,7 +178,7 @@ const App = window.App = {
         // Escuchar cambios en la preferencia del sistema (solo una vez)
         if (!window._themeListenerAdded) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                // Solo cambiar si no hay tema guardado explícitamente
+                // Solo cambiar si no hay tema guardado expl├¡citamente
                 if (!LS.get('theme')) {
                     const newTheme = e.matches ? 'dark' : 'light';
                     document.documentElement.classList.remove('dark', 'light');
@@ -314,7 +194,7 @@ const App = window.App = {
         console.log(`Tema inicializado: ${theme}`);
     },
     
-    // Verificar versión de la aplicación
+    // Verificar versi├│n de la aplicaci├│n
     checkVersion: async function() {
         try {
         
@@ -324,18 +204,18 @@ const App = window.App = {
                 versionDisplay.textContent = 'V' + res.version;
             }
         } catch(e) {
-            console.error('Error al verificar versión:', e);
+            console.error('Error al verificar versi├│n:', e);
         }
     },
 
-    // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
+    // ÔöÇÔöÇÔöÇ SIDEBAR COLAPSABLE (CHROME STYLE) ÔöÇÔöÇÔöÇ
     toggleSidebar() {
         const sidebar = document.getElementById('global-sidebar');
         if (!sidebar) return;
         const isCollapsed = sidebar.classList.toggle('collapsed');
         LS.set('sidebarCollapsed', isCollapsed);
         
-        // Cambiar icono del botón
+        // Cambiar icono del bot├│n
         const btn = document.getElementById('btn-toggle-sidebar');
         if (btn) {
             const icon = btn.querySelector('.material-symbols-outlined');
@@ -357,10 +237,10 @@ const App = window.App = {
         }
     },
 
-    // ──── NOTIFICACIONES PUSH (Web Push API) ────
+    // ÔöÇÔöÇÔöÇÔöÇ NOTIFICACIONES PUSH (Web Push API) ÔöÇÔöÇÔöÇÔöÇ
     initPushNotifications: async function() {
         try {
-            // Registrar service worker si no está registrado
+            // Registrar service worker si no est├í registrado
             const registration = await navigator.serviceWorker.register('/sw.js');
             console.log('Service Worker registrado:', registration);
             
@@ -371,10 +251,10 @@ const App = window.App = {
                 return false;
             }
             
-            // Obtener clave pública VAPID del servidor
+            // Obtener clave p├║blica VAPID del servidor
             const vapidPublicKey = await this.getVAPIDPublicKey();
             if (!vapidPublicKey) {
-                console.error('No se pudo obtener la clave pública VAPID.');
+                console.error('No se pudo obtener la clave p├║blica VAPID.');
                 return false;
             }
             
@@ -384,7 +264,7 @@ const App = window.App = {
                 applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
             });
             
-            // Enviar suscripción al servidor
+            // Enviar suscripci├│n al servidor
             await this.sendPushSubscription(subscription);
             
             console.log('Usuario suscrito a notificaciones push:', subscription);
@@ -411,9 +291,9 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify(subscription)
             });
-            console.log('Suscripción enviada al servidor.');
+            console.log('Suscripci├│n enviada al servidor.');
         } catch (error) {
-            console.error('Error al enviar suscripción:', error);
+            console.error('Error al enviar suscripci├│n:', error);
         }
     },
     
@@ -427,10 +307,10 @@ const App = window.App = {
                     method: 'POST',
                     body: JSON.stringify({ endpoint: subscription.endpoint })
                 });
-                console.log('Suscripción eliminada.');
+                console.log('Suscripci├│n eliminada.');
             }
         } catch (error) {
-            console.error('Error al eliminar suscripción:', error);
+            console.error('Error al eliminar suscripci├│n:', error);
         }
     },
     
@@ -455,22 +335,22 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify({ title, body })
             });
-            console.log('Notificación de prueba enviada.');
+            console.log('Notificaci├│n de prueba enviada.');
         } catch (error) {
-            console.error('Error al enviar notificación de prueba:', error);
+            console.error('Error al enviar notificaci├│n de prueba:', error);
         }
     },
     
-    // Mostrar/ocultar elementos según permisos
+    // Mostrar/ocultar elementos seg├║n permisos
     updateUIPermissions() {
-        // Admin: mostrar todo el menú de administración global
+        // Admin: mostrar todo el men├║ de administraci├│n global
         if (this.state.user?.role === 'ADMIN') {
             document.getElementById('nav-section-global')?.classList.remove('hidden');
         } else {
             document.getElementById('nav-section-global')?.classList.add('hidden');
         }
         
-        // Ocultar botón de eliminar base de datos para no-admin
+        // Ocultar bot├│n de eliminar base de datos para no-admin
         if (!this.canAccess('delete_db')) {
             const deleteBtns = document.querySelectorAll('[id*="delete-db"], [id*="btn-clear-db"]');
             deleteBtns.forEach(btn => btn?.classList.add('hidden'));
@@ -515,7 +395,7 @@ const App = window.App = {
                     <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
                         <td class="px-6 py-4">
                             <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                            <div class="text-[11px] text-[var(--text-secondary)] mt-1">${g.description || 'Sin descripción'}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-1">${g.description || 'Sin descripci├│n'}</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-[var(--text-main)] text-xs font-medium">${g.email || '-'}</div>
@@ -544,7 +424,7 @@ const App = window.App = {
     },
     
     async removeUserFromGroup(userId, groupId) {
-        if (await this._confirmAction('¿Quitar usuario de empresa?', 'El usuario perderá acceso a los recursos de esta empresa.')) {
+        if (await this._confirmAction('┬┐Quitar usuario de empresa?', 'El usuario perder├í acceso a los recursos de esta empresa.')) {
             try {
                 await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
                 this.loadGroups();
@@ -559,7 +439,7 @@ const App = window.App = {
             eventId = btn.dataset.eventId;
             groupId = btn.dataset.groupId;
         }
-        if (await this._confirmAction('¿Desvincular evento?', 'El evento ya no estará asociado a esta empresa.')) {
+        if (await this._confirmAction('┬┐Desvincular evento?', 'El evento ya no estar├í asociado a esta empresa.')) {
             try {
                 const events = (this.state.allEvents || []).filter(e => String(e.group_id) === String(groupId));
                 const newEvents = events.filter(e => String(e.id) !== String(eventId)).map(e => e.id);
@@ -571,351 +451,7 @@ const App = window.App = {
         }
     },
     
-    // --- FUNCIONES DE SELECCIÓN Y ASIGNACIÓN RESTAURADAS V12.16.4 ---
-
-    async showEventSelectorForCompany(groupId) {
-        let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
-        const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
-        const selectedIds = currentEvents.map(e => String(e.id));
-
-        const html = `
-            <div class="space-y-6 text-left">
-                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos</span>
-                        <span class="text-xs text-slate-400">Vincular eventos a esta organización</span>
-                    </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-[10px]">
-                        + NUEVO EVENTO
-                    </button>
-                </div>
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(e => `
-                        <div onclick="App.toggleEventToCompany('${groupId}', '${e.id}', ${selectedIds.includes(String(e.id))})" class="selector-item flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
-                                    <span class="material-symbols-outlined">event</span>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</span>
-                                    <span class="text-[10px] text-slate-500">${e.location || 'Sin ubicación'}</span>
-                                </div>
-                            </div>
-                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(e.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
-            showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
-        });
-    },
-
-    async toggleEventToCompany(groupId, eventId, isSelected) {
-        try {
-            const events = await this.fetchAPI('/events');
-            const companyEvents = events.filter(e => String(e.group_id) === String(groupId));
-            let newIds = companyEvents.map(e => String(e.id));
-            if (isSelected) newIds = newIds.filter(id => id !== String(eventId));
-            else newIds.push(String(eventId));
-
-            const res = await this.fetchAPI(`/groups/${groupId}/events`, {
-                method: 'PUT', body: JSON.stringify({ events: newIds })
-            });
-
-            if (res.success) {
-                this.showEventSelectorForCompany(groupId);
-                this.loadGroups();
-            }
-        } catch(e) { console.error(e); }
-    },
-
-    // --- SELECCIÓN DE USUARIOS PARA GRUPOS (V12.16.0) ---
-    async showUserSelectorForGroup(groupId) {
-        let users = [];
-        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
-        
-        const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
-        const selectedIds = currentUsers.map(u => String(u.id));
-
-        const html = `
-            <div class="space-y-6 text-left">
-                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Colaboradores</span>
-                        <span class="text-xs text-slate-400">Vincular personal a esta organización</span>
-                    </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[10px]">
-                        + NUEVO USUARIO
-                    </button>
-                </div>
-
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                    <input type="text" oninput="App.filterSelectorItems(this, '.selector-item')" placeholder="Buscar por nombre o email..." class="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:bg-purple-500/5 transition-all outline-none">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${users.map(u => `
-                        <div onclick="App.assignUserToGroup('${groupId}', '${u.id}', ${selectedIds.includes(String(u.id))})" class="selector-item flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
-                                    <span class="material-symbols-outlined">person</span>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${u.display_name || u.username}</span>
-                                    <span class="text-[10px] text-slate-500 font-mono">${u.username}</span>
-                                </div>
-                            </div>
-                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(u.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(u.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
-            showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
-        });
-    },
-
-    async assignUserToGroup(groupId, userId, isSelected) {
-        try {
-            if (isSelected) {
-                await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
-            } else {
-                await this.fetchAPI(`/groups/${groupId}/users`, { 
-                    method: 'POST', body: JSON.stringify({ user_id: userId }) 
-                });
-            }
-            this.showUserSelectorForGroup(groupId);
-            this.loadGroups();
-            this.loadUsersTable();
-        } catch(e) { console.error(e); }
-    },
-
-
-    async showEventSelector(userId, selectedEventIds = []) {
-        let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
-
-        const html = `
-            <div class="space-y-6 text-left">
-                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
-                        <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
-                    </div>
-                </div>
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(e => `
-                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
-                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
-                                <span class="material-symbols-outlined">event</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold text-white transition-colors">${e.name}</div>
-                                <div class="text-[10px] text-slate-500 uppercase tracking-tighter">${e.location || 'Ubicación remota'}</div>
-                            </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
-            showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
-        });
-    },
-
-    async toggleEventToUser(userId, eventId, isSelected) {
-        try {
-            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
-            let currentEvents = user ? (user.events || []) : [];
-            currentEvents = currentEvents.map(String);
-            let newEvents = isSelected ? currentEvents.filter(id => id !== String(eventId)) : [...currentEvents, String(eventId)];
-
-            const res = await this.fetchAPI(`/users/${userId}/events`, {
-                method: 'PUT', body: JSON.stringify({ events: newEvents })
-            });
-
-            if (res.success) {
-                if (user) user.events = newEvents;
-                this.showEventSelector(userId, newEvents);
-                this.loadUsersTable();
-            }
-        } catch(e) { console.error(e); }
-    },
-
-    // --- PERFIL Y CONFIGURACIÓN RESTAURADA ---
-
-    async loadProfileData() {
-        if (!this.state.user) return;
-        
-        const nameEl = document.getElementById('profile-name');
-        const phoneEl = document.getElementById('profile-phone');
-        const emailEl = document.getElementById('profile-email');
-        const companyEl = document.getElementById('profile-company');
-
-        if (nameEl) nameEl.value = this.state.user.display_name || '';
-        if (phoneEl) phoneEl.value = this.state.user.phone || '';
-        if (emailEl) emailEl.value = this.state.user.username || '';
-        
-        try {
-            const groups = await this.fetchAPI('/groups');
-            if (companyEl) {
-                companyEl.innerHTML = '<option value="">-- Sin empresa asignada --</option>' + 
-                    groups.map(g => `<option value="${g.id}" ${g.id === this.state.user.group_id ? 'selected' : ''}>${g.name}</option>`).join('');
-            }
-        } catch (e) { console.error(e); }
-    },
-
-    async saveProfile(data) {
-        try {
-            const res = await this.fetchAPI(`/users/${this.state.user.userId}/profile`, { 
-                method: 'PUT', body: JSON.stringify(data)
-            });
-            if (res.success) {
-                this.state.user = { ...this.state.user, ...data };
-                LS.set('user', JSON.stringify(this.state.user));
-                alert('✓ Perfil actualizado');
-                this.loadProfileData();
-            }
-        } catch (e) { alert('Error al actualizar perfil'); }
-    },
-
-    async loadSMTPConfig() {
-        try {
-            const config = await this.fetchAPI('/smtp-config');
-            if (config) {
-                const el = (id) => document.getElementById(id);
-                if (el('smtp-host')) el('smtp-host').value = config.smtp_host || '';
-                if (el('smtp-port')) el('smtp-port').value = config.smtp_port || 587;
-                if (el('smtp-user')) el('smtp-user').value = config.smtp_user || '';
-                if (el('smtp-pass')) el('smtp-pass').value = config.smtp_pass ? '***' : '';
-                if (el('smtp-secure')) el('smtp-secure').checked = config.smtp_secure == 1;
-                if (el('smtp-from-name')) el('smtp-from-name').value = config.from_name || 'Check';
-                if (el('smtp-from-email')) el('smtp-from-email').value = config.from_email || '';
-            }
-        } catch (e) { console.error('[SMTP] Error loader:', e); }
-    },
-
-    async loadIMAPConfig() {
-        try {
-            const config = await this.fetchAPI('/imap-config');
-            if (config) {
-                const el = (id) => document.getElementById(id);
-                if (el('imap-host')) el('imap-host').value = config.imap_host || '';
-                if (el('imap-port')) el('imap-port').value = config.imap_port || 993;
-                if (el('imap-user')) el('imap-user').value = config.imap_user || '';
-                if (el('imap-pass')) el('imap-pass').value = config.imap_pass || '';
-                if (el('imap-tls')) el('imap-tls').checked = config.imap_tls == 1;
-            }
-        } catch (e) { console.error('[IMAP] Error loader:', e); }
-    },
-
-    _showEmailSection(section) {
-        document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('#sys-content-email .sub-nav-btn').forEach(el => {
-            el.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
-            el.classList.add('bg-white/5', 'text-slate-400');
-        });
-        
-        const content = document.getElementById('email-content-' + section);
-        const navBtn = document.getElementById('email-nav-' + section);
-        if (content) content.classList.remove('hidden');
-        if (navBtn) {
-            navBtn.classList.remove('bg-white/5', 'text-slate-400');
-            navBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
-        }
-        
-        if (section === 'config') {
-            this.loadSMTPConfig();
-            this.loadIMAPConfig();
-        } else if (section === 'templates') {
-            if (typeof this.loadEmailTemplates === 'function') this.loadEmailTemplates();
-        } else if (section === 'mailbox') {
-            if (typeof this.switchMailboxFolder === 'function') this.switchMailboxFolder('INBOX');
-        }
-    },
-
-    showGroupSelector(userId) {
-        const groups = this.state.allGroups || [];
-        const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
-        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
-        
-        const options = groups.map(g => `
-            <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 cursor-pointer transition-all">
-                <div class="flex flex-col gap-0.5">
-                    <span class="text-sm font-bold text-white">${g.name}</span>
-                    <span class="text-[10px] text-slate-400 font-medium">${g.description || 'Productor asimilado'}</span>
-                </div>
-                <input type="checkbox" name="multi-group-select" value="${g.id}" ${currentGroupIds.includes(String(g.id)) ? 'checked' : ''} class="w-5 h-5 accent-primary rounded cursor-pointer border-white/10 bg-slate-900/50">
-            </label>
-        `).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-select-group';
-        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
-        modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-2xl">corporate_fare</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
-                    </div>
-                </div>
-                
-                <div class="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
-                    ${options || '<p class="text-xs text-slate-500 italic text-center py-4">No hay empresas creadas. Crea una primero.</p>'}
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
-                    <div class="flex gap-3">
-                        <button onclick="App.closeGroupSelector()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
-                    </div>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    },
-
-    closeGroupSelector() {
-        document.getElementById('modal-select-group')?.remove();
-    },
-
-    async assignUserGroupFromSelector(userId) {
-        const checkboxes = document.querySelectorAll('input[name="multi-group-select"]:checked');
-        const selectedGroupIds = Array.from(checkboxes).map(chk => chk.value);
-        
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/group`, { 
-                method: 'PUT', body: JSON.stringify({ group_id: selectedGroupIds }) 
-            });
-            if (res.success) {
-                this.loadUsersTable();
-                this.closeGroupSelector();
-            }
-        } catch(e) { console.error('Error assigning groups:', e); }
-    },
-
-    // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
+    // --- FUNCIONES DE SELECCI├ôN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
 
     async handleFileSelect(e) {
         const file = e.target.files[0];
@@ -923,7 +459,7 @@ const App = window.App = {
         
         const eventId = this.state.event?.id;
         if (!eventId) {
-            this._notifyAction('Atención', 'Selecciona un evento para importar.', 'info');
+            this._notifyAction('Atenci├│n', 'Selecciona un evento para importar.', 'info');
             return;
         }
 
@@ -931,7 +467,7 @@ const App = window.App = {
     },
 
     async purgeDatabase() {
-        if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
+        if (await this._confirmAction('┬┐BORRAR TODO?', 'Esta acci├│n eliminar├í TODOS los registros del sistema permanentemente.')) {
             try {
                 await this.fetchAPI('/admin/purge', { method: 'POST' });
                 this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
@@ -943,7 +479,7 @@ const App = window.App = {
     },
     
     removeUserFromEvent: async function(userId, eventId) {
-        if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
+        if (!(await this._confirmAction('┬┐Quitar este usuario del evento?', 'Esta acci├│n desvincular├í al usuario del evento seleccionado.'))) return;
         try {
             await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
             // Recargar usuarios
@@ -975,7 +511,7 @@ const App = window.App = {
     },
     
     renderUsersTable: function(users, groups, events) {
-        if (!this.state.user) return; // No renderizar si no hay sesión
+        if (!this.state.user) return; // No renderizar si no hay sesi├│n
         
         // Sincronizar filtros de la interfaz
         const filterGroup = document.getElementById('filter-group');
@@ -995,7 +531,7 @@ const App = window.App = {
             filterEvent.value = currentVal;
         }
         
-        // Gestión de solicitudes pendientes (Amber Style)
+        // Gesti├│n de solicitudes pendientes (Amber Style)
         const pending = users.filter(u => u.status === 'PENDING');
         const badge = document.getElementById('pending-badge');
         const pendingSection = document.getElementById('pending-requests-section');
@@ -1111,14 +647,14 @@ const App = window.App = {
     
     // Filtrar usuarios
     filterUsers: function() {
-        if (!this.state.user) return; // No filtrar si no hay sesión
+        if (!this.state.user) return; // No filtrar si no hay sesi├│n
         const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
         const groupFilter = document.getElementById('filter-group')?.value || '';
         const eventFilter = document.getElementById('filter-event')?.value || '';
         
         let filtered = this.state.allUsers || [];
         
-        // Filtro de búsqueda
+        // Filtro de b├║squeda
         if (searchTerm) {
             filtered = filtered.filter(u => 
                 (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
@@ -1141,26 +677,26 @@ const App = window.App = {
         this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
     },
     
-    // Crear empresa rápido desde modal
+    // Crear empresa r├ípido desde modal
     quickCreateGroup: async function() {
         const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
-        const description = prompt('Descripción (opcional):') || '';
+        const description = prompt('Descripci├│n (opcional):') || '';
         try {
             const res = await this.fetchAPI('/groups', { 
                 method: 'POST', 
                 body: JSON.stringify({ name: name.trim(), description }) 
             });
             if (res.success) { 
-                alert('✓ Empresa creada exitosamente');
+                alert('Ô£ô Empresa creada exitosamente');
                 this.loadUsersTable();
             } else {
                 alert('Error: ' + res.error);
             }
-        } catch { alert('Error de conexión'); }
+        } catch { alert('Error de conexi├│n'); }
     },
     
-    // Crear evento rápido desde modal
+    // Crear evento r├ípido desde modal
     quickCreateEvent: async function() {
         const name = prompt('Nombre del nuevo evento:');
         if (!name || !name.trim()) return;
@@ -1171,12 +707,12 @@ const App = window.App = {
                 body: JSON.stringify({ name: name.trim(), date, location: '', description: '' }) 
             });
             if (res.success) { 
-                alert('✓ Evento creado exitosamente');
+                alert('Ô£ô Evento creado exitosamente');
                 this.loadUsersTable();
             } else {
                 alert('Error: ' + res.error);
             }
-        } catch { alert('Error de conexión'); }
+        } catch { alert('Error de conexi├│n'); }
     },
     
     // Asignar usuario a un grupo
@@ -1204,7 +740,7 @@ const App = window.App = {
     
     // Quitar empresa de un usuario
     removeUserGroup: async function(userId) {
-        if (!confirm('¿Quitar la empresa asignada a este usuario?')) return;
+        if (!confirm('┬┐Quitar la empresa asignada a este usuario?')) return;
         try {
             const res = await this.fetchAPI(`/users/${userId}/group`, { 
                 method: 'PUT', 
@@ -1217,13 +753,13 @@ const App = window.App = {
         } catch(e) { console.error('Error removing group:', e); }
     },
     
-    // Quitar un evento específico de un usuario
+    // Quitar un evento espec├¡fico de un usuario
     removeUserFromEvent: async function(userId, eventId) {
-        if (await this._confirmAction('¿Quitar acceso al evento?', 'El usuario ya no podrá gestionar este evento.')) {
+        if (await this._confirmAction('┬┐Quitar acceso al evento?', 'El usuario ya no podr├í gestionar este evento.')) {
             try {
                 const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
                 if (res.success) {
-                    Swal.fire({ title: 'Éxito', text: 'Acceso revocado', icon: 'success', timer: 1000, showConfirmButton: false });
+                    Swal.fire({ title: '├ëxito', text: 'Acceso revocado', icon: 'success', timer: 1000, showConfirmButton: false });
                     this.loadUsersTable();
                 } else {
                     Swal.fire('Error', res.error || 'No se pudo quitar el evento', 'error');
@@ -1259,7 +795,7 @@ const App = window.App = {
                     </div>
                     <div>
                         <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selecci├│n M├║ltiple</p>
                     </div>
                 </div>
                 
@@ -1268,7 +804,7 @@ const App = window.App = {
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignaci├│n</button>
                     <div class="flex gap-3">
                         <button data-action="navigateToCreateGroup" data-user-id="${userId}" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
                         <button data-action="closeGroupSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
@@ -1302,7 +838,7 @@ const App = window.App = {
     openCreateGroupModal: function() {
         const name = prompt('Nombre de la nueva empresa:');
         if (!name || !name.trim()) return;
-        const description = prompt('Descripción (opcional):') || '';
+        const description = prompt('Descripci├│n (opcional):') || '';
         
         fetch('/api/groups', {
             method: 'POST',
@@ -1310,13 +846,13 @@ const App = window.App = {
             body: JSON.stringify({ name: name.trim(), description })
         }).then(r => r.json()).then(d => {
             if (d.success) {
-                alert('✓ Empresa creada');
+                alert('Ô£ô Empresa creada');
                 this.loadGroups();
             }
         }).catch(() => alert('Error al crear empresa'));
     },
     
-    // Versiones obsoletas eliminadas para unificación V12.16.0
+    // Versiones obsoletas eliminadas para unificaci├│n V12.16.0
     
     approveUser: async function(id, status) {
         await this.fetchAPI(`/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
@@ -1347,7 +883,7 @@ const App = window.App = {
             });
             const d = await res.json();
             if (d.success) {
-                alert("✓ Evento creado con éxito.");
+                alert("Ô£ô Evento creado con ├®xito.");
                 document.getElementById('modal-event').classList.add('hidden');
                 document.getElementById('new-event-form').reset();
                 this.loadEvents();
@@ -1364,7 +900,7 @@ const App = window.App = {
                 body: JSON.stringify(data)
             });
             if (res.success) {
-                alert("✓ Evento actualizado.");
+                alert("Ô£ô Evento actualizado.");
                 document.getElementById('modal-event').classList.add('hidden');
                 this.loadEvents();
             } else {
@@ -1405,13 +941,13 @@ const App = window.App = {
                     method: 'PUT', 
                     body: JSON.stringify(data)
                 });
-                alert('✓ Empresa actualizada');
+                alert('Ô£ô Empresa actualizada');
             } else {
                 await this.fetchAPI('/groups', { 
                     method: 'POST', 
                     body: JSON.stringify(data)
                 });
-                alert('✓ Empresa creada');
+                alert('Ô£ô Empresa creada');
             }
             this.closeCompanyModal();
             this.loadGroups();
@@ -1450,7 +986,7 @@ const App = window.App = {
             if (res.success) {
                 this.state.user = { ...this.state.user, ...data };
                 LS.set('user', JSON.stringify(this.state.user));
-                alert('✓ Perfil actualizado');
+                alert('Ô£ô Perfil actualizado');
                 this.loadProfileData();
             }
         } catch (e) { alert('Error al actualizar perfil'); }
@@ -1507,7 +1043,7 @@ const App = window.App = {
         }
     },
     
-    // Cerrar menú al hacer clic afuera
+    // Cerrar men├║ al hacer clic afuera
     closeEmailAdminMenu: function() {
         const menu = document.getElementById('email-admin-menu');
         const arrow = document.getElementById('email-admin-arrow');
@@ -1518,7 +1054,7 @@ const App = window.App = {
     },
     
     navigateEmailSection: function(section) {
-        // En la versión V12.16.x, Email es una pestaña de System
+        // En la versi├│n V12.16.x, Email es una pesta├▒a de System
         // No forzamos this.navigate('smtp') si ya estamos en system
         this._showEmailSection(section);
     },
@@ -1543,7 +1079,7 @@ const App = window.App = {
         // Guardar preferencia en localStorage
         LS.set('email_admin_section', section);
         
-        // Cargar datos según sección
+        // Cargar datos seg├║n secci├│n
         if (section === 'config') {
             App.loadSMTPConfig();
             App.loadIMAPConfig();
@@ -1558,327 +1094,8 @@ const App = window.App = {
         }
     },
 
-    // ─── MAILING & MAILBOX LOGIC V11.1 ───
+    // ÔöÇÔöÇÔöÇ MAILING & MAILBOX LOGIC V11.1 ÔöÇÔöÇÔöÇ
     
-    async loadEmailTemplates() {
-        const grid = document.getElementById('email-templates-grid');
-        if (!grid) return;
-        try {
-            const templates = await this.fetchAPI('/email-templates');
-            this.state.emailTemplates = templates;
-            grid.innerHTML = `
-                <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
-                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-secondary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
-                        <span class="material-symbols-outlined text-2xl">add</span>
-                    </div>
-                    <span class="text-xs font-bold text-[var(--text-secondary)] group-hover:text-[var(--primary)]">NUEVA PLANTILLA</span>
-                </div>
-            ` + templates.map(t => `
-                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative z-10 flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined">mail</span>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-white">${t.name}</h4>
-                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">${t.subject || 'Sin Asunto'}</p>
-                        </div>
-                    </div>
-                    <div class="relative z-10 pt-4 border-t border-white/5 flex gap-2">
-                        <button onclick="App.selectTemplateFromLibrary('${t.id}')" class="btn-primary !py-1.5 !px-3 text-[10px] flex-1">
-                            <span class="material-symbols-outlined text-xs">send</span> USAR PARA ENVÍO
-                        </button>
-                        <button onclick="App.openTemplateEditor('${t.id}')" class="btn-secondary !py-1.5 !px-3 text-[10px] flex-1">
-                            <span class="material-symbols-outlined text-xs">edit</span> EDITAR
-                        </button>
-                        <button onclick="App.deleteEmailTemplate('${t.id}')" class="btn-secondary !py-1.5 !px-2 !text-red-500 hover:!bg-red-500/10">
-                            <span class="material-symbols-outlined text-xs">delete</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        } catch(e) { console.error('Error templates:', e); }
-    },
-
-    async openTemplateEditor(id = null) {
-        console.log('[TEMPLATES] Abriendo editor:', id || 'Nueva');
-        const modal = document.getElementById('modal-template-editor');
-        if (!modal) return;
-
-        // Limpiar campos
-        document.getElementById('tpl-name').value = '';
-        document.getElementById('tpl-subject').value = '';
-        if (this.quillTemplate) this.quillTemplate.setContents([]);
-        window.active_template_id = id;
-
-        if (id) {
-            const t = this.state.emailTemplates?.find(x => String(x.id) === String(id));
-            if (t) {
-                document.getElementById('tpl-name').value = t.name;
-                document.getElementById('tpl-subject').value = t.subject;
-                if (this.quillTemplate) this.quillTemplate.clipboard.dangerouslyPasteHTML(t.body || '');
-            }
-        }
-
-        modal.classList.remove('hidden');
-        
-        // Inicializar Quill si no existe
-        if (!this.quillTemplate) {
-            const selector = '#tpl-quill-editor';
-            if (document.querySelector(selector)) {
-                this.quillTemplate = new Quill(selector, {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            ['bold', 'italic', 'underline'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'clean']
-                        ]
-                    }
-                });
-            }
-        }
-    },
-
-    async saveEmailTemplate() {
-        const id = window.active_template_id;
-        const data = {
-            name: document.getElementById('tpl-name').value,
-            subject: document.getElementById('tpl-subject').value,
-            body: this.quillTemplate ? this.quillTemplate.root.innerHTML : ''
-        };
-
-        if (!data.name) return Swal.fire('Atención', 'El nombre de la plantilla es obligatorio.', 'warning');
-
-        try {
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email-templates/${id}` : '/email-templates';
-            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
-            
-            if (res.success) {
-                this._notifyAction('Guardado', 'Plantilla actualizada correctamente.', 'success');
-                document.getElementById('modal-template-editor').classList.add('hidden');
-                this.loadEmailTemplates();
-                this.loadMailingData(); 
-            } else {
-                Swal.fire('Error', res.error || 'No se pudo guardar la plantilla.', 'error');
-            }
-        } catch(e) { console.error('Error saving template:', e); }
-    },
-
-    async deleteEmailTemplate(id) {
-        if (await this._confirmAction('¿Eliminar Plantilla?', 'Esta acción no se puede deshacer.')) {
-            try {
-                const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
-                if (res.success) {
-                    this._notifyAction('Eliminada', 'La plantilla ha sido borrada.', 'success');
-                    this.loadEmailTemplates();
-                    this.loadMailingData();
-                }
-            } catch(e) { console.error('Error deleting template:', e); }
-        }
-    },
-
-    async selectTemplateFromLibrary(id) {
-        await this.navigateEmailSection('mailing');
-        setTimeout(() => {
-            const selector = document.getElementById('mailing-template-selector');
-            if (selector) {
-                selector.value = id;
-                this.onTemplateChange();
-                this._notifyAction('Plantilla Cargada', 'Lista para envío masivo.', 'success');
-            }
-        }, 100);
-    },
-
-    async loadMailbox() {
-        const list = document.getElementById('inbox-list');
-        if (!list) return;
-        try {
-            const res = await this.fetchAPI('/email-logs?type=INBOX');
-            const logs = res.data || []; 
-            list.innerHTML = logs.map(l => `
-                <tr class="hover:bg-white/5 transition-colors">
-                    <td class="px-4 py-3 text-xs text-white font-medium">${l.sender || 'Sistema'}</td>
-                    <td class="px-4 py-3 text-xs text-slate-300 truncate max-w-xs">${l.subject}</td>
-                    <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
-                    <td class="px-4 py-3 text-right">
-                        <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch(e) { console.error('Error mailbox:', e); }
-    },
-
-    async syncIMAP() {
-        Swal.fire({ title: 'Sincronizando...', text: 'Conectando con IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        try {
-            const res = await this.fetchAPI('/imap/sync');
-            if (res.success) {
-                Swal.fire('✓ Sincronizado', 'Correos actualizados correctamente.', 'success');
-                this.loadMailbox();
-            }
-        } catch(e) { Swal.fire('Error', 'Falla en sincronización IMAP', 'error'); }
-    },
-
-    async loadMailingData() {
-        console.log('[MAIL] Loading mailing data...');
-        try {
-            const events = await this.fetchAPI('/events');
-            const eventSelector = document.getElementById('mailing-event-selector');
-            if (eventSelector) {
-                eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
-                    events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
-            }
-
-            const templates = await this.fetchAPI('/email-templates');
-            this.state.emailTemplates = templates;
-            const tempSelector = document.getElementById('mailing-template-selector');
-            if (tempSelector) {
-                tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
-                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            }
-
-            if (!this.state.mailingGuests) this.state.mailingGuests = [];
-        } catch(e) { console.error('Error mailing data:', e); }
-    },
-
-    async onMailingEventChange() {
-        const eventId = document.getElementById('mailing-event-selector').value;
-        if (!eventId) {
-            this.state.mailingGuests = (this.state.mailingGuests || []).filter(g => g.manual);
-            return this.filterMailingGuests();
-        }
-        try {
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            const manualOnes = (this.state.mailingGuests || []).filter(g => g.manual);
-            const formattedGuests = guests.map(g => ({ ...g, selected: true }));
-            this.state.mailingGuests = [...manualOnes, ...formattedGuests];
-            this.filterMailingGuests();
-        } catch(e) { console.error('[MAIL] Error fetch guests:', e); }
-    },
-
-    addDirectRecipient() {
-        const input = document.getElementById('direct-email-input');
-        const email = input.value.trim();
-        if (!email || !email.includes('@')) return Swal.fire('Error', 'Ingresa un correo válido.', 'error');
-
-        const newGuest = {
-            id: 'manual-' + Date.now(),
-            name: email.split('@')[0],
-            email: email,
-            organization: 'Directo',
-            manual: true,
-            selected: true
-        };
-
-        if (!this.state.mailingGuests) this.state.mailingGuests = [];
-        
-        if (this.state.mailingGuests.find(g => g.email === email)) {
-            return Swal.fire('Atención', 'Este correo ya está en la lista.', 'info');
-        }
-
-        this.state.mailingGuests.unshift(newGuest);
-        this.filterMailingGuests();
-        input.value = '';
-        this._notifyAction('Añadido', `${email} agregado a la lista.`, 'success');
-    },
-
-    onTemplateChange() {
-        const templateId = document.getElementById('mailing-template-selector').value;
-        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
-        if (template) {
-            const previewArea = document.getElementById('email-preview-area');
-            if (previewArea) {
-                const body = template.body || ''; 
-                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full border-none animate-fade-in" style="min-height: 600px; height: 600px;" onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';"></iframe>`;
-            }
-        }
-    },
-
-    filterMailingGuests() {
-        const searchInput = document.getElementById('mailing-search');
-        if (!searchInput) return;
-        
-        const query = searchInput.value.toLowerCase().trim();
-        const guests = this.state.mailingGuests || [];
-        
-        const filtered = guests.filter(g => {
-            const name = (g.name || '').toLowerCase();
-            const email = (g.email || '').toLowerCase();
-            const org = (g.organization || '').toLowerCase();
-            return name.includes(query) || email.includes(query) || org.includes(query);
-        });
-
-        this.state.lastFilteredRecipients = filtered;
-
-        const list = document.getElementById('mailing-recipients-list');
-        const count = document.getElementById('mailing-count');
-        if (!list) return;
-
-        const totalSelected = (this.state.mailingGuests || []).filter(g => g.selected).length;
-        if (count) count.innerHTML = `${filtered.length} / ${totalSelected} seleccionados`;
-        
-        this.updateMailingSummaryUI(); 
-        
-        if (filtered.length === 0) {
-            list.innerHTML = `<div class="text-center py-6 text-slate-500">Sin resultados</div>`;
-            return;
-        }
-
-        list.innerHTML = filtered.map(g => `
-            <label class="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-all">
-                <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary" 
-                    value="${g.email}" ${g.selected ? 'checked' : ''} 
-                    onchange="App.updateGuestSelection('${g.id}', this.checked)">
-                <div class="flex flex-col flex-1 min-w-0">
-                    <span class="text-[11px] font-bold text-white truncate">${g.name}</span>
-                    <span class="text-[9px] text-slate-500 truncate">${g.email}</span>
-                </div>
-            </label>
-        `).join('');
-    },
-
-    updateGuestSelection(guestId, isChecked) {
-        const guest = (this.state.mailingGuests || []).find(g => g.id == guestId);
-        if (guest) {
-            guest.selected = isChecked;
-            this.filterMailingGuests();
-        }
-    },
-
-    clearMailingSearch() {
-        const input = document.getElementById('mailing-search');
-        if (input) {
-            input.value = '';
-            this.filterMailingGuests();
-            input.focus();
-        }
-    },
-
-    showScheduleModal() {
-        Swal.fire({
-            title: 'Programar Campaña',
-            html: `<input type="datetime-local" id="schedule-datetime" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white">`,
-            background: 'var(--bg-card)',
-            color: 'var(--text-primary)',
-            confirmButtonText: 'Programar Ahora',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--primary)',
-            preConfirm: () => {
-                const date = document.getElementById('schedule-datetime').value;
-                if (!date) return Swal.showValidationMessage('Debes seleccionar una fecha y hora');
-                return date;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.state.scheduledMailingDate = result.value;
-                Swal.fire('Programado', `La campaña iniciará el ${new Date(result.value).toLocaleString()}`, 'success');
-            }
-        });
-    },
-
     switchMailboxFolder: function(folder) {
         document.querySelectorAll('.mail-folder-btn').forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
         const btn = document.getElementById('mail-folder-' + folder.toLowerCase());
@@ -1891,7 +1108,7 @@ const App = window.App = {
         const container = document.getElementById('email-mailbox-list');
         if (!container) return;
         
-        container.innerHTML = '<div class="p-12 text-center animate-pulse"><span class="material-symbols-outlined text-4xl text-primary block mb-2">sync</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cargando buzón...</p></div>';
+        container.innerHTML = '<div class="p-12 text-center animate-pulse"><span class="material-symbols-outlined text-4xl text-primary block mb-2">sync</span><p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cargando buz├│n...</p></div>';
         
         try {
             const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
@@ -1933,7 +1150,7 @@ const App = window.App = {
                 `;
             }).join('');
         } catch (e) {
-            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buzón: ${e.message}</p></div>`;
+            container.innerHTML = `<div class="p-12 text-center text-red-500/60"><p class="text-sm font-bold">Error al cargar buz├│n: ${e.message}</p></div>`;
         }
     },
 
@@ -1985,7 +1202,7 @@ const App = window.App = {
                 video.srcObject = stream;
                 video.play();
             })
-            .catch(e => alert('Error al acceder a la cámara: ' + e.message));
+            .catch(e => alert('Error al acceder a la c├ímara: ' + e.message));
     },
 
     stopScanner: function() {
@@ -2007,12 +1224,12 @@ const App = window.App = {
             const res = await this.fetchAPI('/emails/sync', { method: 'POST' });
             if (res.success) {
                 this.loadMailbox('INBOX');
-                alert(`✓ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
+                alert(`Ô£ô Sincronizaci├│n completada. Nuevos: ${res.newEmails || 0}`);
             } else {
                 alert('Error al sincronizar: ' + (res.error || 'Error desconocido'));
             }
         } catch (e) {
-            alert('Error de conexión: ' + e.message);
+            alert('Error de conexi├│n: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
     },
 
@@ -2051,7 +1268,7 @@ const App = window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('✓ Configuración IMAP guardada');
+            alert('Ô£ô Configuraci├│n IMAP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -2066,14 +1283,14 @@ const App = window.App = {
 
         if (!data.imap_host || !data.imap_user || !data.imap_pass) return alert('Completa los datos para probar');
 
-        if (typeof showLoading === 'function') showLoading('Probando conexión IMAP...');
+        if (typeof showLoading === 'function') showLoading('Probando conexi├│n IMAP...');
         try {
             const res = await this.fetchAPI('/imap-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('✓ ¡Conexión exitosa!');
-            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
+            if (res.success) alert('Ô£ô ┬íConexi├│n exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexi├│n'));
         } catch (e) {
             alert('Error de red: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
@@ -2101,45 +1318,6 @@ const App = window.App = {
         if (service === 'imap') this.loadIMAPConfig();
     },
 
-    async login(username, password) {
-        console.log("[AUTH] Intentando login:", username);
-        try {
-            const data = await this.fetchAPI('/login', { 
-                method: 'POST', 
-                body: JSON.stringify({ username, password }) 
-            });
-            
-            if (data.success) {
-                this.state.user = data;
-                LS.set('user', JSON.stringify(data));
-                this.initPushNotifications().catch(err => console.error('Push error:', err));
-                await this.loadAppShell();
-                
-                const sbu = document.getElementById('sidebar-username');
-                const sbr = document.getElementById('sidebar-role');
-                if (sbu) sbu.textContent = data.username || 'Usuario';
-                if (sbr) sbr.textContent = data.role || 'Staff';
-                
-                const loginEl = document.getElementById('view-login');
-                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
-                
-                this.updateUIPermissions();
-                this.updateRoleOptions();
-                this.handleInitialNavigation();
-                this.initAppShell();
-                
-                return { success: true };
-            } else {
-                this._notifyAction('Error de Acceso', data.message || 'Credenciales inválidas.', 'error');
-                return { success: false, message: data.message };
-            }
-        } catch (err) {
-            console.error("[AUTH] Error fatal:", err);
-            this._notifyAction('Fallo de Conexión', 'No se pudo contactar con el servidor.', 'error');
-            return { success: false, error: err };
-        }
-    },
-
     testSMTPConnection: async function() {
         const data = {
             smtp_host: document.getElementById('smtp-host')?.value.trim() || '',
@@ -2151,14 +1329,14 @@ const App = window.App = {
 
         if (!data.smtp_host || !data.smtp_user || !data.smtp_pass) return alert('Completa los datos para probar');
 
-        if (typeof showLoading === 'function') showLoading('Probando conexión SMTP...');
+        if (typeof showLoading === 'function') showLoading('Probando conexi├│n SMTP...');
         try {
             const res = await this.fetchAPI('/smtp-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            if (res.success) alert('✓ ¡Conexión SMTP exitosa!');
-            else alert('Error: ' + (res.error || 'Fallo en la conexión'));
+            if (res.success) alert('Ô£ô ┬íConexi├│n SMTP exitosa!');
+            else alert('Error: ' + (res.error || 'Fallo en la conexi├│n'));
         } catch (e) {
             alert('Error de red: ' + e.message);
         } finally { if (typeof hideLoading === 'function') hideLoading(); }
@@ -2182,7 +1360,7 @@ const App = window.App = {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            alert('✓ Configuración SMTP guardada');
+            alert('Ô£ô Configuraci├│n SMTP guardada');
         } catch (e) { alert('Error al guardar: ' + e.message); }
     },
 
@@ -2209,7 +1387,7 @@ const App = window.App = {
         // Set subject
         document.getElementById('mailing-subject').value = template.subject || '';
 
-        // Simular previsualización con el primer invitado si existe
+        // Simular previsualizaci├│n con el primer invitado si existe
         let guest = this.state.guests?.[0] || { name: 'INVITADO DE PRUEBA', email: 'prueba@ejemplo.com', unsubscribe_token: 'test-token' };
         
         let body = template.body;
@@ -2235,7 +1413,7 @@ const App = window.App = {
         if (!templateId || !subject) return alert('Selecciona una plantilla y asunto');
         if (!this.state.event) return alert('Selecciona un evento primero');
 
-        if (!confirm('¿Estás seguro de iniciar el envío masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
+        if (!confirm('┬┐Est├ís seguro de iniciar el env├¡o masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
 
         try {
             const body = container.innerHTML;
@@ -2249,7 +1427,7 @@ const App = window.App = {
                 })
             });
             
-            alert('✓ Envío masivo iniciado. Revisa el progreso en la parte superior.');
+            alert('Ô£ô Env├¡o masivo iniciado. Revisa el progreso en la parte superior.');
             document.getElementById('mailing-progress-card').classList.remove('hidden');
             this.updateMailingStats();
             
@@ -2257,7 +1435,7 @@ const App = window.App = {
             if (this._mailingPolling) clearInterval(this._mailingPolling);
             this._mailingPolling = setInterval(() => this.updateMailingStats(), 3000);
 
-        } catch (e) { alert('Error al iniciar envío: ' + e.message); }
+        } catch (e) { alert('Error al iniciar env├¡o: ' + e.message); }
     },
 
     controlMailingQueue: async function(action) {
@@ -2296,7 +1474,7 @@ const App = window.App = {
             const card = document.getElementById('mailing-progress-card');
 
             if (bar) bar.style.width = percent + '%';
-            if (countText) countText.textContent = `${sent} / ${total} enviados · ${errors} errores`;
+            if (countText) countText.textContent = `${sent} / ${total} enviados ┬À ${errors} errores`;
             if (percentText) percentText.textContent = percent + '%';
 
             // Si hay algo pendiente, mostrar la tarjeta si no estaba
@@ -2307,10 +1485,10 @@ const App = window.App = {
                 }
             } else if (total > 0 && pending === 0 && stats.sending === 0) {
                 // Finalizado
-                document.getElementById('mailing-status-text').textContent = 'Envío completado';
+                document.getElementById('mailing-status-text').textContent = 'Env├¡o completado';
                 clearInterval(this._mailingPolling);
                 this._mailingPolling = null;
-                setTimeout(() => card?.classList.add('hidden'), 10000); // Ocultar después de 10s
+                setTimeout(() => card?.classList.add('hidden'), 10000); // Ocultar despu├®s de 10s
             }
         } catch (e) { console.error('Error updating mailing stats:', e); }
     },
@@ -2335,7 +1513,7 @@ const App = window.App = {
                 })
             });
             
-            alert('✓ Plantilla guardada correctamente');
+            alert('Ô£ô Plantilla guardada correctamente');
             this.closeTemplateEditor();
             this.loadEmailTemplates();
             if (this.state.email_admin_section === 'mailing') {
@@ -2360,7 +1538,7 @@ const App = window.App = {
     },
 
     deleteEmailTemplate: async function(id) {
-        if (!confirm('¿Seguro que quieres eliminar esta plantilla permanente?')) return;
+        if (!confirm('┬┐Seguro que quieres eliminar esta plantilla permanente?')) return;
         try {
             await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
             this.loadEmailTemplates();
@@ -2393,7 +1571,7 @@ const App = window.App = {
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
         if (!template) {
             this._templateEditorOpening = false;
-            return alert('Plantilla no encontrada. Recarga la página.');
+            return alert('Plantilla no encontrada. Recarga la p├ígina.');
         }
         this.state.editingTemplate = template;
         document.getElementById('template-editor-title').textContent = 'Editar: ' + (template.name || templateName);
@@ -2449,7 +1627,7 @@ const App = window.App = {
         
         this.state.quillEditor = new Quill('#tpl-quill-editor', {
             theme: 'snow',
-            placeholder: 'Escribe el contenido de tu email aquí...',
+            placeholder: 'Escribe el contenido de tu email aqu├¡...',
             modules: {
                 toolbar: [
                     [{ 'header': [1, 2, 3, false] }],
@@ -2541,7 +1719,7 @@ const App = window.App = {
         
         if (tab === 'visual') {
             document.getElementById('editor-visual-container')?.classList.remove('hidden');
-            // Sincronizar desde Código a Visual si venimos de allá
+            // Sincronizar desde C├│digo a Visual si venimos de all├í
             if (prevTab === 'code' && this.state.quillEditor) {
                 const codeContent = document.getElementById('tpl-code-editor').value;
                 this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(codeContent));
@@ -2549,7 +1727,7 @@ const App = window.App = {
             setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {
             document.getElementById('editor-code-container')?.classList.remove('hidden');
-            // Sincronizar desde Visual a Código
+            // Sincronizar desde Visual a C├│digo
             const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
             document.getElementById('tpl-code-editor').value = body;
             setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
@@ -2628,8 +1806,8 @@ const App = window.App = {
                 method: 'PUT', 
                 body: JSON.stringify(data) 
             });
-            alert('✓ Configuración SMTP guardada');
-        } catch (e) { alert('Error al guardar configuración'); }
+            alert('Ô£ô Configuraci├│n SMTP guardada');
+        } catch (e) { alert('Error al guardar configuraci├│n'); }
     },
     
     testEventEmail: async function() {
@@ -2642,11 +1820,11 @@ const App = window.App = {
                 body: JSON.stringify({ test_email: testEmail })
             });
             if (res.success) {
-                alert('✓ Email de prueba enviado (revisa la consola del servidor)');
+                alert('Ô£ô Email de prueba enviado (revisa la consola del servidor)');
             } else {
                 alert('Error: ' + (res.error || 'No se pudo enviar'));
             }
-        } catch (e) { alert('Error al probar conexión'); }
+        } catch (e) { alert('Error al probar conexi├│n'); }
     },
     
     loadEventEmailTemplates: async function(eventId) {
@@ -2657,7 +1835,7 @@ const App = window.App = {
             const container = document.getElementById('event-email-templates-list');
             if (container) {
                 const templateNames = {
-                    'registration_confirm': 'Confirmación de registro',
+                    'registration_confirm': 'Confirmaci├│n de registro',
                     'checkin_welcome': 'Bienvenida con agenda',
                     'event_thanks': 'Agradecimiento post-evento',
                     'suggestion_request': 'Solicitud de sugerencias'
@@ -2667,7 +1845,7 @@ const App = window.App = {
                     'registration_confirm': 'Al registrarse',
                     'checkin_welcome': 'Al hacer check-in',
                     'event_thanks': 'Post-evento',
-                    'suggestion_request': '1 día después'
+                    'suggestion_request': '1 d├¡a despu├®s'
                 };
                 
                 container.innerHTML = templates.map(t => `
@@ -2717,7 +1895,7 @@ const App = window.App = {
                 method: 'PUT',
                 body: JSON.stringify({ subject, body })
             });
-            alert('✓ Plantilla guardada');
+            alert('Ô£ô Plantilla guardada');
         } catch (e) { alert('Error al guardar plantilla'); }
     },
     
@@ -2775,7 +1953,7 @@ const App = window.App = {
                 <div class="flex-1 grid grid-cols-4 gap-2">
                     <input type="time" value="${item.start_time || ''}" data-field="start_time" class="w-28">
                     <input type="time" value="${item.end_time || ''}" data-field="end_time" class="w-28">
-                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="Título" class="flex-1">
+                    <input type="text" value="${item.title || ''}" data-field="title" placeholder="T├¡tulo" class="flex-1">
                     <input type="text" value="${item.speaker || ''}" data-field="speaker" placeholder="Ponente" class="flex-1">
                 </div>
                 <button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
@@ -2795,7 +1973,7 @@ const App = window.App = {
             <div class="flex-1 grid grid-cols-4 gap-2">
                 <input type="time" value="" data-field="start_time" class="w-28">
                 <input type="time" value="" data-field="end_time" class="w-28">
-                <input type="text" value="" data-field="title" placeholder="Título" class="flex-1">
+                <input type="text" value="" data-field="title" placeholder="T├¡tulo" class="flex-1">
                 <input type="text" value="" data-field="speaker" placeholder="Ponente" class="flex-1">
             </div>
 <button data-action="removeParent" class="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
@@ -2822,7 +2000,7 @@ const App = window.App = {
                 method: 'PUT',
                 body: JSON.stringify({ agenda_items: items })
             });
-            alert('✓ Agenda guardada');
+            alert('Ô£ô Agenda guardada');
         } catch (e) { alert('Error al guardar agenda'); }
     },
     
@@ -2834,7 +2012,7 @@ const App = window.App = {
         let targetId = "view-" + viewName;
         if (['legal', 'account'].includes(viewName)) targetId = "view-system";
         
-        // Si la vista objetivo ya está visible, no hacer nada
+        // Si la vista objetivo ya est├í visible, no hacer nada
         const target = document.getElementById(targetId);
         if (target && !target.classList.contains('hidden')) {
             console.log('[VIEW] Ya visible:', viewName);
@@ -2892,7 +2070,7 @@ const App = window.App = {
         this.showView(viewName);
         LS.set('active_view', viewName); // Persistencia de vista V12.16.0
         
-        // Lógica específica por vista (V12.6.0 Unified Hub)
+        // L├│gica espec├¡fica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
         if (viewName === 'system') window.switchSystemTab(params.tab || 'users');
         
@@ -2911,7 +2089,7 @@ const App = window.App = {
                 if (this.state.event) {
                     const event = this.state.event;
                     document.getElementById('admin-event-title').textContent = event.name;
-                    document.getElementById('admin-event-location').textContent = event.location || 'UBICACIÓN';
+                    document.getElementById('admin-event-location').textContent = event.location || 'UBICACI├ôN';
                     
                     const logoImg = document.getElementById('admin-event-logo');
                     const logoPlaceholder = document.getElementById('admin-event-logo-placeholder');
@@ -2951,7 +2129,7 @@ const App = window.App = {
     },
 
     initRouter() {
-        // Manejar navegación con el historial
+        // Manejar navegaci├│n con el historial
         window.onpopstate = (e) => {
             if (this._isPushingState) return;
             
@@ -2974,7 +2152,7 @@ const App = window.App = {
             params.id = parts[1];
         }
 
-        // Si es ADMIN y no hay vista específica, o es la raíz, redirigir a lo apropiado
+        // Si es ADMIN y no hay vista espec├¡fica, o es la ra├¡z, redirigir a lo apropiado
         const user = this.state.user;
         if (!user) {
             this.showView('login');
@@ -3001,7 +2179,7 @@ const App = window.App = {
     // --- AUTH ---
     async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
-        console.log("CHECK: Cerrando sesión segura.");
+        console.log("CHECK: Cerrando sesi├│n segura.");
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
@@ -3022,7 +2200,7 @@ const App = window.App = {
                 .then(html => {
                     document.body.insertAdjacentHTML('beforeend', html);
                     console.log('[APP-SHELL] app-shell.html cargado exitosamente');
-                    // Re-inicializar listeners después de cargar
+                    // Re-inicializar listeners despu├®s de cargar
                     this.attachAppListeners();
                     resolve();
                 })
@@ -3038,13 +2216,13 @@ const App = window.App = {
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
         const hideModal = (id) => { const m = document.getElementById(id); if (m) m.classList.add('hidden'); };
         
-        // Mostrar versión del servidor al cargar
+        // Mostrar versi├│n del servidor al cargar
         this.fetchAPI('/app-version').then(res => {
             const vd = document.getElementById('version-display');
             if (vd) vd.textContent = 'V' + res.version;
         }).catch(() => {});
 
-        // Actualizar tema después de cargar app-shell
+        // Actualizar tema despu├®s de cargar app-shell
         this.initTheme();
         this.initSidebar();
         
@@ -3128,8 +2306,8 @@ const App = window.App = {
         cl('btn-cancel-invite', () => hideModal('modal-invite'));
         cl('btn-cancel-company', () => hideModal('modal-company'));
 
-        // EVENT DELEGATION para botones dinámicos (reemplaza onclick inline violando CSP)
-        // Los templates dinámicos usan data-action y data-params-* en lugar de onclick
+        // EVENT DELEGATION para botones din├ímicos (reemplaza onclick inline violando CSP)
+        // Los templates din├ímicos usan data-action y data-params-* en lugar de onclick
         document.body.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target) return;
@@ -3199,7 +2377,7 @@ const App = window.App = {
             }
         });
 
-        // EVENT DELEGATION para selects dinámicos (changeUserRole)
+        // EVENT DELEGATION para selects din├ímicos (changeUserRole)
         document.body.addEventListener('change', (e) => {
             const select = e.target.closest('select[data-action]');
             if (!select) return;
@@ -3223,7 +2401,7 @@ const App = window.App = {
                 method: 'PUT',
                 body: JSON.stringify({ type, content })
             });
-            alert('✓ Configuración guardada.');
+            alert('Ô£ô Configuraci├│n guardada.');
         } catch(e) { alert('Error al guardar.'); }
     },
     async loadAppVersion() {
@@ -3281,7 +2459,7 @@ const App = window.App = {
     },
 
     async updatePreRegStatus(id, status) {
-        if (!confirm(`¿Estás seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
+        if (!confirm(`┬┐Est├ís seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
         try {
             await this.fetchAPI(`/pre-registrations/${id}/status`, {
                 method: 'PUT',
@@ -3307,7 +2485,7 @@ const App = window.App = {
                     list.innerHTML = `
                         <div class="glass-card p-12 rounded-[40px] border border-dashed border-white/10 text-center">
                             <span class="material-symbols-outlined text-6xl text-slate-800 mb-4">poll</span>
-                            <p class="text-slate-500 font-bold">No has creado preguntas todavía.</p>
+                            <p class="text-slate-500 font-bold">No has creado preguntas todav├¡a.</p>
                             <p class="text-[10px] text-slate-600 uppercase mt-2">Personaliza la encuesta QR de tu evento</p>
                         </div>
                     `;
@@ -3323,7 +2501,7 @@ const App = window.App = {
                                 <div>
                                     <h5 class="text-sm font-bold text-white">${q.title}</h5>
                                     <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificación' : 'Opción Múltiple'}
+                                        Tipo: ${q.type === 'text' ? 'Abierta' : q.type === 'binary' ? 'Booleana' : q.type === 'rating' ? 'Calificaci├│n' : 'Opci├│n M├║ltiple'}
                                     </p>
                                 </div>
                             </div>
@@ -3379,7 +2557,7 @@ const App = window.App = {
     },
 
     async deleteSurveyQuestion(id) {
-        if (!confirm('¿Eliminar esta pregunta?')) return;
+        if (!confirm('┬┐Eliminar esta pregunta?')) return;
         try {
             await this.fetchAPI(`/surveys/${id}`, { method: 'DELETE' });
             this.loadSurveyQuestions();
@@ -3419,9 +2597,9 @@ const App = window.App = {
                     <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
                 </div>
                 <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">${ev.name}</h3>
-                <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripción adicional para este evento.'}</p>
+                <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripci├│n adicional para este evento.'}</p>
                 <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">
-                    <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicación por confirmar'}
+                    <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicaci├│n por confirmar'}
                 </div>
                 <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
                     <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
@@ -3485,7 +2663,7 @@ const App = window.App = {
 
     async deleteEvent(id) {
         if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
-        if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
+        if (await this._confirmAction('┬┐Eliminar evento?', 'Esta acci├│n es irreversible y borrar├í todos los datos asociados.')) {
             try {
                 await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
@@ -3553,7 +2731,7 @@ const App = window.App = {
         this.renderGuestsTarget(this.state.guests);
     },
     
-    // --- COLUMNAS DINÁMICAS V12.1 ---
+    // --- COLUMNAS DIN├üMICAS V12.1 ---
     initColumnConfig() {
         const saved = LS.get('column_config_' + (this.state.event?.id || 'default'));
         if (saved) {
@@ -3701,21 +2879,21 @@ const App = window.App = {
             sv('stat-presence', s.total > 0 ? Math.round((s.checkedIn / s.total) * 100) + '%' : '0%');
             sv('stat-onsite', s.onsite || 0);
             
-            // Restricciones dietéticas
+            // Restricciones diet├®ticas
             const dietaryRestrictions = s.dietaryDistribution?.reduce((sum, d) => 
                 d.diet_type !== 'Sin restricciones' ? sum + d.count : sum, 0
             ) || 0;
             sv('stat-health', dietaryRestrictions);
             
-            // Renderizar Dashboard de Analítica
+            // Renderizar Dashboard de Anal├¡tica
             this.renderAnalyticsDashboard(s);
-        } catch (e) { console.error('Error actualizando estadísticas:', e); }
+        } catch (e) { console.error('Error actualizando estad├¡sticas:', e); }
     },
 
     renderAnalyticsDashboard(data) {
         if (typeof Chart === 'undefined') return;
         
-        // Inicializar contenedor de gráficas si no existe
+        // Inicializar contenedor de gr├íficas si no existe
         if (!this.state.charts) this.state.charts = {};
 
         this.renderFlowChart(data.flowData);
@@ -3857,7 +3035,7 @@ const App = window.App = {
         
         if (this.state.charts.gender) this.state.charts.gender.destroy();
         
-        // Mapear códigos de género a etiquetas
+        // Mapear c├│digos de g├®nero a etiquetas
         const genderLabels = {
             'M': 'Masculino',
             'F': 'Femenino',
@@ -3928,7 +3106,7 @@ const App = window.App = {
         try {
             const evs = await this.fetchAPI('/events');
             if (evs.length > 0) {
-                // Si viene un nombre en la URL, buscamos el evento específico. Si no, tomamos el primero activo.
+                // Si viene un nombre en la URL, buscamos el evento espec├¡fico. Si no, tomamos el primero activo.
                 let targetEvent = evs[0];
                 if (eventNameParam) {
                     const found = evs.find(e => e.name.replace(/\s+/g, '-').toLowerCase() === eventNameParam.toLowerCase());
@@ -3983,7 +3161,7 @@ const App = window.App = {
             };
 
             xhr.send(formData);
-        } catch (e) { alert("Error de conexión al importar."); }
+        } catch (e) { alert("Error de conexi├│n al importar."); }
     },
 
     showImportMapping(data) {
@@ -3995,14 +3173,14 @@ const App = window.App = {
             { id: 'name', label: 'Nombre Completo', keywords: ['nombre', 'name', 'invitado', 'full name'] },
             { id: 'email', label: 'Email / Correo', keywords: ['email', 'correo', 'mail', 'usuario'] },
             { id: 'organization', label: 'Empresa / Entidad', keywords: ['empresa', 'org', 'entidad', 'compan', 'company'] },
-            { id: 'phone', label: 'Teléfono / Móvil', keywords: ['tel', 'cel', 'phone', 'movil'] },
-            { id: 'gender', label: 'Género (M/F/O)', keywords: ['sexo', 'genero', 'gender'] },
+            { id: 'phone', label: 'Tel├®fono / M├│vil', keywords: ['tel', 'cel', 'phone', 'movil'] },
+            { id: 'gender', label: 'G├®nero (M/F/O)', keywords: ['sexo', 'genero', 'gender'] },
             { id: 'position', label: 'Cargo', keywords: ['cargo', 'puesto', 'position', 'rol'] },
             { id: 'dietary_notes', label: 'Alergias / Dieta', keywords: ['alergia', 'dieta', 'salud', 'obs', 'coment'] }
         ];
 
         tbody.innerHTML = dbFields.map(field => {
-            // Auto-detectar índice
+            // Auto-detectar ├¡ndice
             let detectedIdx = data.headers.findIndex(h => 
                 field.keywords.some(k => h.toLowerCase().includes(k))
             );
@@ -4060,14 +3238,14 @@ const App = window.App = {
             if (res.success) {
                 document.getElementById('process-bar').style.width = '100%';
                 document.getElementById('process-perc').innerText = '100%';
-                document.getElementById('import-progress-status').innerText = `✓ ${res.count} invitados importados (${res.skipped} duplicados omitidos).`;
+                document.getElementById('import-progress-status').innerText = `Ô£ô ${res.count} invitados importados (${res.skipped} duplicados omitidos).`;
                 document.getElementById('import-success-actions').classList.remove('hidden');
             } else {
                 alert("Error: " + res.error);
                 document.getElementById('modal-import-progress').classList.add('hidden');
             }
         } catch (e) { 
-            alert("Error al confirmar importación.");
+            alert("Error al confirmar importaci├│n.");
             document.getElementById('modal-import-progress').classList.add('hidden');
         }
     },
@@ -4106,7 +3284,7 @@ const App = window.App = {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(accent);
-        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
+        doc.text('DE ASISTENCIA Y PARTICIPACI├ôN', 148.5, 75, { align: 'center' });
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(16);
@@ -4118,7 +3296,7 @@ const App = window.App = {
         
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
+        doc.text(`Por su valiosa participaci├│n en el evento:`, 148.5, 140, { align: 'center' });
         
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
@@ -4159,7 +3337,7 @@ const App = window.App = {
         // KPIs
         doc.setTextColor(15, 23, 42);
         doc.setFontSize(14);
-        doc.text('RESUMEN DE MÉTRICAS', 15, 55);
+        doc.text('RESUMEN DE M├ëTRICAS', 15, 55);
         
         const kpis = [
             ['Total Invitados', stats.total.toString()],
@@ -4184,7 +3362,7 @@ const App = window.App = {
             g.name,
             g.email || '---',
             g.organization || '---',
-            g.checked_in ? 'SÍ' : 'NO',
+            g.checked_in ? 'S├ì' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -4201,9 +3379,9 @@ const App = window.App = {
 
 
 
-    // ─── PDF MEJORADOS CON DISEÑOS PROFESIONALES ───
+    // ÔöÇÔöÇÔöÇ PDF MEJORADOS CON DISE├æOS PROFESIONALES ÔöÇÔöÇÔöÇ
     
-    // Asegurar que las librerías PDF estén cargadas
+    // Asegurar que las librer├¡as PDF est├®n cargadas
     async ensurePDFLibsLoaded() {
         if (typeof window.jspdf === 'undefined') {
             await this.loadJsPDF();
@@ -4242,7 +3420,7 @@ const App = window.App = {
         const accent = event.ticket_accent_color || '#7c3aed';
         const logoUrl = event.logo_url;
         
-        // Fondo según plantilla
+        // Fondo seg├║n plantilla
         if (template === 'premium') {
             doc.setFillColor(15, 23, 42); // slate-900
             doc.rect(0, 0, 297, 210, 'F');
@@ -4280,7 +3458,7 @@ const App = window.App = {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(accent);
-        doc.text('DE ASISTENCIA Y PARTICIPACIÓN', 148.5, 75, { align: 'center' });
+        doc.text('DE ASISTENCIA Y PARTICIPACI├ôN', 148.5, 75, { align: 'center' });
         
         doc.setTextColor(template === 'light' ? 51 : 255);
         doc.setFontSize(16);
@@ -4292,21 +3470,21 @@ const App = window.App = {
         
         doc.setFontSize(14);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Por su valiosa participación en el evento:`, 148.5, 140, { align: 'center' });
+        doc.text(`Por su valiosa participaci├│n en el evento:`, 148.5, 140, { align: 'center' });
         
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(accent);
         doc.text(event.name, 148.5, 155, { align: 'center' });
         
-        // Información del evento
+        // Informaci├│n del evento
         doc.setTextColor(100, 116, 139);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
         doc.text(`${event.location || 'S/L'} - ${dateStr}`, 148.5, 180, { align: 'center' });
         
-        // Código único
+        // C├│digo ├║nico
         doc.setFontSize(8);
         doc.text(`ID: ${g.id.substring(0, 8).toUpperCase()}`, 148.5, 190, { align: 'center' });
         
@@ -4344,12 +3522,12 @@ const App = window.App = {
             }
         }
         
-        // Información de generación
+        // Informaci├│n de generaci├│n
         doc.setFontSize(8);
         doc.setTextColor(200, 200, 200);
         doc.text(`Generado: ${new Date().toLocaleString()}`, 15, 38);
         
-        // Estadísticas rápidas
+        // Estad├¡sticas r├ípidas
         const stats = await this.fetchAPI(`/stats/${event.id}`);
         const statsText = `Total: ${stats.total} | Presentes: ${stats.checkedIn} | Ausentes: ${stats.total - stats.checkedIn}`;
         doc.setTextColor(accent);
@@ -4378,14 +3556,14 @@ const App = window.App = {
             g.email || '---',
             g.organization || '---',
             g.phone || '---',
-            g.checked_in ? '✓  SÍ' : '× NO',
+            g.checked_in ? 'Ô£ô  S├ì' : '├ù NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
         // Generar tabla
         doc.autoTable({
             startY: 55,
-            head: [['Nombre', 'Email', 'Empresa', 'Teléfono', 'Presente', 'Hora']],
+            head: [['Nombre', 'Email', 'Empresa', 'Tel├®fono', 'Presente', 'Hora']],
             body: tableData,
             styles: { fontSize: 8 },
             headStyles: { fillColor: [51, 65, 85] },
@@ -4393,20 +3571,20 @@ const App = window.App = {
             margin: { left: 10, right: 10 }
         });
         
-        // Pie de página
+        // Pie de p├ígina
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`P├ígina ${i} de ${pageCount}`, 105, 290, { align: 'center' });
             doc.text(`Check Pro v${this.state.version}`, 105, 295, { align: 'center' });
         }
         
         doc.save(`Lista_Invitados_${event.name.replace(/\s+/g, '_')}.pdf`);
     },
 
-    // Generar reporte ejecutivo mejorado con gráficos
+    // Generar reporte ejecutivo mejorado con gr├íficos
     async generateEnhancedEventReport() {
         await this.ensurePDFLibsLoaded();
         if (!this.state.event) return;
@@ -4490,7 +3668,7 @@ const App = window.App = {
             doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
-            doc.text('ANÁLISIS POR HORARIO', 15, 20);
+            doc.text('AN├üLISIS POR HORARIO', 15, 20);
             
             const hourData = Object.entries(checkinTimes)
                 .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -4504,7 +3682,7 @@ const App = window.App = {
             });
         }
         
-        // Lista detallada (página separada)
+        // Lista detallada (p├ígina separada)
         doc.addPage();
         doc.setFillColor(accent);
         doc.rect(0, 0, 210, 40, 'F');
@@ -4515,7 +3693,7 @@ const App = window.App = {
         const guestData = this.state.guests.map(g => [
             g.name,
             g.organization || '---',
-            g.checked_in ? 'SÍ' : 'NO',
+            g.checked_in ? 'S├ì' : 'NO',
             g.checkin_time ? new Date(g.checkin_time).toLocaleTimeString() : '---'
         ]);
         
@@ -4528,21 +3706,21 @@ const App = window.App = {
             pageBreak: 'auto'
         });
         
-        // Pie de página en todas las páginas
+        // Pie de p├ígina en todas las p├íginas
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Página ${i} de ${pageCount} - Check Pro v${this.state.version}`, 105, 290, { align: 'center' });
+            doc.text(`P├ígina ${i} de ${pageCount} - Check Pro v${this.state.version}`, 105, 290, { align: 'center' });
         }
         
         doc.save(`Reporte_Ejecutivo_${event.name.replace(/\s+/g, '_')}.pdf`);
     },
 
-    // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
+    // ÔöÇÔöÇÔöÇ FUNCIONES PUENTE PARA COMPATIBILIDAD ÔöÇÔöÇÔöÇ
     
-    // Generar lista de invitados en PDF (compatibilidad con botón existente)
+    // Generar lista de invitados en PDF (compatibilidad con bot├│n existente)
     async generateGuestListPdf() {
         return this.generateGuestListPDF();
     },
@@ -4553,10 +3731,10 @@ const App = window.App = {
             return alert('No hay invitados para generar certificados.');
         }
         
-        const choice = confirm('¿Generar certificados para todos los invitados? (Cancelar para generar solo uno)');
+        const choice = confirm('┬┐Generar certificados para todos los invitados? (Cancelar para generar solo uno)');
         if (choice) {
-            // Generar certificados en lote (podría ser pesado)
-            alert('Generar certificados en lote está en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
+            // Generar certificados en lote (podr├¡a ser pesado)
+            alert('Generar certificados en lote est├í en desarrollo. Por ahora, genera certificados individuales desde la lista de invitados.');
         } else {
             // Mostrar selector de invitado
             const guestName = prompt('Ingresa el nombre del invitado para generar certificado:');
@@ -4577,7 +3755,7 @@ const App = window.App = {
 
     // Mejorar reporte de evento existente
     async generateEventReport() {
-        // Usar la versión mejorada por defecto
+        // Usar la versi├│n mejorada por defecto
         return this.generateEnhancedEventReport();
     },
 
@@ -4640,7 +3818,7 @@ const App = window.App = {
         doc.setFontSize(9);
         doc.text(g.qr_token || '---', 50, 115, { align: 'center' });
         
-        // Información adicional
+        // Informaci├│n adicional
         const dateStr = new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
         doc.setFontSize(6);
         doc.setTextColor(200, 200, 200);
@@ -4665,12 +3843,12 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        // Configuración de botones de sub-navegación (V12.6.1)
+        // Configuraci├│n de botones de sub-navegaci├│n (V12.6.1)
         const subNavContainer = document.querySelector('#view-system .sub-nav-container');
         if (subNavContainer) {
             const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
             btns.forEach(b => b.classList.remove('active'));
-            // Intentar encontrar el botón por su onclick o posición si no tiene ID
+            // Intentar encontrar el bot├│n por su onclick o posici├│n si no tiene ID
             const targetBtn = Array.from(btns).find(b => b.getAttribute('onclick')?.includes(`'${tabName}'`));
             if (targetBtn) targetBtn.classList.add('active');
         }
@@ -4679,7 +3857,7 @@ const App = window.App = {
         const panel = document.getElementById('sys-content-' + tabName);
         if (panel) panel.classList.remove('hidden');
 
-        // Carga de datos específicos
+        // Carga de datos espec├¡ficos
         if (tabName === 'users') this.loadUsersTable();
         if (tabName === 'groups') this.loadGroups();
         if (tabName === 'legal') this.loadLegalTexts();
@@ -4687,7 +3865,7 @@ const App = window.App = {
         if (tabName === 'account') this.loadUserProfile();
     },
 
-    // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
+    // ÔöÇÔöÇÔöÇ PESTA├æAS DE EVENTO (Fase 3: CRUD Personal) ÔöÇÔöÇÔöÇ
     switchEventTab(tabName) {
         console.log('[EVENT] Switching to tab:', tabName);
         const ALL_EVENT_IDS = ['ev-content-guests', 'ev-content-staff']; // Updated to match actual IDs
@@ -4756,13 +3934,13 @@ const App = window.App = {
         if (!eventId) return;
         
         const result = await Swal.fire({
-            title: '¿Desvincular Personal?',
-            text: 'El colaborador perderá acceso inmediato a este evento.',
+            title: '┬┐Desvincular Personal?',
+            text: 'El colaborador perder├í acceso inmediato a este evento.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#334155',
-            confirmButtonText: 'Sí, remover',
+            confirmButtonText: 'S├¡, remover',
             cancelButtonText: 'Cancelar',
             background: '#0f172a',
             color: '#fff'
@@ -4793,7 +3971,7 @@ const App = window.App = {
                     </div>
                     <div>
                         <h3 class="text-xl font-black text-white tracking-tight">Vincular Staff</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Asignación Rápida</p>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Asignaci├│n R├ípida</p>
                     </div>
                 </div>
                 
@@ -4808,7 +3986,7 @@ const App = window.App = {
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Añadir al Evento</button>
+                    <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">A├▒adir al Evento</button>
                     <div class="flex gap-3">
                         <button onclick="App.navigateToCreateUser()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Usuario</button>
                         <button id="btn-close-staff-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
@@ -4863,11 +4041,11 @@ const App = window.App = {
         if (!newEmail) return;
         
         const { isConfirmed } = await Swal.fire({
-            title: '¿Cambiar Email?',
-            text: "Se cerrará la sesión actual y deberás ingresar con el nuevo correo.",
+            title: '┬┐Cambiar Email?',
+            text: "Se cerrar├í la sesi├│n actual y deber├ís ingresar con el nuevo correo.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, cambiar',
+            confirmButtonText: 'S├¡, cambiar',
             cancelButtonText: 'Cancelar'
         });
 
@@ -4878,7 +4056,7 @@ const App = window.App = {
                     body: JSON.stringify({ email: newEmail })
                 });
                 if (res.success) {
-                    Swal.fire('Actualizado', 'Correo cambiado con éxito.', 'success')
+                    Swal.fire('Actualizado', 'Correo cambiado con ├®xito.', 'success')
                         .then(() => this.logout());
                 }
             } catch(err) { Swal.fire('Error', 'No se pudo cambiar el correo.', 'error'); }
@@ -4891,7 +4069,7 @@ const App = window.App = {
         const p2 = document.getElementById('new-pass-2').value;
         
         if (!p1 || p1 !== p2) {
-            return Swal.fire('Error', 'Las contraseñas no coinciden.', 'error');
+            return Swal.fire('Error', 'Las contrase├▒as no coinciden.', 'error');
         }
 
         try {
@@ -4900,10 +4078,10 @@ const App = window.App = {
                 body: JSON.stringify({ password: p1 })
             });
             if (res.success) {
-                Swal.fire('✓ Éxito', 'Contraseña actualizada correctamente.', 'success');
+                Swal.fire('Ô£ô ├ëxito', 'Contrase├▒a actualizada correctamente.', 'success');
                 e.target.reset();
             }
-        } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
+        } catch(err) { Swal.fire('Error', 'Error al actualizar contrase├▒a.', 'error'); }
     },
 
     async testIMAP() {
@@ -4918,13 +4096,13 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify({ host, user, port: document.getElementById('imap-port').value, pass: document.getElementById('imap-pass').value })
             });
-            if (res.success) Swal.fire('Conectado', 'La configuración IMAP es correcta', 'success');
-            else Swal.fire('Error', res.error || 'Fallo de conexión', 'error');
+            if (res.success) Swal.fire('Conectado', 'La configuraci├│n IMAP es correcta', 'success');
+            else Swal.fire('Error', res.error || 'Fallo de conexi├│n', 'error');
         } catch { Swal.fire('Error', 'Error de red', 'error'); }
     },
 
     // Utilidad privada para confirmaciones Premium (V12.6.1)
-    async _confirmAction(title, text, confirmText = 'Sí, eliminar') {
+    async _confirmAction(title, text, confirmText = 'S├¡, eliminar') {
         const result = await Swal.fire({
             title,
             text,
@@ -4954,7 +4132,9 @@ const App = window.App = {
         });
     },
 
-    // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
+    // --- MODALES DE SELECCI├ôN PREMIUM "FORMULARIO OK" (V12.16.0) ---
+    
+    // --- MODALES DE SELECCI├ôN PREMIUM "FORMULARIO OK" (V12.16.0) ---
     
     async showUserSelectorForGroup(groupId) {
         let users = [];
@@ -5073,7 +4253,7 @@ const App = window.App = {
                 body: JSON.stringify({ user_id: userId }) // Cambiado a user_id para el backend modular
             });
             if (res.success) {
-                this._notifyAction('Asignado', 'Usuario añadido al grupo.', 'success');
+                this._notifyAction('Asignado', 'Usuario a├▒adido al grupo.', 'success');
                 this.loadGroups();
                 this.loadUsersTable();
                 Swal.close();
@@ -5087,10 +4267,10 @@ const App = window.App = {
         try {
             const res = await this.fetchAPI(`/events/${eventId}/users`, {
                 method: 'POST',
-                body: JSON.stringify({ userId }) // userId es correcto aquí
+                body: JSON.stringify({ userId }) // userId es correcto aqu├¡
             });
             if (res.success) {
-                this._notifyAction('Asignado', 'Staff añadido al evento.', 'success');
+                this._notifyAction('Asignado', 'Staff a├▒adido al evento.', 'success');
                 this.loadEventStaff(eventId);
                 this.loadEvents(); 
                 this.loadUsersTable();
@@ -5111,7 +4291,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
-                        <span class="text-xs text-slate-400">Vincular usuario a organización</span>
+                        <span class="text-xs text-slate-400">Vincular usuario a organizaci├│n</span>
                     </div>
                     <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
                         <span class="material-symbols-outlined text-xs">add_business</span> NUEVA EMPRESA
@@ -5159,13 +4339,13 @@ const App = window.App = {
 
     async assignGroupToUser(userId, groupId) {
         try {
-            // Backend espera group_id como array o valor único en un objeto para PUT /api/users/:id/group
+            // Backend espera group_id como array o valor ├║nico en un objeto para PUT /api/users/:id/group
             const res = await this.fetchAPI(`/users/${userId}/group`, {
                 method: 'PUT',
                 body: JSON.stringify({ group_id: [groupId] }) 
             });
             if (res.success) {
-                this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
+                this._notifyAction('├ëxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
                 this.loadGroups();
                 Swal.close();
@@ -5188,7 +4368,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos a Empresa</span>
-                        <span class="text-xs text-slate-400">Vincular eventos propiedad de esta organización</span>
+                        <span class="text-xs text-slate-400">Vincular eventos propiedad de esta organizaci├│n</span>
                     </div>
                 </div>
                 <div class="relative group">
@@ -5205,7 +4385,7 @@ const App = window.App = {
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</span>
-                                    <span class="text-[10px] text-slate-500">${e.location || 'Sin ubicación'}</span>
+                                    <span class="text-[10px] text-slate-500">${e.location || 'Sin ubicaci├│n'}</span>
                                 </div>
                             </div>
                             <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(e.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
@@ -5254,6 +4434,60 @@ const App = window.App = {
     },
 
 
+    async showEventSelector(userId, selectedEventIds = []) {
+        let events = [];
+        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
+                        <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
+                    </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">calendar_add_on</span> NUEVO EVENTO
+                    </button>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-orange-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar evento por nombre..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">${e.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.city || 'Ubicaci├│n remota'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-orange-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
 
     async toggleEventToUser(userId, eventId, isSelected) {
         try {
@@ -5281,13 +4515,771 @@ const App = window.App = {
         } catch(e) { console.error(e); }
     },
 
+    async assignEventToUser(userId, eventId) {
+        try {
+            // Buscamos el usuario en el estado actual para obtener sus eventos ya asignados
+            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+            const currentEvents = user ? (user.events || []) : [];
+            
+            // Si ya est├í asignado, no hacemos nada (o podr├¡amos togglear, pero aqu├¡ es modo "Asignar")
+            if (currentEvents.map(String).includes(String(eventId))) {
+                Swal.close();
+                return;
+            }
+
+            const newEvents = [...currentEvents, eventId];
+            
+            const res = await this.fetchAPI(`/users/${userId}/events`, {
+                method: 'PUT',
+                body: JSON.stringify({ events: newEvents })
+            });
+
+            if (res.success) {
+                this._notifyAction('├ëxito', 'Evento vinculado correctamente.', 'success');
+                this.loadUsersTable();
+                this.loadEvents(); 
+                Swal.close();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo vincular.', 'error');
+            }
+        } catch(e) { console.error(e); }
+    },
+
     async removeUserFromEvent(userId, eventId) {
-        if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
+        if (!(await this._confirmAction('┬┐Quitar este usuario del evento?', 'Esta acci├│n desvincular├í al usuario del evento seleccionado.'))) return;
         try {
             await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
             this.loadUsersTable();
             this.loadEvents();
         } catch(e) { console.error(e); }
+    },
+
+
+    navigateToCreateGroup() {
+        this.switchSystemTab('groups');
+        Swal.close();
+        setTimeout(() => {
+            document.getElementById('btn-create-group')?.click();
+        }, 300);
+    },
+
+    navigateToCreateEvent() {
+        this.navigate('my-events');
+        Swal.close();
+        setTimeout(() => {
+            document.getElementById('btn-create-event-open')?.click();
+        }, 300);
+    },
+
+    // --- EMAIL Y ENV├ìO MASIVO (FASE 6) ---
+    async navigateEmailSection(section) {
+        document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
+        
+        // Actualizar botones de sub-navegaci├│n (V12.6.1)
+        const subNav = document.querySelector('#sys-content-email .sub-nav-container');
+        if (subNav) {
+            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                b.classList.add('text-slate-400', 'bg-white/5'); // Reset to default state
+                if (b.id === `email-nav-${section}`) {
+                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    b.classList.remove('text-slate-400', 'bg-white/5');
+                }
+            });
+        }
+
+        const panel = document.getElementById('email-content-' + section);
+        if (panel) panel.classList.remove('hidden');
+
+        if (section === 'templates') this.loadEmailTemplates();
+        if (section === 'mailing') this.loadMailingData();
+        if (section === 'mailbox') this.loadMailbox();
+        if (section === 'history') this.showSavedCampaigns();
+    },
+
+    async loadEmailTemplates() {
+        const grid = document.getElementById('email-templates-grid');
+        if (!grid) return;
+        try {
+            const templates = await this.fetchAPI('/email-templates');
+            this.state.emailTemplates = templates;
+            grid.innerHTML = `
+                <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
+                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-secondary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-2xl">add</span>
+                    </div>
+                    <span class="text-xs font-bold text-[var(--text-secondary)] group-hover:text-[var(--primary)]">NUEVA PLANTILLA</span>
+                </div>
+            ` + templates.map(t => `
+                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative z-10 flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">mail</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white">${t.name}</h4>
+                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">${t.subject || 'Sin Asunto'}</p>
+                        </div>
+                    </div>
+                    <div class="relative z-10 pt-4 border-t border-white/5 flex gap-2">
+                        <button onclick="App.selectTemplateFromLibrary('${t.id}')" class="btn-primary !py-1.5 !px-3 text-[10px] flex-1">
+                            <span class="material-symbols-outlined text-xs">send</span> USAR PARA ENV├ìO
+                        </button>
+                        <button onclick="App.openTemplateEditor('${t.id}')" class="btn-secondary !py-1.5 !px-3 text-[10px] flex-1">
+                            <span class="material-symbols-outlined text-xs">edit</span> EDITAR
+                        </button>
+                        <button onclick="App.deleteEmailTemplate('${t.id}')" class="btn-secondary !py-1.5 !px-2 !text-red-500 hover:!bg-red-500/10">
+                            <span class="material-symbols-outlined text-xs">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { console.error('Error templates:', e); }
+    },
+
+    async openTemplateEditor(id = null) {
+        console.log('[TEMPLATES] Abriendo editor:', id || 'Nueva');
+        const modal = document.getElementById('modal-template-editor');
+        if (!modal) return;
+
+        // Limpiar campos
+        document.getElementById('tpl-name').value = '';
+        document.getElementById('tpl-subject').value = '';
+        if (this.quillTemplate) this.quillTemplate.setContents([]);
+        window.active_template_id = id;
+
+        if (id) {
+            const t = this.state.emailTemplates?.find(x => String(x.id) === String(id));
+            if (t) {
+                document.getElementById('tpl-name').value = t.name;
+                document.getElementById('tpl-subject').value = t.subject;
+                if (this.quillTemplate) this.quillTemplate.clipboard.dangerouslyPasteHTML(t.body || '');
+            }
+        }
+
+        modal.classList.remove('hidden');
+        
+        // Inicializar Quill si no existe
+        if (!this.quillTemplate) {
+            const selector = '#tpl-quill-editor';
+            if (document.querySelector(selector)) {
+                this.quillTemplate = new Quill(selector, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'clean']
+                        ]
+                    }
+                });
+            }
+        }
+    },
+
+    async saveEmailTemplate() {
+        const id = window.active_template_id;
+        const data = {
+            name: document.getElementById('tpl-name').value,
+            subject: document.getElementById('tpl-subject').value,
+            body: this.quillTemplate ? this.quillTemplate.root.innerHTML : ''
+        };
+
+        if (!data.name) return Swal.fire('Atenci├│n', 'El nombre de la plantilla es obligatorio.', 'warning');
+
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email-templates/${id}` : '/email-templates';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+            
+            if (res.success) {
+                this._notifyAction('Guardado', 'Plantilla actualizada correctamente.', 'success');
+                document.getElementById('modal-template-editor').classList.add('hidden');
+                this.loadEmailTemplates();
+                this.loadMailingData(); // Actualizar selector en mailing
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo guardar la plantilla.', 'error');
+            }
+        } catch(e) { console.error('Error saving template:', e); }
+    },
+
+    async deleteEmailTemplate(id) {
+        if (await this._confirmAction('┬┐Eliminar Plantilla?', 'Esta acci├│n no se puede deshacer.')) {
+            try {
+                const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+                if (res.success) {
+                    this._notifyAction('Eliminada', 'La plantilla ha sido borrada.', 'success');
+                    this.loadEmailTemplates();
+                    this.loadMailingData();
+                }
+            } catch(e) { console.error('Error deleting template:', e); }
+        }
+    },
+
+    async selectTemplateFromLibrary(id) {
+        await this.navigateEmailSection('mailing');
+        setTimeout(() => {
+            const selector = document.getElementById('mailing-template-selector');
+            if (selector) {
+                selector.value = id;
+                this.onTemplateChange();
+                this._notifyAction('Plantilla Cargada', 'Lista para env├¡o masivo.', 'success');
+            }
+        }, 100);
+    },
+
+    async loadMailbox() {
+        const list = document.getElementById('inbox-list');
+        if (!list) return;
+        try {
+            const res = await this.fetchAPI('/email-logs?type=INBOX');
+            const logs = res.data || []; // V12.8.1 Fix: Backend returns {data: []}
+            list.innerHTML = logs.map(l => `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-4 py-3 text-xs text-white font-medium">${l.sender || 'Sistema'}</td>
+                    <td class="px-4 py-3 text-xs text-slate-300 truncate max-w-xs">${l.subject}</td>
+                    <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error('Error mailbox:', e); }
+    },
+
+    async syncIMAP() {
+        Swal.fire({ title: 'Sincronizando...', text: 'Conectando con IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await this.fetchAPI('/imap/sync');
+            if (res.success) {
+                Swal.fire('Ô£ô Sincronizado', 'Correos actualizados correctamente.', 'success');
+                this.loadMailbox();
+            }
+        } catch(e) { Swal.fire('Error', 'Falla en sincronizaci├│n IMAP', 'error'); }
+    },
+
+    async loadMailingData() {
+        console.log('[MAIL] Loading mailing data...');
+        try {
+            const events = await this.fetchAPI('/events');
+            const eventSelector = document.getElementById('mailing-event-selector');
+            if (eventSelector) {
+                eventSelector.innerHTML = '<option value="">-- Seleccionar Evento --</option>' + 
+                    events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
+            }
+
+            const templates = await this.fetchAPI('/email-templates');
+            this.state.emailTemplates = templates;
+            const tempSelector = document.getElementById('mailing-template-selector');
+            if (tempSelector) {
+                tempSelector.innerHTML = '<option value="">-- Seleccionar Plantilla --</option>' + 
+                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+
+            // Initialize recipients state if empty
+            if (!this.state.mailingGuests) this.state.mailingGuests = [];
+        } catch(e) { console.error('Error mailing data:', e); }
+    },
+
+    async onMailingEventChange() {
+        const eventId = document.getElementById('mailing-event-selector').value;
+        if (!eventId) {
+            // Si limpian el evento, dejamos solo los manuales
+            this.state.mailingGuests = (this.state.mailingGuests || []).filter(g => g.manual);
+            return this.filterMailingGuests();
+        }
+        try {
+            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
+            const manualOnes = (this.state.mailingGuests || []).filter(g => g.manual);
+            // Inicializar propiedad selected para persistencia
+            const formattedGuests = guests.map(g => ({ ...g, selected: true }));
+            this.state.mailingGuests = [...manualOnes, ...formattedGuests];
+            this.filterMailingGuests();
+        } catch(e) { console.error('[MAIL] Error fetch guests:', e); }
+    },
+
+    addDirectRecipient() {
+        const input = document.getElementById('direct-email-input');
+        const email = input.value.trim();
+        if (!email || !email.includes('@')) return Swal.fire('Error', 'Ingresa un correo v├ílido.', 'error');
+
+        const newGuest = {
+            id: 'manual-' + Date.now(),
+            name: email.split('@')[0],
+            email: email,
+            organization: 'Directo',
+            manual: true,
+            selected: true
+        };
+
+        if (!this.state.mailingGuests) this.state.mailingGuests = [];
+        
+        // Prevent duplicates
+        if (this.state.mailingGuests.find(g => g.email === email)) {
+            return Swal.fire('Atenci├│n', 'Este correo ya est├í en la lista.', 'info');
+        }
+
+        this.state.mailingGuests.unshift(newGuest);
+        this.filterMailingGuests();
+        input.value = '';
+        this._notifyAction('A├▒adido', `${email} agregado a la lista.`, 'success');
+    },
+
+    onTemplateChange() {
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
+        if (template) {
+            const previewArea = document.getElementById('email-preview-area');
+            if (previewArea) {
+                const body = template.body || ''; 
+                // Fix V12.9.0: Clear and expand
+                previewArea.innerHTML = `<iframe srcdoc="${body.replace(/"/g, '&quot;')}" class="w-full border-none animate-fade-in" style="min-height: 600px; height: 600px;" onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';"></iframe>`;
+            }
+        }
+    },
+
+    renderMailingRecipients(guests) {
+        this.state.mailingGuests = guests; // Cache for filtering
+        this.filterMailingGuests();
+    },
+
+    filterMailingGuests() {
+        const searchInput = document.getElementById('mailing-search');
+        if (!searchInput) return;
+        
+        const query = searchInput.value.toLowerCase().trim();
+        const guests = this.state.mailingGuests || [];
+        
+        const filtered = guests.filter(g => {
+            const name = (g.name || '').toLowerCase();
+            const email = (g.email || '').toLowerCase();
+            const org = (g.organization || '').toLowerCase();
+            const pos = (g.position || '').toLowerCase();
+            const city = (g.city || '').toLowerCase();
+            
+            return name.includes(query) || email.includes(query) || org.includes(query) || pos.includes(query) || city.includes(query);
+        });
+
+        // Cache filtered result for toggle action
+        this.state.lastFilteredRecipients = filtered;
+
+        const list = document.getElementById('mailing-recipients-list');
+        const count = document.getElementById('mailing-count');
+        if (!list) return;
+
+        const totalSelected = (this.state.mailingGuests || []).filter(g => g.selected).length;
+        count.innerHTML = `${filtered.length} <span class="text-[var(--text-secondary)] opacity-50 mx-1">/</span> <span class="text-[var(--primary)]">${totalSelected} seleccionados</span>`;
+        
+        this.updateMailingSummaryUI(); // V12.12.0
+        
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="text-center py-6">
+                <span class="material-symbols-outlined text-slate-600 text-3xl mb-2 opacity-20">search_off</span>
+                <p class="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Sin resultados para "${query}"</p>
+            </div>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(g => `
+            <label class="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-all group border border-transparent hover:border-white/5">
+                <input type="checkbox" class="mailing-check w-4 h-4 rounded-md accent-primary border-white/10 bg-slate-900/50" 
+                    value="${g.email}" ${g.selected ? 'checked' : ''} 
+                    onchange="App.updateGuestSelection('${g.id}', this.checked)"
+                    data-name="${g.name}">
+                <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">${g.name}</span>
+                    <span class="text-[9px] text-slate-500 truncate font-medium">${g.email} ÔÇó ${g.organization || 'S/E'} ${g.manual ? 'ÔÇó (Manual)' : ''}</span>
+                </div>
+            </label>
+        `).join('');
+    },
+
+    updateGuestSelection(guestId, isChecked) {
+        const guest = (this.state.mailingGuests || []).find(g => g.id == guestId);
+        if (guest) {
+            guest.selected = isChecked;
+            this.filterMailingGuests(); // Actualizar contador
+        }
+    },
+
+    clearMailingSearch() {
+        const input = document.getElementById('mailing-search');
+        if (input) {
+            input.value = '';
+            this.filterMailingGuests();
+            input.focus();
+        }
+    },
+
+
+
+    showScheduleModal() {
+        Swal.fire({
+            title: 'Programar Campa├▒a',
+            html: `
+                <div class="space-y-4 p-2">
+                    <div class="field-group">
+                        <label class="block text-left text-[10px] font-bold uppercase text-slate-500 mb-2">Fecha y Hora de Inicio</label>
+                        <input type="datetime-local" id="schedule-datetime" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white">
+                    </div>
+                </div>
+            `,
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            confirmButtonText: 'Programar Ahora',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--primary)',
+            preConfirm: () => {
+                const date = document.getElementById('schedule-datetime').value;
+                if (!date) return Swal.showValidationMessage('Debes seleccionar una fecha y hora');
+                return date;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.state.scheduledMailingDate = result.value;
+                Swal.fire('Programado', `La campa├▒a iniciar├í el ${new Date(result.value).toLocaleString()}`, 'success');
+            }
+        });
+    },
+
+    async sendTestEmail() {
+        if (!this.state.user) return;
+        
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const template = (this.state.emailTemplates || []).find(t => t.id == templateId);
+        
+        if (!template) return Swal.fire('Error', 'Selecciona una previsualizaci├│n primero', 'error');
+
+        const confirm = await Swal.fire({
+            title: 'Enviar Prueba',
+            text: `┬┐Enviar mail de prueba a ${this.state.user.email}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Si, enviar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            confirmButtonColor: 'var(--primary)'
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                // Simulaci├│n de env├¡o de prueba
+                this._notifyAction('Prueba', `Enviando mail a ${this.state.user.email}...`, 'info');
+                await new Promise(r => setTimeout(r, 1000));
+                this._notifyAction('├ëxito', 'Mail de prueba enviado correctamente.', 'success');
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo enviar la prueba.', 'error');
+            }
+        }
+    },
+
+    editMailingTemplate() {
+        const templateId = document.getElementById('mailing-template-selector').value;
+        if (!templateId) return Swal.fire('Atenci├│n', 'Selecciona una plantilla para editar.', 'info');
+        
+        // Redirigir suavemente a la pesta├▒a de plantillas
+        this.navigateEmailSection('templates');
+        
+        // Abrir el editor directamente (V12.16.0 robusto)
+        setTimeout(() => {
+            this.openTemplateEditor(templateId);
+        }, 300);
+    },
+
+    // --- HISTORIAL DE CAMPA├æAS (Integrado desde logic_v16.js) ---
+
+    showSavedCampaigns() {
+        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        if (saved.length === 0) return Swal.fire("Historial Vac├¡o", "No hay campa├▒as guardadas.", "info");
+        
+        const html = `
+            <div class="max-h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                ${saved.reverse().map(c => `
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all font-premium shadow-sm">
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold text-white">${c.name}</span>
+                            <span class="text-[9px] text-slate-500">${c.recipients.length} destinatarios</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.loadCampaign(${c.id})" class="px-2 py-1 bg-primary text-white text-[9px] rounded-lg">Cargar</button>
+                            <button onclick="App.deleteCampaign(${c.id})" class="px-2 py-1 bg-red-500/20 text-red-500 text-[9px] rounded-lg">Borrar</button>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>`;
+            
+        Swal.fire({ 
+            title: "Historial de Campa├▒as", 
+            html, 
+            background: "#292a2d", 
+            color: "#fff", 
+            showConfirmButton: false 
+        });
+    },
+
+    loadCampaign(id) {
+        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        const c = saved.find(x => Number(x.id) === Number(id));
+        if (!c) return;
+        
+        const tempSelector = document.getElementById("mailing-template-selector");
+        const eventSelector = document.getElementById("mailing-event-selector");
+        
+        if (tempSelector) tempSelector.value = c.tid;
+        if (eventSelector) eventSelector.value = c.eid;
+        
+        // Forzar carga de invitados del evento si cambi├│
+        this.onMailingEventChange().then(() => {
+            (this.state.mailingGuests || []).forEach(g => {
+                g.selected = c.recipients.includes(g.email);
+            });
+            this.onTemplateChange();
+            this.filterMailingGuests();
+            Swal.close();
+            this._notifyAction("├ëxito", "Campa├▒a cargada.", "success");
+        });
+    },
+
+    deleteCampaign(id) {
+        let saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        saved = saved.filter(x => Number(x.id) !== Number(id));
+        localStorage.setItem("check_saved_campaigns", JSON.stringify(saved));
+        this.showSavedCampaigns();
+    },
+    updateMailingSummaryUI() {
+        const container = document.getElementById('mailing-summary-preview');
+        const list = document.getElementById('mailing-summary-list');
+        const badge = document.getElementById('mailing-selection-count-badge');
+        
+        if (!container || !list) return;
+
+        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
+        
+        if (selected.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        if (badge) badge.textContent = `${selected.length} seleccionados`;
+        
+        list.innerHTML = selected.map(g => `
+            <div class="flex items-center gap-2 p-1.5 bg-white/5 rounded-xl border border-white/5">
+                <span class="material-symbols-outlined text-[10px] text-green-500">check_circle</span>
+                <div class="flex flex-col truncate">
+                    <span class="text-white truncate font-bold text-[10px]">${g.name}</span>
+                    <span class="text-[8px] text-slate-500 truncate">${g.email}</span>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    showSelectionSummary() {
+        const selected = (this.state.mailingGuests || []).filter(g => g.selected);
+        if (selected.length === 0) return Swal.fire('Lista Vac├¡a', 'No hay destinatarios seleccionados.', 'info');
+
+        const html = `
+            <div class="max-h-64 overflow-y-auto text-left space-y-2 pr-2 custom-scrollbar">
+                ${selected.map(g => `
+                    <div class="flex flex-col p-2 bg-white/5 rounded-lg border border-white/5">
+                        <span class="text-[11px] font-bold text-white">${g.name}</span>
+                        <span class="text-[9px] text-slate-500">${g.email}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        Swal.fire({
+            title: `<span class="text-lg font-bold">Resumen de Selecci├│n</span>`,
+            html: html,
+            width: '400px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: 'var(--primary)',
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
+        });
+    },
+
+    toggleAllRecipients() {
+        const filtered = this.state.lastFilteredRecipients || [];
+        if (filtered.length === 0) return;
+        
+        // Determinar si activar o desactivar bas├índonos en el primero
+        const newState = !filtered[0].selected;
+        filtered.forEach(g => g.selected = newState);
+        
+        // Re-renderizar respetando el filtro actual
+        this.filterMailingGuests();
+    },
+
+    async sendMassEmail() {
+        const eventId = document.getElementById('mailing-event-selector').value;
+        const templateId = document.getElementById('mailing-template-selector').value;
+        const scheduledAt = this.state.scheduledMailingDate || null;
+        
+        const recipients = (this.state.mailingGuests || [])
+            .filter(g => g.selected)
+            .map(g => ({ 
+                email: g.email, 
+                name: g.name,
+                organization: g.organization,
+                city: g.city
+            }));
+        
+        if (recipients.length === 0) return Swal.fire('Atenci├│n', 'Selecciona destinatarios primero.', 'info');
+
+        const label = scheduledAt ? `Programar para ${new Date(scheduledAt).toLocaleString()}` : `Lanzar ahora para ${recipients.length} correos`;
+        
+        if (await this._confirmAction('┬┐Lanzar Campa├▒a?', label, 'S├¡, iniciar')) {
+            try {
+                const res = await this.fetchAPI('/send-mass', {
+                    method: 'POST',
+                    body: JSON.stringify({ templateId, recipients, eventId, scheduledAt })
+                });
+                if (res.success) {
+                    this.state.scheduledMailingDate = null; // Reset
+                    document.getElementById('mailing-progress-container').classList.remove('hidden');
+                    this.startQueuePolling();
+                }
+            } catch(e) { this._notifyAction('Error', 'No se pudo iniciar la campa├▒a.', 'error'); }
+        }
+    },
+
+    startQueuePolling() {
+        if (this.queuePolling) clearInterval(this.queuePolling);
+        this.updateQueueStats();
+        this.queuePolling = setInterval(() => this.updateQueueStats(), 3000);
+        
+        // Show controls
+        document.getElementById('btn-send-mass-email').classList.add('hidden');
+        document.getElementById('btn-pause-mailing').classList.remove('hidden');
+        document.getElementById('btn-stop-mailing').classList.remove('hidden');
+    },
+
+    async updateQueueStats() {
+        try {
+            const stats = await this.fetchAPI('/email-queue/stats');
+            const percent = stats.total > 0 ? Math.round(((stats.total - stats.pending) / stats.total) * 100) : 0;
+            
+            document.getElementById('mailing-percentage').textContent = percent + '%';
+            document.getElementById('mailing-progress-bar').style.width = percent + '%';
+            document.getElementById('mailing-sent-count').textContent = stats.sent;
+            document.getElementById('mailing-error-count').textContent = stats.errors;
+            document.getElementById('mailing-total-count').textContent = stats.total;
+
+            if (stats.pending === 0 && stats.total > 0) {
+                clearInterval(this.queuePolling);
+                this._notifyAction('Campa├▒a Finalizada', 'Todos los correos han sido procesados.', 'success');
+                this.resetQueueUI();
+            }
+            
+            // UI state based on backend queue status
+            if (stats.status === 'PAUSED') {
+                document.getElementById('btn-pause-mailing').classList.add('hidden');
+                document.getElementById('btn-resume-mailing').classList.remove('hidden');
+                document.getElementById('mailing-status-text').classList.remove('animate-pulse');
+                document.getElementById('mailing-status-text').textContent = 'Campa├▒a Pausada';
+            } else {
+                document.getElementById('btn-pause-mailing').classList.remove('hidden');
+                document.getElementById('btn-resume-mailing').classList.add('hidden');
+                document.getElementById('mailing-status-text').classList.add('animate-pulse');
+                document.getElementById('mailing-status-text').textContent = 'Procesando...';
+            }
+
+        } catch(e) { console.error('Polling error:', e); }
+    },
+
+    async controlQueue(action) {
+        try {
+            await this.fetchAPI(`/email-queue/${action}`, { method: 'POST' });
+            this.updateQueueStats();
+            if (action === 'stop') {
+                clearInterval(this.queuePolling);
+                this.resetQueueUI();
+            }
+        } catch(e) { console.error('Control error:', e); }
+    },
+
+    resetQueueUI() {
+        document.getElementById('btn-send-mass-email').classList.remove('hidden');
+        document.getElementById('btn-pause-mailing').classList.add('hidden');
+        document.getElementById('btn-resume-mailing').classList.add('hidden');
+        document.getElementById('btn-stop-mailing').classList.add('hidden');
+        document.getElementById('mailing-progress-container').classList.add('hidden');
+    },
+
+    async handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Atenci├│n', 'Selecciona un evento para importar.', 'info');
+            return;
+        }
+        this._notifyAction('Procesando', 'Analizando archivo...', 'info');
+        this.handleImport(file);
+    },
+
+    async purgeDatabase() {
+        if (await this._confirmAction('┬┐BORRAR TODO?', 'Esta acci├│n eliminar├í TODOS los registros del sistema permanentemente.')) {
+            try {
+                await this.fetchAPI('/admin/purge', { method: 'POST' });
+                this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
+                location.reload();
+            } catch (e) {
+                this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
+            }
+        }
+    },
+
+    // --- AUTENTICACI├ôN (RESTAURADO V12.7.3) ---
+    async login(username, password) {
+        console.log("[AUTH] Intentando login:", username);
+        try {
+            const data = await this.fetchAPI('/login', { 
+                method: 'POST', 
+                body: JSON.stringify({ username, password }) 
+            });
+            
+            if (data.success) {
+                this.state.user = data;
+                LS.set('user', JSON.stringify(data));
+                
+                // Inicializar push
+                this.initPushNotifications().catch(err => console.error('Push error:', err));
+                
+                // Cargar interfaz
+                await this.loadAppShell();
+                
+                // Actualizar Sidebar
+                const sbu = document.getElementById('sidebar-username');
+                const sbr = document.getElementById('sidebar-role');
+                if (sbu) sbu.textContent = data.username || 'Usuario';
+                if (sbr) sbr.textContent = data.role || 'Staff';
+                
+                // UI transition
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+                
+                this.updateUIPermissions();
+                this.updateRoleOptions();
+                this.handleInitialNavigation();
+                this.initAppShell();
+                
+                return { success: true };
+            } else {
+                this._notifyAction('Error de Acceso', data.message || 'Credenciales inv├ílidas.', 'error');
+                return { success: false, message: data.message };
+            }
+        } catch (err) {
+            console.error("[AUTH] Error fatal:", err);
+            this._notifyAction('Fallo de Conexi├│n', 'No se pudo contactar con el servidor.', 'error');
+            return { success: false, error: err };
+        }
     },
 };
 
@@ -5322,7 +5314,7 @@ window.switchAdminTab = function(tabName) {
 
 // --- DOM READY BOOTSTRAP V12.3.2.2 ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 0. Helpers Críticos (Hoisting manual)
+    // 0. Helpers Cr├¡ticos (Hoisting manual)
     const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
@@ -5418,8 +5410,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.App.state.socket.on('email_queue_progress', () => App.updateMailingStats());
     }
 
-    // Listeners System (Se maneja en attachAppListeners para evitar duplicación)
-    // Se mantienen solo los que no están en app-shell o son globales fuera del shell
+    // Listeners System (Se maneja en attachAppListeners para evitar duplicaci├│n)
+    // Se mantienen solo los que no est├ín en app-shell o son globales fuera del shell
     
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
 
@@ -5449,11 +5441,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const p = document.getElementById('signup-pass').value;
         try {
             const d = await App.fetchAPI('/signup', { method: 'POST', body: JSON.stringify({ username: u, password: p, role: 'PRODUCTOR' }) });
-            if (d.success) App._notifyAction('✓ Solicitud enviada', 'Un administrador debe aprobar tu acceso.', 'success', 0);
+            if (d.success) App._notifyAction('Ô£ô Solicitud enviada', 'Un administrador debe aprobar tu acceso.', 'success', 0);
             else App._notifyAction('Error', d.error || 'No se pudo enviar la solicitud.', 'error');
             document.getElementById('signup-form')?.classList.add('hidden');
             document.getElementById('login-form')?.classList.remove('hidden');
-        } catch(err) { App._notifyAction('Error', 'Error de conexión.', 'error'); }
+        } catch(err) { App._notifyAction('Error', 'Error de conexi├│n.', 'error'); }
     });
 
     // Modales Legales (Links del Login)
@@ -5466,8 +5458,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             modal?.classList.remove('hidden');
         } catch(e) { alert('No se pudo cargar el texto legal.'); }
     }
-    cl('btn-open-policy', () => openLegalModal('policy_data', 'Política de Tratamiento de Datos'));
-    cl('btn-open-terms', () => openLegalModal('terms_conditions', 'Términos y Condiciones'));
+    cl('btn-open-policy', () => openLegalModal('policy_data', 'Pol├¡tica de Tratamiento de Datos'));
+    cl('btn-open-terms', () => openLegalModal('terms_conditions', 'T├®rminos y Condiciones'));
     cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
 
     // Logout
@@ -5483,7 +5475,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`${App.constants.API_URL}/register`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(b) });
             const data = await res.json();
-            if (data.success) { alert("✓ Registro Confirmado."); e.target.reset(); }
+            if (data.success) { alert("Ô£ô Registro Confirmado."); e.target.reset(); }
             else alert("Error: " + data.error);
         } catch { alert("Error de red."); }
         finally { btn.innerText = orig; btn.disabled = false; }
@@ -5505,31 +5497,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     App.handleDeleteEvent = async () => {
         if (!App.state.event) return;
-        if (await App._confirmAction(`¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"?`, 'Esta acción es irreversible y borrará todos los datos asociados.')) {
+        if (await App._confirmAction(`┬┐Seguro que deseas ELIMINAR el evento "${App.state.event.name}"?`, 'Esta acci├│n es irreversible y borrar├í todos los datos asociados.')) {
             try {
                 const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
                 if (res.success) {
-                    App._notifyAction('✓ Evento eliminado.', 'El evento ha sido eliminado correctamente.', 'success');
+                    App._notifyAction('Ô£ô Evento eliminado.', 'El evento ha sido eliminado correctamente.', 'success');
                     App.state.event = null;
                     App.navigate('my-events');
                 } else {
                     App._notifyAction('Error', res.error || 'No se pudo eliminar el evento.', 'error');
                 }
-            } catch { App._notifyAction('Error', 'No se pudo eliminar el evento debido a un error de conexión.', 'error'); }
+            } catch { App._notifyAction('Error', 'No se pudo eliminar el evento debido a un error de conexi├│n.', 'error'); }
         }
     };
 
     // Admin Actions
     cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
     cl('btn-export-analytics', async () => {
-        if (!App.state.event || typeof window.jspdf === 'undefined') return alert("Librería PDF no disponible");
+        if (!App.state.event || typeof window.jspdf === 'undefined') return alert("Librer├¡a PDF no disponible");
         try {
             const s = await App.fetchAPI(`/stats/${App.state.event.id}`);
             const doc = new window.jspdf.jsPDF();
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 50, 'F');
             doc.setTextColor(255,255,255); doc.setFontSize(28); doc.text("CHECK ANALYTICS", 15, 25);
             doc.setFontSize(10); doc.setTextColor(124,58,237); doc.text(`REPORT V${App.state.version} | ${App.state.event.name.toUpperCase()}`, 15, 35);
-            doc.autoTable({ startY: 60, head: [['Métrica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas Médicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
+            doc.autoTable({ startY: 60, head: [['M├®trica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas M├®dicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
             doc.save(`Analitica_V${App.state.version}_${App.state.event.name.replace(/\s+/g,'_')}.pdf`);
         } catch(e) { alert("Error al generar PDF."); }
     });
@@ -5583,7 +5575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         document.getElementById('ticket-location').textContent = event.location;
         
-        // Personalización Visual
+        // Personalizaci├│n Visual
         const accent = event.ticket_accent_color || '#7c3aed';
         modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
         if (card) {
@@ -5673,7 +5665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const guest = App.state.currentTicketGuest;
         if (!guest) return;
         const url = `${window.location.origin}/ticket.html?g=${guest.id}&e=${App.state.event.id}`;
-        const text = encodeURIComponent(`¡Hola ${guest.name}! Aquí tienes tu boleto para ${App.state.event.name}: ${url}`);
+        const text = encodeURIComponent(`┬íHola ${guest.name}! Aqu├¡ tienes tu boleto para ${App.state.event.name}: ${url}`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
     };
 
@@ -5684,7 +5676,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         interval: null,
         async start() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Tu navegador no soporta acceso a cámara.');
+                alert('Tu navegador no soporta acceso a c├ímara.');
                 return;
             }
             try {
@@ -5700,8 +5692,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('btn-start-scan').disabled = true;
                 document.getElementById('btn-stop-scan').disabled = false;
             } catch (err) {
-                console.error('Error al acceder a la cámara:', err);
-                alert('No se pudo acceder a la cámara. Asegúrate de permitir los permisos.');
+                console.error('Error al acceder a la c├ímara:', err);
+                alert('No se pudo acceder a la c├ímara. Aseg├║rate de permitir los permisos.');
             }
         },
         stop() {
@@ -5768,7 +5760,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         this.showResult('Error al registrar check-in.', 'error');
                     }
                 } else {
-                    this.showResult('QR no válido.', 'error');
+                    this.showResult('QR no v├ílido.', 'error');
                 }
             } catch (e) {
                 // If not JSON, maybe it's a guest ID directly
@@ -5853,7 +5845,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Hide progress
         if (modal) modal.classList.add('hidden');
-        alert(`✓ Generados ${processed} tickets en ZIP.`);
+        alert(`Ô£ô Generados ${processed} tickets en ZIP.`);
     };
 
     function loadScript(src) {
@@ -5926,7 +5918,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     cl('btn-mailing', () => App.openMailing());
 
-    // Listener para importación (Ya definido en App.handleImport)
+    // Listener para importaci├│n (Ya definido en App.handleImport)
 
     cl('btn-confirm-import', async () => {
         const btn = document.getElementById('btn-confirm-import');
@@ -5934,17 +5926,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await App.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ event_id: App.state.event.id }) });
             if (res.success) {
-                alert(`✓ Importación exitosa: ${res.count} invitados añadidos.`);
+                alert(`Ô£ô Importaci├│n exitosa: ${res.count} invitados a├▒adidos.`);
                 document.getElementById('modal-import-results')?.classList.add('hidden');
                 App.loadGuests();
             } else { alert("Error: " + res.error); }
-        } catch(e) { alert("Fallo en la importación."); }
+        } catch(e) { alert("Fallo en la importaci├│n."); }
         finally { btn.innerText = "PROCESAR E IMPORTAR AHORA"; btn.disabled = false; }
     });
 
     cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
 
-    // ------- V11: TEXTOS LEGALES (MÓDULO PREMIUM) -------
+    // ------- V11: TEXTOS LEGALES (M├ôDULO PREMIUM) -------
     App.initQuill = async () => {
         if (App.quillPolicy) return;
         
@@ -5973,25 +5965,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Usar App.fetchAPI para mayor consistencia y control
             const s = await App.fetchAPI('/settings');
             
-            const defaultPolicy = `<h2>Política de Protección de Datos Personales</h2>
-<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la República de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la información suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
+            const defaultPolicy = `<h2>Pol├¡tica de Protecci├│n de Datos Personales</h2>
+<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la Rep├║blica de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la informaci├│n suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
 <p><b>Finalidades:</b></p>
 <ul>
-  <li>Gestión administrativa, logística y control de acceso al evento.</li>
-  <li>Envío de información sobre la agenda, cambios de último momento y materiales post-evento.</li>
-  <li>Generación de estadísticas, reportes de asistencia y certificados de participación.</li>
+  <li>Gesti├│n administrativa, log├¡stica y control de acceso al evento.</li>
+  <li>Env├¡o de informaci├│n sobre la agenda, cambios de ├║ltimo momento y materiales post-evento.</li>
+  <li>Generaci├│n de estad├¡sticas, reportes de asistencia y certificados de participaci├│n.</li>
 </ul>
-<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
+<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresi├│n de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
             
-            const defaultTerms = `<h2>Términos y Condiciones de Uso</h2>
-<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptación de los siguientes términos:</p>
+            const defaultTerms = `<h2>T├®rminos y Condiciones de Uso</h2>
+<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptaci├│n de los siguientes t├®rminos:</p>
 <ol>
-  <li><b>Veracidad:</b> El usuario garantiza que la información proporcionada es veraz, completa y actualizada.</li>
-  <li><b>Uso del Código:</b> El código QR o link de acceso generado es personal e intransferible.</li>
-  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisión y permanencia según los protocolos establecidos.</li>
-  <li><b>Privacidad:</b> Sus datos serán tratados bajo estrictos protocolos de seguridad industrial.</li>
+  <li><b>Veracidad:</b> El usuario garantiza que la informaci├│n proporcionada es veraz, completa y actualizada.</li>
+  <li><b>Uso del C├│digo:</b> El c├│digo QR o link de acceso generado es personal e intransferible.</li>
+  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisi├│n y permanencia seg├║n los protocolos establecidos.</li>
+  <li><b>Privacidad:</b> Sus datos ser├ín tratados bajo estrictos protocolos de seguridad industrial.</li>
 </ol>
-<p>El uso indebido de la plataforma podrá resultar en la cancelación del registro.</p>`;
+<p>El uso indebido de la plataforma podr├í resultar en la cancelaci├│n del registro.</p>`;
             
             // Usar clipboard para asegurar que el HTML se interprete correctamente en Quill
             if (App.quillPolicy) App.quillPolicy.clipboard.dangerouslyPasteHTML(s.policy_data || defaultPolicy);
@@ -6018,28 +6010,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         const html = App.quillPolicy.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html, show_legal_login: show }) });
-        alert('✓ Política de datos guardada exitosamente.');
+        alert('Ô£ô Pol├¡tica de datos guardada exitosamente.');
     });
 
     cl('btn-save-terms', async () => {
         const html = App.quillTerms.root.innerHTML;
         const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
         await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html, show_legal_login: show }) });
-        alert('✓ Términos y Condiciones guardados exitosamente.');
+        alert('Ô£ô T├®rminos y Condiciones guardados exitosamente.');
     });
 
-    // ------- V10: CAMBIO DE CONTRASEÑA -------
+    // ------- V10: CAMBIO DE CONTRASE├æA -------
     sf('change-pass-form', async (e) => {
         e.preventDefault();
         const p1 = document.getElementById('new-pass-1').value;
         const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
+        if (p1 !== p2) return alert('Las contrase├▒as no coinciden.');
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
+            alert('Ô£ô Contrase├▒a actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseña.'); }
+        } catch { alert('Error al actualizar contrase├▒a.'); }
     });
     
     // ------- V10.6: PERFIL -------
@@ -6087,17 +6079,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         await App.saveIMAPConfig();
     });
 
-    // 6. Inicialización V10.5
+    // 6. Inicializaci├│n V10.5
     // Init removido - se usa DOMContentLoaded
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
-    // Modal de Invitación
+    // Modal de Invitaci├│n
     cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
     cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
     cl('btn-open-invite-admin', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
     
     // Modal de Eventos
-    cl('btn-create-event-open', () => App.navigateToCreateEvent());
+    cl('btn-create-event-open', () => {
+        document.getElementById('ev-id-hidden').value = "";
+        document.getElementById('new-event-form').reset();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    });
     cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
 
     // Form de crear/editar evento
@@ -6122,7 +6118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             reg_show_dietary: document.getElementById('ev-reg-dietary').checked ? 1 : 0,
             reg_show_gender: document.getElementById('ev-reg-gender').checked ? 1 : 0,
             reg_require_agreement: document.getElementById('ev-reg-agreement').checked ? 1 : 0,
-            // --- DISEÑO V11.6 ---
+            // --- DISE├æO V11.6 ---
             qr_color_dark: document.getElementById('ev-qr-dark').value,
             qr_color_light: document.getElementById('ev-qr-light').value,
             qr_logo_url: document.getElementById('ev-qr-logo').value,
@@ -6136,7 +6132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (eventId) {
             App.updateEvent(eventId, data);
         } else {
-            // Para creación, convertimos a FormData si hay logo, o enviamos JSON
+            // Para creaci├│n, convertimos a FormData si hay logo, o enviamos JSON
             const logo = document.getElementById('ev-logo-file').files[0];
             if (logo) {
                 const fd = new FormData();
@@ -6154,7 +6150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify(data)
                 }).then(r => r.json()).then(d => {
                     if (d.success) {
-                        alert("✓ Evento creado.");
+                        alert("Ô£ô Evento creado.");
                         document.getElementById('modal-event').classList.add('hidden');
                         App.loadEvents();
                     } else alert("Error: " + d.error);
@@ -6163,7 +6159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Form de invitación de usuario
+    // Form de invitaci├│n de usuario
     sf('invite-user-form', async (e) => {
         e.preventDefault();
         const displayName = document.getElementById('invite-display-name').value;
@@ -6172,9 +6168,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const r = document.getElementById('invite-role').value;
         try {
             const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
-            if (res.success) { alert(`✓ Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
+            if (res.success) { alert(`Ô£ô Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
-        } catch { alert('Error de conexión.'); }
+        } catch { alert('Error de conexi├│n.'); }
     });
 
     // Survey form
@@ -6185,18 +6181,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     cl('btn-create-survey', () => App.openSurveyEditor());
 
-    // Form de cambio de contraseña
+    // Form de cambio de contrase├▒a
     sf('change-pass-form', async (e) => {
         e.preventDefault();
         const p1 = document.getElementById('new-pass-1').value;
         const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
+        if (p1 !== p2) return alert('Las contrase├▒as no coinciden.');
         if (!App.state.user) return;
         try {
             await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
+            alert('Ô£ô Contrase├▒a actualizada exitosamente.');
             document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseña.'); }
+        } catch { alert('Error al actualizar contrase├▒a.'); }
     });
 
     // Clocks
@@ -6219,7 +6215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 1000);
     
-    // ─── DISEÑO PREMIUM V11.6.1 Live Preview ───
+    // ÔöÇÔöÇÔöÇ DISE├æO PREMIUM V11.6.1 Live Preview ÔöÇÔöÇÔöÇ
     App.updateQRPreview = async () => {
         const img = document.getElementById('ev-qr-preview-img');
         const logo = document.getElementById('ev-qr-preview-logo');
@@ -6256,9 +6252,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById(id)?.addEventListener('input', () => App.updateQRPreview());
     });
 
-    // cl('btn-create-event-open', ...) duplicado eliminado
+    cl('btn-create-event-open', () => {
+        document.getElementById('ev-id-hidden').value = '';
+        document.getElementById('new-event-form').reset();
+        App.updateQRPreview();
+        document.getElementById('modal-event')?.classList.remove('hidden');
+    });
 
-    // --- DELEGACIÓN GLOBAL DE ACCIONES (V12.6.0) ---
+    // --- DELEGACI├ôN GLOBAL DE ACCIONES (V12.6.0) ---
     document.addEventListener('change', async (e) => {
         const actionEl = e.target.closest('[data-action]');
         if (!actionEl) return;
@@ -6271,13 +6272,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // SweetAlert Confirm
             const result = await Swal.fire({
-                title: '¿Confirmar Cambio de Rol?',
-                text: `Estás a punto de reasignar los permisos de este usuario a ${newRole}.`,
+                title: '┬┐Confirmar Cambio de Rol?',
+                text: `Est├ís a punto de reasignar los permisos de este usuario a ${newRole}.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#7c3aed',
                 cancelButtonColor: '#ef4444',
-                confirmButtonText: 'Sí, cambiar rol',
+                confirmButtonText: 'S├¡, cambiar rol',
                 cancelButtonText: 'Cancelar',
                 background: '#0f172a',
                 color: '#fff'
@@ -6334,17 +6335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- UTILIDADES ---
-    App.filterSelectorItems = function(input, selector) {
-        const term = input.value.toLowerCase();
-        document.querySelectorAll(selector).forEach(el => {
-            const text = el.innerText.toLowerCase();
-            el.classList.toggle('hidden', !text.includes(term));
-        });
-    };
-
 });
-
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);

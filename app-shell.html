@@ -315,7 +315,26 @@
                                     <input type="text" id="smtp-user" placeholder="Usuario" class="input-field">
                                     <input type="password" id="smtp-pass" placeholder="Contraseña" class="input-field">
                                 </div>
-                                <button type="submit" class="btn-primary w-full">Validar y Guardar</button>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" id="smtp-from-name" placeholder="Nombre Remitente" class="input-field">
+                                    <input type="email" id="smtp-from-email" placeholder="Email Remitente" class="input-field">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="smtp-secure"> <label for="smtp-secure" class="text-xs uppercase font-bold">Usar SSL/TLS</label>
+                                </div>
+                                <div class="pt-4 border-t border-[var(--border)]">
+                                    <h3 class="text-lg font-bold mb-4">Configuración IMAP (Buzón)</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input type="text" id="imap-host" placeholder="Host IMAP" class="input-field">
+                                        <input type="number" id="imap-port" placeholder="Puerto IMAP" class="input-field">
+                                        <input type="text" id="imap-user" placeholder="Usuario IMAP" class="input-field">
+                                        <input type="password" id="imap-pass" placeholder="Contraseña IMAP" class="input-field">
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <input type="checkbox" id="imap-tls"> <label for="imap-tls" class="text-xs uppercase font-bold">Usar TLS</label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary w-full">Validar y Guardar Todo</button>
                             </form>
                         </div>
                     </div>
@@ -338,7 +357,11 @@
                             <h3 class="text-xl font-bold mb-6">Información Personal</h3>
                             <form id="profile-form" class="space-y-4">
                                 <input type="text" id="profile-name" placeholder="Tu nombre" class="input-field w-full">
+                                <input type="text" id="profile-phone" placeholder="Teléfono" class="input-field w-full">
                                 <input type="email" id="profile-email" placeholder="email@ejemplo.com" class="input-field w-full" disabled>
+                                <select id="profile-company" class="input-field w-full">
+                                    <option value="">-- Sin empresa asignada --</option>
+                                </select>
                                 <button type="submit" class="btn-primary w-full">Actualizar Perfil</button>
                             </form>
                         </div>
