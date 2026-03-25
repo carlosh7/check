@@ -799,7 +799,7 @@ const App = window.App = {
 
     async loadSMTPConfig() {
         try {
-            const config = await this.fetchAPI('/smtp-config');
+            const config = await this.fetchAPI('/email/smtp-config');
             if (config) {
                 const el = (id) => document.getElementById(id);
                 if (el('smtp-host')) el('smtp-host').value = config.smtp_host || '';
@@ -815,7 +815,7 @@ const App = window.App = {
 
     async loadIMAPConfig() {
         try {
-            const config = await this.fetchAPI('/imap-config');
+            const config = await this.fetchAPI('/email/imap-config');
             if (config) {
                 const el = (id) => document.getElementById(id);
                 if (el('imap-host')) el('imap-host').value = config.imap_host || '';
@@ -1464,7 +1464,7 @@ const App = window.App = {
     // --- SMTP CONFIG V10.6 ---
     loadSMTPConfig: async function() {
         try {
-            const config = await this.fetchAPI('/smtp-config');
+            const config = await this.fetchAPI('/email/smtp-config');
             if (config) {
                 const h = document.getElementById('smtp-host');
                 const p = document.getElementById('smtp-port');
@@ -1573,7 +1573,7 @@ const App = window.App = {
         const grid = document.getElementById('templates-grid');
         if (!grid) return;
         try {
-            const response = await this.fetchAPI('/email-templates');
+            const response = await this.fetchAPI('/email/email-templates');
             const templates = Array.isArray(response) ? response : (response.data || []);
             this.state.emailTemplates = templates;
             grid.innerHTML = `
@@ -1706,7 +1706,7 @@ const App = window.App = {
         const list = document.getElementById('inbox-list');
         if (!list) return;
         try {
-            const res = await this.fetchAPI('/email-logs?type=INBOX');
+            const res = await this.fetchAPI('/email/email-logs?type=INBOX');
             const logs = res.data || []; 
             list.innerHTML = logs.map(l => `
                 <tr class="hover:bg-white/5 transition-colors">
@@ -1724,7 +1724,7 @@ const App = window.App = {
     async syncIMAP() {
         Swal.fire({ title: 'Sincronizando...', text: 'Conectando con IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
-            const res = await this.fetchAPI('/imap/sync');
+            const res = await this.fetchAPI('/email/imap/sync');
             if (res.success) {
                 Swal.fire('✓ Sincronizado', 'Correos actualizados correctamente.', 'success');
                 this.loadMailbox();
@@ -1743,7 +1743,7 @@ const App = window.App = {
                     events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
             }
 
-            const templatesRes = await this.fetchAPI('/email-templates');
+            const templatesRes = await this.fetchAPI('/email/email-templates');
             const templates = Array.isArray(templatesRes) ? templatesRes : (templatesRes.data || []);
             this.state.emailTemplates = templates;
             const tempSelector = document.getElementById('mailing-template-selector');
@@ -1907,7 +1907,7 @@ const App = window.App = {
         
         try {
             const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
-            const response = await this.fetchAPI(`/email-logs?type=${type}`);
+            const response = await this.fetchAPI(`/email/email-logs?type=${type}`);
             
             // La API devuelve {data: [], pagination: {}} 
             const logs = response.data || response;
@@ -1955,7 +1955,7 @@ const App = window.App = {
     viewMailDetail: async function(mailId) {
         try {
             // Reutilizar el log que ya tenemos en estado o buscarlo
-            const logs = await this.fetchAPI(`/email-logs?id=${mailId}`);
+            const logs = await this.fetchAPI(`/email/email-logs?id=${mailId}`);
             if (logs.length === 0) return alert('Correo no encontrado');
             const mail = logs[0];
             
@@ -2019,7 +2019,7 @@ const App = window.App = {
     syncEmails: async function() {
         if (typeof showLoading === 'function') showLoading('Sincronizando correos...');
         try {
-            const res = await this.fetchAPI('/emails/sync', { method: 'POST' });
+            const res = await this.fetchAPI('/email/emails/sync', { method: 'POST' });
             if (res.success) {
                 this.loadMailbox('INBOX');
                 alert(`✓ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
@@ -2033,7 +2033,7 @@ const App = window.App = {
 
     loadIMAPConfig: async function() {
         try {
-            const config = await this.fetchAPI('/imap-config');
+            const config = await this.fetchAPI('/email/imap-config');
             if (config) {
                 const h = document.getElementById('imap-host');
                 const p = document.getElementById('imap-port');
@@ -2062,7 +2062,7 @@ const App = window.App = {
         if (!data.imap_host || !data.imap_user) return alert('Host y Usuario son obligatorios');
 
         try {
-            await this.fetchAPI('/imap-config', {
+            await this.fetchAPI('/email/imap-config', {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
@@ -2083,7 +2083,7 @@ const App = window.App = {
 
         if (typeof showLoading === 'function') showLoading('Probando conexión IMAP...');
         try {
-            const res = await this.fetchAPI('/imap-test', {
+            const res = await this.fetchAPI('/email/imap-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -2168,7 +2168,7 @@ const App = window.App = {
 
         if (typeof showLoading === 'function') showLoading('Probando conexión SMTP...');
         try {
-            const res = await this.fetchAPI('/smtp-test', {
+            const res = await this.fetchAPI('/email/smtp-test', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -2193,7 +2193,7 @@ const App = window.App = {
         if (!data.smtp_host || !data.smtp_user) return alert('Host y Usuario son obligatorios');
 
         try {
-            await this.fetchAPI('/smtp-config', {
+            await this.fetchAPI('/email/smtp-config', {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
@@ -2203,7 +2203,7 @@ const App = window.App = {
 
     loadMailingTemplates: async function() {
         try {
-            const templates = await this.fetchAPI('/email-templates');
+            const templates = await this.fetchAPI('/email/email-templates');
             const select = document.getElementById('mailing-template-selector');
             if (select) {
                 select.innerHTML = '<option value="">-- Selecciona una plantilla --</option>' + 
@@ -2518,7 +2518,7 @@ const App = window.App = {
 
     updateMailingStats: async function() {
         try {
-            const stats = await this.fetchAPI('/email-queue/stats');
+            const stats = await this.fetchAPI('/email/email-queue/stats');
             const total = stats.total || 0;
             const sent = stats.sent || 0;
             const pending = stats.pending || 0;
@@ -2616,7 +2616,7 @@ const App = window.App = {
         container.innerHTML = '<div class="p-8 text-center animate-pulse">Cargando campañas...</div>';
         
         try {
-            const campaigns = await this.fetchAPI('/campaigns');
+            const campaigns = await this.fetchAPI('/email/campaigns');
             
             if (!campaigns || campaigns.length === 0) {
                 container.innerHTML = `
@@ -2698,7 +2698,7 @@ const App = window.App = {
         try {
             const [events, templates] = await Promise.all([
                 this.fetchAPI('/events'),
-                this.fetchAPI('/email-templates')
+                this.fetchAPI('/email/email-templates')
             ]);
             
             document.getElementById('campaign-event-select').innerHTML = '<option value="">-- Sin evento específico (todos) --</option>' + 
@@ -5416,7 +5416,7 @@ const App = window.App = {
         Swal.fire({ title: 'Probando...', text: 'Conectando con servidor IMAP', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         
         try {
-            const res = await this.fetchAPI('/imap/test', {
+            const res = await this.fetchAPI('/email/imap/test', {
                 method: 'POST',
                 body: JSON.stringify({ host, user, port: document.getElementById('imap-port').value, pass: document.getElementById('imap-pass').value })
             });
