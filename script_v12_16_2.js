@@ -2019,7 +2019,7 @@ const App = window.App = {
     syncEmails: async function() {
         if (typeof showLoading === 'function') showLoading('Sincronizando correos...');
         try {
-            const res = await this.fetchAPI('/email/emails/sync', { method: 'POST' });
+            const res = await this.fetchAPI('/email/imap/sync');
             if (res.success) {
                 this.loadMailbox('INBOX');
                 alert(`✓ Sincronización completada. Nuevos: ${res.newEmails || 0}`);
@@ -3646,11 +3646,6 @@ const App = window.App = {
                     case 'removeUserFromGroup': _App.removeUserFromGroup(p.userId, p.groupId); break;
                     case 'showUserSelectorForGroup': _App.showUserSelectorForGroup(p.groupId); break;
                     case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
-                    case 'assignUserToGroupFromSelector': _App.assignUserToGroupFromSelector(p.groupId); break;
-                    case 'closeUserSelectorGroup': _App.closeUserSelectorGroup(); break;
-                    case 'assignUserToEventFromSelector': _App.assignUserToEventFromSelector(p.eventId); break;
-                    case 'closeUserSelectorEvent': _App.closeUserSelectorEvent(); break;
-                    
                     // Users management
                     case 'approveUser': _App.approveUser(p.userId, p.status); break;
                     case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
@@ -3664,9 +3659,7 @@ const App = window.App = {
                     case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
                     case 'navigateToCreateGroup': _App.navigateToCreateGroup(p.userId); break;
                     case 'closeGroupSelector': _App.closeGroupSelector(); break;
-                    case 'assignEventFromSelector': _App.assignEventFromSelector(p.userId); break;
                     case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
-                    case 'closeEventSelector': _App.closeEventSelector(); break;
                     
                     // Email
                     case 'viewMailDetail': _App.viewMailDetail(p.mailId); break;

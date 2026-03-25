@@ -1,140 +1,152 @@
-# PLAN DE TRABAJO - ALINEACIÓN DE ENDPOINTS Y FRONTEND
+# REPORTE COMPLETO Y PLAN DE ACCIÓN - ALINEACIÓN Y PURGA
 
 **Fecha:** 25-Marzo-2026  
-**Estado:** Elaborado - Pendiente de ejecución
+**Proyecto:** Check Pro  
+**Contenedor:** C:\Users\carlo\check (localhost:3000)  
+**Código fuente:** C:\Users\carlo\OneDrive\Documentos\APP\Registro
 
 ---
 
-## 1. FUNCIONES DUPLICADAS
+## 1. ESTADO ACTUAL DEL SISTEMA
 
-### 1.1 `removeUserFromEvent` - DUPLICADA
-- **Ubicación 1:** script.js línea 481-490
-- **Ubicación 2:** script.js línea 757-769
-- **Análisis:** La versión de la línea 757 es más completa (tiene confirmación `_confirmAction` y usa `this.state.allUsers`). La versión de la línea 481 es más simple.
-- **Acción:** Eliminar la versión de la línea 481 (más simple), mantener la línea 757 (más completa).
+### 1.1 Arquitectura del Contenedor (localhost:3000) ✅
 
----
+| Componente | Archivo | Prefijo | Estado |
+|---|---|---|---|
+| Frontend | `script_v12_16_2.js` (V12.16.4) | `/email/` | ✅ Modular |
+| Backend | `src/routes/index.js` + `src/routes/*.routes.js` | `/api/email/` | ✅ Modular |
+| Servidor | `server.js` | - | ✅ Activo |
 
-## 2. ENDPOINTS DESALINEADOS - MÓDULO EMAIL
+### 1.2 Arquitectura Legacy (en C:\Users\carlo\OneDrive\Documentos\APP\Registro)
 
-### 2.1 `syncEmails`
-- **Frontend actual:** `POST /emails/sync` (script.js línea 1224)
-- **Backend correcto:** `GET /imap/sync`
-- **Problema:** Ruta `/emails/sync` no existe en backend. El correcto es `/imap/sync` con GET
-- **Acción:** Cambiar a `GET /imap/sync`
-
-### 2.2 `startBroadcast`
-- **Frontend actual:** `POST /emails/broadcast` (script.js línea 1420)
-- **Backend correcto:** `POST /send-mass`
-- **Problema:** La ruta `/emails/broadcast` no existe
-- **Acción:** Cambiar endpoint a `/send-mass`
-
-### 2.3 `controlMailingQueue`
-- **Frontend actual:** `POST /emails/queue-control` (script.js línea 1443)
-- **Backend correcto:** `POST /email-queue/:action`
-- **Problema:** El prefijo `/emails` es incorrecto
-- **Acción:** Cambiar a `/email-queue/${action}`
-
-### 2.4 `updateMailingStats`
-- **Frontend actual:** `GET /emails/queue-stats` (script.js línea 1463)
-- **Backend correcto:** `GET /email-queue/stats`
-- **Problema:** El prefijo `/emails` es incorrecto
-- **Acción:** Cambiar a `/email-queue/stats`
+| Componente | Archivo | Prefijo | Estado |
+|---|---|---|---|
+| Frontend | `script.js` (V12.16.2) | `/emails/` | ❌ Legacy |
+| Backend | `server_backup_full.js` | `/api/emails/` | ❌ Legacy |
+| Servidor | `server_backup_full.js` (inline routes) | - | ❌ Legacy |
 
 ---
 
-## 3. ENDPOINTS DESALINEADOS - MÓDULO PRE-REGISTRATIONS
+## 2. HALLAZGOS CRÍTICOS
 
-### 3.1 `updatePreRegStatus`
-- **Frontend actual:** `PUT /pre-registrations/${id}/status` (script.js línea 2464)
-- **Backend correcto:** `PUT /pre-registrations/:id/status` (events.routes.js)
-- **Montaje backend:** `/api` + events.routes montado en `/api/events`
-- **Problema:** La ruta es correcta en sí, pero falta verificar que el query string del evento no sea necesario
-- **Acción:** Verificar que la ruta funcione correctamente con los IDs de pre-registration
+### 2.1 PROYECTO ORIGINAL (Registro) vs CONTENEDOR (check)
 
----
+| Aspecto | Registro | Contenedor (check) |
+|---|---|---|
+| Frontend | `script.js` con `/emails/` | `script_v12_16_2.js` con `/email/` |
+| Backend | `server_backup_full.js` | `server.js` + `src/routes/` |
+| Email prefijos | `/emails/` | `/api/email/` |
+| Rutas email | Inline en server_backup_full | Modular en email.routes.js |
+| Versión | V12.16.2 | V12.16.4 |
 
-## 4. FUNCIONES CON NOMBRES INCORRECTOS EN DELEGATION SWITCH
+### 2.2 FUNCIONES DUPLICADAS EN script.js (Registro)
 
-### 4.1 `assignUserToGroupFromSelector`
-- **Línea en switch:** 2325
-- **Función real:** `assignUserGroupFromSelector` (existe en App líneas 822-836)
-- **Acción:** Cambiar `assignUserToGroupFromSelector` → `assignUserGroupFromSelector`
+| Función | Ubicación | Observación |
+|---|---|---|
+| `removeUserFromEvent` | Línea 481-490 y 757-769 | DUPLICADA |
+| `syncEmails` | Línea 1221 | Versión legacy |
+| `startBroadcast` | Línea 1408 | Versión legacy (duplicada en nuevo) |
+| `controlMailingQueue` | Línea 1441 | Versión legacy (duplicada en nuevo) |
+| `updateMailingStats` | Línea 1461 | Versión legacy (duplicada en nuevo) |
+| Sistema mailing nuevo | Líneas ~5115-5210 | `sendMassEmail`, `controlQueue`, `updateQueueStats` |
 
-### 4.2 `closeUserSelectorGroup`
-- **Línea en switch:** 2326
-- **Función real:** `closeGroupSelector` (existe en App línea 842)
-- **Acción:** Cambiar `closeUserSelectorGroup` → `closeGroupSelector`
+### 2.3 ARCHIVOS OBSOLETOS EN EL PROYECTO (Registro)
 
-### 4.3 `assignUserToEventFromSelector`
-- **Línea en switch:** 2327
-- **Función real:** No existe en App
-- **Acción:** Verificar si debe ser `assignEventFromSelector` o si la función no existe
+**Scripts legacy:**
+- `script.js` (V12.16.2 - legacy, usar `script_v12_16_2.js`)
+- `script_prev.js` (backup antiguo)
+- `script_prev_utf8.js` (backup antiguo)
+- `script_v12_16_2.js` (NUEVO - debe mantenerse)
 
-### 4.4 `closeUserSelectorEvent`
-- **Línea en switch:** 2328
-- **Función real:** No existe en App
-- **Acción:** Verificar si debe ser `closeEventSelector`
+**Servers legacy:**
+- `server_backup_full.js` (LEGACY - usar `server.js`)
 
-### 4.5 `assignEventFromSelector`
-- **Línea en switch:** 2343
-- **Función real:** No existe en App
-- **Acción:** Crear la función o verificar el nombre correcto
+**Otros archivos obsoletos:**
+- `logic_v16.js` (?)
+- `server.js` (puede tener diferencias con el del contenedor)
 
-### 4.6 `navigateToCreateEvent`
-- **Línea en switch:** 2344
-- **Función real:** No existe en App
-- **Acción:** Crear la función o verificar el nombre correcto
+### 2.4 FUNCIONES CON NOMBRES INCORRECTOS EN DELEGATION SWITCH
 
----
+| Case en switch | Función real | Corrección |
+|---|---|---|
+| `assignUserToGroupFromSelector` | `assignUserGroupFromSelector` | Renombrar |
+| `closeUserSelectorGroup` | `closeGroupSelector` | Renombrar |
+| `assignUserToEventFromSelector` | No existe | Crear o eliminar |
+| `closeUserSelectorEvent` | No existe | Crear o eliminar |
+| `assignEventFromSelector` | No existe | Crear o eliminar |
+| `navigateToCreateEvent` | No existe | Crear o eliminar |
 
-## 5. FUNCIONES HUÉRFANAS (definidas en switch pero no existen en App)
+### 2.5 BUG ENCONTRADO EN script_v12_16_2.js (contenedor)
 
-| Case en switch | ¿Existe en App? |
-|---|---|
-| `assignUserToGroupFromSelector` | No, es `assignUserGroupFromSelector` |
-| `closeUserSelectorGroup` | No, es `closeGroupSelector` |
-| `assignUserToEventFromSelector` | No |
-| `closeUserSelectorEvent` | No |
-| `assignEventFromSelector` | No |
-| `navigateToCreateEvent` | No |
+**Línea 2022:** `/email/emails/sync` - DOBLE PREFIJO ❌
+- Debería ser: `/email/imap/sync`
 
 ---
 
-## 6. ORDEN DE EJECUCIÓN
+## 3. PLAN DE ACCIÓN
 
-### PASO 1: Verificar functions.js y estado actual
-- Identificar todas las funciones huérfanas
-- Documentar cuáles funciones existen realmente en App
+### FASE 1: Sincronizar proyecto Registro con Contenedor
 
-### PASO 2: Corregir funciones duplicadas
-- Eliminar `removeUserFromEvent` duplicada (línea 481-490)
+**Paso 1.1:** Copiar archivos correctos del contenedor al proyecto
+- [ ] `C:\check\script_v12_16_2.js` → `C:\Registro\script_v12_16_2.js` (reemplazar)
+- [ ] `C:\check\src\routes\*` → `C:\Registro\src\routes\` (sincronizar)
+- [ ] `C:\check\server.js` → `C:\Registro\server.js` (reemplazar)
 
-### PASO 3: Corregir endpoints del módulo email
-- `syncEmails`: `/emails/sync` → `/imap/sync`
-- `startBroadcast`: `/emails/broadcast` → `/send-mass`
-- `controlMailingQueue`: `/emails/queue-control` → `/email-queue/${action}`
-- `updateMailingStats`: `/emails/queue-stats` → `/email-queue/stats`
+**Paso 1.2:** Corregir bug de doble prefijo
+- [ ] En `script_v12_16_2.js` línea 2022: `/email/emails/sync` → `/email/imap/sync`
 
-### PASO 4: Corregir nombres en delegation switch
-- `assignUserToGroupFromSelector` → `assignUserGroupFromSelector`
-- `closeUserSelectorGroup` → `closeGroupSelector`
-- Las demás requieren verificación de existencia
+### FASE 2: Purga de archivos legacy
 
-### PASO 5: Verificación
-- Commit de cambios
-- Reinicio del contenedor
-- Prueba de funcionalidad
+**Archivos a ELIMINAR:**
+- [ ] `C:\Registro\script.js` (V12.16.2 legacy)
+- [ ] `C:\Registro\script_prev.js` (backup antiguo)
+- [ ] `C:\Registro\script_prev_utf8.js` (backup antiguo)
+- [ ] `C:\Registro\server_backup_full.js` (legacy monolith)
+
+**Archivos a MANTENER:**
+- [ ] `C:\Registro\script_v12_16_2.js` (V12.16.4 - versión actual)
+- [ ] `C:\Registro\server.js` (contenedor actualizado)
+- [ ] `C:\Registro\src\routes\*` (sistema modular)
+
+### FASE 3: Limpiar funciones duplicadas
+
+**En script_v12_16_2.js:**
+- [ ] Eliminar `removeUserFromEvent` duplicada (buscar cuál eliminar)
+- [ ] Eliminar `syncEmails` legacy (líneas ~2019-2025) si ya existe versión nueva
+- [ ] Eliminar `startBroadcast` legacy (líneas ~2270-2305) si ya existe `sendMassEmail`
+- [ ] Eliminar `controlMailingQueue` legacy (líneas ~2499-2517) si ya existe `controlQueue`
+- [ ] Eliminar `updateMailingStats` legacy (líneas ~2519-2543) si ya existe `updateQueueStats`
+
+### FASE 4: Corregir delegation switch
+
+- [ ] `assignUserToGroupFromSelector` → `assignUserGroupFromSelector`
+- [ ] `closeUserSelectorGroup` → `closeGroupSelector`
+- [ ] Investigar y crear o eliminar funciones faltantes
+
+### FASE 5: Verificación
+
+- [ ] Commit de cambios
+- [ ] Copiar al contenedor C:\check
+- [ ] Reiniciar contenedor
+- [ ] Probar funcionalidades de email
+- [ ] Probar delegation switch
 
 ---
 
-## 7. NOTAS
+## 4. NOTAS IMPORTANTES
 
-- El backend (email.routes.js) fue refactorizado con nuevas rutas (`/email-queue/`, `/send-mass`, `/accounts`, `/campaigns`)
-- El frontend (script.js) aún usa las rutas antiguas (`/emails/`)
-- El archivo script_v12_16_2.js parece tener cambios parciales pero aún tiene el problema de `/emails/sync` en vez de `/imap/sync`
+1. **El contenedor check usa la versión correcta** (V12.16.4 con sistema modular)
+2. **El proyecto Registro tiene versión legacy** (V12.16.2 con sistema monolith)
+3. **El script_v12_16_2.js del contenedor tiene un bug** en la línea 2022
 
 ---
 
-** Elaborado:** 25-Marzo-2026  
-**Siguiente paso:** Ejecutar PASOs 1-5 en orden
+## 5. PREGUNTAS PENDIENTES
+
+1. ¿`logic_v16.js` es un archivo en uso o es legacy?
+2. ¿Las funciones faltantes en delegation switch (`assignUserToEventFromSelector`, etc.) deben crearse o eliminarse del switch?
+
+---
+
+**Elaborado:** 25-Marzo-2026  
+**Próximo paso:** Confirmar plan y comenzar Fase 1
