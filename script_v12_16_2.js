@@ -82,14 +82,6 @@ const App = window.App = {
         LS.set('last_view', viewId);
     },
 
-    navigateToCreateUser() {
-        this.navigate('system');
-        this.switchSystemTab('users');
-        setTimeout(() => {
-            document.getElementById('modal-invite')?.classList.remove('hidden');
-        }, 100);
-    },
-
     navigateToCreateEvent() {
         this.navigate('system'); // Los eventos se crean desde la pestaña de empresas/eventos en sistema
         this.switchSystemTab('groups');
@@ -130,7 +122,10 @@ const App = window.App = {
         });
     },
 
-    navigateToCreateUser() { this.openInviteModal(); },
+    navigateToCreateUser() { 
+        this._openUserModalFromSelector = true;
+        this.openInviteModal(); 
+    },
     navigateToCreateGroup: function() {
         this.closeGroupSelector();
         this._openCompanyModalFromSelector = true;
@@ -608,6 +603,7 @@ const App = window.App = {
 
     // --- SELECCIÓN DE USUARIOS PARA GRUPOS (V12.16.0) ---
     async showUserSelectorForGroup(groupId) {
+        this.state._pendingUserGroupId = groupId;
         let users = [];
         try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
         
@@ -5444,6 +5440,7 @@ const App = window.App = {
     // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.16.0) ---
     
     async showUserSelectorForGroup(groupId) {
+        this.state._pendingUserGroupId = groupId;
         let users = [];
         try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
         
@@ -5499,6 +5496,7 @@ const App = window.App = {
     },
 
     async showUserSelectorForEvent(eventId) {
+        this.state._pendingUserEventId = eventId;
         let users = [];
         try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
 
@@ -6659,7 +6657,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         const r = document.getElementById('invite-role').value;
         try {
             const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
-            if (res.success) { alert(`✓ Usuario "${displayName}" creado con rol ${r}.`); document.getElementById('invite-user-form').reset(); document.getElementById('modal-invite')?.classList.add('hidden'); App.loadUsersTable(); }
+            if (res.success) { 
+                alert(`✓ Usuario "${displayName}" creado con rol ${r}.`); 
+                document.getElementById('invite-user-form').reset(); 
+                document.getElementById('modal-invite')?.classList.add('hidden'); 
+                App.loadUsersTable();
+                
+                // Si hay pending (vino del selector), volver al selector correspondiente
+                const pendingGroupId = this.state._pendingUserGroupId;
+                const pendingEventId = this.state._pendingUserEventId;
+                
+                if (pendingGroupId) {
+                    delete this.state._pendingUserGroupId;
+                    delete this.state._pendingUserEventId;
+                    this._openUserModalFromSelector = false;
+                    this.showUserSelectorForGroup(pendingGroupId);
+                } else if (pendingEventId) {
+                    delete this.state._pendingUserGroupId;
+                    delete this.state._pendingUserEventId;
+                    this._openUserModalFromSelector = false;
+                    this.showUserSelectorForEvent(pendingEventId);
+                }
+            }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
         } catch { alert('Error de conexión.'); }
     });
