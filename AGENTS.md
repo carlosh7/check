@@ -1,5 +1,10 @@
 # Directivas para el Agente
 
+## Ubicación del Proyecto
+```
+C:\Users\carlo\OneDrive\Documentos\APP\Registro
+```
+
 ## Idioma
 - **Siempre responde en español**
 - **Siempre muestra tu razonamiento/pensamiento en español** - Explica qué estás buscando, por qué, y qué encontraste en cada paso
@@ -19,15 +24,31 @@
 - Si el plan es grande, **fraccionalo** en partes más pequeñas
 - **Informa el estatus** a medida que lo ejecutas: qué estás haciendo, qué completaste, qué sigue
 
+## Flujo de Trabajo (Regla de Oro)
+
+### Al Finalizar Cada Tarea:
+
+```bash
+# 1. Subir cambios desde el proyecto
+cd "C:\Users\carlo\OneDrive\Documentos\APP\Registro"
+git add . && git commit -m "mensaje descriptivo" && git push origin main
+
+# 2. Actualizar entorno de validación
+cd "C:\Users\carlo\check"
+git pull && docker-compose down && docker-compose up -d --build
+```
+
+### Validación Rápida:
+```bash
+curl -s http://localhost:3000/api/health
+```
+
 ## Versionado del Proyecto
 - La versión del proyecto está en `package.json` campo `version` (formato: X.Y.Z)
-- **Cada cambio significativo debe actualizar la versión** siguiendo semver:
-  - **PATCH (Z)**: Bug fixes menores, cambios pequeños
-  - **MINOR (Y)**: Nuevas funcionalidades, mejoras
-  - **MAJOR (X)**: Cambios que rompen compatibilidad
-- **Archivos a actualizar con cada version bump:**
-  - `package.json` - versión
-  - `app-shell.html` - en etiquetas de CSS/JS (styles.css?v=X, modern.css?v=X, script_v12_16_2.js?v=X)
-  - `index.html` - si tiene referencias de versión
-- **Al hacer commit**, incluir el cambio de versión en el mensaje
-- **Antes de finalizar**, ejecutar: `git add . && git commit -m "vX.Y.Z: descripción"`
+- **Importante:** Al actualizar la versión, también actualizar en:
+  - `app-shell.html` - etiquetas de CSS/JS (styles.css?v=X, modern.css?v=X, script_v12_16_2.js?v=X)
+  - Los cambios se reflejan tras el rebuild de docker-compose
+
+## Credenciales
+- **Login:** admin@check.com / admin123
+- **Puerto validación:** 3000
