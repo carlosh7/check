@@ -79,4 +79,27 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
     }
 });
 
+// Admin: approve user (temporal fix for status issues)
+router.post('/approve-user', authMiddleware(['ADMIN']), (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId requerido' });
+
+    try {
+        db.prepare("UPDATE users SET status = 'APPROVED' WHERE id = ?").run(userId);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: approve ALL pending users
+router.post('/approve-all-users', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const result = db.prepare("UPDATE users SET status = 'APPROVED' WHERE status != 'APPROVED'").run();
+        res.json({ success: true, updated: result.changes });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = router;
