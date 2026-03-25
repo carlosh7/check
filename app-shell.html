@@ -323,6 +323,9 @@
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="smtp-secure"> <label for="smtp-secure" class="text-xs uppercase font-bold">Usar SSL/TLS</label>
                                 </div>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar SMTP</button>
+                                </div>
                                 <div class="pt-4 border-t border-[var(--border)]">
                                     <h3 class="text-lg font-bold mb-4">Configuración IMAP (Buzón)</h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -335,8 +338,44 @@
                                         <input type="checkbox" id="imap-tls"> <label for="imap-tls" class="text-xs uppercase font-bold">Usar TLS</label>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn-primary w-full">Validar y Guardar Todo</button>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar IMAP</button>
+                                    <button type="submit" class="btn-primary flex-1">💾 Guardar Configuración</button>
+                                </div>
                             </form>
+                        </div>
+                        <!-- Guía de Entregabilidad -->
+                        <div class="card p-6 border border-yellow-500/20 bg-yellow-500/5">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-yellow-500">info</span>
+                                <h3 class="text-lg font-bold text-yellow-500">Guía de Entregabilidad (Anti-Spam)</h3>
+                            </div>
+                            <div class="space-y-4 text-sm">
+                                <div class="p-3 bg-black/20 rounded-lg">
+                                    <h4 class="font-bold text-white mb-1">SPF (Sender Policy Framework)</h4>
+                                    <p class="text-slate-400 text-xs">Autoriza qué servidores pueden enviar emails desde tu dominio.</p>
+                                    <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=spf1 include:_spf.google.com ~all</code>
+                                </div>
+                                <div class="p-3 bg-black/20 rounded-lg">
+                                    <h4 class="font-bold text-white mb-1">DKIM (DomainKeys Identified Mail)</h4>
+                                    <p class="text-slate-400 text-xs">Firma digital que verifica que el email no fue modificado.</p>
+                                    <p class="text-slate-500 text-xs mt-1">Genera la clave en tu proveedor de email y agrégala como registro TXT.</p>
+                                </div>
+                                <div class="p-3 bg-black/20 rounded-lg">
+                                    <h4 class="font-bold text-white mb-1">DMARC</h4>
+                                    <p class="text-slate-400 text-xs">Indica qué hacer si SPF o DKIM fallan.</p>
+                                    <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=DMARC1; p=none; rua=mailto:admin@tudominio.com</code>
+                                </div>
+                                <div class="p-3 bg-black/20 rounded-lg">
+                                    <h4 class="font-bold text-white mb-1">Consejos Anti-Spam</h4>
+                                    <ul class="text-slate-400 text-xs list-disc list-inside space-y-1">
+                                        <li>Evita palabras como "Gratis", "Urgente", "Ganador", "$$$"</li>
+                                        <li>Siempre incluye enlace de desuscripción</li>
+                                        <li>Calienta tu IP enviando pocos correos al inicio</li>
+                                        <li>Usa un dominio propio (no @gmail.com)</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="email-content-mailbox" class="email-content hidden">
@@ -606,6 +645,26 @@
         <form onsubmit="event.preventDefault(); App.saveEmailTemplate()" class="p-5 space-y-4 overflow-y-auto flex-1">
             <input type="text" id="tpl-name" required placeholder="Nombre de la plantilla" class="input-field w-full">
             <input type="text" id="tpl-subject" required placeholder="Asunto del email" class="input-field w-full">
+            
+            <!-- Variables disponibles -->
+            <div class="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <div class="text-xs font-bold text-primary mb-2">📋 Variables disponibles (clic para copiar)</div>
+                <div class="flex flex-wrap gap-1">
+                    <button type="button" onclick="App.copyTemplateVar('{{guest_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">guest_name</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{guest_email}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">guest_email</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{event_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_name</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{event_date}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_date</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{event_location}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_location</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{checkin_time}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">checkin_time</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{agenda}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">agenda</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{unsubscribe_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">unsubscribe_url</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{user_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">user_name</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{password}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">password</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{login_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">login_url</button>
+                    <button type="button" onclick="App.copyTemplateVar('{{reset_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">reset_url</button>
+                </div>
+            </div>
+            
             <div class="text-xs text-slate-400 mb-1">Cuerpo del email (soporta HTML)</div>
             <div id="tpl-quill-editor" class="bg-white/5 rounded-lg" style="min-height: 200px;"></div>
             <div class="flex gap-2 pt-4 border-t border-[var(--border)]">

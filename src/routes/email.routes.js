@@ -39,9 +39,33 @@ router.put('/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Probar conexión SMTP
+// Probar conexión SMTP (Real)
 router.post('/smtp-test', authMiddleware(['ADMIN']), async (req, res) => {
-    res.json({ success: true, message: 'Test SMTP disponible' });
+    const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure } = req.body;
+    
+    if (!smtp_host || !smtp_user) {
+        return res.status(400).json({ success: false, error: 'Faltan datos SMTP' });
+    }
+    
+    try {
+        const nodemailer = require('nodemailer');
+        
+        const transporter = nodemailer.createTransport({
+            host: smtp_host,
+            port: parseInt(smtp_port) || 587,
+            secure: smtp_secure === true || smtp_secure === 1,
+            auth: {
+                user: smtp_user,
+                pass: smtp_pass
+            },
+            connectionTimeout: 10000
+        });
+        
+        await transporter.verify();
+        res.json({ success: true, message: 'Conexión SMTP exitosa' });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
 });
 
 // Configuración IMAP
@@ -162,15 +186,90 @@ router.get('/email-logs', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => 
     });
 });
 
-// Sincronización IMAP (Simulada para v12.8.0)
+// Sincronización IMAP (Real)
 router.get('/imap/sync', authMiddleware(['ADMIN']), async (req, res) => {
+    const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
+    
+    if (!config || !config.imap_host || !config.imap_user) {
+        return res.status(400).json({ success: false, error: 'IMAP no configurado' });
+    }
+    
     try {
-        console.log('🔄 Sincronizando IMAP...');
-        // Aquí iría la lógica real de fetch de correos
-        // Por ahora simulamos éxito para que la UI responda
-        res.json({ success: true, count: 0 });
+        const Imap = require('imap');
+        const { simpleParser } = require('mailparser');
+        
+        const imap = new Imap({
+            user: config.imap_user,
+            password: config.imap_pass,
+            host: config.imap_host,
+            port: parseInt(config.imap_port) || 993,
+            tls: config.imap_tls === 1,
+            connTimeout: 30000,
+            authTimeout: 30000
+        });
+        
+        let newEmailsCount = 0;
+        
+        await new Promise((resolve, reject) => {
+            imap.once('ready', () => {
+                imap.openBox('INBOX', true, (err, box) => {
+                    if (err) { imap.end(); return reject(err); }
+                    
+                    if (box.messages.total === 0) {
+                        imap.end();
+                        return resolve(0);
+                    }
+                    
+                    // Buscar los últimos 15 mensajes
+                    const start = Math.max(1, box.messages.total - 14);
+                    const f = imap.seq.fetch(`${start}:*`, { bodies: '' });
+                    
+                    f.on('message', (msg, seqno) => {
+                        let buffer = '';
+                        msg.on('body', (stream) => {
+                            stream.on('data', (chunk) => buffer += chunk.toString('utf8'));
+                        });
+                        msg.once('end', async () => {
+                            try {
+                                const parsed = await simpleParser(buffer);
+                                const mId = parsed.messageId || `imap-${seqno}-${Date.now()}`;
+                                
+                                // Verificar duplicados
+                                const exists = db.prepare("SELECT id FROM email_logs WHERE message_id = ?").get(mId);
+                                if (!exists) {
+                                    db.prepare(`INSERT INTO email_logs (id, type, subject, from_email, to_email, body_html, message_id, created_at, is_read) 
+                                                VALUES (?, 'INBOX', ?, ?, ?, ?, ?, ?, 0)`).run(
+                                        uuidv4(),
+                                        parsed.subject || '(Sin Asunto)',
+                                        parsed.from?.text || '',
+                                        config.imap_user,
+                                        parsed.html || parsed.textAsHtml || parsed.text || '',
+                                        mId,
+                                        parsed.date ? parsed.date.toISOString() : new Date().toISOString()
+                                    );
+                                    newEmailsCount++;
+                                }
+                            } catch (e) { console.error('[IMAP] Error parsing:', e.message); }
+                        });
+                    });
+                    
+                    f.once('error', (err) => { imap.end(); reject(err); });
+                    f.once('end', () => {
+                        imap.end();
+                        console.log(`[IMAP] Sincronización completada. Nuevos: ${newEmailsCount}`);
+                        resolve(newEmailsCount);
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => reject(err));
+            imap.connect();
+        });
+        
+        res.json({ success: true, count: newEmailsCount });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('[IMAP] Sync error:', e.message);
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 

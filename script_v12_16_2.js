@@ -6349,4 +6349,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
 window.logout = () => App.logout();
+window.testSMTP = () => App.testSMTPConnection();
+window.testIMAP = () => App.testIMAPConnection();
+window.copyTemplateVar = (varName) => {
+    navigator.clipboard.writeText(varName).then(() => {
+        App._notifyAction('Copiado', varName + ' copiado al portapapeles', 'success');
+    }).catch(() => alert('No se pudo copiar'));
+};
 
