@@ -436,323 +436,7 @@ const App = window.App = {
         }
     },
     
-    showUserSelectorForGroup: function(groupId) {
-        const users = (this.state.allUsers || []).filter(u => u.group_id !== groupId);
-        if (users.length === 0) {
-            alert('No hay más usuarios disponibles para agregar.');
-            return;
-        }
-        
-        const options = users.map(u => `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-user-selector-group';
-        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
-        modal.innerHTML = `
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">person_add</span> Asignar Usuario a Empresa
-                </h3>
-                <select id="select-user-for-group" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
-                    <option value="">-- Seleccionar usuario --</option>
-                    ${options}
-                </select>
-                <div class="flex gap-3">
-                    <button data-action="assignUserToGroupFromSelector" data-group-id="${groupId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Asignar</button>
-                    <button data-action="closeUserSelectorGroup" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    },
-    
-    assignUserToGroupFromSelector: async function(groupId) {
-        const select = document.getElementById('assign-user-select');
-        const userId = select ? select.value : null;
-        if (!userId) {
-            Swal.fire({ title: 'Error', text: 'Selecciona un usuario de la lista', icon: 'error', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        try {
-            const res = await this.fetchAPI(`/groups/${groupId}/users`, { 
-                method: 'POST', 
-                body: JSON.stringify({ userId, role_in_group: 'PRODUCTOR' }) 
-            });
-            if (res.success) {
-                Swal.fire({ title: 'Éxito', text: 'Usuario asignado correctamente', icon: 'success', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-                this.loadGroups();
-                this.closeUserSelectorGroup();
-            } else {
-                Swal.fire('Error', res.error || 'No se pudo asignar el usuario', 'error');
-            }
-        } catch(e) { 
-            console.error('Error assigning user to group:', e);
-            Swal.fire('Error', 'Error de red al asignar usuario', 'error'); 
-        }
-    },
-    
-    closeUserSelectorGroup: function() {
-        document.getElementById('modal-user-selector-group')?.remove();
-    },
-
-    showEventSelectorForCompany: async function(groupId) {
-        if(groupId && typeof groupId === 'object') groupId = groupId.target?.closest('[data-action]')?.dataset.groupId;
-        const groups = this.state.groups || [];
-        const group = groups.find(g => String(g.id) === String(groupId));
-        if(!group) return;
-        
-        const allEvents = this.state.allEvents || [];
-        
-        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
-        allEvents.forEach(e => {
-            const isChecked = String(e.group_id) === String(groupId) ? 'checked' : '';
-            html += `
-                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
-                    <input type="checkbox" class="company-event-multi w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent" value="${e.id}" ${isChecked}>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-bold text-[var(--text-main)]">${e.name}</span>
-                        <span class="text-[10px] text-[var(--text-secondary)]">${e.date}</span>
-                    </div>
-                </label>
-            `;
-        });
-        html += '</div>';
-
-        const { value: selectedEvents, isConfirmed } = await Swal.fire({
-            title: '<span class="text-[var(--text-main)] font-black text-xl">Eventos de Empresa</span>',
-            html: html,
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            showCancelButton: true,
-            confirmButtonText: 'Guardar Configuración',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
-                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
-                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
-            },
-            preConfirm: () => {
-                const checkboxes = document.querySelectorAll('.company-event-multi');
-                return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-            }
-        });
-
-        if (isConfirmed && selectedEvents) {
-            try {
-                const res = await this.fetchAPI(`/groups/${groupId}/events`, { 
-                    method: 'PUT', 
-                    body: JSON.stringify({ events: selectedEvents }) 
-                });
-                if (res.success) {
-                    Swal.fire({
-                        icon: 'success', title: '¡Operación Exitosa!', text: 'Eventos asignados a la empresa.',
-                        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
-                    });
-                    this.loadGroups();
-                } else alert('Error: ' + res.error);
-            } catch(e) { console.error(e); }
-        }
-    },
-    
-    // --- EVENT USER MANAGEMENT V10.6 & V12.5.1 ---
-    
-    // Checklist Modal para asignar Usuarios a un Evento
-    showEventSelector: async function(userId) {
-        if(userId && typeof userId === 'object') userId = userId.target?.closest('[data-action]')?.dataset.userId; // Fallback x Event
-        const users = this.state.allUsers || [];
-        const user = users.find(u => String(u.id) === String(userId));
-        if(!user) return;
-        const events = this.state.allEvents || [];
-        const userEvents = user.events ? user.events.map(e=>String(e)) : [];
-        
-        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
-        events.forEach(e => {
-            const isChecked = userEvents.includes(String(e.id)) ? 'checked' : '';
-            html += `
-                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
-                    <input type="checkbox" class="event-checkbox-multi w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent" value="${e.id}" ${isChecked}>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-bold text-[var(--text-main)]">${e.name}</span>
-                        <span class="text-[10px] text-[var(--text-secondary)]">${e.date}</span>
-                    </div>
-                </label>
-            `;
-        });
-        html += '</div>';
-
-        const { value: selectedEvents, isConfirmed } = await Swal.fire({
-            title: '<span class="text-[var(--text-main)] font-black text-xl">Asignar Eventos</span>',
-            html: html,
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            showCancelButton: true,
-            confirmButtonText: 'Guardar Configuración',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
-                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
-                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
-            },
-            preConfirm: () => {
-                const checkboxes = document.querySelectorAll('.event-checkbox-multi');
-                return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-            }
-        });
-
-        if (isConfirmed && selectedEvents) {
-            try {
-                const res = await this.fetchAPI(`/users/${userId}/events`, { 
-                    method: 'PUT', 
-                    body: JSON.stringify({ events: selectedEvents }) 
-                });
-                if (res.success) {
-                    Swal.fire({
-                        icon: 'success', title: '¡Operación Exitosa!', text: 'Los eventos han sido asignados correctamente.',
-                        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
-                    });
-                    this.loadUsersTable();
-                } else alert('Error: ' + res.error);
-            } catch(e) { console.error(e); }
-        }
-    },
-
-    showGroupSelector: async function(userId) {
-        if(userId && typeof userId === 'object') userId = userId.target?.closest('[data-action]')?.dataset.userId; // Fallback
-        const users = this.state.allUsers || [];
-        const user = users.find(u => String(u.id) === String(userId));
-        if(!user) return;
-        const groups = this.state.allGroups || [];
-        
-        let html = '<div class="flex flex-col gap-2 text-left mt-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">';
-        const isNoneChecked = !user.group_id ? 'checked' : '';
-        html += `
-            <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
-                <input type="radio" name="group-radio-multi" class="w-5 h-5 border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent cursor-pointer" value="" ${isNoneChecked}>
-                <span class="text-sm font-bold text-[var(--text-muted)] italic">-- Sin Empresa Asignada --</span>
-            </label>
-        `;
-
-        groups.forEach(g => {
-            const isChecked = String(user.group_id) === String(g.id) ? 'checked' : '';
-            html += `
-                <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors glass-card">
-                    <input type="radio" name="group-radio-multi" class="w-5 h-5 border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-transparent cursor-pointer" value="${g.id}" ${isChecked}>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-bold text-[var(--text-main)]">${g.name}</span>
-                    </div>
-                </label>
-            `;
-        });
-        html += '</div>';
-
-        const { value: selectedGroup, isConfirmed } = await Swal.fire({
-            title: '<span class="text-[var(--text-main)] font-black text-xl">Asignar Empresa</span>',
-            html: html,
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            showCancelButton: true,
-            confirmButtonText: 'Guardar Configuración',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'border border-[var(--border)] rounded-2xl shadow-2xl glass-card',
-                confirmButton: 'bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl px-6 py-2 transition-colors inline-block',
-                cancelButton: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold px-4 py-2 hover:bg-[var(--bg-hover)] rounded-xl transition-colors inline-block'
-            },
-            preConfirm: () => {
-                const radio = document.querySelector('input[name="group-radio-multi"]:checked');
-                return radio ? radio.value : null;
-            }
-        });
-
-        if (isConfirmed) {
-            try {
-                if(user.group_id && user.group_id !== selectedGroup) {
-                    await this.fetchAPI(`/groups/${user.group_id}/users/${userId}`, { method: 'DELETE' });
-                }
-                if(selectedGroup) {
-                    await this.fetchAPI(`/groups/${selectedGroup}/users`, { 
-                        method: 'POST', body: JSON.stringify({ userId, role_in_group: user.role })
-                    });
-                }
-                Swal.fire({
-                    icon: 'success', title: 'Empresa Actualizada', toast: true, position: 'top-end',
-                    showConfirmButton: false, timer: 3000, background: 'var(--bg-card)', color: 'var(--text-main)'
-                });
-                this.loadUsersTable();
-                this.loadGroups();
-            } catch(e) { console.error(e); }
-        }
-    },
-    
-    showUserSelectorForEvent: function(eventId) {
-        const users = this.state.allUsers || [];
-        const eventUsers = users.filter(u => u.events && u.events.includes(eventId));
-        const assignedUserIds = eventUsers.map(u => u.id);
-        const availableUsers = users.filter(u => !assignedUserIds.includes(u.id));
-        
-        if (availableUsers.length === 0) {
-            alert('No hay más usuarios disponibles para agregar.');
-            return;
-        }
-        
-        const options = availableUsers.map(u => 
-            `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`
-        ).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-user-selector-event';
-        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4';
-        modal.innerHTML = `
-            <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">group_add</span> Agregar Personal al Evento
-                </h3>
-                <select id="select-user-for-event" class="w-full bg-slate-800 text-white text-sm rounded-xl px-4 py-3 border border-white/10 mb-4">
-                    <option value="">-- Seleccionar usuario --</option>
-                    ${options}
-                </select>
-                <div class="flex gap-3">
-                    <button data-action="assignUserToEventFromSelector" data-event-id="${eventId}" class="flex-1 py-3 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl transition-all">Agregar</button>
-                    <button data-action="closeUserSelectorEvent" class="px-6 py-3 bg-white/5 text-slate-400 hover:text-white font-bold text-sm rounded-xl transition-all">Cancelar</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    },
-    
-    assignUserToEventFromSelector: async function(eventId) {
-        const select = document.getElementById('assign-event-user-select');
-        const userId = select ? select.value : null;
-        if (!userId) {
-             Swal.fire({ title: 'Error', text: 'Selecciona un usuario de la lista', icon: 'error', background: '#0f172a', color: '#fff' });
-             return;
-        }
-        
-        const users = this.state.allUsers || [];
-        const user = users.find(u => u.id === userId);
-        const currentEvents = user?.events || [];
-        
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/events`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ events: [...currentEvents, eventId] }) 
-            });
-            if (res.success) {
-                // Recargar usuarios
-                const users = await this.fetchAPI('/users');
-                this.state.allUsers = users;
-                this.loadUsersTable();
-                this.closeUserSelectorEvent();
-                alert('✓ Usuario agregado al evento');
-                this._notifyAction('Éxito', 'Usuario agregado al evento', 'success');
-            } else {
-                this._notifyAction('Error', 'Error al agregar usuario al evento: ' + res.error, 'error');
-            }
-        } catch(e) { console.error('Error assigning user to event:', e); }
-    },
-    
-    closeUserSelectorEvent: function() {
-        document.getElementById('modal-user-selector-event')?.remove();
-    },
+    // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.15.0) ---
 
     async handleFileSelect(e) {
         const file = e.target.files[0];
@@ -2136,102 +1820,8 @@ const App = window.App = {
         }
     },
     
-    _updateTemplatePreview: function() {
-        const activeTab = this.state.templateActiveTab || 'visual';
-        let body = '';
-        if (activeTab === 'visual' && this.state.quillEditor) {
-            body = this.state.quillEditor.root.innerHTML;
-        } else {
-            body = document.getElementById('tpl-code-editor')?.value || '';
-        }
-        const subject = document.getElementById('tpl-subject').value || 'Vista Previa';
-        const name = document.getElementById('tpl-name').value || 'Plantilla';
-        
-        const isLight = document.documentElement.classList.contains('light');
-        const textColor = isLight ? '#0f172a' : '#f8fafc';
-        const preview = `<!DOCTYPE html><html><head><style>body{font-family:'Inter',Arial,sans-serif;padding:0;margin:0;background:transparent;overflow-y:auto;color:${textColor};} .preview-wrapper{padding:20px;display:flex;justify-content:center;} .preview-card{background:transparent;width:100%;max-width:600px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.1);}</style></head><body><div class="preview-wrapper"><div class="preview-card">${body}</div></div></body></html>`;
-        
-        const iframe = document.getElementById('tpl-preview-frame');
-        if (iframe) {
-            iframe.srcdoc = preview;
-        }
-    },
-    
-    saveTemplate: async function() {
-        const name = document.getElementById('tpl-name').value.trim();
-        const subject = document.getElementById('tpl-subject').value.trim();
-        
-        const activeTab = this.state.templateActiveTab || 'visual';
-        let body = '';
-        if (activeTab === 'visual' && this.state.quillEditor) {
-            body = this.state.quillEditor.root.innerHTML;
-        } else {
-            body = document.getElementById('tpl-code-editor')?.value || '';
-        }
-        
-        if (!name) return alert('Ingresa un nombre para la plantilla.');
-        if (!subject) return alert('Ingresa el asunto del email.');
-        
-        try {
-            const tpl = this.state.editingTemplate;
-            if (tpl) {
-                await this.fetchAPI(`/email-templates/${tpl.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ name, subject, body })
-                });
-            } else {
-                await this.fetchAPI('/email-templates', {
-                    method: 'POST',
-                    body: JSON.stringify({ name, subject, body })
-                });
-            }
-            alert('✓ Plantilla guardada');
-            this.closeTemplateEditor();
-            this.loadEmailTemplates();
-        } catch (e) { 
-            alert('Error al guardar plantilla: ' + e.message); 
-        }
-    },
-    
-    
-    loadEmailTemplates: async function() {
-        try {
-            console.log("[DEBUG] Loading templates, user:", this.state.user);
-            const templates = await this.fetchAPI('/email-templates');
-            console.log("[DEBUG] Templates loaded:", templates);
-            this.state.emailTemplates = templates; // Guardar en estado
-            
-            const container = document.getElementById('email-templates-list');
-            if (container) {
-                if (templates && templates.length > 0) {
-                    container.innerHTML = templates.map(t => `
-                        <div class="bg-slate-800/50 rounded-xl p-4 border border-white/5">
-                            <div class="flex items-center justify-between mb-2">
-                                <h5 class="font-bold text-white text-sm">${t.name}</h5>
-                                <span class="px-2 py-1 rounded text-[8px] font-black ${t.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}">${t.is_active ? 'Activo' : 'Inactivo'}</span>
-                            </div>
-                            <p class="text-xs text-slate-400 mb-3"><strong>Asunto:</strong> ${t.subject || 'Sin asunto'}</p>
-                            <div class="flex gap-2">
-                                <button data-action="showTemplateEditor" data-template-id="${t.id}" data-template-name="${(t.name || '').replace(/'/g, "&apos;")}" class="flex-1 px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded-lg text-xs font-bold">Editar</button>
-                                <button data-action="deleteEmailTemplate" data-template-id="${t.id}" class="w-10 h-10 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-all" title="Eliminar">
-                                    <span class="material-symbols-outlined text-sm">delete</span>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p class="text-slate-500 text-center py-8">No hay plantillas configuradas.</p>';
-                }
-            }
-        } catch (e) { 
-            console.error('[ERROR] loadEmailTemplates:', e); 
-            const container = document.getElementById('email-templates-list');
-            if (container) {
-                container.innerHTML = `<p class="text-red-400 text-center py-8">Error al cargar plantillas: ${e.message}</p>`;
-            }
-        }
-    },
-    
+
+
     // --- EVENT EMAIL CONFIG V10.6 ---
     currentEventId: null,
     
@@ -2557,6 +2147,7 @@ const App = window.App = {
         }
 
         this.showView(viewName);
+        LS.set('active_view', viewName); // Persistencia de vista V12.15.0
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
@@ -2647,10 +2238,19 @@ const App = window.App = {
             return;
         }
 
-        if (view === 'my-events' || view === '' || view === 'index.html') {
-            this.navigate('my-events', {}, false);
-        } else {
+        if (view === 'system' && !params.tab) {
+            params.tab = LS.get('active_system_tab') || 'users';
+        }
 
+        if (view === 'my-events' || view === '' || view === 'index.html') {
+            const savedView = LS.get('active_view');
+            if (savedView && savedView !== 'login') {
+                 // Si hay una vista guardada, navegar a ella
+                 this.navigate(savedView, { tab: LS.get('active_system_tab') || 'users' }, false);
+            } else {
+                 this.navigate('my-events', {}, false);
+            }
+        } else {
             this.navigate(view, params, false);
         }
     },
@@ -4313,6 +3913,7 @@ const App = window.App = {
 
     switchSystemTab(tabName) {
         console.log('[SYS] Switching to tab:', tabName);
+        LS.set('active_system_tab', tabName); // Persistencia V12.15.0
         const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
         
         // Ocultar todos los contenidos
@@ -4465,7 +4066,10 @@ const App = window.App = {
 
                 <div class="flex flex-col gap-3">
                     <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Añadir al Evento</button>
-                    <button id="btn-close-staff-selector" class="w-full py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    <div class="flex gap-3">
+                        <button onclick="App.navigateToCreateUser()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Usuario</button>
+                        <button id="btn-close-staff-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    </div>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -4604,6 +4208,239 @@ const App = window.App = {
         });
     },
 
+    // --- MODALES DE SELECCIÓN PREMIUM "FORMULARIO OK" (V12.15.0) ---
+    
+    async showUserSelectorForGroup(groupId) {
+        let users = [];
+        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+        
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Usuario</span>
+                    <button onclick="App.navigateToCreateUser()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">add</span> NUEVO USUARIO
+                    </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${users.map(u => `
+                        <div onclick="App.assignUserToGroup('${u.id}', '${groupId}')" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover:scale-110 transition-transform">
+                                ${u.username[0].toUpperCase()}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-white">${u.username}</span>
+                                <span class="text-[10px] text-slate-500">${u.role}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '<span class="text-lg font-bold">Asignar a Grupo</span>',
+            html,
+            background: '#0f172a',
+            color: '#fff',
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+        });
+    },
+
+    async assignUserToGroup(userId, groupId) {
+        try {
+            const res = await this.fetchAPI(`/groups/${groupId}/users`, {
+                method: 'POST',
+                body: JSON.stringify({ userId })
+            });
+            if (res.success) {
+                this._notifyAction('Asignado', 'Usuario añadido al grupo.', 'success');
+                this.loadGroups();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
+            }
+        } catch(e) { console.error(e); }
+    },
+
+    async showUserSelectorForEvent(eventId) {
+        let users = [];
+        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Staff</span>
+                    <button onclick="App.navigateToCreateUser()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">add</span> NUEVO USUARIO
+                    </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${users.map(u => `
+                        <div onclick="App.assignUserToEvent('${u.id}', '${eventId}')" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-xs font-bold group-hover:scale-110 transition-transform">
+                                ${u.username[0].toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-white">${u.username}</div>
+                                <div class="text-[9px] text-slate-500">${u.role}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '<span class="text-lg font-bold">Asignar Staff</span>',
+            html,
+            background: '#0f172a',
+            color: '#fff',
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+        });
+    },
+
+    async assignUserToEvent(userId, eventId) {
+        try {
+            const res = await this.fetchAPI(`/events/${eventId}/staff`, {
+                method: 'POST',
+                body: JSON.stringify({ userId })
+            });
+            if (res.success) {
+                this._notifyAction('Asignado', 'Staff añadido al evento.', 'success');
+                this.loadEvents();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
+            }
+        } catch(e) { console.error(e); }
+    },
+
+    async showGroupSelector(userId, currentGroupId = null) {
+        let groups = [];
+        try { groups = await this.fetchAPI('/groups'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Seleccionar Empresa</span>
+                    <button onclick="App.navigateToCreateGroup()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">add</span> NUEVA EMPRESA
+                    </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${groups.map(g => `
+                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm ${String(g.id) === String(currentGroupId) ? 'ring-2 ring-primary bg-primary/10' : ''}">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xs font-bold">
+                                    <span class="material-symbols-outlined text-sm">corporate_fare</span>
+                                </div>
+                                <span class="text-xs font-bold text-white">${g.name}</span>
+                            </div>
+                            ${String(g.id) === String(currentGroupId) ? '<span class="text-[8px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded">ACTUAL</span>' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '<span class="text-lg font-bold">Asignar Empresa</span>',
+            html,
+            background: '#0f172a',
+            color: '#fff',
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+        });
+    },
+
+    async assignGroupToUser(userId, groupId) {
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, {
+                method: 'PUT',
+                body: JSON.stringify({ groupId })
+            });
+            if (res.success) {
+                this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
+                this.loadUsersTable();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
+            }
+        } catch(e) { console.error(e); }
+    },
+
+    async showEventSelector(userId, selectedEventIds = []) {
+        let events = [];
+        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos</span>
+                    <button onclick="App.navigateToCreateEvent()" class="flex items-center gap-1 text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-xs">add</span> NUEVO EVENTO
+                    </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(ev => {
+                        const isSelected = selectedEventIds.includes(ev.id);
+                        return `
+                        <div onclick="App.toggleEventToUser('${userId}', '${ev.id}', ${isSelected})" class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group ${isSelected ? 'border-primary/50 bg-primary/5' : ''}">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                                    <span class="material-symbols-outlined text-sm">event</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-white">${ev.name}</span>
+                                    <span class="text-[9px] text-slate-500">${new Date(ev.date).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div class="w-5 h-5 rounded-full border-2 ${isSelected ? 'bg-primary border-primary flex items-center justify-center' : 'border-white/20'}">
+                                ${isSelected ? '<span class="material-symbols-outlined text-[10px] text-white">check</span>' : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '<span class="text-lg font-bold">Gestión de Eventos</span>',
+            html,
+            background: '#0f172a',
+            color: '#fff',
+            confirmButtonText: 'Listo',
+            confirmButtonColor: '#1a73e8',
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl glass-card' }
+        });
+    },
+
+    async toggleEventToUser(userId, eventId, isCurrentlySelected) {
+        const method = isCurrentlySelected ? 'DELETE' : 'POST';
+        try {
+            await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method });
+            // Recargar el selector para actualizar estado visual
+            const user = (this.state.users || []).find(u => u.id === userId);
+            const updatedEvents = isCurrentlySelected 
+                ? (user.assignedEvents || []).filter(id => id !== eventId)
+                : [...(user.assignedEvents || []), eventId];
+            this.showEventSelector(userId, updatedEvents);
+            this.loadUsersTable();
+        } catch(e) { console.error(e); }
+    },
+
+    navigateToCreateGroup() {
+        this.navigate('groups');
+        setTimeout(() => {
+            const btn = document.querySelector('[data-action="openGroupModal"]');
+            if (btn) btn.click();
+        }, 300);
+    },
+
+    navigateToCreateEvent() {
+        this.navigate('my-events');
+        setTimeout(() => {
+            const btn = document.getElementById('btn-new-event');
+            if (btn) btn.click();
+        }, 300);
+    },
+
     // --- EMAIL Y ENVÍO MASIVO (FASE 6) ---
     async navigateEmailSection(section) {
         document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
@@ -4635,7 +4472,14 @@ const App = window.App = {
         try {
             const templates = await this.fetchAPI('/email-templates');
             this.state.emailTemplates = templates;
-            grid.innerHTML = templates.map(t => `
+            grid.innerHTML = `
+                <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
+                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-secondary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-2xl">add</span>
+                    </div>
+                    <span class="text-xs font-bold text-[var(--text-secondary)] group-hover:text-[var(--primary)]">NUEVA PLANTILLA</span>
+                </div>
+            ` + templates.map(t => `
                 <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group relative overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative z-10 flex items-center gap-4 mb-4">
@@ -4651,10 +4495,95 @@ const App = window.App = {
                         <button onclick="App.selectTemplateFromLibrary('${t.id}')" class="btn-primary !py-1.5 !px-3 text-[10px] flex-1">
                             <span class="material-symbols-outlined text-xs">send</span> USAR PARA ENVÍO
                         </button>
+                        <button onclick="App.openTemplateEditor('${t.id}')" class="btn-secondary !py-1.5 !px-3 text-[10px] flex-1">
+                            <span class="material-symbols-outlined text-xs">edit</span> EDITAR
+                        </button>
+                        <button onclick="App.deleteEmailTemplate('${t.id}')" class="btn-secondary !py-1.5 !px-2 !text-red-500 hover:!bg-red-500/10">
+                            <span class="material-symbols-outlined text-xs">delete</span>
+                        </button>
                     </div>
                 </div>
             `).join('');
         } catch(e) { console.error('Error templates:', e); }
+    },
+
+    async openTemplateEditor(id = null) {
+        console.log('[TEMPLATES] Abriendo editor:', id || 'Nueva');
+        const modal = document.getElementById('modal-template-editor');
+        if (!modal) return;
+
+        // Limpiar campos
+        document.getElementById('tpl-name').value = '';
+        document.getElementById('tpl-subject').value = '';
+        if (this.quillTemplate) this.quillTemplate.setContents([]);
+        window.active_template_id = id;
+
+        if (id) {
+            const t = this.state.emailTemplates?.find(x => String(x.id) === String(id));
+            if (t) {
+                document.getElementById('tpl-name').value = t.name;
+                document.getElementById('tpl-subject').value = t.subject;
+                if (this.quillTemplate) this.quillTemplate.clipboard.dangerouslyPasteHTML(t.body || '');
+            }
+        }
+
+        modal.classList.remove('hidden');
+        
+        // Inicializar Quill si no existe
+        if (!this.quillTemplate) {
+            const selector = '#tpl-quill-editor';
+            if (document.querySelector(selector)) {
+                this.quillTemplate = new Quill(selector, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'clean']
+                        ]
+                    }
+                });
+            }
+        }
+    },
+
+    async saveEmailTemplate() {
+        const id = window.active_template_id;
+        const data = {
+            name: document.getElementById('tpl-name').value,
+            subject: document.getElementById('tpl-subject').value,
+            body: this.quillTemplate ? this.quillTemplate.root.innerHTML : ''
+        };
+
+        if (!data.name) return Swal.fire('Atención', 'El nombre de la plantilla es obligatorio.', 'warning');
+
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email-templates/${id}` : '/email-templates';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+            
+            if (res.success) {
+                this._notifyAction('Guardado', 'Plantilla actualizada correctamente.', 'success');
+                document.getElementById('modal-template-editor').classList.add('hidden');
+                this.loadEmailTemplates();
+                this.loadMailingData(); // Actualizar selector en mailing
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo guardar la plantilla.', 'error');
+            }
+        } catch(e) { console.error('Error saving template:', e); }
+    },
+
+    async deleteEmailTemplate(id) {
+        if (await this._confirmAction('¿Eliminar Plantilla?', 'Esta acción no se puede deshacer.')) {
+            try {
+                const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+                if (res.success) {
+                    this._notifyAction('Eliminada', 'La plantilla ha sido borrada.', 'success');
+                    this.loadEmailTemplates();
+                    this.loadMailingData();
+                }
+            } catch(e) { console.error('Error deleting template:', e); }
+        }
     },
 
     async selectTemplateFromLibrary(id) {
@@ -4934,12 +4863,102 @@ const App = window.App = {
         if (!templateId) return Swal.fire('Atención', 'Selecciona una plantilla para editar.', 'info');
         
         // Redirigir suavemente a la pestaña de plantillas
-        this.navigate('templates');
-        // Aquí podríamos disparar el modal de edición directamente si el ID existe
+        this.navigateEmailSection('templates');
+        
+        // Abrir el editor directamente (V12.15.0 robusto)
         setTimeout(() => {
-            const btn = document.querySelector(`[onclick*="App.openTemplateEditor('${templateId}')"]`);
-            if (btn) btn.click();
-        }, 500);
+            this.openTemplateEditor(templateId);
+        }, 300);
+    },
+
+    // --- HISTORIAL DE CAMPAÑAS (Integrado desde logic_v16.js) ---
+    saveMailingCampaign() {
+        const tid = document.getElementById("mailing-template-selector")?.value;
+        const eid = document.getElementById("mailing-event-selector")?.value;
+        const gs = (this.state.mailingGuests || []).filter(g => g.selected);
+        
+        if (!tid || gs.length === 0) return Swal.fire("Atención", "Selecciona plantilla y destinatarios.", "info");
+        
+        const camp = { 
+            id: Date.now(), 
+            name: `Campaña ${new Date().toLocaleString()}`, 
+            tid, 
+            eid, 
+            recipients: gs.map(g => g.email), 
+            date: new Date().toISOString() 
+        };
+        
+        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        saved.push(camp);
+        localStorage.setItem("check_saved_campaigns", JSON.stringify(saved));
+        
+        Swal.fire({ 
+            title: "¡Guardado!", 
+            text: "Campaña guardada en el historial local.", 
+            icon: "success", 
+            background: "#292a2d", 
+            color: "#fff", 
+            confirmButtonColor: "#1a73e8" 
+        });
+    },
+
+    showSavedCampaigns() {
+        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        if (saved.length === 0) return Swal.fire("Historial Vacío", "No hay campañas guardadas.", "info");
+        
+        const html = `
+            <div class="max-h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                ${saved.reverse().map(c => `
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all font-premium shadow-sm">
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold text-white">${c.name}</span>
+                            <span class="text-[9px] text-slate-500">${c.recipients.length} destinatarios</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.loadCampaign(${c.id})" class="px-2 py-1 bg-primary text-white text-[9px] rounded-lg">Cargar</button>
+                            <button onclick="App.deleteCampaign(${c.id})" class="px-2 py-1 bg-red-500/20 text-red-500 text-[9px] rounded-lg">Borrar</button>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>`;
+            
+        Swal.fire({ 
+            title: "Historial de Campañas", 
+            html, 
+            background: "#292a2d", 
+            color: "#fff", 
+            showConfirmButton: false 
+        });
+    },
+
+    loadCampaign(id) {
+        const saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        const c = saved.find(x => Number(x.id) === Number(id));
+        if (!c) return;
+        
+        const tempSelector = document.getElementById("mailing-template-selector");
+        const eventSelector = document.getElementById("mailing-event-selector");
+        
+        if (tempSelector) tempSelector.value = c.tid;
+        if (eventSelector) eventSelector.value = c.eid;
+        
+        // Forzar carga de invitados del evento si cambió
+        this.onMailingEventChange().then(() => {
+            (this.state.mailingGuests || []).forEach(g => {
+                g.selected = c.recipients.includes(g.email);
+            });
+            this.onTemplateChange();
+            this.filterMailingGuests();
+            Swal.close();
+            this._notifyAction("Éxito", "Campaña cargada.", "success");
+        });
+    },
+
+    deleteCampaign(id) {
+        let saved = JSON.parse(localStorage.getItem("check_saved_campaigns") || "[]");
+        saved = saved.filter(x => Number(x.id) !== Number(id));
+        localStorage.setItem("check_saved_campaigns", JSON.stringify(saved));
+        this.showSavedCampaigns();
     },
     updateMailingSummaryUI() {
         const container = document.getElementById('mailing-summary-preview');

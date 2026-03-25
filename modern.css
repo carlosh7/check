@@ -84,8 +84,8 @@ body {
     background-color: var(--bg-app);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 16px; /* Aumentado de 14px */
+    line-height: 1.6;
     letter-spacing: -0.01em;
 }
 
@@ -175,10 +175,10 @@ body {
 .btn-primary {
     background-color: var(--primary) !important;
     color: var(--text-inverse) !important;
-    padding: 10px 20px !important;
+    padding: 12px 24px !important; /* Aumentado padding */
     border-radius: var(--radius-sm) !important;
-    font-weight: 500 !important;
-    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important; /* Aumentado de 13px */
     letter-spacing: -0.01em;
     border: none !important;
     cursor: pointer;
@@ -206,9 +206,9 @@ textarea {
     background-color: var(--bg-input) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
-    padding: 10px 14px !important;
+    padding: 12px 16px !important; /* Aumentado padding */
     color: var(--text-main) !important;
-    font-size: 14px !important;
+    font-size: 16px !important; /* Aumentado de 14px */
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
 }
@@ -235,9 +235,9 @@ input[type="email"]:focus {
 }
 
 .sub-nav-btn {
-    padding: 10px 24px !important;
+    padding: 12px 28px !important; /* Aumentado padding */
     border-radius: var(--radius-sm) !important;
-    font-size: 13px !important;
+    font-size: 14px !important; /* Aumentado de 13px */
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
@@ -268,9 +268,9 @@ input[type="email"]:focus {
 
 .data-table th {
     text-align: left;
-    padding: 14px 16px;
-    font-size: 11px;
-    font-weight: 600;
+    padding: 16px;
+    font-size: 13px; /* Aumentado de 11px */
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-secondary);
@@ -292,12 +292,12 @@ input[type="email"]:focus {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 12px 16px; /* Aumentado padding */
     margin: 2px 10px;
     border-radius: var(--radius-sm);
     color: var(--text-main);
     text-decoration: none;
-    font-size: 13px;
+    font-size: 15px; /* Aumentado de 13px */
     font-weight: 500;
     transition: all 0.15s ease;
 }
@@ -326,9 +326,9 @@ input[type="email"]:focus {
 
 /* Status Badges - Chrome Look */
 .status-pill {
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 13px; /* Aumentado de 11px */
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -344,10 +344,10 @@ input[type="email"]:focus {
 
 /* Headings */
 h1 { 
-    font-size: 24px; 
-    font-weight: 600; 
+    font-size: 28px; /* Aumentado de 24px */
+    font-weight: 700; 
     letter-spacing: -0.02em;
-    margin-bottom: 16px; 
+    margin-bottom: 20px; 
 }
 
 h2 {
@@ -358,7 +358,7 @@ h2 {
 
 .text-secondary { 
     color: var(--text-secondary); 
-    font-size: 13px; 
+    font-size: 14px; /* Aumentado de 13px */
 }
 
 .text-right { text-align: right; }
@@ -436,7 +436,7 @@ h2 {
 }
 
 .form-label {
-    font-size: 11px;
+    font-size: 13px; /* Aumentado de 11px */
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -475,7 +475,7 @@ h2 {
 
 /* Section titles inside forms */
 .form-section-title {
-    font-size: 12px;
+    font-size: 14px; /* Aumentado de 12px */
     font-weight: 700;
     color: var(--text-main);
     text-transform: uppercase;

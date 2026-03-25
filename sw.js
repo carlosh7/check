@@ -26,7 +26,28 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  // Ignorar peticiones a la API para no cachear datos dinámicos erróneamente
+  if (e.request.url.includes('/api/')) {
+    return;
+  }
+
+  e.respondWith(
+    fetch(e.request).catch(() => {
+      return caches.match(e.request).then((response) => {
+        if (response) return response;
+        
+        // Fallback para cuando no hay red ni caché
+        if (e.request.headers.get('accept').includes('text/html')) {
+          return caches.match('/index.html');
+        }
+        
+        return new Response('Network error', {
+          status: 408,
+          statusText: 'Network error'
+        });
+      });
+    })
+  );
 });
 
 self.addEventListener('push', (event) => {
