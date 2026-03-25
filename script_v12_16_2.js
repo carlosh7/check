@@ -1208,8 +1208,11 @@ const App = window.App = {
     },
     
     // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
-    showGroupSelector: function(userId) {
-        const groups = this.state.allGroups || [];
+    showGroupSelector: async function(userId) {
+        // Cargar grupos frescos del servidor
+        const groups = await this.fetchAPI('/groups');
+        this.state.allGroups = groups;
+        
         const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
         const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
         this.state._pendingGroupUserId = userId; // Guardar userId para retorno
