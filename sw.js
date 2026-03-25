@@ -1,4 +1,4 @@
-const CACHE_NAME = 'check-v10.5-cache';
+const CACHE_NAME = 'check-v12.16.2-cache';
 const assets = [
   '/',
   '/index.html',

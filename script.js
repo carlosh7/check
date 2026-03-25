@@ -12,6 +12,20 @@ window.LS = LS;
 window.lazyLoad = lazyLoad;
 const VERSION = '12.16.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
+
+// --- AUTO-UPDATE CACHE V12.16.2 ---
+if ('caches' in window) {
+    const v = LS.get('check_app_version');
+    if (v !== VERSION) {
+        caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
+        }).then(() => {
+            LS.set('check_app_version', VERSION);
+            console.log(`[VERSION] Cache borrada por actualización a V${VERSION}`);
+        });
+    }
+}
+
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -22,7 +36,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.16.0',
+        version: '12.16.2',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
