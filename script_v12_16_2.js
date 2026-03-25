@@ -1969,11 +1969,15 @@ const App = window.App = {
     openInviteModal: function() {
         document.getElementById('invite-user-form')?.reset();
         this.updateRoleOptions();
-        document.getElementById('modal-invite')?.classList.remove('hidden');
+        const modal = document.getElementById('modal-invite');
+        modal?.classList.remove('hidden');
+        modal?.setAttribute('aria-hidden', 'false');
     },
 
     closeInvite: function() {
-        document.getElementById('modal-invite')?.classList.add('hidden');
+        const modal = document.getElementById('modal-invite');
+        modal?.classList.add('hidden');
+        modal?.setAttribute('aria-hidden', 'true');
     },
 
     closeSurveyEditor: function() {
@@ -3524,7 +3528,7 @@ const App = window.App = {
     attachAppListeners() {
         // Click listeners para elementos del app-shell
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
-        const hideModal = (id) => { const m = document.getElementById(id); if (m) m.classList.add('hidden'); };
+        const hideModal = (id) => { const m = document.getElementById(id); if (m) { m.classList.add('hidden'); m.setAttribute('aria-hidden', 'true'); } };
         
         // Mostrar versión del servidor al cargar
         this.fetchAPI('/app-version').then(res => {
@@ -6577,9 +6581,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
     // Modal de Invitación
-    cl('btn-open-invite', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
-    cl('btn-close-invite', () => document.getElementById('modal-invite')?.classList.add('hidden'));
-    cl('btn-open-invite-admin', () => document.getElementById('modal-invite')?.classList.remove('hidden'));
+    cl('btn-open-invite', () => {
+        const m = document.getElementById('modal-invite');
+        m?.classList.remove('hidden');
+        m?.setAttribute('aria-hidden', 'false');
+    });
+    cl('btn-close-invite', () => {
+        const m = document.getElementById('modal-invite');
+        m?.classList.add('hidden');
+        m?.setAttribute('aria-hidden', 'true');
+    });
+    cl('btn-open-invite-admin', () => {
+        const m = document.getElementById('modal-invite');
+        m?.classList.remove('hidden');
+        m?.setAttribute('aria-hidden', 'false');
+    });
     
     // Modal de Eventos
     cl('btn-create-event-open', () => App.navigateToCreateEvent());

@@ -42,6 +42,7 @@ const schemas = {
         password: passwordSchema,
         display_name: z.string().min(1, 'Nombre requerido').max(100),
         role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO']),
+        phone: z.string().max(20).optional(),
         group_id: z.union([z.string(), z.number()]).optional()
     }),
 
