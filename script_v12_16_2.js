@@ -1562,10 +1562,11 @@ const App = window.App = {
     // ─── MAILING & MAILBOX LOGIC V11.1 ───
     
     async loadEmailTemplates() {
-        const grid = document.getElementById('email-templates-grid');
+        const grid = document.getElementById('templates-grid');
         if (!grid) return;
         try {
-            const templates = await this.fetchAPI('/email-templates');
+            const response = await this.fetchAPI('/email-templates');
+            const templates = response.data || response;
             this.state.emailTemplates = templates;
             grid.innerHTML = `
                 <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
@@ -1821,7 +1822,7 @@ const App = window.App = {
         const totalSelected = (this.state.mailingGuests || []).filter(g => g.selected).length;
         if (count) count.innerHTML = `${filtered.length} / ${totalSelected} seleccionados`;
         
-        this.updateMailingSummaryUI(); 
+        // this.updateMailingSummaryUI(); // Temporarily disabled
         
         if (filtered.length === 0) {
             list.innerHTML = `<div class="text-center py-6 text-slate-500">Sin resultados</div>`;
@@ -2193,7 +2194,7 @@ const App = window.App = {
     loadMailingTemplates: async function() {
         try {
             const templates = await this.fetchAPI('/email-templates');
-            const select = document.getElementById('mailing-template-select');
+            const select = document.getElementById('mailing-template-selector');
             if (select) {
                 select.innerHTML = '<option value="">-- Selecciona una plantilla --</option>' + 
                     templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
@@ -2203,22 +2204,47 @@ const App = window.App = {
     },
 
     previewMailingTemplate: async function() {
-        const templateId = document.getElementById('mailing-template-select').value;
+        const templateSelect = document.getElementById('mailing-template-selector');
+        const templateId = templateSelect?.value;
         const container = document.getElementById('mailing-preview-container');
-        if (!templateId || !container) return;
+        const subjectInput = document.getElementById('mailing-subject');
+        
+        if (!templateId) {
+            alert('Selecciona una plantilla primero');
+            return;
+        }
+        
+        if (!container) return;
 
-        const template = this.state.emailTemplates.find(t => t.id === templateId);
-        if (!template) return;
+        // Buscar en las plantillas guardadas en estado
+        const templates = this.state.emailTemplates || [];
+        const template = templates.find(t => String(t.id) === String(templateId));
+        
+        if (!template) {
+            // Si no está en estado, buscar en el select
+            const option = templateSelect?.options?.[templateSelect.selectedIndex];
+            const subject = option?.dataset?.subject || '';
+            const body = option?.dataset?.body || '';
+            
+            if (subjectInput) subjectInput.value = subject;
+            
+            // Preview simple
+            container.innerHTML = body || '<p class="text-slate-500">Sin contenido</p>';
+            return;
+        }
 
         // Set subject
-        document.getElementById('mailing-subject').value = template.subject || '';
+        if (subjectInput) subjectInput.value = template.subject || '';
 
         // Simular previsualización con el primer invitado si existe
-        let guest = this.state.guests?.[0] || { name: 'INVITADO DE PRUEBA', email: 'prueba@ejemplo.com', unsubscribe_token: 'test-token' };
+        const guests = this.state.mailingGuests || [];
+        let guest = guests.find(g => g.selected) || guests[0] || { name: 'INVITADO DE PRUEBA', email: 'prueba@ejemplo.com', unsubscribe_token: 'test-token' };
         
-        let body = template.body;
-        body = body.replace(/{{guest_name}}/g, guest.name);
-        body = body.replace(/{{guest_email}}/g, guest.email);
+        let body = template.body || '';
+        body = body.replace(/{{guest_name}}/g, guest.name || 'Invitado');
+        body = body.replace(/{{guest_email}}/g, guest.email || 'email@ejemplo.com');
+        body = body.replace(/{{name}}/g, guest.name || 'Invitado');
+        body = body.replace(/{{event_name}}/g, this.state.event?.name || 'Evento');
         body = body.replace(/{{unsubscribe_url}}/g, `${window.location.origin}/unsubscribe/${guest.unsubscribe_token || 'sample-token'}`);
 
         container.innerHTML = body;
@@ -2232,24 +2258,30 @@ const App = window.App = {
     },
 
     startBroadcast: async function() {
-        const templateId = document.getElementById('mailing-template-select').value;
-        const subject = document.getElementById('mailing-subject').value;
+        const templateId = document.getElementById('mailing-template-selector')?.value;
+        const subject = document.getElementById('mailing-subject')?.value;
         const container = document.getElementById('mailing-preview-container');
         
-        if (!templateId || !subject) return alert('Selecciona una plantilla y asunto');
-        if (!this.state.event) return alert('Selecciona un evento primero');
+        if (!templateId || !subject) return alert('Selecciona una plantilla y escribe un asunto');
+        
+        const eventId = document.getElementById('mailing-event-selector')?.value;
+        const selectedGuests = (this.state.mailingGuests || []).filter(g => g.selected);
+        
+        if (!eventId || selectedGuests.length === 0) return alert('Selecciona un evento y destinatarios');
 
-        if (!confirm('¿Estás seguro de iniciar el envío masivo a ' + (this.state.guests?.length || 0) + ' invitados?')) return;
+        if (!confirm('¿Estás seguro de iniciar el envío masivo a ' + selectedGuests.length + ' invitados?')) return;
 
         try {
             const body = container.innerHTML;
+            const recipients = selectedGuests.map(g => ({ email: g.email, name: g.name, organization: g.organization }));
+            
             await this.fetchAPI('/email/send-mass', {
                 method: 'POST',
                 body: JSON.stringify({
-                    event_id: this.state.event.id,
-                    template_id: templateId,
-                    subject: subject,
-                    body: body
+                    event_id: eventId,
+                    templateId: templateId,
+                    recipients: recipients,
+                    subject: subject
                 })
             });
             
