@@ -1375,6 +1375,7 @@ const App = window.App = {
         const modal = document.getElementById('modal-company');
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
+        document.body.focus(); // Mover foco para evitar warning aria-hidden
     },
     
     saveCompany: async function(data) {
@@ -1397,16 +1398,12 @@ const App = window.App = {
             }
             this.closeCompanyModal();
             
-            // Si hay pendingUserId (vino del selector de usuarios), volver a mostrar el selector
             if (pendingUserId) {
-                console.log('[DEBUG] saveCompany: volviendo al selector con userId:', pendingUserId);
                 this._openCompanyModalFromSelector = false;
                 delete this.state._pendingGroupUserId;
-                await this.loadGroups(); // Esperar a que carguen las empresas
-                console.log('[DEBUG] saveCompany: grupos cargados, mostrando selector');
+                await this.loadGroups();
                 this.showGroupSelector(pendingUserId);
             } else {
-                console.log('[DEBUG] saveCompany: NO viene del selector, solo loadGroups');
                 this.loadGroups();
             }
         } catch (e) { 
@@ -6710,7 +6707,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
         } catch(err) { 
-            console.error('[CREATE USER ERROR]', err); 
             alert('Error de conexión: ' + (err.message || 'Ver consola para detalles')); 
         }
     });
