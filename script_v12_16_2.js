@@ -933,7 +933,7 @@ const App = window.App = {
     async purgeDatabase() {
         if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
             try {
-                await this.fetchAPI('/admin/purge', { method: 'POST' });
+                await this.fetchAPI('/settings/purge', { method: 'POST' });
                 this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
                 location.reload();
             } catch (e) {
@@ -1663,7 +1663,7 @@ const App = window.App = {
 
         try {
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email-templates/${id}` : '/email-templates';
+            const url = id ? `/email/email-templates/${id}` : '/email/email-templates';
             const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
             
             if (res.success) {
@@ -1680,7 +1680,7 @@ const App = window.App = {
     async deleteEmailTemplate(id) {
         if (await this._confirmAction('¿Eliminar Plantilla?', 'Esta acción no se puede deshacer.')) {
             try {
-                const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+                const res = await this.fetchAPI(`/email/email-templates/${id}`, { method: 'DELETE' });
                 if (res.success) {
                     this._notifyAction('Eliminada', 'La plantilla ha sido borrada.', 'success');
                     this.loadEmailTemplates();
@@ -2560,7 +2560,7 @@ const App = window.App = {
 
         try {
             const method = id ? 'PUT' : 'POST';
-            const endpoint = id ? `/email-templates/${id}` : '/email-templates';
+            const endpoint = id ? `/email/email-templates/${id}` : '/email/email-templates';
             
             const res = await this.fetchAPI(endpoint, {
                 method: method,
@@ -2600,7 +2600,7 @@ const App = window.App = {
     deleteEmailTemplate: async function(id) {
         if (!confirm('¿Seguro que quieres eliminar esta plantilla permanente?')) return;
         try {
-            await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+            await this.fetchAPI(`/email/email-templates/${id}`, { method: 'DELETE' });
             this.loadEmailTemplates();
             if (this.state.email_admin_section === 'mailing') this.loadMailingTemplates();
         } catch (e) { alert('Error al eliminar: ' + e.message); }
@@ -2707,7 +2707,7 @@ const App = window.App = {
                 templates.map(t => `<option value="${t.id}" data-subject="${t.subject}" data-body="${t.body}">${t.name}</option>`).join('');
             
             if (campaignId) {
-                const campaign = await this.fetchAPI(`/campaigns/${campaignId}`);
+                const campaign = await this.fetchAPI(`/email/campaigns/${campaignId}`);
                 document.getElementById('campaign-id').value = campaign.id;
                 document.getElementById('campaign-name').value = campaign.name;
                 document.getElementById('campaign-event-select').value = campaign.event_id || '';
@@ -2753,7 +2753,7 @@ const App = window.App = {
         
         try {
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/campaigns/${id}` : '/campaigns';
+            const url = id ? `/email/campaigns/${id}` : '/email/campaigns';
             const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
             
             if (res.success) {
@@ -2771,7 +2771,7 @@ const App = window.App = {
     startCampaign: async function(id) {
         if (!confirm('¿Iniciar esta campaña? Se comenzará a enviar inmediatamente.')) return;
         try {
-            const res = await this.fetchAPI(`/campaigns/${id}/start`, { method: 'POST' });
+            const res = await this.fetchAPI(`/email/campaigns/${id}/start`, { method: 'POST' });
             if (res.success) {
                 alert(`✓ Campaña iniciada. ${res.queued} emails encolados.`);
                 this.loadCampaigns();
@@ -2783,14 +2783,14 @@ const App = window.App = {
     
     pauseCampaign: async function(id) {
         try {
-            await this.fetchAPI(`/campaigns/${id}/pause`, { method: 'POST' });
+            await this.fetchAPI(`/email/campaigns/${id}/pause`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
     
     resumeCampaign: async function(id) {
         try {
-            await this.fetchAPI(`/campaigns/${id}/resume`, { method: 'POST' });
+            await this.fetchAPI(`/email/campaigns/${id}/resume`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
@@ -2798,7 +2798,7 @@ const App = window.App = {
     cancelCampaign: async function(id) {
         if (!confirm('¿Cancelar esta campaña? Los emails ya enviados no se recuperan.')) return;
         try {
-            await this.fetchAPI(`/campaigns/${id}/cancel`, { method: 'POST' });
+            await this.fetchAPI(`/email/campaigns/${id}/cancel`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
@@ -2806,14 +2806,14 @@ const App = window.App = {
     deleteCampaign: async function(id) {
         if (!confirm('¿Eliminar esta campaña permanentemente?')) return;
         try {
-            await this.fetchAPI(`/campaigns/${id}`, { method: 'DELETE' });
+            await this.fetchAPI(`/email/campaigns/${id}`, { method: 'DELETE' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
     
     viewCampaignReport: async function(id) {
         try {
-            const report = await this.fetchAPI(`/campaigns/${id}/report`);
+            const report = await this.fetchAPI(`/email/campaigns/${id}/report`);
             
             const html = `
             <div class="space-y-4">
@@ -3777,7 +3777,7 @@ const App = window.App = {
     async updatePreRegStatus(id, status) {
         if (!confirm(`¿Estás seguro de ${status === 'APPROVED' ? 'APROBAR' : 'RECHAZAR'} esta solicitud?`)) return;
         try {
-            await this.fetchAPI(`/pre-registrations/${id}/status`, {
+            await this.fetchAPI(`/events/pre-registrations/${id}/status`, {
                 method: 'PUT',
                 body: JSON.stringify({ status })
             });
@@ -3865,7 +3865,7 @@ const App = window.App = {
         const id = document.getElementById('survey-question-id').value;
         try {
             const method = id ? 'PUT' : 'POST';
-            const endpoint = id ? `/surveys/${id}` : `/events/${eventId}/surveys`;
+            const endpoint = id ? `/events/surveys/${id}` : `/events/${eventId}/surveys`;
             await this.fetchAPI(endpoint, { method, body: JSON.stringify(data) });
             document.getElementById('modal-survey-editor').classList.add('hidden');
             this.loadSurveyQuestions();
@@ -3875,7 +3875,7 @@ const App = window.App = {
     async deleteSurveyQuestion(id) {
         if (!confirm('¿Eliminar esta pregunta?')) return;
         try {
-            await this.fetchAPI(`/surveys/${id}`, { method: 'DELETE' });
+            await this.fetchAPI(`/events/surveys/${id}`, { method: 'DELETE' });
             this.loadSurveyQuestions();
         } catch (e) { alert('Error al eliminar'); }
     },

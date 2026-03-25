@@ -23,12 +23,60 @@ router.get('/', (req, res) => {
 // Actualizar settings
 router.put('/', authMiddleware(['ADMIN']), (req, res) => {
     const { key, value } = req.body;
-    
+
     if (key && value !== undefined) {
         db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
     }
-    
+
     res.json({ success: true });
+});
+
+// Legal texts (policy/terms)
+router.put('/legal', authMiddleware(['ADMIN']), (req, res) => {
+    const { type, content } = req.body;
+    const key = type === 'policy' ? 'legal_policy' : 'legal_terms';
+
+    if (type && content !== undefined) {
+        db.prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, content);
+    }
+
+    res.json({ success: true });
+});
+
+router.get('/legal', (req, res) => {
+    const rows = db.prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('legal_policy', 'legal_terms')").all();
+    const dict = {};
+    rows.forEach(r => dict[r.setting_key] = r.setting_value);
+    res.json(dict);
+});
+
+// Admin: purge database (DANGEROUS)
+router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
+    console.warn(`[ADMIN] PURGE requested by user: ${req.userId}`);
+
+    try {
+        // Disable foreign keys temporarily
+        db.prepare("PRAGMA foreign_keys = OFF").run();
+
+        // Delete in correct order to avoid FK violations
+        const tables = ['email_logs', 'email_queue', 'campaigns', 'survey_responses', 'survey_questions',
+                       'agenda_items', 'guests', 'pre_registrations', 'user_events', 'group_users',
+                       'events', 'groups', 'users', 'audit_logs', 'settings'];
+
+        for (const table of tables) {
+            db.prepare(`DELETE FROM ${table}`).run();
+        }
+
+        // Re-enable foreign keys
+        db.prepare("PRAGMA foreign_keys = ON").run();
+
+        console.warn(`[ADMIN] Database purged by user: ${req.userId}`);
+        res.json({ success: true, message: 'Base de datos limpiada' });
+    } catch (e) {
+        db.prepare("PRAGMA foreign_keys = ON").run();
+        console.error('[ADMIN] Purge failed:', e);
+        res.status(500).json({ error: 'Error al purgar la base de datos' });
+    }
 });
 
 module.exports = router;
