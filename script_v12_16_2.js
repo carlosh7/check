@@ -1896,7 +1896,10 @@ const App = window.App = {
         
         try {
             const type = folder === 'INBOX' ? 'INBOX' : 'SENT';
-            const logs = await this.fetchAPI(`/email-logs?type=${type}`);
+            const response = await this.fetchAPI(`/email-logs?type=${type}`);
+            
+            // La API devuelve {data: [], pagination: {}} 
+            const logs = response.data || response;
             
             if (!logs || logs.length === 0) {
                 container.innerHTML = `<div class="p-12 text-center text-slate-600"><span class="material-symbols-outlined text-4xl block mb-2">inbox</span><p class="text-sm font-bold">No hay mensajes en ${folder}</p></div>`;
@@ -2240,7 +2243,7 @@ const App = window.App = {
 
         try {
             const body = container.innerHTML;
-            await this.fetchAPI('/emails/broadcast', {
+            await this.fetchAPI('/email/send-mass', {
                 method: 'POST',
                 body: JSON.stringify({
                     event_id: this.state.event.id,
@@ -2263,7 +2266,7 @@ const App = window.App = {
 
     controlMailingQueue: async function(action) {
         try {
-            const res = await this.fetchAPI('/emails/queue-control', {
+            const res = await this.fetchAPI('/email/email-queue/' + action, {
                 method: 'POST',
                 body: JSON.stringify({ action })
             });
@@ -2283,7 +2286,7 @@ const App = window.App = {
 
     updateMailingStats: async function() {
         try {
-            const stats = await this.fetchAPI('/emails/queue-stats');
+            const stats = await this.fetchAPI('/email-queue/stats');
             const total = stats.total || 0;
             const sent = stats.sent || 0;
             const pending = stats.pending || 0;
@@ -2317,33 +2320,36 @@ const App = window.App = {
     },
     
     saveEmailTemplate: async function() {
+        const id = window.active_template_id;
         const name = document.getElementById('tpl-name').value;
         const subject = document.getElementById('tpl-subject').value;
-        const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : '';
+        const body = this.quillTemplate ? this.quillTemplate.root.innerHTML : document.getElementById('tpl-quill-editor')?.innerHTML || '';
         
-        if (!name || !subject || !body) return alert('Completa todos los campos');
+        if (!name || !subject) return alert('Completa el nombre y asunto');
 
         try {
-            const isEditing = this.state.editingTemplate;
-            const endpoint = isEditing ? `/email-templates/${isEditing.id}` : '/email-templates';
-            const method = isEditing ? 'PUT' : 'POST';
+            const method = id ? 'PUT' : 'POST';
+            const endpoint = id ? `/email-templates/${id}` : '/email-templates';
             
-            await this.fetchAPI(endpoint, {
+            const res = await this.fetchAPI(endpoint, {
                 method: method,
-                body: JSON.stringify({ 
-                    name, subject, body, 
-                    event_id: isEditing?.event_id || (this.state._creatingEventType === 'event' ? this.state.event?.id : null) 
-                })
+                body: JSON.stringify({ name, subject, body })
             });
             
-            alert('✓ Plantilla guardada correctamente');
-            this.closeTemplateEditor();
-            this.loadEmailTemplates();
-            if (this.state.email_admin_section === 'mailing') {
-                this.loadMailingTemplates();
-                this.initDNSGuide();
+            if (res.success || res.id) {
+                this._notifyAction('Guardado', 'Plantilla guardada correctamente', 'success');
+                document.getElementById('modal-template-editor').classList.add('hidden');
+                this.loadEmailTemplates();
+                if (this.state.email_admin_section === 'mailing') {
+                    this.loadMailingData();
+                }
+            } else {
+                alert('Error: ' + (res.error || 'No se pudo guardar'));
             }
-        } catch (e) { alert('Error al guardar: ' + e.message); }
+        } catch (e) { 
+            console.error('Error saving template:', e);
+            alert('Error al guardar: ' + e.message); 
+        }
     },
 
     initDNSGuide: function() {
@@ -2378,7 +2384,7 @@ const App = window.App = {
         container.innerHTML = '<div class="p-8 text-center animate-pulse">Cargando campañas...</div>';
         
         try {
-            const campaigns = await this.fetchAPI('/email-campaigns');
+            const campaigns = await this.fetchAPI('/campaigns');
             
             if (!campaigns || campaigns.length === 0) {
                 container.innerHTML = `
@@ -2470,7 +2476,7 @@ const App = window.App = {
                 templates.map(t => `<option value="${t.id}" data-subject="${t.subject}" data-body="${t.body}">${t.name}</option>`).join('');
             
             if (campaignId) {
-                const campaign = await this.fetchAPI(`/email-campaigns/${campaignId}`);
+                const campaign = await this.fetchAPI(`/campaigns/${campaignId}`);
                 document.getElementById('campaign-id').value = campaign.id;
                 document.getElementById('campaign-name').value = campaign.name;
                 document.getElementById('campaign-event-select').value = campaign.event_id || '';
@@ -2516,7 +2522,7 @@ const App = window.App = {
         
         try {
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email-campaigns/${id}` : '/email-campaigns';
+            const url = id ? `/campaigns/${id}` : '/campaigns';
             const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
             
             if (res.success) {
@@ -2534,7 +2540,7 @@ const App = window.App = {
     startCampaign: async function(id) {
         if (!confirm('¿Iniciar esta campaña? Se comenzará a enviar inmediatamente.')) return;
         try {
-            const res = await this.fetchAPI(`/email-campaigns/${id}/start`, { method: 'POST' });
+            const res = await this.fetchAPI(`/campaigns/${id}/start`, { method: 'POST' });
             if (res.success) {
                 alert(`✓ Campaña iniciada. ${res.queued} emails encolados.`);
                 this.loadCampaigns();
@@ -2546,14 +2552,14 @@ const App = window.App = {
     
     pauseCampaign: async function(id) {
         try {
-            await this.fetchAPI(`/email-campaigns/${id}/pause`, { method: 'POST' });
+            await this.fetchAPI(`/campaigns/${id}/pause`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
     
     resumeCampaign: async function(id) {
         try {
-            await this.fetchAPI(`/email-campaigns/${id}/resume`, { method: 'POST' });
+            await this.fetchAPI(`/campaigns/${id}/resume`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
@@ -2561,7 +2567,7 @@ const App = window.App = {
     cancelCampaign: async function(id) {
         if (!confirm('¿Cancelar esta campaña? Los emails ya enviados no se recuperan.')) return;
         try {
-            await this.fetchAPI(`/email-campaigns/${id}/cancel`, { method: 'POST' });
+            await this.fetchAPI(`/campaigns/${id}/cancel`, { method: 'POST' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
@@ -2569,14 +2575,14 @@ const App = window.App = {
     deleteCampaign: async function(id) {
         if (!confirm('¿Eliminar esta campaña permanentemente?')) return;
         try {
-            await this.fetchAPI(`/email-campaigns/${id}`, { method: 'DELETE' });
+            await this.fetchAPI(`/campaigns/${id}`, { method: 'DELETE' });
             this.loadCampaigns();
         } catch (e) { alert('Error: ' + e.message); }
     },
     
     viewCampaignReport: async function(id) {
         try {
-            const report = await this.fetchAPI(`/email-campaigns/${id}/report`);
+            const report = await this.fetchAPI(`/campaigns/${id}/report`);
             
             const html = `
             <div class="space-y-4">
