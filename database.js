@@ -442,6 +442,41 @@ db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_event ON email_campaigns
 db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)");
 db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaign_logs_campaign ON email_campaign_logs(campaign_id)");
 
+// 16D. Tracking de Aperturas (Pixel Tracking)
+db.exec(`CREATE TABLE IF NOT EXISTS email_tracking_opens (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT,
+    guest_id TEXT,
+    to_email TEXT NOT NULL,
+    message_id TEXT,
+    opened_at TEXT NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    FOREIGN KEY (campaign_id) REFERENCES email_campaigns(id),
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+
+// 16E. Tracking de Clicks
+db.exec(`CREATE TABLE IF NOT EXISTS email_tracking_clicks (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT,
+    guest_id TEXT,
+    to_email TEXT NOT NULL,
+    message_id TEXT,
+    original_url TEXT NOT NULL,
+    clicked_at TEXT NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    FOREIGN KEY (campaign_id) REFERENCES email_campaigns(id),
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+
+// Índices para tracking
+db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_opens_campaign ON email_tracking_opens(campaign_id, opened_at)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_clicks_campaign ON email_tracking_clicks(campaign_id, clicked_at)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_opens_email ON email_tracking_opens(to_email)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_clicks_email ON email_tracking_clicks(to_email)");
+
 // 17. Webhooks para integraciones externas (Slack, Discord, etc)
 db.exec(`CREATE TABLE IF NOT EXISTS webhooks (
     id TEXT PRIMARY KEY,

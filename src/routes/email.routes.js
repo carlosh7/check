@@ -602,10 +602,92 @@ router.get('/campaigns/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
         bounced: db.prepare('SELECT COUNT(*) as count FROM email_campaign_logs WHERE campaign_id = ? AND status = ?').get(req.params.id, 'BOUNCED').count
     };
     
+    // Métricas de tracking
+    let trackingStats = { opens: { total: 0, unique: 0, percentage: 0 }, clicks: { total: 0, unique: 0, percentage: 0 } };
+    try {
+        const { getCampaignTrackingStats } = require('../utils/emailTracker');
+        trackingStats = getCampaignTrackingStats(req.params.id);
+    } catch (e) {
+        console.error('[REPORT] Error getting tracking:', e.message);
+    }
+    
     // Últimos errores
     const recentErrors = db.prepare(`SELECT * FROM email_campaign_logs WHERE campaign_id = ? AND status = 'ERROR' ORDER BY sent_at DESC LIMIT 10`).all(req.params.id);
     
-    res.json({ campaign, stats, recentErrors });
+    // Emails más abiertos
+    const topOpened = db.prepare(`
+        SELECT to_email, COUNT(*) as opens 
+        FROM email_tracking_opens 
+        WHERE campaign_id = ?
+        GROUP BY to_email 
+        ORDER BY opens DESC 
+        LIMIT 10
+    `).all(req.params.id);
+    
+    // URLs más clickeadas
+    const topClicked = db.prepare(`
+        SELECT original_url, COUNT(*) as clicks 
+        FROM email_tracking_clicks 
+        WHERE campaign_id = ?
+        GROUP BY original_url 
+        ORDER BY clicks DESC 
+        LIMIT 10
+    `).all(req.params.id);
+    
+    res.json({ 
+        campaign, 
+        stats, 
+        tracking: trackingStats,
+        recentErrors,
+        topOpened,
+        topClicked
+    });
+});
+
+// Enviar email de prueba
+router.post('/send-test', authMiddleware(['ADMIN']), async (req, res) => {
+    const { to_email, subject, body_html } = req.body;
+    
+    if (!to_email || !subject) {
+        return res.status(400).json({ success: false, error: 'Email y asunto requeridos' });
+    }
+    
+    try {
+        const nodemailer = require('nodemailer');
+        const config = db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+        
+        if (!config || !config.smtp_host) {
+            return res.status(400).json({ success: false, error: 'SMTP no configurado' });
+        }
+        
+        const transporter = nodemailer.createTransport({
+            host: config.smtp_host,
+            port: config.smtp_port || 587,
+            secure: config.smtp_secure === 1,
+            auth: {
+                user: config.smtp_user,
+                pass: config.smtp_pass
+            }
+        });
+        
+        // Procesar con tracking
+        const { processEmailForTracking } = require('../utils/emailTracker');
+        const processed = processEmailForTracking(body_html || '<p>Test email</p>', {
+            campaignId: 'test',
+            toEmail: to_email
+        });
+        
+        await transporter.sendMail({
+            from: `"${config.from_name || 'Check Pro'}" <${config.from_email || config.smtp_user}>`,
+            to: to_email,
+            subject: `[TEST] ${subject}`,
+            html: processed.html
+        });
+        
+        res.json({ success: true, message: 'Email de prueba enviado' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 module.exports = router;

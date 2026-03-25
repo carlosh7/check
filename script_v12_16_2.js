@@ -2296,6 +2296,39 @@ const App = window.App = {
         } catch (e) { alert('Error al iniciar envío: ' + e.message); }
     },
 
+    sendTestEmail: async function() {
+        const testEmail = document.getElementById('test-email-input')?.value?.trim();
+        if (!testEmail || !testEmail.includes('@')) {
+            return alert('Ingresa un email válido para la prueba');
+        }
+        
+        const subject = document.getElementById('mailing-subject')?.value;
+        const body = document.getElementById('mailing-preview-container')?.innerHTML;
+        
+        if (!subject || !body) {
+            return alert('Selecciona una plantilla y genera el preview primero');
+        }
+        
+        try {
+            const res = await this.fetchAPI('/email/send-test', {
+                method: 'POST',
+                body: JSON.stringify({
+                    to_email: testEmail,
+                    subject: subject,
+                    body_html: body
+                })
+            });
+            
+            if (res.success) {
+                this._notifyAction('✓ Enviado', 'Email de prueba enviado a ' + testEmail, 'success');
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) {
+            alert('Error al enviar: ' + e.message);
+        }
+    },
+
     controlMailingQueue: async function(action) {
         try {
             const res = await this.fetchAPI('/email/email-queue/' + action, {
