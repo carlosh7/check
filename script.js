@@ -3,14 +3,15 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.16.0
+ * Version: V12.16.1
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-console.log('CHECK V12.16.0: Iniciando Sistema Modular...');
+const VERSION = '12.16.1';
+console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
@@ -1039,22 +1040,15 @@ const App = window.App = {
     },
     
     navigateEmailSection: function(section) {
-        // Verificar que view-smtp esté visible, si no navegar
-        const smtpView = document.getElementById('view-smtp');
-        if (!smtpView || smtpView.classList.contains('hidden')) {
-            this.navigate('smtp');
-            // Esperar a que se cargue la vista antes de mostrar sección
-            setTimeout(() => this._showEmailSection(section), 50);
-            return;
-        }
-        
+        // En la versión V12.16.x, Email es una pestaña de System
+        // No forzamos this.navigate('smtp') si ya estamos en system
         this._showEmailSection(section);
     },
     
     _showEmailSection: function(section) {
         // Ocultar todos los contenidos de email
         document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.email-nav-btn').forEach(el => {
+        document.querySelectorAll('#sys-content-email .sub-nav-btn').forEach(el => {
             el.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
             el.classList.add('bg-white/5', 'text-slate-400');
         });
@@ -4006,8 +4000,9 @@ const App = window.App = {
     // --- PERFIL Y SEGURIDAD (FASE 5) ---
     async loadUserProfile() {
         try {
-            const user = await this.fetchAPI('/me');
-            if (user) {
+            const res = await this.fetchAPI('/me');
+            if (res && res.success !== false) {
+                const user = res;
                 this.state.user = { ...this.state.user, ...user };
                 const fn = document.getElementById('profile-full-name');
                 const rb = document.getElementById('profile-role-badge');
@@ -4020,6 +4015,8 @@ const App = window.App = {
                 if (dn) dn.value = user.name || '';
                 if (ph) ph.value = user.phone || '';
                 if (em) em.value = user.email || '';
+            } else {
+                console.warn('[PROFILE] No se pudo cargar el perfil:', res.error);
             }
         } catch(e) { console.error('Error loading profile:', e); }
     },
@@ -4239,11 +4236,12 @@ const App = window.App = {
         try {
             const res = await this.fetchAPI(`/groups/${groupId}/users`, {
                 method: 'POST',
-                body: JSON.stringify({ userId })
+                body: JSON.stringify({ user_id: userId }) // Cambiado a user_id para el backend modular
             });
             if (res.success) {
                 this._notifyAction('Asignado', 'Usuario añadido al grupo.', 'success');
                 this.loadGroups();
+                this.loadUsersTable();
                 Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
@@ -4253,51 +4251,22 @@ const App = window.App = {
 
     async assignUserToEvent(userId, eventId) {
         try {
-            const res = await this.fetchAPI(`/events/${eventId}/staff`, {
+            const res = await this.fetchAPI(`/events/${eventId}/users`, {
                 method: 'POST',
-                body: JSON.stringify({ userId })
-            });
-            if (res.success) {
-                this._notifyAction('Éxito', 'Staff asignado correctamente.', 'success');
-                this.loadEventStaff(eventId);
-                Swal.close();
-            } else {
-                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
-            }
-        } catch(e) { console.error(e); }
-    },
-
-    filterSelectorItems(input, selector) {
-        const query = input.value.toLowerCase();
-        document.querySelectorAll(selector).forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(query) ? 'flex' : 'none';
-        });
-    },
-
-    navigateToCreateUser() {
-        this.switchSystemTab('users');
-        Swal.close();
-        setTimeout(() => {
-            const btn = document.getElementById('btn-open-invite');
-            if (btn) btn.click();
-        }, 300);
-    },
-
-    async assignUserToEvent(userId, eventId) {
-        try {
-            const res = await this.fetchAPI(`/events/${eventId}/staff`, {
-                method: 'POST',
-                body: JSON.stringify({ userId })
+                body: JSON.stringify({ userId }) // userId es correcto aquí
             });
             if (res.success) {
                 this._notifyAction('Asignado', 'Staff añadido al evento.', 'success');
-                this.loadEvents();
+                this.loadEventStaff(eventId);
+                this.loadEvents(); 
+                this.loadUsersTable();
+                Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
         } catch(e) { console.error(e); }
     },
+
 
     async showGroupSelector(userId, currentGroupId = null) {
         let groups = [];
@@ -4356,19 +4325,100 @@ const App = window.App = {
 
     async assignGroupToUser(userId, groupId) {
         try {
+            // Backend espera group_id como array o valor único en un objeto para PUT /api/users/:id/group
             const res = await this.fetchAPI(`/users/${userId}/group`, {
                 method: 'PUT',
-                body: JSON.stringify({ groupId })
+                body: JSON.stringify({ group_id: [groupId] }) 
             });
             if (res.success) {
                 this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
+                this.loadGroups();
                 Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
         } catch(e) { console.error(e); }
     },
+
+    async showEventSelectorForCompany(groupId) {
+        let events = [];
+        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+        
+        // Obtener eventos actuales de la empresa
+        const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
+        const selectedIds = currentEvents.map(e => String(e.id));
+
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos a Empresa</span>
+                        <span class="text-xs text-slate-400">Vincular eventos propiedad de esta organización</span>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.toggleEventToCompany('${groupId}', '${e.id}', ${selectedIds.includes(String(e.id))})" class="selector-item flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined">event</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</span>
+                                    <span class="text-[10px] text-slate-500">${e.location || 'Sin ubicación'}</span>
+                                </div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(e.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
+        });
+    },
+
+    async toggleEventToCompany(groupId, eventId, isSelected) {
+        try {
+            // Obtener eventos actuales del estado para recalcular el array
+            const events = await this.fetchAPI('/events');
+            const companyEvents = events.filter(e => String(e.group_id) === String(groupId));
+            let newIds = companyEvents.map(e => String(e.id));
+            
+            if (isSelected) {
+                newIds = newIds.filter(id => id !== String(eventId));
+            } else {
+                newIds.push(String(eventId));
+            }
+
+            const res = await this.fetchAPI(`/groups/${groupId}/events`, {
+                method: 'PUT',
+                body: JSON.stringify({ events: newIds })
+            });
+
+            if (res.success) {
+                this.showEventSelectorForCompany(groupId);
+                this.loadGroups();
+            }
+        } catch(e) { console.error(e); }
+    },
+
 
     async showEventSelector(userId, selectedEventIds = []) {
         let events = [];
@@ -4394,7 +4444,7 @@ const App = window.App = {
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${events.map(e => `
-                        <div onclick="App.assignEventToUser('${userId}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
@@ -4425,22 +4475,71 @@ const App = window.App = {
         });
     },
 
-    async assignEventToUser(userId, eventId) {
-        // En este sistema, un usuario puede tener múltiples eventos vinculados (V12.16.0 Pro)
+    async toggleEventToUser(userId, eventId, isSelected) {
         try {
+            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+            let currentEvents = user ? (user.events || []) : [];
+            currentEvents = currentEvents.map(String);
+            
+            let newEvents;
+            if (isSelected) {
+                newEvents = currentEvents.filter(id => id !== String(eventId));
+            } else {
+                newEvents = [...currentEvents, String(eventId)];
+            }
+
             const res = await this.fetchAPI(`/users/${userId}/events`, {
-                method: 'POST',
-                body: JSON.stringify({ eventId })
+                method: 'PUT',
+                body: JSON.stringify({ events: newEvents })
             });
+
+            if (res.success) {
+                if (user) user.events = newEvents;
+                this.showEventSelector(userId, newEvents);
+                this.loadUsersTable();
+            }
+        } catch(e) { console.error(e); }
+    },
+
+    async assignEventToUser(userId, eventId) {
+        try {
+            // Buscamos el usuario en el estado actual para obtener sus eventos ya asignados
+            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+            const currentEvents = user ? (user.events || []) : [];
+            
+            // Si ya está asignado, no hacemos nada (o podríamos togglear, pero aquí es modo "Asignar")
+            if (currentEvents.map(String).includes(String(eventId))) {
+                Swal.close();
+                return;
+            }
+
+            const newEvents = [...currentEvents, eventId];
+            
+            const res = await this.fetchAPI(`/users/${userId}/events`, {
+                method: 'PUT',
+                body: JSON.stringify({ events: newEvents })
+            });
+
             if (res.success) {
                 this._notifyAction('Éxito', 'Evento vinculado correctamente.', 'success');
                 this.loadUsersTable();
+                this.loadEvents(); 
                 Swal.close();
             } else {
                 Swal.fire('Error', res.error || 'No se pudo vincular.', 'error');
             }
         } catch(e) { console.error(e); }
     },
+
+    async removeUserFromEvent(userId, eventId) {
+        if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
+        try {
+            await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+            this.loadUsersTable();
+            this.loadEvents();
+        } catch(e) { console.error(e); }
+    },
+
 
     navigateToCreateGroup() {
         this.switchSystemTab('groups');

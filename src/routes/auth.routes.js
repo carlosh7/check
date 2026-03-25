@@ -147,20 +147,24 @@ router.post('/reset-password', (req, res) => {
     res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
 });
 
-router.post('/verify-token', (req, res) => {
-    const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith('Bearer ')) {
-        return res.status(401).json({ valid: false, error: 'Token requerido' });
+router.get('/me', authMiddleware(), (req, res) => {
+    try {
+        const user = db.prepare("SELECT id, username, display_name, phone, role, status FROM users WHERE id = ?").get(req.userId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        // Formatear para el frontend
+        res.json({
+            id: user.id,
+            username: user.username,
+            name: user.display_name || user.username,
+            role: user.role,
+            phone: user.phone || '',
+            email: user.username,
+            status: user.status
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Error al obtener perfil' });
     }
-
-    const token = auth.substring(7);
-    const decoded = verifyToken(token);
-
-    if (!decoded) {
-        return res.status(401).json({ valid: false, error: 'Token inválido o expirado' });
-    }
-
-    res.json({ valid: true, user: decoded });
 });
 
 module.exports = router;
