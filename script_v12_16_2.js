@@ -339,7 +339,7 @@ const App = window.App = {
             // Obtener clave pública VAPID del servidor
             const vapidPublicKey = await this.getVAPIDPublicKey();
             if (!vapidPublicKey) {
-                console.error('No se pudo obtener la clave pública VAPID.');
+                console.warn('[PUSH] VAPID keys no configuradas en servidor. Notificaciones push deshabilitadas.');
                 return false;
             }
             
@@ -355,7 +355,7 @@ const App = window.App = {
             console.log('Usuario suscrito a notificaciones push:', subscription);
             return true;
         } catch (error) {
-            console.error('Error al inicializar notificaciones push:', error);
+            console.warn('[PUSH] Error al inicializar notificaciones push (no crítico):', error.message);
             return false;
         }
     },
