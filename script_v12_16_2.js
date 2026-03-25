@@ -6709,7 +6709,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
-        } catch { alert('Error de conexión.'); }
+        } catch(err) { 
+            console.error('[CREATE USER ERROR]', err); 
+            alert('Error de conexión: ' + (err.message || 'Ver consola para detalles')); 
+        }
     });
 
     // Survey form
