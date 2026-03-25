@@ -3580,6 +3580,19 @@ const App = window.App = {
         cl('btn-ev-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
         cl('btn-ev-staff-new', () => this.openInviteModal());
         
+        // Toggle password visibility
+        cl('btn-toggle-password', () => {
+            const pwd = document.getElementById('invite-password');
+            const btn = document.getElementById('btn-toggle-password');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                btn.innerHTML = '<span class="material-symbols-outlined text-lg">visibility_off</span>';
+            } else {
+                pwd.type = 'password';
+                btn.innerHTML = '<span class="material-symbols-outlined text-lg">visibility</span>';
+            }
+        });
+
         // Email section tabs
         cl('email-nav-config', () => this.navigateEmailSection('config'));
         cl('email-nav-accounts', () => this.navigateEmailSection('accounts'));
