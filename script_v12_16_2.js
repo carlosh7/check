@@ -1375,7 +1375,9 @@ const App = window.App = {
         const modal = document.getElementById('modal-company');
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
-        document.body.focus(); // Mover foco para evitar warning aria-hidden
+        // Mover foco a un elemento visible para evitar warning aria-hidden
+        const focusTarget = document.getElementById('focus-trap') || document.body;
+        focusTarget.focus();
     },
     
     saveCompany: async function(data) {
