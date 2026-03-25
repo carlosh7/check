@@ -1260,8 +1260,7 @@ const App = window.App = {
     },
     
     navigateToCreateGroup: function() {
-        this.closeGroupSelector();
-        this._openCompanyModalFromSelector = true; // Flag para volver al selector
+        this.closeGroupSelector(); // Cerrar selector si existe
         this.openCompanyModal();
     },
     
@@ -1384,7 +1383,6 @@ const App = window.App = {
     
     saveCompany: async function(data) {
         const groupId = document.getElementById('company-id-hidden').value;
-        const fromSelector = this._openCompanyModalFromSelector;
         const pendingUserId = this.state._pendingGroupUserId;
         
         try {
@@ -1403,10 +1401,8 @@ const App = window.App = {
             }
             this.closeCompanyModal();
             
-            console.log('[DEBUG] saveCompany after close: fromSelector=', fromSelector, 'pendingUserId=', pendingUserId);
-            
-            // Si venía del selector, volver a abrirlo con el userId pendiente
-            if (fromSelector && pendingUserId) {
+            // Si hay pendingUserId (vino del selector de usuarios), volver a mostrar el selector
+            if (pendingUserId) {
                 console.log('[DEBUG] saveCompany: volviendo al selector con userId:', pendingUserId);
                 this._openCompanyModalFromSelector = false;
                 delete this.state._pendingGroupUserId;
