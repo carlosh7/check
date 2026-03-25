@@ -6693,19 +6693,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 App.loadUsersTable();
                 
                 // Si hay pending (vino del selector), volver al selector correspondiente
-                const pendingGroupId = this.state._pendingUserGroupId;
-                const pendingEventId = this.state._pendingUserEventId;
+                const pendingGroupId = App.state._pendingUserGroupId;
+                const pendingEventId = App.state._pendingUserEventId;
                 
                 if (pendingGroupId) {
-                    delete this.state._pendingUserGroupId;
-                    delete this.state._pendingUserEventId;
-                    this._openUserModalFromSelector = false;
-                    this.showUserSelectorForGroup(pendingGroupId);
+                    delete App.state._pendingUserGroupId;
+                    delete App.state._pendingUserEventId;
+                    App._openUserModalFromSelector = false;
+                    App.showUserSelectorForGroup(pendingGroupId);
                 } else if (pendingEventId) {
-                    delete this.state._pendingUserGroupId;
-                    delete this.state._pendingUserEventId;
-                    this._openUserModalFromSelector = false;
-                    this.showUserSelectorForEvent(pendingEventId);
+                    delete App.state._pendingUserGroupId;
+                    delete App.state._pendingUserEventId;
+                    App._openUserModalFromSelector = false;
+                    App.showUserSelectorForEvent(pendingEventId);
                 }
             }
             else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
