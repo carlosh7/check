@@ -333,7 +333,27 @@ db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
     updated_at TEXT
 )`);
 
-// 12b. Configuración IMAP Global
+// 12b. Cuentas de Email Adicionales (Múltiples cuentas SMTP)
+db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    smtp_host TEXT NOT NULL,
+    smtp_port INTEGER DEFAULT 587,
+    smtp_user TEXT NOT NULL,
+    smtp_pass TEXT NOT NULL,
+    smtp_secure INTEGER DEFAULT 0,
+    from_name TEXT,
+    from_email TEXT NOT NULL,
+    is_default INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    daily_limit INTEGER DEFAULT 500,
+    used_today INTEGER DEFAULT 0,
+    last_used_at TEXT,
+    created_at TEXT,
+    updated_at TEXT
+)`);
+
+// 12c. Configuración IMAP Global
 db.exec(`CREATE TABLE IF NOT EXISTS imap_config (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     imap_host TEXT,

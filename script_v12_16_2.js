@@ -1554,8 +1554,11 @@ const App = window.App = {
         } else if (section === 'mailing') {
             App.loadMailingData();  // Carga eventos y plantillas
             App.updateMailingStats();
+            App.loadEmailAccounts(); // Cargar cuentas para selector
         } else if (section === 'campaigns') {
             App.loadCampaigns();  // Cargar campañas
+        } else if (section === 'accounts') {
+            App.loadEmailAccounts(); // Cargar cuentas
         }
     },
 
@@ -2326,6 +2329,163 @@ const App = window.App = {
             }
         } catch (e) {
             alert('Error al enviar: ' + e.message);
+        }
+    },
+
+    // ─── EMAIL ACCOUNTS MANAGEMENT ───
+    
+    loadEmailAccounts: async function() {
+        const container = document.getElementById('accounts-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-8 text-center animate-pulse">Cargando cuentas...</div>';
+        
+        try {
+            const accounts = await this.fetchAPI('/email/accounts');
+            const selector = document.getElementById('mailing-account-selector');
+            
+            // Actualizar selector en Mailing
+            if (selector) {
+                selector.innerHTML = '<option value="">-- Cuenta Principal --</option>' + 
+                    accounts.map(a => `<option value="${a.id}" data-host="${a.smtp_host}" data-email="${a.from_email}" data-used="${a.used_today}" data-limit="${a.daily_limit}">${a.name} (${a.from_email})</option>`).join('');
+            }
+            
+            if (!accounts || accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="card p-8 text-center">
+                        <span class="material-symbols-outlined text-5xl text-slate-600 block mb-4">mail</span>
+                        <h3 class="text-lg font-bold text-slate-400 mb-2">No hay cuentas adicionales</h3>
+                        <p class="text-sm text-slate-500 mb-4">Agrega cuentas adicionales para enviar desde diferentes emails</p>
+                        <button onclick="App.openAccountEditor()" class="btn-primary">Agregar Cuenta</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = accounts.map(a => `
+                <div class="card p-4 border-l-4 ${a.is_default ? 'border-l-green-500' : 'border-l-primary'}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-white">${a.name}</h3>
+                                ${a.is_default ? '<span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] rounded">Default</span>' : ''}
+                            </div>
+                            <p class="text-xs text-slate-400">${a.smtp_host} • ${a.from_email}</p>
+                            <p class="text-xs text-slate-500 mt-1">Límite: ${a.used_today || 0}/${a.daily_limit} emails hoy</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.testEmailAccount('${a.id}')" class="btn-secondary !py-1 !px-2 text-xs">🧪 Probar</button>
+                            <button onclick="App.openAccountEditor('${a.id}')" class="btn-secondary !py-1 !px-2 text-xs">✏️</button>
+                            <button onclick="App.deleteEmailAccount('${a.id}')" class="btn-secondary !py-1 !px-2 text-xs !text-red-400">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            container.innerHTML = `<div class="p-8 text-center text-red-400">Error: ${e.message}</div>`;
+        }
+    },
+    
+    openAccountEditor: async function(accountId = null) {
+        const modal = document.getElementById('modal-account-editor');
+        
+        if (accountId) {
+            try {
+                const account = await this.fetchAPI(`/email/accounts/${accountId}`);
+                document.getElementById('account-id').value = account.id;
+                document.getElementById('account-name').value = account.name;
+                document.getElementById('account-host').value = account.smtp_host;
+                document.getElementById('account-port').value = account.smtp_port;
+                document.getElementById('account-user').value = account.smtp_user;
+                document.getElementById('account-pass').value = '';
+                document.getElementById('account-from-name').value = account.from_name || '';
+                document.getElementById('account-from-email').value = account.from_email;
+                document.getElementById('account-secure').checked = account.smtp_secure == 1;
+                document.getElementById('account-default').checked = account.is_default == 1;
+                document.getElementById('account-limit').value = account.daily_limit;
+            } catch (e) {
+                alert('Error al cargar cuenta: ' + e.message);
+                return;
+            }
+        } else {
+            document.getElementById('account-id').value = '';
+            document.getElementById('account-name').value = '';
+            document.getElementById('account-host').value = '';
+            document.getElementById('account-port').value = '587';
+            document.getElementById('account-user').value = '';
+            document.getElementById('account-pass').value = '';
+            document.getElementById('account-from-name').value = '';
+            document.getElementById('account-from-email').value = '';
+            document.getElementById('account-secure').checked = false;
+            document.getElementById('account-default').checked = false;
+            document.getElementById('account-limit').value = '500';
+        }
+        
+        modal.classList.remove('hidden');
+    },
+    
+    saveEmailAccount: async function() {
+        const id = document.getElementById('account-id').value;
+        const data = {
+            name: document.getElementById('account-name').value,
+            smtp_host: document.getElementById('account-host').value,
+            smtp_port: parseInt(document.getElementById('account-port').value) || 587,
+            smtp_user: document.getElementById('account-user').value,
+            smtp_pass: document.getElementById('account-pass').value,
+            smtp_secure: document.getElementById('account-secure').checked,
+            from_name: document.getElementById('account-from-name').value,
+            from_email: document.getElementById('account-from-email').value,
+            is_default: document.getElementById('account-default').checked,
+            daily_limit: parseInt(document.getElementById('account-limit').value) || 500
+        };
+        
+        if (!data.name || !data.smtp_host || !data.smtp_user || !data.from_email) {
+            return alert('Completa los campos requeridos');
+        }
+        
+        if (!id && !data.smtp_pass) {
+            return alert('Ingresa la contraseña SMTP');
+        }
+        
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email/accounts/${id}` : '/email/accounts';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+            
+            if (res.success) {
+                this._notifyAction('✓ Guardado', 'Cuenta de email guardada', 'success');
+                document.getElementById('modal-account-editor').classList.add('hidden');
+                this.loadEmailAccounts();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    deleteEmailAccount: async function(id) {
+        if (!confirm('¿Eliminar esta cuenta de email?')) return;
+        try {
+            await this.fetchAPI(`/email/accounts/${id}`, { method: 'DELETE' });
+            this._notifyAction('✓ Eliminada', 'Cuenta eliminada', 'success');
+            this.loadEmailAccounts();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    testEmailAccount: async function(id) {
+        try {
+            const res = await this.fetchAPI(`/email/accounts/${id}/test`, { method: 'POST' });
+            if (res.success) {
+                this._notifyAction('✓ Conexión exitosa', 'La cuenta está funcionando correctamente', 'success');
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
     },
 
@@ -3423,6 +3583,7 @@ const App = window.App = {
         
         // Email section tabs
         cl('email-nav-config', () => this.navigateEmailSection('config'));
+        cl('email-nav-accounts', () => this.navigateEmailSection('accounts'));
         cl('email-nav-campaigns', () => this.navigateEmailSection('campaigns'));
         cl('email-nav-mailbox', () => this.navigateEmailSection('mailbox'));
         cl('email-nav-templates', () => this.navigateEmailSection('templates'));

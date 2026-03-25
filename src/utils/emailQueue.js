@@ -76,7 +76,8 @@ async function enqueueEmail(options) {
         campaign_id = null,
         guest_id = null,
         priority = 'normal', // low, normal, high
-        scheduled_at = null
+        scheduled_at = null,
+        account_id = null // Nueva opción para especificar cuenta
     } = options;
     
     const jobData = {
@@ -85,6 +86,7 @@ async function enqueueEmail(options) {
         body_html,
         campaign_id,
         guest_id,
+        account_id, // Incluir cuenta seleccionada
         attempts: 0,
         created_at: new Date().toISOString()
     };
@@ -115,7 +117,18 @@ async function sendEmailDirect(options) {
     const { db } = require('../../database');
     const nodemailer = require('nodemailer');
     
-    const config = db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+    let config = null;
+    
+    // Si se específica una cuenta, usarla
+    if (options.account_id) {
+        config = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND is_active = 1").get(options.account_id);
+    }
+    
+    // Si no hay cuenta específica o no existe, usar la principal
+    if (!config || !config.smtp_host) {
+        config = db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+    }
+    
     if (!config || !config.smtp_host) {
         throw new Error('SMTP no configurado');
     }
@@ -136,6 +149,12 @@ async function sendEmailDirect(options) {
         subject: options.subject,
         html: options.body_html
     });
+    
+    // Actualizar contador de uso si es cuenta adicional
+    if (options.account_id) {
+        db.prepare("UPDATE email_accounts SET used_today = used_today + 1, last_used_at = ? WHERE id = ?")
+            .run(new Date().toISOString(), options.account_id);
+    }
     
     return { messageId: result.messageId, sent: true };
 }

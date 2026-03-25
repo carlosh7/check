@@ -39,6 +39,149 @@ router.put('/smtp-config', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// ═══ GESTIÓN DE CUENTAS DE EMAIL (Múltiples cuentas) ═══
+
+// Listar todas las cuentas
+router.get('/accounts', authMiddleware(['ADMIN']), (req, res) => {
+    const accounts = db.prepare(`
+        SELECT id, name, smtp_host, smtp_port, smtp_user, smtp_secure, 
+               from_name, from_email, is_default, is_active, daily_limit, 
+               used_today, last_used_at, created_at
+        FROM email_accounts 
+        ORDER BY is_default DESC, name ASC
+    `).all();
+    
+    // Ocultar contraseñas
+    const safeAccounts = accounts.map(a => ({...a, smtp_pass: '***'}));
+    res.json(safeAccounts);
+});
+
+// Crear cuenta
+router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit } = req.body;
+    
+    if (!name || !smtp_host || !smtp_user || !smtp_pass || !from_email) {
+        return res.status(400).json({ success: false, error: 'Todos los campos son requeridos' });
+    }
+    
+    const accountId = getValidId('ema');
+    const now = new Date().toISOString();
+    
+    // Si es default, quitar default de otros
+    if (is_default) {
+        db.prepare("UPDATE email_accounts SET is_default = 0").run();
+    }
+    
+    db.prepare(`
+        INSERT INTO email_accounts (id, name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(accountId, name, smtp_host, smtp_port || 587, smtp_user, smtp_pass, smtp_secure ? 1 : 0, from_name || name, from_email, is_default ? 1 : 0, daily_limit || 500, now, now);
+    
+    res.json({ success: true, id: accountId });
+});
+
+// Actualizar cuenta
+router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, is_active, daily_limit } = req.body;
+    
+    const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
+    if (!existing) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
+    
+    let passToSave = smtp_pass;
+    if (!smtp_pass || smtp_pass === '***') {
+        passToSave = existing.smtp_pass;
+    }
+    
+    // Si es default, quitar default de otros
+    if (is_default) {
+        db.prepare("UPDATE email_accounts SET is_default = 0 WHERE id != ?").run(req.params.id);
+    }
+    
+    db.prepare(`
+        UPDATE email_accounts SET 
+            name = ?, smtp_host = ?, smtp_port = ?, smtp_user = ?, smtp_pass = ?, 
+            smtp_secure = ?, from_name = ?, from_email = ?, is_default = ?, 
+            is_active = ?, daily_limit = ?, updated_at = ?
+        WHERE id = ?
+    `).run(
+        name || existing.name,
+        smtp_host || existing.smtp_host,
+        smtp_port || existing.smtp_port,
+        smtp_user || existing.smtp_user,
+        passToSave,
+        smtp_secure ? 1 : (existing.smtp_secure || 0),
+        from_name || existing.from_name,
+        from_email || existing.from_email,
+        is_default ? 1 : (existing.is_default || 0),
+        is_active !== undefined ? (is_active ? 1 : 0) : existing.is_active,
+        daily_limit || existing.daily_limit,
+        new Date().toISOString(),
+        req.params.id
+    );
+    
+    res.json({ success: true });
+});
+
+// Eliminar cuenta
+router.delete('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
+    if (!existing) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
+    
+    db.prepare("DELETE FROM email_accounts WHERE id = ?").run(req.params.id);
+    res.json({ success: true });
+});
+
+// Probar cuenta específica
+router.post('/accounts/:id/test', authMiddleware(['ADMIN']), async (req, res) => {
+    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
+    if (!account) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
+    
+    try {
+        const nodemailer = require('nodemailer');
+        
+        const transporter = nodemailer.createTransport({
+            host: account.smtp_host,
+            port: account.smtp_port,
+            secure: account.smtp_secure === 1,
+            auth: {
+                user: account.smtp_user,
+                pass: account.smtp_pass
+            },
+            connectionTimeout: 10000
+        });
+        
+        await transporter.verify();
+        
+        // Actualizar uso
+        const today = new Date().toISOString().split('T')[0];
+        if (account.last_used_at?.split('T')[0] !== today) {
+            db.prepare("UPDATE email_accounts SET used_today = 0 WHERE id = ?").run(req.params.id);
+        }
+        
+        res.json({ success: true, message: 'Conexión exitosa' });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+// Obtener cuenta por ID (para usar en envíos)
+router.get('/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND is_active = 1").get(req.params.id);
+    if (!account) return res.status(404).json({ error: 'Cuenta no encontrada o inactiva' });
+    
+    // Verificar límite diario
+    const today = new Date().toISOString().split('T')[0];
+    if (account.last_used_at?.split('T')[0] !== today) {
+        account.used_today = 0;
+    }
+    
+    if (account.used_today >= account.daily_limit) {
+        return res.status(400).json({ error: 'Límite diario alcanzado', used: account.used_today, limit: account.daily_limit });
+    }
+    
+    res.json(account);
+});
+
 // Probar conexión SMTP (Real)
 router.post('/smtp-test', authMiddleware(['ADMIN']), async (req, res) => {
     const { smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure } = req.body;

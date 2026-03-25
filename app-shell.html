@@ -302,6 +302,7 @@
                 <div id="sys-content-email" class="hidden space-y-6">
                     <div class="sub-nav-container mb-6">
                         <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
+                        <button id="email-nav-accounts" class="sub-nav-btn">📧 Cuentas</button>
                         <button id="email-nav-campaigns" class="sub-nav-btn">📢 Campañas</button>
                         <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
                         <button id="email-nav-mailing" class="sub-nav-btn">Mailing</button>
@@ -380,6 +381,20 @@
                         </div>
                     </div>
                     
+                    <!-- SECCIÓN: CUENTAS DE EMAIL -->
+                    <div id="email-content-accounts" class="email-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold">📧 Cuentas de Envío</h2>
+                            <button onclick="App.openAccountEditor()" class="btn-primary !py-2 !px-4 text-xs">➕ Nueva Cuenta</button>
+                        </div>
+                        <p class="text-sm text-slate-400">Configura múltiples cuentas SMTP para elegir con cual enviar cada campaña.</p>
+                        
+                        <!-- Lista de Cuentas -->
+                        <div id="accounts-list" class="space-y-4">
+                            <div class="p-8 text-center text-slate-500">Cargando cuentas...</div>
+                        </div>
+                    </div>
+                    
                     <!-- SECCIÓN: CAMPAÑAS -->
                     <div id="email-content-campaigns" class="email-content hidden space-y-6">
                         <div class="flex justify-between items-center">
@@ -411,6 +426,21 @@
                         </div>
                     </div>
                     <div id="email-content-mailing" class="email-content hidden space-y-6">
+                        <!-- Selector de Cuenta de Email -->
+                        <div class="card p-4 border-l-4 border-l-primary">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <label class="text-xs font-bold text-slate-400">📧 Cuenta de Envío</label>
+                                    <select id="mailing-account-selector" class="input-field w-full">
+                                        <option value="">-- Seleccionar Cuenta --</option>
+                                    </select>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-4">
+                                    <span id="mailing-account-info"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Selector de Evento y Plantilla -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="card p-6">
@@ -803,6 +833,84 @@
         </div>
         <div id="campaign-report-content" class="p-5 overflow-y-auto">
             <!-- contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Editor de Cuentas de Email -->
+<div id="modal-account-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Cuenta de Email</h3>
+            </div>
+            <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4 overflow-y-auto flex-1">
+            <input type="hidden" id="account-id">
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Nombre de la Cuenta *</label>
+                <input type="text" id="account-name" placeholder="Ej: Gmail Trabajo" class="input-field w-full">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Host SMTP *</label>
+                    <input type="text" id="account-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Puerto</label>
+                    <input type="number" id="account-port" value="587" class="input-field w-full">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Usuario SMTP *</label>
+                    <input type="text" id="account-user" placeholder="tu@email.com" class="input-field w-full">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Contraseña *</label>
+                    <input type="password" id="account-pass" placeholder="••••••••" class="input-field w-full">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Nombre Remitente</label>
+                    <input type="text" id="account-from-name" placeholder="Check Pro" class="input-field w-full">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400">Email Remitente *</label>
+                    <input type="email" id="account-from-email" placeholder="noreply@tudominio.com" class="input-field w-full">
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="account-secure" class="w-4 h-4 accent-primary">
+                    <span class="text-xs">SSL/TLS</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="account-default" class="w-4 h-4 accent-primary">
+                    <span class="text-xs">Cuenta Default</span>
+                </label>
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Límite Diario</label>
+                <input type="number" id="account-limit" value="500" class="input-field w-full">
+                <p class="text-[10px] text-slate-500">Cantidad máxima de emails por día</p>
+            </div>
+            
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.saveEmailAccount()" class="btn-primary flex-1">💾 Guardar</button>
+                <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
         </div>
     </div>
 </div>
