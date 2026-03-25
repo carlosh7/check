@@ -31,10 +31,4 @@ router.put('/', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Versión de la app
-router.get('/app-version', (req, res) => {
-    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
-    res.json({ version: pkg.version });
-});
-
 module.exports = router;
