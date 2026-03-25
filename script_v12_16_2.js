@@ -1210,7 +1210,9 @@ const App = window.App = {
     // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
     showGroupSelector: async function(userId) {
         // Cargar grupos frescos del servidor
+        console.log('[DEBUG] showGroupSelector: cargando grupos...');
         const groups = await this.fetchAPI('/groups');
+        console.log('[DEBUG] showGroupSelector: grupos recibidos:', groups.length, groups.map(g => g.name));
         this.state.allGroups = groups;
         
         const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
@@ -1403,9 +1405,11 @@ const App = window.App = {
             
             // Si venía del selector, volver a abrirlo con el userId pendiente
             if (fromSelector && pendingUserId) {
+                console.log('[DEBUG] saveCompany: volviendo al selector con userId:', pendingUserId);
                 this._openCompanyModalFromSelector = false;
                 delete this.state._pendingGroupUserId;
                 await this.loadGroups(); // Esperar a que carguen las empresas
+                console.log('[DEBUG] saveCompany: grupos cargados, mostrando selector');
                 this.showGroupSelector(pendingUserId);
             } else {
                 this.loadGroups();
