@@ -4,6 +4,7 @@
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { schemas, validate } = require('../security/validation');
@@ -98,7 +99,9 @@ router.post('/password-reset-request', (req, res) => {
         return res.json({ success: true, message: 'Si el email existe, recibirás un código de recuperación' });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const { v4: uuidv4 } = require('uuid');
+    
+    const code = uuidv4().replace(/-/g, ''); // Token de 32 caracteres
     const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
     db.prepare("INSERT INTO password_resets (id, user_id, code, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")

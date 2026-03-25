@@ -236,8 +236,6 @@ async function sendUserApprovedEmail(user, options = {}) {
     const template = await getEmailTemplate('user_approved');
     if (!template) return { success: false, error: 'Template not found' };
     
-    const password = options.password || user.temp_password || 'Tu contraseña actual';
-    
     const subject = replaceTemplateVariables(template.subject, {
         user_name: user.display_name || user.username
     });
@@ -245,7 +243,6 @@ async function sendUserApprovedEmail(user, options = {}) {
     const html = replaceTemplateVariables(template.body, {
         user_name: user.display_name || user.username,
         email: user.username,
-        password: password,
         role: user.role,
         login_url: `http://localhost:3000/`
     });
