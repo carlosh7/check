@@ -131,40 +131,10 @@ const App = window.App = {
     },
 
     navigateToCreateUser() { this.openInviteModal(); },
-    navigateToCreateGroup() { this.openCompanyModal(); },
-
-    loadEvents: async function() {
-        try {
-            const events = await this.fetchAPI('/events');
-            this.state.events = events;
-            const container = document.getElementById('events-list-container');
-            if (!container) return;
-
-            if (!events || events.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No hay eventos activos</div>';
-                return;
-            }
-
-            container.innerHTML = events.map(e => `
-                <div class="card p-6 h-full flex flex-col hover:border-[var(--primary)] transition-all cursor-pointer group" onclick="App.selectEvent('${e.id}')">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[var(--bg-hover)] flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-2xl">event</span>
-                        </div>
-                        <span class="status-pill status-active">Activo</span>
-                    </div>
-                    <h3 class="text-lg font-bold mb-2">${e.name}</h3>
-                    <p class="text-xs text-[var(--text-secondary)] mb-4 line-clamp-2">${e.description || 'Sin descripción'}</p>
-                    <div class="mt-auto pt-4 border-t border-[var(--border)] flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span class="text-[10px] font-bold uppercase">${new Date(e.date).toLocaleDateString()}</span>
-                        </div>
-                        <span class="material-symbols-outlined text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">arrow_forward</span>
-                    </div>
-                </div>
-            `).join('');
-        } catch(e) { console.error('Error loading events:', e); }
+    navigateToCreateGroup: function() {
+        this.closeGroupSelector();
+        this._openCompanyModalFromSelector = true;
+        this.openCompanyModal();
     },
 
     selectEvent: async function(id) {
@@ -1242,6 +1212,7 @@ const App = window.App = {
         const groups = this.state.allGroups || [];
         const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
         const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
+        this.state._pendingGroupUserId = userId; // Guardar userId para retorno
         
         const options = groups.map(g => `
             <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 cursor-pointer transition-all">
@@ -1275,7 +1246,7 @@ const App = window.App = {
                 <div class="flex flex-col gap-3">
                     <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
                     <div class="flex gap-3">
-                        <button data-action="navigateToCreateGroup" data-user-id="${userId}" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button data-action="navigateToCreateGroup" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
                         <button data-action="closeGroupSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
                     </div>
                 </div>
@@ -1283,9 +1254,10 @@ const App = window.App = {
         document.body.appendChild(modal);
     },
     
-    navigateToCreateGroup: function(userId) {
+    navigateToCreateGroup: function() {
         this.closeGroupSelector();
-        this.navigate('groups');
+        this._openCompanyModalFromSelector = true; // Flag para volver al selector
+        this.openCompanyModal();
     },
     
     assignUserGroupFromSelector: async function(userId) {
@@ -1404,6 +1376,9 @@ const App = window.App = {
     
     saveCompany: async function(data) {
         const groupId = document.getElementById('company-id-hidden').value;
+        const fromSelector = this._openCompanyModalFromSelector;
+        const pendingUserId = this.state._pendingGroupUserId;
+        
         try {
             if (groupId) {
                 await this.fetchAPI(`/groups/${groupId}`, { 
@@ -1420,6 +1395,13 @@ const App = window.App = {
             }
             this.closeCompanyModal();
             this.loadGroups();
+            
+            // Si venía del selector, volver a abrirlo con el userId pendiente
+            if (fromSelector && pendingUserId) {
+                this._openCompanyModalFromSelector = false;
+                delete this.state._pendingGroupUserId;
+                this.showGroupSelector(pendingUserId);
+            }
         } catch (e) { 
             console.error('Error saving company:', e);
             alert('Error al guardar empresa'); 
@@ -3656,7 +3638,7 @@ const App = window.App = {
                         _App.showEventSelector(p.userId, evs); 
                         break;
                     case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
-                    case 'navigateToCreateGroup': _App.navigateToCreateGroup(p.userId); break;
+                    case 'navigateToCreateGroup': _App.navigateToCreateGroup(); break;
                     case 'closeGroupSelector': _App.closeGroupSelector(); break;
                     case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
                     
