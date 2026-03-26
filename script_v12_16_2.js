@@ -3,7 +3,7 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.33
+ * Version: V12.19.1
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.33';
+const VERSION = '12.19.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -570,6 +570,12 @@ const App = window.App = {
     },
     
     async removeUserFromGroup(userId, groupId) {
+        // Solo ADMIN puede desvincular usuarios de empresas
+        if (this.state.user?.role !== 'ADMIN') {
+            alert('Solo el Administrador puede desvincular usuarios de empresas.');
+            return;
+        }
+        
         if (await this._confirmAction('¿Quitar usuario de empresa?', 'El usuario perderá acceso a los recursos de esta empresa.')) {
             try {
                 await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
@@ -798,6 +804,8 @@ const App = window.App = {
 
             tbody.innerHTML = users.map((u) => {
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
+                const canRemoveGroup = isAdmin; // Solo ADMIN puede desvincular empresas
+                const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
@@ -827,7 +835,7 @@ const App = window.App = {
                             <span class="material-symbols-outlined text-[14px] text-[var(--text-secondary)]">corporate_fare</span>
                             <span class="truncate max-w-[150px]" title="${userGroup.name}">${userGroup.name}</span>
                         </span>
-                        ${canEdit ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
+                        ${canRemoveGroup ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
                     </div>
                 `).join('') : `<span class="italic text-[var(--text-muted)] text-xs mt-1 mb-1 block">Sin Empresa</span>`;
 
@@ -1152,9 +1160,24 @@ const App = window.App = {
     loadProfileData: async function() {
         if (!this.state.user) return;
         
-        document.getElementById('profile-name').value = this.state.user.display_name || '';
-        document.getElementById('profile-phone').value = this.state.user.phone || '';
-        document.getElementById('profile-email').value = this.state.user.username || '';
+        // Obtener datos actualizados del usuario desde la API
+        let currentUser = this.state.user;
+        try {
+            const userData = await this.fetchAPI(`/users/${this.state.user.userId}`);
+            if (userData && userData.id) {
+                // Actualizar con datos del servidor
+                currentUser = { ...currentUser, ...userData };
+                this.state.user = currentUser;
+                // Actualizar localStorage
+                LS.set('user', JSON.stringify(currentUser));
+            }
+        } catch (e) {
+            console.error('Error fetching user data:', e);
+        }
+        
+        document.getElementById('profile-name').value = currentUser.display_name || '';
+        document.getElementById('profile-phone').value = currentUser.phone || '';
+        document.getElementById('profile-email').value = currentUser.username || '';
         
         // Cargar empresas disponibles
         try {
@@ -1163,7 +1186,7 @@ const App = window.App = {
             const select = document.getElementById('profile-company');
             if (select) {
                 select.innerHTML = '<option value="">-- Sin empresa asignada --</option>' + 
-                    groups.map(g => `<option value="${g.id}" ${g.id === this.state.user.group_id ? 'selected' : ''}>${g.name}</option>`).join('');
+                    groups.map(g => `<option value="${g.id}" ${String(g.id) === String(currentUser.group_id) ? 'selected' : ''}>${g.name}</option>`).join('');
             }
         } catch (e) { console.error('Error loading groups:', e); }
     },
