@@ -457,7 +457,7 @@ const App = window.App = {
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
-                    const groupUsers = users.filter(u => u.group_id === g.id);
+                    const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                     const userChips = groupUsers.map(u => `
                         <div class="inline-flex items-center gap-1 mt-1">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-semibold rounded-md border border-[var(--border)] shadow-sm">
