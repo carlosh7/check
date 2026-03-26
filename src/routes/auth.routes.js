@@ -153,8 +153,15 @@ router.post('/reset-password', (req, res) => {
 
 router.get('/me', authMiddleware(), (req, res) => {
     try {
-        const user = db.prepare("SELECT id, username, display_name, phone, role, status FROM users WHERE id = ?").get(req.userId);
+        const user = db.prepare("SELECT id, username, display_name, phone, role, status, group_id FROM users WHERE id = ?").get(req.userId);
         if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        // Obtener grupos del usuario
+        const groups = db.prepare(`
+            SELECT g.id, g.name FROM groups g
+            JOIN group_users gu ON gu.group_id = g.id
+            WHERE gu.user_id = ?
+        `).all(req.userId);
         
         // Formatear para el frontend
         res.json({
@@ -164,7 +171,9 @@ router.get('/me', authMiddleware(), (req, res) => {
             role: user.role,
             phone: user.phone || '',
             email: user.username,
-            status: user.status
+            status: user.status,
+            group_id: user.group_id,
+            groups: groups
         });
     } catch (e) {
         res.status(500).json({ error: 'Error al obtener perfil' });

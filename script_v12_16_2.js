@@ -1160,10 +1160,10 @@ const App = window.App = {
     loadProfileData: async function() {
         if (!this.state.user) return;
         
-        // Obtener datos actualizados del usuario desde la API
+        // Obtener datos actualizados del usuario desde la API /auth/me
         let currentUser = this.state.user;
         try {
-            const userData = await this.fetchAPI(`/users/${this.state.user.userId}`);
+            const userData = await this.fetchAPI('/auth/me');
             if (userData && userData.id) {
                 // Actualizar con datos del servidor
                 currentUser = { ...currentUser, ...userData };
@@ -1175,18 +1175,20 @@ const App = window.App = {
             console.error('Error fetching user data:', e);
         }
         
-        document.getElementById('profile-name').value = currentUser.display_name || '';
+        document.getElementById('profile-name').value = currentUser.display_name || currentUser.name || '';
         document.getElementById('profile-phone').value = currentUser.phone || '';
-        document.getElementById('profile-email').value = currentUser.username || '';
+        document.getElementById('profile-email').value = currentUser.username || currentUser.email || '';
         
-        // Cargar empresas disponibles
+        // Cargar empresas disponibles y seleccionar la asignada
         try {
             const groups = await this.fetchAPI('/groups');
             this.state.allGroups = groups;
             const select = document.getElementById('profile-company');
             if (select) {
+                // Usar group_id o el primer grupo del array groups
+                const assignedGroupId = currentUser.group_id || (currentUser.groups && currentUser.groups.length > 0 ? currentUser.groups[0].id : null);
                 select.innerHTML = '<option value="">-- Sin empresa asignada --</option>' + 
-                    groups.map(g => `<option value="${g.id}" ${String(g.id) === String(currentUser.group_id) ? 'selected' : ''}>${g.name}</option>`).join('');
+                    groups.map(g => `<option value="${g.id}" ${String(g.id) === String(assignedGroupId) ? 'selected' : ''}>${g.name}</option>`).join('');
             }
         } catch (e) { console.error('Error loading groups:', e); }
     },
