@@ -10,7 +10,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.11';
+const VERSION = '12.18.12';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -137,9 +137,19 @@ const App = window.App = {
         this.openInviteModal(); 
     },
     navigateToCreateGroup: function() {
-        this.closeGroupSelector();
+        // Cerrar modal de SweetAlert2 si está abierto
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
         this._openCompanyModalFromSelector = true;
         this.openCompanyModal();
+    },
+
+    closeGroupSelector: function() {
+        // Cerrar modal de SweetAlert2 si está abierto
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
     },
 
     selectEvent: async function(id) {
