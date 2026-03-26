@@ -488,11 +488,11 @@ const App = window.App = {
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1.5 max-w-[250px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
-                            <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
+                            <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1.5 max-w-[250px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin usuarios</span>'}</div>
-                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Usuario</button>
+                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Usuario</button>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -551,7 +551,7 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos</span>
                         <span class="text-xs text-slate-400">Vincular eventos a esta organización</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-[10px]">
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
                         + NUEVO EVENTO
                     </button>
                 </div>
@@ -617,7 +617,7 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Colaboradores</span>
                         <span class="text-xs text-slate-400">Vincular personal a esta organización</span>
                     </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[10px]">
+                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-xs">
                         + NUEVO USUARIO
                     </button>
                 </div>
@@ -987,7 +987,7 @@ const App = window.App = {
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-4 py-2 bg-amber-500 text-white font-bold text-[10px] rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition-all">APROBAR ACCESO</button>
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-4 py-2 bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition-all">APROBAR ACCESO</button>
                     </div>
                 </div>`).join('');
         }
@@ -1053,12 +1053,12 @@ const App = window.App = {
                 const col3 = `<span class="status-pill inline-block ${statusClass}">${statusLabel}</span>`;
 
                 // --- COLUMNA 4: ACCIONES ---
-                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
-                const actionAssignEvent = canEdit ? `<button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="text-[11px] font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>` : '';
+                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" class="text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
+                const actionAssignEvent = canEdit ? `<button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>` : '';
                 
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="text-[11px] font-medium text-emerald-500 hover:text-emerald-400 transition-colors whitespace-nowrap">Activar</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="text-[11px] font-medium text-red-500 hover:text-red-400 transition-colors whitespace-nowrap">Suspender</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="text-xs font-medium text-emerald-500 hover:text-emerald-400 transition-colors whitespace-nowrap">Activar</button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors whitespace-nowrap">Suspender</button>`) : '';
 
                 const col4 = `
                     <div class="flex flex-col items-end gap-2 text-right">
@@ -1263,7 +1263,7 @@ const App = window.App = {
                 <div class="flex flex-col gap-3">
                     <button id="btn-confirm-groups" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
                     <div class="flex gap-3">
-                        <button id="btn-new-company" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button id="btn-new-company" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-xs rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
                         <button id="btn-cancel-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
                     </div>
                 </div>
@@ -5335,7 +5335,7 @@ const App = window.App = {
                 <div class="flex flex-col gap-3">
                     <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Añadir al Evento</button>
                     <div class="flex gap-3">
-                        <button onclick="App.navigateToCreateUser()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Usuario</button>
+                        <button onclick="App.navigateToCreateUser()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-xs rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Usuario</button>
                         <button id="btn-close-staff-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
                     </div>
                 </div>
@@ -5493,7 +5493,7 @@ const App = window.App = {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar a Empresa</span>
                         <span class="text-xs text-slate-400">Selecciona los usuarios para vincular</span>
                     </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">person_add</span> NUEVO USUARIO
                     </button>
                 </div>
@@ -5660,7 +5660,7 @@ const App = window.App = {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
                         <span class="text-xs text-slate-400">Vincular usuario a organización</span>
                     </div>
-                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">add_business</span> NUEVA EMPRESA
                     </button>
                 </div>
