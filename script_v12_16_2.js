@@ -5695,7 +5695,8 @@ const App = window.App = {
                 this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
                 this.loadGroups();
-                Swal.close();
+                // No cerrar Swal - permitir asignar más empresas
+                this.showGroupSelector(userId); // Recargar modal con estado actualizado
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
