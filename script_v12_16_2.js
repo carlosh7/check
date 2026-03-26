@@ -3,19 +3,19 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.15
+ * Version: V12.18.17
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Cleanup V12.18.16: Eliminadas funciones duplicadas:
+ * Cleanup V12.18.17: Agregada función global hideModal:
  * - _showEmailSection() - versión antigua eliminada
  * - loadIMAPConfig() - versión antigua eliminada  
  * - showUserSelectorForEvent() - versión antigua eliminada
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.16';
+const VERSION = '12.18.17';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -691,6 +691,21 @@ const App = window.App = {
             } catch (e) {
                 this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
             }
+        }
+    },
+
+    // --- FUNCIÓN GLOBAL PARA OCULTAR MODALES (Accessibility) ---
+    hideModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+            // Quitar foco de todos los elementos interactivos antes de cerrar
+            const focusableElements = m.querySelectorAll('input, button, select, textarea');
+            focusableElements?.forEach(el => el.blur());
+            // Quitar foco del body
+            document.body.focus();
+            // Ocultar modal
+            m.classList.add('hidden');
+            m.setAttribute('aria-hidden', 'true');
         }
     },
     
@@ -6666,4 +6681,7 @@ window.copyTemplateVar = (varName) => {
         App._notifyAction('Copiado', varName + ' copiado al portapapeles', 'success');
     }).catch(() => alert('No se pudo copiar'));
 };
+
+// Función global hideModal expuesta para onclick en HTML
+window.hideModal = function(id) { App.hideModal(id); };
 
