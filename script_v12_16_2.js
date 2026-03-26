@@ -3126,7 +3126,7 @@ const App = window.App = {
         }
 
         // Ocultar todas las secciones del app-shell
-        const viewIds = ["view-my-events", "view-admin", "view-system", "view-groups", "view-smtp", "view-pre-registrations", "view-survey-manager"];
+        const viewIds = ["view-my-events", "view-admin", "view-event-config", "view-system", "view-groups", "view-smtp", "view-pre-registrations", "view-survey-manager"];
         viewIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -3143,6 +3143,7 @@ const App = window.App = {
         if (viewName === 'legal') btnId = 'nav-btn-legal';
         if (viewName === 'account') btnId = 'nav-btn-account';
         if (viewName === 'smtp') btnId = 'nav-btn-smtp';
+        if (viewName === 'event-config') btnId = 'nav-btn-event-config';
         
         const activeBtn = document.getElementById(btnId);
         if (activeBtn) activeBtn.classList.add('active', 'bg-primary/10', 'text-primary');
@@ -3202,6 +3203,42 @@ const App = window.App = {
                     this.loadGuests();
                 }
  else {
+                    this.navigate('my-events');
+                }
+            } else {
+                this.navigate('my-events');
+            }
+        }
+        
+        // Event Config View - Similar to admin but focused on settings
+        if (viewName === 'event-config') {
+            const id = params.id || (this.state.event ? this.state.event.id : null);
+            if (id) {
+                if (!this.state.event || String(this.state.event.id) !== String(id)) {
+                    this.state.event = this.state.events.find(e => String(e.id) === String(id));
+                }
+                if (this.state.event) {
+                    const event = this.state.event;
+                    document.getElementById('config-event-title').textContent = event.name;
+                    
+                    const logoImg = document.getElementById('config-event-logo');
+                    const logoPlaceholder = document.getElementById('config-event-logo-placeholder');
+                    if (logoImg && logoPlaceholder) {
+                        if (event.logo_url) {
+                            logoImg.src = event.logo_url;
+                            logoImg.classList.remove('hidden');
+                            logoPlaceholder.classList.add('hidden');
+                        } else {
+                            logoImg.classList.add('hidden');
+                            logoPlaceholder.classList.remove('hidden');
+                        }
+                    }
+                    
+                    // Load config-specific data
+                    this.loadEventStaff(this.state.event.id);
+                    this.loadEventEmailConfig(this.state.event.id);
+                    this.loadEventAgenda(this.state.event.id);
+                } else {
                     this.navigate('my-events');
                 }
             } else {
@@ -3331,6 +3368,7 @@ const App = window.App = {
         cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-admin', () => this.navigate('admin'));
+        cl('nav-btn-event-config', () => this.navigate('event-config'));
         cl('nav-btn-pre-registrations', () => this.navigate('pre-registrations'));
         cl('nav-btn-survey-manager', () => this.navigate('survey-manager'));
         
@@ -3341,6 +3379,10 @@ const App = window.App = {
         // Admin view - action buttons
         cl('btn-show-qr', () => this.showQR());
         cl('btn-export-excel', () => this.exportExcel());
+        
+        // Event Config view - action buttons
+        cl('btn-config-show-qr', () => this.showQR());
+        cl('btn-config-export-excel', () => this.exportExcel());
         cl('btn-generate-pdf', () => this.generateGuestListPdf());
         cl('btn-create-event-open', () => this.openCreateEventModal());
         cl('btn-create-group', () => this.openCompanyModal());
@@ -3367,11 +3409,23 @@ const App = window.App = {
         cl('btn-ev-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
         cl('btn-ev-staff-new', () => this.openInviteModal());
         
+        // Event Config Tabs
+        cl('config-nav-staff', () => window.App.switchConfigTab('staff'));
+        cl('config-nav-email', () => window.App.switchConfigTab('email'));
+        cl('config-nav-agenda', () => window.App.switchConfigTab('agenda'));
+        
         // Nuevos botones de Email y Agenda
         cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
         cl('btn-add-email-template', () => this.openEmailTemplateEditor());
         cl('btn-send-test-email', () => this.sendEventTestEmail());
         cl('btn-add-agenda-item', () => this.addAgendaItem());
+        
+        // Event Config botones
+        cl('btn-config-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
+        cl('btn-config-staff-new', () => this.openInviteModal());
+        cl('btn-config-save-email', () => this.saveEventEmailConfig());
+        cl('btn-config-add-template', () => this.openEmailTemplateEditor());
+        cl('btn-config-add-agenda', () => this.addAgendaItem());
         
         // Toggle password visibility
         cl('btn-toggle-password', () => {
@@ -5044,6 +5098,70 @@ const App = window.App = {
     },
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
+    
+    // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
+    switchConfigTab(tabName) {
+        console.log('[CONFIG] Switching to tab:', tabName);
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda'];
+        ALL_CONFIG_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+
+        // Update sub-navigation buttons
+        const subNav = document.querySelector('#view-event-config .sub-nav-container');
+        if (subNav) {
+            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                b.classList.add('text-slate-400', 'bg-white/5');
+                if (b.id === `config-nav-${tabName}`) {
+                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    b.classList.remove('text-slate-400', 'bg-white/5');
+                }
+            });
+        }
+
+        const panel = document.getElementById('config-content-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+
+        // Load specific data
+        if (tabName === 'staff') this.loadConfigStaff();
+        if (tabName === 'email') this.loadConfigEmail();
+        if (tabName === 'agenda') this.loadConfigAgenda();
+    },
+    
+    // Cargar staff en config view
+    loadConfigStaff() {
+        const tbody = document.getElementById('config-staff-tbody');
+        const evStaffTbody = document.getElementById('ev-staff-tbody');
+        if (evStaffTbody && tbody) {
+            tbody.innerHTML = evStaffTbody.innerHTML;
+        }
+    },
+    
+    // Cargar email config en config view
+    loadConfigEmail() {
+        const enabled = document.getElementById('ev-email-enabled');
+        const configEnabled = document.getElementById('config-email-enabled');
+        if (enabled && configEnabled) configEnabled.checked = enabled.checked;
+        
+        const fields = ['smtp-host', 'smtp-port', 'smtp-user', 'smtp-pass', 'from-name', 'from-email'];
+        fields.forEach(field => {
+            const source = document.getElementById('ev-email-' + field);
+            const target = document.getElementById('config-email-' + field);
+            if (source && target) target.value = source.value;
+        });
+    },
+    
+    // Cargar agenda en config view
+    loadConfigAgenda() {
+        const list = document.getElementById('config-agenda-list');
+        const evList = document.getElementById('event-agenda-list');
+        if (evList && list) {
+            list.innerHTML = evList.innerHTML;
+        }
+    },
+
     switchEventTab(tabName) {
         console.log('[EVENT] Switching to tab:', tabName);
         const ALL_EVENT_IDS = ['ev-content-guests', 'ev-content-staff']; // Updated to match actual IDs
@@ -5624,6 +5742,7 @@ const App = window.App = {
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
 window.switchEventTab = App.switchEventTab.bind(App);
+window.App.switchConfigTab = App.switchConfigTab.bind(App);
 
 window.switchAdminTab = function(tabName) {
     console.log('CHECK V12.3.2.2: switchAdminTab ->', tabName || 'dashboard');
