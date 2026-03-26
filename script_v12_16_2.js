@@ -3136,6 +3136,12 @@ const App = window.App = {
             target.classList.remove('hidden');
         }
 
+        // OCULTAR SIDEBAR DE EVENTO si no es admin o event-config
+        if (viewName !== 'admin' && viewName !== 'event-config') {
+            const navSectionEvent = document.getElementById('nav-section-event');
+            if (navSectionEvent) navSectionEvent.classList.add('hidden');
+        }
+
         // UI Sidebar
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active', 'bg-primary/10', 'text-primary'));
         let btnId = 'nav-btn-' + viewName;
@@ -3199,6 +3205,14 @@ const App = window.App = {
                         }
                     }
 
+                    // MOSTRAR SIDEBAR DE EVENTO
+                    const navSectionEvent = document.getElementById('nav-section-event');
+                    if (navSectionEvent) {
+                        navSectionEvent.classList.remove('hidden');
+                        const navEventName = document.getElementById('nav-event-name');
+                        if (navEventName) navEventName.textContent = event.name;
+                    }
+
                     this.updateStats();
                     this.loadGuests();
                 }
@@ -3232,6 +3246,14 @@ const App = window.App = {
                             logoImg.classList.add('hidden');
                             logoPlaceholder.classList.remove('hidden');
                         }
+                    }
+                    
+                    // MOSTRAR SIDEBAR DE EVENTO
+                    const navSectionEvent = document.getElementById('nav-section-event');
+                    if (navSectionEvent) {
+                        navSectionEvent.classList.remove('hidden');
+                        const navEventName = document.getElementById('nav-event-name');
+                        if (navEventName) navEventName.textContent = event.name;
                     }
                     
                     // Load config-specific data
