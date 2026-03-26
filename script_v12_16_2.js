@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.19.2';
+const VERSION = '12.20.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5392,7 +5392,7 @@ const App = window.App = {
         }
         
         try {
-            const wheel = await this.fetchAPI(`/events/${this.state.event.id}/wheels/${wheelId}`);
+            const wheel = await this.fetchAPI(`/events/wheels/${wheelId}`);
             this.currentWheel = wheel;
             
             // Mostrar editor, ocultar lista
@@ -5433,7 +5433,7 @@ const App = window.App = {
         }
         
         try {
-            const participants = await this.fetchAPI(`/wheels/${wheelId}/participants`);
+            const participants = await this.fetchAPI(`/events/wheels/${wheelId}/participants`);
             this.wheelParticipants = participants || [];
             this.renderWheelParticipants();
         } catch (e) {
@@ -5473,7 +5473,7 @@ const App = window.App = {
         }
         
         try {
-            const result = await this.fetchAPI(`/wheels/${this.currentWheel.id}/participants/from-guests`, {
+            const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/from-guests`, {
                 method: 'POST',
                 body: JSON.stringify({ filter })
             });
@@ -5491,7 +5491,7 @@ const App = window.App = {
         if (!this.currentWheel) return;
         
         try {
-            await this.fetchAPI(`/wheels/${this.currentWheel.id}/participants/${participantId}`, {
+            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/${participantId}`, {
                 method: 'DELETE'
             });
             await this.loadWheelParticipants(this.currentWheel.id);
@@ -5528,7 +5528,7 @@ const App = window.App = {
             let wheel;
             if (this.currentWheel) {
                 // Actualizar
-                wheel = await this.fetchAPI(`/wheels/${this.currentWheel.id}`, {
+                wheel = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}`, {
                     method: 'PUT',
                     body: JSON.stringify({ name, config })
                 });
