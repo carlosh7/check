@@ -3,19 +3,19 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.18
+ * Version: V12.18.19
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Cleanup V12.18.18: Recuperadas funciones de API de eventos:
+ * Cleanup V12.18.19: Notificaciones push deshabilitadas automáticamente:
  * - _showEmailSection() - versión antigua eliminada
  * - loadIMAPConfig() - versión antigua eliminada  
  * - showUserSelectorForEvent() - versión antigua eliminada
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.18';
+const VERSION = '12.18.19';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -1855,7 +1855,8 @@ const App = window.App = {
             if (data.success) {
                 this.state.user = data;
                 LS.set('user', JSON.stringify(data));
-                this.initPushNotifications().catch(err => console.error('Push error:', err));
+                // Notificaciones push deshabilitadas - solo se activan manualmente
+                // this.initPushNotifications().catch(err => console.error('Push error:', err));
                 await this.loadAppShell();
                 
                 const sbu = document.getElementById('sidebar-username');
@@ -5636,8 +5637,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (user && (user.userId || user.token)) {
                 console.log('[AUTH] Valid session, loading app-shell for role:', user.role);
                 window.App.state.user = user;
-                // Inicializar notificaciones push
-                window.App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
+                // Notificaciones push deshabilitadas - solo se activan manualmente
+                // window.App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
                 
                 // CARGAR APP-SHELL PRIMERO
                 try {
