@@ -14,7 +14,8 @@ const ALLOWED_TABLES = new Set([
     'email_templates', 'email_logs', 'email_queue', 'webhooks',
     'user_events', 'group_users', 'pre_registrations', 'password_resets',
     'smtp_config', 'imap_config', 'event_email_config', 'event_email_templates',
-    'event_agenda', 'audit_logs'
+    'event_agenda', 'audit_logs',
+    'event_wheels', 'wheel_participants', 'wheel_spins', 'wheel_leads'
 ]);
 
 /**
