@@ -3398,14 +3398,12 @@ const App = window.App = {
         cl('btn-toggle-theme', () => this.toggleTheme());
         cl('btn-logout', () => this.logout());
         
-        // Admin view - action buttons
-        cl('btn-show-qr', () => this.showQR());
-        cl('btn-export-excel', () => this.exportExcel());
+        // Admin view - action buttons (QR y Excel ahora en Configuración)
+        // Botones quitados: btn-show-qr, btn-export-excel, btn-generate-pdf
         
         // Event Config view - action buttons
         cl('btn-config-show-qr', () => this.showQR());
         cl('btn-config-export-excel', () => this.exportExcel());
-        cl('btn-generate-pdf', () => this.generateGuestListPdf());
         cl('btn-create-event-open', () => this.openCreateEventModal());
         cl('btn-create-group', () => this.openCompanyModal());
         
