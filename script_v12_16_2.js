@@ -10,7 +10,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.13';
+const VERSION = '12.18.14';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -1073,7 +1073,7 @@ const App = window.App = {
             const d = await res.json();
             if (d.success) {
                 alert("✓ Evento creado con éxito.");
-                document.getElementById('modal-event').classList.add('hidden');
+                hideModal('modal-event');
                 document.getElementById('new-event-form').reset();
                 this.loadEvents();
             } else {
@@ -1090,7 +1090,7 @@ const App = window.App = {
             });
             if (res.success) {
                 alert("✓ Evento actualizado.");
-                document.getElementById('modal-event').classList.add('hidden');
+                hideModal('modal-event');
                 this.loadEvents();
             } else {
                 alert("Error: " + res.error);
@@ -1717,7 +1717,7 @@ const App = window.App = {
     },
 
     closeModal: function() {
-        document.getElementById('modal-event')?.classList.add('hidden');
+        hideModal('modal-event');
     },
 
     openInviteModal: function() {
@@ -6441,8 +6441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado.");
-                    document.body.focus();
-                    document.getElementById('modal-event').classList.add('hidden');
+                    hideModal('modal-event');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
             } catch(err) { alert("Error al crear evento: " + err.message); }
@@ -6487,8 +6486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado con configuración completa.");
-                    document.body.focus();
-                    document.getElementById('modal-event-full').classList.add('hidden');
+                    hideModal('modal-event-full');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
             } catch(err) { alert("Error al crear evento: " + err.message); }
