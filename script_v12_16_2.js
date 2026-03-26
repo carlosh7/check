@@ -1205,14 +1205,19 @@ const App = window.App = {
     
     // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
     showGroupSelector: async function(userId) {
-        // Cargar grupos frescos del servidor
-        console.log('[DEBUG] showGroupSelector: cargando grupos...');
-        const groups = await this.fetchAPI('/groups');
-        console.log('[DEBUG] showGroupSelector: grupos recibidos:', groups.length, groups.map(g => g.name));
-        this.state.allGroups = groups;
+        // Cargar grupos Y usuarios frescos del servidor para tener datos actualizados
+        console.log('[DEBUG] showGroupSelector: cargando grupos y usuarios...');
+        const [groups, users] = await Promise.all([
+            this.fetchAPI('/groups'),
+            this.fetchAPI('/users')
+        ]);
         
-        const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+        this.state.allGroups = groups;
+        this.state.allUsers = users;
+        
+        const user = users.find(u => String(u.id) === String(userId));
         const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
+        console.log('[DEBUG] showGroupSelector: usuario tiene grupos:', currentGroupIds, 'grupos disponibles:', groups.length);
         this.state._pendingGroupUserId = userId; // Guardar userId para retorno
         
         const options = groups.map(g => `
