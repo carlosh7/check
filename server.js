@@ -581,6 +581,12 @@ registerRoutes(app);
 app.use((req, res, next) => {
     if (req.path === '/registro.html') return res.sendFile(path.join(__dirname, 'registro.html'));
     if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'survey.html'));
+    if (req.path === '/wheel.html') return res.sendFile(path.join(__dirname, 'wheel.html'));
+    
+    // Rutas públicas de ruleta: /wheel/:wheelId/public
+    if (req.path.startsWith('/wheel/') && req.path.endsWith('/public')) {
+        return res.sendFile(path.join(__dirname, 'wheel.html'));
+    }
     
     // Solo servir index.html para rutas que no son API/social y que aceptan HTML
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {

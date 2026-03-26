@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta | Check Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" href="/styles.css?v=12.12.0">
+    <link rel="stylesheet" href="/modern.css?v=12.12.0">
+    <script>
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                primary: { DEFAULT: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
+                slate: { 850: '#1e293b', 950: '#020617' }
+              },
+              fontFamily: {
+                sans: ['Plus Jakarta Sans', 'sans-serif'],
+                display: ['Manrope', 'sans-serif']
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { width: 100%; padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; color: white; outline: none; transition: all 0.2s; }
+        .input-field:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2); }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; transition: all 0.2s; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        #wheel-canvas { max-width: 100%; height: auto; }
+    </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            let theme = 'dark';
+            if (saved === 'dark' || saved === 'light') theme = saved;
+            else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(theme);
+        })();
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern">
+    <div id="loading" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <span class="material-symbols-outlined text-primary text-3xl">casino</span>
+            </div>
+            <p class="text-slate-500">Cargando ruleta...</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="hidden min-h-screen flex flex-col items-center justify-center p-4 py-8">
+        <div class="max-w-2xl w-full glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
+            <!-- Header -->
+            <div class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-6 text-center border-b border-white/5">
+                <div class="w-14 h-14 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <span class="material-symbols-outlined text-primary text-2xl">casino</span>
+                </div>
+                <h2 id="wheel-name" class="text-xl font-black font-display mb-1">Ruleta de Sorteo</h2>
+                <h3 id="event-name" class="text-base font-bold text-primary"></h3>
+            </div>
+
+            <!-- Wheel Section -->
+            <div class="p-6 text-center">
+                <div class="relative inline-block mb-6">
+                    <canvas id="wheel-canvas" width="400" height="400"></canvas>
+                    <div id="pointer" class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-primary"></div>
+                </div>
+
+                <button id="btn-spin" class="btn-primary w-full py-4 text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                    <span class="material-symbols-outlined align-middle mr-2">rotate_right</span>
+                    GIRAR RULETA
+                </button>
+
+                <p id="spinning-text" class="text-slate-500 text-sm mt-3 hidden">La ruleta está girando...</p>
+            </div>
+
+            <!-- Winner Display -->
+            <div id="winner-section" class="hidden p-6 text-center bg-emerald-500/10 border-t border-emerald-500/20">
+                <span class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-emerald-500 text-3xl">emoji_events</span>
+                </span>
+                <p class="text-emerald-400 font-bold text-lg mb-1">¡Felicidades!</p>
+                <p id="winner-name" class="text-2xl font-black text-white mb-2"></p>
+                <p class="text-slate-400 text-sm">Ha sido seleccionado como el ganador del sorteo</p>
+            </div>
+
+            <!-- Lead Capture Form -->
+            <div id="lead-form-section" class="hidden p-6 border-t border-white/5">
+                <h4 class="text-sm font-bold text-slate-400 mb-4 text-center">Ingresa tus datos para participar</h4>
+                <form id="lead-form" class="space-y-3">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">person</span>
+                        <input type="text" id="lead-name" required placeholder="Nombre completo *" class="input-field !pl-10 text-sm">
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">mail</span>
+                        <input type="email" id="lead-email" required placeholder="Correo electrónico *" class="input-field !pl-10 text-sm">
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">call</span>
+                        <input type="tel" id="lead-phone" placeholder="Teléfono (opcional)" class="input-field !pl-10 text-sm">
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-3 text-sm font-bold">
+                        PARTICIPAR
+                    </button>
+                </form>
+                <p id="lead-success" class="hidden text-center text-emerald-400 text-sm mt-3">¡Datos guardados! Ahora puedes girar la ruleta.</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-4 text-center">
+                <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors"> Powered by Check Pro</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-content" class="hidden min-h-screen flex items-center justify-center p-6">
+        <div class="text-center">
+            <span class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-red-500 text-4xl">error</span>
+            </span>
+            <h2 class="text-2xl font-black mb-4">Ruleta no disponible</h2>
+            <p id="error-message" class="text-slate-500 mb-6">Esta ruleta no existe o ha sido desactivada.</p>
+            <a href="/" class="btn-primary px-8 py-3 rounded-xl inline-block">Volver al inicio</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let wheelData = null;
+        let participants = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+        let hasParticipated = false;
+
+        // Canvas setup
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function getWheelColors() {
+            if (wheelData?.config?.visual?.wheel_colors) {
+                return wheelData.config.visual.wheel_colors;
+            }
+            return ['#FF6B6B', '#4ECDC4'];
+        }
+
+        function drawWheel(rotation = 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(rotation);
+
+            const colors = getWheelColors();
+            const numParticipants = participants.length;
+            const arcSize = (2 * Math.PI) / numParticipants;
+            const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
+
+            participants.forEach((name, i) => {
+                const startAngle = i * arcSize;
+                const endAngle = (i + 1) * arcSize;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, canvas.width / 2 - 5, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.rotate(startAngle + arcSize / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 14px Plus Jakarta Sans';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 3;
+                
+                const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
+                ctx.fillText(displayName, canvas.width / 2 - 20, 5);
+                ctx.restore();
+            });
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(0, 0, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = '#7c3aed';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function spinWheel() {
+            if (isSpinning || participants.length === 0) return;
+            if (!hasParticipated) {
+                document.getElementById('lead-form-section').classList.remove('hidden');
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('btn-spin').disabled = true;
+            document.getElementById('spinning-text').classList.remove('hidden');
+
+            // Calculate random rotation
+            const spinDuration = 4000 + Math.random() * 2000;
+            const extraSpins = 5 + Math.random() * 3;
+            const targetRotation = currentRotation + (extraSpins * 2 * Math.PI);
+
+            const startTime = Date.now();
+            const startRotation = currentRotation;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                
+                // Easing function
+                const easeOut = 1 - Math.pow(1 - progress, 4);
+                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+                
+                drawWheel(currentRotation);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    document.getElementById('btn-spin').disabled = false;
+                    document.getElementById('spinning-text').classList.add('hidden');
+                    
+                    // Determine winner
+                    const pointerAngle = -90 * (Math.PI / 180);
+                    const normalizedRotation = currentRotation % (2 * Math.PI);
+                    const winnerIndex = Math.floor(((2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI)) / (2 * Math.PI / participants.length)) % participants.length;
+                    
+                    const winner = participants[winnerIndex];
+                    showWinner(winner);
+                    recordSpin(winner);
+                }
+            }
+
+            animate();
+        }
+
+        function showWinner(winner) {
+            const winnerSection = document.getElementById('winner-section');
+            document.getElementById('winner-name').textContent = winner;
+            winnerSection.classList.remove('hidden');
+            
+            // Confetti effect
+            if (wheelData?.config?.visual?.confetti_on_win !== false) {
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#7c3aed', '#fbbf24', '#34d399'];
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: fixed;
+                    width: ${Math.random() * 10 + 5}px;
+                    height: ${Math.random() * 10 + 5}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: ${Math.random() * 100}vw;
+                    top: -20px;
+                    opacity: ${Math.random() * 0.7 + 0.3};
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                    animation: fall ${Math.random() * 2 + 2}s linear forwards;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+
+            // Add keyframes if not exists
+            if (!document.getElementById('confetti-style')) {
+                const style = document.createElement('style');
+                style.id = 'confetti-style';
+                style.textContent = `
+                    @keyframes fall {
+                        to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        async function recordSpin(winner) {
+            if (!wheelData?.id) return;
+            try {
+                await fetch(`${API_URL}/wheels/${wheelData.id}/spin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winnerName: winner })
+                });
+            } catch (e) {
+                console.error('Error recording spin:', e);
+            }
+        }
+
+        async function loadWheel() {
+            const pathParts = window.location.pathname.split('/');
+            // Expected path: /wheel/:wheelId/public or /:eventName/wheel/:wheelId/public
+            let wheelId = null;
+            
+            if (pathParts.includes('wheel')) {
+                const wheelIndex = pathParts.indexOf('wheel');
+                wheelId = pathParts[wheelIndex + 1];
+            }
+
+            if (!wheelId || wheelId === 'undefined') {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-content').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 'Ruleta no válida';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/wheels/${wheelId}/public`);
+                if (!res.ok) throw new Error('Ruleta no encontrada');
+
+                wheelData = await res.json();
+                participants = wheelData.participants || [];
+
+                if (participants.length === 0) {
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error-content').classList.remove('hidden');
+                    document.getElementById('error-message').textContent = 'Esta ruleta no tiene participantes';
+                    return;
+                }
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+
+                document.getElementById('wheel-name').textContent = wheelData.name || 'Ruleta de Sorteo';
+                document.getElementById('event-name').textContent = wheelData.event_name || '';
+                document.title = `${wheelData.name} | Check Pro`;
+
+                drawWheel(0);
+
+            } catch (e) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-content').classList.remove('hidden');
+            }
+        }
+
+        // Lead capture form
+        document.getElementById('lead-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!wheelData?.id) return;
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const origText = btn.textContent;
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+
+            const body = {
+                name: document.getElementById('lead-name').value.trim(),
+                email: document.getElementById('lead-email').value.trim().toLowerCase(),
+                phone: document.getElementById('lead-phone').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/wheels/${wheelData.id}/capture-lead`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.ok) {
+                    hasParticipated = true;
+                    e.target.classList.add('hidden');
+                    document.getElementById('lead-success').classList.remove('hidden');
+                } else {
+                    alert('Error al guardar. Intenta de nuevo.');
+                }
+            } catch (e) {
+                alert('Error de conexión. Intenta de nuevo.');
+            } finally {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }
+        });
+
+        // Spin button
+        document.getElementById('btn-spin').addEventListener('click', spinWheel);
+
+        // Initial load
+        loadWheel();
+    </script>
+</body>
+</html>

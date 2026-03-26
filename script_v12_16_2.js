@@ -3471,6 +3471,8 @@ const App = window.App = {
         cl('btn-add-from-guests', () => this.addParticipantsFromGuests('all'));
         cl('btn-add-from-checkedin', () => this.addParticipantsFromGuests('checked_in'));
         cl('btn-add-from-preregistered', () => this.addParticipantsFromGuests('pre_registered'));
+        cl('btn-copy-wheel-url', () => this.copyWheelUrl());
+        cl('btn-preview-wheel', () => this.previewWheel());
         
         // Nuevos botones de Email y Agenda
         cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
@@ -5500,9 +5502,12 @@ const App = window.App = {
             
             this.currentWheel = wheel;
             
-            // Generar URL pública
-            const shareUrl = `/wheel/${wheel.id}/public`;
-            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            // Generar URL pública con nombre del evento
+            if (wheel.id) {
+                const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
+                document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            }
             
             this._notifyAction('Éxito', 'Ruleta guardada', 'success');
             await this.loadWheels();
@@ -5542,6 +5547,34 @@ const App = window.App = {
         document.getElementById('wheel-editor').classList.add('hidden');
         this.currentWheel = null;
         this.loadWheels();
+    },
+
+    // Copiar URL de la ruleta
+    copyWheelUrl() {
+        const urlInput = document.getElementById('wheel-share-url');
+        if (!urlInput || !urlInput.value) {
+            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
+            return;
+        }
+        
+        navigator.clipboard.writeText(urlInput.value).then(() => {
+            this._notifyAction('Éxito', 'URL copiada al portapapeles', 'success');
+        }).catch(() => {
+            // Fallback para navegadores antiguos
+            urlInput.select();
+            document.execCommand('copy');
+            this._notifyAction('Éxito', 'URL copiada', 'success');
+        });
+    },
+
+    // Vista previa de la ruleta
+    previewWheel() {
+        const urlInput = document.getElementById('wheel-share-url');
+        if (!urlInput || !urlInput.value) {
+            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
+            return;
+        }
+        window.open(urlInput.value, '_blank');
     },
 
     switchEventTab(tabName) {
