@@ -291,20 +291,8 @@ const App = window.App = {
     
     // Verificar versión de la aplicación
     checkVersion: async function() {
-        try {
-            const res = await this.fetchAPI('/app-version');
-            const versionDisplay = document.getElementById('version-display');
-            if (versionDisplay) {
-                versionDisplay.textContent = 'V' + res.version;
-            }
-            // También actualizar login-version-display si existe (index.html)
-            const loginVersionDisplay = document.getElementById('login-version-display');
-            if (loginVersionDisplay) {
-                loginVersionDisplay.textContent = 'v' + res.version;
-            }
-        } catch(e) {
-            console.error('Error al verificar versión:', e);
-        }
+        // Usar función unificada loadAppVersion()
+        await this.loadAppVersion();
     },
 
     // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
@@ -3287,13 +3275,8 @@ const App = window.App = {
             } 
         };
         
-        // Mostrar versión del servidor al cargar
-        this.fetchAPI('/app-version').then(res => {
-            const vd = document.getElementById('version-display');
-            if (vd) vd.textContent = 'V' + res.version;
-            const lvd = document.getElementById('login-version-display');
-            if (lvd) lvd.textContent = 'v' + res.version;
-        }).catch(() => {});
+        // Mostrar versión del servidor al cargar (usar función unificada)
+        this.loadAppVersion();
 
         // Actualizar tema después de cargar app-shell
         this.initTheme();
@@ -3491,9 +3474,22 @@ const App = window.App = {
         try {
             const d = await fetch('/api/app-version').then(r => r.json());
             this.state.version = d.version;
+            
+            // Actualizar por clase (sistema nuevo)
             document.querySelectorAll('.app-version-label').forEach(el => el.innerText = `Check Pro V${d.version}`);
             document.querySelectorAll('.app-version-text').forEach(el => el.innerText = `V${d.version}`);
-        } catch(e) {}
+            
+            // Actualizar por ID (backward compatibility)
+            const versionDisplay = document.getElementById('version-display');
+            if (versionDisplay) versionDisplay.textContent = `V${d.version}`;
+            
+            const loginVersionDisplay = document.getElementById('login-version-display');
+            if (loginVersionDisplay) loginVersionDisplay.textContent = `v${d.version}`;
+            
+            console.log(`[VERSION] Aplicación actualizada a V${d.version}`);
+        } catch(e) {
+            console.warn('[VERSION] Error al cargar versión:', e);
+        }
     },
 
     // --- PRE-REGISTRATIONS (NUEVO V11.6) ---
@@ -5631,6 +5627,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 0.6. INICIALIZAR TEMA OSCURO/CLARO
     App.initTheme();
+
+    // 0.7. CARGAR VERSIÓN DE LA APLICACIÓN (AUTOMÁTICO)
+    App.loadAppVersion();
 
     // 1. RESTORE SESSION FIRST
     let savedUser = null;
