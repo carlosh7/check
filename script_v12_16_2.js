@@ -2871,14 +2871,19 @@ const App = window.App = {
     loadEventEmailConfig: async function(eventId) {
         try {
             const config = await this.fetchAPI(`/events/${eventId}/email-config`);
-            document.getElementById('ev-smtp-enabled').checked = config.enabled == 1;
-            document.getElementById('ev-smtp-host').value = config.smtp_host || '';
-            document.getElementById('ev-smtp-port').value = config.smtp_port || 587;
-            document.getElementById('ev-smtp-secure').checked = config.smtp_secure == 1;
-            document.getElementById('ev-smtp-user').value = config.smtp_user || '';
-            document.getElementById('ev-smtp-pass').value = config.smtp_pass || '';
-            document.getElementById('ev-smtp-from-name').value = config.from_name || '';
-            document.getElementById('ev-smtp-from-email').value = config.from_email || '';
+            if (!config) return;
+            
+            // Verificar existencia de elementos antes de configurarlos
+            const el = (id) => document.getElementById(id);
+            
+            if (el('ev-smtp-enabled')) el('ev-smtp-enabled').checked = config.enabled == 1;
+            if (el('ev-smtp-host')) el('ev-smtp-host').value = config.smtp_host || '';
+            if (el('ev-smtp-port')) el('ev-smtp-port').value = config.smtp_port || 587;
+            if (el('ev-smtp-secure')) el('ev-smtp-secure').checked = config.smtp_secure == 1;
+            if (el('ev-smtp-user')) el('ev-smtp-user').value = config.smtp_user || '';
+            if (el('ev-smtp-pass')) el('ev-smtp-pass').value = config.smtp_pass || '';
+            if (el('ev-smtp-from-name')) el('ev-smtp-from-name').value = config.from_name || '';
+            if (el('ev-smtp-from-email')) el('ev-smtp-from-email').value = config.from_email || '';
         } catch (e) { console.error('Error loading event email config:', e); }
     },
     
@@ -3033,9 +3038,20 @@ const App = window.App = {
     loadEventAgenda: async function(eventId) {
         try {
             const agenda = await this.fetchAPI(`/events/${eventId}/agenda`);
+            // Verificar que agenda sea un array válido
+            if (!Array.isArray(agenda)) {
+                console.warn('Agenda response is not an array:', agenda);
+                this.state.eventAgenda = [];
+                this.renderEventAgenda([]);
+                return;
+            }
             this.state.eventAgenda = agenda;
             this.renderEventAgenda(agenda);
-        } catch (e) { console.error('Error loading agenda:', e); }
+        } catch (e) { 
+            console.error('Error loading agenda:', e); 
+            this.state.eventAgenda = [];
+            this.renderEventAgenda([]);
+        }
     },
     
     renderEventAgenda: function(agenda) {
@@ -3256,10 +3272,8 @@ const App = window.App = {
                         if (navEventName) navEventName.textContent = event.name;
                     }
                     
-                    // Load config-specific data
-                    this.loadEventStaff(this.state.event.id);
-                    this.loadEventEmailConfig(this.state.event.id);
-                    this.loadEventAgenda(this.state.event.id);
+                    // Los datos se cargan al hacer clic en las pestañas
+                    // this.loadEventStaff(this.state.event.id);
                 } else {
                     this.navigate('my-events');
                 }
@@ -5150,34 +5164,54 @@ const App = window.App = {
     
     // Cargar staff en config view
     loadConfigStaff() {
-        const tbody = document.getElementById('config-staff-tbody');
-        const evStaffTbody = document.getElementById('ev-staff-tbody');
-        if (evStaffTbody && tbody) {
-            tbody.innerHTML = evStaffTbody.innerHTML;
-        }
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        this.loadEventStaff(eventId).then(() => {
+            // Copiar del view-admin al view-config
+            const evStaffTbody = document.getElementById('ev-staff-tbody');
+            const configStaffTbody = document.getElementById('config-staff-tbody');
+            if (evStaffTbody && configStaffTbody) {
+                configStaffTbody.innerHTML = evStaffTbody.innerHTML;
+            }
+        });
     },
     
     // Cargar email config en config view
     loadConfigEmail() {
-        const enabled = document.getElementById('ev-email-enabled');
-        const configEnabled = document.getElementById('config-email-enabled');
-        if (enabled && configEnabled) configEnabled.checked = enabled.checked;
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
         
-        const fields = ['smtp-host', 'smtp-port', 'smtp-user', 'smtp-pass', 'from-name', 'from-email'];
-        fields.forEach(field => {
-            const source = document.getElementById('ev-email-' + field);
-            const target = document.getElementById('config-email-' + field);
-            if (source && target) target.value = source.value;
+        this.loadEventEmailConfig(eventId).then(() => {
+            // Copiar del view-admin al view-config
+            const fields = ['enabled', 'smtp-host', 'smtp-port', 'smtp-user', 'smtp-pass', 'from-name', 'from-email'];
+            fields.forEach(field => {
+                const source = document.getElementById('ev-email-' + field);
+                const target = document.getElementById('config-email-' + field);
+                if (source && target) {
+                    if (source.type === 'checkbox') {
+                        target.checked = source.checked;
+                    } else {
+                        target.value = source.value;
+                    }
+                }
+            });
         });
     },
     
     // Cargar agenda en config view
     loadConfigAgenda() {
-        const list = document.getElementById('config-agenda-list');
-        const evList = document.getElementById('event-agenda-list');
-        if (evList && list) {
-            list.innerHTML = evList.innerHTML;
-        }
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        this.loadEventAgenda(eventId).then(() => {
+            // Copiar del view-admin al view-config
+            const evList = document.getElementById('event-agenda-list');
+            const configList = document.getElementById('config-agenda-list');
+            if (evList && configList) {
+                configList.innerHTML = evList.innerHTML;
+            }
+        });
     },
 
     switchEventTab(tabName) {
