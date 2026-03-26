@@ -1233,16 +1233,27 @@ const App = window.App = {
         const modal = document.createElement('div');
         modal.id = 'modal-select-group';
         modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
+        
+        // Click en backdrop cierra el modal, pero no en el contenido
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeGroupSelector();
+            }
+        });
+        
         modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center" onclick="event.stopPropagation()">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined text-2xl">corporate_fare</span>
                     </div>
-                    <div>
+                    <div class="flex-1">
                         <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
                     </div>
+                    <button onclick="App.closeGroupSelector()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-white">close</span>
+                    </button>
                 </div>
                 
                 <div class="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
@@ -1250,10 +1261,10 @@ const App = window.App = {
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <button data-action="assignUserGroupFromSelector" data-user-id="${userId}" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
                     <div class="flex gap-3">
-                        <button data-action="navigateToCreateGroup" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
-                        <button data-action="closeGroupSelector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                        <button onclick="App.navigateToCreateGroup()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button onclick="App.closeGroupSelector()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
                     </div>
                 </div>
             </div>`;
