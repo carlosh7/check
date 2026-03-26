@@ -535,144 +535,8 @@ const App = window.App = {
             } catch(e) { console.error('Error', e); }
         }
     },
-    
-    // --- FUNCIONES DE SELECCIÓN Y ASIGNACIÓN RESTAURADAS V12.16.4 ---
 
-    async showEventSelectorForCompany(groupId) {
-        let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
-        const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
-        const selectedIds = currentEvents.map(e => String(e.id));
-
-        const html = `
-            <div class="space-y-6 text-left">
-                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos</span>
-                        <span class="text-xs text-slate-400">Vincular eventos a esta organización</span>
-                    </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
-                        + NUEVO EVENTO
-                    </button>
-                </div>
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(e => `
-                        <div onclick="App.toggleEventToCompany('${groupId}', '${e.id}', ${selectedIds.includes(String(e.id))})" class="selector-item flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
-                                    <span class="material-symbols-outlined">event</span>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</span>
-                                    <span class="text-[10px] text-slate-500">${e.location || 'Sin ubicación'}</span>
-                                </div>
-                            </div>
-                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(e.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
-            showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
-        });
-    },
-
-    async toggleEventToCompany(groupId, eventId, isSelected) {
-        try {
-            const events = await this.fetchAPI('/events');
-            const companyEvents = events.filter(e => String(e.group_id) === String(groupId));
-            let newIds = companyEvents.map(e => String(e.id));
-            if (isSelected) newIds = newIds.filter(id => id !== String(eventId));
-            else newIds.push(String(eventId));
-
-            const res = await this.fetchAPI(`/groups/${groupId}/events`, {
-                method: 'PUT', body: JSON.stringify({ events: newIds })
-            });
-
-            if (res.success) {
-                this.showEventSelectorForCompany(groupId);
-                this.loadGroups();
-            }
-        } catch(e) { console.error(e); }
-    },
-
-    // --- SELECCIÓN DE USUARIOS PARA GRUPOS (V12.16.0) ---
-    async showUserSelectorForGroup(groupId) {
-        this.state._pendingUserGroupId = groupId;
-        let users = [];
-        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
-        
-        const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
-        const selectedIds = currentUsers.map(u => String(u.id));
-
-        const html = `
-            <div class="space-y-6 text-left">
-                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Asignar Colaboradores</span>
-                        <span class="text-xs text-slate-400">Vincular personal a esta organización</span>
-                    </div>
-                    <button onclick="App.navigateToCreateUser()" class="btn-primary !py-2 !px-4 !text-xs">
-                        + NUEVO USUARIO
-                    </button>
-                </div>
-
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                    <input type="text" oninput="App.filterSelectorItems(this, '.selector-item')" placeholder="Buscar por nombre o email..." class="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:bg-purple-500/5 transition-all outline-none">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${users.map(u => `
-                        <div onclick="App.assignUserToGroup('${groupId}', '${u.id}', ${selectedIds.includes(String(u.id))})" class="selector-item flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
-                                    <span class="material-symbols-outlined">person</span>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${u.display_name || u.username}</span>
-                                    <span class="text-[10px] text-slate-500 font-mono">${u.username}</span>
-                                </div>
-                            </div>
-                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(u.id)) ? 'bg-purple-500 border-purple-500' : 'border-white/10'} flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(u.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
-            showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
-        });
-    },
-
-    async assignUserToGroup(groupId, userId, isSelected) {
-        try {
-            if (isSelected) {
-                await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
-            } else {
-                await this.fetchAPI(`/groups/${groupId}/users`, { 
-                    method: 'POST', body: JSON.stringify({ user_id: userId }) 
-                });
-            }
-            this.showUserSelectorForGroup(groupId);
-            this.loadGroups();
-            this.loadUsersTable();
-        } catch(e) { console.error(e); }
-    },
-
-
-    async showEventSelector(userId, selectedEventIds = []) {
-        let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+    // --- MODALES DE SELECCIÓN PREMIUM (V12.16.0) ---
 
         const html = `
             <div class="space-y-6 text-left">
@@ -724,6 +588,43 @@ const App = window.App = {
                 this.loadUsersTable();
             }
         } catch(e) { console.error(e); }
+    },
+
+    async showEventSelector(userId, selectedEventIds = []) {
+        let events = [];
+        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-6 text-left">
+                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
+                        <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white transition-colors">${e.name}</div>
+                                <div class="text-[10px] text-slate-500 uppercase tracking-tighter">${e.location || 'Ubicación remota'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center transition-colors">
+                                <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
+            showConfirmButton: false, showCloseButton: true,
+            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
+        });
     },
 
     // --- PERFIL Y CONFIGURACIÓN RESTAURADA ---
@@ -5325,6 +5226,10 @@ const App = window.App = {
         let users = [];
         try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
         
+        // Calcular usuarios ya asignados a este grupo para mostrar checkmarks
+        const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
+        const selectedIds = currentUsers.map(u => String(u.id));
+        
         const html = `
             <div class="space-y-6">
                 <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
@@ -5345,7 +5250,7 @@ const App = window.App = {
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${users.map(u => `
-                        <div onclick="App.assignUserToGroup('${u.id}', '${groupId}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm">
+                        <div onclick="App.assignUserToGroup('${groupId}', '${u.id}', ${selectedIds.includes(String(u.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group shadow-sm ${selectedIds.includes(String(u.id)) ? 'ring-1 ring-primary/50 bg-primary/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold group-hover:scale-105 transition-transform">
                                 ${u.username[0].toUpperCase()}
                             </div>
@@ -5353,8 +5258,8 @@ const App = window.App = {
                                 <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${u.username}</div>
                                 <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${u.role}</div>
                             </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-primary/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">check</span>
+                            <div class="w-6 h-6 rounded-lg border-2 ${selectedIds.includes(String(u.id)) ? 'bg-primary border-primary' : 'border-white/10'} flex items-center justify-center group-hover:border-primary/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-white ${selectedIds.includes(String(u.id)) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
                             </div>
                         </div>
                     `).join('')}
@@ -5432,17 +5337,25 @@ const App = window.App = {
         });
     },
 
-    async assignUserToGroup(userId, groupId) {
+    async assignUserToGroup(groupId, userId, isSelected) {
         try {
-            const res = await this.fetchAPI(`/groups/${groupId}/users`, {
-                method: 'POST',
-                body: JSON.stringify({ user_id: userId }) // Cambiado a user_id para el backend modular
-            });
+            let res;
+            if (isSelected) {
+                // Quitar usuario del grupo
+                res = await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+            } else {
+                // Agregar usuario al grupo
+                res = await this.fetchAPI(`/groups/${groupId}/users`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
             if (res.success) {
-                this._notifyAction('Asignado', 'Usuario añadido al grupo.', 'success');
+                this._notifyAction('Éxito', isSelected ? 'Usuario desvinculado.' : 'Usuario asignado.', 'success');
                 this.loadGroups();
                 this.loadUsersTable();
-                Swal.close();
+                // Recargar modal con estado actualizado
+                this.showUserSelectorForGroup(groupId);
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
@@ -5658,34 +5571,6 @@ const App = window.App = {
             if (res.success) {
                 this.showEventSelectorForCompany(groupId);
                 this.loadGroups();
-            }
-        } catch(e) { console.error(e); }
-    },
-
-
-
-    async toggleEventToUser(userId, eventId, isSelected) {
-        try {
-            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
-            let currentEvents = user ? (user.events || []) : [];
-            currentEvents = currentEvents.map(String);
-            
-            let newEvents;
-            if (isSelected) {
-                newEvents = currentEvents.filter(id => id !== String(eventId));
-            } else {
-                newEvents = [...currentEvents, String(eventId)];
-            }
-
-            const res = await this.fetchAPI(`/users/${userId}/events`, {
-                method: 'PUT',
-                body: JSON.stringify({ events: newEvents })
-            });
-
-            if (res.success) {
-                if (user) user.events = newEvents;
-                this.showEventSelector(userId, newEvents);
-                this.loadUsersTable();
             }
         } catch(e) { console.error(e); }
     },
