@@ -82,16 +82,28 @@ const App = window.App = {
         LS.set('last_view', viewId);
     },
 
-    navigateToCreateEvent() {
-        this.navigate('system'); // Los eventos se crean desde la pestaña de empresas/eventos en sistema
-        this.switchSystemTab('groups');
-        setTimeout(() => {
-            document.getElementById('ev-id-hidden').value = '';
-            const form = document.getElementById('new-event-form');
-            if (form) form.reset();
-            if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
-            document.getElementById('modal-event')?.classList.remove('hidden');
-        }, 100);
+    navigateToCreateEvent(type = 'short') {
+        this.navigate('system');
+        
+        if (type === 'full') {
+            // Abrir formulario completo (Mis Eventos)
+            setTimeout(() => {
+                document.getElementById('evf-id-hidden').value = '';
+                const form = document.getElementById('new-event-full-form');
+                if (form) form.reset();
+                document.getElementById('modal-event-full')?.classList.remove('hidden');
+            }, 100);
+        } else {
+            // Abrir formulario corto (Equipo/Empresa)
+            this.switchSystemTab('groups');
+            setTimeout(() => {
+                document.getElementById('ev-id-hidden').value = '';
+                const form = document.getElementById('new-event-form');
+                if (form) form.reset();
+                if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
+                document.getElementById('modal-event')?.classList.remove('hidden');
+            }, 100);
+        }
     },
 
     switchSystemTab(tabId) {
@@ -3367,6 +3379,8 @@ const App = window.App = {
         cl('btn-confirm-import', () => this.confirmImport());
         cl('btn-save-event-email', () => this.saveEventEmailConfig());
         cl('btn-cancel-event', () => hideModal('modal-event'));
+        cl('btn-close-event-full-modal', () => hideModal('modal-event-full'));
+        cl('btn-cancel-event-full', () => hideModal('modal-event-full'));
         cl('btn-cancel-invite', () => hideModal('modal-invite'));
         cl('btn-cancel-company', () => hideModal('modal-company'));
 
@@ -6379,7 +6393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     cl('btn-create-event-open', () => App.navigateToCreateEvent());
     cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
 
-    // Form de crear/editar evento
+    // Form de crear/editar evento (FORMULARIO CORTO - modal-event)
     sf('new-event-form', async (e) => {
         e.preventDefault();
         const eventId = document.getElementById('ev-id-hidden').value;
@@ -6389,56 +6403,77 @@ document.addEventListener('DOMContentLoaded', async () => {
             date: document.getElementById('ev-date').value,
             end_date: document.getElementById('ev-end-date').value,
             location: document.getElementById('ev-location').value,
-            description: document.getElementById('ev-desc').value,
-            reg_title: document.getElementById('ev-reg-title').value,
-            reg_welcome_text: document.getElementById('ev-reg-welcome').value,
-            reg_success_message: document.getElementById('ev-reg-success').value,
-            reg_policy: document.getElementById('ev-reg-policy').value,
-            reg_show_phone: document.getElementById('ev-reg-phone').checked ? 1 : 0,
-            reg_show_org: document.getElementById('ev-reg-org').checked ? 1 : 0,
-            reg_show_position: document.getElementById('ev-reg-position').checked ? 1 : 0,
-            reg_show_vegan: document.getElementById('ev-reg-vegan').checked ? 1 : 0,
-            reg_show_dietary: document.getElementById('ev-reg-dietary').checked ? 1 : 0,
-            reg_show_gender: document.getElementById('ev-reg-gender').checked ? 1 : 0,
-            reg_require_agreement: document.getElementById('ev-reg-agreement').checked ? 1 : 0,
-            // --- DISEÑO V11.6 ---
-            qr_color_dark: document.getElementById('ev-qr-dark').value,
-            qr_color_light: document.getElementById('ev-qr-light').value,
-            qr_logo_url: document.getElementById('ev-qr-logo').value,
-            ticket_bg_url: document.getElementById('ev-ticket-bg').value,
-            ticket_accent_color: document.getElementById('ev-ticket-accent').value,
-            // FILTROS DE DOMINIO V11.6.2
-            reg_email_whitelist: document.getElementById('ev-reg-whitelist').value.trim(),
-            reg_email_blacklist: document.getElementById('ev-reg-blacklist').value.trim()
+            description: document.getElementById('ev-desc').value
         };
 
         if (eventId) {
             App.updateEvent(eventId, data);
         } else {
-            // Para creación, convertimos a FormData si hay logo, o enviamos JSON
-            const logo = document.getElementById('ev-logo-file').files[0];
-            if (logo) {
-                const fd = new FormData();
-                for (const key in data) fd.append(key, data[key]);
-                fd.append('logo', logo);
-                App.createEvent(fd);
-            } else {
-                // Si no hay logo, enviamos como JSON para consistencia
-                fetch(`${App.constants.API_URL}/events`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': App.state.user.userId 
-                    },
-                    body: JSON.stringify(data)
-                }).then(r => r.json()).then(d => {
-                    if (d.success) {
-                        alert("✓ Evento creado.");
-                        document.getElementById('modal-event').classList.add('hidden');
-                        App.loadEvents();
-                    } else alert("Error: " + d.error);
-                }).catch(() => alert("Error al crear evento."));
-            }
+            fetch(`${App.constants.API_URL}/events`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': App.state.user.userId 
+                },
+                body: JSON.stringify(data)
+            }).then(r => r.json()).then(d => {
+                if (d.success) {
+                    alert("✓ Evento creado.");
+                    document.getElementById('modal-event').classList.add('hidden');
+                    App.loadEvents();
+                } else alert("Error: " + d.error);
+            }).catch(() => alert("Error al crear evento."));
+        }
+    });
+
+    // Form de crear/editar evento completo (FORMULARIO LARGO - modal-event-full)
+    sf('new-event-full-form', async (e) => {
+        e.preventDefault();
+        const eventId = document.getElementById('evf-id-hidden').value;
+        
+        const data = {
+            name: document.getElementById('evf-name').value,
+            date: document.getElementById('evf-date').value,
+            end_date: document.getElementById('evf-end-date').value,
+            location: document.getElementById('evf-location').value,
+            description: document.getElementById('evf-desc').value,
+            reg_title: document.getElementById('evf-reg-title').value,
+            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
+            reg_success_message: document.getElementById('evf-reg-success').value,
+            reg_policy: document.getElementById('evf-reg-policy').value,
+            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
+            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
+            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
+            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
+            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
+            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
+            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
+            qr_color_dark: document.getElementById('evf-qr-dark').value,
+            qr_color_light: document.getElementById('evf-qr-light').value,
+            qr_logo_url: document.getElementById('evf-qr-logo').value,
+            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
+            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
+            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
+            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
+        };
+
+        if (eventId) {
+            App.updateEvent(eventId, data);
+        } else {
+            fetch(`${App.constants.API_URL}/events`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': App.state.user.userId 
+                },
+                body: JSON.stringify(data)
+            }).then(r => r.json()).then(d => {
+                if (d.success) {
+                    alert("✓ Evento creado con configuración completa.");
+                    document.getElementById('modal-event-full').classList.add('hidden');
+                    App.loadEvents();
+                } else alert("Error: " + d.error);
+            }).catch(() => alert("Error al crear evento."));
         }
     });
 

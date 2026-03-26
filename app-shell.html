@@ -624,6 +624,158 @@
     </div>
 </div>
 
+<!-- MODAL EVENTO COMPLETO (para Mis Eventos) -->
+<div id="modal-event-full" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Evento - Configuración Completa</h3>
+            </div>
+            <button id="btn-close-event-full-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="new-event-full-form" class="p-5 overflow-y-auto flex-1 space-y-6">
+            <input type="hidden" id="evf-id-hidden" value="">
+            
+            <!-- DATOS BÁSICOS -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Datos Básicos</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento *</label>
+                        <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
+                        <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio *</label>
+                        <input type="datetime-local" id="evf-date" required class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
+                        <input type="datetime-local" id="evf-end-date" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+                    <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                </div>
+            </div>
+
+            <!-- CONFIGURACIÓN DE REGISTRO -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Registro de Invitados</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Título de Registro</label>
+                        <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Mensaje de Bienvenida</label>
+                        <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Mensaje de Éxito</label>
+                    <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Política de Privacidad</label>
+                    <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
+                </div>
+                
+                <!-- CHECKBOXES DE REGISTRO -->
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Teléfono</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Organización</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Cargo</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Vegetariano</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-dietary" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Restricciones</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
+                        <span class="text-xs text-[var(--text-main)]">Género</span>
+                    </label>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
+                    <span class="text-xs text-[var(--text-main)]">Requerir aceptación de términos</span>
+                </label>
+            </div>
+
+            <!-- FILTROS DE EMAIL -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Filtros de Email</h4>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Emails Permitidos (Whitelist)</label>
+                    <input type="text" id="evf-reg-whitelist" placeholder="@empresa.com, @otro.com" class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Emails Bloqueados (Blacklist)</label>
+                    <input type="text" id="evf-reg-blacklist" placeholder="@spam.com, @mal.com" class="input-field w-full">
+                </div>
+            </div>
+
+            <!-- DISEÑO QR -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Diseño de Código QR</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color QR Oscuro</label>
+                        <input type="color" id="evf-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color QR Claro</label>
+                        <input type="color" id="evf-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Logo QR (URL)</label>
+                    <input type="text" id="evf-qr-logo" placeholder="https://..." class="input-field w-full">
+                </div>
+            </div>
+
+            <!-- DISEÑO TICKET -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Diseño de Ticket</h4>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fondo de Ticket (URL)</label>
+                    <input type="text" id="evf-ticket-bg" placeholder="https://..." class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color de Acento</label>
+                    <input type="color" id="evf-ticket-accent" value="#6366f1" class="w-full h-10 rounded cursor-pointer">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-white/10">
+                <button type="button" id="btn-cancel-event-full" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Guardar Evento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
@@ -937,6 +1089,6 @@
 </div>
 
 <!-- SCRIPTS & STYLES -->
-<link rel="stylesheet" href="/styles.css?v=12.17.0">
-<link rel="stylesheet" href="/modern.css?v=12.17.0">
-<script type="module" src="/script_v12_16_2.js?v=12.17.0"></script>
+<link rel="stylesheet" href="/styles.css?v=12.18.0">
+<link rel="stylesheet" href="/modern.css?v=12.18.0">
+<script type="module" src="/script_v12_16_2.js?v=12.18.0"></script>
