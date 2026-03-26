@@ -311,7 +311,7 @@ router.post('/:id/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
 // --- AGENDA DEL EVENTO (NUEVO V12.18.17) ---
 router.get('/:id/agenda', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const rows = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY time ASC").all(eventId);
+    const rows = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY start_time ASC").all(eventId);
     res.json(rows);
 });
 
@@ -322,13 +322,13 @@ router.post('/:id/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, r
         return res.status(403).json({ error: 'No tienes acceso a este evento' });
     }
     
-    const { title, description, time, duration, speaker, location } = req.body;
+    const { title, description, start_time, end_time, duration, speaker, location } = req.body;
     const id = getValidId('event_agenda');
     
     db.prepare(`
-        INSERT INTO event_agenda (id, event_id, title, description, time, duration, speaker, location, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, eventId, title, description, time, duration, speaker, location, new Date().toISOString());
+        INSERT INTO event_agenda (id, event_id, title, description, start_time, end_time, duration, speaker, location, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, eventId, title, description, start_time, end_time, duration, speaker, location, new Date().toISOString());
     
     res.json({ success: true, id });
 });
