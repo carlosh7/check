@@ -6409,20 +6409,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (eventId) {
             App.updateEvent(eventId, data);
         } else {
-            fetch(`${App.constants.API_URL}/events`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-user-id': App.state.user.userId 
-                },
-                body: JSON.stringify(data)
-            }).then(r => r.json()).then(d => {
+            try {
+                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado.");
                     document.getElementById('modal-event').classList.add('hidden');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
-            }).catch(() => alert("Error al crear evento."));
+            } catch(err) { alert("Error al crear evento: " + err.message); }
         }
     });
 
@@ -6460,20 +6454,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (eventId) {
             App.updateEvent(eventId, data);
         } else {
-            fetch(`${App.constants.API_URL}/events`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-user-id': App.state.user.userId 
-                },
-                body: JSON.stringify(data)
-            }).then(r => r.json()).then(d => {
+            try {
+                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado con configuración completa.");
                     document.getElementById('modal-event-full').classList.add('hidden');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
-            }).catch(() => alert("Error al crear evento."));
+            } catch(err) { alert("Error al crear evento: " + err.message); }
         }
     });
 
