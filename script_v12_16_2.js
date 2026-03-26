@@ -3423,11 +3423,9 @@ const App = window.App = {
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-pass-form', (e) => this.handlePasswordChange(e));
         
-        // Event Tabs (Fase 3: Multi-Tab en Evento)
+        // Event Tabs (Panel de Control - solo Invitados)
         cl('ev-nav-guests', () => window.switchEventTab('guests'));
-        cl('ev-nav-staff', () => window.switchEventTab('staff'));
-        cl('ev-nav-email', () => window.switchEventTab('email'));
-        cl('ev-nav-agenda', () => window.switchEventTab('agenda'));
+        // Personal, Email y Agenda ahora en Configuración del Evento
         cl('btn-ev-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
         cl('btn-ev-staff-new', () => this.openInviteModal());
         
