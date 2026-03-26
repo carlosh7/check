@@ -40,7 +40,8 @@ Después de cualquier cambio de código significativo (bug fix, feature, refacto
 1. Actualizar `package.json` campo `version` (formato: X.Y.Z)
 2. Actualizar `app-shell.html` → `?v=X.Y.Z` en etiquetas de CSS/JS
 3. Actualizar `index.html` → `?v=X.Y.Z` en etiquetas de CSS/JS
-4. **CREAR TAG GIT:** `git tag vX.Y.Z` y `git push origin vX.Y.Z`
+4. Actualizar `script_v12_16_2.js` → `const VERSION = 'X.Y.Z'`
+5. **CREAR TAG GIT:** `git tag vX.Y.Z` y `git push origin vX.Y.Z`
 
 **Ejemplo:** 12.16.6 → 12.16.7 → `git tag v12.16.7` → `git push origin v12.16.7`
 
