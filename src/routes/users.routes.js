@@ -258,10 +258,16 @@ router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => 
     const { events } = req.body;
     
     if (req.userRole === 'PRODUCTOR') {
-        const userGroups = getProducerGroups(req.userId);
-        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
-        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
-            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        // PRODUCTOR puede editar su propio usuario
+        if (req.userId === targetId) {
+            // Permitido - el usuario se edita a sí mismo
+        } else {
+            // PRODUCTOR puede editar otros usuarios solo si son de su empresa
+            const userGroups = getProducerGroups(req.userId);
+            const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+            if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+                return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+            }
         }
     }
     
@@ -283,10 +289,16 @@ router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (r
     const eventId = castId('events', req.params.eventId);
     
     if (req.userRole === 'PRODUCTOR') {
-        const userGroups = getProducerGroups(req.userId);
-        const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
-        if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
-            return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+        // PRODUCTOR puede editar su propio usuario
+        if (req.userId === targetId) {
+            // Permitido - el usuario se edita a sí mismo
+        } else {
+            // PRODUCTOR puede editar otros usuarios solo si son de su empresa
+            const userGroups = getProducerGroups(req.userId);
+            const user = db.prepare("SELECT group_id FROM users WHERE id = ?").get(targetId);
+            if (!user || !user.group_id || !userGroups.includes(user.group_id)) {
+                return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+            }
         }
     }
     
