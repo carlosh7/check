@@ -5633,11 +5633,22 @@ const App = window.App = {
         let groups = [];
         let users = [];
         try { 
-            [groups, users] = await Promise.all([
-                this.fetchAPI('/groups'),
-                this.fetchAPI('/users')
-            ]);
-        } catch(e) { console.error(e); }
+            groups = await this.fetchAPI('/groups');
+            // Delay para evitar rate limit
+            await new Promise(r => setTimeout(r, 100));
+            users = await this.fetchAPI('/users');
+        } catch(e) { 
+            console.error('Error loading data:', e); 
+            Swal.fire('Error', 'No se pudo cargar la información.', 'error');
+            return;
+        }
+        
+        // Validar que tenemos arrays
+        if (!Array.isArray(users) || !Array.isArray(groups)) {
+            console.error('API no regresó arrays:', { users, groups });
+            Swal.fire('Error', 'Error al obtener datos del servidor.', 'error');
+            return;
+        }
         
         const user = users.find(u => String(u.id) === String(userId));
         const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
@@ -5697,6 +5708,14 @@ const App = window.App = {
         try {
             // Obtener grupos actuales del usuario
             const users = await this.fetchAPI('/users');
+            
+            // Validar que es array
+            if (!Array.isArray(users)) {
+                console.error('API no regresó array de usuarios:', users);
+                Swal.fire('Error', 'No se pudieron cargar los usuarios.', 'error');
+                return;
+            }
+            
             const user = users.find(u => String(u.id) === String(userId));
             const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
             
