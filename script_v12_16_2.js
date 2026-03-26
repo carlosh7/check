@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.22';
+const VERSION = '12.18.28';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -41,7 +41,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.16.4',
+        version: '12.18.28',
         groups: [],
         quillEditor: null,
         editingTemplate: null,
@@ -658,58 +658,7 @@ const App = window.App = {
         });
     },
 
-    // --- PERFIL Y CONFIGURACIÓN RESTAURADA ---
-
-    async loadProfileData() {
-        if (!this.state.user) return;
-        
-        const nameEl = document.getElementById('profile-name');
-        const phoneEl = document.getElementById('profile-phone');
-        const emailEl = document.getElementById('profile-email');
-        const companyEl = document.getElementById('profile-company');
-
-        if (nameEl) nameEl.value = this.state.user.display_name || '';
-        if (phoneEl) phoneEl.value = this.state.user.phone || '';
-        if (emailEl) emailEl.value = this.state.user.username || '';
-        
-        try {
-            const groups = await this.fetchAPI('/groups');
-            if (companyEl) {
-                companyEl.innerHTML = '<option value="">-- Sin empresa asignada --</option>' + 
-                    groups.map(g => `<option value="${g.id}" ${g.id === this.state.user.group_id ? 'selected' : ''}>${g.name}</option>`).join('');
-            }
-        } catch (e) { console.error(e); }
-    },
-
-    async saveProfile(data) {
-        try {
-            const res = await this.fetchAPI(`/users/${this.state.user.userId}/profile`, { 
-                method: 'PUT', body: JSON.stringify(data)
-            });
-            if (res.success) {
-                this.state.user = { ...this.state.user, ...data };
-                LS.set('user', JSON.stringify(this.state.user));
-                alert('✓ Perfil actualizado');
-                this.loadProfileData();
-            }
-        } catch (e) { alert('Error al actualizar perfil'); }
-    },
-
-    async loadSMTPConfig() {
-        try {
-            const config = await this.fetchAPI('/email/smtp-config');
-            if (config) {
-                const el = (id) => document.getElementById(id);
-                if (el('smtp-host')) el('smtp-host').value = config.smtp_host || '';
-                if (el('smtp-port')) el('smtp-port').value = config.smtp_port || 587;
-                if (el('smtp-user')) el('smtp-user').value = config.smtp_user || '';
-                if (el('smtp-pass')) el('smtp-pass').value = config.smtp_pass ? '***' : '';
-                if (el('smtp-secure')) el('smtp-secure').checked = config.smtp_secure == 1;
-                if (el('smtp-from-name')) el('smtp-from-name').value = config.from_name || 'Check';
-                if (el('smtp-from-email')) el('smtp-from-email').value = config.from_email || '';
-            }
-        } catch (e) { console.error('[SMTP] Error loader:', e); }
-    },
+    // --- PERFIL Y CONFIGURACIÓN RESTAURADA (funciones duplicadas eliminadas - ver línea ~1195) ---
 
     // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
 

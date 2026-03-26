@@ -58,16 +58,8 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
     });
 });
 
-// Importar preview
-router.post('/import-preview', authMiddleware(), async (req, res) => {
-    const multer = require('multer');
-    const pdfParse = require('pdf-parse');
-    const upload = multer({ dest: 'uploads/' });
-    const fs = require('fs');
-    
-    // Esta ruta necesita manejo de file upload -simplificado
-    res.json({ success: true, message: 'Usar endpoint principal' });
-});
+// Importar preview (PENDIENTE - necesita implementación completa)
+// router.post('/import-preview', authMiddleware(), async (req, res) => { ... });
 
 // Importar confirmados
 router.post('/import-confirm', authMiddleware(), async (req, res) => {

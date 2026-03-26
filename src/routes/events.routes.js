@@ -335,7 +335,7 @@ router.post('/:id/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, r
 
 router.put('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const agendaId = castId('event_agenda', req.params.agendaId);
-    const { title, description, time, duration, speaker, location } = req.body;
+    const { title, description, start_time, end_time, duration, speaker, location } = req.body;
     
     // Verificar acceso a través del evento
     const agenda = db.prepare("SELECT event_id FROM event_agenda WHERE id = ?").get(agendaId);
@@ -347,12 +347,13 @@ router.put('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (r
         UPDATE event_agenda SET 
             title = COALESCE(?, title),
             description = COALESCE(?, description),
-            time = COALESCE(?, time),
+            start_time = COALESCE(?, start_time),
+            end_time = COALESCE(?, end_time),
             duration = COALESCE(?, duration),
             speaker = COALESCE(?, speaker),
             location = COALESCE(?, location)
         WHERE id = ?
-    `).run(title, description, time, duration, speaker, location, agendaId);
+    `).run(title, description, start_time, end_time, duration, speaker, location, agendaId);
     
     res.json({ success: true });
 });
