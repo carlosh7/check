@@ -568,6 +568,9 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
                         <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
                     </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
+                        + NUEVO EVENTO
+                    </button>
                 </div>
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${events.map(e => `
@@ -5479,6 +5482,9 @@ const App = window.App = {
                         <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Eventos a Empresa</span>
                         <span class="text-xs text-slate-400">Vincular eventos propiedad de esta organización</span>
                     </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
+                        + NUEVO EVENTO
+                    </button>
                 </div>
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
