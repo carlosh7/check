@@ -3459,9 +3459,9 @@ const App = window.App = {
     },
     
     openCreateEventModal: function() {
-        document.getElementById('new-event-form')?.reset();
-        document.getElementById('ev-id-hidden').value = '';
-        document.getElementById('modal-event')?.classList.remove('hidden');
+        document.getElementById('new-event-full-form')?.reset();
+        document.getElementById('evf-id-hidden').value = '';
+        document.getElementById('modal-event-full')?.classList.remove('hidden');
     },
     
     saveLegalText: async function(type) {
