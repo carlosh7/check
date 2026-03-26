@@ -334,6 +334,7 @@
                     <button id="config-nav-staff" class="sub-nav-btn active" data-config-tab="config-content-staff">👥 Personal Asignado</button>
                     <button id="config-nav-email" class="sub-nav-btn" data-config-tab="config-content-email">📧 Email del Evento</button>
                     <button id="config-nav-agenda" class="sub-nav-btn" data-config-tab="config-content-agenda">📋 Agenda</button>
+                    <button id="config-nav-wheel" class="sub-nav-btn" data-config-tab="config-content-wheel">🎰 Ruleta de Sorteos</button>
                 </div>
 
                 <!-- CONTENIDO: PERSONAL ASIGNADO -->
@@ -454,6 +455,132 @@
                         </h3>
                         <div id="config-agenda-list" class="space-y-3">
                             <p class="text-slate-500 text-sm">Cargando agenda...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: RULETA DE SORTESOS -->
+                <div id="config-content-wheel" class="config-tab-content hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">🎰 Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
+                        </div>
+                        <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
+                    </div>
+                    
+                    <!-- Lista de ruletas -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">casino</span>
+                            Mis Ruletas
+                        </h3>
+                        <div id="wheels-list" class="space-y-3">
+                            <p class="text-slate-500 text-sm">Cargando ruletas...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor de ruleta (oculto por defecto) -->
+                    <div id="wheel-editor" class="hidden space-y-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <button id="btn-back-to-wheels" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                            </button>
+                            <input type="text" id="wheel-name" placeholder="Nombre de la ruleta" class="input-field flex-1 !text-xl">
+                        </div>
+                        
+                        <!-- Configuración visual -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">palette</span>
+                                Personalización Visual
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color 1</label>
+                                    <input type="color" id="wheel-color-1" value="#FF6B6B" class="w-full h-10 rounded cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color 2</label>
+                                    <input type="color" id="wheel-color-2" value="#4ECDC4" class="w-full h-10 rounded cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color texto</label>
+                                    <input type="color" id="wheel-text-color" value="#FFFFFF" class="w-full h-10 rounded cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color puntero</label>
+                                    <input type="color" id="wheel-pointer-color" value="#FF0000" class="w-full h-10 rounded cursor-pointer">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="wheel-sound" checked class="w-5 h-5 rounded accent-[var(--primary)]">
+                                    <span class="text-sm font-bold">Sonido al girar</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="wheel-confetti" checked class="w-5 h-5 rounded accent-[var(--primary)]">
+                                    <span class="text-sm font-bold">Confeti al ganar</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Participantes -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">group</span>
+                                Participantes
+                            </h3>
+                            
+                            <!-- Fuente de datos -->
+                            <div class="mb-4 p-4 bg-[var(--bg-hover)] rounded-xl">
+                                <p class="text-sm font-bold mb-2">Agregar participantes desde:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button id="btn-add-from-guests" class="btn-secondary !py-2 !px-3 text-sm">Todos los invitados</button>
+                                    <button id="btn-add-from-checkedin" class="btn-secondary !py-2 !px-3 text-sm">Asistentes (check-in)</button>
+                                    <button id="btn-add-from-preregistered" class="btn-secondary !py-2 !px-3 text-sm">Pre-registrados</button>
+                                    <button id="btn-add-manual" class="btn-secondary !py-2 !px-3 text-sm">Entrada manual</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Lista de participantes -->
+                            <div class="overflow-x-auto">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Email</th>
+                                            <th>Fuente</th>
+                                            <th class="text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="wheel-participants-tbody" class="divide-y divide-[var(--border-light)]">
+                                        <tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button id="btn-preview-wheel" class="btn-primary !px-5 !py-2.5">Vista Previa</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Publicación -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">share</span>
+                                Compartir
+                            </h3>
+                            <div class="flex gap-4">
+                                <input type="text" id="wheel-share-url" readonly class="input-field flex-1" placeholder="Aún no generado">
+                                <button id="btn-copy-wheel-url" class="btn-secondary !px-4">Copiar</button>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">Comparte este enlace para que los participantes giren la ruleta</p>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button id="btn-save-wheel" class="btn-primary !px-6 !py-3">Guardar Ruleta</button>
+                            <button id="btn-delete-wheel" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold">Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -1343,6 +1470,6 @@
 </div>
 
 <!-- SCRIPTS & STYLES -->
-<link rel="stylesheet" href="/styles.css?v=12.18.31">
-<link rel="stylesheet" href="/modern.css?v=12.18.31">
-<script type="module" src="/script_v12_16_2.js?v=12.18.31"></script>
+<link rel="stylesheet" href="/styles.css?v=12.18.32">
+<link rel="stylesheet" href="/modern.css?v=12.18.32">
+<script type="module" src="/script_v12_16_2.js?v=12.18.32"></script>

@@ -3394,6 +3394,15 @@ const App = window.App = {
         cl('config-nav-staff', () => window.App.switchConfigTab('staff'));
         cl('config-nav-email', () => window.App.switchConfigTab('email'));
         cl('config-nav-agenda', () => window.App.switchConfigTab('agenda'));
+        cl('config-nav-wheel', () => window.App.switchConfigTab('wheel'));
+        
+        // Ruleta de Sorteos - botones
+        cl('btn-create-wheel', () => this.createNewWheel());
+        cl('btn-back-to-wheels', () => this.backToWheelsList());
+        cl('btn-save-wheel', () => this.saveWheel());
+        cl('btn-add-from-guests', () => this.addParticipantsFromGuests('all'));
+        cl('btn-add-from-checkedin', () => this.addParticipantsFromGuests('checked_in'));
+        cl('btn-add-from-preregistered', () => this.addParticipantsFromGuests('pre_registered'));
         
         // Nuevos botones de Email y Agenda
         cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
@@ -5083,7 +5092,7 @@ const App = window.App = {
     // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
         console.log('[CONFIG] Switching to tab:', tabName);
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -5109,6 +5118,7 @@ const App = window.App = {
         if (tabName === 'staff') this.loadConfigStaff();
         if (tabName === 'email') this.loadConfigEmail();
         if (tabName === 'agenda') this.loadConfigAgenda();
+        if (tabName === 'wheel') this.loadWheels();
     },
     
     // Cargar staff en config view
@@ -5161,6 +5171,277 @@ const App = window.App = {
                 configList.innerHTML = evList.innerHTML;
             }
         });
+    },
+
+    // ==================== RULETA DE SORTEOS (FASE 1) ====================
+    currentWheel: null,
+    wheelParticipants: [],
+    
+    // Cambiar a pestaña de ruleta
+    switchConfigWheelTab(tabName) {
+        const ALL_WHEEL_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel'];
+        ALL_WHEEL_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+
+        // Update sub-navigation buttons
+        const subNav = document.querySelector('#view-event-config .sub-nav-container');
+        if (subNav) {
+            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
+                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
+                b.classList.add('text-slate-400', 'bg-white/5');
+                if (b.id === `config-nav-${tabName}`) {
+                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
+                    b.classList.remove('text-slate-400', 'bg-white/5');
+                }
+            });
+        }
+
+        const panel = document.getElementById('config-content-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+
+        // Load specific data
+        if (tabName === 'wheel') this.loadWheels();
+    },
+    
+    // Cargar ruletas del evento
+    async loadWheels() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        try {
+            const wheels = await this.fetchAPI(`/events/${eventId}/wheels`);
+            this.renderWheelsList(wheels);
+        } catch (e) {
+            console.error('Error loading wheels:', e);
+            document.getElementById('wheels-list').innerHTML = '<p class="text-red-500">Error al cargar ruletas</p>';
+        }
+    },
+    
+    // Renderizar lista de ruletas
+    renderWheelsList(wheels) {
+        const container = document.getElementById('wheels-list');
+        if (!container) return;
+        
+        if (!wheels || wheels.length === 0) {
+            container.innerHTML = '<p class="text-slate-500 text-sm py-4">No hay ruletas. Crea una nueva para comenzar.</p>';
+            return;
+        }
+        
+        container.innerHTML = wheels.map(w => `
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-hover)] rounded-xl hover:bg-[var(--bg-active)] cursor-pointer transition-colors" data-wheel-id="${w.id}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">casino</span>
+                    <div>
+                        <p class="font-bold">${w.name}</p>
+                        <p class="text-xs text-slate-500">${new Date(w.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs font-bold rounded ${w.is_active ? 'bg-green-500/20 text-green-500' : 'bg-slate-500/20 text-slate-500'}">
+                        ${w.is_active ? 'Activa' : 'Inactiva'}
+                    </span>
+                    <button class="p-2 hover:bg-[var(--bg-card)] rounded-lg" onclick="event.stopPropagation(); App.editWheel('${w.id}')">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        // Agregar event listeners
+        container.querySelectorAll('[data-wheel-id]').forEach(el => {
+            el.addEventListener('click', () => this.editWheel(el.dataset.wheelId));
+        });
+    },
+    
+    // Editar ruleta
+    async editWheel(wheelId) {
+        try {
+            const wheel = await this.fetchAPI(`/events/${this.state.event.id}/wheels/${wheelId}`);
+            this.currentWheel = wheel;
+            
+            // Mostrar editor, ocultar lista
+            document.getElementById('wheels-list').closest('.card').classList.add('hidden');
+            document.getElementById('wheel-editor').classList.remove('hidden');
+            
+            // Llenar datos
+            document.getElementById('wheel-name').value = wheel.name || '';
+            
+            // Cargar configuración visual
+            const config = wheel.config || {};
+            if (config.visual) {
+                document.getElementById('wheel-color-1').value = config.visual.wheel_colors?.[0] || '#FF6B6B';
+                document.getElementById('wheel-color-2').value = config.visual.wheel_colors?.[1] || '#4ECDC4';
+                document.getElementById('wheel-text-color').value = config.visual.wheel_text_color || '#FFFFFF';
+                document.getElementById('wheel-pointer-color').value = config.visual.pointer_color || '#FF0000';
+                document.getElementById('wheel-sound').checked = config.visual.sound_enabled !== false;
+                document.getElementById('wheel-confetti').checked = config.visual.confetti_on_win !== false;
+            }
+            
+            // Cargar participantes
+            await this.loadWheelParticipants(wheelId);
+            
+        } catch (e) {
+            console.error('Error loading wheel:', e);
+            this._notifyAction('Error', 'No se pudo cargar la ruleta', 'error');
+        }
+    },
+    
+    // Cargar participantes de una ruleta
+    async loadWheelParticipants(wheelId) {
+        try {
+            const participants = await this.fetchAPI(`/wheels/${wheelId}/participants`);
+            this.wheelParticipants = participants || [];
+            this.renderWheelParticipants();
+        } catch (e) {
+            console.error('Error loading participants:', e);
+        }
+    },
+    
+    // Renderizar tabla de participantes
+    renderWheelParticipants() {
+        const tbody = document.getElementById('wheel-participants-tbody');
+        if (!tbody) return;
+        
+        if (this.wheelParticipants.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = this.wheelParticipants.map(p => `
+            <tr class="hover:bg-[var(--bg-hover)]">
+                <td class="py-3">${p.name}</td>
+                <td class="py-3 text-slate-500">${p.email || '-'}</td>
+                <td class="py-3"><span class="px-2 py-1 text-xs rounded bg-[var(--bg-card)]">${p.source}</span></td>
+                <td class="py-3 text-right">
+                    <button data-id="${p.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.removeWheelParticipant('${p.id}')">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    },
+    
+    // Agregar participantes desde guests
+    async addParticipantsFromGuests(filter = 'all') {
+        if (!this.currentWheel) {
+            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
+            return;
+        }
+        
+        try {
+            const result = await this.fetchAPI(`/wheels/${this.currentWheel.id}/participants/from-guests`, {
+                method: 'POST',
+                body: JSON.stringify({ filter })
+            });
+            
+            this._notifyAction('Éxito', `${result.added} participantes agregados`, 'success');
+            await this.loadWheelParticipants(this.currentWheel.id);
+        } catch (e) {
+            console.error('Error adding participants:', e);
+            this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
+        }
+    },
+    
+    // Remover participante
+    async removeWheelParticipant(participantId) {
+        if (!this.currentWheel) return;
+        
+        try {
+            await this.fetchAPI(`/wheels/${this.currentWheel.id}/participants/${participantId}`, {
+                method: 'DELETE'
+            });
+            await this.loadWheelParticipants(this.currentWheel.id);
+        } catch (e) {
+            console.error('Error removing participant:', e);
+        }
+    },
+    
+    // Guardar ruleta
+    async saveWheel() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        const name = document.getElementById('wheel-name').value;
+        if (!name) {
+            this._notifyAction('Error', 'El nombre es requerido', 'error');
+            return;
+        }
+        
+        const config = {
+            visual: {
+                wheel_colors: [
+                    document.getElementById('wheel-color-1').value,
+                    document.getElementById('wheel-color-2').value
+                ],
+                wheel_text_color: document.getElementById('wheel-text-color').value,
+                pointer_color: document.getElementById('wheel-pointer-color').value,
+                sound_enabled: document.getElementById('wheel-sound').checked,
+                confetti_on_win: document.getElementById('wheel-confetti').checked
+            }
+        };
+        
+        try {
+            let wheel;
+            if (this.currentWheel) {
+                // Actualizar
+                wheel = await this.fetchAPI(`/wheels/${this.currentWheel.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, config })
+                });
+            } else {
+                // Crear nueva
+                wheel = await this.fetchAPI(`/events/${eventId}/wheels`, {
+                    method: 'POST',
+                    body: JSON.stringify({ name, config })
+                });
+            }
+            
+            this.currentWheel = wheel;
+            
+            // Generar URL pública
+            const shareUrl = `/wheel/${wheel.id}/public`;
+            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            
+            this._notifyAction('Éxito', 'Ruleta guardada', 'success');
+            await this.loadWheels();
+            
+        } catch (e) {
+            console.error('Error saving wheel:', e);
+            this._notifyAction('Error', 'No se pudo guardar la ruleta', 'error');
+        }
+    },
+    
+    // Crear nueva ruleta
+    createNewWheel() {
+        this.currentWheel = null;
+        this.wheelParticipants = [];
+        
+        // Limpiar formulario
+        document.getElementById('wheel-name').value = '';
+        document.getElementById('wheel-color-1').value = '#FF6B6B';
+        document.getElementById('wheel-color-2').value = '#4ECDC4';
+        document.getElementById('wheel-text-color').value = '#FFFFFF';
+        document.getElementById('wheel-pointer-color').value = '#FF0000';
+        document.getElementById('wheel-sound').checked = true;
+        document.getElementById('wheel-confetti').checked = true;
+        document.getElementById('wheel-share-url').value = '';
+        
+        // Limpiar participantes
+        document.getElementById('wheel-participants-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
+        
+        // Mostrar editor, ocultar lista
+        document.getElementById('wheels-list').closest('.card').classList.add('hidden');
+        document.getElementById('wheel-editor').classList.remove('hidden');
+    },
+    
+    // Volver a lista de ruletas
+    backToWheelsList() {
+        document.getElementById('wheels-list').closest('.card').classList.remove('hidden');
+        document.getElementById('wheel-editor').classList.add('hidden');
+        this.currentWheel = null;
+        this.loadWheels();
     },
 
     switchEventTab(tabName) {

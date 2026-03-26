@@ -457,4 +457,364 @@ router.delete('/email-templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTO
     res.json({ success: true });
 });
 
+// ============================================
+// RULETA DE SORTEOS (FASE 1 - MVP)
+// ============================================
+
+// GET /api/events/:id/wheels - Listar ruletas del evento
+router.get('/:id/wheels', authMiddleware(), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const wheels = db.prepare(`
+        SELECT * FROM event_wheels 
+        WHERE event_id = ? 
+        ORDER BY created_at DESC
+    `).all(eventId);
+    
+    res.json(wheels);
+});
+
+// POST /api/events/:id/wheels - Crear ruleta
+router.post('/:id/wheels', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const { name, config } = req.body;
+    const id = getValidId('event_wheels');
+    
+    db.prepare(`
+        INSERT INTO event_wheels (id, event_id, name, config, created_at, updated_at)
+        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+    `).run(id, eventId, name || 'Nueva Ruleta', JSON.stringify(config || {}));
+    
+    // Actualizar flag en evento
+    db.prepare("UPDATE events SET has_wheel = 1 WHERE id = ?").run(eventId);
+    
+    const wheel = db.prepare("SELECT * FROM event_wheels WHERE id = ?").get(id);
+    res.json(wheel);
+});
+
+// GET /api/wheels/:wheelId - Obtener ruleta específica
+router.get('/wheels/:wheelId', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare(`
+        SELECT ew.*, e.name as event_name 
+        FROM event_wheels ew
+        JOIN events e ON ew.event_id = e.id
+        WHERE ew.id = ?
+    `).get(wheelId);
+    
+    if (!wheel) {
+        return res.status(404).json({ error: 'Ruleta no encontrada' });
+    }
+    
+    if (!hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    wheel.config = JSON.parse(wheel.config || '{}');
+    res.json(wheel);
+});
+
+// PUT /api/wheels/:wheelId - Actualizar ruleta
+router.put('/wheels/:wheelId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const { name, config, is_active } = req.body;
+    
+    db.prepare(`
+        UPDATE event_wheels 
+        SET name = COALESCE(?, name),
+            config = COALESCE(?, config),
+            is_active = COALESCE(?, is_active),
+            updated_at = datetime('now')
+        WHERE id = ?
+    `).run(name, config ? JSON.stringify(config) : null, is_active, wheelId);
+    
+    const updated = db.prepare("SELECT * FROM event_wheels WHERE id = ?").get(wheelId);
+    updated.config = JSON.parse(updated.config || '{}');
+    res.json(updated);
+});
+
+// DELETE /api/wheels/:wheelId - Eliminar ruleta
+router.delete('/wheels/:wheelId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    // Eliminar relacionados primero
+    db.prepare("DELETE FROM wheel_participants WHERE wheel_id = ?").run(wheelId);
+    db.prepare("DELETE FROM wheel_spins WHERE wheel_id = ?").run(wheelId);
+    db.prepare("DELETE FROM wheel_leads WHERE wheel_id = ?").run(wheelId);
+    db.prepare("DELETE FROM event_wheels WHERE id = ?").run(wheelId);
+    
+    res.json({ success: true });
+});
+
+// GET /api/wheels/:wheelId/participants - Listar participantes
+router.get('/wheels/:wheelId/participants', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const participants = db.prepare(`
+        SELECT * FROM wheel_participants 
+        WHERE wheel_id = ?
+        ORDER BY created_at DESC
+    `).all(wheelId);
+    
+    res.json(participants);
+});
+
+// POST /api/wheels/:wheelId/participants - Agregar participante(s)
+router.post('/wheels/:wheelId/participants', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const { participants } = req.body; // Array de {name, email, phone}
+    
+    if (!Array.isArray(participants)) {
+        return res.status(400).json({ error: 'participants debe ser un array' });
+    }
+    
+    const insert = db.prepare(`
+        INSERT INTO wheel_participants (id, wheel_id, guest_id, name, email, phone, source)
+        VALUES (?, ?, ?, ?, ?, ?, 'manual')
+    `);
+    
+    const inserted = [];
+    for (const p of participants) {
+        const id = getValidId('wheel_participants');
+        insert.run(id, wheelId, null, p.name, p.email || null, p.phone || null);
+        inserted.push({ id, name: p.name, email: p.email });
+    }
+    
+    res.json({ success: true, added: inserted });
+});
+
+// POST /api/wheels/:wheelId/participants/from-guests - Agregar desde guests
+router.post('/wheels/:wheelId/participants/from-guests', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const { filter } = req.body; // 'all', 'checked_in', 'pre_registered'
+    
+    let guests;
+    if (filter === 'checked_in') {
+        guests = db.prepare(`
+            SELECT g.id, g.name, g.email, g.phone 
+            FROM guests g 
+            WHERE g.event_id = ? AND g.status = 'CONFIRMED'
+        `).all(wheel.event_id);
+    } else if (filter === 'pre_registered') {
+        guests = db.prepare(`
+            SELECT g.id, g.name, g.email, g.phone 
+            FROM guests g 
+            WHERE g.event_id = ? AND g.status = 'PENDING'
+        `).all(wheel.event_id);
+    } else {
+        // all
+        guests = db.prepare(`
+            SELECT g.id, g.name, g.email, g.phone 
+            FROM guests g 
+            WHERE g.event_id = ?
+        `).all(wheel.event_id);
+    }
+    
+    const insert = db.prepare(`
+        INSERT INTO wheel_participants (id, wheel_id, guest_id, name, email, phone, source)
+        VALUES (?, ?, ?, ?, ?, ?, 'guests')
+    `);
+    
+    let added = 0;
+    for (const g of guests) {
+        // Verificar que no exista
+        const exists = db.prepare(`
+            SELECT id FROM wheel_participants 
+            WHERE wheel_id = ? AND (guest_id = ? OR (name = ? AND email = ?))
+        `).get(wheelId, g.id, g.name, g.email);
+        
+        if (!exists) {
+            insert.run(getValidId('wheel_participants'), wheelId, g.id, g.name, g.email, g.phone);
+            added++;
+        }
+    }
+    
+    res.json({ success: true, added });
+});
+
+// DELETE /api/wheels/:wheelId/participants/:participantId - Eliminar participante
+router.delete('/wheels/:wheelId/participants/:participantId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const { wheelId, participantId } = req.params;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare("DELETE FROM wheel_participants WHERE id = ?").run(participantId);
+    res.json({ success: true });
+});
+
+// POST /api/wheels/:wheelId/spin - Girar ruleta (seleccionar ganador)
+router.post('/wheels/:wheelId/spin', async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    // Obtener ruleta
+    const wheel = db.prepare(`
+        SELECT ew.*, e.name as event_name 
+        FROM event_wheels ew
+        JOIN events e ON ew.event_id = e.id
+        WHERE ew.id = ?
+    `).get(wheelId);
+    
+    if (!wheel) {
+        return res.status(404).json({ error: 'Ruleta no encontrada' });
+    }
+    
+    // Obtener participantes
+    const participants = db.prepare(`
+        SELECT * FROM wheel_participants WHERE wheel_id = ?
+    `).all(wheelId);
+    
+    if (participants.length === 0) {
+        return res.status(400).json({ error: 'No hay participantes en la ruleta' });
+    }
+    
+    // Seleccionar ganador aleatorio
+    const winner = participants[Math.floor(Math.random() * participants.length)];
+    
+    // Guardar en historial
+    const spinId = getValidId('wheel_spins');
+    db.prepare(`
+        INSERT INTO wheel_spins (id, wheel_id, participant_id, winner_name, winner_email, ip_address, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `).run(spinId, wheelId, winner.id, winner.name, winner.email, req.ip);
+    
+    res.json({
+        success: true,
+        winner: {
+            id: winner.id,
+            name: winner.name,
+            email: winner.email
+        },
+        total_participants: participants.length
+    });
+});
+
+// GET /api/wheels/:wheelId/spins - Historial de giros
+router.get('/wheels/:wheelId/spins', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const spins = db.prepare(`
+        SELECT * FROM wheel_spins 
+        WHERE wheel_id = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+    `).all(wheelId);
+    
+    res.json(spins);
+});
+
+// POST /api/wheels/:wheelId/capture-lead - Capturar lead (público)
+router.post('/wheels/:wheelId/capture-lead', async (req, res) => {
+    const wheelId = req.params.wheelId;
+    const { name, email, phone, company } = req.body;
+    
+    if (!name || !email) {
+        return res.status(400).json({ error: 'Nombre y email son requeridos' });
+    }
+    
+    const wheel = db.prepare("SELECT is_active FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !wheel.is_active) {
+        return res.status(400).json({ error: 'Ruleta no disponible' });
+    }
+    
+    const id = getValidId('wheel_leads');
+    db.prepare(`
+        INSERT INTO wheel_leads (id, wheel_id, name, email, phone, company, source_url, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).run(id, wheelId, name, email, phone || null, company || null, req.get('referer') || null);
+    
+    res.json({ success: true, lead_id: id });
+});
+
+// GET /api/wheels/:wheelId/leads - Ver leads capturados
+router.get('/wheels/:wheelId/leads', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const leads = db.prepare(`
+        SELECT * FROM wheel_leads 
+        WHERE wheel_id = ?
+        ORDER BY created_at DESC
+    `).all(wheelId);
+    
+    res.json(leads);
+});
+
+// GET /api/wheels/:wheelId/public - Obtener ruleta para modo público
+router.get('/wheels/:wheelId/public', async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare(`
+        SELECT ew.id, ew.name, ew.config, ew.is_active, e.name as event_name
+        FROM event_wheels ew
+        JOIN events e ON ew.event_id = e.id
+        WHERE ew.id = ?
+    `).get(wheelId);
+    
+    if (!wheel || !wheel.is_active) {
+        return res.status(404).json({ error: 'Ruleta no encontrada o inactiva' });
+    }
+    
+    wheel.config = JSON.parse(wheel.config || '{}');
+    
+    // Obtener participantes (solo nombre para la ruleta)
+    const participants = db.prepare(`
+        SELECT name FROM wheel_participants WHERE wheel_id = ?
+    `).all(wheelId);
+    
+    res.json({
+        ...wheel,
+        participants: participants.map(p => p.name)
+    });
+});
+
 module.exports = router;
