@@ -159,6 +159,8 @@
                 <div class="sub-nav-container mb-8">
                     <button id="ev-nav-guests" class="sub-nav-btn active" data-tab-target="ev-content-guests">Invitados</button>
                     <button id="ev-nav-staff" class="sub-nav-btn" data-tab-target="ev-content-staff">Personal Asignado</button>
+                    <button id="ev-nav-email" class="sub-nav-btn" data-tab-target="ev-content-email">📧 Email del Evento</button>
+                    <button id="ev-nav-agenda" class="sub-nav-btn" data-tab-target="ev-content-agenda">📋 Agenda</button>
                 </div>
 
                 <div id="ev-content-guests" class="card !p-0 overflow-hidden">
@@ -218,6 +220,103 @@
                                 </thead>
                                 <tbody id="ev-staff-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: EMAIL DEL EVENTO -->
+                <div id="ev-content-email" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
+                        </div>
+                        <button id="btn-save-event-email-config" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
+                    </div>
+                    
+                    <!-- Configuración SMTP por Evento -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
+                            Configuración de Envío
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="ev-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
+                                <label for="ev-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                            </div>
+                            <div class="md:col-span-2"></div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Servidor SMTP</label>
+                                <input type="text" id="ev-email-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Puerto</label>
+                                <input type="number" id="ev-email-smtp-port" placeholder="587" class="input-field w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario SMTP</label>
+                                <input type="text" id="ev-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
+                                <input type="password" id="ev-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
+                                <input type="text" id="ev-email-from-name" placeholder="Check Pro" class="input-field w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Remitente</label>
+                                <input type="email" id="ev-email-from-email" placeholder="noreply@tu-dominio.com" class="input-field w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plantillas de Email -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">drafts</span>
+                            Plantillas de Email
+                        </h3>
+                        <div id="event-email-templates-list" class="space-y-4">
+                            <p class="text-slate-500 text-sm">Cargando plantillas...</p>
+                        </div>
+                        <button id="btn-add-email-template" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
+                            + Nueva Plantilla
+                        </button>
+                    </div>
+
+                    <!-- Botón de prueba -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">send</span>
+                            Enviar Email de Prueba
+                        </h3>
+                        <div class="flex gap-4">
+                            <input type="email" id="ev-email-test-to" placeholder="tu@email.com" class="input-field flex-1">
+                            <button id="btn-send-test-email" class="btn-primary !px-5">Enviar Prueba</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: AGENDA DEL EVENTO -->
+                <div id="ev-content-agenda" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
+                        </div>
+                        <button id="btn-add-agenda-item" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
+                    </div>
+                    
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">list</span>
+                            Lista de la Agenda
+                        </h3>
+                        <div id="event-agenda-list" class="space-y-3">
+                            <p class="text-slate-500 text-sm">Cargando agenda...</p>
                         </div>
                     </div>
                 </div>
@@ -1107,6 +1206,6 @@
 </div>
 
 <!-- SCRIPTS & STYLES -->
-<link rel="stylesheet" href="/styles.css?v=12.18.21">
-<link rel="stylesheet" href="/modern.css?v=12.18.21">
-<script type="module" src="/script_v12_16_2.js?v=12.18.21"></script>
+<link rel="stylesheet" href="/styles.css?v=12.18.22">
+<link rel="stylesheet" href="/modern.css?v=12.18.22">
+<script type="module" src="/script_v12_16_2.js?v=12.18.22"></script>

@@ -3,7 +3,7 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.21
+ * Version: V12.18.22
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.21';
+const VERSION = '12.18.22';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -135,6 +135,17 @@ const App = window.App = {
             btn.classList.remove('active');
             if (btn.dataset.tabTarget === `ev-content-${tabId}`) btn.classList.add('active');
         });
+        
+        // Cargar datos según el tab seleccionado
+        const eventId = this.state.event?.id || this.currentEventId;
+        if (eventId) {
+            if (tabId === 'email') {
+                this.loadEventEmailConfig(eventId);
+                this.loadEventEmailTemplates(eventId);
+            } else if (tabId === 'agenda') {
+                this.loadEventAgenda(eventId);
+            }
+        }
     },
 
     navigateToCreateUser() { 
@@ -3351,8 +3362,16 @@ const App = window.App = {
         // Event Tabs (Fase 3: Multi-Tab en Evento)
         cl('ev-nav-guests', () => window.switchEventTab('guests'));
         cl('ev-nav-staff', () => window.switchEventTab('staff'));
+        cl('ev-nav-email', () => window.switchEventTab('email'));
+        cl('ev-nav-agenda', () => window.switchEventTab('agenda'));
         cl('btn-ev-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
         cl('btn-ev-staff-new', () => this.openInviteModal());
+        
+        // Nuevos botones de Email y Agenda
+        cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
+        cl('btn-add-email-template', () => this.openEmailTemplateEditor());
+        cl('btn-send-test-email', () => this.sendEventTestEmail());
+        cl('btn-add-agenda-item', () => this.addAgendaItem());
         
         // Toggle password visibility
         cl('btn-toggle-password', () => {
