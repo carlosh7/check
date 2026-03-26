@@ -3,19 +3,19 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.19
+ * Version: V12.18.20
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Cleanup V12.18.19: Notificaciones push deshabilitadas automáticamente:
+ * Feature V12.18.20: Sistema de notificaciones push implementado:
  * - _showEmailSection() - versión antigua eliminada
  * - loadIMAPConfig() - versión antigua eliminada  
  * - showUserSelectorForEvent() - versión antigua eliminada
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.19';
+const VERSION = '12.18.20';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -440,6 +440,39 @@ const App = window.App = {
             console.log('Notificación de prueba enviada.');
         } catch (error) {
             console.error('Error al enviar notificación de prueba:', error);
+        }
+    },
+    
+    // Activar notificaciones push desde botón manual
+    enablePushNotifications: async function() {
+        const btn = document.getElementById('btn-enable-push');
+        const statusText = document.getElementById('push-status-text');
+        
+        try {
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">sync</span> Activando...';
+            }
+            
+            const result = await this.initPushNotifications();
+            
+            if (result) {
+                if (statusText) statusText.textContent = '✅ Estado: Activo';
+                if (btn) {
+                    btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">check</span> Activado';
+                    btn.classList.add('!bg-green-600');
+                }
+                alert('✅ Notificaciones push activadas correctamente');
+            } else {
+                if (statusText) statusText.textContent = '❌ Estado: Error al activar';
+                alert('⚠️ No se pudieron activar las notificaciones. Verifica que las VAPID keys estén configuradas en el servidor.');
+            }
+        } catch(e) {
+            console.error('[PUSH] Error:', e);
+            if (statusText) statusText.textContent = '❌ Estado: Error - ' + e.message;
+            alert('❌ Error: ' + e.message);
+        } finally {
+            if (btn) btn.disabled = false;
         }
     },
     
@@ -1855,7 +1888,7 @@ const App = window.App = {
             if (data.success) {
                 this.state.user = data;
                 LS.set('user', JSON.stringify(data));
-                // Notificaciones push deshabilitadas - solo se activan manualmente
+                // Notificaciones push: disponible manualmente desde Mi Perfil
                 // this.initPushNotifications().catch(err => console.error('Push error:', err));
                 await this.loadAppShell();
                 

@@ -11,31 +11,106 @@ const webpush = require('web-push');
 
 const router = express.Router();
 
-// Configurar web-push con claves VAPID desde variables de entorno
-const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+// Función para obtener VAPID keys desde base de datos o variables de entorno
+function getVapidKeys() {
+    // Primero intentar desde variables de entorno
+    let publicKey = process.env.VAPID_PUBLIC_KEY;
+    let privateKey = process.env.VAPID_PRIVATE_KEY;
+    
+    // Si no hay en env, buscar en base de datos
+    if (!publicKey || !privateKey) {
+        try {
+            const dbPublicKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'VAPID_PUBLIC_KEY'").get();
+            const dbPrivateKey = db.prepare("SELECT setting_value FROM settings WHERE setting_key = 'VAPID_PRIVATE_KEY'").get();
+            
+            if (dbPublicKey) publicKey = dbPublicKey.setting_value;
+            if (dbPrivateKey) privateKey = dbPrivateKey.setting_value;
+        } catch(e) {
+            console.warn('[PUSH] Error leyendo VAPID de DB:', e.message);
+        }
+    }
+    
+    return { publicKey, privateKey };
+}
+
+// Inicializar web-push
 const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@check.com';
 
-if (!vapidPublicKey || !vapidPrivateKey) {
-    console.warn('⚠️  VAPID keys no configuradas. Notificaciones push no funcionarán.');
-    console.warn('   Agrega VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY en .env');
-} else {
+function initWebPush() {
+    const { publicKey, privateKey } = getVapidKeys();
+    
+    if (!publicKey || !privateKey) {
+        console.warn('⚠️  VAPID keys no configuradas. Notificaciones push no funcionarán.');
+        console.warn('   Configura en panel de administración o variables de entorno.');
+        return false;
+    }
+    
     webpush.setVapidDetails(
         vapidSubject,
-        vapidPublicKey,
-        vapidPrivateKey
+        publicKey,
+        privateKey
     );
-    console.log('✅ Web Push configurado con clave pública:', vapidPublicKey.substring(0, 20) + '...');
+    console.log('✅ Web Push configurado con clave pública:', publicKey.substring(0, 20) + '...');
+    return true;
 }
+
+// Inicializar al cargar
+initWebPush();
 
 /**
  * Obtener clave pública VAPID (pública)
  */
 router.get('/vapid-public-key', (req, res) => {
-    if (!vapidPublicKey) {
-        return res.status(400).json({ error: 'VAPID keys no configuradas', configured: false });
+    const { publicKey } = getVapidKeys();
+    if (!publicKey) {
+        return res.json({ publicKey: null, configured: false });
     }
-    res.json({ publicKey: vapidPublicKey, configured: true });
+    res.json({ publicKey, configured: true });
+});
+
+/**
+ * Configurar VAPID keys (solo admin)
+ */
+router.post('/vapid-keys', authMiddleware(['ADMIN']), async (req, res) => {
+    const { publicKey, privateKey } = req.body;
+    
+    if (!publicKey || !privateKey) {
+        return res.status(400).json({ error: 'Ambas claves son requeridas' });
+    }
+    
+    try {
+        // Guardar o actualizar en settings
+        const upsert = (key, value) => {
+            const existing = db.prepare("SELECT setting_key FROM settings WHERE setting_key = ?").get(key);
+            if (existing) {
+                db.prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?").run(value, key);
+            } else {
+                db.prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)").run(key, value);
+            }
+        };
+        
+        upsert('VAPID_PUBLIC_KEY', publicKey);
+        upsert('VAPID_PRIVATE_KEY', privateKey);
+        
+        // Reinicializar web-push
+        initWebPush();
+        
+        res.json({ success: true, message: 'VAPID keys configuradas correctamente' });
+    } catch(e) {
+        res.status(500).json({ error: 'Error guardando keys: ' + e.message });
+    }
+});
+
+/**
+ * Obtener estado de configuración de VAPID (solo admin)
+ */
+router.get('/vapid-status', authMiddleware(['ADMIN']), async (req, res) => {
+    const { publicKey, privateKey } = getVapidKeys();
+    res.json({ 
+        configured: !!(publicKey && privateKey),
+        hasPublicKey: !!publicKey,
+        hasPrivateKey: !!privateKey
+    });
 });
 
 /**
