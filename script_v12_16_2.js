@@ -10,7 +10,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.14';
+const VERSION = '12.18.15';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -4812,6 +4812,54 @@ const App = window.App = {
         }
         
         doc.save(`Reporte_Ejecutivo_${event.name.replace(/\s+/g, '_')}.pdf`);
+    },
+
+    // Exportar datos a Excel (CSV formato compatible con Excel)
+    async exportExcel() {
+        if (!this.state.event) {
+            return alert('Selecciona un evento primero.');
+        }
+        
+        if (!this.state.guests || this.state.guests.length === 0) {
+            return alert('No hay invitados para exportar.');
+        }
+        
+        try {
+            const eventName = this.state.event.name || 'evento';
+            const guests = this.state.guests;
+            
+            // Crear contenido CSV
+            let csvContent = '\uFEFF'; // BOM para UTF-8
+            csvContent += 'Nombre,Email,Teléfono,Organización,Cargo,Estado,Fecha de Registro\n';
+            
+            guests.forEach(guest => {
+                const name = (guest.name || '').replace(/,/g, ';');
+                const email = (guest.email || '').replace(/,/g, ';');
+                const phone = (guest.phone || '').replace(/,/g, ';');
+                const org = (guest.organization || '').replace(/,/g, ';');
+                const position = (guest.position || '').replace(/,/g, ';');
+                const status = (guest.status || '').replace(/,/g, ';');
+                const date = (guest.created_at || '').replace(/,/g, ';');
+                
+                csvContent += `${name},${email},${phone},${org},${position},${status},${date}\n`;
+            });
+            
+            // Crear blob y descargar
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${eventName.replace(/[^a-z0-9]/gi, '_')}_invitados_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`✓ Exportados ${guests.length} invitados a Excel (CSV)`);
+        } catch(e) {
+            console.error('Error exportando a Excel:', e);
+            alert('Error al exportar: ' + e.message);
+        }
     },
 
     // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
