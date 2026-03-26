@@ -3273,7 +3273,15 @@ const App = window.App = {
     attachAppListeners() {
         // Click listeners para elementos del app-shell
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
-        const hideModal = (id) => { const m = document.getElementById(id); if (m) { m.classList.add('hidden'); m.setAttribute('aria-hidden', 'true'); } };
+        const hideModal = (id) => { 
+            const m = document.getElementById(id); 
+            if (m) { 
+                // Mover focus fuera del modal antes de ocultar (accessibility)
+                document.body.focus();
+                m.classList.add('hidden'); 
+                m.setAttribute('aria-hidden', 'true'); 
+            } 
+        };
         
         // Mostrar versión del servidor al cargar
         this.fetchAPI('/app-version').then(res => {
@@ -6389,7 +6397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Modal de Eventos
     cl('btn-create-event-open', () => App.openCreateEventModal());
-    cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
+    cl('close-modal', () => { document.body.focus(); document.getElementById('modal-event')?.classList.add('hidden'); });
 
     // Form de crear/editar evento (FORMULARIO CORTO - modal-event)
     sf('new-event-form', async (e) => {
@@ -6411,6 +6419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado.");
+                    document.body.focus();
                     document.getElementById('modal-event').classList.add('hidden');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
@@ -6456,6 +6465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
                 if (d.success) {
                     alert("✓ Evento creado con configuración completa.");
+                    document.body.focus();
                     document.getElementById('modal-event-full').classList.add('hidden');
                     App.loadEvents();
                 } else alert("Error: " + d.error);
