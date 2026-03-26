@@ -77,6 +77,30 @@ La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 
 ---
 
+## Tags de Git (OBLIGATORIO)
+
+**Cada vez que se incrementa la versión en `package.json`, DEBE crearse un tag git:**
+
+```bash
+git tag v${VERSION} HEAD
+git push origin v${VERSION}
+```
+
+**Ejemplo:** Si la versión sube a 12.18.1:
+```bash
+git tag v12.18.1
+git push origin v12.18.1
+```
+
+**VERIFICAR tags existentes ANTES de crear nuevos:**
+```bash
+git tag --sort=-version:refname | head -5
+```
+
+**NUNCA saltar versiones en el sequencial de tags.**
+
+---
+
 ## Formato de Respuestas
 - Respuestas cortas y directas
 - Si hay múltiples problemas, enumerarlos
