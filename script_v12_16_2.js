@@ -1242,7 +1242,7 @@ const App = window.App = {
         });
         
         modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center" onclick="event.stopPropagation()">
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined text-2xl">corporate_fare</span>
@@ -1251,7 +1251,7 @@ const App = window.App = {
                         <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
                     </div>
-                    <button onclick="App.closeGroupSelector()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <button id="btn-close-group-selector" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
                         <span class="material-symbols-outlined text-white">close</span>
                     </button>
                 </div>
@@ -1261,13 +1261,23 @@ const App = window.App = {
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <button id="btn-confirm-groups" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
                     <div class="flex gap-3">
-                        <button onclick="App.navigateToCreateGroup()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
-                        <button onclick="App.closeGroupSelector()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                        <button id="btn-new-company" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button id="btn-cancel-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
                     </div>
                 </div>
             </div>`;
+        
+        // Prevenir que el clic en el contenido cierre el modal
+        modal.querySelector('.glass-card').addEventListener('click', (e) => e.stopPropagation());
+        
+        // Event listeners para los botones
+        modal.querySelector('#btn-close-group-selector').addEventListener('click', () => this.closeGroupSelector());
+        modal.querySelector('#btn-confirm-groups').addEventListener('click', () => this.assignUserGroupFromSelector(userId));
+        modal.querySelector('#btn-new-company').addEventListener('click', () => this.navigateToCreateGroup());
+        modal.querySelector('#btn-cancel-selector').addEventListener('click', () => this.closeGroupSelector());
+        
         document.body.appendChild(modal);
     },
     
