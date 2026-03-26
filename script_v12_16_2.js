@@ -10,7 +10,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.12';
+const VERSION = '12.18.13';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -1121,11 +1121,18 @@ const App = window.App = {
     
     closeCompanyModal: function() {
         const modal = document.getElementById('modal-company');
+        
+        // Quitar foco de TODOS los elementos del modal antes de cerrar
+        const focusableElements = modal?.querySelectorAll('input, button, select, textarea');
+        focusableElements?.forEach(el => {
+            el.blur();
+        });
+        
+        // Quitar foco del body para asegurar
+        document.body.focus();
+        
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
-        // Quitar foco del botón submit antes de cerrar para evitar warning aria-hidden
-        const submitBtn = modal?.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.blur();
     },
     
     saveCompany: async function(data) {
