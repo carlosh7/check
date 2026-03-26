@@ -43,11 +43,17 @@ git pull && docker-compose down && docker-compose up -d --build
 curl -s http://localhost:3000/api/health
 ```
 
-## Versionado del Proyecto
-- La versión del proyecto está en `package.json` campo `version` (formato: X.Y.Z)
-- **Importante:** Al actualizar la versión, también actualizar en:
-  - `app-shell.html` - etiquetas de CSS/JS (styles.css?v=X, modern.css?v=X, script_v12_16_2.js?v=X)
-  - Los cambios se reflejan tras el rebuild de docker-compose
+## Versionado del Proyecto (OBLIGATORIO)
+
+La versión del proyecto está en `package.json` campo `version` (formato: X.Y.Z)
+
+**Después de cualquier cambio de código significativo (bug fix, feature, refactor):**
+1. Incrementar versión en `package.json`
+2. Actualizar query strings en:
+   - `app-shell.html` → `?v=X.Y.Z` (styles.css, modern.css, script_v12_16_2.js)
+   - `index.html` → `?v=X.Y.Z` (style_v12_16_2.css, modern_v12_16_2.css, script_v12_16_2.js)
+
+**Importante:** Los cambios se reflejan tras el rebuild de docker-compose. Sin version bump, el navegador puede usar caché obsoleto.
 
 ## Credenciales
 - **Login:** admin@check.com / admin123
