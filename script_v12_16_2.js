@@ -3,14 +3,19 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.16.1
+ * Version: V12.18.15
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
+ * 
+ * Cleanup V12.18.16: Eliminadas funciones duplicadas:
+ * - _showEmailSection() - versión antigua eliminada
+ * - loadIMAPConfig() - versión antigua eliminada  
+ * - showUserSelectorForEvent() - versión antigua eliminada
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.15';
+const VERSION = '12.18.16';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -660,45 +665,6 @@ const App = window.App = {
                 if (el('smtp-from-email')) el('smtp-from-email').value = config.from_email || '';
             }
         } catch (e) { console.error('[SMTP] Error loader:', e); }
-    },
-
-    async loadIMAPConfig() {
-        try {
-            const config = await this.fetchAPI('/email/imap-config');
-            if (config) {
-                const el = (id) => document.getElementById(id);
-                if (el('imap-host')) el('imap-host').value = config.imap_host || '';
-                if (el('imap-port')) el('imap-port').value = config.imap_port || 993;
-                if (el('imap-user')) el('imap-user').value = config.imap_user || '';
-                if (el('imap-pass')) el('imap-pass').value = config.imap_pass || '';
-                if (el('imap-tls')) el('imap-tls').checked = config.imap_tls == 1;
-            }
-        } catch (e) { console.error('[IMAP] Error loader:', e); }
-    },
-
-    _showEmailSection(section) {
-        document.querySelectorAll('.email-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('#sys-content-email .sub-nav-btn').forEach(el => {
-            el.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
-            el.classList.add('bg-white/5', 'text-slate-400');
-        });
-        
-        const content = document.getElementById('email-content-' + section);
-        const navBtn = document.getElementById('email-nav-' + section);
-        if (content) content.classList.remove('hidden');
-        if (navBtn) {
-            navBtn.classList.remove('bg-white/5', 'text-slate-400');
-            navBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
-        }
-        
-        if (section === 'config') {
-            this.loadSMTPConfig();
-            this.loadIMAPConfig();
-        } else if (section === 'templates') {
-            if (typeof this.loadEmailTemplates === 'function') this.loadEmailTemplates();
-        } else if (section === 'mailbox') {
-            if (typeof this.switchMailboxFolder === 'function') this.switchMailboxFolder('INBOX');
-        }
     },
 
     // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
@@ -5096,63 +5062,6 @@ const App = window.App = {
                 this.loadEventStaff(eventId);
             } catch(e) { console.error('Error:', e); }
         }
-    },
-
-    showUserSelectorForEvent(eventId) {
-        const allSystemUsers = this.state.allUsers || [];
-        const options = allSystemUsers.map(u => 
-            `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`
-        ).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-select-event-staff';
-        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
-        modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-2xl">person_add</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-white tracking-tight">Vincular Staff</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Asignación Rápida</p>
-                    </div>
-                </div>
-                
-                <div class="space-y-4 mb-8">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Seleccionar Colaborador</label>
-                        <select id="select-staff-target" class="w-full bg-slate-900/50 text-white text-sm rounded-2xl px-5 py-4 border border-white/10 focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">-- Seleccionar --</option>
-                            ${options}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button id="btn-confirm-staff-assign" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Añadir al Evento</button>
-                    <div class="flex gap-3">
-                        <button onclick="App.navigateToCreateUser()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-xs rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nuevo Usuario</button>
-                        <button id="btn-close-staff-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
-                    </div>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-        
-        document.getElementById('btn-close-staff-selector').onclick = () => document.body.removeChild(modal);
-        document.getElementById('btn-confirm-staff-assign').onclick = async () => {
-            const userId = document.getElementById('select-staff-target').value;
-            if (!userId) return;
-            try {
-                const res = await this.fetchAPI(`/events/${eventId}/users`, { 
-                    method: 'POST', body: JSON.stringify({ userId }) 
-                });
-                if (res.success) {
-                    document.body.removeChild(modal);
-                    this.loadEventStaff(eventId);
-                }
-            } catch(e) { console.error(e); }
-        };
     },
 
     // --- PERFIL Y SEGURIDAD (FASE 5) ---
