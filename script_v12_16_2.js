@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.19.1';
+const VERSION = '12.19.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5384,6 +5384,13 @@ const App = window.App = {
     
     // Editar ruleta
     async editWheel(wheelId) {
+        // Validación: wheelId debe ser un string no vacío
+        if (!wheelId || typeof wheelId !== 'string') {
+            console.error('editWheel called with invalid wheelId:', wheelId);
+            this._notifyAction('Error', 'Selecciona una ruleta válida', 'error');
+            return;
+        }
+        
         try {
             const wheel = await this.fetchAPI(`/events/${this.state.event.id}/wheels/${wheelId}`);
             this.currentWheel = wheel;
@@ -5417,6 +5424,14 @@ const App = window.App = {
     
     // Cargar participantes de una ruleta
     async loadWheelParticipants(wheelId) {
+        // Validación: wheelId debe ser un string no vacío
+        if (!wheelId || typeof wheelId !== 'string') {
+            console.error('loadWheelParticipants called with invalid wheelId:', wheelId);
+            this.wheelParticipants = [];
+            this.renderWheelParticipants();
+            return;
+        }
+        
         try {
             const participants = await this.fetchAPI(`/wheels/${wheelId}/participants`);
             this.wheelParticipants = participants || [];
