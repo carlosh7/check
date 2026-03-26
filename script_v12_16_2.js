@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.1';
+const VERSION = '12.22.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5628,18 +5628,21 @@ const App = window.App = {
                 return;
             }
 
-            // Agregar participantes uno por uno
-            let added = 0;
-            for (const p of participants) {
-                await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
+            // Agregar todos los participantes en una sola llamada
+            try {
+                const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
                     method: 'POST',
-                    body: JSON.stringify({ ...p, source: 'manual' })
+                    body: JSON.stringify({ 
+                        participants: participants.map(p => ({ ...p, source: 'manual' }))
+                    })
                 });
-                added++;
+                
+                this._notifyAction('Éxito', `${participants.length} participantes agregados`, 'success');
+                await this.loadWheelParticipants(this.currentWheel.id);
+            } catch (e) {
+                console.error('Error adding manual participants:', e);
+                this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
             }
-
-            this._notifyAction('Éxito', `${added} participantes agregados`, 'success');
-            await this.loadWheelParticipants(this.currentWheel.id);
         } catch (e) {
             console.error('Error adding manual participants:', e);
             this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
