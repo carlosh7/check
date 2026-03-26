@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.20.1';
+const VERSION = '12.20.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5384,8 +5384,8 @@ const App = window.App = {
     
     // Editar ruleta
     async editWheel(wheelId) {
-        // Validación: wheelId debe ser un string no vacío
-        if (!wheelId || typeof wheelId !== 'string') {
+        // Validación: wheelId debe ser un UUID válido (no null, undefined, "null", "undefined" o vacío)
+        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
             console.error('editWheel called with invalid wheelId:', wheelId);
             this._notifyAction('Error', 'Selecciona una ruleta válida', 'error');
             return;
@@ -5424,8 +5424,8 @@ const App = window.App = {
     
     // Cargar participantes de una ruleta
     async loadWheelParticipants(wheelId) {
-        // Validación: wheelId debe ser un string no vacío
-        if (!wheelId || typeof wheelId !== 'string') {
+        // Validación: wheelId debe ser un UUID válido (no null, undefined, "null", "undefined" o vacío)
+        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
             console.error('loadWheelParticipants called with invalid wheelId:', wheelId);
             this.wheelParticipants = [];
             this.renderWheelParticipants();
@@ -5467,7 +5467,7 @@ const App = window.App = {
     
     // Agregar participantes desde guests
     async addParticipantsFromGuests(filter = 'all') {
-        if (!this.currentWheel) {
+        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
             return;
         }
@@ -5488,7 +5488,7 @@ const App = window.App = {
     
     // Remover participante
     async removeWheelParticipant(participantId) {
-        if (!this.currentWheel) return;
+        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') return;
         
         try {
             await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/${participantId}`, {
