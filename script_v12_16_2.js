@@ -3,8 +3,8 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.22
- * Author: Antigravity
+ * Version: V12.18.33
+ * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.28';
+const VERSION = '12.18.33';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -853,12 +853,17 @@ const App = window.App = {
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
                     `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="text-xs font-medium text-emerald-500 hover:text-emerald-400 transition-colors whitespace-nowrap">Activar</button>` : 
                     `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors whitespace-nowrap">Suspender</button>`) : '';
-
+                
+                const editBtn = canEdit ? `<button data-action="editUser" data-user-id="${u.id}" class="p-2 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--primary)] transition-colors" title="Editar colaborador">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                </button>` : '';
+                
                 const col4 = `
                     <div class="flex flex-col items-end gap-2 text-right">
                         ${actionAssignCompany}
                         ${actionAssignEvent}
                         ${accessBtn}
+                        ${editBtn}
                     </div>
                 `;
 
@@ -1147,7 +1152,7 @@ const App = window.App = {
     loadProfileData: async function() {
         if (!this.state.user) return;
         
-        document.getElementById('profile-display-name').value = this.state.user.display_name || '';
+        document.getElementById('profile-name').value = this.state.user.display_name || '';
         document.getElementById('profile-phone').value = this.state.user.phone || '';
         document.getElementById('profile-email').value = this.state.user.username || '';
         
@@ -1706,6 +1711,46 @@ const App = window.App = {
         const modal = document.getElementById('modal-invite');
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
+    },
+
+    // Editar usuario (colaborador)
+    editUser: async function(userId) {
+        const user = this.state.allUsers?.find(u => u.id === userId);
+        if (!user) {
+            this._notifyAction('Error', 'Usuario no encontrado', 'error');
+            return;
+        }
+        
+        // Abrir modal de invitación en modo edición
+        document.getElementById('invite-user-form')?.reset();
+        
+        // Llenar datos del usuario
+        document.getElementById('invite-display-name').value = user.display_name || '';
+        document.getElementById('invite-username').value = user.username || '';
+        
+        // Seleccionar rol
+        const roleSelect = document.getElementById('invite-role');
+        if (roleSelect) {
+            roleSelect.value = user.role || 'STAFF';
+        }
+        
+        // Guardar ID del usuario que se está editando
+        this.state.editingUserId = userId;
+        
+        // Cambiar título del modal
+        const modalTitle = document.querySelector('#modal-invite h3');
+        if (modalTitle) modalTitle.textContent = 'Editar Colaborador';
+        
+        // Cambiar texto del botón
+        const submitBtn = document.querySelector('#modal-invite button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Guardar Cambios';
+        
+        // Hacer password opcional en modo edición
+        document.getElementById('invite-password').required = false;
+        
+        const modal = document.getElementById('modal-invite');
+        modal?.classList.remove('hidden');
+        modal?.setAttribute('aria-hidden', 'false');
     },
 
     closeSurveyEditor: function() {
@@ -3138,7 +3183,10 @@ const App = window.App = {
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
-        if (viewName === 'system') window.switchSystemTab(params.tab || 'users');
+        if (viewName === 'system') {
+            this.hideRestrictedSystemTabs();
+            window.switchSystemTab(params.tab || 'users');
+        }
         
         // Redirecciones de compatibilidad para el Hub unificado
         if (viewName === 'groups') { this.navigate('system', { tab: 'groups' }); return; }
@@ -3492,6 +3540,7 @@ const App = window.App = {
                     case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
                     // Users management
                     case 'approveUser': _App.approveUser(p.userId, p.status); break;
+                    case 'editUser': _App.editUser(p.userId); break;
                     case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
                     case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
                     case 'removeUserFromEvent': _App.removeUserFromEvent(p.userId, p.eventId); break;
@@ -5056,6 +5105,16 @@ const App = window.App = {
 
     switchSystemTab(tabName) {
         console.log('[SYS] Switching to tab:', tabName);
+        
+        // Restringir acceso para rol PRODUCTOR
+        const isProductor = this.state.user?.role === 'PRODUCTOR';
+        const restrictedTabs = ['groups', 'legal', 'email'];
+        if (isProductor && restrictedTabs.includes(tabName)) {
+            alert('No tienes acceso a esta sección');
+            this.switchSystemTab('users');
+            return;
+        }
+        
         LS.set('active_system_tab', tabName); // Persistencia V12.16.0
         const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
         
@@ -5085,6 +5144,27 @@ const App = window.App = {
         if (tabName === 'legal') this.loadLegalTexts();
         if (tabName === 'email') this.navigateEmailSection('config');
         if (tabName === 'account') this.loadUserProfile();
+    },
+
+    // Ocultar pestañas restringidas para rol PRODUCTOR
+    hideRestrictedSystemTabs: function() {
+        const isProductor = this.state.user?.role === 'PRODUCTOR';
+        if (!isProductor) return;
+        
+        // Ocultar botones de pestañas restringidas
+        const subNavContainer = document.querySelector('#view-system .sub-nav-container');
+        if (subNavContainer) {
+            const tabsToHide = ['groups', 'legal', 'email'];
+            const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
+            btns.forEach(btn => {
+                const onclick = btn.getAttribute('onclick') || '';
+                tabsToHide.forEach(tab => {
+                    if (onclick.includes(`'${tab}'`)) {
+                        btn.classList.add('hidden');
+                    }
+                });
+            });
+        }
     },
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
@@ -6117,6 +6197,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     App.updateRoleOptions();
                 }
                 
+                // Ocultar pestañas restringidas para PRODUCTOR
+                if (user.role === 'PRODUCTOR') {
+                    App.hideRestrictedSystemTabs();
+                }
+                
                 // Cargar eventos inicialmente para tener la lista lista
                 await App.loadEvents();
                 
@@ -6780,11 +6865,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ------- V10.6: PERFIL -------
     sf('profile-form', async (e) => {
         e.preventDefault();
+        const newEmail = document.getElementById('profile-email').value.trim();
+        const currentEmail = App.state.user?.username || '';
+        
         const data = {
-            display_name: document.getElementById('profile-display-name').value,
+            display_name: document.getElementById('profile-name').value,
             phone: document.getElementById('profile-phone').value,
             group_id: document.getElementById('profile-company').value || null
         };
+        
+        // Agregar email solo si cambió
+        if (newEmail && newEmail !== currentEmail) {
+            data.username = newEmail;
+        }
+        
         await App.saveProfile(data);
     });
     
@@ -6919,38 +7013,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Form de invitación de usuario
+    // Form de invitación/edición de usuario
     sf('invite-user-form', async (e) => {
         e.preventDefault();
         const displayName = document.getElementById('invite-display-name').value;
         const u = document.getElementById('invite-username').value;
         const p = document.getElementById('invite-password').value;
         const r = document.getElementById('invite-role').value;
+        const editingUserId = App.state.editingUserId;
+        
         try {
-            const res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
-            if (res.success) { 
-                alert(`✓ Usuario "${displayName}" creado con rol ${r}.`); 
-                document.getElementById('invite-user-form').reset(); 
-                document.getElementById('modal-invite')?.classList.add('hidden'); 
-                App.loadUsersTable();
-                
-                // Si hay pending (vino del selector), volver al selector correspondiente
-                const pendingGroupId = App.state._pendingUserGroupId;
-                const pendingEventId = App.state._pendingUserEventId;
-                
-                if (pendingGroupId) {
-                    delete App.state._pendingUserGroupId;
-                    delete App.state._pendingUserEventId;
-                    App._openUserModalFromSelector = false;
-                    App.showUserSelectorForGroup(pendingGroupId);
-                } else if (pendingEventId) {
-                    delete App.state._pendingUserGroupId;
-                    delete App.state._pendingUserEventId;
-                    App._openUserModalFromSelector = false;
-                    App.showUserSelectorForEvent(pendingEventId);
+            let res;
+            if (editingUserId) {
+                // Modo edición - actualizar usuario existente
+                const updateData = {
+                    display_name: displayName,
+                    role: r
+                };
+                // Solo actualizar username si es diferente (email)
+                const currentUser = App.state.allUsers?.find(user => user.id === editingUserId);
+                if (currentUser && currentUser.username !== u) {
+                    updateData.username = u;
                 }
+                // Solo actualizar contraseña si se proporcionó
+                if (p && p.length >= 6) {
+                    updateData.password = p;
+                }
+                
+                res = await App.fetchAPI(`/users/${editingUserId}`, { 
+                    method: 'PUT', 
+                    body: JSON.stringify(updateData) 
+                });
+                if (res.success) {
+                    alert(`✓ Usuario "${displayName}" actualizado.`);
+                    delete App.state.editingUserId;
+                } else {
+                    alert('Error: ' + (res.error || 'No se pudo actualizar el usuario.'));
+                    return;
+                }
+            } else {
+                // Modo creación - nuevo usuario
+                res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
+                if (!res.success) {
+                    alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
+                    return;
+                }
+                alert(`✓ Usuario "${displayName}" creado con rol ${r}.`);
             }
-            else alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
+            
+            document.getElementById('invite-user-form').reset(); 
+            document.getElementById('modal-invite')?.classList.add('hidden'); 
+            App.loadUsersTable();
+            
+            // Si hay pending (vino del selector), volver al selector correspondiente
+            const pendingGroupId = App.state._pendingUserGroupId;
+            const pendingEventId = App.state._pendingUserEventId;
+            
+            if (pendingGroupId) {
+                delete App.state._pendingUserGroupId;
+                delete App.state._pendingUserEventId;
+                App._openUserModalFromSelector = false;
+                App.showUserSelectorForGroup(pendingGroupId);
+            } else if (pendingEventId) {
+                delete App.state._pendingUserGroupId;
+                delete App.state._pendingUserEventId;
+                App._openUserModalFromSelector = false;
+                App.showUserSelectorForEvent(pendingEventId);
+            }
         } catch(err) { 
             alert('Error de conexión: ' + (err.message || 'Ver consola para detalles')); 
         }

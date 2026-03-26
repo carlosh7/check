@@ -133,6 +133,69 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
     res.json({ success: true });
 });
 
+// Actualizar usuario (editar colaborador)
+router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    
+    // Permisos: ADMIN puede editar cualquier usuario, PRODUCTOR solo puede editar usuarios que no sean ADMIN
+    if (req.userRole !== 'ADMIN') {
+        const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+        if (!targetUser || targetUser.role === 'ADMIN') {
+            return res.status(403).json({ error: 'No tienes permiso para editar este usuario' });
+        }
+    }
+    
+    const { username, display_name, role, password } = req.body;
+    
+    // Validar username si se proporciona
+    if (username) {
+        if (typeof username !== 'string' || username.length < 5 || !username.includes('@')) {
+            return res.status(400).json({ error: 'El email debe ser válido' });
+        }
+        // Verificar que el username no esté en uso por otro usuario
+        const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(username, targetId);
+        if (existing) {
+            return res.status(400).json({ error: 'El email ya está en uso' });
+        }
+    }
+    
+    // Validar role si se proporciona (solo ADMIN puede cambiar role)
+    if (role && req.userRole !== 'ADMIN') {
+        return res.status(403).json({ error: 'Solo ADMIN puede cambiar el rol' });
+    }
+    
+    // Construir query dinámicamente
+    const updates = [];
+    const params = [];
+    
+    if (username) {
+        updates.push("username = ?");
+        params.push(username);
+    }
+    if (display_name !== undefined) {
+        updates.push("display_name = ?");
+        params.push(display_name);
+    }
+    if (role && req.userRole === 'ADMIN') {
+        updates.push("role = ?");
+        params.push(role);
+    }
+    if (password) {
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        updates.push("password = ?");
+        params.push(hashedPassword);
+    }
+    
+    if (updates.length > 0) {
+        params.push(targetId);
+        db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+        logAction(req, AUDIT_ACTIONS.USER_UPDATED, { targetId, fields: updates });
+    }
+    
+    const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
+    res.json({ success: true, user });
+});
+
 // Eliminar usuario (ADMIN)
 router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('users', req.params.id);
@@ -239,14 +302,44 @@ router.put('/:id/profile', authMiddleware(), (req, res) => {
         return res.status(403).json({ error: 'Acceso Denegado' });
     }
     
-    const { display_name, phone, group_id } = req.body;
+    const { display_name, phone, group_id, username } = req.body;
     
-    if (req.userRole === 'ADMIN') {
-        db.prepare("UPDATE users SET display_name = ?, phone = ?, group_id = ? WHERE id = ?")
-          .run(display_name || '', phone || '', group_id || null, targetId);
-    } else {
-        db.prepare("UPDATE users SET display_name = ?, phone = ? WHERE id = ?")
-          .run(display_name || '', phone || '', targetId);
+    // Validar username si se proporciona
+    if (username) {
+        if (typeof username !== 'string' || username.length < 5 || !username.includes('@')) {
+            return res.status(400).json({ error: 'El email debe ser válido' });
+        }
+        // Verificar que el username no esté en uso por otro usuario
+        const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(username, targetId);
+        if (existing) {
+            return res.status(400).json({ error: 'El email ya está en uso' });
+        }
+    }
+    
+    // Construir query dinámicamente
+    const updates = [];
+    const params = [];
+    
+    if (display_name !== undefined) {
+        updates.push("display_name = ?");
+        params.push(display_name);
+    }
+    if (phone !== undefined) {
+        updates.push("phone = ?");
+        params.push(phone);
+    }
+    if (username) {
+        updates.push("username = ?");
+        params.push(username);
+    }
+    if (req.userRole === 'ADMIN' && group_id !== undefined) {
+        updates.push("group_id = ?");
+        params.push(group_id || null);
+    }
+    
+    if (updates.length > 0) {
+        params.push(targetId);
+        db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
     }
     
     const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
