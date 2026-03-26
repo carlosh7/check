@@ -292,11 +292,15 @@ const App = window.App = {
     // Verificar versión de la aplicación
     checkVersion: async function() {
         try {
-        
             const res = await this.fetchAPI('/app-version');
             const versionDisplay = document.getElementById('version-display');
             if (versionDisplay) {
                 versionDisplay.textContent = 'V' + res.version;
+            }
+            // También actualizar login-version-display si existe (index.html)
+            const loginVersionDisplay = document.getElementById('login-version-display');
+            if (loginVersionDisplay) {
+                loginVersionDisplay.textContent = 'v' + res.version;
             }
         } catch(e) {
             console.error('Error al verificar versión:', e);
@@ -3287,6 +3291,8 @@ const App = window.App = {
         this.fetchAPI('/app-version').then(res => {
             const vd = document.getElementById('version-display');
             if (vd) vd.textContent = 'V' + res.version;
+            const lvd = document.getElementById('login-version-display');
+            if (lvd) lvd.textContent = 'v' + res.version;
         }).catch(() => {});
 
         // Actualizar tema después de cargar app-shell
