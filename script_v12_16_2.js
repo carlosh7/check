@@ -5629,9 +5629,18 @@ const App = window.App = {
     },
 
 
-    async showGroupSelector(userId, currentGroupId = null) {
+    async showGroupSelector(userId) {
         let groups = [];
-        try { groups = await this.fetchAPI('/groups'); } catch(e) { console.error(e); }
+        let users = [];
+        try { 
+            [groups, users] = await Promise.all([
+                this.fetchAPI('/groups'),
+                this.fetchAPI('/users')
+            ]);
+        } catch(e) { console.error(e); }
+        
+        const user = users.find(u => String(u.id) === String(userId));
+        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
 
         const html = `
             <div class="space-y-6">
@@ -5653,7 +5662,7 @@ const App = window.App = {
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${groups.map(g => `
-                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${String(g.id) === String(currentGroupId) ? 'ring-1 ring-blue-500/50 bg-blue-500/10' : ''}">
+                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${currentGroupIds.includes(String(g.id)) ? 'ring-1 ring-blue-500/50 bg-blue-500/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">corporate_fare</span>
                             </div>
@@ -5662,7 +5671,7 @@ const App = window.App = {
                                 <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${g.email || 'Sin contacto'}</div>
                             </div>
                             <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-blue-500 ${String(g.id) === String(currentGroupId) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                                <span class="material-symbols-outlined text-xs text-blue-500 ${currentGroupIds.includes(String(g.id)) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
                             </div>
                         </div>
                     `).join('')}
@@ -5686,17 +5695,31 @@ const App = window.App = {
 
     async assignGroupToUser(userId, groupId) {
         try {
-            // Backend espera group_id como array o valor único en un objeto para PUT /api/users/:id/group
+            // Obtener grupos actuales del usuario
+            const users = await this.fetchAPI('/users');
+            const user = users.find(u => String(u.id) === String(userId));
+            const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
+            
+            // Agregar el nuevo grupo si no existe
+            if (!currentGroupIds.includes(String(groupId))) {
+                currentGroupIds.push(String(groupId));
+            } else {
+                // Si ya existe, quitarlo (toggle)
+                const idx = currentGroupIds.indexOf(String(groupId));
+                currentGroupIds.splice(idx, 1);
+            }
+            
+            // Enviar todos los grupos al backend
             const res = await this.fetchAPI(`/users/${userId}/group`, {
                 method: 'PUT',
-                body: JSON.stringify({ group_id: [groupId] }) 
+                body: JSON.stringify({ group_id: currentGroupIds }) 
             });
             if (res.success) {
                 this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
                 this.loadGroups();
-                // No cerrar Swal - permitir asignar más empresas
-                this.showGroupSelector(userId); // Recargar modal con estado actualizado
+                // Recargar modal con estado actualizado
+                this.showGroupSelector(userId);
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
