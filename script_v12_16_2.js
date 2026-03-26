@@ -818,6 +818,69 @@ const App = window.App = {
         }
     },
 
+    showGroupSelector(userId) {
+        const groups = this.state.allGroups || [];
+        const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
+        
+        const options = groups.map(g => `
+            <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 cursor-pointer transition-all">
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-sm font-bold text-white">${g.name}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">${g.description || 'Productor asimilado'}</span>
+                </div>
+                <input type="checkbox" name="multi-group-select" value="${g.id}" ${currentGroupIds.includes(String(g.id)) ? 'checked' : ''} class="w-5 h-5 accent-primary rounded cursor-pointer border-white/10 bg-slate-900/50">
+            </label>
+        `).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-select-group';
+        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
+        modal.innerHTML = `
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
+                    ${options || '<p class="text-xs text-slate-500 italic text-center py-4">No hay empresas creadas. Crea una primero.</p>'}
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="App.assignUserGroupFromSelector('${userId}')" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <div class="flex gap-3">
+                        <button onclick="App.closeGroupSelector()" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    },
+
+    closeGroupSelector() {
+        document.getElementById('modal-select-group')?.remove();
+    },
+
+    async assignUserGroupFromSelector(userId) {
+        const checkboxes = document.querySelectorAll('input[name="multi-group-select"]:checked');
+        const selectedGroupIds = Array.from(checkboxes).map(chk => chk.value);
+        
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, { 
+                method: 'PUT', body: JSON.stringify({ group_id: selectedGroupIds }) 
+            });
+            if (res.success) {
+                this.loadUsersTable();
+                this.closeGroupSelector();
+            }
+        } catch(e) { console.error('Error assigning groups:', e); }
+    },
+
     // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
 
     async handleFileSelect(e) {
@@ -1138,6 +1201,105 @@ const App = window.App = {
                 }
             } catch { Swal.fire('Error', 'Error de red', 'error'); }
         }
+    },
+    
+    // Mostrar selector de empresas para asignar (Multitenant V12.6.0)
+    showGroupSelector: async function(userId) {
+        // Cargar grupos Y usuarios frescos del servidor para tener datos actualizados
+        console.log('[DEBUG] showGroupSelector: cargando grupos y usuarios...');
+        const [groups, users] = await Promise.all([
+            this.fetchAPI('/groups'),
+            this.fetchAPI('/users')
+        ]);
+        
+        this.state.allGroups = groups;
+        this.state.allUsers = users;
+        
+        const user = users.find(u => String(u.id) === String(userId));
+        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
+        console.log('[DEBUG] showGroupSelector: usuario tiene grupos:', currentGroupIds, 'grupos disponibles:', groups.length);
+        this.state._pendingGroupUserId = userId; // Guardar userId para retorno
+        
+        const options = groups.map(g => `
+            <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 cursor-pointer transition-all">
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-sm font-bold text-white">${g.name}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">${g.description || 'Productor asimilado'}</span>
+                </div>
+                <input type="checkbox" name="multi-group-select" value="${g.id}" ${currentGroupIds.includes(String(g.id)) ? 'checked' : ''} class="w-5 h-5 accent-primary rounded cursor-pointer border-white/10 bg-slate-900/50">
+            </label>
+        `).join('');
+        
+        const modal = document.createElement('div');
+        modal.id = 'modal-select-group';
+        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
+        
+        // Click en backdrop cierra el modal, pero no en el contenido
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeGroupSelector();
+            }
+        });
+        
+        modal.innerHTML = `
+            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
+                    </div>
+                    <button id="btn-close-group-selector" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-white">close</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
+                    ${options || '<p class="text-xs text-slate-500 italic text-center py-4">No hay empresas creadas. Crea una primero.</p>'}
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button id="btn-confirm-groups" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
+                    <div class="flex gap-3">
+                        <button id="btn-new-company" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
+                        <button id="btn-cancel-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
+                    </div>
+                </div>
+            </div>`;
+        
+        // Prevenir que el clic en el contenido cierre el modal
+        modal.querySelector('.glass-card').addEventListener('click', (e) => e.stopPropagation());
+        
+        // Event listeners para los botones
+        modal.querySelector('#btn-close-group-selector').addEventListener('click', () => this.closeGroupSelector());
+        modal.querySelector('#btn-confirm-groups').addEventListener('click', () => this.assignUserGroupFromSelector(userId));
+        modal.querySelector('#btn-new-company').addEventListener('click', () => this.navigateToCreateGroup());
+        modal.querySelector('#btn-cancel-selector').addEventListener('click', () => this.closeGroupSelector());
+        
+        document.body.appendChild(modal);
+    },
+    
+    navigateToCreateGroup: function() {
+        this.closeGroupSelector(); // Cerrar selector si existe
+        this.openCompanyModal();
+    },
+    
+    assignUserGroupFromSelector: async function(userId) {
+        const checkboxes = document.querySelectorAll('input[name="multi-group-select"]:checked');
+        const selectedGroupIds = Array.from(checkboxes).map(chk => chk.value);
+        
+        try {
+            const res = await this.fetchAPI(`/users/${userId}/group`, { 
+                method: 'PUT', 
+                body: JSON.stringify({ group_id: selectedGroupIds }) 
+            });
+            if (res.success) {
+                this.loadUsersTable();
+                this.closeGroupSelector();
+            }
+        } catch(e) { console.error('Error assigning groups:', e); }
     },
     
     openCreateGroupModal: function() {
@@ -5467,90 +5629,77 @@ const App = window.App = {
     },
 
 
-    async showGroupSelector(userId) {
-        // Mostrar modal con checkboxes para selección múltiple de empresas
-        const [groups, users] = await Promise.all([
-            this.fetchAPI('/groups'),
-            this.fetchAPI('/users')
-        ]);
-        
-        this.state.allGroups = groups;
-        const user = users.find(u => String(u.id) === String(userId));
-        const currentGroupIds = user?.groups?.map(g => String(g.id)) || [];
-        
-        const options = groups.map(g => `
-            <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all">
-                <div class="flex flex-col gap-0.5">
-                    <span class="text-sm font-bold text-white">${g.name}</span>
-                    <span class="text-[10px] text-slate-400 font-medium">${g.description || 'Productor asimilado'}</span>
-                </div>
-                <input type="checkbox" name="multi-group-select" value="${g.id}" ${currentGroupIds.includes(String(g.id)) ? 'checked' : ''} class="w-5 h-5 accent-primary rounded cursor-pointer border-white/10 bg-slate-900/50">
-            </label>
-        `).join('');
-        
-        const modal = document.createElement('div');
-        modal.id = 'modal-select-group';
-        modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-300';
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeGroupSelector();
-        });
-        
-        modal.innerHTML = `
-            <div class="glass-card p-8 w-full max-w-md border border-white/10 shadow-2xl scale-in-center">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+    async showGroupSelector(userId, currentGroupId = null) {
+        let groups = [];
+        try { groups = await this.fetchAPI('/groups'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
+                        <span class="text-xs text-slate-400">Vincular usuario a organización</span>
                     </div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-black text-white tracking-tight">Asignar Empresas</h3>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Selección Múltiple</p>
-                    </div>
-                    <button id="btn-close-group-selector" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
-                        <span class="material-symbols-outlined text-white">close</span>
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-[11px] shadow-lg">
+                        <span class="material-symbols-outlined text-xs">add_business</span> NUEVA EMPRESA
                     </button>
                 </div>
-                
-                <div class="space-y-2 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar" id="group-checkbox-list">
-                    ${options || '<p class="text-xs text-slate-500 italic text-center py-4">No hay empresas creadas. Crea una primero.</p>'}
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
-                <div class="flex flex-col gap-3">
-                    <button id="btn-confirm-groups" class="w-full py-4 bg-primary text-white font-black text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest">Confirmar Asignación</button>
-                    <div class="flex gap-3">
-                        <button id="btn-new-company" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">+ Nueva Empresa</button>
-                        <button id="btn-cancel-selector" class="flex-1 py-4 bg-white/5 text-slate-400 hover:text-white font-bold text-[10px] rounded-2xl transition-all uppercase tracking-widest border border-white/5 hover:border-white/10">Cancelar</button>
-                    </div>
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${groups.map(g => `
+                        <div onclick="App.assignGroupToUser('${userId}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${String(g.id) === String(currentGroupId) ? 'ring-1 ring-blue-500/50 bg-blue-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">corporate_fare</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${g.email || 'Sin contacto'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-blue-500 ${String(g.id) === String(currentGroupId) ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 transition-opacity">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>`;
-        
-        modal.querySelector('.glass-card').addEventListener('click', (e) => e.stopPropagation());
-        
-        modal.querySelector('#btn-close-group-selector').addEventListener('click', () => this.closeGroupSelector());
-        modal.querySelector('#btn-confirm-groups').addEventListener('click', () => this.assignUserGroupFromSelector(userId));
-        modal.querySelector('#btn-new-company').addEventListener('click', () => { this.closeGroupSelector(); this.openCompanyModal(); });
-        modal.querySelector('#btn-cancel-selector').addEventListener('click', () => this.closeGroupSelector());
-        
-        document.body.appendChild(modal);
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
     },
 
-    closeGroupSelector() {
-        document.getElementById('modal-select-group')?.remove();
-    },
-
-    assignUserGroupFromSelector: async function(userId) {
-        const checkboxes = document.querySelectorAll('input[name="multi-group-select"]:checked');
-        const selectedGroupIds = Array.from(checkboxes).map(chk => chk.value);
-        
+    async assignGroupToUser(userId, groupId) {
         try {
-            const res = await this.fetchAPI(`/users/${userId}/group`, { 
-                method: 'PUT', body: JSON.stringify({ group_id: selectedGroupIds }) 
+            // Backend espera group_id como array o valor único en un objeto para PUT /api/users/:id/group
+            const res = await this.fetchAPI(`/users/${userId}/group`, {
+                method: 'PUT',
+                body: JSON.stringify({ group_id: [groupId] }) 
             });
             if (res.success) {
+                this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
                 this.loadUsersTable();
-                this.closeGroupSelector();
+                this.loadGroups();
+                Swal.close();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
-        } catch(e) { console.error('Error assigning groups:', e); }
+        } catch(e) { console.error(e); }
     },
 
     async showEventSelectorForCompany(groupId) {
