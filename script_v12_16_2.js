@@ -1160,10 +1160,10 @@ const App = window.App = {
     loadProfileData: async function() {
         if (!this.state.user) return;
         
-        // Obtener datos actualizados del usuario desde la API /auth/me
+        // Obtener datos actualizados del usuario desde la API /users/:id
         let currentUser = this.state.user;
         try {
-            const userData = await this.fetchAPI('/auth/me');
+            const userData = await this.fetchAPI(`/users/${this.state.user.userId}`);
             if (userData && userData.id) {
                 // Actualizar con datos del servidor
                 currentUser = { ...currentUser, ...userData };

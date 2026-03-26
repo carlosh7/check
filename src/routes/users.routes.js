@@ -13,6 +13,35 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 
 const router = express.Router();
 
+// Obtener usuario por ID
+router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    
+    // Solo el propio usuario o ADMIN pueden ver los datos
+    if (req.userId !== targetId && req.userRole !== 'ADMIN') {
+        return res.status(403).json({ error: 'No tienes acceso a este usuario' });
+    }
+    
+    try {
+        const user = db.prepare("SELECT id, username, display_name, phone, role, status, group_id FROM users WHERE id = ?").get(targetId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        // Obtener grupos del usuario
+        const groups = db.prepare(`
+            SELECT g.id, g.name FROM groups g
+            JOIN group_users gu ON gu.group_id = g.id
+            WHERE gu.user_id = ?
+        `).all(targetId);
+        
+        res.json({
+            ...user,
+            groups: groups
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Error al obtener usuario' });
+    }
+});
+
 router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     let rows;
     if (req.userRole === 'ADMIN') {
@@ -138,7 +167,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
     
     // Permisos: ADMIN puede editar cualquier usuario, PRODUCTOR solo puede editar usuarios que no sean ADMIN
-    if (req.userRole !== 'ADMIN') {
+    // EXCEPCIÓN: cualquier usuario puede editar su propio perfil
+    if (req.userId !== targetId && req.userRole !== 'ADMIN') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
         if (!targetUser || targetUser.role === 'ADMIN') {
             return res.status(403).json({ error: 'No tienes permiso para editar este usuario' });
