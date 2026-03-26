@@ -5542,26 +5542,91 @@ const App = window.App = {
     },
     
     // Crear nueva ruleta
-    createNewWheel() {
-        this.currentWheel = null;
-        this.wheelParticipants = [];
-        
-        // Limpiar formulario
-        document.getElementById('wheel-name').value = '';
-        document.getElementById('wheel-color-1').value = '#FF6B6B';
-        document.getElementById('wheel-color-2').value = '#4ECDC4';
-        document.getElementById('wheel-text-color').value = '#FFFFFF';
-        document.getElementById('wheel-pointer-color').value = '#FF0000';
-        document.getElementById('wheel-sound').checked = true;
-        document.getElementById('wheel-confetti').checked = true;
-        document.getElementById('wheel-share-url').value = '';
-        
-        // Limpiar participantes
-        document.getElementById('wheel-participants-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
-        
-        // Mostrar editor, ocultar lista
-        document.getElementById('wheels-list').closest('.card').classList.add('hidden');
-        document.getElementById('wheel-editor').classList.remove('hidden');
+    async createNewWheel() {
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Error', 'No hay evento seleccionado', 'error');
+            return;
+        }
+
+        // Pedir nombre con modal
+        const { value: name, isConfirmed } = await Swal.fire({
+            title: 'Nueva Ruleta',
+            text: 'Ingresa el nombre para esta ruleta',
+            input: 'text',
+            inputPlaceholder: 'Ej: Sorteo Principal',
+            inputValue: '',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            confirmButtonText: 'Crear',
+            confirmButtonColor: '#7c3aed',
+            cancelButtonText: 'Cancelar',
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'El nombre es requerido';
+                }
+            },
+            customClass: {
+                popup: 'rounded-[1.5rem] border border-white/10',
+                confirmButton: 'btn-primary !px-6 !py-3',
+                cancelButton: 'btn-secondary !px-6 !py-3'
+            }
+        });
+
+        if (!isConfirmed || !name) return;
+
+        try {
+            // Guardar ruleta inmediatamente con el nombre
+            const config = {
+                visual: {
+                    wheel_colors: ['#FF6B6B', '#4ECDC4'],
+                    wheel_text_color: '#FFFFFF',
+                    pointer_color: '#FF0000',
+                    sound_enabled: true,
+                    confetti_on_win: true
+                }
+            };
+
+            const wheel = await this.fetchAPI(`/events/${eventId}/wheels`, {
+                method: 'POST',
+                body: JSON.stringify({ name: name.trim(), config })
+            });
+
+            if (!wheel || !wheel.id) {
+                throw new Error('No se pudo crear la ruleta');
+            }
+
+            this.currentWheel = wheel;
+            
+            // Limpiar formulario y establecer valores
+            document.getElementById('wheel-name').value = wheel.name || name;
+            document.getElementById('wheel-color-1').value = '#FF6B6B';
+            document.getElementById('wheel-color-2').value = '#4ECDC4';
+            document.getElementById('wheel-text-color').value = '#FFFFFF';
+            document.getElementById('wheel-pointer-color').value = '#FF0000';
+            document.getElementById('wheel-sound').checked = true;
+            document.getElementById('wheel-confetti').checked = true;
+            
+            // Generar URL pública
+            const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
+            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            
+            // Limpiar participantes
+            this.wheelParticipants = [];
+            document.getElementById('wheel-participants-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
+            
+            // Mostrar editor, ocultar lista
+            document.getElementById('wheels-list').closest('.card').classList.add('hidden');
+            document.getElementById('wheel-editor').classList.remove('hidden');
+            
+            this._notifyAction('Éxito', 'Ruleta creada', 'success');
+            
+        } catch (e) {
+            console.error('Error creating wheel:', e);
+            this._notifyAction('Error', 'No se pudo crear la ruleta', 'error');
+        }
     },
     
     // Volver a lista de ruletas
