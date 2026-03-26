@@ -1728,10 +1728,30 @@ const App = window.App = {
         document.getElementById('invite-display-name').value = user.display_name || '';
         document.getElementById('invite-username').value = user.username || '';
         
-        // Seleccionar rol
+        // Seleccionar rol - Ocultar ADMIN para PRODUCTOR
         const roleSelect = document.getElementById('invite-role');
         if (roleSelect) {
-            roleSelect.value = user.role || 'STAFF';
+            const currentUserRole = this.state.user?.role;
+            const isProductor = currentUserRole === 'PRODUCTOR';
+            
+            // Filtrar opciones de rol si es PRODUCTOR
+            const options = roleSelect.querySelectorAll('option');
+            options.forEach(opt => {
+                if (isProductor && opt.value === 'ADMIN') {
+                    opt.classList.add('hidden');
+                } else {
+                    opt.classList.remove('hidden');
+                }
+            });
+            
+            // Si el usuario actual es ADMIN, mostrar todas las opciones
+            // Si el usuario actual es PRODUCTOR, asegurar que no se muestre ADMIN
+            if (isProductor && user.role === 'ADMIN') {
+                // No debería poder editar admins, pero si lo hace, asignar por defecto
+                roleSelect.value = 'PRODUCTOR';
+            } else {
+                roleSelect.value = user.role || 'STAFF';
+            }
         }
         
         // Guardar ID del usuario que se está editando
