@@ -83,10 +83,8 @@ const App = window.App = {
     },
 
     navigateToCreateEvent(type = 'short') {
-        this.navigate('system');
-        
         if (type === 'full') {
-            // Abrir formulario completo (Mis Eventos)
+            // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
             setTimeout(() => {
                 document.getElementById('evf-id-hidden').value = '';
                 const form = document.getElementById('new-event-full-form');
@@ -94,8 +92,8 @@ const App = window.App = {
                 document.getElementById('modal-event-full')?.classList.remove('hidden');
             }, 100);
         } else {
-            // Abrir formulario corto (Equipo/Empresa)
-            this.switchSystemTab('groups');
+            // Abrir formulario corto (Equipo/Empresa) - navegar a system/groups
+            this.navigate('system');
             setTimeout(() => {
                 document.getElementById('ev-id-hidden').value = '';
                 const form = document.getElementById('new-event-form');
