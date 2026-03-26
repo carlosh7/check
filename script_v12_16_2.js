@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.20.2';
+const VERSION = '12.21.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3493,9 +3493,9 @@ const App = window.App = {
         cl('btn-create-wheel', () => this.createNewWheel());
         cl('btn-back-to-wheels', () => this.backToWheelsList());
         cl('btn-save-wheel', () => this.saveWheel());
-        cl('btn-add-from-guests', () => this.addParticipantsFromGuests('all'));
-        cl('btn-add-from-checkedin', () => this.addParticipantsFromGuests('checked_in'));
-        cl('btn-add-from-preregistered', () => this.addParticipantsFromGuests('pre_registered'));
+        cl('btn-add-from-guests', () => this.showAddParticipantsModal());
+        cl('btn-add-from-checkedin', () => this.showAddParticipantsModal());
+        cl('btn-add-from-preregistered', () => this.showAddParticipantsModal());
         cl('btn-copy-wheel-url', () => this.copyWheelUrl());
         cl('btn-preview-wheel', () => this.previewWheel());
         
@@ -5369,6 +5369,9 @@ const App = window.App = {
                     <span class="px-2 py-1 text-xs font-bold rounded ${w.is_active ? 'bg-green-500/20 text-green-500' : 'bg-slate-500/20 text-slate-500'}">
                         ${w.is_active ? 'Activa' : 'Inactiva'}
                     </span>
+                    <button class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="event.stopPropagation(); App.deleteWheel('${w.id}')">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
                     <button class="p-2 hover:bg-[var(--bg-card)] rounded-lg" onclick="event.stopPropagation(); App.editWheel('${w.id}')">
                         <span class="material-symbols-outlined text-lg">edit</span>
                     </button>
@@ -5465,14 +5468,106 @@ const App = window.App = {
         `).join('');
     },
     
-    // Agregar participantes desde guests
+    // Agregar participantes desde guests - muestra modal de selección
+    async showAddParticipantsModal() {
+        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
+            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
+            return;
+        }
+
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Error', 'No hay evento seleccionado', 'error');
+            return;
+        }
+
+        // Consultar guests del evento para ver qué hay disponible
+        let guestsCount = { all: 0, checked_in: 0, pre_registered: 0 };
+        try {
+            const guests = await this.fetchAPI(`/events/${eventId}/guests`) || [];
+            guestsCount.all = guests.length;
+            guestsCount.checked_in = guests.filter(g => g.status === 'checked_in' || g.check_in_time).length;
+            guestsCount.pre_registered = guests.filter(g => g.status === 'pre_registered' || g.registered_at).length;
+        } catch (e) {
+            console.error('Error fetching guests:', e);
+        }
+
+        // Construir opciones del modal
+        const options = [
+            {
+                id: 'all',
+                label: 'Todos los invitados',
+                count: guestsCount.all,
+                icon: 'group'
+            },
+            {
+                id: 'checked_in',
+                label: 'Asistentes (check-in)',
+                count: guestsCount.checked_in,
+                icon: 'check_circle'
+            },
+            {
+                id: 'pre_registered',
+                label: 'Pre-registrados',
+                count: guestsCount.pre_registered,
+                icon: 'person_add'
+            }
+        ];
+
+        const optionsHtml = options.map(opt => `
+            <div class="flex items-center justify-between p-4 rounded-xl ${opt.count === 0 ? 'opacity-50 bg-slate-500/10' : 'bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer'}" 
+                 onclick="${opt.count > 0 ? `App.addParticipantsFromGuests('${opt.id}')` : ''}"
+                 style="${opt.count === 0 ? 'cursor: not-allowed;' : ''}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-xl">${opt.icon}</span>
+                    <span>${opt.label}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm ${opt.count > 0 ? 'text-green-500' : 'text-slate-500'}">${opt.count} disponibles</span>
+                    ${opt.count > 0 ? '<span class="material-symbols-outlined text-green-500">arrow_forward</span>' : '<span class="text-xs text-slate-500">Sin datos</span>'}
+                </div>
+            </div>
+        `).join('');
+
+        // Agregar opción de entrada manual
+        const manualHtml = `
+            <div class="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer" onclick="App.showManualParticipantsModal()">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-xl">edit_note</span>
+                    <span>Entrada manual</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-slate-500">Pegar datos</span>
+                    <span class="material-symbols-outlined text-slate-400">arrow_forward</span>
+                </div>
+            </div>
+        `;
+
+        await Swal.fire({
+            title: 'Agregar participantes',
+            text: 'Selecciona la fuente de participantes',
+            html: `<div class="space-y-3 text-left">${optionsHtml}${manualHtml}</div>`,
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#6b7280',
+            width: '450px',
+            customClass: {
+                popup: 'rounded-[1.5rem] border border-white/10',
+                confirmButton: 'btn-secondary !px-6 !py-3'
+            }
+        });
+    },
+
+    // Agregar participantes desde guests (llamado desde modal)
     async addParticipantsFromGuests(filter = 'all') {
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
             return;
         }
-        
+
         try {
+            Swal.close();
             const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/from-guests`, {
                 method: 'POST',
                 body: JSON.stringify({ filter })
@@ -5482,6 +5577,74 @@ const App = window.App = {
             await this.loadWheelParticipants(this.currentWheel.id);
         } catch (e) {
             console.error('Error adding participants:', e);
+            this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
+        }
+    },
+
+    // Modal para entrada manual de participantes
+    async showManualParticipantsModal() {
+        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
+            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
+            return;
+        }
+
+        const { value: text, isConfirmed } = await Swal.fire({
+            title: 'Entrada manual de participantes',
+            text: 'Ingresa los datos (uno por línea): Nombre, Email, Teléfono',
+            input: 'textarea',
+            inputPlaceholder: 'Juan Pérez, juan@email.com, +1234567890\nMaría López, maria@email.com, +0987654321',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            confirmButtonText: 'Agregar',
+            confirmButtonColor: '#7c3aed',
+            cancelButtonText: 'Cancelar',
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value || !value.trim()) return 'Ingresa al menos un participante';
+            },
+            customClass: {
+                popup: 'rounded-[1.5rem] border border-white/10',
+                confirmButton: 'btn-primary !px-6 !py-3',
+                cancelButton: 'btn-secondary !px-6 !py-3'
+            },
+            preConfirm: () => {
+                return document.getElementById('swal-input-textarea').value;
+            }
+        });
+
+        if (!isConfirmed || !text) return;
+
+        try {
+            // Parsear datos
+            const lines = text.trim().split('\n').filter(l => l.trim());
+            const participants = lines.map(line => {
+                const parts = line.split(',').map(p => p.trim());
+                return {
+                    name: parts[0] || '',
+                    email: parts[1] || '',
+                    phone: parts[2] || ''
+                };
+            }).filter(p => p.name);
+
+            if (participants.length === 0) {
+                this._notifyAction('Error', 'No se pudieron parsear los datos', 'error');
+                return;
+            }
+
+            // Agregar participantes uno por uno
+            let added = 0;
+            for (const p of participants) {
+                await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
+                    method: 'POST',
+                    body: JSON.stringify({ ...p, source: 'manual' })
+                });
+                added++;
+            }
+
+            this._notifyAction('Éxito', `${added} participantes agregados`, 'success');
+            await this.loadWheelParticipants(this.currentWheel.id);
+        } catch (e) {
+            console.error('Error adding manual participants:', e);
             this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
         }
     },
@@ -5652,6 +5815,43 @@ const App = window.App = {
         document.getElementById('wheel-editor').classList.add('hidden');
         this.currentWheel = null;
         this.loadWheels();
+    },
+
+    // Eliminar ruleta
+    async deleteWheel(wheelId) {
+        if (!wheelId || wheelId === 'null' || wheelId === 'undefined') {
+            this._notifyAction('Error', 'ID de ruleta inválido', 'error');
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: '¿Eliminar ruleta?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            confirmButtonText: 'Eliminar',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'Cancelar',
+            showCancelButton: true,
+            customClass: {
+                popup: 'rounded-[1.5rem] border border-white/10',
+                confirmButton: 'btn-primary !px-6 !py-3',
+                cancelButton: 'btn-secondary !px-6 !py-3'
+            }
+        });
+
+        if (!isConfirmed) return;
+
+        try {
+            await this.fetchAPI(`/events/wheels/${wheelId}`, { method: 'DELETE' });
+            this._notifyAction('Éxito', 'Ruleta eliminada', 'success');
+            this.currentWheel = null;
+            await this.loadWheels();
+        } catch (e) {
+            console.error('Error deleting wheel:', e);
+            this._notifyAction('Error', 'No se pudo eliminar la ruleta', 'error');
+        }
     },
 
     // Copiar URL de la ruleta
