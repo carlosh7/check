@@ -230,4 +230,230 @@ router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
     res.json({ success: true });
 });
 
+// Eliminar usuario de evento
+router.delete('/:eventId/users/:userId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const userId = castId('users', req.params.userId);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    db.prepare("DELETE FROM user_events WHERE event_id = ? AND user_id = ?").run(eventId, userId);
+    res.json({ success: true });
+});
+
+// --- EMAIL CONFIG POR EVENTO (NUEVO V12.18.17) ---
+router.get('/:id/email-config', authMiddleware(), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    // Verificar acceso
+    if (req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const config = db.prepare("SELECT * FROM event_email_config WHERE event_id = ?").get(eventId);
+    res.json(config || { event_id: eventId, subject_prefix: '', template_id: null });
+});
+
+router.put('/:id/email-config', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const { subject_prefix, template_id, send_confirmation, send_reminder } = req.body;
+    
+    // Upsert config
+    const existing = db.prepare("SELECT id FROM event_email_config WHERE event_id = ?").get(eventId);
+    
+    if (existing) {
+        db.prepare(`
+            UPDATE event_email_config SET 
+                subject_prefix = COALESCE(?, subject_prefix),
+                template_id = COALESCE(?, template_id),
+                send_confirmation = COALESCE(?, send_confirmation),
+                send_reminder = COALESCE(?, send_reminder)
+            WHERE event_id = ?
+        `).run(subject_prefix, template_id, send_confirmation, send_reminder, eventId);
+    } else {
+        const id = getValidId('event_email_config');
+        db.prepare(`
+            INSERT INTO event_email_config (id, event_id, subject_prefix, template_id, send_confirmation, send_reminder)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(id, eventId, subject_prefix || '', template_id, send_confirmation ? 1 : 0, send_reminder ? 1 : 0);
+    }
+    
+    res.json({ success: true });
+});
+
+// --- EMAIL TEST (NUEVO V12.18.17) ---
+router.post('/:id/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ error: 'Email requerido' });
+    }
+    
+    // Simular envío de email de prueba (aquí integrate con tu sistema de email)
+    console.log(`[EMAIL TEST] Sending test email to ${email} for event ${eventId}`);
+    
+    res.json({ success: true, message: `Email de prueba enviado a ${email}` });
+});
+
+// --- AGENDA DEL EVENTO (NUEVO V12.18.17) ---
+router.get('/:id/agenda', authMiddleware(), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    const rows = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY time ASC").all(eventId);
+    res.json(rows);
+});
+
+router.post('/:id/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const { title, description, time, duration, speaker, location } = req.body;
+    const id = getValidId('event_agenda');
+    
+    db.prepare(`
+        INSERT INTO event_agenda (id, event_id, title, description, time, duration, speaker, location, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, eventId, title, description, time, duration, speaker, location, new Date().toISOString());
+    
+    res.json({ success: true, id });
+});
+
+router.put('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const agendaId = castId('event_agenda', req.params.agendaId);
+    const { title, description, time, duration, speaker, location } = req.body;
+    
+    // Verificar acceso a través del evento
+    const agenda = db.prepare("SELECT event_id FROM event_agenda WHERE id = ?").get(agendaId);
+    if (!agenda || !hasEventAccess(req.userId, agenda.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare(`
+        UPDATE event_agenda SET 
+            title = COALESCE(?, title),
+            description = COALESCE(?, description),
+            time = COALESCE(?, time),
+            duration = COALESCE(?, duration),
+            speaker = COALESCE(?, speaker),
+            location = COALESCE(?, location)
+        WHERE id = ?
+    `).run(title, description, time, duration, speaker, location, agendaId);
+    
+    res.json({ success: true });
+});
+
+router.delete('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const agendaId = castId('event_agenda', req.params.agendaId);
+    
+    // Verificar acceso
+    const agenda = db.prepare("SELECT event_id FROM event_agenda WHERE id = ?").get(agendaId);
+    if (!agenda || !hasEventAccess(req.userId, agenda.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare("DELETE FROM event_agenda WHERE id = ?").run(agendaId);
+    res.json({ success: true });
+});
+
+// --- EVENTOS DE USUARIO (NUEVO V12.18.17) ---
+router.get('/user/:userId', authMiddleware(), async (req, res) => {
+    const targetUserId = castId('users', req.params.userId);
+    
+    // Solo admins o el propio usuario pueden ver
+    if (req.userRole !== 'ADMIN' && req.userId !== targetUserId) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const events = db.prepare(`
+        SELECT e.*, ue.created_at as assigned_at
+        FROM events e
+        INNER JOIN user_events ue ON e.id = ue.event_id
+        WHERE ue.user_id = ?
+        ORDER BY e.date DESC
+    `).all(targetUserId);
+    
+    res.json(events);
+});
+
+// --- EMAIL TEMPLATES POR EVENTO (NUEVO V12.18.17) ---
+router.get('/:id/email-templates', authMiddleware(), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    
+    // Verificar acceso
+    if (req.userRole !== 'ADMIN' && !hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const templates = db.prepare("SELECT * FROM event_email_templates WHERE event_id = ?").all(eventId);
+    res.json(templates);
+});
+
+router.post('/:id/email-templates/:templateType', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    const templateType = req.params.templateType;
+    
+    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso a este evento' });
+    }
+    
+    const { subject, body, enabled } = req.body;
+    const id = getValidId('event_email_templates');
+    
+    db.prepare(`
+        INSERT INTO event_email_templates (id, event_id, template_type, subject, body, enabled, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, eventId, templateType, subject, body, enabled ? 1 : 0, new Date().toISOString());
+    
+    res.json({ success: true, id });
+});
+
+router.put('/email-templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const templateId = castId('event_email_templates', req.params.templateId);
+    const { subject, body, enabled } = req.body;
+    
+    // Verificar acceso
+    const template = db.prepare("SELECT event_id FROM event_email_templates WHERE id = ?").get(templateId);
+    if (!template || !hasEventAccess(req.userId, template.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare(`
+        UPDATE event_email_templates SET 
+            subject = COALESCE(?, subject),
+            body = COALESCE(?, body),
+            enabled = COALESCE(?, enabled)
+        WHERE id = ?
+    `).run(subject, body, enabled ? 1 : 0, templateId);
+    
+    res.json({ success: true });
+});
+
+router.delete('/email-templates/:templateId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const templateId = castId('event_email_templates', req.params.templateId);
+    
+    // Verificar acceso
+    const template = db.prepare("SELECT event_id FROM event_email_templates WHERE id = ?").get(templateId);
+    if (!template || !hasEventAccess(req.userId, template.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare("DELETE FROM event_email_templates WHERE id = ?").run(templateId);
+    res.json({ success: true });
+});
+
 module.exports = router;

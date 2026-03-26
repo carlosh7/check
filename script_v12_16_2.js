@@ -3,19 +3,19 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.18.17
+ * Version: V12.18.18
  * Author: Antigravity
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Cleanup V12.18.17: Agregada función global hideModal:
+ * Cleanup V12.18.18: Recuperadas funciones de API de eventos:
  * - _showEmailSection() - versión antigua eliminada
  * - loadIMAPConfig() - versión antigua eliminada  
  * - showUserSelectorForEvent() - versión antigua eliminada
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.18.17';
+const VERSION = '12.18.18';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
