@@ -583,8 +583,8 @@ app.use((req, res, next) => {
     if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'survey.html'));
     if (req.path === '/wheel.html') return res.sendFile(path.join(__dirname, 'wheel.html'));
     
-    // Rutas públicas de ruleta: /wheel/:wheelId/public
-    if (req.path.startsWith('/wheel/') && req.path.endsWith('/public')) {
+    // Rutas públicas de ruleta: /wheel/:wheelId/public o /:eventName/wheel/:wheelId/public
+    if ((req.path.startsWith('/wheel/') || req.path.match(/^\/[^/]+\/wheel\//)) && req.path.endsWith('/public')) {
         return res.sendFile(path.join(__dirname, 'wheel.html'));
     }
     
