@@ -6388,7 +6388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // Modal de Eventos
-    cl('btn-create-event-open', () => App.navigateToCreateEvent());
+    cl('btn-create-event-open', () => App.openCreateEventModal());
     cl('close-modal', () => document.getElementById('modal-event')?.classList.add('hidden'));
 
     // Form de crear/editar evento (FORMULARIO CORTO - modal-event)
