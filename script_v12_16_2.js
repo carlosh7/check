@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.21.1';
+const VERSION = '12.21.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5606,9 +5606,6 @@ const App = window.App = {
                 popup: 'rounded-[1.5rem] border border-white/10',
                 confirmButton: 'btn-primary !px-6 !py-3',
                 cancelButton: 'btn-secondary !px-6 !py-3'
-            },
-            preConfirm: () => {
-                return document.getElementById('swal-input-textarea').value;
             }
         });
 
