@@ -194,10 +194,10 @@
                     <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
                 </button>
                 <div class="relative" style="width: 450px; height: 450px;">
-                    <div id="pointer-projector" class="absolute z-10 left-1/2 -translate-x-1/2" style="top: -55px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));">
-                        <div style="width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-top: 55px solid #7c3aed;"></div>
+                    <div id="pointer-projector" class="absolute left-1/2 -translate-x-1/2 z-10" style="top: 0; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                        <div style="width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 60px solid #7c3aed;"></div>
                     </div>
-                    <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto"></canvas>
+                    <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
                 </div>
                 <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-6" style="min-height: 70px;">
                     <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
@@ -243,11 +243,11 @@
                     <p class="text-slate-500 text-sm mt-2"> Powered by Smart Eventos</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Firma fija en la parte inferior -->
-            <div class="fixed bottom-4 left-0 right-0 text-center z-50">
-                <a href="/" class="text-sm text-slate-500 hover:text-primary transition-colors">Powered by Smart Eventos</a>
-            </div>
+        <!-- Firma FIJA en la parte inferior de la pantalla (fuera del layout proyector) -->
+        <div class="fixed bottom-0 left-0 right-0 text-center pb-4 z-[60]">
+            <a href="/" class="text-sm text-slate-600 hover:text-primary transition-colors">Powered by Smart Eventos</a>
         </div>
     </div>
 
