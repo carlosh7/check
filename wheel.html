@@ -94,10 +94,10 @@
             align-items: center !important;
             justify-content: center !important;
         }
-        /* Contenedor de la ruleta - centrado en el área de trabajo */
+        /* Contenedor de la ruleta - 1000x562px (lado más largo < 1080px) */
         #projector-layout.projector-state-large #wheel-container-projector {
-            width: min(80vh, 1400px) !important;
-            height: min(80vh, 788px) !important;
+            width: 1000px !important;
+            height: 562px !important;
         }
         #projector-layout.projector-state-large .projector-panels {
             display: none !important;
@@ -381,11 +381,12 @@
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Canvas 1920x1080, contenedor escala a 80vh o 1400px
-            wheelContainer.style.width = 'min(80vh, 1400px)';
-            wheelContainer.style.height = 'min(80vh, 788px)';
-            wheelContainer.style.maxWidth = '1400px';
-            wheelContainer.style.maxHeight = '788px';
+            // Canvas 1920x1080, el lado más largo del contenedor debe ser < 1080px
+            // aspect ratio 1.78, si width=1000px entonces height=562px
+            wheelContainer.style.width = '1000px';
+            wheelContainer.style.height = '562px';
+            wheelContainer.style.maxWidth = '1000px';
+            wheelContainer.style.maxHeight = '562px';
             wheelCanvas.width = 1920;
             wheelCanvas.height = 1080;
             
