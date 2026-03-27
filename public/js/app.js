@@ -5469,15 +5469,18 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        // Update sub-navigation buttons
-        const subNav = document.querySelector('#view-event-config .sub-nav-container');
-        if (subNav) {
-            subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
-                b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-xl');
-                b.classList.add('text-slate-400', 'bg-white/5');
+        // Update config navigation buttons (nueva estructura HTML)
+        const configNavContainer = document.querySelector('#view-event-config .border-b.border-\\[var\\(--border\\)\\]');
+        if (configNavContainer) {
+            configNavContainer.querySelectorAll('.config-tab').forEach(b => {
+                // Remover todas las clases de estado activo
+                b.classList.remove('active', 'bg-primary/10', 'text-primary', 'border-b-2', 'border-primary');
+                b.classList.add('border-b-2', 'border-transparent', 'text-[var(--text-secondary)]');
+                
+                // Agregar clases de estado activo al botón correspondiente
                 if (b.id === `config-nav-${tabName}`) {
-                    b.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
-                    b.classList.remove('text-slate-400', 'bg-white/5');
+                    b.classList.add('active', 'text-[var(--text-main)]', 'border-b-2', 'border-primary');
+                    b.classList.remove('border-transparent', 'text-[var(--text-secondary)]');
                 }
             });
         }

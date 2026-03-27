@@ -82,7 +82,7 @@
             </div>
             
             <div class="mt-3 text-center">
-                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.1</span>
+                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.2</span>
             </div>
         </div>
     </aside>
@@ -371,20 +371,214 @@
             </div>
 
             <!-- Config Content -->
-            <div id="config-content-staff" class="config-tab-content hidden">
-                <!-- Personal Asignado -->
+            <div id="config-content-staff" class="config-tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">Personal <span class="text-[var(--primary)]">Asignado</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="btn-config-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
+                        <button id="btn-config-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
+                    </div>
+                </div>
+                <div class="card !p-0 overflow-hidden">
+                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
+                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Staff del Evento
+                        </h3>
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
+                            <input id="config-staff-search" type="text" placeholder="Buscar staff por nombre..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-5 py-4">Colaborador</th>
+                                    <th class="px-5 py-4 text-center">Rol en Sistema</th>
+                                    <th class="px-5 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="config-staff-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div id="config-content-email" class="config-tab-content hidden">
-                <!-- Email del Evento -->
+            <div id="config-content-email" class="config-tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
+                    </div>
+                    <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
+                </div>
+                
+                <!-- Configuración SMTP por Evento -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
+                        Configuración de Envío
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="config-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
+                            <label for="config-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                        </div>
+                        <div class="md:col-span-2"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Servidor SMTP</label>
+                            <input type="text" id="config-email-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Puerto</label>
+                            <input type="number" id="config-email-smtp-port" placeholder="587" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario SMTP</label>
+                            <input type="text" id="config-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
+                            <input type="password" id="config-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
+                            <input type="text" id="config-email-from-name" placeholder="Check Pro" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Remitente</label>
+                            <input type="email" id="config-email-from-email" placeholder="noreply@tu-dominio.com" class="input-field w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plantillas de Email -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--primary)]">drafts</span>
+                        Plantillas de Email
+                    </h3>
+                    <div id="config-email-templates-list" class="space-y-4">
+                        <p class="text-slate-500 text-sm">Cargando plantillas...</p>
+                    </div>
+                    <button id="btn-config-add-template" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
+                        + Nueva Plantilla
+                    </button>
+                </div>
             </div>
 
-            <div id="config-content-agenda" class="config-tab-content hidden">
-                <!-- Agenda -->
+            <div id="config-content-agenda" class="config-tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
+                    </div>
+                    <button id="btn-config-add-agenda" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
+                </div>
+                
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--primary)]">list</span>
+                        Lista de la Agenda
+                    </h3>
+                    <div id="config-agenda-list" class="space-y-3">
+                        <p class="text-slate-500 text-sm">Cargando agenda...</p>
+                    </div>
+                </div>
             </div>
 
-            <div id="config-content-wheel" class="config-tab-content hidden">
-                <!-- Ruleta de Sorteos -->
+            <div id="config-content-wheel" class="config-tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">🎰 Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
+                    </div>
+                    <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
+                </div>
+                
+                <!-- Lista de ruletas -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--primary)]">casino</span>
+                        Mis Ruletas
+                    </h3>
+                    <div id="wheels-list" class="space-y-3">
+                        <p class="text-slate-500 text-sm">Cargando ruletas...</p>
+                    </div>
+                </div>
+                
+                <!-- Editor de ruleta (oculto por defecto) -->
+                <div id="wheel-editor" class="hidden space-y-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <button id="btn-back-to-wheels" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                        <input type="text" id="wheel-name" placeholder="Nombre de la ruleta" class="input-field flex-1 !text-xl">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Configuración de la ruleta -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4">Configuración</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Ruleta</label>
+                                    <select id="wheel-type" class="input-field w-full">
+                                        <option value="prize">Premios</option>
+                                        <option value="question">Preguntas</option>
+                                        <option value="random">Aleatorio</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Número de Segmentos</label>
+                                    <input type="number" id="wheel-segments" min="2" max="12" value="8" class="input-field w-full">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color de Fondo</label>
+                                    <input type="color" id="wheel-bg-color" value="#8ab4f8" class="w-full h-10 rounded-lg cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vista previa de la ruleta -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4">Vista Previa</h3>
+                            <div id="wheel-preview" class="aspect-square bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                                <div class="text-center">
+                                    <span class="material-symbols-outlined text-6xl text-primary/50">casino</span>
+                                    <p class="text-sm text-slate-500 mt-2">Vista previa de la ruleta</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Segmentos de la ruleta -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4">Segmentos</h3>
+                        <div id="wheel-segments-list" class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                                <div class="w-6 h-6 rounded-full bg-primary"></div>
+                                <input type="text" placeholder="Nombre del segmento" class="input-field flex-1">
+                                <input type="color" value="#8ab4f8" class="w-8 h-8 rounded cursor-pointer">
+                                <button class="p-2 hover:bg-red-500/20 rounded-lg">
+                                    <span class="material-symbols-outlined text-red-400">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="btn-add-segment" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
+                            + Agregar Segmento
+                        </button>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="flex justify-end gap-3">
+                        <button id="btn-cancel-wheel" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
+                        <button id="btn-save-wheel" class="btn-primary !px-5 !py-2">💾 Guardar Ruleta</button>
+                    </div>
+                </div>
             </div>
 
             <div id="config-content-settings" class="config-tab-content hidden space-y-6">
@@ -903,6 +1097,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.28.1">
-<link rel="stylesheet" href="/css/modern.css?v=12.28.1">
-<script type="module" src="/js/app.js?v=12.28.1"></script>
+<link rel="stylesheet" href="/css/styles.css?v=12.28.2">
+<link rel="stylesheet" href="/css/modern.css?v=12.28.2">
+<script type="module" src="/js/app.js?v=12.28.2"></script>
