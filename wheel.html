@@ -627,25 +627,53 @@
         // Reset button - restaurar todos los participantes
         document.getElementById('btn-reset').addEventListener('click', resetWheel);
 
-        // Fullscreen button
+        // Fullscreen button - toggle projector layout
         document.getElementById('btn-fullscreen').addEventListener('click', () => {
-            const btn = document.getElementById('btn-fullscreen');
-            const icon = btn.querySelector('span');
-            const canvas = document.getElementById('wheel-canvas');
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    icon.textContent = 'fullscreen_exit';
-                    canvas.width = 340;
-                    canvas.height = 340;
-                    setTimeout(() => drawWheel(currentRotation), 100);
-                }).catch(() => {});
+            const normalLayout = document.getElementById('normal-layout');
+            const projectorLayout = document.getElementById('projector-layout');
+            
+            if (projectorLayout.classList.contains('hidden')) {
+                // Entrar en modo proyector
+                normalLayout.classList.add('hidden');
+                projectorLayout.classList.remove('hidden');
+                projectorLayout.classList.add('flex');
+                document.body.requestFullscreen?.().catch?.(() => {});
             } else {
-                document.exitFullscreen().then(() => {
-                    icon.textContent = 'fullscreen';
-                    canvas.width = 340;
-                    canvas.height = 340;
-                    setTimeout(() => drawWheel(currentRotation), 100);
-                }).catch(() => {});
+                // Salir del modo proyector
+                projectorLayout.classList.add('hidden');
+                projectorLayout.classList.remove('flex');
+                normalLayout.classList.remove('hidden');
+                document.exitFullscreen?.().catch?.(() => {});
+            }
+        });
+
+        // Fullscreen exit button (en layout proyector)
+        document.getElementById('btn-fullscreen-exit').addEventListener('click', () => {
+            const normalLayout = document.getElementById('normal-layout');
+            const projectorLayout = document.getElementById('projector-layout');
+            
+            projectorLayout.classList.add('hidden');
+            projectorLayout.classList.remove('flex');
+            normalLayout.classList.remove('hidden');
+            document.exitFullscreen?.().catch?.(() => {});
+        });
+
+        // Spin button (proyector)
+        document.getElementById('btn-spin-projector').addEventListener('click', spinWheel);
+
+        // Reset button (proyector)
+        document.getElementById('btn-reset-projector').addEventListener('click', resetWheel);
+
+        // Escuchar cambios de fullscreen del navegador (ESC key, etc)
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                const normalLayout = document.getElementById('normal-layout');
+                const projectorLayout = document.getElementById('projector-layout');
+                if (!projectorLayout.classList.contains('hidden')) {
+                    projectorLayout.classList.add('hidden');
+                    projectorLayout.classList.remove('flex');
+                    normalLayout.classList.remove('hidden');
+                }
             }
         });
 
