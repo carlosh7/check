@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encuesta de Satisfacción - Check</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/styles.css?v=12.26.7">
+    <link rel="stylesheet" href="/modern.css?v=12.26.7">
     <script>
-        // Inicializar tema desde localStorage o preferencia del sistema
+        // Inicializar tema - compatible con modern.css
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,8 +19,11 @@
                 theme = 'dark';
             }
             
+            // modern.css usa clase .dark en cualquier elemento
             document.documentElement.classList.remove('dark', 'light');
-            document.documentElement.classList.add(theme);
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
             localStorage.setItem('theme', theme);
         })();
     </script>
