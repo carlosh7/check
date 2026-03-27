@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.8';
+const VERSION = '12.27.9';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -325,29 +325,57 @@ const App = window.App = {
 
     // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
     toggleSidebar() {
+        console.log('[SIDEBAR] toggleSidebar llamado');
         const sidebar = document.getElementById('global-sidebar');
-        if (!sidebar) return;
+        console.log('[SIDEBAR] sidebar element:', sidebar);
+        if (!sidebar) {
+            console.warn('[SIDEBAR] sidebar no encontrado!');
+            return;
+        }
         const isCollapsed = sidebar.classList.toggle('collapsed');
+        console.log('[SIDEBAR] isCollapsed después de toggle:', isCollapsed);
         LS.set('sidebarCollapsed', isCollapsed);
         
         // Cambiar icono del botón
         const btn = document.getElementById('btn-toggle-sidebar');
         if (btn) {
             const icon = btn.querySelector('.material-symbols-outlined');
-            if (icon) icon.textContent = isCollapsed ? 'menu' : 'menu_open';
+            if (icon) {
+                icon.textContent = isCollapsed ? 'menu' : 'menu_open';
+                console.log('[SIDEBAR] icono actualizado a:', icon.textContent);
+            }
         }
     },
 
     initSidebar() {
-        const isCollapsed = LS.get('sidebarCollapsed') === true;
+        console.log('[SIDEBAR] Inicializando sidebar...');
+        
+        // FORZAR sidebar expandido al inicio (temporalmente para debugging)
+        // const isCollapsed = LS.get('sidebarCollapsed') === true;
+        const isCollapsed = false; // Forzar expandido
+        console.log('[SIDEBAR] isCollapsed (forzado expandido):', isCollapsed);
+        
         if (isCollapsed) {
             const sidebar = document.getElementById('global-sidebar');
-            if (sidebar) sidebar.classList.add('collapsed');
+            console.log('[SIDEBAR] sidebar element:', sidebar);
+            if (sidebar) {
+                sidebar.classList.add('collapsed');
+                console.log('[SIDEBAR] sidebar colapsado');
+            }
             
             const btn = document.getElementById('btn-toggle-sidebar');
             if (btn) {
                 const icon = btn.querySelector('.material-symbols-outlined');
                 if (icon) icon.textContent = 'menu';
+                console.log('[SIDEBAR] botón actualizado a icono "menu"');
+            }
+        } else {
+            console.log('[SIDEBAR] sidebar NO colapsado (expandido)');
+            // Asegurarse de que NO tenga clase collapsed
+            const sidebar = document.getElementById('global-sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('collapsed');
+                console.log('[SIDEBAR] sidebar expandido (clase collapsed removida)');
             }
         }
     },
@@ -3606,6 +3634,9 @@ const App = window.App = {
                 console.log('[APP-SHELL] sidebar encontrado:', !!sidebar);
                 
                 this.initTheme();
+                this.initSidebar();
+                this.attachAppListeners(); // ¡IMPORTANTE! Configurar event listeners
+                console.log('[APP-SHELL] Listeners adjuntados correctamente');
             })
             .catch(e => console.error('[APP-SHELL] Error cargando app-shell:', e));
     },
@@ -3628,7 +3659,7 @@ const App = window.App = {
 
         // Actualizar tema después de cargar app-shell
         this.initTheme();
-        this.initSidebar();
+        // initSidebar() ya se llama en loadAppShell()
         
         // Navigation - Sidebar (Unified V12.6.0)
         cl('btn-toggle-sidebar', () => this.toggleSidebar());
@@ -4055,8 +4086,13 @@ const App = window.App = {
     },
 
     renderEventsGrid() {
+        console.log('[EVENTS] renderEventsGrid llamado, eventos:', this.state.events?.length || 0);
         const c = document.getElementById('events-list-container');
-        if (!c) return;
+        console.log('[EVENTS] events-list-container:', c);
+        if (!c) {
+            console.error('[EVENTS] ERROR: events-list-container no encontrado!');
+            return;
+        }
         c.innerHTML = this.state.events.map(ev => `
             <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
                 <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
