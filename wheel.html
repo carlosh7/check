@@ -114,9 +114,9 @@
                 <!-- Wheel Section -->
                 <div class="p-4 md:p-6 text-center flex flex-col items-center">
                     <div class="relative" style="width: 340px; height: 340px;">
-                        <!-- Puntero: TRIÁNGULO INVERTIDO para que la punta toque la ruleta -->
-                        <div id="pointer" class="absolute left-1/2 -translate-x-1/2 z-10" style="top: -34px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
-                            <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 35px solid #7c3aed;"></div>
+                        <!-- Puntero: A la DERECHA de la ruleta, apuntando hacia el centro -->
+                        <div id="pointer" class="absolute z-10" style="right: -30px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+                            <div style="width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-right: 35px solid #7c3aed;"></div>
                         </div>
                         <canvas id="wheel-canvas" width="340" height="340" class="mx-auto"></canvas>
                     </div>
@@ -197,9 +197,9 @@
                         <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
                     </button>
                     <div class="relative" style="width: 450px; height: 450px;">
-                        <!-- Puntero: TRIÁNGULO INVERTIDO para que la punta toque la ruleta -->
-                        <div id="pointer-projector" class="absolute left-1/2 -translate-x-1/2 z-10" style="top: -58px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
-                            <div style="width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 60px solid #7c3aed;"></div>
+                        <!-- Puntero: A la DERECHA de la ruleta, apuntando hacia el centro -->
+                        <div id="pointer-projector" class="absolute z-10" style="right: -45px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                            <div style="width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-right: 50px solid #7c3aed;"></div>
                         </div>
                         <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
                     </div>
@@ -252,58 +252,6 @@
         <!-- Firma FIJA en la parte inferior de la pantalla (1920x1080) -->
         <div class="fixed left-0 right-0 flex items-center justify-center" style="bottom: 0; height: 60px; z-index: 100;">
             <a href="/" class="text-white/50 hover:text-primary transition-colors text-sm tracking-wider">Powered by Smart Eventos</a>
-        </div>
-                    <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
-                </div>
-                <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-6" style="min-height: 70px;">
-                    <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
-                    GIRAR RULETA
-                </button>
-                <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
-            </div>
-
-            <!-- Panel derecho: Ganador y Ganadores anteriores -->
-            <div class="flex-1 max-w-lg ml-12 flex flex-col gap-6">
-                <!-- Ganador actual -->
-                <div id="winner-section-projector" class="glass-card rounded-3xl p-8 text-center bg-emerald-500/10 border border-emerald-500/30">
-                    <span class="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="material-symbols-outlined text-emerald-500 text-5xl">emoji_events</span>
-                    </span>
-                    <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
-                    <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
-                    <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
-                </div>
-
-                <!-- Lista de ganadores -->
-                <div id="winners-section-projector" class="glass-card rounded-3xl p-6 bg-amber-500/10 border border-amber-500/30">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-amber-400">emoji_events</span>
-                            Ganadores Anteriores
-                        </h4>
-                        <button id="btn-reset-projector" class="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold">
-                            <span class="material-symbols-outlined">restart_alt</span>
-                            Restablecer
-                        </button>
-                    </div>
-                    <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
-                    <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
-                        ¡No quedan más participantes!
-                    </p>
-                </div>
-
-                <!-- Info evento -->
-                <div class="text-center">
-                    <h2 id="wheel-name-projector" class="text-2xl font-black text-white mb-1"></h2>
-                    <h3 id="event-name-projector" class="text-lg font-bold text-primary"></h3>
-                    <p class="text-slate-500 text-sm mt-2"> Powered by Smart Eventos</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Firma FIJA en la parte inferior de la pantalla (fuera del layout proyector) -->
-        <div class="fixed bottom-0 left-0 right-0 text-center pb-4 z-[60]">
-            <a href="/" class="text-sm text-slate-600 hover:text-primary transition-colors">Powered by Smart Eventos</a>
         </div>
     </div>
 
@@ -449,9 +397,9 @@
                     document.getElementById('btn-spin-projector').disabled = false;
                     document.getElementById('spinning-text-projector').classList.add('hidden');
                     
-                    // Determine winner
+                    // Determine winner - Puntero está a la DERECHA (ángulo 0)
                     const arcSize = (2 * Math.PI) / participants.length;
-                    let angleUnderPointer = (-Math.PI/2 - currentRotation) % (2 * Math.PI);
+                    let angleUnderPointer = (-currentRotation) % (2 * Math.PI);
                     if (angleUnderPointer < 0) angleUnderPointer += 2 * Math.PI;
                     const winnerIndex = Math.floor(angleUnderPointer / arcSize) % participants.length;
                     
@@ -535,16 +483,26 @@
             participants = [...originalParticipants];
             winners = [];
             currentRotation = 0;
+            hasParticipated = false;
             
-            // Ocultar secciones - normal
+            // Ocultar secciones - normal y limpiar textos
             document.getElementById('winner-section').classList.add('hidden');
             document.getElementById('winners-section').classList.add('hidden');
             document.getElementById('no-more-participants').classList.add('hidden');
+            document.getElementById('winner-name').textContent = '';
+            document.getElementById('winners-list').innerHTML = '';
             
-            // Ocultar secciones - proyector
+            // Ocultar secciones - proyector y limpiar textos
             document.getElementById('winner-section-projector').classList.add('hidden');
             document.getElementById('winners-section-projector').classList.add('hidden');
             document.getElementById('no-more-participants-projector').classList.add('hidden');
+            document.getElementById('winner-name-projector').textContent = '';
+            document.getElementById('winners-list-projector').innerHTML = '';
+            
+            // Ocultar formulario lead capture y limpiar
+            document.getElementById('lead-form-section').classList.add('hidden');
+            document.getElementById('lead-success').classList.add('hidden');
+            document.getElementById('lead-form').reset();
             
             // Redibujar ruleta
             drawWheel(0);
