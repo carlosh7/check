@@ -57,8 +57,12 @@
             <!-- Wheel Section -->
             <div class="p-6 text-center">
                 <div class="relative inline-block mb-6">
-                    <canvas id="wheel-canvas" width="400" height="400"></canvas>
-                    <div id="pointer" class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-primary"></div>
+                    <!-- Puntero - posicionado FUERA del canvas apuntando hacia abajo -->
+                    <div id="pointer" class="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 z-10"
+                         style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                        <div class="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[40px] border-l-transparent border-r-transparent border-t-primary"></div>
+                    </div>
+                    <canvas id="wheel-canvas" width="400" height="400" class="mx-auto"></canvas>
                 </div>
 
                 <button id="btn-spin" class="btn-primary w-full py-4 text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform">
@@ -237,11 +241,15 @@
                     document.getElementById('spinning-text').classList.add('hidden');
                     
                     // Determine winner
-                    const pointerAngle = -90 * (Math.PI / 180);
-                    const normalizedRotation = currentRotation % (2 * Math.PI);
-                    const winnerIndex = Math.floor(((2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI)) / (2 * Math.PI / participants.length)) % participants.length;
+                    // El puntero está en -π/2 (arriba, las 12)
+                    // Después de rotación R, el segmento bajo el puntero:
+                    const arcSize = (2 * Math.PI) / participants.length;
+                    let angleUnderPointer = (-Math.PI/2 - currentRotation) % (2 * Math.PI);
+                    if (angleUnderPointer < 0) angleUnderPointer += 2 * Math.PI;
+                    const winnerIndex = Math.floor(angleUnderPointer / arcSize) % participants.length;
                     
                     const winner = participants[winnerIndex];
+                    console.log('Rotación final:', currentRotation, 'Ángulo bajo puntero:', angleUnderPointer, 'WinnerIndex:', winnerIndex, 'Ganador:', winner);
                     showWinner(winner);
                     recordSpin(winner);
                 }
