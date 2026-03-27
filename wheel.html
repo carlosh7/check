@@ -307,6 +307,10 @@
                     <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
                     <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
                     <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
+                    <button id="btn-save-projector" class="mt-4 px-6 py-3 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-2 font-bold text-sm mx-auto" onclick="saveResults()">
+                        <span class="material-symbols-outlined text-sm">save</span>
+                        Guardar Resultado
+                    </button>
                 </div>
 
                 <!-- Lista de ganadores -->
@@ -317,10 +321,6 @@
                             Ganadores Anteriores
                         </h4>
                         <div class="flex gap-2">
-                            <button id="btn-save-projector" class="px-3 py-2 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
-                                <span class="material-symbols-outlined text-sm">save</span>
-                                Guardar
-                            </button>
                             <button id="btn-reset-projector" class="px-3 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
                                 <span class="material-symbols-outlined text-sm">restart_alt</span>
                                 Restablecer
@@ -889,9 +889,6 @@ async function loadWheel() {
 
 // Reset button (proyector)
 document.getElementById('btn-reset-projector').addEventListener('click', resetWheel);
-
-// Save button (proyector) - guardar resultados
-document.getElementById('btn-save-projector').addEventListener('click', saveResults);
 
 // Escuchar cambios de fullscreen del navegador (ESC key, etc)
         document.addEventListener('fullscreenchange', () => {
