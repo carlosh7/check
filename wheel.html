@@ -307,7 +307,7 @@
         async function recordSpin(winner) {
             if (!wheelData?.id) return;
             try {
-                await fetch(`${API_URL}/wheels/${wheelData.id}/spin`, {
+                await fetch(`${API_URL}/events/wheels/${wheelData.id}/spin`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ winnerName: winner })
@@ -335,7 +335,7 @@
             }
 
             try {
-                const res = await fetch(`${API_URL}/wheels/${wheelId}/public`);
+                const res = await fetch(`${API_URL}/events/wheels/${wheelId}/public`);
                 if (!res.ok) throw new Error('Ruleta no encontrada');
 
                 wheelData = await res.json();
@@ -380,7 +380,7 @@
             };
 
             try {
-                const res = await fetch(`${API_URL}/wheels/${wheelData.id}/capture-lead`, {
+                const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/capture-lead`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
