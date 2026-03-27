@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.7';
+const VERSION = '12.27.8';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3179,15 +3179,32 @@ const App = window.App = {
         }
         
         if (viewName === 'login') {
+            console.log('[VIEW] Mostrando login, ocultando app-container');
             document.getElementById('view-login')?.classList.remove('hidden');
             if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex';
             document.getElementById('app-container')?.classList.add('hidden');
             if (clearSession) { window.LS.remove('user'); this.state.user = null; }
             return;
         } else {
-            document.getElementById('view-login')?.classList.add('hidden');
-            document.getElementById('app-container')?.classList.remove('hidden');
-            if (document.getElementById('app-container')) document.getElementById('app-container').style.display = 'flex';
+            console.log('[VIEW] Mostrando vista no-login, mostrando app-container');
+            const loginEl = document.getElementById('view-login');
+            const appContainer = document.getElementById('app-container');
+            
+            console.log('[VIEW] loginEl:', loginEl);
+            console.log('[VIEW] appContainer:', appContainer);
+            
+            if (loginEl) {
+                loginEl.classList.add('hidden');
+                console.log('[VIEW] Login ocultado');
+            }
+            
+            if (appContainer) {
+                appContainer.classList.remove('hidden');
+                appContainer.style.display = 'flex';
+                console.log('[VIEW] app-container mostrado');
+            } else {
+                console.error('[VIEW] ERROR: app-container no encontrado!');
+            }
         }
 
         // Ocultar todas las secciones del app-shell
@@ -3574,29 +3591,23 @@ const App = window.App = {
     
     // --- APP SHELL LOADER ---
     loadAppShell() {
-        return new Promise((resolve, reject) => {
-            console.log('[APP-SHELL] Cargando app-shell.html...');
-            fetch(`/html/app-shell.html?v=${this.state.version}`)
-                .then(res => res.text())
-                .then(html => {
-                    // Insertar app-shell OCULTO por defecto
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    const appContainer = tempDiv.querySelector('#app-container');
-                    if (appContainer) {
-                        appContainer.classList.add('hidden');
-                    }
-                    document.body.insertAdjacentHTML('beforeend', html);
-                    console.log('[APP-SHELL] app-shell.html cargado exitosamente (oculto)');
-                    // Re-inicializar listeners después de cargar
-                    this.attachAppListeners();
-                    resolve();
-                })
-                .catch(err => {
-                    console.error('[APP-SHELL] Error cargando app-shell:', err);
-                    reject(err);
-                });
-        });
+        console.log('[APP-SHELL] Cargando app-shell.html...');
+        return fetch('/html/app-shell.html')
+            .then(r => r.text())
+            .then(html => {
+                console.log('[APP-SHELL] HTML recibido, longitud:', html.length);
+                document.body.insertAdjacentHTML('beforeend', html);
+                console.log('[APP-SHELL] app-shell.html cargado exitosamente (oculto)');
+                
+                // Verificar que los elementos críticos existen
+                const appContainer = document.getElementById('app-container');
+                const sidebar = document.getElementById('global-sidebar');
+                console.log('[APP-SHELL] app-container encontrado:', !!appContainer);
+                console.log('[APP-SHELL] sidebar encontrado:', !!sidebar);
+                
+                this.initTheme();
+            })
+            .catch(e => console.error('[APP-SHELL] Error cargando app-shell:', e));
     },
     
     attachAppListeners() {

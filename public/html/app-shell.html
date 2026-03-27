@@ -179,6 +179,36 @@
                 </div>
             </section>
 
+            <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
+            <section id="view-my-events" class="hidden">
+                <div class="max-w-6xl mx-auto px-4 py-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-semibold tracking-tight mb-2">Mis Eventos</h1>
+                            <p class="text-[var(--text-secondary)]">Administra todos tus eventos desde un solo lugar</p>
+                        </div>
+                        <button id="btn-new-event-full" class="btn-primary !px-6 !py-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined">add</span>
+                            Nuevo Evento
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="events-list-container">
+                        <!-- Los eventos se cargarán aquí dinámicamente -->
+                        <div class="col-span-full text-center py-12">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary-light)] mb-4">
+                                <span class="material-symbols-outlined text-[var(--primary)] text-3xl">event</span>
+                            </div>
+                            <h3 class="text-lg font-medium mb-2">No hay eventos</h3>
+                            <p class="text-[var(--text-secondary)] mb-6">Crea tu primer evento para comenzar</p>
+                            <button id="btn-new-event-full-empty" class="btn-primary !px-5 !py-2.5">
+                                Crear Primer Evento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="hidden">
                 <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
@@ -1588,6 +1618,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.27.7">
-<link rel="stylesheet" href="/css/modern.css?v=12.27.7">
-<script type="module" src="/js/app.js?v=12.27.7"></script>
+<link rel="stylesheet" href="/css/styles.css?v=12.27.8">
+<link rel="stylesheet" href="/css/modern.css?v=12.27.8">
+<script type="module" src="/js/app.js?v=12.27.8"></script>
