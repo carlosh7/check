@@ -95,10 +95,10 @@
             align-items: center !important;
             justify-content: center !important;
         }
-        /* Contenedor de la ruleta - 1000x562px (lado más largo < 1080px) */
+        /* Contenedor de la ruleta - 800x800 (cuadrado, sin distorsión) */
         #projector-layout.projector-state-large #wheel-container-projector {
-            width: 1000px !important;
-            height: 562px !important;
+            width: 800px !important;
+            height: 800px !important;
         }
         #projector-layout.projector-state-large .projector-panels {
             display: none !important;
@@ -283,7 +283,7 @@
                     <div id="pointer-projector" class="absolute z-10" style="right: -60px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
                         <div style="width: 0; height: 0; border-top: 30px solid transparent; border-bottom: 30px solid transparent; border-right: 60px solid #7c3aed;"></div>
                     </div>
-                    <!-- Canvas - tamaño visual 100% del contenedor, resolución interna 1920x1080 -->
+                    <!-- Canvas 800x800 escalado al contenedor -->
                     <canvas id="wheel-canvas-projector" style="width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
@@ -382,14 +382,13 @@
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Canvas 1920x1080, el lado más largo del contenedor debe ser < 1080px
-            // aspect ratio 1.78, si width=1000px entonces height=562px
-            wheelContainer.style.width = '1000px';
-            wheelContainer.style.height = '562px';
-            wheelContainer.style.maxWidth = '1000px';
-            wheelContainer.style.maxHeight = '562px';
-            wheelCanvas.width = 1920;
-            wheelCanvas.height = 1080;
+            // Canvas 800x800, contenedor mismo tamaño - sin distorsión
+            wheelContainer.style.width = '800px';
+            wheelContainer.style.height = '800px';
+            wheelContainer.style.maxWidth = '800px';
+            wheelContainer.style.maxHeight = '800px';
+            wheelCanvas.width = 800;
+            wheelCanvas.height = 800;
             
             // Redibujar ruleta
             drawWheel(currentRotation);
@@ -404,13 +403,13 @@
             layout.classList.remove('projector-state-large');
             layout.classList.add('projector-state-small');
             
-            // Canvas 1920x1080, ruleta 700x700px
+            // Canvas 800x800, ruleta 700x700px
             wheelContainer.style.width = '700px';
             wheelContainer.style.height = '700px';
             wheelContainer.style.maxWidth = '700px';
             wheelContainer.style.maxHeight = '700px';
-            wheelCanvas.width = 1920;
-            wheelCanvas.height = 1080;
+            wheelCanvas.width = 800;
+            wheelCanvas.height = 800;
             
             // Redibujar ruleta
             drawWheel(currentRotation);
@@ -433,8 +432,8 @@
             const numParticipants = participants.length;
             const arcSize = (2 * Math.PI) / numParticipants;
             const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
-            // Canvas 1920x1080, ruleta tiene radio ~535px
-            const fontSize = targetCanvas.width >= 1900 ? 48 : (targetCanvas.width >= 800 ? 22 : 16);
+            // Canvas 800x800, font según estado
+            const fontSize = targetCanvas.width >= 700 ? 32 : 16;
 
             participants.forEach((name, i) => {
                 const startAngle = i * arcSize;
@@ -448,7 +447,7 @@
                 targetCtx.fillStyle = colors[i % colors.length];
                 targetCtx.fill();
                 targetCtx.strokeStyle = 'rgba(255,255,255,0.2)';
-                targetCtx.lineWidth = targetCanvas.width >= 1900 ? 6 : 2;
+                targetCtx.lineWidth = targetCanvas.width >= 700 ? 4 : 2;
                 targetCtx.stroke();
 
                 // Draw text
@@ -461,13 +460,13 @@
                 targetCtx.shadowBlur = 3;
                 
                 const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
-                const textOffset = targetCanvas.width >= 1900 ? 120 : (targetCanvas.width >= 800 ? 50 : 20);
+                const textOffset = targetCanvas.width >= 700 ? 80 : 20;
                 targetCtx.fillText(displayName, targetCanvas.width / 2 - textOffset, 5);
                 targetCtx.restore();
             });
 
-            // Center circle - ajustar según tamaño del canvas
-            const centerSize = targetCanvas.width >= 1900 ? 60 : (targetCanvas.width >= 800 ? 35 : 30);
+            // Center circle - ajustar según tamaño
+            const centerSize = targetCanvas.width >= 700 ? 50 : 30;
             targetCtx.beginPath();
             targetCtx.arc(0, 0, centerSize, 0, 2 * Math.PI);
             targetCtx.fillStyle = '#1e293b';
