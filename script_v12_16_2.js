@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.3';
+const VERSION = '12.22.4';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5614,40 +5614,40 @@ const App = window.App = {
             }
         });
 
-        if (!isConfirmed || !text) return;
+        if (!isConfirmed || !text) {
+            console.log('Modal cancelado o texto vacío', { isConfirmed, text });
+            return;
+        }
+
+        // Parsear datos
+        const lines = text.trim().split('\n').filter(l => l.trim());
+        const participants = lines.map(line => {
+            const parts = line.split(',').map(p => p.trim());
+            return {
+                name: parts[0] || '',
+                email: parts[1] || '',
+                phone: parts[2] || ''
+            };
+        }).filter(p => p.name);
+
+        if (participants.length === 0) {
+            this._notifyAction('Error', 'No se pudieron parsear los datos', 'error');
+            return;
+        }
+
+        console.log('Agregando participantes:', participants);
 
         try {
-            // Parsear datos
-            const lines = text.trim().split('\n').filter(l => l.trim());
-            const participants = lines.map(line => {
-                const parts = line.split(',').map(p => p.trim());
-                return {
-                    name: parts[0] || '',
-                    email: parts[1] || '',
-                    phone: parts[2] || ''
-                };
-            }).filter(p => p.name);
-
-            if (participants.length === 0) {
-                this._notifyAction('Error', 'No se pudieron parsear los datos', 'error');
-                return;
-            }
-
-            // Agregar todos los participantes en una sola llamada
-            try {
-                const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        participants: participants.map(p => ({ ...p, source: 'manual' }))
-                    })
-                });
-                
-                this._notifyAction('Éxito', `${participants.length} participantes agregados`, 'success');
-                await this.loadWheelParticipants(this.currentWheel.id);
-            } catch (e) {
-                console.error('Error adding manual participants:', e);
-                this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
-            }
+            const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    participants: participants.map(p => ({ ...p, source: 'manual' }))
+                })
+            });
+            
+            console.log('Resultado:', result);
+            this._notifyAction('Éxito', `${participants.length} participantes agregados`, 'success');
+            await this.loadWheelParticipants(this.currentWheel.id);
         } catch (e) {
             console.error('Error adding manual participants:', e);
             this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
