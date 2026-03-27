@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.2';
+const VERSION = '12.27.3';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -6881,7 +6881,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 0.6. INICIALIZAR TEMA OSCURO/CLARO
     App.initTheme();
 
-    // 0.7. CARGAR VERSIÓN DE LA APLICACIÓN (AUTOMÁTICO)
+    // 0.7. ESCUCHAR EVENTOS DE AUTENTICACIÓN
+    window.addEventListener('auth:unauthorized', () => {
+        console.log('[AUTH] Evento auth:unauthorized recibido, haciendo logout...');
+        App.logout();
+    });
+
+    // 0.8. CARGAR VERSIÓN DE LA APLICACIÓN (AUTOMÁTICO)
     App.loadAppVersion();
 
     // 1. RESTORE SESSION FIRST
