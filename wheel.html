@@ -18,6 +18,35 @@
         .btn-primary:hover { transform: scale(1.02); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         #wheel-canvas { max-width: 100%; height: auto; }
+        
+        /* Fullscreen mode - expand content */
+        :fullscreen #main-content {
+            padding: 2rem !important;
+        }
+        :fullscreen #main-content .glass-card {
+            max-width: 95vw !important;
+            width: 95vw !important;
+        }
+        :fullscreen #wheel-canvas {
+            width: 600px !important;
+            height: 600px !important;
+        }
+        :fullscreen .glass-card {
+            font-size: 1.1em;
+        }
+        
+        /* Webkit fullscreen support */
+        :-webkit-full-screen #main-content {
+            padding: 2rem !important;
+        }
+        :-webkit-full-screen #main-content .glass-card {
+            max-width: 95vw !important;
+            width: 95vw !important;
+        }
+        :-webkit-full-screen #wheel-canvas {
+            width: 600px !important;
+            height: 600px !important;
+        }
     </style>
     <script>
         (function() {
@@ -58,9 +87,9 @@
             <div class="p-6 text-center">
                 <div class="relative inline-block mb-6">
                     <!-- Puntero - posicionado FUERA del canvas apuntando hacia abajo -->
-                    <div id="pointer" class="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 z-10"
-                         style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
-                        <div class="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[40px] border-l-transparent border-r-transparent border-t-primary"></div>
+                    <div id="pointer" class="absolute -top-6 left-1/2 -translate-x-1/2 z-10"
+                         style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">
+                        <div style="width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-top: 50px solid #7c3aed;"></div>
                     </div>
                     <canvas id="wheel-canvas" width="400" height="400" class="mx-auto"></canvas>
                 </div>
@@ -108,7 +137,7 @@
 
             <!-- Footer -->
             <div class="px-6 pb-4 text-center">
-                <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors"> Powered by Check Pro</a>
+                <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors"> Powered by Smart Eventos</a>
             </div>
         </div>
     </div>
@@ -404,10 +433,25 @@
 
         // Fullscreen button
         document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            const btn = document.getElementById('btn-fullscreen');
+            const icon = btn.querySelector('span');
+            const canvas = document.getElementById('wheel-canvas');
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                document.documentElement.requestFullscreen().then(() => {
+                    icon.textContent = 'fullscreen_exit';
+                    // Increase canvas resolution for fullscreen quality
+                    canvas.width = 600;
+                    canvas.height = 600;
+                    setTimeout(() => drawWheel(currentRotation), 100);
+                }).catch(() => {});
             } else {
-                document.exitFullscreen();
+                document.exitFullscreen().then(() => {
+                    icon.textContent = 'fullscreen';
+                    // Restore canvas resolution
+                    canvas.width = 400;
+                    canvas.height = 400;
+                    setTimeout(() => drawWheel(currentRotation), 100);
+                }).catch(() => {});
             }
         });
 
