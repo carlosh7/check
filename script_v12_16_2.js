@@ -3329,8 +3329,10 @@ const App = window.App = {
                         if (navEventName) navEventName.textContent = event.name;
                     }
                     
-                    // Los datos se cargan al hacer clic en las pestañas
-                    // this.loadEventStaff(this.state.event.id);
+                    // Cargar pestaña activa guardada
+                    const activeTab = LS.get('active_config_tab') || 'staff';
+                    console.log('[NAV] Restoring active config tab:', activeTab);
+                    this.switchConfigTab(activeTab);
                 } else {
                     this.navigate('my-events');
                 }
