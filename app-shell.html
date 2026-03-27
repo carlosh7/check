@@ -584,7 +584,7 @@
                                 <span class="material-symbols-outlined text-[var(--primary)]">emoji_events</span>
                                 Resultados
                             </h3>
-                            <div id="wheel-results-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                            <div id="wheel-results-list" class="space-y-2 mb-4 min-h-20 max-h-96 overflow-y-auto transition-all duration-300">
                                 <p class="text-slate-500 text-sm">Cargando...</p>
                             </div>
                             <div class="flex gap-2">
@@ -1486,4 +1486,19 @@
 <!-- SCRIPTS & STYLES -->
 <link rel="stylesheet" href="/styles.css?v=12.26.3">
 <link rel="stylesheet" href="/modern.css?v=12.26.3">
+<style>
+    /* Estilos para resultados expandibles */
+    .result-item.expanded .winner-list {
+        max-height: 500px !important;
+        overflow-y: auto;
+    }
+    .result-item.expanded [onclick*="expand_more"] .material-symbols-outlined {
+        transform: rotate(180deg);
+    }
+    .result-item .winner-list {
+        max-height: 120px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+</style>
 <script type="module" src="/script_v12_16_2.js?v=12.26.3"></script>

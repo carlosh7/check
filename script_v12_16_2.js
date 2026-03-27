@@ -60,6 +60,8 @@ const App = window.App = {
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
 
     // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
+    _isPushingState: false,
+    _hasHandledInitialNav: false,
     
     _updateSidebarUI(viewId) {
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -3215,10 +3217,16 @@ const App = window.App = {
     navigate(viewName, params = {}, push = true) {
         console.log('[NAV] Navegando a:', viewName, params);
         
+        // Resetear bandera de navegación inicial cuando navegamos manualmente
+        if (viewName !== 'login') {
+            this._hasHandledInitialNav = true;
+        }
+        
         if (push) {
             this._isPushingState = true;
             let url = viewName === 'my-events' ? '/' : `/${viewName}`;
             if (viewName === 'admin' && params.id) url = `/admin/${params.id}`;
+            if (viewName === 'system' && params.tab) url = `/system/${params.tab}`;
             history.pushState({ view: viewName, params }, '', url);
             setTimeout(() => { this._isPushingState = false; }, 100);
         }
@@ -3338,51 +3346,121 @@ const App = window.App = {
     },
 
     initRouter() {
+        console.log('[ROUTER] initRouter called');
+        
+        // Resetear bandera cuando se inicializa el router
+        this._hasHandledInitialNav = false;
+        
         // Manejar navegación con el historial
         window.onpopstate = (e) => {
+            console.log('[ROUTER] onpopstate triggered', 'e.state:', e.state, 'this._isPushingState:', this._isPushingState);
+            
+            // Ignorar si estamos en medio de un pushState
             if (this._isPushingState) return;
             
+            // Si hay estado en el historial, usarlo
             if (e.state && e.state.view) {
+                console.log('[ROUTER] Navigating from history state:', e.state.view);
                 this.navigate(e.state.view, e.state.params || {}, false);
-            } else {
+            } 
+            // Solo llamar handleInitialNavigation si no tenemos estado Y la página acaba de cargar
+            else if (!this._hasHandledInitialNav) {
+                console.log('[ROUTER] No history state and initial nav not handled, calling handleInitialNavigation');
+                this.handleInitialNavigation();
+            }
+            // Si ya manejamos la navegación inicial pero no hay estado, usar la URL actual
+            else {
+                console.log('[ROUTER] Already handled initial nav, parsing current URL');
                 this.handleInitialNavigation();
             }
         };
+        
+        // Algunos navegadores disparan popstate al cargar la página
+        // Esperar un momento antes de permitir handleInitialNavigation desde popstate
+        setTimeout(() => {
+            console.log('[ROUTER] Router initialization complete');
+        }, 100);
     },
 
     handleInitialNavigation() {
+        // Evitar múltiples llamadas
+        if (this._hasHandledInitialNav) {
+            console.log('[ROUTER] handleInitialNavigation already called, skipping');
+            return;
+        }
+        
+        console.log('[ROUTER] handleInitialNavigation called');
+        console.log('[ROUTER] window.location.pathname:', window.location.pathname);
+        console.log('[ROUTER] history.state:', history.state);
+        
         const path = window.location.pathname;
         const parts = path.split('/').filter(p => p);
         
-        const view = parts[0] || 'my-events';
+        // Determinar la vista basada en la URL
+        let view = parts[0] || 'my-events';
         const params = {};
         
+        console.log('[ROUTER] Parsed view:', view, 'parts:', parts);
+        
+        // Manejar parámetros específicos de vista
         if (view === 'admin' && parts[1]) {
             params.id = parts[1];
         }
+        
+        if (view === 'system' && parts[1]) {
+            params.tab = parts[1];
+        }
+        
+        // Manejar rutas legacy con parámetros
+        if (view === 'groups' || view === 'legal' || view === 'account' || view === 'smtp') {
+            // Estas serán redirigidas más adelante
+        }
 
-        // Si es ADMIN y no hay vista específica, o es la raíz, redirigir a lo apropiado
+        // Verificar autenticación
         const user = this.state.user;
         if (!user) {
+            console.log('[ROUTER] No user, showing login');
             this.showView('login');
             return;
         }
 
+        // Si no hay tab especificado para system, usar el guardado
         if (view === 'system' && !params.tab) {
             params.tab = LS.get('active_system_tab') || 'users';
         }
 
-        if (view === 'my-events' || view === '' || view === 'index.html') {
-            const savedView = LS.get('active_view');
-            if (savedView && savedView !== 'login') {
-                 // Si hay una vista guardada, navegar a ella
-                 this.navigate(savedView, { tab: LS.get('active_system_tab') || 'users' }, false);
-            } else {
-                 this.navigate('my-events', {}, false);
-            }
-        } else {
-            this.navigate(view, params, false);
+        console.log('[ROUTER] Checking view:', view, 'savedView:', LS.get('active_view'));
+        
+        // Manejar redirecciones de compatibilidad
+        if (view === 'groups' || view === 'legal' || view === 'account' || view === 'smtp') {
+            console.log('[ROUTER] Redirecting legacy view:', view);
+            const tabMap = {
+                'groups': 'groups',
+                'legal': 'legal', 
+                'account': 'account',
+                'smtp': 'email'
+            };
+            this.navigate('system', { tab: tabMap[view] }, false);
+            this._hasHandledInitialNav = true;
+            return;
         }
+        
+        // Si estamos en la raíz o my-events, verificar si hay vista guardada
+        if (view === 'my-events') {
+            const savedView = LS.get('active_view');
+            if (savedView && savedView !== 'login' && savedView !== 'my-events') {
+                console.log('[ROUTER] Using saved view instead of my-events:', savedView);
+                // Navegar a la vista guardada
+                this.navigate(savedView, {}, false);
+                this._hasHandledInitialNav = true;
+                return;
+            }
+        }
+        
+        // Navegar a la vista determinada
+        console.log('[ROUTER] Navigating to view:', view, 'params:', params);
+        this.navigate(view, params, false);
+        this._hasHandledInitialNav = true;
     },
 
     // --- AUTH ---
@@ -5790,19 +5868,108 @@ const App = window.App = {
         
         container.innerHTML = results.map(r => {
             const winners = r.winners || [];
+            const showAll = winners.length <= 5; // Mostrar todos si son 5 o menos
+            const visibleWinners = showAll ? winners : winners.slice(0, 3);
+            const hiddenCount = winners.length - visibleWinners.length;
+            const resultId = `result-${r.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            
             return `
-                <div class="flex items-center justify-between p-3 bg-[var(--bg-hover)] rounded-lg">
-                    <div class="flex-1">
-                        <p class="font-bold text-sm">${r.name}</p>
-                        <p class="text-xs text-slate-500">${new Date(r.created_at).toLocaleString()}</p>
-                        <p class="text-xs text-emerald-400 mt-1">${winners.length} ganador(es)</p>
+                <div class="result-item p-3 bg-[var(--bg-hover)] rounded-lg" data-result-id="${r.id}">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex-1">
+                            <p class="font-bold text-sm">${r.name}</p>
+                            <p class="text-xs text-slate-500">${new Date(r.created_at).toLocaleString()}</p>
+                            <p class="text-xs text-emerald-400 mt-1">${winners.length} ganador(es)</p>
+                        </div>
+                        <button data-id="${r.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.deleteWheelResult('${r.id}')">
+                            <span class="material-symbols-outlined text-lg">delete</span>
+                        </button>
                     </div>
-                    <button data-id="${r.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.deleteWheelResult('${r.id}')">
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                    </button>
+                    
+                    <!-- Lista de ganadores -->
+                    <div class="winner-list mt-2 space-y-1" id="${resultId}-list">
+                        ${winners.map((winner, index) => `
+                            <div class="flex items-center gap-2 text-sm pl-2 ${index >= 3 && !showAll ? 'hidden' : ''}">
+                                <span class="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">${index + 1}</span>
+                                <span class="text-white break-words min-w-0">${winner}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${winners.length > 3 ? `
+                        <div class="mt-2 pt-2 border-t border-white/10">
+                            <button class="toggle-winners text-xs text-primary hover:underline flex items-center gap-1" 
+                                    onclick="App.toggleWinnersList('${resultId}')"
+                                    data-expanded="false">
+                                <span class="material-symbols-outlined text-sm transition-transform">expand_more</span>
+                                ${winners.length > 5 ? `Ver todos (${winners.length})` : 'Ver más'}
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }).join('');
+        
+        // Agregar event listeners para los botones de toggle
+        setTimeout(() => {
+            document.querySelectorAll('.toggle-winners').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const resultItem = this.closest('.result-item');
+                    const listId = this.getAttribute('onclick').match(/'([^']+)'/)[1] + '-list';
+                    const winnerList = document.getElementById(listId);
+                    const isExpanded = this.getAttribute('data-expanded') === 'true';
+                    
+                    if (isExpanded) {
+                        // Colapsar: mostrar solo primeros 3
+                        winnerList.querySelectorAll('.flex.items-center').forEach((item, index) => {
+                            if (index >= 3) item.classList.add('hidden');
+                        });
+                        this.querySelector('.material-symbols-outlined').style.transform = 'rotate(0deg)';
+                        this.setAttribute('data-expanded', 'false');
+                        this.innerHTML = this.innerHTML.replace('Ver menos', 'Ver más');
+                    } else {
+                        // Expandir: mostrar todos
+                        winnerList.querySelectorAll('.flex.items-center').forEach(item => {
+                            item.classList.remove('hidden');
+                        });
+                        this.querySelector('.material-symbols-outlined').style.transform = 'rotate(180deg)';
+                        this.setAttribute('data-expanded', 'true');
+                        this.innerHTML = this.innerHTML.replace('Ver más', 'Ver menos');
+                    }
+                });
+            });
+        }, 100);
+    },
+    
+    // Alternar visibilidad de lista de ganadores
+    toggleWinnersList(resultId) {
+        const listId = `${resultId}-list`;
+        const winnerList = document.getElementById(listId);
+        const toggleBtn = document.querySelector(`[onclick*="${resultId}"]`);
+        
+        if (!winnerList || !toggleBtn) return;
+        
+        const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true';
+        const icon = toggleBtn.querySelector('.material-symbols-outlined');
+        
+        if (isExpanded) {
+            // Colapsar: mostrar solo primeros 3
+            winnerList.querySelectorAll('.flex.items-center').forEach((item, index) => {
+                if (index >= 3) item.classList.add('hidden');
+            });
+            if (icon) icon.style.transform = 'rotate(0deg)';
+            toggleBtn.setAttribute('data-expanded', 'false');
+            toggleBtn.innerHTML = toggleBtn.innerHTML.replace('Ver menos', 'Ver más');
+        } else {
+            // Expandir: mostrar todos
+            winnerList.querySelectorAll('.flex.items-center').forEach(item => {
+                item.classList.remove('hidden');
+            });
+            if (icon) icon.style.transform = 'rotate(180deg)';
+            toggleBtn.setAttribute('data-expanded', 'true');
+            toggleBtn.innerHTML = toggleBtn.innerHTML.replace('Ver más', 'Ver menos');
+        }
     },
     
     // Eliminar un resultado
@@ -6679,8 +6846,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Cargar eventos inicialmente para tener la lista lista
                 await App.loadEvents();
                 
-                // Ruteo inteligente inicial
-                App.handleInitialNavigation();
+                // Ruteo inteligente inicial - SOLO si no hay estado en el historial
+                if (!history.state || !history.state.view) {
+                    console.log('[INIT] No history state, calling handleInitialNavigation');
+                    App.handleInitialNavigation();
+                } else {
+                    console.log('[INIT] History state exists, using it:', history.state);
+                    App.navigate(history.state.view, history.state.params || {}, false);
+                }
             } else {
                 console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');

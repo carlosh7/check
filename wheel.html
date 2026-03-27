@@ -237,7 +237,13 @@
                             </button>
                         </div>
                     </div>
-                    <div id="winners-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    <div id="winners-list" class="space-y-2 min-h-20 max-h-60 overflow-y-auto transition-all duration-300"></div>
+                    <div id="winners-controls" class="hidden mt-2 pt-2 border-t border-amber-500/20">
+                        <button id="btn-toggle-winners" class="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 mx-auto" onclick="toggleWinnersView()">
+                            <span class="material-symbols-outlined text-sm transition-transform">expand_more</span>
+                            Ver todos
+                        </button>
+                    </div>
                     <p id="no-more-participants" class="hidden text-center text-amber-400 text-sm mt-3 py-2">
                         ¡No quedan más participantes! Todos han ganado.
                     </p>
@@ -333,7 +339,13 @@
                             </button>
                         </div>
                     </div>
-                    <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                    <div id="winners-list-projector" class="space-y-3 min-h-20 max-h-80 overflow-y-auto transition-all duration-300"></div>
+                    <div id="winners-controls-projector" class="hidden mt-3 pt-3 border-t border-amber-500/30">
+                        <button id="btn-toggle-winners-projector" class="text-sm text-amber-400 hover:text-amber-300 flex items-center gap-1 mx-auto font-bold" onclick="toggleWinnersViewProjector()">
+                            <span class="material-symbols-outlined text-base transition-transform">expand_more</span>
+                            Ver todos
+                        </button>
+                    </div>
                     <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
                         ¡No quedan más participantes!
                     </p>
@@ -625,15 +637,32 @@
             winnersSectionP.classList.remove('hidden');
             
             const html = winners.map((w, i) => `
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="w-6 h-6 rounded-full bg-amber-500/30 flex items-center justify-center text-amber-400 text-xs font-bold">${i + 1}</span>
-                    <span class="text-white">${w}</span>
-                    <span class="text-emerald-400 text-xs">✓</span>
+                <div class="flex items-start gap-2 text-sm p-1 hover:bg-white/5 rounded">
+                    <span class="w-6 h-6 rounded-full bg-amber-500/30 flex items-center justify-center text-amber-400 text-xs font-bold shrink-0 mt-0.5">${i + 1}</span>
+                    <span class="text-white break-words min-w-0 flex-1">${w}</span>
+                    <span class="text-emerald-400 text-xs shrink-0 mt-0.5">✓</span>
                 </div>
             `).join('');
             
             winnersList.innerHTML = html;
             winnersListP.innerHTML = html;
+            
+            // Mostrar/ocultar controles de expansión
+            const winnersControls = document.getElementById('winners-controls');
+            const winnersControlsP = document.getElementById('winners-controls-projector');
+            
+            if (winners.length > 5) {
+                if (winnersControls) winnersControls.classList.remove('hidden');
+                if (winnersControlsP) winnersControlsP.classList.remove('hidden');
+                // Asegurar altura inicial
+                if (winnersList) winnersList.style.maxHeight = '15rem';
+                if (winnersListP) winnersListP.style.maxHeight = '20rem';
+            } else {
+                if (winnersControls) winnersControls.classList.add('hidden');
+                if (winnersControlsP) winnersControlsP.classList.add('hidden');
+                if (winnersList) winnersList.style.maxHeight = 'none';
+                if (winnersListP) winnersListP.style.maxHeight = 'none';
+            }
             
             // Mostrar mensaje si no quedan participantes
             if (participants.length === 0) {
@@ -642,6 +671,42 @@
             } else {
                 noMoreMsg.classList.add('hidden');
                 noMoreMsgP.classList.add('hidden');
+            }
+        }
+        
+        function toggleWinnersView() {
+            const winnersList = document.getElementById('winners-list');
+            const toggleBtn = document.getElementById('btn-toggle-winners');
+            const icon = toggleBtn.querySelector('.material-symbols-outlined');
+            
+            if (winnersList.style.maxHeight === 'none' || winnersList.style.maxHeight === '') {
+                // Expandir
+                winnersList.style.maxHeight = 'none';
+                icon.style.transform = 'rotate(180deg)';
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-sm transition-transform">expand_more</span> Ver menos';
+            } else {
+                // Colapsar
+                winnersList.style.maxHeight = '15rem';
+                icon.style.transform = 'rotate(0deg)';
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-sm transition-transform">expand_more</span> Ver todos';
+            }
+        }
+        
+        function toggleWinnersViewProjector() {
+            const winnersList = document.getElementById('winners-list-projector');
+            const toggleBtn = document.getElementById('btn-toggle-winners-projector');
+            const icon = toggleBtn.querySelector('.material-symbols-outlined');
+            
+            if (winnersList.style.maxHeight === 'none' || winnersList.style.maxHeight === '') {
+                // Expandir
+                winnersList.style.maxHeight = 'none';
+                icon.style.transform = 'rotate(180deg)';
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-base transition-transform">expand_more</span> Ver menos';
+            } else {
+                // Colapsar
+                winnersList.style.maxHeight = '20rem';
+                icon.style.transform = 'rotate(0deg)';
+                toggleBtn.innerHTML = '<span class="material-symbols-outlined text-base transition-transform">expand_more</span> Ver todos';
             }
         }
         
