@@ -133,12 +133,10 @@
                 return;
             }
             
-            // Cargar app.js con timestamp dinámico para evitar caché
-            const timestamp = new Date().getTime();
-            const random = Math.floor(Math.random() * 1000000);
+            // Cargar app.js con versión simple para evitar problemas de servidor
             const script = document.createElement('script');
             script.type = 'module';
-            script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}&r=${random}`;
+            script.src = `/js/app.js?v=${currentVersion}`;
             document.head.appendChild(script);
             
             // Guardar versión cargada para verificación futura
