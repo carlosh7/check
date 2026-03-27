@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.2';
+const VERSION = '12.22.3';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5418,6 +5418,11 @@ const App = window.App = {
             
             // Cargar participantes
             await this.loadWheelParticipants(wheelId);
+            
+            // Generar URL pública
+            const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
+            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
             
         } catch (e) {
             console.error('Error loading wheel:', e);
