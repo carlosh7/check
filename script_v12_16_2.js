@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.26.7';
+const VERSION = '12.26.8';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3563,8 +3563,15 @@ const App = window.App = {
             fetch(`/app-shell.html?v=${this.state.version}`)
                 .then(res => res.text())
                 .then(html => {
+                    // Insertar app-shell OCULTO por defecto
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const appContainer = tempDiv.querySelector('#app-container');
+                    if (appContainer) {
+                        appContainer.classList.add('hidden');
+                    }
                     document.body.insertAdjacentHTML('beforeend', html);
-                    console.log('[APP-SHELL] app-shell.html cargado exitosamente');
+                    console.log('[APP-SHELL] app-shell.html cargado exitosamente (oculto)');
                     // Re-inicializar listeners después de cargar
                     this.attachAppListeners();
                     resolve();
@@ -6896,7 +6903,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Notificaciones push deshabilitadas - solo se activan manualmente
                 // window.App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
                 
-                // CARGAR APP-SHELL PRIMERO
+                // OCULTAR LOGIN INMEDIATAMENTE (si está visible)
+                const loginEl = document.getElementById('view-login');
+                if (loginEl) { 
+                    loginEl.classList.add('hidden'); 
+                    loginEl.style.display = 'none'; 
+                    console.log('[AUTH] Login oculto inmediatamente');
+                }
+                
+                // CARGAR APP-SHELL
                 try {
                     await App.loadAppShell();
                 } catch(err) {
@@ -6910,10 +6925,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const sbr = document.getElementById('sidebar-role');
                 if (sbu) sbu.textContent = user.username || 'Usuario';
                 if (sbr) sbr.textContent = user.role || 'Staff';
-                
-                // Ocultar login, mostrar app
-                const loginEl = document.getElementById('view-login');
-                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
                 
                 if (user.role === 'ADMIN') {
                     App.updateUIPermissions();
