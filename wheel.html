@@ -226,10 +226,16 @@
                             <span class="material-symbols-outlined text-amber-400 text-lg">emoji_events</span>
                             Ganadores Anteriores
                         </h4>
-                        <button id="btn-reset" class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">restart_alt</span>
-                            Restablecer
-                        </button>
+                        <div class="flex gap-2">
+                            <button id="btn-save" onclick="saveResults()" class="text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">save</span>
+                                Guardar
+                            </button>
+                            <button id="btn-reset" class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                                Restablecer
+                            </button>
+                        </div>
                     </div>
                     <div id="winners-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
                     <p id="no-more-participants" class="hidden text-center text-amber-400 text-sm mt-3 py-2">
@@ -307,10 +313,6 @@
                     <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
                     <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
                     <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
-                    <button id="btn-save-projector" class="mt-4 px-6 py-3 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-2 font-bold text-sm mx-auto" onclick="saveResults()">
-                        <span class="material-symbols-outlined text-sm">save</span>
-                        Guardar Resultado
-                    </button>
                 </div>
 
                 <!-- Lista de ganadores -->
@@ -321,6 +323,10 @@
                             Ganadores Anteriores
                         </h4>
                         <div class="flex gap-2">
+                            <button id="btn-save-projector" onclick="saveResults()" class="px-3 py-2 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
+                                <span class="material-symbols-outlined text-sm">save</span>
+                                Guardar
+                            </button>
                             <button id="btn-reset-projector" class="px-3 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
                                 <span class="material-symbols-outlined text-sm">restart_alt</span>
                                 Restablecer
@@ -342,8 +348,8 @@
         </div>
 
         <!-- Firma FIJA en la parte inferior de la pantalla (1920x1080) -->
-        <div class="fixed left-0 right-0 flex items-center justify-center" style="bottom: 0; height: 60px; z-index: 100;">
-            <a href="/" class="text-white/50 hover:text-primary transition-colors text-sm tracking-wider">Powered by Smart Eventos</a>
+        <div class="fixed left-0 right-0 flex items-center justify-center" style="bottom: 0; height: 30px; z-index: 100;">
+            <a href="/" class="text-white/50 hover:text-primary transition-colors text-xs tracking-wider">Powered by Smart Eventos</a>
         </div>
     </div>
 
@@ -719,38 +725,37 @@
         }
 
         async function saveResults() {
-    if (!wheelData?.id || winners.length === 0) {
-        alert('No hay ganadores para guardar');
-        return;
-    }
-    
-    const name = prompt('Nombre del sorteo:', `Sorteo ${new Date().toLocaleDateString()}`);
-    if (!name) return;
-    
-    try {
-        const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/results`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: name,
-                winners: winners,
-                total_participants: originalParticipants.length,
-                notes: ''
-            })
-        });
-        
-        if (res.ok) {
-            alert('¡Resultados guardados!');
-        } else {
-            alert('Error al guardar');
+            if (!wheelData?.id || winners.length === 0) {
+                console.log('No hay ganadores para guardar');
+                return;
+            }
+            
+            // Guardar automáticamente con nombre = fecha/hora
+            const name = `Sorteo ${new Date().toLocaleString('es-ES')}`;
+            
+            try {
+                const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/results`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        winners: winners,
+                        total_participants: originalParticipants.length,
+                        notes: ''
+                    })
+                });
+                
+                if (res.ok) {
+                    console.log('¡Resultados guardados!');
+                } else {
+                    console.error('Error al guardar');
+                }
+            } catch (e) {
+                console.error('Error saving results:', e);
+            }
         }
-    } catch (e) {
-        console.error('Error saving results:', e);
-        alert('Error de conexión');
-    }
-}
 
-async function loadWheel() {
+        async function loadWheel() {
             const pathParts = window.location.pathname.split('/');
             // Expected path: /wheel/:wheelId/public or /:eventName/wheel/:wheelId/public
             let wheelId = null;
