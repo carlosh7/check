@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.26.8';
+const VERSION = '12.27.0';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3560,7 +3560,7 @@ const App = window.App = {
     loadAppShell() {
         return new Promise((resolve, reject) => {
             console.log('[APP-SHELL] Cargando app-shell.html...');
-            fetch(`/app-shell.html?v=${this.state.version}`)
+            fetch(`/html/app-shell.html?v=${this.state.version}`)
                 .then(res => res.text())
                 .then(html => {
                     // Insertar app-shell OCULTO por defecto

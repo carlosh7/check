@@ -536,10 +536,24 @@ app.use('/api/events', guestLimiter);
 app.use('/api/email', emailLimiter);
 
 // --- STATIC FILES ---
-app.use(express.static(path.join(__dirname, '/'), {
+// Servir archivos públicos desde la carpeta public/
+app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: 0,
     setHeaders: (res, reqPath) => {
         // No cachear HTML, JS ni CSS para desarrollo
+        if (reqPath.endsWith('.html') || reqPath.endsWith('.js') || reqPath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Surrogate-Control', 'no-store');
+        }
+    }
+}));
+
+// También servir archivos desde raíz para compatibilidad (rutas antiguas)
+app.use(express.static(path.join(__dirname, '/'), {
+    maxAge: 0,
+    setHeaders: (res, reqPath) => {
         if (reqPath.endsWith('.html') || reqPath.endsWith('.js') || reqPath.endsWith('.css')) {
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             res.setHeader('Pragma', 'no-cache');
@@ -579,20 +593,29 @@ registerRoutes(app);
 
 // --- SPA FALLBACK ---
 app.use((req, res, next) => {
-    if (req.path === '/registro.html') return res.sendFile(path.join(__dirname, 'registro.html'));
-    if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'survey.html'));
-    if (req.path === '/wheel.html') return res.sendFile(path.join(__dirname, 'wheel.html'));
+    // Rutas para archivos HTML en nueva estructura
+    if (req.path === '/registro.html') return res.sendFile(path.join(__dirname, 'public/html/pages/registro.html'));
+    if (req.path === '/survey.html') return res.sendFile(path.join(__dirname, 'public/html/pages/survey.html'));
+    if (req.path === '/wheel.html') return res.sendFile(path.join(__dirname, 'public/html/pages/wheel.html'));
+    if (req.path === '/ticket.html') return res.sendFile(path.join(__dirname, 'public/html/pages/ticket.html'));
+    if (req.path === '/toolbar_v16.html') return res.sendFile(path.join(__dirname, 'public/html/pages/toolbar_v16.html'));
+    if (req.path === '/app-shell.html') return res.sendFile(path.join(__dirname, 'public/html/app-shell.html'));
+    
+    // Ruta raíz (login)
+    if (req.path === '/' || req.path === '/index.html') {
+        return res.sendFile(path.join(__dirname, 'public/html/pages/login.html'));
+    }
     
     // Rutas públicas de ruleta: /wheel/:wheelId/public o /:eventName/wheel/:wheelId/public
     if ((req.path.startsWith('/wheel/') || req.path.match(/^\/[^/]+\/wheel\//)) && req.path.endsWith('/public')) {
-        return res.sendFile(path.join(__dirname, 'wheel.html'));
+        return res.sendFile(path.join(__dirname, 'public/html/pages/wheel.html'));
     }
     
-    // Solo servir index.html para rutas que no son API/social y que aceptan HTML
+    // Solo servir login.html para rutas que no son API/social y que aceptan HTML
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
         const accept = req.headers.accept || '';
         if (accept.includes('text/html')) {
-            return res.sendFile(path.join(__dirname, 'index.html'));
+            return res.sendFile(path.join(__dirname, 'public/html/pages/login.html'));
         }
     }
     next();

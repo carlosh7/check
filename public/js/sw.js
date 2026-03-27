@@ -1,10 +1,10 @@
-const CACHE_NAME = 'check-v12.16.2-cache';
+const CACHE_NAME = 'check-v12.26.8-cache';
 const assets = [
   '/',
-  '/index.html',
-  '/style_v12_16_2.css',
-  '/modern_v12_16_2.css',
-  '/script_v12_16_2.js',
+  '/html/pages/login.html',
+  '/css/styles.css',
+  '/css/modern.css',
+  '/js/app.js',
   '/manifest.json',
   '/socket.io/socket.io.js'
 ];
@@ -40,7 +40,7 @@ self.addEventListener('fetch', (e) => {
           
           // Fallback para HTML (navegación)
           if (e.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html');
+            return caches.match('/html/pages/login.html');
           }
           
           // Para otros recursos, devolver respuesta vacía válida

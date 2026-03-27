@@ -1,12 +1,12 @@
 {
   "name": "check",
-  "version": "12.26.8",
+  "version": "12.27.0",
   "description": "Sistema de gestión de invitados (Regla de Oro),para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.",
   "main": "script.js",
   "scripts": {
     "start": "node server.js",
-    "build:css": "npx postcss src/styles/main.css -o styles.css",
-    "watch:css": "npx postcss src/styles/main.css -o styles.css --watch",
+    "build:css": "npx postcss src/styles/main.css -o public/css/styles.css",
+    "watch:css": "npx postcss src/styles/main.css -o public/css/styles.css --watch",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch"
   },

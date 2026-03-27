@@ -4,7 +4,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.resolve(__dirname, 'check_app.db');
+const dbPath = path.resolve(__dirname, 'data/check_app.db');
 const db = new Database(dbPath);
 
 // Activar WAL mode para mejor rendimiento concurrente
