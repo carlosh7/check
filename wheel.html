@@ -95,90 +95,153 @@
     </div>
 
     <div id="main-content" class="hidden min-h-screen flex flex-col items-center justify-center p-4 py-8">
-        <div class="max-w-2xl w-full glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
-            <!-- Header -->
-            <div class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-6 text-center border-b border-white/5 relative">
-                <button id="btn-fullscreen" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors" title="Pantalla completa">
-                    <span class="material-symbols-outlined text-white/70">fullscreen</span>
-                </button>
-                <div class="w-14 h-14 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <span class="material-symbols-outlined text-primary text-2xl">casino</span>
-                </div>
-                <h2 id="wheel-name" class="text-xl font-black font-display mb-1">Ruleta de Sorteo</h2>
-                <h3 id="event-name" class="text-base font-bold text-primary"></h3>
-            </div>
-
-            <!-- Wheel Section -->
-            <div class="p-4 md:p-6 text-center flex flex-col items-center">
-                <div class="relative" style="width: 340px; height: 340px;">
-                    <!-- Puntero posicionado en el borde superior del canvas -->
-                    <div id="pointer" class="absolute z-10 left-1/2 -translate-x-1/2" style="top: -45px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
-                        <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 45px solid #7c3aed;"></div>
+        
+        <!-- CONTENIDO NORMAL (no fullscreen) -->
+        <div id="normal-layout" class="w-full max-w-2xl">
+            <div class="glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
+                <!-- Header -->
+                <div class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-6 text-center border-b border-white/5 relative">
+                    <button id="btn-fullscreen" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors" title="Pantalla completa">
+                        <span class="material-symbols-outlined text-white/70">fullscreen</span>
+                    </button>
+                    <div class="w-14 h-14 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <span class="material-symbols-outlined text-primary text-2xl">casino</span>
                     </div>
-                    <canvas id="wheel-canvas" width="340" height="340" class="mx-auto"></canvas>
+                    <h2 id="wheel-name" class="text-xl font-black font-display mb-1">Ruleta de Sorteo</h2>
+                    <h3 id="event-name" class="text-base font-bold text-primary"></h3>
                 </div>
 
-                <button id="btn-spin" class="btn-primary w-full py-3 md:py-4 text-base md:text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-4">
-                    <span class="material-symbols-outlined align-middle mr-2">rotate_right</span>
+                <!-- Wheel Section -->
+                <div class="p-4 md:p-6 text-center flex flex-col items-center">
+                    <div class="relative" style="width: 340px; height: 340px;">
+                        <div id="pointer" class="absolute z-10 left-1/2 -translate-x-1/2" style="top: -45px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+                            <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 45px solid #7c3aed;"></div>
+                        </div>
+                        <canvas id="wheel-canvas" width="340" height="340" class="mx-auto"></canvas>
+                    </div>
+
+                    <button id="btn-spin" class="btn-primary w-full py-3 md:py-4 text-base md:text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-4">
+                        <span class="material-symbols-outlined align-middle mr-2">rotate_right</span>
+                        GIRAR RULETA
+                    </button>
+
+                    <p id="spinning-text" class="text-slate-500 text-sm mt-3 hidden">La ruleta está girando...</p>
+                </div>
+
+                <!-- Winner Display -->
+                <div id="winner-section" class="hidden p-6 text-center bg-emerald-500/10 border-t border-emerald-500/20">
+                    <span class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-emerald-500 text-3xl">emoji_events</span>
+                    </span>
+                    <p class="text-emerald-400 font-bold text-lg mb-1">¡Felicidades!</p>
+                    <p id="winner-name" class="text-2xl font-black text-white mb-2"></p>
+                    <p class="text-slate-400 text-sm">Ha sido seleccionado como el ganador del sorteo</p>
+                </div>
+
+                <!-- Winners List -->
+                <div id="winners-section" class="hidden p-6 bg-amber-500/10 border-t border-amber-500/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400 text-lg">emoji_events</span>
+                            Ganadores Anteriores
+                        </h4>
+                        <button id="btn-reset" class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">restart_alt</span>
+                            Restablecer
+                        </button>
+                    </div>
+                    <div id="winners-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    <p id="no-more-participants" class="hidden text-center text-amber-400 text-sm mt-3 py-2">
+                        ¡No quedan más participantes! Todos han ganado.
+                    </p>
+                </div>
+
+                <!-- Lead Capture Form -->
+                <div id="lead-form-section" class="hidden p-6 border-t border-white/5">
+                    <h4 class="text-sm font-bold text-slate-400 mb-4 text-center">Ingresa tus datos para participar</h4>
+                    <form id="lead-form" class="space-y-3">
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">person</span>
+                            <input type="text" id="lead-name" required placeholder="Nombre completo *" class="input-field !pl-10 text-sm">
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">mail</span>
+                            <input type="email" id="lead-email" required placeholder="Correo electrónico *" class="input-field !pl-10 text-sm">
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">call</span>
+                            <input type="tel" id="lead-phone" placeholder="Teléfono (opcional)" class="input-field !pl-10 text-sm">
+                        </div>
+                        <button type="submit" class="btn-primary w-full py-3 text-sm font-bold">
+                            PARTICIPAR
+                        </button>
+                    </form>
+                    <p id="lead-success" class="hidden text-center text-emerald-400 text-sm mt-3">¡Datos guardados! Ahora puedes girar la ruleta.</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-6 pb-4 text-center">
+                    <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors"> Powered by Smart Eventos</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYOUT PROYECTOR (horizontal, para fullscreen) -->
+        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-8" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
+            <!-- Ruleta grande a la izquierda -->
+            <div class="flex-shrink-0 flex flex-col items-center" style="width: 500px;">
+                <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors" title="Salir de pantalla completa">
+                    <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
+                </button>
+                <div class="relative" style="width: 450px; height: 450px;">
+                    <div id="pointer-projector" class="absolute z-10 left-1/2 -translate-x-1/2" style="top: -50px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));">
+                        <div style="width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-top: 55px solid #7c3aed;"></div>
+                    </div>
+                    <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto"></canvas>
+                </div>
+                <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-6" style="min-height: 70px;">
+                    <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
                     GIRAR RULETA
                 </button>
-
-                <p id="spinning-text" class="text-slate-500 text-sm mt-3 hidden">La ruleta está girando...</p>
-
-            <!-- Winner Display -->
-            <div id="winner-section" class="hidden p-6 text-center bg-emerald-500/10 border-t border-emerald-500/20">
-                <span class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-emerald-500 text-3xl">emoji_events</span>
-                </span>
-                <p class="text-emerald-400 font-bold text-lg mb-1">¡Felicidades!</p>
-                <p id="winner-name" class="text-2xl font-black text-white mb-2"></p>
-                <p class="text-slate-400 text-sm">Ha sido seleccionado como el ganador del sorteo</p>
+                <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
             </div>
 
-            <!-- Winners List -->
-            <div id="winners-section" class="hidden p-6 bg-amber-500/10 border-t border-amber-500/20">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-amber-400 text-lg">emoji_events</span>
-                        Ganadores Anteriores
-                    </h4>
-                    <button id="btn-reset" class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">restart_alt</span>
-                        Restablecer
-                    </button>
+            <!-- Panel derecho: Ganador y Ganadores anteriores -->
+            <div class="flex-1 max-w-lg ml-12 flex flex-col gap-6">
+                <!-- Ganador actual -->
+                <div id="winner-section-projector" class="glass-card rounded-3xl p-8 text-center bg-emerald-500/10 border border-emerald-500/30">
+                    <span class="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="material-symbols-outlined text-emerald-500 text-5xl">emoji_events</span>
+                    </span>
+                    <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
+                    <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
+                    <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
                 </div>
-                <div id="winners-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
-                <p id="no-more-participants" class="hidden text-center text-amber-400 text-sm mt-3 py-2">
-                    ¡No quedan más participantes! Todos han ganado.
-                </p>
-            </div>
 
-            <!-- Lead Capture Form -->
-            <div id="lead-form-section" class="hidden p-6 border-t border-white/5">
-                <h4 class="text-sm font-bold text-slate-400 mb-4 text-center">Ingresa tus datos para participar</h4>
-                <form id="lead-form" class="space-y-3">
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">person</span>
-                        <input type="text" id="lead-name" required placeholder="Nombre completo *" class="input-field !pl-10 text-sm">
+                <!-- Lista de ganadores -->
+                <div id="winners-section-projector" class="glass-card rounded-3xl p-6 bg-amber-500/10 border border-amber-500/30">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">emoji_events</span>
+                            Ganadores Anteriores
+                        </h4>
+                        <button id="btn-reset-projector" class="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold">
+                            <span class="material-symbols-outlined">restart_alt</span>
+                            Restablecer
+                        </button>
                     </div>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">mail</span>
-                        <input type="email" id="lead-email" required placeholder="Correo electrónico *" class="input-field !pl-10 text-sm">
-                    </div>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-3.5 text-slate-500 text-sm">call</span>
-                        <input type="tel" id="lead-phone" placeholder="Teléfono (opcional)" class="input-field !pl-10 text-sm">
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-3 text-sm font-bold">
-                        PARTICIPAR
-                    </button>
-                </form>
-                <p id="lead-success" class="hidden text-center text-emerald-400 text-sm mt-3">¡Datos guardados! Ahora puedes girar la ruleta.</p>
-            </div>
+                    <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                    <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
+                        ¡No quedan más participantes!
+                    </p>
+                </div>
 
-            <!-- Footer -->
-            <div class="px-6 pb-4 text-center">
-                <a href="/" class="text-xs text-slate-600 hover:text-primary transition-colors"> Powered by Smart Eventos</a>
+                <!-- Info evento -->
+                <div class="text-center">
+                    <h2 id="wheel-name-projector" class="text-2xl font-black text-white mb-1"></h2>
+                    <h3 id="event-name-projector" class="text-lg font-bold text-primary"></h3>
+                    <p class="text-slate-500 text-sm mt-2"> Powered by Smart Eventos</p>
+                </div>
             </div>
         </div>
     </div>
@@ -204,9 +267,11 @@
         let currentRotation = 0;
         let hasParticipated = false;
 
-        // Canvas setup
+        // Canvas setup - referencia a ambos canvases
         const canvas = document.getElementById('wheel-canvas');
         const ctx = canvas.getContext('2d');
+        const canvasProjector = document.getElementById('wheel-canvas-projector');
+        const ctxProjector = canvasProjector.getContext('2d');
 
         function getWheelColors() {
             if (wheelData?.config?.visual?.wheel_colors) {
@@ -215,64 +280,68 @@
             return ['#FF6B6B', '#4ECDC4'];
         }
 
-        function drawWheel(rotation = 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(rotation);
+        function drawWheelOnContext(targetCtx, targetCanvas, rotation = 0) {
+            targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+            targetCtx.save();
+            targetCtx.translate(targetCanvas.width / 2, targetCanvas.height / 2);
+            targetCtx.rotate(rotation);
 
             const colors = getWheelColors();
             const numParticipants = participants.length;
             const arcSize = (2 * Math.PI) / numParticipants;
             const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
+            const fontSize = targetCanvas.width > 400 ? 16 : 14;
 
             participants.forEach((name, i) => {
                 const startAngle = i * arcSize;
                 const endAngle = (i + 1) * arcSize;
 
                 // Draw segment
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.arc(0, 0, canvas.width / 2 - 5, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = colors[i % colors.length];
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                targetCtx.beginPath();
+                targetCtx.moveTo(0, 0);
+                targetCtx.arc(0, 0, targetCanvas.width / 2 - 5, startAngle, endAngle);
+                targetCtx.closePath();
+                targetCtx.fillStyle = colors[i % colors.length];
+                targetCtx.fill();
+                targetCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+                targetCtx.lineWidth = 2;
+                targetCtx.stroke();
 
                 // Draw text
-                ctx.save();
-                ctx.rotate(startAngle + arcSize / 2);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = textColor;
-                ctx.font = 'bold 14px Plus Jakarta Sans';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 3;
+                targetCtx.save();
+                targetCtx.rotate(startAngle + arcSize / 2);
+                targetCtx.textAlign = 'right';
+                targetCtx.fillStyle = textColor;
+                targetCtx.font = `bold ${fontSize}px Plus Jakarta Sans`;
+                targetCtx.shadowColor = 'rgba(0,0,0,0.5)';
+                targetCtx.shadowBlur = 3;
                 
                 const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
-                ctx.fillText(displayName, canvas.width / 2 - 20, 5);
-                ctx.restore();
+                targetCtx.fillText(displayName, targetCanvas.width / 2 - 20, 5);
+                targetCtx.restore();
             });
 
             // Center circle
-            ctx.beginPath();
-            ctx.arc(0, 0, 30, 0, 2 * Math.PI);
-            ctx.fillStyle = '#1e293b';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            const centerSize = targetCanvas.width > 400 ? 35 : 30;
+            targetCtx.beginPath();
+            targetCtx.arc(0, 0, centerSize, 0, 2 * Math.PI);
+            targetCtx.fillStyle = '#1e293b';
+            targetCtx.fill();
+            targetCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            targetCtx.lineWidth = 3;
+            targetCtx.stroke();
 
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, 2 * Math.PI);
-            ctx.fillStyle = '#7c3aed';
-            ctx.fill();
+            targetCtx.beginPath();
+            targetCtx.arc(0, 0, centerSize / 2, 0, 2 * Math.PI);
+            targetCtx.fillStyle = '#7c3aed';
+            targetCtx.fill();
 
-            ctx.restore();
-            
-            // Posicionar puntero en la parte superior del canvas, centrado
+            targetCtx.restore();
+        }
 
+        function drawWheel(rotation = 0) {
+            drawWheelOnContext(ctx, canvas, rotation);
+            drawWheelOnContext(ctxProjector, canvasProjector, rotation);
         }
         
         function spinWheel() {
@@ -289,6 +358,8 @@
             isSpinning = true;
             document.getElementById('btn-spin').disabled = true;
             document.getElementById('spinning-text').classList.remove('hidden');
+            document.getElementById('btn-spin-projector').disabled = true;
+            document.getElementById('spinning-text-projector').classList.remove('hidden');
 
             // Calculate random rotation
             const spinDuration = 4000 + Math.random() * 2000;
@@ -314,10 +385,10 @@
                     isSpinning = false;
                     document.getElementById('btn-spin').disabled = false;
                     document.getElementById('spinning-text').classList.add('hidden');
+                    document.getElementById('btn-spin-projector').disabled = false;
+                    document.getElementById('spinning-text-projector').classList.add('hidden');
                     
                     // Determine winner
-                    // El puntero está en -π/2 (arriba, las 12)
-                    // Después de rotación R, el segmento bajo el puntero:
                     const arcSize = (2 * Math.PI) / participants.length;
                     let angleUnderPointer = (-Math.PI/2 - currentRotation) % (2 * Math.PI);
                     if (angleUnderPointer < 0) angleUnderPointer += 2 * Math.PI;
@@ -335,8 +406,12 @@
 
         function showWinner(winner) {
             const winnerSection = document.getElementById('winner-section');
+            const winnerSectionProjector = document.getElementById('winner-section-projector');
+            
             document.getElementById('winner-name').textContent = winner;
+            document.getElementById('winner-name-projector').textContent = winner;
             winnerSection.classList.remove('hidden');
+            winnerSectionProjector.classList.remove('hidden');
             
             // Agregar a winners y remover de participants
             winners.push(winner);
@@ -359,13 +434,21 @@
             const winnersList = document.getElementById('winners-list');
             const noMoreMsg = document.getElementById('no-more-participants');
             
+            // Proyector
+            const winnersSectionP = document.getElementById('winners-section-projector');
+            const winnersListP = document.getElementById('winners-list-projector');
+            const noMoreMsgP = document.getElementById('no-more-participants-projector');
+            
             if (winners.length === 0) {
                 winnersSection.classList.add('hidden');
+                winnersSectionP.classList.add('hidden');
                 return;
             }
             
             winnersSection.classList.remove('hidden');
-            winnersList.innerHTML = winners.map((w, i) => `
+            winnersSectionP.classList.remove('hidden');
+            
+            const html = winners.map((w, i) => `
                 <div class="flex items-center gap-2 text-sm">
                     <span class="w-6 h-6 rounded-full bg-amber-500/30 flex items-center justify-center text-amber-400 text-xs font-bold">${i + 1}</span>
                     <span class="text-white">${w}</span>
@@ -373,11 +456,16 @@
                 </div>
             `).join('');
             
+            winnersList.innerHTML = html;
+            winnersListP.innerHTML = html;
+            
             // Mostrar mensaje si no quedan participantes
             if (participants.length === 0) {
                 noMoreMsg.classList.remove('hidden');
+                noMoreMsgP.classList.remove('hidden');
             } else {
                 noMoreMsg.classList.add('hidden');
+                noMoreMsgP.classList.add('hidden');
             }
         }
         
@@ -387,14 +475,18 @@
             winners = [];
             currentRotation = 0;
             
-            // Ocultar secciones
+            // Ocultar secciones - normal
             document.getElementById('winner-section').classList.add('hidden');
             document.getElementById('winners-section').classList.add('hidden');
             document.getElementById('no-more-participants').classList.add('hidden');
             
+            // Ocultar secciones - proyector
+            document.getElementById('winner-section-projector').classList.add('hidden');
+            document.getElementById('winners-section-projector').classList.add('hidden');
+            document.getElementById('no-more-participants-projector').classList.add('hidden');
+            
             // Redibujar ruleta
             drawWheel(0);
-
         }
 
         function createConfetti() {
