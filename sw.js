@@ -27,27 +27,26 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Ignorar peticiones a la API para no cachear datos dinámicos erróneamente
+  // Ignorar peticiones a la API
   if (e.request.url.includes('/api/')) {
     return;
   }
 
   e.respondWith(
-    fetch(e.request).catch(() => {
-      return caches.match(e.request).then((response) => {
-        if (response) return response;
-        
-        // Fallback para cuando no hay red ni caché
-        if (e.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/index.html');
-        }
-        
-        return new Response('Network error', {
-          status: 408,
-          statusText: 'Network error'
+    fetch(e.request)
+      .catch(() => {
+        return caches.match(e.request).then((response) => {
+          if (response) return response;
+          
+          // Fallback para HTML (navegación)
+          if (e.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/index.html');
+          }
+          
+          // Para otros recursos, devolver respuesta vacía válida
+          return new Response('', { status: 200 });
         });
-      });
-    })
+      })
   );
 });
 
