@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.28.8';
+const VERSION = '12.28.9';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3709,6 +3709,8 @@ const App = window.App = {
         cl('config-nav-email', () => window.App.switchConfigTab('email'));
         cl('config-nav-agenda', () => window.App.switchConfigTab('agenda'));
         cl('config-nav-wheel', () => window.App.switchConfigTab('wheel'));
+        cl('config-nav-pre-registrations', () => window.App.switchConfigTab('pre-registrations'));
+        cl('config-nav-surveys', () => window.App.switchConfigTab('surveys'));
         cl('config-nav-settings', () => window.App.switchConfigTab('settings'));
         cl('btn-cancel-event-settings', () => {
             // Recargar los datos del evento para descartar cambios
@@ -5463,7 +5465,7 @@ const App = window.App = {
     // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
         console.log('[CONFIG] Switching to tab:', tabName, 'current event:', this.state.event?.id);
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-settings'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -5497,6 +5499,8 @@ const App = window.App = {
         if (tabName === 'email') this.loadConfigEmail();
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheels();
+        if (tabName === 'pre-registrations') this.loadPreRegistrations();
+        if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'settings') this.loadConfigSettings();
     },
     
@@ -5593,6 +5597,48 @@ const App = window.App = {
         
         // Actualizar vista previa QR
         this.updateQRPreview();
+    },
+
+    // Cargar pre-registros
+    loadPreRegistrations() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        console.log('[CONFIG] Loading pre-registrations for event:', eventId);
+        // TODO: Implementar carga de pre-registros desde API
+        document.getElementById('pre-reg-tbody').innerHTML = `
+            <tr>
+                <td colspan="5" class="px-5 py-8 text-center text-[var(--text-secondary)]">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--primary-light)] mb-3">
+                        <span class="material-symbols-outlined text-[var(--primary)] text-2xl">how_to_reg</span>
+                    </div>
+                    <h4 class="text-lg font-medium mb-2">No hay pre-registros</h4>
+                    <p class="text-sm mb-4">Importa una lista de invitados para comenzar</p>
+                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">📥 Importar Lista</button>
+                </td>
+            </tr>
+        `;
+    },
+
+    // Cargar encuestas QR
+    loadSurveys() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        console.log('[CONFIG] Loading surveys for event:', eventId);
+        // TODO: Implementar carga de encuestas desde API
+        document.getElementById('survey-tbody').innerHTML = `
+            <tr>
+                <td colspan="5" class="px-5 py-8 text-center text-[var(--text-secondary)]">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--primary-light)] mb-3">
+                        <span class="material-symbols-outlined text-[var(--primary)] text-2xl">poll</span>
+                    </div>
+                    <h4 class="text-lg font-medium mb-2">No hay encuestas</h4>
+                    <p class="text-sm mb-4">Crea tu primera encuesta con código QR</p>
+                    <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">➕ Nueva Encuesta</button>
+                </td>
+            </tr>
+        `;
     },
 
     // ==================== RULETA DE SORTEOS (FASE 1) ====================
