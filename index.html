@@ -115,16 +115,30 @@
             if (expectedVersion && expectedVersion !== currentVersion) {
                 console.warn(`[CACHE FIX] Versión esperada ${expectedVersion} ≠ actual ${currentVersion}, forzando recarga...`);
                 localStorage.removeItem('check_expected_version'); // Limpiar
+                localStorage.removeItem('check_loaded_version'); // Limpiar versión cargada
+                localStorage.removeItem('user'); // Limpiar sesión si existe
                 const timestamp = new Date().getTime();
                 window.location.href = `/?force_reload=${timestamp}&v=${currentVersion}`;
                 return;
             }
             
+            // Limpieza adicional: si la versión cargada anteriormente es antigua, limpiar todo
+            const loadedVersion = localStorage.getItem('check_loaded_version');
+            if (loadedVersion && loadedVersion < '12.28.18') {
+                console.warn(`[CACHE CLEAN] Versión anterior ${loadedVersion} es antigua, limpiando caché...`);
+                localStorage.clear();
+                sessionStorage.clear();
+                const timestamp = new Date().getTime();
+                window.location.href = `/?clean_all=${timestamp}&v=${currentVersion}`;
+                return;
+            }
+            
             // Cargar app.js con timestamp dinámico para evitar caché
             const timestamp = new Date().getTime();
+            const random = Math.floor(Math.random() * 1000000);
             const script = document.createElement('script');
             script.type = 'module';
-            script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}`;
+            script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}&r=${random}`;
             document.head.appendChild(script);
             
             // Guardar versión cargada para verificación futura
