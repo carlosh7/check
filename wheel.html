@@ -77,43 +77,78 @@
            PROYECTOR LAYOUT - ESTADOS
            ======================================== */
         
-        /* Estado: Ruleta Grande (inicial / girando) - OCUPA TODA LA PANTALLA */
-        #projector-layout.projector-state-large .projector-wheel-container {
+        /* LAYOUT BASE - Toda la pantalla es área de trabajo 1920x1080 */
+        #projector-layout {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+        
+        /* Estado: Ruleta Grande (inicial / girando) - RUEDA CENTRADA, BOTÓN EN ESQUINA */
+        #projector-layout.projector-state-large .projector-wheel-wrapper {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 100% !important;
             height: 100% !important;
-            flex-direction: column !important;
-        }
-        #projector-layout.projector-state-large .projector-wheel-wrapper {
-            flex: 1 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: 100% !important;
         }
-        /* El contenedor del canvas ya tiene los estilos inline para el tamaño */
+        /* Contenedor de la ruleta - centrado en el área de trabajo */
+        #projector-layout.projector-state-large #wheel-container-projector {
+            width: min(90vh, 1600px) !important;
+            height: min(90vh, 900px) !important;
+        }
         #projector-layout.projector-state-large .projector-panels {
             display: none !important;
         }
+        /* Botón GIRAR en esquina inferior derecha */
         #projector-layout.projector-state-large .projector-wheel-footer {
-            padding-bottom: 80px !important;
+            position: absolute !important;
+            bottom: 60px !important;
+            right: 60px !important;
+            padding: 0 !important;
         }
         
-        /* Estado: Ruleta Tamaño Normal (hay winner) - 450px como antes */
-        #projector-layout.projector-state-small .projector-wheel-container {
+        /* Estado: Ruleta Tamaño Normal (hay winner) - 700px con paneles */
+        #projector-layout.projector-state-small .projector-wheel-wrapper {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 50% !important;
             height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #projector-layout.projector-state-small #wheel-container-projector {
+            width: 700px !important;
+            height: 700px !important;
         }
         #projector-layout.projector-state-small .projector-panels {
-            display: flex !important;
+            position: absolute !important;
+            right: 0 !important;
+            top: 0 !important;
             width: 50% !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding: 20px !important;
         }
+        /* Botón debajo de ruleta en estado small */
         #projector-layout.projector-state-small .projector-wheel-footer {
-            padding-bottom: 0 !important;
+            position: absolute !important;
+            bottom: 20px !important;
+            left: 25% !important;
+            transform: translateX(-50%) !important;
+            padding: 0 !important;
         }
         
         /* Transiciones suaves */
-        .projector-wheel-container,
-        .projector-panels {
+        .projector-wheel-wrapper,
+        .projector-panels,
+        .projector-wheel-footer {
             transition: all 0.5s ease-in-out;
         }
     </style>
@@ -231,38 +266,34 @@
             </div>
         </div>
 
-        <!-- LAYOUT PROYECTOR (horizontal, para fullscreen) -->
-        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center projector-state-large" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
+        <!-- LAYOUT PROYECTOR (área de trabajo 1920x1080) -->
+        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 projector-state-large" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
             
             <!-- Botón salir fullscreen -->
-            <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-20" title="Salir de pantalla completa">
+            <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-30" title="Salir de pantalla completa">
                 <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
             </button>
             
-            <!-- Contenedor de Ruleta y Botón -->
-            <div class="projector-wheel-container flex flex-col items-center justify-center relative" style="width: 100%; height: 100%;">
-                
-                <!-- Wrapper que centra la ruleta (visible en estado large) -->
-                <div class="projector-wheel-wrapper flex items-center justify-center" style="width: 100%; flex: 1;">
-                    <!-- Contenedor centrado del canvas -->
-                    <div id="wheel-container-projector" class="relative" style="width: min(85vh, 85vw); height: min(85vh, 85vw); max-width: 800px; max-height: 800px;">
-                        <!-- Puntero: A la DERECHA, tocando la tangente -->
-                        <div id="pointer-projector" class="absolute z-10" style="right: -50px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
-                            <div style="width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-right: 50px solid #7c3aed;"></div>
-                        </div>
-                        <!-- Canvas centrado -->
-                        <canvas id="wheel-canvas-projector" width="800" height="800" class="absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
+            <!-- WRAPPER QUE CENTRA LA RULETA -OCUPA TODA LA PANTALLA -->
+            <div class="projector-wheel-wrapper">
+                <!-- Contenedor del canvas 1920x1080 escalado -->
+                <div id="wheel-container-projector" class="relative" style="width: min(90vh, 1600px); height: min(90vh, 900px);">
+                    <!-- Puntero: A la DERECHA, tocando la tangente -->
+                    <div id="pointer-projector" class="absolute z-10" style="right: -60px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                        <div style="width: 0; height: 0; border-top: 30px solid transparent; border-bottom: 30px solid transparent; border-right: 60px solid #7c3aed;"></div>
                     </div>
+                    <!-- Canvas 1920x1080 centrado -->
+                    <canvas id="wheel-canvas-projector" width="1920" height="1080" class="absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
                 </div>
-                
-                <!-- Botón y texto (abajo de la ruleta) -->
-                <div class="projector-wheel-footer" style="padding-bottom: 80px;">
-                    <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform" style="min-height: 70px; min-width: 300px;">
-                        <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
-                        GIRAR RULETA
-                    </button>
-                    <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
-                </div>
+            </div>
+            
+            <!-- BOTÓN GIRAR (posicionado según el estado) -->
+            <div class="projector-wheel-footer">
+                <button id="btn-spin-projector" class="btn-primary py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform" style="min-height: 70px; min-width: 300px;">
+                    <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
+                    GIRAR RULETA
+                </button>
+                <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
             </div>
 
             <!-- Paneles de Felicidades y Ganadores (ocultos inicialmente) -->
@@ -350,13 +381,13 @@
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Canvas y contenedor para estado grande
-            wheelContainer.style.width = 'min(85vh, 85vw)';
-            wheelContainer.style.height = 'min(85vh, 85vw)';
-            wheelContainer.style.maxWidth = '800px';
-            wheelContainer.style.maxHeight = '800px';
-            wheelCanvas.width = 800;
-            wheelCanvas.height = 800;
+            // Canvas 1920x1080, contenedor escala a 90vh o 1600px
+            wheelContainer.style.width = 'min(90vh, 1600px)';
+            wheelContainer.style.height = 'min(90vh, 900px)';
+            wheelContainer.style.maxWidth = '1600px';
+            wheelContainer.style.maxHeight = '900px';
+            wheelCanvas.width = 1920;
+            wheelCanvas.height = 1080;
             
             // Redibujar ruleta
             drawWheel(currentRotation);
@@ -371,32 +402,13 @@
             layout.classList.remove('projector-state-large');
             layout.classList.add('projector-state-small');
             
-            // Canvas y contenedor 450px (tamaño original)
-            wheelContainer.style.width = '450px';
-            wheelContainer.style.height = '450px';
-            wheelContainer.style.maxWidth = '450px';
-            wheelContainer.style.maxHeight = '450px';
-            wheelCanvas.width = 450;
-            wheelCanvas.height = 450;
-            
-            // Redibujar ruleta
-            drawWheel(currentRotation);
-        }
-        
-        function setProjectorStateSmall() {
-            projectorState = 'small';
-            const layout = document.getElementById('projector-layout');
-            const wheelCanvas = document.getElementById('wheel-canvas-projector');
-            const pointer = document.getElementById('pointer-projector');
-            
-            layout.classList.remove('projector-state-large');
-            layout.classList.add('projector-state-small');
-            
-            // Canvas 450px (tamaño original)
-            wheelCanvas.width = 450;
-            wheelCanvas.height = 450;
-            pointer.classList.remove('projector-pointer-large');
-            pointer.classList.add('projector-pointer-small');
+            // Canvas 1920x1080, ruleta 700x700px
+            wheelContainer.style.width = '700px';
+            wheelContainer.style.height = '700px';
+            wheelContainer.style.maxWidth = '700px';
+            wheelContainer.style.maxHeight = '700px';
+            wheelCanvas.width = 1920;
+            wheelCanvas.height = 1080;
             
             // Redibujar ruleta
             drawWheel(currentRotation);
@@ -419,7 +431,8 @@
             const numParticipants = participants.length;
             const arcSize = (2 * Math.PI) / numParticipants;
             const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
-            const fontSize = targetCanvas.width >= 800 ? 22 : (targetCanvas.width > 400 ? 16 : 14);
+            // Canvas 1920x1080, ruleta tiene radio ~535px
+            const fontSize = targetCanvas.width >= 1900 ? 48 : (targetCanvas.width >= 800 ? 22 : 16);
 
             participants.forEach((name, i) => {
                 const startAngle = i * arcSize;
@@ -433,7 +446,7 @@
                 targetCtx.fillStyle = colors[i % colors.length];
                 targetCtx.fill();
                 targetCtx.strokeStyle = 'rgba(255,255,255,0.2)';
-                targetCtx.lineWidth = 2;
+                targetCtx.lineWidth = targetCanvas.width >= 1900 ? 6 : 2;
                 targetCtx.stroke();
 
                 // Draw text
@@ -446,12 +459,13 @@
                 targetCtx.shadowBlur = 3;
                 
                 const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
-                targetCtx.fillText(displayName, targetCanvas.width / 2 - 20, 5);
+                const textOffset = targetCanvas.width >= 1900 ? 120 : (targetCanvas.width >= 800 ? 50 : 20);
+                targetCtx.fillText(displayName, targetCanvas.width / 2 - textOffset, 5);
                 targetCtx.restore();
             });
 
-            // Center circle
-            const centerSize = targetCanvas.width > 400 ? 35 : 30;
+            // Center circle - ajustar según tamaño del canvas
+            const centerSize = targetCanvas.width >= 1900 ? 60 : (targetCanvas.width >= 800 ? 35 : 30);
             targetCtx.beginPath();
             targetCtx.arc(0, 0, centerSize, 0, 2 * Math.PI);
             targetCtx.fillStyle = '#1e293b';
