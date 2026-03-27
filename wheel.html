@@ -90,15 +90,7 @@
             justify-content: center !important;
             width: 100% !important;
         }
-        #projector-layout.projector-state-large #wheel-canvas-projector {
-            width: min(85vh, 85vw) !important;
-            height: min(85vh, 85vw) !important;
-            max-width: 800px !important;
-            max-height: 800px !important;
-        }
-        #projector-layout.projector-state-large .projector-pointer-large {
-            right: calc(min(85vh, 85vw) / 2 - 45px) !important;
-        }
+        /* El contenedor del canvas ya tiene los estilos inline para el tamaño */
         #projector-layout.projector-state-large .projector-panels {
             display: none !important;
         }
@@ -111,13 +103,6 @@
             width: 50% !important;
             height: 100% !important;
         }
-        #projector-layout.projector-state-small #wheel-canvas-projector {
-            width: 450px !important;
-            height: 450px !important;
-        }
-        #projector-layout.projector-state-small .projector-pointer-small {
-            right: -45px !important;
-        }
         #projector-layout.projector-state-small .projector-panels {
             display: flex !important;
             width: 50% !important;
@@ -126,17 +111,9 @@
             padding-bottom: 0 !important;
         }
         
-        /* Puntero común */
-        .projector-pointer-large,
-        .projector-pointer-small {
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-        }
-        
         /* Transiciones suaves */
         .projector-wheel-container,
-        .projector-panels,
-        #wheel-canvas-projector {
+        .projector-panels {
             transition: all 0.5s ease-in-out;
         }
     </style>
@@ -267,12 +244,14 @@
                 
                 <!-- Wrapper que centra la ruleta (visible en estado large) -->
                 <div class="projector-wheel-wrapper flex items-center justify-center" style="width: 100%; flex: 1;">
-                    <div class="relative">
-                        <!-- Puntero: A la DERECHA de la ruleta -->
-                        <div id="pointer-projector" class="absolute z-10 projector-pointer-large" style="filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                    <!-- Contenedor centrado del canvas -->
+                    <div id="wheel-container-projector" class="relative" style="width: min(85vh, 85vw); height: min(85vh, 85vw); max-width: 800px; max-height: 800px;">
+                        <!-- Puntero: A la DERECHA, tocando la tangente -->
+                        <div id="pointer-projector" class="absolute z-10" style="right: -50px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
                             <div style="width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-right: 50px solid #7c3aed;"></div>
                         </div>
-                        <canvas id="wheel-canvas-projector" width="800" height="800" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
+                        <!-- Canvas centrado -->
+                        <canvas id="wheel-canvas-projector" width="800" height="800" class="absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
                     </div>
                 </div>
                 
@@ -365,18 +344,40 @@
         function setProjectorStateLarge() {
             projectorState = 'large';
             const layout = document.getElementById('projector-layout');
-            const wheelContainer = layout.querySelector('.projector-wheel-container');
             const wheelCanvas = document.getElementById('wheel-canvas-projector');
-            const pointer = document.getElementById('pointer-projector');
+            const wheelContainer = document.getElementById('wheel-container-projector');
             
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Canvas para estado grande (800px interno, CSS lo escala a 85vh/85vw)
+            // Canvas y contenedor para estado grande
+            wheelContainer.style.width = 'min(85vh, 85vw)';
+            wheelContainer.style.height = 'min(85vh, 85vw)';
+            wheelContainer.style.maxWidth = '800px';
+            wheelContainer.style.maxHeight = '800px';
             wheelCanvas.width = 800;
             wheelCanvas.height = 800;
-            pointer.classList.remove('projector-pointer-small');
-            pointer.classList.add('projector-pointer-large');
+            
+            // Redibujar ruleta
+            drawWheel(currentRotation);
+        }
+        
+        function setProjectorStateSmall() {
+            projectorState = 'small';
+            const layout = document.getElementById('projector-layout');
+            const wheelCanvas = document.getElementById('wheel-canvas-projector');
+            const wheelContainer = document.getElementById('wheel-container-projector');
+            
+            layout.classList.remove('projector-state-large');
+            layout.classList.add('projector-state-small');
+            
+            // Canvas y contenedor 450px (tamaño original)
+            wheelContainer.style.width = '450px';
+            wheelContainer.style.height = '450px';
+            wheelContainer.style.maxWidth = '450px';
+            wheelContainer.style.maxHeight = '450px';
+            wheelCanvas.width = 450;
+            wheelCanvas.height = 450;
             
             // Redibujar ruleta
             drawWheel(currentRotation);
