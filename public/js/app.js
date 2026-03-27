@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.0';
+const VERSION = '12.27.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -356,7 +356,7 @@ const App = window.App = {
     initPushNotifications: async function() {
         try {
             // Registrar service worker si no está registrado
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const registration = await navigator.serviceWorker.register('/js/sw.js');
             console.log('Service Worker registrado:', registration);
             
             // Solicitar permiso para notificaciones
