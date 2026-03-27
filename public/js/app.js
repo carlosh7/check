@@ -15,16 +15,26 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.28.17';
+const VERSION = '12.28.18';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
-// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA ---
+// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (AGRESIVA) ---
 // Detectar si estamos cargando una versión antigua del script
 (function checkVersion() {
     const currentScript = document.currentScript;
     if (currentScript && currentScript.src) {
         const scriptUrl = new URL(currentScript.src, window.location.origin);
         const versionParam = scriptUrl.searchParams.get('v');
+        
+        // Verificación EXTRA: también verificar en localStorage si hubo un reload forzado
+        const expectedVersion = LS.get('check_expected_version');
+        if (expectedVersion && expectedVersion !== VERSION) {
+            console.error(`[VERSION CRÍTICO 2] Versión esperada ${expectedVersion} ≠ actual ${VERSION}`);
+            LS.remove('check_expected_version');
+            const timestamp = new Date().getTime();
+            window.location.href = `/?force_reload_2=${timestamp}&v=${VERSION}`;
+            return;
+        }
         
         if (versionParam && versionParam !== VERSION) {
             console.error(`[VERSION CRÍTICO] Script cargado con versión ${versionParam}, pero VERSION constante es ${VERSION}`);
@@ -37,6 +47,24 @@ console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
             const timestamp = new Date().getTime();
             window.location.href = `/?force_reload=${timestamp}&expected_v=${VERSION}`;
             return; // Detener ejecución del script antiguo
+        }
+    }
+    
+    // Verificación adicional: si estamos en una versión muy antigua (12.28.17 o menor)
+    if (VERSION === '12.28.18') {
+        const loadedVersion = LS.get('check_loaded_version');
+        if (loadedVersion && loadedVersion < '12.28.18') {
+            console.warn(`[CACHE CLEAN] Versión cargada anteriormente ${loadedVersion} es antigua, limpiando caché...`);
+            LS.remove('check_loaded_version');
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+            // Forzar recarga limpia
+            const timestamp = new Date().getTime();
+            window.location.href = `/?clean_cache=${timestamp}&v=${VERSION}`;
+            return;
         }
     }
 })();
