@@ -72,6 +72,50 @@
             width: auto !important;
             max-height: 95vh !important;
         }
+
+        /* ========================================
+           PROYECTOR LAYOUT - ESTADOS
+           ======================================== */
+        
+        /* Estado: Ruleta Grande (inicial / girando) */
+        .projector-wheel-large {
+            width: 450px !important;
+            height: 450px !important;
+        }
+        .projector-pointer-large {
+            right: -45px !important;
+        }
+        #projector-layout.projector-state-large .projector-wheel-container {
+            width: 50% !important;
+            justify-content: center !important;
+        }
+        #projector-layout.projector-state-large .projector-panels {
+            display: none !important;
+        }
+        
+        /* Estado: Ruleta Pequeña (hay ganador) */
+        #projector-layout.projector-state-small .projector-wheel-container {
+            width: 45% !important;
+            justify-content: flex-end !important;
+        }
+        .projector-wheel-small {
+            width: 320px !important;
+            height: 320px !important;
+        }
+        .projector-pointer-small {
+            right: -30px !important;
+        }
+        #projector-layout.projector-state-small .projector-panels {
+            display: flex !important;
+            width: 55% !important;
+        }
+        
+        /* Transiciones suaves */
+        .projector-wheel-container,
+        .projector-panels,
+        #wheel-canvas-projector {
+            transition: all 0.5s ease-in-out;
+        }
     </style>
     <script>
         (function() {
@@ -188,17 +232,20 @@
         </div>
 
         <!-- LAYOUT PROYECTOR (horizontal, para fullscreen) -->
-        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-8" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
-            <!-- Contenedor principal que ocupa toda la pantalla 16:9 -->
+        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-8 projector-state-large" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
+            <!-- Contenedor principal 16:9 -->
             <div class="relative w-full h-full max-w-[1920px] max-h-[1080px] flex items-center">
-                <!-- Ruleta grande a la izquierda -->
-                <div class="flex-shrink-0 flex flex-col items-center justify-center" style="width: 45%; height: 100%;">
-                    <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-20" title="Salir de pantalla completa">
-                        <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
-                    </button>
-                    <div class="relative" style="width: 450px; height: 450px;">
-                        <!-- Puntero: A la DERECHA de la ruleta, apuntando hacia el centro -->
-                        <div id="pointer-projector" class="absolute z-10" style="right: -45px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                
+                <!-- Botón salir fullscreen -->
+                <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-20" title="Salir de pantalla completa">
+                    <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
+                </button>
+                
+                <!-- Contenedor de Ruleta y Botón (centrado inicialmente) -->
+                <div class="projector-wheel-container flex-shrink-0 flex flex-col items-center justify-center" style="width: 100%; height: 100%;">
+                    <div class="relative projector-wheel-large">
+                        <!-- Puntero: A la DERECHA de la ruleta -->
+                        <div id="pointer-projector" class="absolute z-10 projector-pointer-large" style="top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
                             <div style="width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-right: 50px solid #7c3aed;"></div>
                         </div>
                         <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
@@ -210,8 +257,8 @@
                     <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
                 </div>
 
-                <!-- Panel derecho: Ganador y Ganadores anteriores -->
-                <div class="flex-1 max-w-lg ml-12 flex flex-col gap-6 justify-center">
+                <!-- Paneles de Felicidades y Ganadores (ocultos inicialmente) -->
+                <div class="projector-panels flex-1 max-w-lg ml-12 flex flex-col gap-6 justify-center">
                     <!-- Ganador actual -->
                     <div id="winner-section-projector" class="glass-card rounded-3xl p-8 text-center bg-emerald-500/10 border border-emerald-500/30">
                         <span class="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -275,12 +322,56 @@
         let isSpinning = false;
         let currentRotation = 0;
         let hasParticipated = false;
+        let projectorState = 'large'; // 'large' = ruleta grande nomás, 'small' = con paneles
 
         // Canvas setup - referencia a ambos canvases
         const canvas = document.getElementById('wheel-canvas');
         const ctx = canvas.getContext('2d');
         const canvasProjector = document.getElementById('wheel-canvas-projector');
         const ctxProjector = canvasProjector.getContext('2d');
+
+        // ==========================================
+        // FUNCIONES DE ESTADO DEL PROYECTOR
+        // ==========================================
+        
+        function setProjectorStateLarge() {
+            projectorState = 'large';
+            const layout = document.getElementById('projector-layout');
+            const wheelContainer = layout.querySelector('.projector-wheel-container');
+            const wheelCanvas = document.getElementById('wheel-canvas-projector');
+            const pointer = document.getElementById('pointer-projector');
+            
+            layout.classList.remove('projector-state-small');
+            layout.classList.add('projector-state-large');
+            
+            // Ruleta grande
+            wheelCanvas.width = 450;
+            wheelCanvas.height = 450;
+            pointer.classList.remove('projector-pointer-small');
+            pointer.classList.add('projector-pointer-large');
+            
+            // Redibujar ruleta
+            drawWheel(currentRotation);
+        }
+        
+        function setProjectorStateSmall() {
+            projectorState = 'small';
+            const layout = document.getElementById('projector-layout');
+            const wheelCanvas = document.getElementById('wheel-canvas-projector');
+            const pointer = document.getElementById('pointer-projector');
+            
+            layout.classList.remove('projector-state-large');
+            layout.classList.add('projector-state-small');
+            
+            // Ruleta pequeña
+            wheelCanvas.width = 320;
+            wheelCanvas.height = 320;
+            pointer.classList.remove('projector-pointer-large');
+            pointer.classList.add('projector-pointer-small');
+            
+            // Redibujar ruleta
+            drawWheel(currentRotation);
+        }
 
         function getWheelColors() {
             if (wheelData?.config?.visual?.wheel_colors) {
@@ -364,6 +455,14 @@
                 return;
             }
 
+            // OCULTAR PANELES Y RUEDA GRANDE AL EMPEZAR A GIRAR
+            if (projectorState === 'small') {
+                setProjectorStateLarge();
+            }
+            // También ocultar secciones de ganador en layout normal
+            document.getElementById('winner-section').classList.add('hidden');
+            document.getElementById('winners-section').classList.add('hidden');
+
             isSpinning = true;
             document.getElementById('btn-spin').disabled = true;
             document.getElementById('spinning-text').classList.remove('hidden');
@@ -419,8 +518,6 @@
             
             document.getElementById('winner-name').textContent = winner;
             document.getElementById('winner-name-projector').textContent = winner;
-            winnerSection.classList.remove('hidden');
-            winnerSectionProjector.classList.remove('hidden');
             
             // Agregar a winners y remover de participants
             winners.push(winner);
@@ -431,6 +528,20 @@
             
             // Mostrar sección de winners
             showWinnersList();
+            
+            // MOSTRAR ESTADO PEQUEÑO EN PROYECTOR
+            if (projectorState === 'large') {
+                // Esperar un poco para que se vea el redibujado
+                setTimeout(() => {
+                    setProjectorStateSmall();
+                    winnerSectionProjector.classList.remove('hidden');
+                }, 100);
+            } else {
+                winnerSectionProjector.classList.remove('hidden');
+            }
+            
+            // En layout normal, mostrar secciones
+            winnerSection.classList.remove('hidden');
             
             // Confetti effect
             if (wheelData?.config?.visual?.confetti_on_win !== false) {
@@ -484,6 +595,9 @@
             winners = [];
             currentRotation = 0;
             hasParticipated = false;
+            
+            // VOLVER AL ESTADO GRANDE
+            setProjectorStateLarge();
             
             // Ocultar secciones - normal y limpiar textos
             document.getElementById('winner-section').classList.add('hidden');
@@ -590,10 +704,21 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
 
-                document.getElementById('wheel-name').textContent = wheelData.name || 'Ruleta de Sorteo';
-                document.getElementById('event-name').textContent = wheelData.event_name || '';
-                document.title = `${wheelData.name} | Check Pro`;
+                const wheelName = wheelData.name || 'Ruleta de Sorteo';
+                const eventName = wheelData.event_name || '';
+                
+                // Layout normal
+                document.getElementById('wheel-name').textContent = wheelName;
+                document.getElementById('event-name').textContent = eventName;
+                
+                // Proyector
+                document.getElementById('wheel-name-projector').textContent = wheelName;
+                document.getElementById('event-name-projector').textContent = eventName;
+                
+                document.title = `${wheelName} | Check Pro`;
 
+                // Inicializar ruleta en estado grande
+                setProjectorStateLarge();
                 drawWheel(0);
 
             } catch (e) {
