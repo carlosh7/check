@@ -535,22 +535,43 @@ app.use('/api/guests', guestLimiter);
 app.use('/api/events', guestLimiter);
 app.use('/api/email', emailLimiter);
 
+// --- SEGURIDAD: Headers y CSRF ---
+app.use(securityHeaders); // Headers de seguridad
+app.use(csrfMiddleware); // Protección CSRF para state-changing requests
+
 // --- STATIC FILES ---
-// Servir archivos públicos desde la carpeta public/
-app.use(express.static(path.join(__dirname, 'public'), {
+// Primero servir archivos CSS, JS específicos de la nueva estructura
+app.use('/css', express.static(path.join(__dirname, 'public/css'), {
     maxAge: 0,
     setHeaders: (res, reqPath) => {
-        // No cachear HTML, JS ni CSS para desarrollo
-        if (reqPath.endsWith('.html') || reqPath.endsWith('.js') || reqPath.endsWith('.css')) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-            res.setHeader('Surrogate-Control', 'no-store');
-        }
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
     }
 }));
 
-// También servir archivos desde raíz para compatibilidad (rutas antiguas)
+app.use('/js', express.static(path.join(__dirname, 'public/js'), {
+    maxAge: 0,
+    setHeaders: (res, reqPath) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
+}));
+
+app.use('/html', express.static(path.join(__dirname, 'public/html'), {
+    maxAge: 0,
+    setHeaders: (res, reqPath) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
+}));
+
+// Luego servir archivos desde raíz para compatibilidad (rutas antiguas)
 app.use(express.static(path.join(__dirname, '/'), {
     maxAge: 0,
     setHeaders: (res, reqPath) => {
@@ -562,10 +583,6 @@ app.use(express.static(path.join(__dirname, '/'), {
         }
     }
 }));
-
-// --- SEGURIDAD: Headers y CSRF ---
-app.use(securityHeaders); // Headers de seguridad
-app.use(csrfMiddleware); // Protección CSRF para state-changing requests
 
 // Uploads y middleware de validación se manejan en registerRoutes
 
