@@ -71,6 +71,10 @@
     --bg-card-rgb: 41, 42, 45;
 }
 
+/* Modo Claro - Chrome Light Palette (ya definido en :root) */
+/* Las variables para modo claro ya están definidas en :root (líneas 6-49) */
+/* El modo claro se activa removiendo la clase .dark del elemento html */
+
 /* Reset base */
 * {
     margin: 0;
@@ -484,3 +488,93 @@ h2 {
     margin-bottom: 16px;
     border-bottom: 1px solid var(--border-light);
 }
+
+/* ===== QUILL EDITOR STYLES (from style.css) ===== */
+
+/* Email Preview Adaptativo */
+.tpl-preview-bg {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    transition: all 0.3s ease;
+}
+
+html:not(.dark) .tpl-preview-bg {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+/* Quill Editor Dark Mode Override */
+html.dark .ql-editor.ql-blank::before {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+html.dark .ql-toolbar {
+    background-color: var(--bg-input) !important;
+    border-color: var(--border) !important;
+}
+
+html.dark .ql-picker {
+    color: var(--text-main) !important;
+}
+
+html.dark .ql-stroke {
+    stroke: var(--text-main) !important;
+}
+
+/* Fix para visibilidad adaptativa según el tema */
+.tpl-preview-bg .ql-editor {
+    background-color: transparent !important;
+    color: inherit !important;
+    min-height: 500px;
+}
+
+/* En modo claro, asegurar que el texto sea oscuro si no hay estilo inline */
+html:not(.dark) .tpl-preview-bg .ql-editor {
+    color: #0f172a !important;
+}
+
+/* En modo oscuro, asegurar que el texto sea claro */
+html.dark .tpl-preview-bg .ql-editor {
+    color: #f8fafc !important;
+}
+
+/* Limpieza agresiva de fondos (Evita cajas blancas en Quill) */
+.ql-editor span, 
+.ql-editor p, 
+.ql-editor div,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+    background-color: transparent !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+/* Forzar que el editor NO tenga sombra de texto global */
+.ql-editor * {
+    text-shadow: none !important;
+}
+
+html:not(.dark) .tpl-preview-bg .ql-toolbar {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* Utilidades adicionales */
+.text-gradient {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.hidden { display: none !important; }
