@@ -1,63 +1,124 @@
-# PROYECTO CHECK PRO
+# SKILL CHECK PRO
 
-## Ubicación del Proyecto
+## Información del Proyecto
+
+### Ubicación del Proyecto
 ```
 C:\Users\carlo\OneDrive\Documentos\APP\Registro
 ```
 
-## Entorno de Validación
+### Entorno de Validación
 ```
-C:\Users\carlo\check
+C:\Users\carlo\check (git clone del repositorio)
+Puerto: 3000
 ```
 
-## Flujo de Trabajo
+### Credenciales
+- **Login:** admin@check.com / admin123
+- **Puerto validación:** 3000
 
-1. **Editas código** → `C:\Users\carlo\OneDrive\Documentos\APP\Registro`
-2. **Subes cambios:** `git add .` → `git commit -m "mensaje"` → `git push origin main`
-3. **Validas en:** `C:\Users\carlo\check` → `git pull` → http://localhost:3000
+---
 
-## Al Finalizar Cada Tarea (Regla de Oro)
+## REGLAS INQUEBRANTABLES
+
+1. **Idioma:** Siempre responder en español
+2. **Razonamiento:** Siempre explicar el pensamiento en español
+3. **Versionado:** SIEMPRE incrementar versión y query strings después de cambio significativo
+4. **Flujo de Trabajo:** SIEMPRE seguir el checklist completo al final de cada tarea
+
+---
+
+## CHECKLIST PARA CADA TAREA
+
+Antes de comenzar:
+- [ ] Leer y entender el objetivo
+- [ ] Fraccionar en partes pequeñas si hay múltiples pasos
+- [ ] Explicar el plan de acción en español
+
+Durante la tarea:
+- [ ] Informar progreso: qué estoy haciendo, qué completé, qué sigue
+
+Al completar cualquier cambio de código:
+- [ ] **INCREMENTAR VERSIÓN** en `package.json` (X.Y.Z)
+- [ ] **ACTUALIZAR** `app-shell.html` → `?v=X.Y.Z`
+- [ ] **ACTUALIZAR** `index.html` → `?v=X.Y.Z`
+- [ ] **ACTUALIZAR** `script_v12_16_2.js` → `const VERSION = 'X.Y.Z'`
+- [ ] **COMMIT** con mensaje descriptivo
+- [ ] **PUSH** a origin main
+- [ ] **PULL** en `C:\Users\carlo\check`
+- [ ] **VALIDAR** con `curl -s http://localhost:3000/api/health`
+- [ ] **CREAR TAG** `git tag vX.Y.Z HEAD && git push origin vX.Y.Z`
+- [ ] **CONFIRMAR** qué se hizo al usuario
+
+---
+
+## Flujo de Trabajo (Regla de Oro)
+
+### Pasos obligatorios después de CADA tarea:
 
 ```bash
-# 1. Subir cambios
-cd "C:\Users\carlo\OneDrive\Documentos\APP\Registro"
-git add . && git commit -m "mensaje" && git push origin main
+# 1. Desde C:\Users\carlo\OneDrive\Documentos\APP\Registro
+git add . && git commit -m "mensaje descriptivo" && git push origin main
 
-# 2. Actualizar entorno de validación
-cd "C:\Users\carlo\check"
+# 2. Desde C:\Users\carlo\check (ENTORNO DE VALIDACIÓN)
 git pull
-```
 
-## Validación Rápida
-```bash
+# 3. VERIFICAR si server.js cambió
+git diff --name-only HEAD~1 | grep -q server.js && echo "SERVER CAMBIÓ - REINICIAR" || echo "OK"
+
+# 4. Si server.js cambió:
+#    - Matar procesos node existentes
+#    - Reiniciar servidor: node server.js
+
+# 5. VALIDAR
 curl -s http://localhost:3000/api/health
+
+# 6. CREAR TAG
+git tag v${VERSION} HEAD && git push origin v${VERSION}
 ```
 
-## Versionado (OBLIGATORIO)
+**CRÍTICO:** Si server.js cambió y no se reinicia el servidor, el entorno de validación sigue corriendo código antiguo.
 
-Después de cualquier cambio de código significativo (bug fix, feature, refactorización):
+**NOTA:** En este proyecto NO hay docker-compose. Solo git pull y reinicio manual.
 
-1. Actualizar `package.json` campo `version` (formato: X.Y.Z)
-2. Actualizar `app-shell.html` → `?v=X.Y.Z` en etiquetas de CSS/JS
-3. Actualizar `index.html` → `?v=X.Y.Z` en etiquetas de CSS/JS
-4. Actualizar `script_v12_16_2.js` → `const VERSION = 'X.Y.Z'`
-5. **CREAR TAG GIT:** `git tag vX.Y.Z` y `git push origin vX.Y.Z`
+---
 
-**Ejemplo:** 12.16.6 → 12.16.7 → `git tag v12.16.7` → `git push origin v12.16.7`
+## Versionado del Proyecto (OBLIGATORIO)
 
-**SIN version bump, el navegador usa caché y NO ve los cambios.**
+La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 
-**SIN tag git, GitHub no refleja la versión real del código.**
+**REGLA:** Después de CUALQUIER cambio de código significativo:
 
-## Tags Git (Verificar antes de crear)
+| Archivo | Qué cambiar | Ejemplo |
+|---------|--------------|---------|
+| `package.json` | `"version": "X.Y.Z"` | `"version": "12.16.8"` |
+| `app-shell.html` | `?v=X.Y.Z` | `?v=12.16.8` |
+| `index.html` | `?v=X.Y.Z` | `?v=12.16.8` |
+| `script_v12_16_2.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
+
+**SIN este version bump, el navegador usa caché y NO ve los cambios.**
+
+---
+
+## Tags de Git (OBLIGATORIO)
+
+**Cada vez que se incrementa la versión en `package.json`, DEBE crearse un tag git:**
 
 ```bash
-# Ver últimos 5 tags
+git tag v${VERSION} HEAD
+git push origin v${VERSION}
+```
+
+**VERIFICAR tags existentes ANTES de crear nuevos:**
+```bash
 git tag --sort=-version:refname | head -5
 ```
 
-**NUNCA crear un tag con versión inferior al último tag existente.**
+**NUNCA saltar versiones en el secuencial de tags.**
 
-## Credenciales
-- **Login:** admin@check.com / admin123
-- **Puerto:** 3000
+---
+
+## Formato de Respuestas
+- Respuestas cortas y directas
+- Si hay múltiples problemas, enumerarlos
+- Si arreglas algo, confirmar qué fue
