@@ -3227,6 +3227,7 @@ const App = window.App = {
             let url = viewName === 'my-events' ? '/' : `/${viewName}`;
             if (viewName === 'admin' && params.id) url = `/admin/${params.id}`;
             if (viewName === 'system' && params.tab) url = `/system/${params.tab}`;
+            if (viewName === 'event-config' && params.id) url = `/event-config/${params.id}`;
             history.pushState({ view: viewName, params }, '', url);
             setTimeout(() => { this._isPushingState = false; }, 100);
         }
@@ -3400,7 +3401,7 @@ const App = window.App = {
         let view = parts[0] || 'my-events';
         const params = {};
         
-        console.log('[ROUTER] Parsed view:', view, 'parts:', parts);
+        console.log('[ROUTER] Parsed view:', view, 'parts:', parts, 'full path:', path);
         
         // Manejar parámetros específicos de vista
         if (view === 'admin' && parts[1]) {
@@ -3409,6 +3410,10 @@ const App = window.App = {
         
         if (view === 'system' && parts[1]) {
             params.tab = parts[1];
+        }
+        
+        if (view === 'event-config' && parts[1]) {
+            params.id = parts[1];
         }
         
         // Manejar rutas legacy con parámetros
@@ -3429,7 +3434,7 @@ const App = window.App = {
             params.tab = LS.get('active_system_tab') || 'users';
         }
 
-        console.log('[ROUTER] Checking view:', view, 'savedView:', LS.get('active_view'));
+        console.log('[ROUTER] Checking view:', view, 'savedView:', LS.get('active_view'), 'current event:', this.state.event?.id);
         
         // Manejar redirecciones de compatibilidad
         if (view === 'groups' || view === 'legal' || view === 'account' || view === 'smtp') {
@@ -3452,6 +3457,34 @@ const App = window.App = {
                 console.log('[ROUTER] Using saved view instead of my-events:', savedView);
                 // Navegar a la vista guardada
                 this.navigate(savedView, {}, false);
+                this._hasHandledInitialNav = true;
+                return;
+            }
+        }
+        
+        // Para event-config, necesitamos un event id
+        if (view === 'event-config' && !params.id) {
+            // Si no hay ID en la URL, intentar usar el evento actual
+            if (this.state.event?.id) {
+                params.id = this.state.event.id;
+                console.log('[ROUTER] Using current event for event-config:', params.id);
+            } else {
+                // Si no hay evento actual, redirigir a my-events
+                console.log('[ROUTER] No event id for event-config, redirecting to my-events');
+                this.navigate('my-events', {}, false);
+                this._hasHandledInitialNav = true;
+                return;
+            }
+        }
+        
+        // Para admin, también necesitamos un event id
+        if (view === 'admin' && !params.id) {
+            if (this.state.event?.id) {
+                params.id = this.state.event.id;
+                console.log('[ROUTER] Using current event for admin:', params.id);
+            } else {
+                console.log('[ROUTER] No event id for admin, redirecting to my-events');
+                this.navigate('my-events', {}, false);
                 this._hasHandledInitialNav = true;
                 return;
             }
@@ -5322,6 +5355,9 @@ const App = window.App = {
         const panel = document.getElementById('config-content-' + tabName);
         if (panel) panel.classList.remove('hidden');
 
+        // Guardar pestaña activa
+        LS.set('active_config_tab', tabName);
+        
         // Load specific data
         if (tabName === 'staff') this.loadConfigStaff();
         if (tabName === 'email') this.loadConfigEmail();
