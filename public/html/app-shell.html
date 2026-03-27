@@ -11,1586 +11,413 @@
                 <div class="flex flex-col logo-text">
                     <span class="font-bold text-lg tracking-tight leading-none text-[var(--text-main)]">Check<span class="text-[var(--primary)]">.</span>Pro</span>
                     <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.2em] mt-1">Attendance</span>
+                </div>
+            </div>
+            <button id="btn-toggle-sidebar" class="w-8 h-8 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--border)] transition-colors">
+                <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">menu_open</span>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+            <!-- Mis Eventos -->
+            <button id="nav-btn-my-events" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">event</span>
+                <span class="sidebar-text font-medium text-sm">Mis Eventos</span>
+            </button>
+
+            <!-- Panel Administrativo -->
+            <button id="nav-btn-admin" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">dashboard</span>
+                <span class="sidebar-text font-medium text-sm">Panel Admin</span>
+            </button>
+
+            <!-- Configuración del Evento -->
+            <button id="nav-btn-event-config" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">settings</span>
+                <span class="sidebar-text font-medium text-sm">Config. Evento</span>
+            </button>
+
+            <!-- Sistema -->
+            <button id="nav-btn-system" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">tune</span>
+                <span class="sidebar-text font-medium text-sm">Sistema</span>
+            </button>
+
+            <!-- Pre-Registrations -->
+            <button id="nav-btn-pre-registrations" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">how_to_reg</span>
+                <span class="sidebar-text font-medium text-sm">Pre-Registros</span>
+            </button>
+
+            <!-- Survey Manager -->
+            <button id="nav-btn-survey-manager" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
+                <span class="material-symbols-outlined text-xl">poll</span>
+                <span class="sidebar-text font-medium text-sm">Encuestas</span>
+            </button>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-[var(--border)] mt-auto">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[var(--primary)] text-base">person</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="sidebar-username" class="sidebar-text text-sm font-medium text-[var(--text-main)]">admin@check.com</span>
+                        <span id="sidebar-role" class="sidebar-text text-[10px] font-bold text-[var(--text-secondary)] uppercase">ADMIN</span>
                     </div>
                 </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <button id="btn-toggle-theme" class="w-9 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--border)] transition-colors" title="Cambiar tema">
+                    <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">dark_mode</span>
+                </button>
+                
+                <button id="btn-logout" class="w-9 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors" title="Cerrar sesión">
+                    <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">logout</span>
+                </button>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.0</span>
+            </div>
+        </div>
+    </aside>
 
-                <!-- CONTENIDO: CONFIGURACIÓN DEL EVENTO -->
-                <div id="config-content-settings" class="config-tab-content hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> del Evento</h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Edita los detalles y configuración de tu evento.</p>
-                        </div>
-                        <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto">
+        <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
+        <section id="view-my-events" class="hidden">
+            <div class="max-w-6xl mx-auto px-4 py-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h1 class="text-3xl font-semibold tracking-tight mb-2">Mis Eventos</h1>
+                        <p class="text-[var(--text-secondary)]">Administra todos tus eventos desde un solo lugar</p>
                     </div>
+                    <button id="btn-new-event-full" class="btn-primary !px-6 !py-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">add</span>
+                        Nuevo Evento
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="events-list-container" style="min-height: 300px;">
+                    <!-- Los eventos se cargarán aquí dinámicamente -->
+                    <div class="col-span-full text-center py-12">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary-light)] mb-4">
+                            <span class="material-symbols-outlined text-[var(--primary)] text-3xl">event</span>
+                        </div>
+                        <h3 class="text-lg font-medium mb-2">No hay eventos</h3>
+                        <p class="text-[var(--text-secondary)] mb-6">Crea tu primer evento para comenzar</p>
+                        <button id="btn-new-event-full-empty" class="btn-primary !px-5 !py-2.5">
+                            Crear Primer Evento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
+        <section id="view-admin" class="hidden">
+            <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
+                <div class="flex items-center gap-6">
+                    <div id="admin-event-logo-container" class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
+                        <img id="admin-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                        <span id="admin-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Panel de Control</p>
+                        <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
+                        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+                            <span class="material-symbols-outlined text-sm">location_on</span>
+                            <span id="admin-event-location" class="text-sm">Cargando ubicación...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-config-show-qr" class="btn-secondary !px-5 !py-2.5 flex items-center gap-2">
+                        <span class="material-symbols-outlined">qr_code_2</span>
+                        QR Evento
+                    </button>
+                    <button id="btn-config-export-excel" class="btn-secondary !px-5 !py-2.5 flex items-center gap-2">
+                        <span class="material-symbols-outlined">download</span>
+                        Exportar Excel
+                    </button>
+                </div>
+            </header>
+
+            <!-- Event Tabs -->
+            <div class="mb-8">
+                <div class="flex border-b border-[var(--border)]">
+                    <button id="ev-nav-guests" class="event-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors">
+                        <span class="material-symbols-outlined text-base mr-2">groups</span>
+                        Invitados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content: Guests -->
+            <div id="ev-content-guests" class="event-tab-content">
+                <!-- Contenido de invitados se carga dinámicamente -->
+            </div>
+        </section>
+
+        <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
+        <section id="view-event-config" class="hidden space-y-8">
+            <header class="flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
+                        <img id="config-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                        <span id="config-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Configuración del Evento</p>
+                        <h1 id="config-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
+                        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            <span id="config-event-date" class="text-sm">Cargando fecha...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-create-event-open" class="btn-primary !px-5 !py-2.5 flex items-center gap-2">
+                        <span class="material-symbols-outlined">add</span>
+                        Nuevo Evento
+                    </button>
+                    <button id="btn-create-group" class="btn-secondary !px-5 !py-2.5 flex items-center gap-2">
+                        <span class="material-symbols-outlined">business</span>
+                        Nueva Empresa
+                    </button>
+                </div>
+            </header>
+
+            <!-- Config Navigation -->
+            <div class="border-b border-[var(--border)]">
+                <div class="flex overflow-x-auto">
+                    <button id="config-nav-staff" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base mr-2">person</span>
+                        Personal Asignado
+                    </button>
+                    <button id="config-nav-email" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base mr-2">mail</span>
+                        Email del Evento
+                    </button>
+                    <button id="config-nav-agenda" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base mr-2">schedule</span>
+                        Agenda
+                    </button>
+                    <button id="config-nav-wheel" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base mr-2">casino</span>
+                        Ruleta de Sorteos
+                    </button>
+                    <button id="config-nav-settings" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base mr-2">settings</span>
+                        ⚙️ Configuración
+                    </button>
+                </div>
+            </div>
+
+            <!-- Config Content -->
+            <div id="config-content-staff" class="config-tab-content hidden">
+                <!-- Personal Asignado -->
+            </div>
+
+            <div id="config-content-email" class="config-tab-content hidden">
+                <!-- Email del Evento -->
+            </div>
+
+            <div id="config-content-agenda" class="config-tab-content hidden">
+                <!-- Agenda -->
+            </div>
+
+            <div id="config-content-wheel" class="config-tab-content hidden">
+                <!-- Ruleta de Sorteos -->
+            </div>
+
+            <div id="config-content-settings" class="config-tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> del Evento</h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Edita los detalles y configuración de tu evento.</p>
+                    </div>
+                    <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
+                </div>
+                
+                <form id="event-settings-form" class="space-y-6">
+                    <input type="hidden" id="evf-id-hidden" value="">
                     
-                    <form id="event-settings-form" class="space-y-6">
-                        <input type="hidden" id="evf-id-hidden" value="">
-                        
-                        <!-- DATOS BÁSICOS -->
-                        <div class="card p-6 space-y-4">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">info</span>
-                                Datos Básicos
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Evento *</label>
-                                    <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ubicación</label>
-                                    <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Inicio *</label>
-                                    <input type="datetime-local" id="evf-date" required class="input-field w-full">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Fin</label>
-                                    <input type="datetime-local" id="evf-end-date" class="input-field w-full">
-                                </div>
+                    <!-- DATOS BÁSICOS -->
+                    <div class="card p-6 space-y-4">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">info</span>
+                            Datos Básicos
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Evento *</label>
+                                <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción</label>
-                                <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ubicación</label>
+                                <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
                             </div>
                         </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Inicio *</label>
+                                <input type="datetime-local" id="evf-date" required class="input-field w-full">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Fin</label>
+                                <input type="datetime-local" id="evf-end-date" class="input-field w-full">
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción</label>
+                            <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                        </div>
+                    </div>
 
-                        <!-- CONFIGURACIÓN DE REGISTRO -->
-                        <div class="card p-6 space-y-4">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">how_to_reg</span>
-                                Registro de Invitados
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Título de Registro</label>
-                                    <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Bienvenida</label>
-                                    <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
-                                </div>
+                    <!-- CONFIGURACIÓN DE REGISTRO -->
+                    <div class="card p-6 space-y-4">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[var(--primary)]">how_to_reg</span>
+                            Registro de Invitados
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Título de Registro</label>
+                                <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Éxito</label>
-                                <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Bienvenida</label>
+                                <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Política de Privacidad</label>
-                                <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
-                            </div>
-                            
-                            <!-- CHECKBOXES DE REGISTRO -->
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Teléfono</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Organización</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Cargo</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Vegetariano</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-dietary" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Restricciones</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
-                                    <span class="text-sm text-[var(--text-main)]">Género</span>
-                                </label>
-                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Éxito</label>
+                            <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Política de Privacidad</label>
+                            <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
+                        </div>
+                        
+                        <!-- CHECKBOXES DE REGISTRO -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
-                                <span class="text-sm text-[var(--text-main)]">Requerir aceptación de términos</span>
+                                <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Teléfono</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Organización</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Cargo</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Vegano</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="evf-reg-dietary" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Restricciones</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
+                                <span class="text-sm text-[var(--text-main)]">Género</span>
                             </label>
                         </div>
-
-                        <!-- FILTROS DE EMAIL -->
-                        <div class="card p-6 space-y-4">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">filter_alt</span>
-                                Filtros de Email
-                            </h3>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Emails Permitidos (Whitelist)</label>
-                                <input type="text" id="evf-reg-whitelist" placeholder="@empresa.com, @otro.com" class="input-field w-full">
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Emails Bloqueados (Blacklist)</label>
-                                <input type="text" id="evf-reg-blacklist" placeholder="@spam.com, @mal.com" class="input-field w-full">
-                            </div>
-                        </div>
-
-                        <!-- DISEÑO QR -->
-                        <div class="card p-6 space-y-4">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">qr_code_2</span>
-                                Diseño de Código QR
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color QR Oscuro</label>
-                                    <input type="color" id="evf-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color QR Claro</label>
-                                    <input type="color" id="evf-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Logo QR (URL)</label>
-                                <input type="text" id="evf-qr-logo" placeholder="https://..." class="input-field w-full">
-                            </div>
-                        </div>
-
-                        <!-- DISEÑO TICKET -->
-                        <div class="card p-6 space-y-4">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">confirmation_number</span>
-                                Diseño de Ticket
-                            </h3>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fondo de Ticket (URL)</label>
-                                <input type="text" id="evf-ticket-bg" placeholder="https://..." class="input-field w-full">
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color de Acento</label>
-                                <input type="color" id="evf-ticket-accent" value="#7c3aed" class="w-full h-10 rounded cursor-pointer">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end gap-3 pt-3">
-                            <button type="button" id="btn-cancel-event-settings" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                            <button type="submit" class="btn-primary !px-5 !py-2">💾 Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
-            <section id="view-my-events" class="hidden">
-                <div class="max-w-6xl mx-auto px-4 py-8">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                        <div>
-                            <h1 class="text-3xl font-semibold tracking-tight mb-2">Mis Eventos</h1>
-                            <p class="text-[var(--text-secondary)]">Administra todos tus eventos desde un solo lugar</p>
-                        </div>
-                        <button id="btn-new-event-full" class="btn-primary !px-6 !py-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined">add</span>
-                            Nuevo Evento
-                        </button>
+                        
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
+                            <span class="text-sm text-[var(--text-main)]">Requerir acuerdo de términos y condiciones</span>
+                        </label>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="events-list-container" style="min-height: 300px;">
-                        <!-- Los eventos se cargarán aquí dinámicamente -->
-                        <div class="col-span-full text-center py-12">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary-light)] mb-4">
-                                <span class="material-symbols-outlined text-[var(--primary)] text-3xl">event</span>
-                            </div>
-                            <h3 class="text-lg font-medium mb-2">No hay eventos</h3>
-                            <p class="text-[var(--text-secondary)] mb-6">Crea tu primer evento para comenzar</p>
-                            <button id="btn-new-event-full-empty" class="btn-primary !px-5 !py-2.5">
-                                Crear Primer Evento
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
-            <section id="view-admin" class="hidden">
-                <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
-                    <div class="flex items-center gap-6">
-                        <div id="admin-event-logo-container" class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
-                            <img id="admin-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
-                            <span id="admin-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Panel de Control</p>
-                            <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
-                            <div class="flex items-center gap-2 text-[var(--text-secondary)]">
-                                <span class="material-symbols-outlined text-sm">location_on</span>
-                                <span id="admin-event-location" class="text-xs uppercase tracking-wider">Ubicación</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] p-2 rounded-2xl shadow-xs">
-                        <div class="flex items-center gap-6 px-4">
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1">Hora Local</p>
-                                <p id="admin-clock-real" class="text-lg font-bold font-mono">00:00:00</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Countdown</p>
-                                <p id="admin-clock-countdown" class="text-lg font-bold font-mono text-red-500">00:00:00</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <div class="sub-nav-container mb-8">
-                    <button id="ev-nav-guests" class="sub-nav-btn active" data-tab-target="ev-content-guests">Invitados</button>
-                    <!-- Personal Asignado, Email y Agenda ahora en Configuración del Evento -->
-                </div>
-
-                <div id="ev-content-guests" class="card !p-0 overflow-hidden">
-                    <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
-                        <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
-                            <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Listado de Asistentes
-                        </h3>
-                        <div class="relative w-full max-w-sm">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
-                            <input id="guest-search" type="text" placeholder="Buscar por nombre, empresa o email..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th id="th-name">Invitado / Información</th>
-                                    <th id="th-org">Organización</th>
-                                    <th id="th-status" class="text-center">Estado</th>
-                                    <th class="text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="guests-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="ev-content-staff" class="hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">Staff del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button id="btn-ev-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
-                            <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
-                        </div>
-                    </div>
-                    <div class="card !p-0 overflow-hidden">
-                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
-                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
-                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Personal Asignado
-                            </h3>
-                            <div class="relative w-full max-w-sm">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
-                                <input id="ev-staff-search" type="text" placeholder="Buscar staff por nombre..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="px-5 py-4">Colaborador</th>
-                                        <th class="px-5 py-4 text-center">Rol en Sistema</th>
-                                        <th class="px-5 py-4 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ev-staff-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTENIDO: EMAIL DEL EVENTO -->
-                <div id="ev-content-email" class="hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
-                        </div>
-                        <button id="btn-save-event-email-config" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
-                    </div>
-                    
-                    <!-- Configuración SMTP por Evento -->
-                    <div class="card p-6">
+                    <!-- QR & TICKET DESIGN -->
+                    <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                            Configuración de Envío
+                            <span class="material-symbols-outlined text-[var(--primary)]">qr_code_2</span>
+                            Diseño de QR y Ticket
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" id="ev-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
-                                <label for="ev-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Oscuro QR</label>
+                                <input type="color" id="evf-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
                             </div>
-                            <div class="md:col-span-2"></div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Servidor SMTP</label>
-                                <input type="text" id="ev-email-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Claro QR</label>
+                                <input type="color" id="evf-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Puerto</label>
-                                <input type="number" id="ev-email-smtp-port" placeholder="587" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario SMTP</label>
-                                <input type="text" id="ev-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                                <input type="password" id="ev-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
-                                <input type="text" id="ev-email-from-name" placeholder="Check Pro" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Remitente</label>
-                                <input type="email" id="ev-email-from-email" placeholder="noreply@tu-dominio.com" class="input-field w-full">
-                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL Logo QR (opcional)</label>
+                            <input type="text" id="evf-qr-logo" placeholder="https://..." class="input-field w-full">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL Fondo Ticket (opcional)</label>
+                            <input type="text" id="evf-ticket-bg" placeholder="https://..." class="input-field w-full">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Acento Ticket</label>
+                            <input type="color" id="evf-ticket-accent" value="#7c3aed" class="w-full h-10 rounded cursor-pointer">
                         </div>
                     </div>
 
-                    <!-- Plantillas de Email -->
-                    <div class="card p-6">
+                    <!-- EMAIL FILTERS -->
+                    <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">drafts</span>
-                            Plantillas de Email
+                            <span class="material-symbols-outlined text-[var(--primary)]">filter_alt</span>
+                            Filtros de Email
                         </h3>
-                        <div id="event-email-templates-list" class="space-y-4">
-                            <p class="text-slate-500 text-sm">Cargando plantillas...</p>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Whitelist (emails permitidos, uno por línea)</label>
+                            <textarea id="evf-reg-whitelist" rows="3" placeholder="usuario1@dominio.com&#10;usuario2@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
-                        <button id="btn-add-email-template" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
-                            + Nueva Plantilla
-                        </button>
-                    </div>
-
-                    <!-- Botón de prueba -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">send</span>
-                            Enviar Email de Prueba
-                        </h3>
-                        <div class="flex gap-4">
-                            <input type="email" id="ev-email-test-to" placeholder="tu@email.com" class="input-field flex-1">
-                            <button id="btn-send-test-email" class="btn-primary !px-5">Enviar Prueba</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTENIDO: AGENDA DEL EVENTO -->
-                <div id="ev-content-agenda" class="hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
-                        </div>
-                        <button id="btn-add-agenda-item" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">list</span>
-                            Lista de la Agenda
-                        </h3>
-                        <div id="event-agenda-list" class="space-y-3">
-                            <p class="text-slate-500 text-sm">Cargando agenda...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
-            <section id="view-event-config" class="hidden space-y-8">
-                <header class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-8">
-                    <div class="flex items-center gap-6">
-                        <div id="config-event-logo-container" class="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm">
-                            <img id="config-event-logo" src="" alt="Logo" class="w-full h-full object-cover hidden">
-                            <span id="config-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Configuración</p>
-                            <h1 id="config-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
-                            <p class="text-[var(--text-secondary)] text-sm">Administra los aspectos específicos de tu evento</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-4">
-                        <button id="btn-config-show-qr" class="btn-primary !px-5 !py-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg">qr_code_2</span>
-                            <span>Registro QR</span>
-                        </button>
-                        <button id="btn-config-export-excel" class="btn-secondary !px-5 !py-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg">description</span>
-                            <span>Exportar Excel</span>
-                        </button>
-                    </div>
-                </header>
-
-                <!-- Sub-navegación para Configuración del Evento -->
-                <div class="sub-nav-container mb-8">
-                    <button id="config-nav-staff" class="sub-nav-btn active" data-config-tab="config-content-staff">👥 Personal Asignado</button>
-                    <button id="config-nav-email" class="sub-nav-btn" data-config-tab="config-content-email">📧 Email del Evento</button>
-                    <button id="config-nav-agenda" class="sub-nav-btn" data-config-tab="config-content-agenda">📋 Agenda</button>
-                    <button id="config-nav-wheel" class="sub-nav-btn" data-config-tab="config-content-wheel">🎰 Ruleta de Sorteos</button>
-                    <button id="config-nav-settings" class="sub-nav-btn" data-config-tab="config-content-settings">⚙️ Configuración</button>
-                </div>
-
-                <!-- CONTENIDO: PERSONAL ASIGNADO -->
-                <div id="config-content-staff" class="config-tab-content space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">Personal <span class="text-[var(--primary)]">Asignado</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button id="btn-config-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
-                            <button id="btn-config-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
-                        </div>
-                    </div>
-                    <div class="card !p-0 overflow-hidden">
-                        <div class="p-6 border-b border-[var(--border)] flex flex-col md:flex-row justify-between items-center bg-[var(--bg-sidebar)] gap-4">
-                            <h3 class="text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
-                                <span class="w-1 h-5 bg-[var(--primary)] rounded-full"></span> Staff del Evento
-                            </h3>
-                            <div class="relative w-full max-w-sm">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">search</span>
-                                <input id="config-staff-search" type="text" placeholder="Buscar staff por nombre..." class="w-full !pl-12 !py-3 !rounded-xl !bg-[var(--bg-app)]">
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="px-5 py-4">Colaborador</th>
-                                        <th class="px-5 py-4 text-center">Rol en Sistema</th>
-                                        <th class="px-5 py-4 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="config-staff-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTENIDO: EMAIL DEL EVENTO -->
-                <div id="config-content-email" class="config-tab-content hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
-                        </div>
-                        <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
-                    </div>
-                    
-                    <!-- Configuración SMTP por Evento -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                            Configuración de Envío
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" id="config-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
-                                <label for="config-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
-                            </div>
-                            <div class="md:col-span-2"></div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Servidor SMTP</label>
-                                <input type="text" id="config-email-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Puerto</label>
-                                <input type="number" id="config-email-smtp-port" placeholder="587" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario SMTP</label>
-                                <input type="text" id="config-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                                <input type="password" id="config-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
-                                <input type="text" id="config-email-from-name" placeholder="Check Pro" class="input-field w-full">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Remitente</label>
-                                <input type="email" id="config-email-from-email" placeholder="noreply@tu-dominio.com" class="input-field w-full">
-                            </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Blacklist (emails bloqueados, uno por línea)</label>
+                            <textarea id="evf-reg-blacklist" rows="3" placeholder="spam@dominio.com&#10;no-deseado@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
                     </div>
 
-                    <!-- Plantillas de Email -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">drafts</span>
-                            Plantillas de Email
-                        </h3>
-                        <div id="config-email-templates-list" class="space-y-4">
-                            <p class="text-slate-500 text-sm">Cargando plantillas...</p>
-                        </div>
-                        <button id="btn-config-add-template" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
-                            + Nueva Plantilla
-                        </button>
+                    <div class="flex justify-end gap-3 pt-3">
+                        <button type="button" id="btn-cancel-event-settings" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
+                        <button type="submit" class="btn-primary !px-5 !py-2">💾 Guardar Cambios</button>
                     </div>
-                </div>
+                </form>
+            </div>
+        </section>
 
-                <!-- CONTENIDO: AGENDA DEL EVENTO -->
-                <div id="config-content-agenda" class="config-tab-content hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
-                        </div>
-                        <button id="btn-config-add-agenda" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">list</span>
-                            Lista de la Agenda
-                        </h3>
-                        <div id="config-agenda-list" class="space-y-3">
-                            <p class="text-slate-500 text-sm">Cargando agenda...</p>
-                        </div>
-                    </div>
-                </div>
+        <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.16.3) -->
+        <section id="view-system" class="hidden space-y-8">
+            <!-- Contenido del sistema -->
+        </section>
 
-                <!-- CONTENIDO: RULETA DE SORTESOS -->
-                <div id="config-content-wheel" class="config-tab-content hidden space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">🎰 Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
-                        </div>
-                        <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
-                    </div>
-                    
-                    <!-- Lista de ruletas -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[var(--primary)]">casino</span>
-                            Mis Ruletas
-                        </h3>
-                        <div id="wheels-list" class="space-y-3">
-                            <p class="text-slate-500 text-sm">Cargando ruletas...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Editor de ruleta (oculto por defecto) -->
-                    <div id="wheel-editor" class="hidden space-y-6">
-                        <div class="flex items-center gap-4 mb-4">
-                            <button id="btn-back-to-wheels" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg">
-                                <span class="material-symbols-outlined">arrow_back</span>
-                            </button>
-                            <input type="text" id="wheel-name" placeholder="Nombre de la ruleta" class="input-field flex-1 !text-xl">
-                        </div>
-                        
-                        <!-- Configuración visual -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">palette</span>
-                                Personalización Visual
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color 1</label>
-                                    <input type="color" id="wheel-color-1" value="#FF6B6B" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color 2</label>
-                                    <input type="color" id="wheel-color-2" value="#4ECDC4" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color texto</label>
-                                    <input type="color" id="wheel-text-color" value="#FFFFFF" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color puntero</label>
-                                    <input type="color" id="wheel-pointer-color" value="#FF0000" class="w-full h-10 rounded cursor-pointer">
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center gap-4">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="wheel-sound" checked class="w-5 h-5 rounded accent-[var(--primary)]">
-                                    <span class="text-sm font-bold">Sonido al girar</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="wheel-confetti" checked class="w-5 h-5 rounded accent-[var(--primary)]">
-                                    <span class="text-sm font-bold">Confeti al ganar</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Participantes -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">group</span>
-                                Participantes
-                            </h3>
-                            
-                            <!-- Fuente de datos -->
-                            <div class="mb-4 p-4 bg-[var(--bg-hover)] rounded-xl">
-                                <p class="text-sm font-bold mb-2">Agregar participantes desde:</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <button id="btn-add-from-guests" class="btn-secondary !py-2 !px-3 text-sm">Todos los invitados</button>
-                                    <button id="btn-add-from-checkedin" class="btn-secondary !py-2 !px-3 text-sm">Asistentes (check-in)</button>
-                                    <button id="btn-add-from-preregistered" class="btn-secondary !py-2 !px-3 text-sm">Pre-registrados</button>
-                                    <button id="btn-add-manual" class="btn-secondary !py-2 !px-3 text-sm">Entrada manual</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Lista de participantes -->
-                            <div class="overflow-x-auto">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Nombre</th>
-                                            <th>Email</th>
-                                            <th>Fuente</th>
-                                            <th class="text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="wheel-participants-tbody" class="divide-y divide-[var(--border-light)]">
-                                        <tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <button id="btn-preview-wheel" class="btn-primary !px-5 !py-2.5">Vista Previa</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Publicación -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">share</span>
-                                Compartir
-                            </h3>
-                            <div class="flex gap-4">
-                                <input type="text" id="wheel-share-url" readonly class="input-field flex-1" placeholder="Aún no generado">
-                                <button id="btn-copy-wheel-url" class="btn-secondary !px-4">Copiar</button>
-                            </div>
-                            <p class="text-xs text-slate-500 mt-2">Comparte este enlace para que los participantes giren la ruleta</p>
-                        </div>
-                        
-                        <!-- Resultados guardados -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">emoji_events</span>
-                                Resultados
-                            </h3>
-                            <div id="wheel-results-list" class="space-y-2 mb-4 min-h-20 max-h-96 overflow-y-auto transition-all duration-300">
-                                <p class="text-slate-500 text-sm">Cargando...</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="btn-delete-all-results" class="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 font-bold text-sm">Borrar Todos</button>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-3">
-                            <button id="btn-save-wheel" class="btn-primary !px-6 !py-3">Guardar Ruleta</button>
-                            <button id="btn-delete-wheel" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold">Eliminar</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <!-- VIEW: PRE-REGISTRATIONS -->
+        <section id="view-pre-registrations" class="hidden space-y-8">
+            <!-- Pre-registrations -->
+        </section>
 
-            <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.16.3) -->
-            <section id="view-system" class="hidden space-y-8">
-                <div class="sub-nav-container mb-8">
-                    <button class="sub-nav-btn active" onclick="App.switchSystemTab('users')">Equipo</button>
-                    <button class="sub-nav-btn" onclick="App.switchSystemTab('groups')">Empresas</button>
-                    <button class="sub-nav-btn" onclick="App.switchSystemTab('legal')">Legales</button>
-                    <button class="sub-nav-btn" onclick="App.switchSystemTab('email')">Emails</button>
-                    <button class="sub-nav-btn" onclick="App.switchSystemTab('account')">Mi Perfil</button>
-                </div>
-
-                <!-- SECCIÓN: EQUIPO -->
-                <div id="sys-content-users" class="hidden space-y-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm">Control de acceso y roles de usuario.</p>
-                        </div>
-                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">Añadir Colaborador</button>
-                    </div>
-                    <div class="card !p-0 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="px-5 py-4">Colaborador</th>
-                                        <th class="px-5 py-4">Rol</th>
-                                        <th class="px-5 py-4 text-center">Estado</th>
-                                        <th class="px-5 py-4 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="users-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN: EMPRESAS -->
-                <div id="sys-content-groups" class="hidden space-y-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <div>
-                            <h2 class="text-2xl font-semibold">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
-                        </div>
-                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">Registrar Empresa</button>
-                    </div>
-                    <div class="card !p-0 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="px-5 py-4">Organización</th>
-                                        <th class="px-5 py-4">Contacto</th>
-                                        <th class="px-5 py-4 text-center">Estado</th>
-                                        <th class="px-5 py-4 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groups-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN: LEGALES -->
-                <div id="sys-content-legal" class="hidden space-y-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="card p-6">
-                            <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
-                            <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
-                            <button id="btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
-                        </div>
-                        <div class="card p-6">
-                            <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
-                            <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
-                            <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN: EMAIL -->
-                <div id="sys-content-email" class="hidden space-y-6">
-                    <div class="sub-nav-container mb-6">
-                        <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
-                        <button id="email-nav-accounts" class="sub-nav-btn">📧 Cuentas</button>
-                        <button id="email-nav-campaigns" class="sub-nav-btn">📢 Campañas</button>
-                        <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
-                        <button id="email-nav-mailing" class="sub-nav-btn">Mailing</button>
-                        <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
-                    </div>
-                    <div id="email-content-config" class="email-content space-y-6">
-                        <div class="card p-6 max-w-2xl">
-                            <form id="smtp-form" class="space-y-4">
-                                <h3 class="text-lg font-bold">Configuración SMTP</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="smtp-host" placeholder="Host SMTP" class="input-field">
-                                    <input type="number" id="smtp-port" placeholder="Puerto" class="input-field">
-                                    <input type="text" id="smtp-user" placeholder="Usuario" class="input-field">
-                                    <input type="password" id="smtp-pass" placeholder="Contraseña" class="input-field">
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="smtp-from-name" placeholder="Nombre Remitente" class="input-field">
-                                    <input type="email" id="smtp-from-email" placeholder="Email Remitente" class="input-field">
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="smtp-secure"> <label for="smtp-secure" class="text-xs uppercase font-bold">Usar SSL/TLS</label>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar SMTP</button>
-                                </div>
-                                <div class="pt-4 border-t border-[var(--border)]">
-                                    <h3 class="text-lg font-bold mb-4">Configuración IMAP (Buzón)</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" id="imap-host" placeholder="Host IMAP" class="input-field">
-                                        <input type="number" id="imap-port" placeholder="Puerto IMAP" class="input-field">
-                                        <input type="text" id="imap-user" placeholder="Usuario IMAP" class="input-field">
-                                        <input type="password" id="imap-pass" placeholder="Contraseña IMAP" class="input-field">
-                                    </div>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        <input type="checkbox" id="imap-tls"> <label for="imap-tls" class="text-xs uppercase font-bold">Usar TLS</label>
-                                    </div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar IMAP</button>
-                                    <button type="submit" class="btn-primary flex-1">💾 Guardar Configuración</button>
-                                </div>
-                            </form>
-                        </div>
-                        <!-- Guía de Entregabilidad -->
-                        <div class="card p-6 border border-yellow-500/20 bg-yellow-500/5">
-                            <div class="flex items-center gap-2 mb-4">
-                                <span class="material-symbols-outlined text-yellow-500">info</span>
-                                <h3 class="text-lg font-bold text-yellow-500">Guía de Entregabilidad (Anti-Spam)</h3>
-                            </div>
-                            <div class="space-y-4 text-sm">
-                                <div class="p-3 bg-black/20 rounded-lg">
-                                    <h4 class="font-bold text-white mb-1">SPF (Sender Policy Framework)</h4>
-                                    <p class="text-slate-400 text-xs">Autoriza qué servidores pueden enviar emails desde tu dominio.</p>
-                                    <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=spf1 include:_spf.google.com ~all</code>
-                                </div>
-                                <div class="p-3 bg-black/20 rounded-lg">
-                                    <h4 class="font-bold text-white mb-1">DKIM (DomainKeys Identified Mail)</h4>
-                                    <p class="text-slate-400 text-xs">Firma digital que verifica que el email no fue modificado.</p>
-                                    <p class="text-slate-500 text-xs mt-1">Genera la clave en tu proveedor de email y agrégala como registro TXT.</p>
-                                </div>
-                                <div class="p-3 bg-black/20 rounded-lg">
-                                    <h4 class="font-bold text-white mb-1">DMARC</h4>
-                                    <p class="text-slate-400 text-xs">Indica qué hacer si SPF o DKIM fallan.</p>
-                                    <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=DMARC1; p=none; rua=mailto:admin@tudominio.com</code>
-                                </div>
-                                <div class="p-3 bg-black/20 rounded-lg">
-                                    <h4 class="font-bold text-white mb-1">Consejos Anti-Spam</h4>
-                                    <ul class="text-slate-400 text-xs list-disc list-inside space-y-1">
-                                        <li>Evita palabras como "Gratis", "Urgente", "Ganador", "$$$"</li>
-                                        <li>Siempre incluye enlace de desuscripción</li>
-                                        <li>Calienta tu IP enviando pocos correos al inicio</li>
-                                        <li>Usa un dominio propio (no @gmail.com)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- SECCIÓN: CUENTAS DE EMAIL -->
-                    <div id="email-content-accounts" class="email-content hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-bold">📧 Cuentas de Envío</h2>
-                            <button onclick="App.openAccountEditor()" class="btn-primary !py-2 !px-4 text-xs">➕ Nueva Cuenta</button>
-                        </div>
-                        <p class="text-sm text-slate-400">Configura múltiples cuentas SMTP para elegir con cual enviar cada campaña.</p>
-                        
-                        <!-- Lista de Cuentas -->
-                        <div id="accounts-list" class="space-y-4">
-                            <div class="p-8 text-center text-slate-500">Cargando cuentas...</div>
-                        </div>
-                    </div>
-                    
-                    <!-- SECCIÓN: CAMPAÑAS -->
-                    <div id="email-content-campaigns" class="email-content hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-bold">📢 Campañas de Email</h2>
-                            <button onclick="App.openCampaignEditor()" class="btn-primary !py-2 !px-4 text-xs">➕ Nueva Campaña</button>
-                        </div>
-                        
-                        <!-- Lista de Campañas -->
-                        <div id="campaigns-list" class="space-y-4">
-                            <div class="p-8 text-center text-slate-500">Cargando campañas...</div>
-                        </div>
-                    </div>
-                    
-                    <div id="email-content-mailbox" class="email-content hidden">
-                        <!-- Toolbar del Buzón -->
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex gap-2">
-                                <button id="mail-folder-inbox" onclick="App.switchMailboxFolder('INBOX')" class="mail-folder-btn btn-secondary !py-2 !px-3 text-xs">📥 Bandeja</button>
-                                <button id="mail-folder-sent" onclick="App.switchMailboxFolder('SENT')" class="mail-folder-btn btn-secondary !py-2 !px-3 text-xs">📤 Enviados</button>
-                            </div>
-                            <button onclick="App.syncIMAP()" class="btn-primary !py-2 !px-3 text-xs">🔄 Sincronizar</button>
-                        </div>
-                        <!-- Lista de Emails -->
-                        <div id="email-mailbox-list" class="space-y-4">
-                            <div class="p-12 text-center text-slate-600">
-                                <span class="material-symbols-outlined text-4xl block mb-2">inbox</span>
-                                <p class="text-sm font-bold">Selecciona una carpeta</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="email-content-mailing" class="email-content hidden space-y-6">
-                        <!-- Selector de Cuenta de Email -->
-                        <div class="card p-4 border-l-4 border-l-primary">
-                            <div class="flex items-center gap-4">
-                                <div class="flex-1">
-                                    <label class="text-xs font-bold text-slate-400">📧 Cuenta de Envío</label>
-                                    <select id="mailing-account-selector" class="input-field w-full">
-                                        <option value="">-- Seleccionar Cuenta --</option>
-                                    </select>
-                                </div>
-                                <div class="text-xs text-slate-500 mt-4">
-                                    <span id="mailing-account-info"></span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Selector de Evento y Plantilla -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4">1. Seleccionar Evento</h3>
-                                <select id="mailing-event-selector" onchange="App.onMailingEventChange()" class="input-field w-full">
-                                    <option value="">-- Seleccionar Evento --</option>
-                                </select>
-                                <div class="mt-4 flex gap-2">
-                                    <button onclick="App.openMailing()" class="btn-secondary !py-2 !px-3 text-xs">+ Manual</button>
-                                </div>
-                            </div>
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4">2. Seleccionar Plantilla</h3>
-                                <select id="mailing-template-selector" onchange="App.onTemplateChange()" class="input-field w-full">
-                                    <option value="">-- Seleccionar Plantilla --</option>
-                                </select>
-                                <button onclick="App.previewMailingTemplate()" class="btn-secondary !py-2 !px-3 text-xs mt-3">Previsualizar</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Lista de Destinatarios -->
-                        <div class="card p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold">3. Destinatarios</h3>
-                                <span id="mailing-count" class="text-sm text-slate-400">0 seleccionados</span>
-                            </div>
-                            <input type="text" id="mailing-search" oninput="App.filterMailingGuests()" placeholder="Buscar por nombre o email..." class="input-field w-full mb-4">
-                            <div id="mailing-recipients-list" class="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar"></div>
-                        </div>
-                        
-                        <!-- Vista Previa -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4">4. Previsualización</h3>
-                            <input type="text" id="mailing-subject" placeholder="Asunto del email" class="input-field w-full mb-4">
-                            <div id="mailing-preview-container" class="bg-white/5 rounded-lg p-4 min-h-[150px] text-sm text-slate-300"></div>
-                            <div class="flex gap-2 mt-4">
-                                <button onclick="App.refreshMailingPreview()" class="btn-secondary !py-2 !px-3 text-xs">🔄 Actualizar</button>
-                                <button onclick="App.sendTestEmail()" class="btn-primary !py-2 !px-3 text-xs">📤 Enviar Prueba</button>
-                            </div>
-                            <div class="mt-3">
-                                <input type="text" id="test-email-input" placeholder="Tu email para prueba..." class="input-field w-full text-xs">
-                            </div>
-                        </div>
-                        
-                        <!-- Progreso de Envío -->
-                        <div id="mailing-progress-card" class="hidden card p-6 border border-primary/30">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="text-lg font-bold">Progreso de Envío</h3>
-                                <span id="mailing-status-text" class="text-sm text-primary font-bold">Enviando...</span>
-                            </div>
-                            <div class="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
-                                <div id="mailing-progress-bar" class="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                            <div class="flex justify-between text-xs text-slate-400">
-                                <span id="mailing-count-text">0 / 0 enviados</span>
-                                <span id="mailing-percent-text">0%</span>
-                            </div>
-                            <div class="flex gap-2 mt-4">
-                                <button onclick="App.controlMailingQueue('pause')" id="btn-pause-mailing" class="btn-secondary !py-2 !px-3 text-xs">Pausar</button>
-                                <button onclick="App.controlMailingQueue('resume')" id="btn-resume-mailing" class="btn-secondary !py-2 !px-3 text-xs hidden">Reanudar</button>
-                                <button onclick="App.controlMailingQueue('stop')" class="btn-secondary !py-2 !px-3 text-xs !text-red-400">Detener</button>
-                                <button onclick="App.startBroadcast()" class="btn-primary !py-2 !px-3 text-xs ml-auto">Iniciar Envío</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="email-content-templates" class="email-content hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold">Plantillas de Email</h3>
-                            <button class="btn-primary !px-4 !py-2" onclick="App.openTemplateEditor()">Nueva Plantilla</button>
-                        </div>
-                        <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN: MI PERFIL -->
-                <div id="sys-content-account" class="hidden space-y-6">
-                    <!-- Notificaciones Push -->
-                    <div class="card p-6 border-l-4 border-l-[var(--primary)]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-bold">Notificaciones Push</h3>
-                                <p class="text-sm text-[var(--text-secondary)] mt-1">Recibe alertas en tu navegador cuando hayan nuevos registros.</p>
-                                <p id="push-status-text" class="text-xs text-slate-500 mt-2"> Estado: No activo</p>
-                            </div>
-                            <button id="btn-enable-push" onclick="App.enablePushNotifications()" class="btn-primary !py-2 !px-4">
-                                <span class="material-symbols-outlined text-sm mr-1">notifications</span>
-                                Activar
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-8">
-                            <h3 class="text-xl font-bold mb-6">Información Personal</h3>
-                            <form id="profile-form" class="space-y-4">
-                                <input type="text" id="profile-name" placeholder="Tu nombre" class="input-field w-full">
-                                <input type="text" id="profile-phone" placeholder="Teléfono" class="input-field w-full">
-                                <input type="email" id="profile-email" placeholder="email@ejemplo.com" class="input-field w-full">
-                                <select id="profile-company" class="input-field w-full">
-                                    <option value="">-- Sin empresa asignada --</option>
-                                </select>
-                                <button type="submit" class="btn-primary w-full">Actualizar Perfil</button>
-                            </form>
-                        </div>
-                        <div class="card p-8">
-                            <h3 class="text-xl font-bold mb-6">Seguridad</h3>
-                            <form id="password-form" class="space-y-4">
-                                <input type="password" id="pass-current" placeholder="Contraseña actual" class="input-field w-full">
-                                <input type="password" id="pass-new" placeholder="Nueva contraseña" class="input-field w-full">
-                                <button type="submit" class="btn-primary w-full">Cambiar Contraseña</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VIEW: PRE-REGISTRATIONS -->
-            <section id="view-pre-registrations" class="hidden space-y-8">
-                <header>
-                    <h1 class="text-3xl font-semibold tracking-tight">Pre-registros</h1>
-                    <p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de invitados pre-registrados.</p>
-                </header>
-                <div class="card !p-0 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="px-5 py-4">Nombre</th>
-                                    <th class="px-5 py-4">Email</th>
-                                    <th class="px-5 py-4 text-center">Estado</th>
-                                    <th class="px-5 py-4 text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pre-reg-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VIEW: SURVEY MANAGER -->
-            <section id="view-survey-manager" class="hidden space-y-8">
-                <header>
-                    <h1 class="text-3xl font-semibold tracking-tight">Encuesta QR</h1>
-                    <p class="text-[var(--text-secondary)] text-sm mt-1">Configuración de preguntas para el registro.</p>
-                </header>
-                <div id="survey-questions-list" class="space-y-4"></div>
-            </section>
-
-        </div>
+        <!-- VIEW: SURVEY MANAGER -->
+        <section id="view-survey-manager" class="hidden space-y-8">
+            <!-- Survey manager -->
+        </section>
     </main>
 </div>
 
-<!-- MODALS -->
-<div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
-                <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Gestión de Evento</h3>
-            </div>
-            <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
-            <input type="hidden" id="ev-id-hidden" value="">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
-                    <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
-                    <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
-                    <input type="datetime-local" id="ev-date" required class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
-                    <input type="datetime-local" id="ev-end-date" class="input-field w-full">
-                </div>
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
-                <textarea id="ev-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
-            </div>
-            <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
-                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
-            </div>
-        </form>
-    </div>
+<!-- Modales (fuera del app-container para evitar problemas de z-index) -->
+<div id="modal-event-full" class="modal hidden">
+    <!-- Modal para crear/editar evento completo -->
 </div>
 
-<!-- MODAL EVENTO COMPLETO (para Mis Eventos) -->
-<div id="modal-event-full" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
-                <h3 id="modal-event-full-title" class="text-sm font-bold uppercase tracking-wider">Nuevo Evento - Configuración Completa</h3>
-            </div>
-            <button id="btn-close-event-full-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form id="new-event-full-form" class="p-5 overflow-y-auto flex-1 space-y-6">
-            <input type="hidden" id="evf-id-hidden" value="">
-            
-            <!-- DATOS BÁSICOS -->
-            <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Datos Básicos</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento *</label>
-                        <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
-                        <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio *</label>
-                        <input type="datetime-local" id="evf-date" required class="input-field w-full">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
-                        <input type="datetime-local" id="evf-end-date" class="input-field w-full">
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
-                    <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
-                </div>
-            </div>
-
-            <!-- CONFIGURACIÓN DE REGISTRO -->
-            <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Registro de Invitados</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Título de Registro</label>
-                        <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Mensaje de Bienvenida</label>
-                        <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Mensaje de Éxito</label>
-                    <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Política de Privacidad</label>
-                    <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
-                </div>
-                
-                <!-- CHECKBOXES DE REGISTRO -->
-                <div class="grid grid-cols-3 gap-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Teléfono</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Organización</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Cargo</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Vegetariano</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-dietary" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Restricciones</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
-                        <span class="text-xs text-[var(--text-main)]">Género</span>
-                    </label>
-                </div>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
-                    <span class="text-xs text-[var(--text-main)]">Requerir aceptación de términos</span>
-                </label>
-            </div>
-
-            <!-- FILTROS DE EMAIL -->
-            <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Filtros de Email</h4>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Emails Permitidos (Whitelist)</label>
-                    <input type="text" id="evf-reg-whitelist" placeholder="@empresa.com, @otro.com" class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Emails Bloqueados (Blacklist)</label>
-                    <input type="text" id="evf-reg-blacklist" placeholder="@spam.com, @mal.com" class="input-field w-full">
-                </div>
-            </div>
-
-            <!-- DISEÑO QR -->
-            <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Diseño de Código QR</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color QR Oscuro</label>
-                        <input type="color" id="evf-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color QR Claro</label>
-                        <input type="color" id="evf-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Logo QR (URL)</label>
-                    <input type="text" id="evf-qr-logo" placeholder="https://..." class="input-field w-full">
-                </div>
-            </div>
-
-            <!-- DISEÑO TICKET -->
-            <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase text-slate-500 tracking-widest border-b border-white/10 pb-2">Diseño de Ticket</h4>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fondo de Ticket (URL)</label>
-                    <input type="text" id="evf-ticket-bg" placeholder="https://..." class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Color de Acento</label>
-                    <input type="color" id="evf-ticket-accent" value="#6366f1" class="w-full h-10 rounded cursor-pointer">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button type="button" id="btn-cancel-event-full" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                <button type="submit" class="btn-primary !px-5 !py-2">Guardar Evento</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
-            </div>
-            <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form id="invite-user-form" class="p-5 space-y-4">
-            <div>
-                <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
-                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
-            </div>
-            <div>
-                <input type="email" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
-                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
-            </div>
-            <div class="relative">
-                <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
-                <button type="button" id="btn-toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text)]">
-                    <span class="material-symbols-outlined text-lg">visibility</span>
-                </button>
-            </div>
-            <p class="text-xs text-[var(--text-secondary)] -mt-2 ml-1">Mínimo 6 caracteres</p>
-            <div>
-                <select id="invite-role" class="input-field w-full">
-                    <option value="ADMIN">Administrador</option>
-                    <option value="PRODUCTOR">Productor</option>
-                    <option value="STAFF">Staff</option>
-                    <option value="CLIENTE">Cliente</option>
-                    <option value="LOGISTICO">Logístico</option>
-                </select>
-                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
-            </div>
-            <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)]">Cancelar</button>
-                <button type="submit" class="btn-primary !px-5 !py-2">Crear</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm" aria-hidden="true">
-    <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">corporate_fare</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Gestión de Empresa</h3>
-            </div>
-            <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form id="company-form" class="p-5 space-y-4">
-            <input type="hidden" id="company-id-hidden" value="">
-            <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
-            <textarea id="company-description" placeholder="Breve descripción..." class="input-field w-full" rows="2"></textarea>
-            <input type="email" id="company-email" placeholder="email@empresa.com" class="input-field w-full">
-            <input type="tel" id="company-phone" placeholder="Teléfono (opcional)" class="input-field w-full">
-            <select id="company-status" class="input-field w-full">
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-            </select>
-            <button type="submit" class="btn-primary w-full">Guardar</button>
-        </form>
-    </div>
-</div>
-
-<div id="modal-qr-scanner" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-lg max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">qr_code_scanner</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Escáner de Acceso</h3>
-            </div>
-            <button id="btn-stop-scanner" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <div class="p-5 flex flex-col items-center gap-4">
-            <video id="qr-video" class="w-full rounded-lg" autoplay playsinline></video>
-            <div id="scan-result" class="text-center"></div>
-            <button id="btn-start-scan" class="btn-primary !px-5 !py-2">Iniciar Cámara</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Editor de Plantillas de Email -->
-<div id="modal-template-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Editor de Plantilla</h3>
-            </div>
-            <button onclick="document.getElementById('modal-template-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form onsubmit="event.preventDefault(); App.saveEmailTemplate()" class="p-5 space-y-4 overflow-y-auto flex-1">
-            <input type="text" id="tpl-name" required placeholder="Nombre de la plantilla" class="input-field w-full">
-            <input type="text" id="tpl-subject" required placeholder="Asunto del email" class="input-field w-full">
-            
-            <!-- Variables disponibles -->
-            <div class="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <div class="text-xs font-bold text-primary mb-2">📋 Variables disponibles (clic para copiar)</div>
-                <div class="flex flex-wrap gap-1">
-                    <button type="button" onclick="App.copyTemplateVar('{{guest_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">guest_name</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{guest_email}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">guest_email</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{event_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_name</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{event_date}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_date</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{event_location}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">event_location</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{checkin_time}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">checkin_time</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{agenda}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">agenda</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{unsubscribe_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">unsubscribe_url</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{user_name}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">user_name</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{password}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">password</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{login_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">login_url</button>
-                    <button type="button" onclick="App.copyTemplateVar('{{reset_url}}')" class="text-[10px] px-2 py-1 bg-black/30 rounded hover:bg-primary/30 transition">reset_url</button>
-                </div>
-            </div>
-            
-            <div class="text-xs text-slate-400 mb-1">Cuerpo del email (soporta HTML)</div>
-            <div id="tpl-quill-editor" class="bg-white/5 rounded-lg" style="min-height: 200px;"></div>
-            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
-                <button type="submit" class="btn-primary flex-1">Guardar Plantilla</button>
-                <button type="button" onclick="document.getElementById('modal-template-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal: Editor de Campañas -->
-<div id="modal-campaign-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">campaign</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Editor de Campaña</h3>
-            </div>
-            <button onclick="document.getElementById('modal-campaign-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <div class="p-5 space-y-4 overflow-y-auto flex-1">
-            <input type="hidden" id="campaign-id">
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Nombre de la Campaña</label>
-                <input type="text" id="campaign-name" placeholder="Ej: Recordatorio Evento 2024" class="input-field w-full">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Evento (opcional)</label>
-                    <select id="campaign-event-select" class="input-field w-full">
-                        <option value="">-- Seleccionar Evento --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Plantilla</label>
-                    <select id="campaign-template-select" onchange="App.onCampaignTemplateChange()" class="input-field w-full">
-                        <option value="">-- Seleccionar Plantilla --</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Asunto del Email</label>
-                <input type="text" id="campaign-subject" placeholder="Asunto que verán los destinatarios" class="input-field w-full">
-            </div>
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Cuerpo del Email (HTML)</label>
-                <textarea id="campaign-body" rows="8" placeholder="Cuerpo del email..." class="input-field w-full font-mono text-sm"></textarea>
-            </div>
-            
-            <!-- Filtros -->
-            <div class="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                <h4 class="font-bold text-primary text-sm mb-3">Filtros de Destinatarios</h4>
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-400">Buscar</label>
-                        <input type="text" id="campaign-filter-search" placeholder="Por nombre o email" class="input-field w-full text-xs">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400">Género</label>
-                        <select id="campaign-filter-gender" class="input-field w-full text-xs">
-                            <option value="">Todos</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                            <option value="O">Otro</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400">Check-in</label>
-                        <select id="campaign-filter-checkedin" class="input-field w-full text-xs">
-                            <option value="">Todos</option>
-                            <option value="1">Solo check-in</option>
-                            <option value="0">Sin check-in</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
-                <button onclick="App.saveCampaign()" class="btn-primary flex-1">💾 Guardar Campaña</button>
-                <button onclick="document.getElementById('modal-campaign-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Reporte de Campaña -->
-<div id="modal-campaign-report" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-xl m-4 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">analytics</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Reporte de Campaña</h3>
-            </div>
-            <button onclick="document.getElementById('modal-campaign-report').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <div id="campaign-report-content" class="p-5 overflow-y-auto">
-            <!-- contenido dinámico -->
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Editor de Cuentas de Email -->
-<div id="modal-account-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Cuenta de Email</h3>
-            </div>
-            <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <div class="p-5 space-y-4 overflow-y-auto flex-1">
-            <input type="hidden" id="account-id">
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Nombre de la Cuenta *</label>
-                <input type="text" id="account-name" placeholder="Ej: Gmail Trabajo" class="input-field w-full">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Host SMTP *</label>
-                    <input type="text" id="account-host" placeholder="smtp.gmail.com" class="input-field w-full">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Puerto</label>
-                    <input type="number" id="account-port" value="587" class="input-field w-full">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Usuario SMTP *</label>
-                    <input type="text" id="account-user" placeholder="tu@email.com" class="input-field w-full">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Contraseña *</label>
-                    <input type="password" id="account-pass" placeholder="••••••••" class="input-field w-full">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Nombre Remitente</label>
-                    <input type="text" id="account-from-name" placeholder="Check Pro" class="input-field w-full">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Email Remitente *</label>
-                    <input type="email" id="account-from-email" placeholder="noreply@tudominio.com" class="input-field w-full">
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="account-secure" class="w-4 h-4 accent-primary">
-                    <span class="text-xs">SSL/TLS</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="account-default" class="w-4 h-4 accent-primary">
-                    <span class="text-xs">Cuenta Default</span>
-                </label>
-            </div>
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Límite Diario</label>
-                <input type="number" id="account-limit" value="500" class="input-field w-full">
-                <p class="text-[10px] text-slate-500">Cantidad máxima de emails por día</p>
-            </div>
-            
-            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
-                <button onclick="App.saveEmailAccount()" class="btn-primary flex-1">💾 Guardar</button>
-                <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SCRIPTS & STYLES -->
 <style>
-    /* Estilos críticos para prevenir FOUC en app-shell */
-    html.dark {
+    /* Estilos para modo oscuro por defecto */
+    :root {
         --bg-app: #202124;
         --bg-sidebar: #292a2d;
         --bg-card: #292a2d;
@@ -1618,6 +445,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.27.9">
-<link rel="stylesheet" href="/css/modern.css?v=12.27.9">
-<script type="module" src="/js/app.js?v=12.27.9"></script>
+<link rel="stylesheet" href="/css/styles.css?v=12.28.0">
+<link rel="stylesheet" href="/css/modern.css?v=12.28.0">
+<script type="module" src="/js/app.js?v=12.28.0"></script>
