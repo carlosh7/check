@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.5';
+const VERSION = '12.27.6';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -2398,7 +2398,7 @@ const App = window.App = {
     },
 
     initDNSGuide: function() {
-        const isDismissed = localStorage.getItem('dns_guide_dismissed');
+        const isDismissed = LS.get('dns_guide_dismissed');
         const banner = document.getElementById('dns-guide-banner');
         if (banner) {
             if (isDismissed) banner.classList.add('hidden');
@@ -2407,7 +2407,7 @@ const App = window.App = {
     },
 
     dismissDNSGuide: function() {
-        localStorage.setItem('dns_guide_dismissed', 'true');
+        LS.set('dns_guide_dismissed', 'true');
         document.getElementById('dns-guide-banner')?.classList.add('hidden');
     },
 
@@ -7803,34 +7803,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
             reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
         };
-        e.preventDefault();
-        const eventId = document.getElementById('evf-id-hidden').value;
-        
-        const data = {
-            name: document.getElementById('evf-name').value,
-            date: document.getElementById('evf-date').value,
-            end_date: document.getElementById('evf-end-date').value,
-            location: document.getElementById('evf-location').value,
-            description: document.getElementById('evf-desc').value,
-            reg_title: document.getElementById('evf-reg-title').value,
-            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
-            reg_success_message: document.getElementById('evf-reg-success').value,
-            reg_policy: document.getElementById('evf-reg-policy').value,
-            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
-            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
-            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
-            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
-            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
-            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
-            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
-            qr_color_dark: document.getElementById('evf-qr-dark').value,
-            qr_color_light: document.getElementById('evf-qr-light').value,
-            qr_logo_url: document.getElementById('evf-qr-logo').value,
-            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
-            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
-            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
-            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
-        };
 
         if (eventId) {
             App.updateEvent(eventId, data);
@@ -7841,6 +7813,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert("✓ Evento creado con configuración completa.");
                     hideModal('modal-event-full');
                     App.loadEvents();
+                    
+                    // Crear rueda de ejemplo automáticamente
+                    try {
+                        const eventId = d.event?.id || d.id;
+                        if (eventId) {
+                            const wheelConfig = {
+                                visual: {
+                                    wheel_colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+                                    wheel_text_color: '#FFFFFF',
+                                    pointer_color: '#FF0000',
+                                    sound_enabled: true,
+                                    confetti_on_win: true
+                                }
+                            };
+                            
+                            await App.fetchAPI(`/events/${eventId}/wheels`, {
+                                method: 'POST',
+                                body: JSON.stringify({ 
+                                    name: 'Ruleta de Ejemplo', 
+                                    config: wheelConfig 
+                                })
+                            });
+                            
+                            console.log('✓ Rueda de ejemplo creada automáticamente');
+                        }
+                    } catch (wheelErr) {
+                        console.warn('No se pudo crear rueda de ejemplo:', wheelErr);
+                        // No mostrar error al usuario, es opcional
+                    }
                 } else alert("Error: " + d.error);
             } catch(err) { alert("Error al crear evento: " + err.message); }
         }
@@ -7886,6 +7887,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert("✓ Evento creado con configuración completa.");
                     App.loadEvents();
                     App.navigate('my-events');
+                    
+                    // Crear rueda de ejemplo automáticamente
+                    try {
+                        const eventId = d.event?.id || d.id;
+                        if (eventId) {
+                            const wheelConfig = {
+                                visual: {
+                                    wheel_colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+                                    wheel_text_color: '#FFFFFF',
+                                    pointer_color: '#FF0000',
+                                    sound_enabled: true,
+                                    confetti_on_win: true
+                                }
+                            };
+                            
+                            await App.fetchAPI(`/events/${eventId}/wheels`, {
+                                method: 'POST',
+                                body: JSON.stringify({ 
+                                    name: 'Ruleta de Ejemplo', 
+                                    config: wheelConfig 
+                                })
+                            });
+                            
+                            console.log('✓ Rueda de ejemplo creada automáticamente');
+                        }
+                    } catch (wheelErr) {
+                        console.warn('No se pudo crear rueda de ejemplo:', wheelErr);
+                        // No mostrar error al usuario, es opcional
+                    }
                 } else alert("Error: " + d.error);
             } catch(err) { alert("Error al crear evento: " + err.message); }
         }
