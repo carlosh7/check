@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.4';
+const VERSION = '12.27.5';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3651,6 +3651,14 @@ const App = window.App = {
         cl('config-nav-email', () => window.App.switchConfigTab('email'));
         cl('config-nav-agenda', () => window.App.switchConfigTab('agenda'));
         cl('config-nav-wheel', () => window.App.switchConfigTab('wheel'));
+        cl('config-nav-settings', () => window.App.switchConfigTab('settings'));
+        cl('btn-cancel-event-settings', () => {
+            // Recargar los datos del evento para descartar cambios
+            const eventId = App.state.event?.id;
+            if (eventId) {
+                App.loadConfigSettings();
+            }
+        });
         
         // Ruleta de Sorteos - botones
         cl('btn-create-wheel', () => this.createNewWheel());
@@ -5392,7 +5400,7 @@ const App = window.App = {
     // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
         console.log('[CONFIG] Switching to tab:', tabName, 'current event:', this.state.event?.id);
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-settings'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -5423,6 +5431,7 @@ const App = window.App = {
         if (tabName === 'email') this.loadConfigEmail();
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheels();
+        if (tabName === 'settings') this.loadConfigSettings();
     },
     
     // Cargar staff en config view
@@ -5475,6 +5484,49 @@ const App = window.App = {
                 configList.innerHTML = evList.innerHTML;
             }
         });
+    },
+
+    // Cargar configuración del evento en formulario
+    loadConfigSettings() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        // Buscar el evento en la lista de eventos
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        // Llenar el formulario con los datos del evento
+        // Usamos los mismos IDs que en editEvent pero con prefijo evf-
+        document.getElementById('evf-id-hidden').value = ev.id;
+        document.getElementById('evf-name').value = ev.name || '';
+        document.getElementById('evf-location').value = ev.location || '';
+        document.getElementById('evf-desc').value = ev.description || '';
+        document.getElementById('evf-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        document.getElementById('evf-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        
+        document.getElementById('evf-reg-title').value = ev.reg_title || '';
+        document.getElementById('evf-reg-welcome').value = ev.reg_welcome_text || '';
+        document.getElementById('evf-reg-success').value = ev.reg_success_message || '';
+        document.getElementById('evf-reg-policy').value = ev.reg_policy || '';
+        document.getElementById('evf-reg-phone').checked = ev.reg_show_phone !== 0;
+        document.getElementById('evf-reg-org').checked = ev.reg_show_org !== 0;
+        document.getElementById('evf-reg-position').checked = ev.reg_show_position === 1;
+        document.getElementById('evf-reg-vegan').checked = ev.reg_show_vegan !== 0;
+        document.getElementById('evf-reg-dietary').checked = ev.reg_show_dietary !== 0;
+        document.getElementById('evf-reg-gender').checked = ev.reg_show_gender === 1;
+        document.getElementById('evf-reg-agreement').checked = ev.reg_require_agreement !== 0;
+        
+        document.getElementById('evf-qr-dark').value = ev.qr_color_dark || '#000000';
+        document.getElementById('evf-qr-light').value = ev.qr_color_light || '#ffffff';
+        document.getElementById('evf-qr-logo').value = ev.qr_logo_url || '';
+        document.getElementById('evf-ticket-bg').value = ev.ticket_bg_url || '';
+        document.getElementById('evf-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
+        
+        document.getElementById('evf-reg-whitelist').value = ev.reg_email_whitelist || '';
+        document.getElementById('evf-reg-blacklist').value = ev.reg_email_blacklist || '';
+        
+        // Actualizar vista previa QR
+        this.updateQRPreview();
     },
 
     // ==================== RULETA DE SORTEOS (FASE 1) ====================
@@ -7751,6 +7803,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
             reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
         };
+        e.preventDefault();
+        const eventId = document.getElementById('evf-id-hidden').value;
+        
+        const data = {
+            name: document.getElementById('evf-name').value,
+            date: document.getElementById('evf-date').value,
+            end_date: document.getElementById('evf-end-date').value,
+            location: document.getElementById('evf-location').value,
+            description: document.getElementById('evf-desc').value,
+            reg_title: document.getElementById('evf-reg-title').value,
+            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
+            reg_success_message: document.getElementById('evf-reg-success').value,
+            reg_policy: document.getElementById('evf-reg-policy').value,
+            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
+            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
+            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
+            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
+            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
+            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
+            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
+            qr_color_dark: document.getElementById('evf-qr-dark').value,
+            qr_color_light: document.getElementById('evf-qr-light').value,
+            qr_logo_url: document.getElementById('evf-qr-logo').value,
+            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
+            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
+            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
+            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
+        };
 
         if (eventId) {
             App.updateEvent(eventId, data);
@@ -7761,6 +7841,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert("✓ Evento creado con configuración completa.");
                     hideModal('modal-event-full');
                     App.loadEvents();
+                } else alert("Error: " + d.error);
+            } catch(err) { alert("Error al crear evento: " + err.message); }
+        }
+    });
+
+    // Form de configuración de evento (misma lógica que new-event-full-form)
+    sf('event-settings-form', async (e) => {
+        e.preventDefault();
+        const eventId = document.getElementById('evf-id-hidden').value;
+        
+        const data = {
+            name: document.getElementById('evf-name').value,
+            date: document.getElementById('evf-date').value,
+            end_date: document.getElementById('evf-end-date').value,
+            location: document.getElementById('evf-location').value,
+            description: document.getElementById('evf-desc').value,
+            reg_title: document.getElementById('evf-reg-title').value,
+            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
+            reg_success_message: document.getElementById('evf-reg-success').value,
+            reg_policy: document.getElementById('evf-reg-policy').value,
+            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
+            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
+            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
+            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
+            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
+            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
+            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
+            qr_color_dark: document.getElementById('evf-qr-dark').value,
+            qr_color_light: document.getElementById('evf-qr-light').value,
+            qr_logo_url: document.getElementById('evf-qr-logo').value,
+            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
+            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
+            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
+            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
+        };
+
+        if (eventId) {
+            App.updateEvent(eventId, data);
+        } else {
+            try {
+                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
+                if (d.success) {
+                    alert("✓ Evento creado con configuración completa.");
+                    App.loadEvents();
+                    App.navigate('my-events');
                 } else alert("Error: " + d.error);
             } catch(err) { alert("Error al crear evento: " + err.message); }
         }
