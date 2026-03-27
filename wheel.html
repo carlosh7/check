@@ -278,13 +278,13 @@
             <!-- WRAPPER QUE CENTRA LA RULETA -OCUPA TODA LA PANTALLA -->
             <div class="projector-wheel-wrapper">
                 <!-- Contenedor del canvas 1920x1080 escalado -->
-                <div id="wheel-container-projector" class="relative overflow-hidden" style="width: 1000px; height: 562px;">
+                <div id="wheel-container-projector" class="relative overflow-hidden" style="width: 1000px; height: 562px; display: flex; align-items: center; justify-content: center;">
                     <!-- Puntero: A la DERECHA, tocando la tangente -->
                     <div id="pointer-projector" class="absolute z-10" style="right: -60px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
                         <div style="width: 0; height: 0; border-top: 30px solid transparent; border-bottom: 30px solid transparent; border-right: 60px solid #7c3aed;"></div>
                     </div>
-                    <!-- Canvas 1920x1080 centrado y escalado con CSS object-fit -->
-                    <canvas id="wheel-canvas-projector" width="1920" height="1080" class="absolute" style="left: 0; top: 0; width: 100%; height: 100%;"></canvas>
+                    <!-- Canvas - tamaño visual 100% del contenedor, resolución interna 1920x1080 -->
+                    <canvas id="wheel-canvas-projector" style="width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
             
