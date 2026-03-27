@@ -53,11 +53,23 @@ git add . && git commit -m "mensaje descriptivo" && git push origin main
 # 2. desde C:\Users\carlo\check (ENTORNO DE VALIDACIÓN)
 git pull
 
-# 3. VALIDAR
+# 3. VERIFICAR si server.js cambió
+git diff --name-only HEAD~1 | grep -q server.js && echo "SERVER CAMBIÓ - REINICIAR" || echo "OK"
+
+# 4. Si server.js cambió o hay cambios en archivos del servidor:
+#    - Matar procesos node existentes
+#    - Reiniciar servidor node server.js
+
+# 5. VALIDAR
 curl -s http://localhost:3000/api/health
+
+# 6. CREAR TAG si fue version bump
+git tag v${VERSION} HEAD && git push origin v${VERSION}
 ```
 
-**NOTA:** En este proyecto NO hay docker-compose. Solo git pull.
+**CRÍTICO:** Si el servidor no se reinicia después de un pull que incluye server.js, el entorno de validación sigue corriendo código antiguo.
+
+**NOTA:** En este proyecto NO hay docker-compose. Solo git pull y reinicio manual del servidor Node.
 
 ---
 
