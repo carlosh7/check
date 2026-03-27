@@ -95,7 +95,7 @@
             align-items: center !important;
             justify-content: center !important;
         }
-        /* Contenedor de la ruleta - 800x800 (cuadrado, sin distorsión) */
+        /* Contenedor de la ruleta - 800x800 (centrado en wrapper) */
         #projector-layout.projector-state-large #wheel-container-projector {
             width: 800px !important;
             height: 800px !important;
@@ -277,14 +277,14 @@
             
             <!-- WRAPPER QUE CENTRA LA RULETA -OCUPA TODA LA PANTALLA -->
             <div class="projector-wheel-wrapper">
-                <!-- Contenedor del canvas 1920x1080 escalado -->
-                <div id="wheel-container-projector" class="relative overflow-hidden" style="width: 1000px; height: 562px; display: flex; align-items: center; justify-content: center;">
-                    <!-- Puntero: A la DERECHA, tocando la tangente -->
-                    <div id="pointer-projector" class="absolute z-10" style="right: -60px; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
-                        <div style="width: 0; height: 0; border-top: 30px solid transparent; border-bottom: 30px solid transparent; border-right: 60px solid #7c3aed;"></div>
+                <!-- Contenedor del canvas 800x800 -->
+                <div id="wheel-container-projector" class="relative" style="width: 800px; height: 800px;">
+                    <!-- Canvas 800x800 - PRIMERO (para que el puntero quede encima) -->
+                    <canvas id="wheel-canvas-projector" class="absolute" style="width: 800px; height: 800px; left: 0; top: 0; z-index: 5;"></canvas>
+                    <!-- Puntero: A la DERECHA de la ruleta, tocando la tangente, pointing LEFT -->
+                    <div id="pointer-projector" class="absolute" style="right: -55px; top: 50%; transform: translateY(-50%); z-index: 10; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                        <div style="width: 0; height: 0; border-top: 35px solid transparent; border-bottom: 35px solid transparent; border-right: 60px solid #7c3aed;"></div>
                     </div>
-                    <!-- Canvas 800x800 escalado al contenedor -->
-                    <canvas id="wheel-canvas-projector" style="width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
             
@@ -382,11 +382,11 @@
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Canvas 800x800, contenedor mismo tamaño - sin distorsión
+            // Canvas 800x800 interno, contenedor 800x800
             wheelContainer.style.width = '800px';
             wheelContainer.style.height = '800px';
-            wheelContainer.style.maxWidth = '800px';
-            wheelContainer.style.maxHeight = '800px';
+            wheelCanvas.style.width = '800px';
+            wheelCanvas.style.height = '800px';
             wheelCanvas.width = 800;
             wheelCanvas.height = 800;
             
@@ -403,11 +403,11 @@
             layout.classList.remove('projector-state-large');
             layout.classList.add('projector-state-small');
             
-            // Canvas 800x800, ruleta 700x700px
+            // Canvas 800x800 interno, contenedor 700x700
             wheelContainer.style.width = '700px';
             wheelContainer.style.height = '700px';
-            wheelContainer.style.maxWidth = '700px';
-            wheelContainer.style.maxHeight = '700px';
+            wheelCanvas.style.width = '700px';
+            wheelCanvas.style.height = '700px';
             wheelCanvas.width = 800;
             wheelCanvas.height = 800;
             
