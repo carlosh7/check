@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.26.4';
+const VERSION = '12.26.5';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3235,6 +3235,12 @@ const App = window.App = {
         this.showView(viewName);
         LS.set('active_view', viewName); // Persistencia de vista V12.16.0
         
+        // Guardar evento actual si estamos en admin o event-config
+        if ((viewName === 'admin' || viewName === 'event-config') && this.state.event?.id) {
+            LS.set('active_event_id', this.state.event.id);
+            console.log('[NAV] Saved active event id:', this.state.event.id);
+        }
+        
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents();
         if (viewName === 'system') {
@@ -3464,29 +3470,66 @@ const App = window.App = {
         
         // Para event-config, necesitamos un event id
         if (view === 'event-config' && !params.id) {
-            // Si no hay ID en la URL, intentar usar el evento actual
+            // Primero intentar usar el evento actual
             if (this.state.event?.id) {
                 params.id = this.state.event.id;
                 console.log('[ROUTER] Using current event for event-config:', params.id);
-            } else {
-                // Si no hay evento actual, redirigir a my-events
-                console.log('[ROUTER] No event id for event-config, redirecting to my-events');
-                this.navigate('my-events', {}, false);
-                this._hasHandledInitialNav = true;
-                return;
+            } 
+            // Si no hay evento actual, intentar usar el evento guardado
+            else {
+                const savedEventId = LS.get('active_event_id');
+                if (savedEventId) {
+                    // Buscar el evento en la lista de eventos cargados
+                    const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
+                    if (savedEvent) {
+                        this.state.event = savedEvent;
+                        params.id = savedEventId;
+                        console.log('[ROUTER] Using saved event for event-config:', params.id);
+                    } else {
+                        console.log('[ROUTER] Saved event not found, redirecting to my-events');
+                        this.navigate('my-events', {}, false);
+                        this._hasHandledInitialNav = true;
+                        return;
+                    }
+                } else {
+                    // Si no hay evento guardado, redirigir a my-events
+                    console.log('[ROUTER] No event id for event-config, redirecting to my-events');
+                    this.navigate('my-events', {}, false);
+                    this._hasHandledInitialNav = true;
+                    return;
+                }
             }
         }
         
         // Para admin, también necesitamos un event id
         if (view === 'admin' && !params.id) {
+            // Primero intentar usar el evento actual
             if (this.state.event?.id) {
                 params.id = this.state.event.id;
                 console.log('[ROUTER] Using current event for admin:', params.id);
-            } else {
-                console.log('[ROUTER] No event id for admin, redirecting to my-events');
-                this.navigate('my-events', {}, false);
-                this._hasHandledInitialNav = true;
-                return;
+            } 
+            // Si no hay evento actual, intentar usar el evento guardado
+            else {
+                const savedEventId = LS.get('active_event_id');
+                if (savedEventId) {
+                    // Buscar el evento en la lista de eventos cargados
+                    const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
+                    if (savedEvent) {
+                        this.state.event = savedEvent;
+                        params.id = savedEventId;
+                        console.log('[ROUTER] Using saved event for admin:', params.id);
+                    } else {
+                        console.log('[ROUTER] Saved event not found, redirecting to my-events');
+                        this.navigate('my-events', {}, false);
+                        this._hasHandledInitialNav = true;
+                        return;
+                    }
+                } else {
+                    console.log('[ROUTER] No event id for admin, redirecting to my-events');
+                    this.navigate('my-events', {}, false);
+                    this._hasHandledInitialNav = true;
+                    return;
+                }
             }
         }
         
@@ -5332,7 +5375,7 @@ const App = window.App = {
     
     // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
-        console.log('[CONFIG] Switching to tab:', tabName);
+        console.log('[CONFIG] Switching to tab:', tabName, 'current event:', this.state.event?.id);
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
@@ -5357,6 +5400,7 @@ const App = window.App = {
 
         // Guardar pestaña activa
         LS.set('active_config_tab', tabName);
+        console.log('[CONFIG] Saved active tab:', tabName);
         
         // Load specific data
         if (tabName === 'staff') this.loadConfigStaff();
