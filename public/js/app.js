@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.6';
+const VERSION = '12.27.7';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -1954,7 +1954,15 @@ const App = window.App = {
                 
                 this.updateUIPermissions();
                 this.updateRoleOptions();
-                this.handleInitialNavigation();
+                
+                // Cargar eventos antes de navegar
+                try {
+                    await this.loadEvents();
+                    this.handleInitialNavigation();
+                } catch (err) {
+                    console.warn('[AUTH] Error loading events, navigating to my-events:', err);
+                    this.navigate('my-events');
+                }
 
                 return { success: true };
             } else {
@@ -3481,6 +3489,14 @@ const App = window.App = {
             else {
                 const savedEventId = LS.get('active_event_id');
                 if (savedEventId) {
+                    // Verificar que events sea un array antes de usar find
+                    if (!Array.isArray(this.state.events)) {
+                        console.warn('[ROUTER] events is not an array, redirecting to my-events');
+                        this.navigate('my-events', {}, false);
+                        this._hasHandledInitialNav = true;
+                        return;
+                    }
+                    
                     // Buscar el evento en la lista de eventos cargados
                     const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
                     if (savedEvent) {
