@@ -360,13 +360,9 @@ h2 {
     letter-spacing: -0.01em;
 }
 
-.text-secondary { 
-    color: var(--text-secondary); 
-    font-size: 14px; /* Aumentado de 13px */
-}
-
-.text-right { text-align: right; }
-.hidden { display: none !important; }
+/* NOTA: No definir clases de utilidad como .text-secondary, .text-right, .hidden */
+/* Estas clases ya están definidas en Tailwind CSS (styles.css) */
+/* Usar solo para componentes personalizados y variables CSS */
 
 /* Scrollbar personalizado - Elegante */
 ::-webkit-scrollbar {
@@ -577,4 +573,5 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-.hidden { display: none !important; }
+/* NOTA: .hidden ya está definido en Tailwind CSS */
+/* No redefinir clases de utilidad de Tailwind */
