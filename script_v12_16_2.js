@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.7';
+const VERSION = '12.22.8';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5475,13 +5475,17 @@ const App = window.App = {
     
     // Agregar participantes desde guests - muestra modal de selección
     async showAddParticipantsModal() {
+        console.log('[DEBUG] showAddParticipantsModal INICIADO', { currentWheel: this.currentWheel });
+        
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
+            console.error('[DEBUG] currentWheel inválido');
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
             return;
         }
 
         const eventId = this.state.event?.id;
         if (!eventId) {
+            console.error('[DEBUG] No hay eventId');
             this._notifyAction('Error', 'No hay evento seleccionado', 'error');
             return;
         }
