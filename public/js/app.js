@@ -2135,6 +2135,9 @@ const App = window.App = {
     async login(username, password) {
         console.log("[AUTH] Intentando login:", username);
         try {
+            console.log("[AUTH DEBUG] Llamando a fetchAPI con endpoint:", '/login');
+            console.log("[AUTH DEBUG] API object exists:", typeof API !== 'undefined');
+            console.log("[AUTH DEBUG] API.BASE_URL:", API?.BASE_URL);
             const data = await this.fetchAPI('/login', { 
                 method: 'POST', 
                 body: JSON.stringify({ username, password }) 
