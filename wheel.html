@@ -77,37 +77,60 @@
            PROYECTOR LAYOUT - ESTADOS
            ======================================== */
         
-        /* Estado: Ruleta Grande (inicial / girando) */
-        .projector-wheel-large {
-            width: 450px !important;
-            height: 450px !important;
-        }
-        .projector-pointer-large {
-            right: -45px !important;
-        }
+        /* Estado: Ruleta Grande (inicial / girando) - OCUPA TODA LA PANTALLA */
         #projector-layout.projector-state-large .projector-wheel-container {
-            width: 50% !important;
+            width: 100% !important;
+            height: 100% !important;
+            flex-direction: column !important;
+        }
+        #projector-layout.projector-state-large .projector-wheel-wrapper {
+            flex: 1 !important;
+            display: flex !important;
+            align-items: center !important;
             justify-content: center !important;
+            width: 100% !important;
+        }
+        #projector-layout.projector-state-large #wheel-canvas-projector {
+            width: min(85vh, 85vw) !important;
+            height: min(85vh, 85vw) !important;
+            max-width: 800px !important;
+            max-height: 800px !important;
+        }
+        #projector-layout.projector-state-large .projector-pointer-large {
+            right: calc(min(85vh, 85vw) / 2 - 45px) !important;
         }
         #projector-layout.projector-state-large .projector-panels {
             display: none !important;
         }
+        #projector-layout.projector-state-large .projector-wheel-footer {
+            padding-bottom: 80px !important;
+        }
         
-        /* Estado: Ruleta Pequeña (hay ganador) */
+        /* Estado: Ruleta Tamaño Normal (hay winner) - 450px como antes */
         #projector-layout.projector-state-small .projector-wheel-container {
-            width: 45% !important;
-            justify-content: flex-end !important;
+            width: 50% !important;
+            height: 100% !important;
         }
-        .projector-wheel-small {
-            width: 320px !important;
-            height: 320px !important;
+        #projector-layout.projector-state-small #wheel-canvas-projector {
+            width: 450px !important;
+            height: 450px !important;
         }
-        .projector-pointer-small {
-            right: -30px !important;
+        #projector-layout.projector-state-small .projector-pointer-small {
+            right: -45px !important;
         }
         #projector-layout.projector-state-small .projector-panels {
             display: flex !important;
-            width: 55% !important;
+            width: 50% !important;
+        }
+        #projector-layout.projector-state-small .projector-wheel-footer {
+            padding-bottom: 0 !important;
+        }
+        
+        /* Puntero común */
+        .projector-pointer-large,
+        .projector-pointer-small {
+            top: 50% !important;
+            transform: translateY(-50%) !important;
         }
         
         /* Transiciones suaves */
@@ -232,66 +255,71 @@
         </div>
 
         <!-- LAYOUT PROYECTOR (horizontal, para fullscreen) -->
-        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-8 projector-state-large" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
-            <!-- Contenedor principal 16:9 -->
-            <div class="relative w-full h-full max-w-[1920px] max-h-[1080px] flex items-center">
+        <div id="projector-layout" class="hidden fixed inset-0 z-50 bg-slate-950 flex items-center justify-center projector-state-large" style="background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);">
+            
+            <!-- Botón salir fullscreen -->
+            <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-20" title="Salir de pantalla completa">
+                <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
+            </button>
+            
+            <!-- Contenedor de Ruleta y Botón -->
+            <div class="projector-wheel-container flex flex-col items-center justify-center relative" style="width: 100%; height: 100%;">
                 
-                <!-- Botón salir fullscreen -->
-                <button id="btn-fullscreen-exit" class="absolute top-4 right-4 p-3 rounded-lg hover:bg-white/10 transition-colors z-20" title="Salir de pantalla completa">
-                    <span class="material-symbols-outlined text-white/70 text-3xl">fullscreen_exit</span>
-                </button>
-                
-                <!-- Contenedor de Ruleta y Botón (centrado inicialmente) -->
-                <div class="projector-wheel-container flex-shrink-0 flex flex-col items-center justify-center" style="width: 100%; height: 100%;">
-                    <div class="relative projector-wheel-large">
+                <!-- Wrapper que centra la ruleta (visible en estado large) -->
+                <div class="projector-wheel-wrapper flex items-center justify-center" style="width: 100%; flex: 1;">
+                    <div class="relative">
                         <!-- Puntero: A la DERECHA de la ruleta -->
-                        <div id="pointer-projector" class="absolute z-10 projector-pointer-large" style="top: 50%; transform: translateY(-50%); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
+                        <div id="pointer-projector" class="absolute z-10 projector-pointer-large" style="filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));">
                             <div style="width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-right: 50px solid #7c3aed;"></div>
                         </div>
-                        <canvas id="wheel-canvas-projector" width="450" height="450" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
+                        <canvas id="wheel-canvas-projector" width="800" height="800" class="mx-auto" style="position: absolute; top: 0; left: 0;"></canvas>
                     </div>
-                    <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-6" style="min-height: 70px;">
+                </div>
+                
+                <!-- Botón y texto (abajo de la ruleta) -->
+                <div class="projector-wheel-footer" style="padding-bottom: 80px;">
+                    <button id="btn-spin-projector" class="btn-primary w-full py-5 text-2xl font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform" style="min-height: 70px; min-width: 300px;">
                         <span class="material-symbols-outlined align-middle mr-3 text-3xl">rotate_right</span>
                         GIRAR RULETA
                     </button>
                     <p id="spinning-text-projector" class="text-slate-400 text-lg mt-3 hidden">La ruleta está girando...</p>
                 </div>
+            </div>
 
-                <!-- Paneles de Felicidades y Ganadores (ocultos inicialmente) -->
-                <div class="projector-panels flex-1 max-w-lg ml-12 flex flex-col gap-6 justify-center">
-                    <!-- Ganador actual -->
-                    <div id="winner-section-projector" class="glass-card rounded-3xl p-8 text-center bg-emerald-500/10 border border-emerald-500/30">
-                        <span class="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <span class="material-symbols-outlined text-emerald-500 text-5xl">emoji_events</span>
-                        </span>
-                        <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
-                        <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
-                        <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
-                    </div>
+            <!-- Paneles de Felicidades y Ganadores (ocultos inicialmente) -->
+            <div class="projector-panels flex flex-col gap-6 justify-center" style="width: 0; max-width: 600px;">
+                <!-- Ganador actual -->
+                <div id="winner-section-projector" class="glass-card rounded-3xl p-8 text-center bg-emerald-500/10 border border-emerald-500/30">
+                    <span class="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="material-symbols-outlined text-emerald-500 text-5xl">emoji_events</span>
+                    </span>
+                    <p class="text-emerald-400 font-bold text-xl mb-2">¡Felicidades!</p>
+                    <p id="winner-name-projector" class="text-4xl font-black text-white mb-3"></p>
+                    <p class="text-slate-400">Ha sido seleccionado como el ganador del sorteo</p>
+                </div>
 
-                    <!-- Lista de ganadores -->
-                    <div id="winners-section-projector" class="glass-card rounded-3xl p-6 bg-amber-500/10 border border-amber-500/30">
-                        <div class="flex items-center justify-between mb-4">
-                            <h4 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-amber-400">emoji_events</span>
-                                Ganadores Anteriores
-                            </h4>
-                            <button id="btn-reset-projector" class="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold">
-                                <span class="material-symbols-outlined">restart_alt</span>
-                                Restablecer
-                            </button>
-                        </div>
-                        <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
-                        <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
-                            ¡No quedan más participantes!
-                        </p>
+                <!-- Lista de ganadores -->
+                <div id="winners-section-projector" class="glass-card rounded-3xl p-6 bg-amber-500/10 border border-amber-500/30">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">emoji_events</span>
+                            Ganadores Anteriores
+                        </h4>
+                        <button id="btn-reset-projector" class="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold">
+                            <span class="material-symbols-outlined">restart_alt</span>
+                            Restablecer
+                        </button>
                     </div>
+                    <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                    <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
+                        ¡No quedan más participantes!
+                    </p>
+                </div>
 
-                    <!-- Info evento -->
-                    <div class="text-center">
-                        <h2 id="wheel-name-projector" class="text-2xl font-black text-white mb-1"></h2>
-                        <h3 id="event-name-projector" class="text-lg font-bold text-primary"></h3>
-                    </div>
+                <!-- Info evento -->
+                <div class="text-center">
+                    <h2 id="wheel-name-projector" class="text-2xl font-black text-white mb-1"></h2>
+                    <h3 id="event-name-projector" class="text-lg font-bold text-primary"></h3>
                 </div>
             </div>
         </div>
@@ -344,9 +372,9 @@
             layout.classList.remove('projector-state-small');
             layout.classList.add('projector-state-large');
             
-            // Ruleta grande
-            wheelCanvas.width = 450;
-            wheelCanvas.height = 450;
+            // Canvas para estado grande (800px interno, CSS lo escala a 85vh/85vw)
+            wheelCanvas.width = 800;
+            wheelCanvas.height = 800;
             pointer.classList.remove('projector-pointer-small');
             pointer.classList.add('projector-pointer-large');
             
@@ -363,9 +391,9 @@
             layout.classList.remove('projector-state-large');
             layout.classList.add('projector-state-small');
             
-            // Ruleta pequeña
-            wheelCanvas.width = 320;
-            wheelCanvas.height = 320;
+            // Canvas 450px (tamaño original)
+            wheelCanvas.width = 450;
+            wheelCanvas.height = 450;
             pointer.classList.remove('projector-pointer-large');
             pointer.classList.add('projector-pointer-small');
             
@@ -390,7 +418,7 @@
             const numParticipants = participants.length;
             const arcSize = (2 * Math.PI) / numParticipants;
             const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
-            const fontSize = targetCanvas.width > 400 ? 16 : 14;
+            const fontSize = targetCanvas.width >= 800 ? 22 : (targetCanvas.width > 400 ? 16 : 14);
 
             participants.forEach((name, i) => {
                 const startAngle = i * arcSize;
