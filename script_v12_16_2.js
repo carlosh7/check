@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.6';
+const VERSION = '12.22.7';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5519,9 +5519,9 @@ const App = window.App = {
             }
         ];
 
-        const optionsHtml = options.map(opt => `
-            <div class="flex items-center justify-between p-4 rounded-xl ${opt.count === 0 ? 'opacity-50 bg-slate-500/10' : 'bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer'}" 
-                 onclick="${opt.count > 0 ? `Swal.close(); setTimeout(() => App.addParticipantsFromGuests('${opt.id}'), 100)` : ''}"
+        const optionsHtml = options.map((opt, idx) => `
+            <div class="opt-participant flex items-center justify-between p-4 rounded-xl ${opt.count === 0 ? 'opacity-50 bg-slate-500/10' : 'bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer'}" 
+                 data-filter="${opt.id}"
                  style="${opt.count === 0 ? 'cursor: not-allowed;' : ''}">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-xl">${opt.icon}</span>
@@ -5536,7 +5536,7 @@ const App = window.App = {
 
         // Agregar opción de entrada manual
         const manualHtml = `
-            <div class="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer" onclick="Swal.close(); setTimeout(() => App.showManualParticipantsModal(), 100)">
+            <div id="btn-manual-entry" class="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-xl">edit_note</span>
                     <span>Entrada manual</span>
@@ -5560,6 +5560,24 @@ const App = window.App = {
             customClass: {
                 popup: 'rounded-[1.5rem] border border-white/10',
                 confirmButton: 'btn-secondary !px-6 !py-3'
+            },
+            didOpen: () => {
+                // Listener para opción manual
+                document.getElementById('btn-manual-entry').addEventListener('click', () => {
+                    Swal.close();
+                    setTimeout(() => this.showManualParticipantsModal(), 150);
+                });
+                
+                // Listener para opciones de participantes
+                document.querySelectorAll('.opt-participant').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const filter = el.dataset.filter;
+                        if (filter) {
+                            Swal.close();
+                            setTimeout(() => this.addParticipantsFromGuests(filter), 150);
+                        }
+                    });
+                });
             }
         });
     },
