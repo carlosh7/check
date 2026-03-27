@@ -70,7 +70,7 @@
             </div>
             
             <div class="mt-3 text-center">
-                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.9</span>
+                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.10</span>
             </div>
         </div>
     </aside>
@@ -814,7 +814,23 @@
                 <button class="sub-nav-btn active" onclick="App.switchSystemTab('users')">Equipo</button>
                 <button class="sub-nav-btn" onclick="App.switchSystemTab('groups')">Empresas</button>
                 <button class="sub-nav-btn" onclick="App.switchSystemTab('legal')">Legales</button>
-                <button class="sub-nav-btn" onclick="App.switchSystemTab('email')">Emails</button>
+                
+                <!-- Dropdown para Emails -->
+                <div class="relative email-dropdown">
+                    <button id="email-main-btn" class="sub-nav-btn flex items-center gap-1" onclick="App.toggleEmailDropdown()">
+                        Emails
+                        <span class="material-symbols-outlined text-sm transition-transform" id="email-dropdown-arrow">expand_more</span>
+                    </button>
+                    <div id="email-dropdown-menu" class="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 hidden">
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('config')">⚙️ Configuración</button>
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('accounts')">📧 Cuentas</button>
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('campaigns')">📢 Campañas</button>
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('mailbox')">📬 Buzón</button>
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('mailing')">📤 Mailing</button>
+                        <button class="email-dropdown-item" onclick="App.switchEmailTab('templates')">📄 Plantillas</button>
+                    </div>
+                </div>
+                
                 <button class="sub-nav-btn" onclick="App.switchSystemTab('account')">Mi Perfil</button>
             </div>
 
@@ -888,14 +904,21 @@
 
             <!-- SECCIÓN: EMAIL -->
             <div id="sys-content-email" class="hidden space-y-6">
-                <div class="sub-nav-container mb-6">
-                    <button id="email-nav-config" class="sub-nav-btn active">Configuración</button>
-                    <button id="email-nav-accounts" class="sub-nav-btn">📧 Cuentas</button>
-                    <button id="email-nav-campaigns" class="sub-nav-btn">📢 Campañas</button>
-                    <button id="email-nav-mailbox" class="sub-nav-btn">Buzón</button>
-                    <button id="email-nav-mailing" class="sub-nav-btn">Mailing</button>
-                    <button id="email-nav-templates" class="sub-nav-btn">Plantillas</button>
+                <!-- Header con título dinámico -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 id="email-section-title" class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> de Email</h2>
+                        <p id="email-section-description" class="text-[var(--text-secondary)] text-sm mt-1">Configura los servidores SMTP/IMAP para el envío y recepción de emails.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <!-- Botón para mostrar dropdown en móviles -->
+                        <button id="email-mobile-dropdown-btn" class="md:hidden btn-secondary !px-4 !py-2 flex items-center gap-1" onclick="App.toggleEmailDropdown()">
+                            Menú
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                    </div>
                 </div>
+                
                 <div id="email-content-config" class="email-content space-y-6">
                     <div class="card p-6 max-w-2xl">
                         <form id="smtp-form" class="space-y-4">
@@ -1174,6 +1197,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.28.9">
-<link rel="stylesheet" href="/css/modern.css?v=12.28.9">
-<script type="module" src="/js/app.js?v=12.28.9&t=202603271750"></script>
+<link rel="stylesheet" href="/css/styles.css?v=12.28.10">
+<link rel="stylesheet" href="/css/modern.css?v=12.28.10">
+<script type="module" src="/js/app.js?v=12.28.10&t=202603271750"></script>
