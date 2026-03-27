@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.28.13';
+const VERSION = '12.28.14';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -27,6 +27,15 @@ if ('caches' in window) {
         }).then(() => {
             LS.set('check_app_version', VERSION);
             console.log(`[VERSION] Cache borrada por actualización a V${VERSION}`);
+            
+            // Forzar reload si la versión en localStorage es diferente
+            if (v && v !== VERSION) {
+                console.log(`[VERSION] Versión anterior ${v} ≠ nueva ${VERSION}, forzando reload...`);
+                // Pequeño delay para asegurar que todo está listo
+                setTimeout(() => {
+                    window.location.reload(true); // true = forzar carga desde servidor
+                }, 500);
+            }
         });
     }
 }
@@ -3735,7 +3744,9 @@ const App = window.App = {
     // --- APP SHELL LOADER ---
     loadAppShell() {
         console.log('[APP-SHELL] Cargando app-shell.html...');
-        return fetch('/html/app-shell.html')
+        // Forzar carga fresca con timestamp para evitar caché
+        const timestamp = new Date().getTime();
+        return fetch(`/html/app-shell.html?t=${timestamp}&v=${VERSION}`)
             .then(r => r.text())
             .then(html => {
                 console.log('[APP-SHELL] HTML recibido, longitud:', html.length);
