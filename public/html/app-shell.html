@@ -73,7 +73,7 @@
                 <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[10px] text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
                     Powered by Smart Eventos
                 </a>
-                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.15</span>
+                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.16</span>
             </div>
             </div>
         </div>
@@ -1199,13 +1199,32 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.28.15">
-<link rel="stylesheet" href="/css/modern.css?v=12.28.15">
+<link rel="stylesheet" href="/css/styles.css?v=12.28.16">
+<link rel="stylesheet" href="/css/modern.css?v=12.28.16">
 <script type="module">
-    // Cargar app.js con timestamp dinámico para evitar caché
-    const timestamp = new Date().getTime();
-    const script = document.createElement('script');
-    script.type = 'module';
-        script.src = `/js/app.js?v=12.28.15&t=${timestamp}`;
-    document.head.appendChild(script);
+    // Sistema anti-caché avanzado V12.28.15
+    (function() {
+        // Verificar si hay una versión esperada guardada (de un reload forzado)
+        const expectedVersion = localStorage.getItem('check_expected_version');
+            const currentVersion = '12.28.16';
+        
+        // Si hay una versión esperada y no coincide con la actual, forzar recarga
+        if (expectedVersion && expectedVersion !== currentVersion) {
+            console.warn(`[CACHE FIX] Versión esperada ${expectedVersion} ≠ actual ${currentVersion}, forzando recarga...`);
+            localStorage.removeItem('check_expected_version'); // Limpiar
+            const timestamp = new Date().getTime();
+            window.location.reload(true); // true = forzar desde servidor
+            return;
+        }
+        
+        // Cargar app.js con timestamp dinámico para evitar caché
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}`;
+        document.head.appendChild(script);
+        
+        // Guardar versión cargada para verificación futura
+        localStorage.setItem('check_loaded_version', currentVersion);
+    })();
 </script>

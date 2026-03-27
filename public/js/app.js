@@ -15,8 +15,29 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.28.15';
+const VERSION = '12.28.16';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
+
+// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA ---
+// Detectar si estamos cargando una versión antigua del script
+const currentScript = document.currentScript;
+if (currentScript && currentScript.src) {
+    const scriptUrl = new URL(currentScript.src, window.location.origin);
+    const versionParam = scriptUrl.searchParams.get('v');
+    
+    if (versionParam && versionParam !== VERSION) {
+        console.error(`[VERSION CRÍTICO] Script cargado con versión ${versionParam}, pero VERSION constante es ${VERSION}`);
+        console.error(`[VERSION CRÍTICO] Forzando reload inmediato...`);
+        
+        // Guardar versión esperada en localStorage
+        LS.set('check_expected_version', VERSION);
+        
+        // Forzar reload con parámetro anti-caché
+        const timestamp = new Date().getTime();
+        window.location.href = `/?force_reload=${timestamp}&expected_v=${VERSION}`;
+        return; // Detener ejecución del script antiguo
+    }
+}
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
 if ('caches' in window) {
