@@ -19,33 +19,38 @@
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         #wheel-canvas { max-width: 100%; height: auto; }
         
-        /* Fullscreen mode - expand content */
+        /* Fullscreen mode - expand content with 16:9 max ratio */
         :fullscreen #main-content {
-            padding: 2rem !important;
+            padding: 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            max-height: 100vh !important;
+            box-sizing: border-box !important;
         }
         :fullscreen #main-content .glass-card {
-            max-width: 95vw !important;
-            width: 95vw !important;
+            max-width: min(95vw, calc(95vh * 16 / 9)) !important;
+            width: auto !important;
+            max-height: 95vh !important;
+            overflow-y: auto !important;
         }
         :fullscreen #wheel-canvas {
-            width: 600px !important;
-            height: 600px !important;
-        }
-        :fullscreen .glass-card {
-            font-size: 1.1em;
+            width: min(50vw, 400px) !important;
+            height: min(50vw, 400px) !important;
         }
         
         /* Webkit fullscreen support */
         :-webkit-full-screen #main-content {
-            padding: 2rem !important;
+            padding: 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         :-webkit-full-screen #main-content .glass-card {
-            max-width: 95vw !important;
-            width: 95vw !important;
-        }
-        :-webkit-full-screen #wheel-canvas {
-            width: 600px !important;
-            height: 600px !important;
+            max-width: min(95vw, calc(95vh * 16 / 9)) !important;
+            width: auto !important;
+            max-height: 95vh !important;
+            overflow-y: auto !important;
         }
     </style>
     <script>
@@ -84,23 +89,19 @@
             </div>
 
             <!-- Wheel Section -->
-            <div class="p-6 text-center">
-                <div class="relative inline-block mb-6">
-                    <!-- Puntero - posicionado FUERA del canvas apuntando hacia abajo -->
-                    <div id="pointer" class="absolute -top-6 left-1/2 -translate-x-1/2 z-10"
-                         style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">
-                        <div style="width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-top: 50px solid #7c3aed;"></div>
-                    </div>
-                    <canvas id="wheel-canvas" width="400" height="400" class="mx-auto"></canvas>
+            <div class="p-4 md:p-6 text-center flex flex-col items-center">
+                <!-- Puntero - verticesupo del div padre para tocar el borde del canvas -->
+                <div id="pointer" class="absolute z-10" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+                    <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 45px solid #7c3aed;"></div>
                 </div>
+                <canvas id="wheel-canvas" width="340" height="340" class="mx-auto" style="margin-top: 20px;"></canvas>
 
-                <button id="btn-spin" class="btn-primary w-full py-4 text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                <button id="btn-spin" class="btn-primary w-full py-3 md:py-4 text-base md:text-lg font-extrabold tracking-wider shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-transform mt-4">
                     <span class="material-symbols-outlined align-middle mr-2">rotate_right</span>
                     GIRAR RULETA
                 </button>
 
                 <p id="spinning-text" class="text-slate-500 text-sm mt-3 hidden">La ruleta está girando...</p>
-            </div>
 
             <!-- Winner Display -->
             <div id="winner-section" class="hidden p-6 text-center bg-emerald-500/10 border-t border-emerald-500/20">
@@ -110,6 +111,24 @@
                 <p class="text-emerald-400 font-bold text-lg mb-1">¡Felicidades!</p>
                 <p id="winner-name" class="text-2xl font-black text-white mb-2"></p>
                 <p class="text-slate-400 text-sm">Ha sido seleccionado como el ganador del sorteo</p>
+            </div>
+
+            <!-- Winners List -->
+            <div id="winners-section" class="hidden p-6 bg-amber-500/10 border-t border-amber-500/20">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400 text-lg">emoji_events</span>
+                        Ganadores Anteriores
+                    </h4>
+                    <button id="btn-reset" class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">restart_alt</span>
+                        Restablecer
+                    </button>
+                </div>
+                <div id="winners-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                <p id="no-more-participants" class="hidden text-center text-amber-400 text-sm mt-3 py-2">
+                    ¡No quedan más participantes! Todos han ganado.
+                </p>
             </div>
 
             <!-- Lead Capture Form -->
@@ -157,6 +176,8 @@
         const API_URL = '/api';
         let wheelData = null;
         let participants = [];
+        let originalParticipants = []; // Para restablecer
+        let winners = []; // Lista de ganadores
         let isSpinning = false;
         let currentRotation = 0;
         let hasParticipated = false;
@@ -227,6 +248,21 @@
             ctx.fill();
 
             ctx.restore();
+            
+            // Posicionar puntero en la parte superior del canvas, centrado
+            positionPointer();
+        }
+        
+        function positionPointer() {
+            const canvas = document.getElementById('wheel-canvas');
+            const pointer = document.getElementById('pointer');
+            const canvasRect = canvas.getBoundingClientRect();
+            // El puntero tiene 45px de altura, la punta es el vértice inferior
+            // Necesitamos que la punta esté justo en el borde superior del canvas
+            const topPos = canvasRect.top + window.scrollY - 45;
+            const leftPos = canvasRect.left + canvasRect.width / 2 - 20; // 20 = ancho del triángulo / 2
+            pointer.style.top = topPos + 'px';
+            pointer.style.left = leftPos + 'px';
         }
 
         function spinWheel() {
@@ -292,10 +328,63 @@
             document.getElementById('winner-name').textContent = winner;
             winnerSection.classList.remove('hidden');
             
+            // Agregar a winners y remover de participants
+            winners.push(winner);
+            participants = participants.filter(p => p !== winner);
+            
+            // Redibujar ruleta sin el ganador
+            drawWheel(currentRotation);
+            
+            // Mostrar sección de winners
+            showWinnersList();
+            
             // Confetti effect
             if (wheelData?.config?.visual?.confetti_on_win !== false) {
                 createConfetti();
             }
+        }
+        
+        function showWinnersList() {
+            const winnersSection = document.getElementById('winners-section');
+            const winnersList = document.getElementById('winners-list');
+            const noMoreMsg = document.getElementById('no-more-participants');
+            
+            if (winners.length === 0) {
+                winnersSection.classList.add('hidden');
+                return;
+            }
+            
+            winnersSection.classList.remove('hidden');
+            winnersList.innerHTML = winners.map((w, i) => `
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="w-6 h-6 rounded-full bg-amber-500/30 flex items-center justify-center text-amber-400 text-xs font-bold">${i + 1}</span>
+                    <span class="text-white">${w}</span>
+                    <span class="text-emerald-400 text-xs">✓</span>
+                </div>
+            `).join('');
+            
+            // Mostrar mensaje si no quedan participantes
+            if (participants.length === 0) {
+                noMoreMsg.classList.remove('hidden');
+            } else {
+                noMoreMsg.classList.add('hidden');
+            }
+        }
+        
+        function resetWheel() {
+            // Restaurar todos los participantes originales
+            participants = [...originalParticipants];
+            winners = [];
+            currentRotation = 0;
+            
+            // Ocultar secciones
+            document.getElementById('winner-section').classList.add('hidden');
+            document.getElementById('winners-section').classList.add('hidden');
+            document.getElementById('no-more-participants').classList.add('hidden');
+            
+            // Redibujar ruleta
+            drawWheel(0);
+            positionPointer();
         }
 
         function createConfetti() {
@@ -367,6 +456,8 @@
 
                 wheelData = await res.json();
                 participants = wheelData.participants || [];
+                originalParticipants = [...participants]; // Guardar copia para restablecer
+                winners = []; // Reiniciar winners
 
                 if (participants.length === 0) {
                     document.getElementById('loading').classList.add('hidden');
@@ -383,6 +474,8 @@
                 document.title = `${wheelData.name} | Check Pro`;
 
                 drawWheel(0);
+                // Posicionar puntero después de que el DOM esté renderizado
+                setTimeout(positionPointer, 50);
 
             } catch (e) {
                 document.getElementById('loading').classList.add('hidden');
@@ -431,6 +524,9 @@
         // Spin button
         document.getElementById('btn-spin').addEventListener('click', spinWheel);
 
+        // Reset button - restaurar todos los participantes
+        document.getElementById('btn-reset').addEventListener('click', resetWheel);
+
         // Fullscreen button
         document.getElementById('btn-fullscreen').addEventListener('click', () => {
             const btn = document.getElementById('btn-fullscreen');
@@ -439,21 +535,22 @@
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => {
                     icon.textContent = 'fullscreen_exit';
-                    // Increase canvas resolution for fullscreen quality
-                    canvas.width = 600;
-                    canvas.height = 600;
-                    setTimeout(() => drawWheel(currentRotation), 100);
+                    canvas.width = 400;
+                    canvas.height = 400;
+                    setTimeout(() => { drawWheel(currentRotation); positionPointer(); }, 100);
                 }).catch(() => {});
             } else {
                 document.exitFullscreen().then(() => {
                     icon.textContent = 'fullscreen';
-                    // Restore canvas resolution
-                    canvas.width = 400;
-                    canvas.height = 400;
-                    setTimeout(() => drawWheel(currentRotation), 100);
+                    canvas.width = 340;
+                    canvas.height = 340;
+                    setTimeout(() => { drawWheel(currentRotation); positionPointer(); }, 100);
                 }).catch(() => {});
             }
         });
+
+        // Reposicionar puntero en resize
+        window.addEventListener('resize', positionPointer);
 
         // Initial load
         loadWheel();
