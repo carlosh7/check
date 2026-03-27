@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.8';
+const VERSION = '12.22.9';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3496,6 +3496,7 @@ const App = window.App = {
         cl('btn-add-from-guests', () => this.showAddParticipantsModal());
         cl('btn-add-from-checkedin', () => this.showAddParticipantsModal());
         cl('btn-add-from-preregistered', () => this.showAddParticipantsModal());
+        cl('btn-add-manual', () => this.showManualParticipantsModal());
         cl('btn-copy-wheel-url', () => this.copyWheelUrl());
         cl('btn-preview-wheel', () => this.previewWheel());
         
