@@ -586,6 +586,12 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.2s ease, transform 0.2s ease;
+    background-color: var(--bg-card) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    z-index: 1000;
 }
 
 #email-dropdown-menu.show {
@@ -605,21 +611,26 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     border-bottom: 1px solid var(--border-light);
+}
+
+.email-dropdown-item:first-child {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .email-dropdown-item:last-child {
     border-bottom: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .email-dropdown-item:hover {
-    background-color: var(--bg-hover);
+    background-color: var(--bg-hover) !important;
 }
 
 .email-dropdown-item.active {
-    background-color: var(--primary-light);
-    color: var(--primary);
+    background-color: var(--primary-light) !important;
+    color: var(--primary) !important;
     font-weight: 600;
 }
 
@@ -631,12 +642,16 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 /* Responsive: En pantallas pequeñas, hacer dropdown más ancho */
 @media (max-width: 768px) {
     #email-dropdown-menu {
-        width: 200px;
+        width: 220px;
         left: -50%;
         transform: translateX(-50%) translateY(-10px);
     }
     
     #email-dropdown-menu.show {
         transform: translateX(-50%) translateY(0);
+    }
+    
+    .email-dropdown-item {
+        padding: 14px 16px;
     }
 }
