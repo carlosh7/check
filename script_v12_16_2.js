@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.22.5';
+const VERSION = '12.22.6';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5588,10 +5588,18 @@ const App = window.App = {
 
     // Modal para entrada manual de participantes
     async showManualParticipantsModal() {
+        console.log('[DEBUG] showManualParticipantsModal llamado', {
+            currentWheel: this.currentWheel,
+            wheelId: this.currentWheel?.id
+        });
+        
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
+            console.error('[DEBUG] currentWheel inválido');
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
             return;
         }
+
+        console.log('[DEBUG] Abriendo modal Swal');
 
         const { value: text, isConfirmed } = await Swal.fire({
             title: 'Entrada manual de participantes',
