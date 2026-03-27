@@ -70,7 +70,7 @@
             </div>
             
             <div class="mt-3 text-center">
-                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.11</span>
+                <span class="version-display text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.12</span>
             </div>
         </div>
     </aside>
@@ -332,38 +332,36 @@
                 </div>
             </header>
 
-            <!-- Config Navigation -->
-            <div class="border-b border-[var(--border)]">
-                <div class="flex overflow-x-auto">
-                    <button id="config-nav-staff" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">person</span>
-                        Personal Asignado
-                    </button>
-                    <button id="config-nav-email" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">mail</span>
-                        Email del Evento
-                    </button>
-                    <button id="config-nav-agenda" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">schedule</span>
-                        Agenda
-                    </button>
-                    <button id="config-nav-wheel" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">casino</span>
-                        Ruleta de Sorteos
-                    </button>
-                    <button id="config-nav-pre-registrations" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">how_to_reg</span>
-                        Pre-Registros
-                    </button>
-                    <button id="config-nav-surveys" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">poll</span>
-                        Encuestas QR
-                    </button>
-                    <button id="config-nav-settings" class="config-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors whitespace-nowrap">
-                        <span class="material-symbols-outlined text-base mr-2">settings</span>
-                        ⚙️ Configuración
-                    </button>
-                </div>
+            <!-- Config Navigation - Unificado V12.28.13 -->
+            <div class="sub-nav-container mb-8">
+                <button id="config-nav-staff" class="sub-nav-btn active" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('staff') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">person</span>
+                    Personal Asignado
+                </button>
+                <button id="config-nav-email" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('email') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">mail</span>
+                    Email del Evento
+                </button>
+                <button id="config-nav-agenda" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('agenda') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">schedule</span>
+                    Agenda
+                </button>
+                <button id="config-nav-wheel" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('wheel') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">casino</span>
+                    Ruleta de Sorteos
+                </button>
+                <button id="config-nav-pre-registrations" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('pre-registrations') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">how_to_reg</span>
+                    Pre-Registros
+                </button>
+                <button id="config-nav-surveys" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('surveys') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">poll</span>
+                    Encuestas QR
+                </button>
+                <button id="config-nav-settings" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('settings') : console.error('App not available')">
+                    <span class="material-symbols-outlined text-sm mr-2">settings</span>
+                    Configuración
+                </button>
             </div>
 
             <!-- Config Content -->
@@ -811,27 +809,27 @@
         <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.16.3) -->
         <section id="view-system" class="hidden space-y-8">
             <div class="sub-nav-container mb-8">
-                <button class="sub-nav-btn active" onclick="App.switchSystemTab('users')">Equipo</button>
-                <button class="sub-nav-btn" onclick="App.switchSystemTab('groups')">Empresas</button>
-                <button class="sub-nav-btn" onclick="App.switchSystemTab('legal')">Legales</button>
+                <button class="sub-nav-btn active" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('users') : console.error('App not available')">Equipo</button>
+                <button class="sub-nav-btn" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('groups') : console.error('App not available')">Empresas</button>
+                <button class="sub-nav-btn" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('legal') : console.error('App not available')">Legales</button>
                 
                 <!-- Dropdown para Emails -->
                 <div class="relative email-dropdown">
-                    <button id="email-main-btn" class="sub-nav-btn flex items-center gap-1" onclick="App.toggleEmailDropdown()">
+                    <button id="email-main-btn" class="sub-nav-btn flex items-center gap-1" onclick="window.App && window.App.toggleEmailDropdown ? window.App.toggleEmailDropdown() : console.error('App not available')">
                         Emails
                         <span class="material-symbols-outlined text-sm transition-transform" id="email-dropdown-arrow">expand_more</span>
                     </button>
                     <div id="email-dropdown-menu" class="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 hidden">
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('config')">⚙️ Configuración</button>
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('accounts')">📧 Cuentas</button>
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('campaigns')">📢 Campañas</button>
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('mailbox')">📬 Buzón</button>
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('mailing')">📤 Mailing</button>
-                        <button class="email-dropdown-item" onclick="App.switchEmailTab('templates')">📄 Plantillas</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('config') : console.error('App not available')">⚙️ Configuración</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('accounts') : console.error('App not available')">📧 Cuentas</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('campaigns') : console.error('App not available')">📢 Campañas</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('mailbox') : console.error('App not available')">📬 Buzón</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('mailing') : console.error('App not available')">📤 Mailing</button>
+                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('templates') : console.error('App not available')">📄 Plantillas</button>
                     </div>
                 </div>
                 
-                <button class="sub-nav-btn" onclick="App.switchSystemTab('account')">Mi Perfil</button>
+                <button class="sub-nav-btn" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('account') : console.error('App not available')">Mi Perfil</button>
             </div>
 
             <!-- SECCIÓN: EQUIPO -->
@@ -889,14 +887,14 @@
             <!-- SECCIÓN: LEGALES -->
             <div id="sys-content-legal" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="card p-6">
+                    <div class="card p-6 flex flex-col">
                         <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
-                        <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                        <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px] flex-1 overflow-hidden"></div>
                         <button id="btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
                     </div>
-                    <div class="card p-6">
+                    <div class="card p-6 flex flex-col">
                         <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
-                        <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                        <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px] flex-1 overflow-hidden"></div>
                         <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
                     </div>
                 </div>
@@ -912,7 +910,7 @@
                     </div>
                     <div class="flex gap-2">
                         <!-- Botón para mostrar dropdown en móviles -->
-                        <button id="email-mobile-dropdown-btn" class="md:hidden btn-secondary !px-4 !py-2 flex items-center gap-1" onclick="App.toggleEmailDropdown()">
+                        <button id="email-mobile-dropdown-btn" class="md:hidden btn-secondary !px-4 !py-2 flex items-center gap-1" onclick="window.App && window.App.toggleEmailDropdown ? window.App.toggleEmailDropdown() : console.error('App not available')">
                             Menú
                             <span class="material-symbols-outlined text-sm">expand_more</span>
                         </button>
@@ -1197,6 +1195,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.28.11">
-<link rel="stylesheet" href="/css/modern.css?v=12.28.11">
-<script type="module" src="/js/app.js?v=12.28.11&t=202603272140"></script>
+<link rel="stylesheet" href="/css/styles.css?v=12.28.13">
+<link rel="stylesheet" href="/css/modern.css?v=12.28.13">
+<script type="module" src="/js/app.js?v=12.28.13&t=202603272140"></script>

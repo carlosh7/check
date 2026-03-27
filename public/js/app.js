@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.28.11';
+const VERSION = '12.28.13';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -5582,18 +5582,16 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        // Update config navigation buttons (nueva estructura HTML)
-        const configNavContainer = document.querySelector('#view-event-config .border-b.border-\\[var\\(--border\\)\\]');
+        // Update config navigation buttons (nueva estructura HTML unificada V12.28.13)
+        const configNavContainer = document.querySelector('#view-event-config .sub-nav-container');
         if (configNavContainer) {
-            configNavContainer.querySelectorAll('.config-tab').forEach(b => {
+            configNavContainer.querySelectorAll('.sub-nav-btn').forEach(b => {
                 // Remover todas las clases de estado activo
-                b.classList.remove('active', 'bg-primary/10', 'text-primary', 'border-b-2', 'border-primary');
-                b.classList.add('border-b-2', 'border-transparent', 'text-[var(--text-secondary)]');
+                b.classList.remove('active');
                 
-                // Agregar clases de estado activo al botón correspondiente
+                // Agregar clase de estado activo al botón correspondiente
                 if (b.id === `config-nav-${tabName}`) {
-                    b.classList.add('active', 'text-[var(--text-main)]', 'border-b-2', 'border-primary');
-                    b.classList.remove('border-transparent', 'text-[var(--text-secondary)]');
+                    b.classList.add('active');
                 }
             });
         }
