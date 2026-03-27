@@ -661,6 +661,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 #editor-policy, #editor-terms {
     position: relative;
     border: 1px solid var(--border);
+    contain: layout; /* Prevenir reflow que causa desplazamiento */
 }
 
 #editor-policy .ql-editor, #editor-terms .ql-editor {
@@ -675,12 +676,14 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     background-color: var(--bg-input);
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 #editor-policy .ql-container, #editor-terms .ql-container {
     border: none;
     border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
 }
 
 /* Asegurar que las cards en legales tengan altura consistente */
@@ -688,8 +691,39 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden; /* Prevenir scroll dentro de la card */
 }
 
 #sys-content-legal .card > :last-child {
     margin-top: auto;
+}
+
+/* Prevenir desplazamiento no deseado al abrir Legales */
+#sys-content-legal {
+    overflow-anchor: none; /* Desactivar scroll anchoring */
+}
+
+#sys-content-legal .grid {
+    min-height: 0; /* Permitir que grid se ajuste sin causar scroll */
+}
+
+/* Prevenir desplazamientos no deseados en toda la aplicación */
+#app-main-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Asegurar que las secciones no causen scroll no deseado */
+section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"] {
+    contain: content;
+}
+
+/* Prevenir que los editores Quill causen reflow */
+.ql-container {
+    contain: layout style;
+}
+
+.ql-editor {
+    overflow-anchor: none;
 }
