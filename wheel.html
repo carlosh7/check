@@ -4,28 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ruleta | Check Pro</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <link rel="stylesheet" href="/styles.css?v=12.12.0">
-    <link rel="stylesheet" href="/modern.css?v=12.12.0">
-    <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: { DEFAULT: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
-                slate: { 850: '#1e293b', 950: '#020617' }
-              },
-              fontFamily: {
-                sans: ['Plus Jakarta Sans', 'sans-serif'],
-                display: ['Manrope', 'sans-serif']
-              }
-            }
-          }
-        }
-    </script>
+    <link rel="stylesheet" href="/styles.css?v=12.19.2">
+    <link rel="stylesheet" href="/modern.css?v=12.19.2">
+    <link rel="stylesheet" href="/wheel.css?v=12.19.2">
     <style>
         .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
         .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -212,7 +195,11 @@
 
         function spinWheel() {
             if (isSpinning || participants.length === 0) return;
-            if (!hasParticipated) {
+            
+            // Check if lead capture is required (defaults to true if not specified)
+            const requireLeadCapture = wheelData?.config?.settings?.require_lead_capture !== false;
+            
+            if (!hasParticipated && requireLeadCapture) {
                 document.getElementById('lead-form-section').classList.remove('hidden');
                 return;
             }
