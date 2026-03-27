@@ -527,6 +527,22 @@ db.exec(`CREATE TABLE IF NOT EXISTS push_subscriptions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )`);
 
+// 19. Resultados guardados de sorteos (Ruleta V12.26.0)
+db.exec(`CREATE TABLE IF NOT EXISTS wheel_results (
+    id TEXT PRIMARY KEY,
+    wheel_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    winners_json TEXT NOT NULL DEFAULT '[]',
+    total_participants INTEGER DEFAULT 0,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (wheel_id) REFERENCES event_wheels(id) ON DELETE CASCADE
+)`);
+
+// Índices para wheel_results
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_wheel ON wheel_results(wheel_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_created ON wheel_results(created_at DESC)"); } catch (_) {}
+
 // Semillas de plantillas de email por defecto
 // Semillas de plantillas de email por defecto (Sistema)
 const templateCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL").get();

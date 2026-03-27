@@ -817,4 +817,85 @@ router.get('/wheels/:wheelId/public', async (req, res) => {
     });
 });
 
+// ============================================
+// RESULTADOS DE RULETA (Fase 2 - V12.26.0)
+// ============================================
+
+// GET /api/wheels/:wheelId/results - Listar resultados guardados
+router.get('/wheels/:wheelId/results', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const results = db.prepare(`
+        SELECT * FROM wheel_results 
+        WHERE wheel_id = ?
+        ORDER BY created_at DESC
+    `).all(wheelId);
+    
+    // Parse winners_json para cada resultado
+    const parsed = results.map(r => ({
+        ...r,
+        winners: JSON.parse(r.winners_json || '[]')
+    }));
+    
+    res.json(parsed);
+});
+
+// POST /api/wheels/:wheelId/results - Guardar resultado (sorteo)
+router.post('/wheels/:wheelId/results', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    const { name, winners, total_participants, notes } = req.body;
+    
+    if (!name || !winners || !Array.isArray(winners)) {
+        return res.status(400).json({ error: 'name y winners (array) son requeridos' });
+    }
+    
+    const id = getValidId('wheel_results');
+    db.prepare(`
+        INSERT INTO wheel_results (id, wheel_id, name, winners_json, total_participants, notes, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `).run(id, wheelId, name, JSON.stringify(winners), total_participants || winners.length, notes || null);
+    
+    const result = db.prepare("SELECT * FROM wheel_results WHERE id = ?").get(id);
+    result.winners = JSON.parse(result.winners_json || '[]');
+    
+    res.json(result);
+});
+
+// DELETE /api/wheels/:wheelId/results/:resultId - Eliminar un resultado
+router.delete('/wheels/:wheelId/results/:resultId', authMiddleware(), async (req, res) => {
+    const { wheelId, resultId } = req.params;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare("DELETE FROM wheel_results WHERE id = ? AND wheel_id = ?").run(resultId, wheelId);
+    res.json({ success: true });
+});
+
+// DELETE /api/wheels/:wheelId/results - Eliminar todos los resultados
+router.delete('/wheels/:wheelId/results', authMiddleware(), async (req, res) => {
+    const wheelId = req.params.wheelId;
+    
+    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
+        return res.status(403).json({ error: 'No tienes acceso' });
+    }
+    
+    db.prepare("DELETE FROM wheel_results WHERE wheel_id = ?").run(wheelId);
+    res.json({ success: true });
+});
+
 module.exports = router;

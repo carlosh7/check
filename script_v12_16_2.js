@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.25.11';
+const VERSION = '12.26.0';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -3499,6 +3499,8 @@ const App = window.App = {
         cl('btn-add-manual', () => this.showManualParticipantsModal());
         cl('btn-copy-wheel-url', () => this.copyWheelUrl());
         cl('btn-preview-wheel', () => this.previewWheel());
+        cl('btn-delete-all-results', () => this.deleteAllWheelResults());
+        cl('btn-delete-wheel', () => this.deleteWheel(this.currentWheel?.id));
         
         // Nuevos botones de Email y Agenda
         cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
@@ -5420,6 +5422,9 @@ const App = window.App = {
             // Cargar participantes
             await this.loadWheelParticipants(wheelId);
             
+            // Cargar resultados guardados
+            await this.loadWheelResults(wheelId);
+            
             // Generar URL pública
             const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
@@ -5754,6 +5759,81 @@ const App = window.App = {
         } catch (e) {
             console.error('Error saving wheel:', e);
             this._notifyAction('Error', 'No se pudo guardar la ruleta', 'error');
+        }
+    },
+    
+    // Cargar resultados de una ruleta
+    async loadWheelResults(wheelId) {
+        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
+            document.getElementById('wheel-results-list').innerHTML = '<p class="text-slate-500 text-sm">No hay resultados</p>';
+            return;
+        }
+        
+        try {
+            const results = await this.fetchAPI(`/events/wheels/${wheelId}/results`);
+            this.renderWheelResults(results);
+        } catch (e) {
+            console.error('Error loading wheel results:', e);
+            document.getElementById('wheel-results-list').innerHTML = '<p class="text-red-500 text-sm">Error al cargar</p>';
+        }
+    },
+    
+    // Renderizar lista de resultados
+    renderWheelResults(results) {
+        const container = document.getElementById('wheel-results-list');
+        if (!container) return;
+        
+        if (!results || results.length === 0) {
+            container.innerHTML = '<p class="text-slate-500 text-sm">No hay resultados guardados</p>';
+            return;
+        }
+        
+        container.innerHTML = results.map(r => {
+            const winners = r.winners || [];
+            return `
+                <div class="flex items-center justify-between p-3 bg-[var(--bg-hover)] rounded-lg">
+                    <div class="flex-1">
+                        <p class="font-bold text-sm">${r.name}</p>
+                        <p class="text-xs text-slate-500">${new Date(r.created_at).toLocaleString()}</p>
+                        <p class="text-xs text-emerald-400 mt-1">${winners.length} ganador(es)</p>
+                    </div>
+                    <button data-id="${r.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.deleteWheelResult('${r.id}')">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    },
+    
+    // Eliminar un resultado
+    async deleteWheelResult(resultId) {
+        if (!this.currentWheel?.id) return;
+        
+        if (!confirm('¿Eliminar este resultado?')) return;
+        
+        try {
+            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/results/${resultId}`, { method: 'DELETE' });
+            this._notifyAction('Éxito', 'Resultado eliminado', 'success');
+            await this.loadWheelResults(this.currentWheel.id);
+        } catch (e) {
+            console.error('Error deleting wheel result:', e);
+            this._notifyAction('Error', 'No se pudo eliminar', 'error');
+        }
+    },
+    
+    // Eliminar todos los resultados
+    async deleteAllWheelResults() {
+        if (!this.currentWheel?.id) return;
+        
+        if (!confirm('¿Eliminar TODOS los resultados?')) return;
+        
+        try {
+            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/results`, { method: 'DELETE' });
+            this._notifyAction('Éxito', 'Resultados eliminados', 'success');
+            await this.loadWheelResults(this.currentWheel.id);
+        } catch (e) {
+            console.error('Error deleting all wheel results:', e);
+            this._notifyAction('Error', 'No se pudieron eliminar', 'error');
         }
     },
     

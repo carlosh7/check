@@ -15,7 +15,7 @@ const ALLOWED_TABLES = new Set([
     'user_events', 'group_users', 'pre_registrations', 'password_resets',
     'smtp_config', 'imap_config', 'event_email_config', 'event_email_templates',
     'event_agenda', 'audit_logs',
-    'event_wheels', 'wheel_participants', 'wheel_spins', 'wheel_leads'
+    'event_wheels', 'wheel_participants', 'wheel_spins', 'wheel_leads', 'wheel_results'
 ]);
 
 /**

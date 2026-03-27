@@ -578,6 +578,20 @@
                             <p class="text-xs text-slate-500 mt-2">Comparte este enlace para que los participantes giren la ruleta</p>
                         </div>
                         
+                        <!-- Resultados guardados -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[var(--primary)]">emoji_events</span>
+                                Resultados
+                            </h3>
+                            <div id="wheel-results-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                                <p class="text-slate-500 text-sm">Cargando...</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="btn-delete-all-results" class="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 font-bold text-sm">Borrar Todos</button>
+                            </div>
+                        </div>
+                        
                         <div class="flex gap-3">
                             <button id="btn-save-wheel" class="btn-primary !px-6 !py-3">Guardar Ruleta</button>
                             <button id="btn-delete-wheel" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold">Eliminar</button>
@@ -1472,4 +1486,4 @@
 <!-- SCRIPTS & STYLES -->
 <link rel="stylesheet" href="/styles.css?v=12.19.2">
 <link rel="stylesheet" href="/modern.css?v=12.19.2">
-<script type="module" src="/script_v12_16_2.js?v=12.25.11"></script>
+<script type="module" src="/script_v12_16_2.js?v=12.26.0"></script>

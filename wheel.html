@@ -316,10 +316,16 @@
                             <span class="material-symbols-outlined text-amber-400">emoji_events</span>
                             Ganadores Anteriores
                         </h4>
-                        <button id="btn-reset-projector" class="px-4 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold">
-                            <span class="material-symbols-outlined">restart_alt</span>
-                            Restablecer
-                        </button>
+                        <div class="flex gap-2">
+                            <button id="btn-save-projector" class="px-3 py-2 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
+                                <span class="material-symbols-outlined text-sm">save</span>
+                                Guardar
+                            </button>
+                            <button id="btn-reset-projector" class="px-3 py-2 rounded-full bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors flex items-center gap-2 font-bold text-sm">
+                                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                                Restablecer
+                            </button>
+                        </div>
                     </div>
                     <div id="winners-list-projector" class="space-y-3 max-h-60 overflow-y-auto"></div>
                     <p id="no-more-participants-projector" class="hidden text-center text-amber-400 py-4 font-bold">
@@ -712,7 +718,39 @@
             }
         }
 
-        async function loadWheel() {
+        async function saveResults() {
+    if (!wheelData?.id || winners.length === 0) {
+        alert('No hay ganadores para guardar');
+        return;
+    }
+    
+    const name = prompt('Nombre del sorteo:', `Sorteo ${new Date().toLocaleDateString()}`);
+    if (!name) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                winners: winners,
+                total_participants: originalParticipants.length,
+                notes: ''
+            })
+        });
+        
+        if (res.ok) {
+            alert('¡Resultados guardados!');
+        } else {
+            alert('Error al guardar');
+        }
+    } catch (e) {
+        console.error('Error saving results:', e);
+        alert('Error de conexión');
+    }
+}
+
+async function loadWheel() {
             const pathParts = window.location.pathname.split('/');
             // Expected path: /wheel/:wheelId/public or /:eventName/wheel/:wheelId/public
             let wheelId = null;
@@ -849,10 +887,13 @@
         // Spin button (proyector)
         document.getElementById('btn-spin-projector').addEventListener('click', spinWheel);
 
-        // Reset button (proyector)
-        document.getElementById('btn-reset-projector').addEventListener('click', resetWheel);
+// Reset button (proyector)
+document.getElementById('btn-reset-projector').addEventListener('click', resetWheel);
 
-        // Escuchar cambios de fullscreen del navegador (ESC key, etc)
+// Save button (proyector) - guardar resultados
+document.getElementById('btn-save-projector').addEventListener('click', saveResults);
+
+// Escuchar cambios de fullscreen del navegador (ESC key, etc)
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 const normalLayout = document.getElementById('normal-layout');
