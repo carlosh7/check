@@ -726,7 +726,7 @@
 
         async function saveResults() {
             if (!wheelData?.id || winners.length === 0) {
-                console.log('No hay ganadores para guardar');
+                showSaveFeedback('No hay ganadores', false);
                 return;
             }
             
@@ -746,13 +746,32 @@
                 });
                 
                 if (res.ok) {
-                    console.log('¡Resultados guardados!');
+                    showSaveFeedback('¡Resultado guardado!', true);
                 } else {
-                    console.error('Error al guardar');
+                    const err = await res.json().catch(() => ({}));
+                    showSaveFeedback(err.error || 'Error al guardar', false);
                 }
             } catch (e) {
                 console.error('Error saving results:', e);
+                showSaveFeedback('Error de conexión', false);
             }
+        }
+        
+        // Mostrar feedback visual de guardar
+        let saveFeedbackTimeout;
+        function showSaveFeedback(message, success) {
+            let el = document.getElementById('save-feedback');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'save-feedback';
+                el.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg font-bold text-sm z-[1000]';
+                document.body.appendChild(el);
+            }
+            el.textContent = message;
+            el.className = `fixed top-4 right-4 px-4 py-2 rounded-lg font-bold text-sm z-[1000] ${success ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`;
+            el.style.display = 'block';
+            clearTimeout(saveFeedbackTimeout);
+            saveFeedbackTimeout = setTimeout(() => { el.style.display = 'none'; }, 3000);
         }
 
         async function loadWheel() {

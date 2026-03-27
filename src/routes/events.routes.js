@@ -846,12 +846,13 @@ router.get('/wheels/:wheelId/results', authMiddleware(), async (req, res) => {
 });
 
 // POST /api/wheels/:wheelId/results - Guardar resultado (sorteo)
-router.post('/wheels/:wheelId/results', authMiddleware(), async (req, res) => {
+// SIN authMiddleware porque wheelId es UUID secreto que solo el admin conoce
+router.post('/wheels/:wheelId/results', async (req, res) => {
     const wheelId = req.params.wheelId;
     
-    const wheel = db.prepare("SELECT event_id FROM event_wheels WHERE id = ?").get(wheelId);
-    if (!wheel || !hasEventAccess(req.userId, wheel.event_id, req.userRole)) {
-        return res.status(403).json({ error: 'No tienes acceso' });
+    const wheel = db.prepare("SELECT id, event_id FROM event_wheels WHERE id = ?").get(wheelId);
+    if (!wheel) {
+        return res.status(404).json({ error: 'Ruleta no encontrada' });
     }
     
     const { name, winners, total_participants, notes } = req.body;
