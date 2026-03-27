@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.27.3';
+const VERSION = '12.27.4';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- AUTO-UPDATE CACHE V12.16.2 ---
@@ -4065,36 +4065,43 @@ const App = window.App = {
         const ev = this.state.events.find(e => String(e.id) === String(id));
         if (!ev) return;
         
-        document.getElementById('ev-id-hidden').value = ev.id;
-        document.getElementById('ev-name').value = ev.name || '';
-        document.getElementById('ev-location').value = ev.location || '';
-        document.getElementById('ev-desc').value = ev.description || '';
-        document.getElementById('ev-date').value = ev.date ? ev.date.slice(0, 16) : '';
-        document.getElementById('ev-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        // Usar formulario completo (modal-event-full) con prefijo evf-
+        document.getElementById('evf-id-hidden').value = ev.id;
+        document.getElementById('evf-name').value = ev.name || '';
+        document.getElementById('evf-location').value = ev.location || '';
+        document.getElementById('evf-desc').value = ev.description || '';
+        document.getElementById('evf-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        document.getElementById('evf-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
         
-        document.getElementById('ev-reg-title').value = ev.reg_title || '';
-        document.getElementById('ev-reg-welcome').value = ev.reg_welcome_text || '';
-        document.getElementById('ev-reg-success').value = ev.reg_success_message || '';
-        document.getElementById('ev-reg-policy').value = ev.reg_policy || '';
-        document.getElementById('ev-reg-phone').checked = ev.reg_show_phone !== 0;
-        document.getElementById('ev-reg-org').checked = ev.reg_show_org !== 0;
-        document.getElementById('ev-reg-position').checked = ev.reg_show_position === 1;
-        document.getElementById('ev-reg-vegan').checked = ev.reg_show_vegan !== 0;
-        document.getElementById('ev-reg-dietary').checked = ev.reg_show_dietary !== 0;
-        document.getElementById('ev-reg-gender').checked = ev.reg_show_gender === 1;
-        document.getElementById('ev-reg-agreement').checked = ev.reg_require_agreement !== 0;
+        document.getElementById('evf-reg-title').value = ev.reg_title || '';
+        document.getElementById('evf-reg-welcome').value = ev.reg_welcome_text || '';
+        document.getElementById('evf-reg-success').value = ev.reg_success_message || '';
+        document.getElementById('evf-reg-policy').value = ev.reg_policy || '';
+        document.getElementById('evf-reg-phone').checked = ev.reg_show_phone !== 0;
+        document.getElementById('evf-reg-org').checked = ev.reg_show_org !== 0;
+        document.getElementById('evf-reg-position').checked = ev.reg_show_position === 1;
+        document.getElementById('evf-reg-vegan').checked = ev.reg_show_vegan !== 0;
+        document.getElementById('evf-reg-dietary').checked = ev.reg_show_dietary !== 0;
+        document.getElementById('evf-reg-gender').checked = ev.reg_show_gender === 1;
+        document.getElementById('evf-reg-agreement').checked = ev.reg_require_agreement !== 0;
         
-        document.getElementById('ev-qr-dark').value = ev.qr_color_dark || '#000000';
-        document.getElementById('ev-qr-light').value = ev.qr_color_light || '#ffffff';
-        document.getElementById('ev-qr-logo').value = ev.qr_logo_url || '';
-        document.getElementById('ev-ticket-bg').value = ev.ticket_bg_url || '';
-        document.getElementById('ev-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
+        document.getElementById('evf-qr-dark').value = ev.qr_color_dark || '#000000';
+        document.getElementById('evf-qr-light').value = ev.qr_color_light || '#ffffff';
+        document.getElementById('evf-qr-logo').value = ev.qr_logo_url || '';
+        document.getElementById('evf-ticket-bg').value = ev.ticket_bg_url || '';
+        document.getElementById('evf-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
         
-        document.getElementById('ev-reg-whitelist').value = ev.reg_email_whitelist || '';
-        document.getElementById('ev-reg-blacklist').value = ev.reg_email_blacklist || '';
+        document.getElementById('evf-reg-whitelist').value = ev.reg_email_whitelist || '';
+        document.getElementById('evf-reg-blacklist').value = ev.reg_email_blacklist || '';
+        
+        // Actualizar título del modal para indicar que es edición
+        const modalTitle = document.getElementById('modal-event-full-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Editar Evento - Configuración Completa';
+        }
         
         this.updateQRPreview();
-        document.getElementById('modal-event')?.classList.remove('hidden');
+        document.getElementById('modal-event-full')?.classList.remove('hidden');
     },
 
     async deleteEvent(id) {
