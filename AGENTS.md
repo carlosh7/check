@@ -131,7 +131,12 @@ curl -s http://localhost:3000/api/health
 
 La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 
-**REGLA:** Después de CUALQUIER cambio de código significativo (bug fix, feature, refactor, cleanup):
+**PROCEDIMIENTO OBLIGATORIO ANTES DE INCREMENTAR:**
+1. **LEER** la versión actual desde `package.json` usando la herramienta Read
+2. **NUNCA asumir la versión** - siempre verificar con lectura directa
+3. **INCREMENTAR solo el último dígito (Z)**: si está en 12.31.9 → 12.31.10
+4. **NUNCA incrementar el dígito medio (Y)**: NO hacer 12.31.9 → 12.32.0
+5. **ACTUALIZAR** todos los archivos relevantes con la nueva versión
 
 | Archivo | Qué cambiar | Ejemplo |
 |---------|--------------|---------|
@@ -141,6 +146,11 @@ La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 | `script_v12_16_2.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
 
 **SIN este version bump, el navegador usa caché y NO ve los cambios.**
+
+**EJEMPLO CORRECTO:**
+- Versión actual: 12.31.9
+- Siguiente versión: 12.31.10 ✅
+- NO: 12.32.0 ❌
 
 ---
 
