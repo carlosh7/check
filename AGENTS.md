@@ -20,6 +20,43 @@ C:\Users\carlo\OneDrive\Documentos\APP\Registro
 
 ---
 
+## Docker (Entorno de Producción/Pruebas)
+
+El proyecto usa Docker con docker-compose. Ubicación del contenedor: `C:\Users\carlo\check`
+
+### Comandos Docker:
+
+```bash
+# 1. Detener contenedor
+docker-compose down
+
+# 2. Reiniciar con los últimos cambios (rebuild)
+docker-compose up --build -d
+
+# 3. Ver logs
+docker-compose logs -f
+
+# 4. Ver estado
+docker-compose ps
+```
+
+### Flujo de Actualización Completo:
+```bash
+cd C:\Users\carlo\check
+
+# Hacer pull de últimos cambios
+git pull origin main
+
+# Rebuild del contenedor
+docker-compose down
+docker-compose up --build -d
+
+# Validar que funciona
+curl -s http://localhost:3000/api/health
+```
+
+---
+
 ## CHECKLIST PARA CADA TAREA
 
 Antes de comenzar cualquier tarea:
@@ -146,4 +183,4 @@ git tag --sort=-version:refname | head -5
 
 El código se valida en `C:\Users\carlo\check` (git clone del repositorio).
 El servidor Node corre en puerto 3000.
-No hay Docker en este proyecto.
+El proyecto usa Docker compose.
