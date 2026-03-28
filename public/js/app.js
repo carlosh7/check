@@ -7563,6 +7563,11 @@ window.switchAdminTab = function(tabName) {
 console.log('[DEBUG] Antes de DOMContentLoaded listener, readyState:', document.readyState);
 
 async function initApp() {
+    // Guardia de Página Pública (Fase 11) - Detener SPA en registro.html
+    if (window.location.pathname.includes('registro.html') || window.location.search.includes('event=')) {
+        console.log('[INIT] Página pública detectada, omitiendo flujo de SPA');
+        return;
+    }
     try {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { 
