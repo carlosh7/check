@@ -137,7 +137,11 @@ curl -s http://localhost:3000/api/health
 #    - Proporcionar URL para pruebas: http://localhost:3000
 ```
 
-**CRÍTICO:** El contenedor de pruebas (`C:\Users\carlo\check`) es solo para validación. Todos los cambios se hacen en el repositorio original.
+**CRÍTICO:** El contenedor de pruebas (`C:\Users\carlo\check`) es solo para validación. Todos los cambios se hacen en el repositorio original. 
+Si el sistema del Agente devuelve error de "fuera de workspace" al intentar operar en `C:\Users\carlo\check`, **DEBE** usar el parámetro `-C` desde el repositorio original:
+- Ejemplo: `git -C C:\Users\carlo\check pull origin main`
+
+**NOTA SOBRE POWERSHELL:** No uses `&&` para encadenar comandos; usa `;` (punto y coma) o ejecútalos por separado.
 
 **VALIDACIÓN POR USUARIO:** Después de que el agente complete los pasos 1-6, el usuario valida manualmente en `http://localhost:3000`.
 
