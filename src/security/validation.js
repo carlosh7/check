@@ -60,7 +60,7 @@ const schemas = {
 
     createEvent: z.object({
         name: z.string().min(1, 'Nombre requerido').max(200),
-        date: z.string().optional(),
+        date: z.string().min(1, 'Fecha requerida'),
         end_date: z.string().optional().or(z.literal('')),
         location: z.string().max(500).optional().or(z.literal('')),
         description: z.string().max(2000).optional().or(z.literal('')),
