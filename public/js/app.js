@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.45';
+const VERSION = '12.31.46';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4613,6 +4613,78 @@ const App = window.App = {
         
         this.updateQRPreview();
         document.getElementById('modal-event-full')?.classList.remove('hidden');
+    },
+
+    // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
+    async saveEventFull(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        
+        const gv = (id) => document.getElementById(id)?.value || '';
+        const gc = (id) => document.getElementById(id)?.checked ? 1 : 0;
+        
+        const id = gv('evf-id-hidden');
+        const data = {
+            name:        gv('evf-name'),
+            location:    gv('evf-location'),
+            description: gv('evf-desc'),
+            date:        gv('evf-date') || null,
+            end_date:    gv('evf-end-date') || null,
+            // Registro público
+            reg_title:           gv('evf-reg-title'),
+            reg_welcome_text:    gv('evf-reg-welcome'),
+            reg_success_message: gv('evf-reg-success'),
+            reg_policy:          gv('evf-reg-policy'),
+            reg_show_phone:      gc('evf-reg-phone'),
+            reg_show_org:        gc('evf-reg-org'),
+            reg_show_position:   gc('evf-reg-position'),
+            reg_show_vegan:      gc('evf-reg-vegan'),
+            reg_show_dietary:    gc('evf-reg-dietary'),
+            reg_show_gender:     gc('evf-reg-gender'),
+            reg_require_agreement: gc('evf-reg-agreement'),
+            // Personalización QR / ticket
+            qr_color_dark:       gv('evf-qr-dark')    || '#000000',
+            qr_color_light:      gv('evf-qr-light')   || '#ffffff',
+            qr_logo_url:         gv('evf-qr-logo'),
+            ticket_bg_url:       gv('evf-ticket-bg'),
+            ticket_accent_color: gv('evf-ticket-accent') || '#7c3aed',
+            // Listas de acceso
+            reg_email_whitelist: gv('evf-reg-whitelist'),
+            reg_email_blacklist: gv('evf-reg-blacklist'),
+        };
+
+        try {
+            let res;
+            if (id) {
+                res = await this.updateEvent(id, data);
+            } else {
+                res = await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
+            }
+
+            if (res && res.success === false) {
+                await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
+                return;
+            }
+
+            // Actualizar estado local si editamos el evento activo
+            if (id && this.state.event && String(this.state.event.id) === String(id)) {
+                Object.assign(this.state.event, data);
+            }
+
+            document.getElementById('modal-event-full')?.classList.add('hidden');
+            await this.loadEvents();
+            await this._notifyAction('✓ Guardado', id ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
+        } catch (err) {
+            console.error('[saveEventFull] Error:', err);
+            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
+        }
+    },
+
+    // ── ACTUALIZAR EVENTO vía API (v12.31.46) ──
+    async updateEvent(id, data) {
+        return this.fetchAPI(`/events/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
     },
 
     async deleteEvent(id) {
