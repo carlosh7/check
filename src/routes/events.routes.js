@@ -73,9 +73,9 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             reg_show_dietary, reg_show_gender, reg_require_agreement,
             qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
             reg_email_whitelist, reg_email_blacklist
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-        id, req.userId, name, date, location, logo_url || '', description || '', new Date().toISOString(), eventGroupId, end_date || null,
+        id, req.userId, name, date, location, logo_url || '', description || '', 'ACTIVE', new Date().toISOString(), eventGroupId, end_date || null,
         reg_title || '', reg_welcome_text || '', reg_success_message || '', reg_policy || '',
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
         reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
