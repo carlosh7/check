@@ -3451,8 +3451,18 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
         
-        if (target) {
-            target.classList.remove('hidden');
+        // Mostrar la vista objetivo, o my-events por defecto
+        let viewToShow = target;
+        if (!viewToShow) {
+            console.warn(`[VIEW] Vista "${viewName}" no encontrada, mostrando "my-events" por defecto`);
+            viewToShow = document.getElementById('view-my-events');
+        }
+        
+        if (viewToShow) {
+            viewToShow.classList.remove('hidden');
+            console.log(`[VIEW] Mostrando: ${viewToShow.id}`);
+        } else {
+            console.error('[VIEW] ERROR: No se pudo encontrar ninguna vista para mostrar!');
         }
 
         // OCULTAR SIDEBAR DE EVENTO si no es admin o event-config

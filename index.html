@@ -43,8 +43,8 @@
             background-color: var(--bg-app);
         }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=12.28.22">
-    <link rel="stylesheet" href="/css/modern.css?v=12.28.22">
+    <link rel="stylesheet" href="/css/styles.css?v=12.28.23">
+    <link rel="stylesheet" href="/css/modern.css?v=12.28.23">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -89,7 +89,7 @@
                 </a>
                 <div class="flex items-center gap-4">
                     <p class="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">&copy; 2026 Check Pro</p>
-                    <span id="login-version-display" class="text-xs text-[var(--text-muted)] font-bold app-version-text">v12.28.22</span>
+                    <span id="login-version-display" class="text-xs text-[var(--text-muted)] font-bold app-version-text">v12.28.23</span>
                 </div>
                 <button id="btn-open-terms" class="text-xs text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors uppercase tracking-wider font-bold">Términos y Privacidad</button>
             </div>
@@ -103,90 +103,60 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     
     <script type="module">
-        // Sistema anti-caché avanzado V12.28.15
+        // SISTEMA ANTI-CACHÉ DIRECTO Y SIMPLE V12.28.23
         (function() {
-            // Sistema anti-caché NUCLEAR V12.28.22
-            const currentVersion = '12.28.22';
+            const currentVersion = '12.28.23';
             
-            // 1. Limpieza total inicial
+            // 1. FORZAR recarga si hay cualquier parámetro de cache bust
             const urlParams = new URLSearchParams(window.location.search);
-            const urlVersion = urlParams.get('v');
-            
-            // Si la versión en URL no coincide, limpiar TODO
-            if (urlVersion && urlVersion !== currentVersion) {
-                console.warn(`[CACHE NUCLEAR] URL version ${urlVersion} ≠ current ${currentVersion}, nuclear cleanup...`);
+            if (urlParams.has('force_reload') || urlParams.has('clean_all') || 
+                urlParams.has('nuclear_clean') || urlParams.has('timeout_reload')) {
+                
+                // Limpiar TODO
                 localStorage.clear();
                 sessionStorage.clear();
-                indexedDB.databases().then(dbs => {
-                    dbs.forEach(db => indexedDB.deleteDatabase(db.name));
-                }).catch(() => {});
                 
-                // Forzar recarga con versión correcta
-                window.location.href = `/?nuclear_clean=${Date.now()}&v=${currentVersion}`;
+                // Redirigir a URL limpia
+                const cleanUrl = window.location.pathname + '?v=' + currentVersion + '&_=' + Date.now();
+                window.location.replace(cleanUrl);
                 return;
             }
             
-            // 2. Verificar caché persistente del navegador
-            const checkBrowserCache = () => {
-                // Crear un iframe para bypass cache
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = `/js/app.js?cache_test=${Date.now()}`;
-                document.body.appendChild(iframe);
-                
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 100);
+            // 2. CARGAR script con método DIRECTO
+            const script = document.createElement('script');
+            script.type = 'module';
+            
+            // URL con timestamp ÚNICO para cada carga
+            const uniqueId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            script.src = `/js/app.js?v=${currentVersion}&_=${uniqueId}`;
+            
+            // Forzar no-cache
+            script.setAttribute('cache', 'no-store');
+            script.setAttribute('pragma', 'no-cache');
+            
+            script.onload = function() {
+                console.log(`✅ Loaded version ${currentVersion} successfully`);
+                localStorage.setItem('check_version', currentVersion);
+                localStorage.setItem('check_load_time', Date.now().toString());
             };
             
-            // 3. Cargar script con múltiples técnicas anti-caché
-            const loadScript = () => {
-                // Técnica 1: Crear script con timestamp único
-                const timestamp = Date.now();
-                const script = document.createElement('script');
-                script.type = 'module';
-                
-                // Técnica 2: Usar múltiples parámetros para evitar caché
-                script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}&r=${Math.random()}&_=${timestamp}`;
-                
-                // Técnica 3: Forzar no-cache headers
-                script.setAttribute('cache', 'no-store');
-                script.setAttribute('pragma', 'no-cache');
-                
-                script.onload = function() {
-                    console.log(`[CACHE] Successfully loaded version ${currentVersion}`);
-                    localStorage.setItem('check_loaded_version', currentVersion);
-                    localStorage.setItem('check_last_load', timestamp.toString());
-                };
-                
-                script.onerror = function() {
-                    console.error(`[CACHE] Failed to load app.js, attempting cache bust...`);
-                    // Intentar con URL diferente
-                    script.src = `/js/app.js?force=${timestamp}&v=${currentVersion}`;
-                };
-                
-                document.head.appendChild(script);
-                checkBrowserCache();
+            script.onerror = function() {
+                console.error(`❌ Failed to load app.js, forcing reload...`);
+                // Recargar página completa
+                window.location.href = `/?force_reload=${Date.now()}&v=${currentVersion}`;
             };
             
-            // 4. Verificar si ya cargamos recientemente
-            const lastLoad = localStorage.getItem('check_last_load');
-            const loadedVersion = localStorage.getItem('check_loaded_version');
+            // 3. Insertar script AL PRINCIPIO del head
+            document.head.insertBefore(script, document.head.firstChild);
             
-            if (lastLoad && (Date.now() - parseInt(lastLoad)) < 5000 && loadedVersion === currentVersion) {
-                console.log(`[CACHE] Recently loaded version ${currentVersion}, skipping...`);
-            } else {
-                loadScript();
-            }
-            
-            // 5. Forzar recarga si detectamos versión antigua después de 2 segundos
+            // 4. Verificar después de 1 segundo si se cargó correctamente
             setTimeout(() => {
-                if (!localStorage.getItem('check_loaded_version') || 
-                    localStorage.getItem('check_loaded_version') !== currentVersion) {
-                    console.warn(`[CACHE TIMEOUT] Version mismatch after timeout, forcing reload...`);
-                    window.location.href = `/?timeout_reload=${Date.now()}&v=${currentVersion}`;
+                if (!localStorage.getItem('check_version') || 
+                    localStorage.getItem('check_version') !== currentVersion) {
+                    console.warn(`⚠️ Version check failed, forcing reload...`);
+                    window.location.href = `/?force_reload=${Date.now()}&v=${currentVersion}`;
                 }
-            }, 2000);
+            }, 1000);
         })();
     </script>
 
