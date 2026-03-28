@@ -89,6 +89,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
 try { db.exec("ALTER TABLE guests ADD COLUMN is_new_registration INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribed INTEGER DEFAULT 0"); } catch (_) {}
 try { db.exec("ALTER TABLE guests ADD COLUMN unsubscribe_token TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE guests ADD COLUMN qr_token TEXT"); } catch (_) {}
+try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_guests_qr_token ON guests(qr_token)"); } catch (_) {}
 
 // 3.1 Pre-Registros (Inscripción previa)
 db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
