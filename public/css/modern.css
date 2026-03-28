@@ -245,6 +245,8 @@ input[type="email"]:focus {
     display: inline-flex !important;
     gap: 2px !important;
     overflow: visible !important;
+    position: relative !important;
+    z-index: 999998 !important;
 }
 
 .sub-nav-btn {
@@ -607,12 +609,11 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     display: none;
     overflow: visible !important;
     max-height: none !important;
-    max-width: 250px !important;
-    height: auto !important;
-    min-height: 300px !important;
-    position: fixed !important;
-    left: 50px !important;
-    top: 180px !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    width: 200px !important;
+    margin-top: 4px !important;
 }
 
 #email-dropdown-menu:not(.hidden) {
