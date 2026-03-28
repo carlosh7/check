@@ -108,16 +108,15 @@ body {
 #app-container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    /* overflow: hidden removido - estaba causando que el contenido se oculte */
 }
 
 #global-sidebar {
-    width: var(--sidebar-width);
+    /* width: definido por w-[240px] en HTML */
     background-color: var(--bg-sidebar);
     border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+    /* display: flex y flex-direction: column definidos por flex flex-col en HTML */
+    /* flex-shrink: 0 definido por flex-shrink-0 en HTML */
     transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
 }
@@ -150,12 +149,8 @@ body {
 }
 
 
-#app-main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--content-padding);
-    background-color: var(--bg-app);
-}
+/* #app-main-content - definiciones removidas para usar Tailwind CSS */
+/* Las clases flex-1, min-w-0, h-full, overflow-y-auto, p-6 están en Tailwind */
 
 /* Cards - Limpias y elegantes */
 .card {
