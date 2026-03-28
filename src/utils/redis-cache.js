@@ -22,7 +22,7 @@ async function initRedis() {
         });
         
         redisClient.on('error', (err) => {
-            console.error('Redis error:', err.message);
+            // Silenciar errores de Redis - es opcional
             isConnected = false;
         });
         
@@ -34,7 +34,7 @@ async function initRedis() {
         await redisClient.connect();
         return redisClient;
     } catch (err) {
-        console.error('Failed to connect to Redis:', err.message);
+        // Silenciar error - Redis es opcional
         redisClient = null;
         isConnected = false;
         return null;
