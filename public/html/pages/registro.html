@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <script type="module" src="/js/app.js?v=12.31.35"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.31.35">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.35">
+    <script type="module" src="/js/app.js?v=12.31.36"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.36">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.36">
     <script src="https://cdn.tailwindcss.com"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -203,10 +203,10 @@
                 document.getElementById('page-title').innerText = eventData.reg_title || 'Registro de Invitados';
                 document.getElementById('event-name').innerText = eventData.name || 'Evento';
                 // Logo
-                if (eventData.reg_logo_url) {
-                    document.getElementById('event-logo').classList.remove('hidden');
-                    document.getElementById('event-logo').innerHTML = `<img src="${eventData.reg_logo_url}" class="w-full h-full object-cover" alt="Logo">`;
-                    document.getElementById('event-fallback-icon').style.display = 'none';
+                if (eventData.reg_logo_url && eventData.reg_logo_url.trim() !== "") {
+                    const logoContainer = document.getElementById('event-logo');
+                    logoContainer.classList.remove('hidden');
+                    logoContainer.innerHTML = `<img src="${eventData.reg_logo_url}" class="w-full h-full object-cover" alt="Logo">`;
                 }
 
                 // Ubicación
