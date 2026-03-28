@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.62';
+const VERSION = '12.31.63';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -129,7 +129,14 @@ const App = window.App = {
                     modal.classList.remove('hidden');
                     // Habilitar el formulario cuando el modal está visible
                     if (form) {
-                        form.querySelectorAll('input, textarea, button, select').forEach(el => {
+                        // Habilitar especialmente el botón submit
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.removeAttribute('disabled');
+                            submitBtn.removeAttribute('aria-disabled');
+                        }
+                        // Habilitar otros campos
+                        form.querySelectorAll('input, textarea, select').forEach(el => {
                             el.removeAttribute('disabled');
                             el.removeAttribute('aria-disabled');
                         });
@@ -4116,6 +4123,8 @@ const App = window.App = {
                     console.log(`[FORM SUBMIT] Submitter:`, e.submitter);
                     console.log(`[FORM SUBMIT] Modal visible:`, isModalVisible);
                     console.log(`[FORM SUBMIT] Modal element:`, modal);
+                    console.log(`[FORM SUBMIT] Modal classes:`, modal?.classList);
+                    console.log(`[FORM SUBMIT] Modal id:`, modal?.id);
                     
                     e.preventDefault(); 
                     
@@ -4142,7 +4151,14 @@ const App = window.App = {
                 if (id === 'modal-event-full') {
                     const form = document.getElementById('new-event-full-form');
                     if (form) {
-                        form.querySelectorAll('input, textarea, button, select').forEach(el => {
+                        // Deshabilitar especialmente el botón submit
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.setAttribute('disabled', 'disabled');
+                            submitBtn.setAttribute('aria-disabled', 'true');
+                        }
+                        // Deshabilitar otros campos
+                        form.querySelectorAll('input, textarea, select').forEach(el => {
                             el.setAttribute('disabled', 'disabled');
                             el.setAttribute('aria-disabled', 'true');
                         });
@@ -7766,6 +7782,16 @@ async function initApp() {
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
     console.log('[DOM] Inicializando aplicación, readyState:', document.readyState);
+    
+    // 0.1. ASEGURAR QUE TODOS LOS MODALES ESTÉN OCULTOS AL INICIAR
+    console.log('[INIT] Asegurando que todos los modales estén ocultos...');
+    document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+        if (!modal.classList.contains('hidden')) {
+            console.log(`[INIT] Modal ${modal.id} estaba visible, ocultándolo`);
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    });
     
     // 0. Lazy Loading init (Performance)
     window.lazyLoad?.init();
