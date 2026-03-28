@@ -1,4 +1,4 @@
-﻿/**
+/**
  * modern.css - Check Elegant Pro Design System
  * InspiraciÃ³n: Apple / Chrome Browser / Minimalismo Sofisticado
  */
@@ -237,10 +237,10 @@ input[type="email"]:focus {
     color: var(--text-muted);
 }
 
-/* Sub-NavegaciÃ³n (Tabs) - RediseÃ±ado V12.28.13 */
+/* Sub-Navegación (Tabs) - Rediseñado V12.28.13 */
 .sub-nav-container { background-color: var(--bg-hover) !important; padding: 3px !important; border-radius: var(--radius-md) !important; display: inline-flex !important; gap: 4px !important; overflow: visible !important; position: relative !important; border: 1px solid var(--border-light) !important; z-index: 100 !important; }
 
-.sub-nav-btn { padding: 8px 18px !important; border-radius: var(--radius-sm) !important; font-size: var(--font-sm) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: -0.01em !important; border: none !important; background: transparent !important; color: var(--text-secondary) !important; cursor: pointer !important; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; display: flex !important; align-items: center !important; gap: 6px !important; }
+.sub-nav-btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: var(--font-sm); font-weight: 600; text-transform: none; letter-spacing: -0.01em; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 6px; }
 
 .sub-nav-btn:hover {
     color: var(--text-main) !important;
@@ -268,7 +268,7 @@ input[type="email"]:focus {
     background-color: var(--bg-hover);
 }
 
-/* NavegaciÃ³n - Limpia y elegante */
+/* Navegación - Limpia y elegante */
 .nav-item {
     display: flex;
     align-items: center;
