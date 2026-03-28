@@ -1,6 +1,6 @@
-/**
+﻿/**
  * modern.css - Check Elegant Pro Design System
- * Inspiración: Apple / Chrome Browser / Minimalismo Sofisticado
+ * InspiraciÃ³n: Apple / Chrome Browser / Minimalismo Sofisticado
  */
 
 :root {
@@ -48,15 +48,15 @@
     --content-padding: 40px;
     --transition-speed: 0.25s;
     
-    /* Font Sizes - Sistema estandarizado (mínimo 11px, máximo 32px) */
-    --font-xs: 11px;    /* Textos muy pequeños, labels, notas */
-    --font-sm: 13px;    /* Textos pequeños, botones secundarios */
+    /* Font Sizes - Sistema estandarizado (mÃ­nimo 11px, mÃ¡ximo 32px) */
+    --font-xs: 11px;    /* Textos muy pequeÃ±os, labels, notas */
+    --font-sm: 13px;    /* Textos pequeÃ±os, botones secundarios */
     --font-base: 15px;  /* Texto base, cuerpo principal */
-    --font-lg: 17px;    /* Textos destacados, subtítulos */
-    --font-xl: 20px;    /* Títulos pequeños */
-    --font-2xl: 24px;   /* Títulos medianos */
-    --font-3xl: 28px;   /* Títulos grandes */
-    --font-4xl: 32px;   /* Títulos muy grandes */
+    --font-lg: 17px;    /* Textos destacados, subtÃ­tulos */
+    --font-xl: 20px;    /* TÃ­tulos pequeÃ±os */
+    --font-2xl: 24px;   /* TÃ­tulos medianos */
+    --font-3xl: 28px;   /* TÃ­tulos grandes */
+    --font-4xl: 32px;   /* TÃ­tulos muy grandes */
 }
 
 /* Chrome Dark Mode Palette */
@@ -83,7 +83,7 @@
 }
 
 /* Modo Claro - Chrome Light Palette (ya definido en :root) */
-/* Las variables para modo claro ya están definidas en :root (líneas 6-49) */
+/* Las variables para modo claro ya estÃ¡n definidas en :root (lÃ­neas 6-49) */
 /* El modo claro se activa removiendo la clase .dark del elemento html */
 
 /* Reset base */
@@ -152,7 +152,7 @@ body {
 
 
 /* #app-main-content - definiciones removidas para usar Tailwind CSS */
-/* Las clases flex-1, min-w-0, h-full, overflow-y-auto, p-6 están en Tailwind */
+/* Las clases flex-1, min-w-0, h-full, overflow-y-auto, p-6 estÃ¡n en Tailwind */
 
 /* Cards - Limpias y elegantes */
 .card {
@@ -183,7 +183,7 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Botón Primario - Minimalista */
+/* BotÃ³n Primario - Minimalista */
 .btn-primary {
     background-color: var(--primary) !important;
     color: var(--text-inverse) !important;
@@ -237,43 +237,17 @@ input[type="email"]:focus {
     color: var(--text-muted);
 }
 
-/* Sub-Navegación (Tabs) - Rediseñado V12.28.13 */
-.sub-nav-container {
-    background-color: var(--bg-hover) !important;
-    padding: 2px !important;
-    border-radius: var(--radius-md) !important;
-    display: inline-flex !important;
-    gap: 2px !important;
-    overflow: visible !important;
-    position: relative !important;
-    z-index: 999998 !important;
-}
+/* Sub-NavegaciÃ³n (Tabs) - RediseÃ±ado V12.28.13 */
+.sub-nav-container { background-color: var(--bg-hover) !important; padding: 3px !important; border-radius: var(--radius-md) !important; display: inline-flex !important; gap: 4px !important; overflow: visible !important; position: relative !important; border: 1px solid var(--border-light) !important; z-index: 100 !important; }
 
-.sub-nav-btn {
-    padding: 8px 20px !important; /* Reducido para ser más elegante */
-    border-radius: var(--radius-sm) !important;
-    font-size: var(--font-sm) !important; /* 13px */
-    font-weight: 600 !important; /* Reducido de 700 (bold) */
-    text-transform: none !important; /* Cambiado de uppercase a normal */
-    letter-spacing: normal !important;
-    border: none !important;
-    background: transparent !important;
-    color: var(--text-secondary) !important;
-    cursor: pointer !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
+.sub-nav-btn { padding: 8px 18px !important; border-radius: var(--radius-sm) !important; font-size: var(--font-sm) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: -0.01em !important; border: none !important; background: transparent !important; color: var(--text-secondary) !important; cursor: pointer !important; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; display: flex !important; align-items: center !important; gap: 6px !important; }
 
 .sub-nav-btn:hover {
     color: var(--text-main) !important;
     background-color: var(--bg-active) !important;
 }
 
-.sub-nav-btn.active {
-    background-color: var(--bg-card) !important;
-    color: var(--primary) !important;
-    box-shadow: var(--shadow-sm) !important;
-    transform: translateY(-1px);
-}
+.sub-nav-btn.active { background-color: var(--bg-card) !important; color: var(--primary) !important; box-shadow: var(--shadow-xs) !important; }
 
 /* Status Badges - Chrome Look */
 .data-table {
@@ -283,17 +257,7 @@ input[type="email"]:focus {
     font-size: var(--font-sm); /* 13px */
 }
 
-.data-table th {
-    text-align: left;
-    padding: 16px;
-    font-size: var(--font-sm); /* 13px */
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg-hover);
-}
+.data-table th { text-align: left; padding: 14px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border-light); background-color: var(--bg-app); }
 
 .data-table td {
     padding: 14px 16px;
@@ -304,7 +268,7 @@ input[type="email"]:focus {
     background-color: var(--bg-hover);
 }
 
-/* Navegación - Limpia y elegante */
+/* NavegaciÃ³n - Limpia y elegante */
 .nav-item {
     display: flex;
     align-items: center;
@@ -375,7 +339,7 @@ h2 {
 }
 
 /* NOTA: No definir clases de utilidad como .text-secondary, .text-right, .hidden */
-/* Estas clases ya están definidas en Tailwind CSS (styles.css) */
+/* Estas clases ya estÃ¡n definidas en Tailwind CSS (styles.css) */
 /* Usar solo para componentes personalizados y variables CSS */
 
 /* Scrollbar personalizado - Elegante */
@@ -531,7 +495,7 @@ html.dark .ql-stroke {
     stroke: var(--text-main) !important;
 }
 
-/* Fix para visibilidad adaptativa según el tema */
+/* Fix para visibilidad adaptativa segÃºn el tema */
 .tpl-preview-bg .ql-editor {
     background-color: transparent !important;
     color: inherit !important;
@@ -587,7 +551,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* NOTA: .hidden ya está definido en Tailwind CSS */
+/* NOTA: .hidden ya estÃ¡ definido en Tailwind CSS */
 /* No redefinir clases de utilidad de Tailwind */
 
 /* ===== DROPDOWN PARA EMAILS ===== */
@@ -611,7 +575,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     overflow: visible !important;
     max-height: none !important;
     position: fixed !important;
-    width: 220px !important;
+    width: 180px !important;
     clip: auto !important;
     clip-path: none !important;
 }
@@ -625,7 +589,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     pointer-events: auto !important;
 }
 
-/* Asegurar que ninguna sección de email recorte el dropdown */
+/* Asegurar que ninguna secciÃ³n de email recorte el dropdown */
 .email-content {
     overflow: visible !important;
     z-index: 1 !important;
@@ -643,11 +607,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 }
 
 /* El contenedor del dropdown debe ser visible */
-.sub-nav-container {
-    overflow: visible !important;
-    clip: auto !important;
-    clip-path: none !important;
-}
+.sub-nav-container { background-color: var(--bg-hover) !important; padding: 3px !important; border-radius: var(--radius-md) !important; display: inline-flex !important; gap: 4px !important; overflow: visible !important; position: relative !important; border: 1px solid var(--border-light) !important; z-index: 100 !important; }
 
 /* Asegurar que la vista de sistema no recorte */
 #view-system {
@@ -681,7 +641,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     font-size: var(--font-sm); /* 13px */
     font-weight: 600; /* Aumentado de 500 para coincidir con sub-nav-btn */
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Misma transición que sub-nav-btn */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Misma transiciÃ³n que sub-nav-btn */
     border-bottom: 1px solid var(--border-light);
 }
 
@@ -696,7 +656,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 
 .email-dropdown-item:hover {
     background-color: var(--bg-active) !important; /* Cambiado de bg-hover a bg-active */
-    color: var(--text-main) !important; /* Añadido cambio de color al hover */
+    color: var(--text-main) !important; /* AÃ±adido cambio de color al hover */
 }
 
 .email-dropdown-item.active {
@@ -705,12 +665,12 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     font-weight: 600;
 }
 
-/* Rotar flecha cuando dropdown está abierto */
+/* Rotar flecha cuando dropdown estÃ¡ abierto */
 .email-dropdown.open #email-dropdown-arrow {
     transform: rotate(180deg);
 }
 
-/* Responsive: En pantallas pequeñas, hacer dropdown más ancho */
+/* Responsive: En pantallas pequeÃ±as, hacer dropdown mÃ¡s ancho */
 @media (max-width: 768px) {
     #email-dropdown-menu {
         width: 220px;
@@ -726,7 +686,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
         padding: 14px 16px;
     }
     
-    /* Sidebar responsive para móviles */
+    /* Sidebar responsive para mÃ³viles */
     #global-sidebar {
         width: 64px !important;
         overflow: hidden;
@@ -830,7 +790,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     min-height: 0; /* Permitir que grid se ajuste sin causar scroll */
 }
 
-/* Prevenir desplazamientos no deseados en toda la aplicación */
+/* Prevenir desplazamientos no deseados en toda la aplicaciÃ³n */
 #app-main-content {
     display: flex;
     flex-direction: column;
@@ -855,7 +815,7 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
     overflow-anchor: none;
 }
 
-/* ===== ESTILOS ESPECÍFICOS PARA LOGIN ===== */
+/* ===== ESTILOS ESPECÃFICOS PARA LOGIN ===== */
 .glass-card {
     background: rgba(var(--bg-card-rgb), 0.8);
     backdrop-filter: blur(20px);
@@ -925,3 +885,4 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
 .email-modal-item:active {
     background-color: var(--bg-active) !important;
 }
+

@@ -32,7 +32,7 @@
                 <span class="sidebar-text font-medium text-sm">Panel Admin</span>
             </button>
 
-            <!-- Configuración del Evento -->
+            <!-- ConfiguraciÃ³n del Evento -->
             <button id="nav-btn-event-config" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-all group">
                 <span class="material-symbols-outlined text-xl">settings</span>
                 <span class="sidebar-text font-medium text-sm">Config. Evento</span>
@@ -46,7 +46,7 @@
             
             <!-- Separador y elementos de usuario -->
             <div class="mt-6 pt-4 border-t border-[var(--border)]">
-                <!-- Información del usuario -->
+                <!-- InformaciÃ³n del usuario -->
                 <div class="flex items-center gap-3 px-4 py-3">
                     <div class="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[var(--primary)] text-base">person</span>
@@ -57,20 +57,20 @@
                     </div>
                 </div>
                 
-                <!-- Botones de acción -->
+                <!-- Botones de acciÃ³n -->
                 <div class="flex items-center gap-2 px-4 py-2">
                     <button id="btn-toggle-theme" class="flex-1 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--border)] transition-colors gap-2" title="Cambiar tema">
                         <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">dark_mode</span>
                         <span class="sidebar-text text-xs text-[var(--text-secondary)]">Tema</span>
                     </button>
                     
-                    <button id="btn-logout" class="flex-1 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors gap-2" title="Cerrar sesión">
+                    <button id="btn-logout" class="flex-1 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors gap-2" title="Cerrar sesiÃ³n">
                         <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">logout</span>
                         <span class="sidebar-text text-xs text-[var(--text-secondary)]">Salir</span>
                     </button>
                 </div>
                 
-                <!-- Firma y versión -->
+                <!-- Firma y versiÃ³n -->
                 <div class="px-4 py-2 text-center">
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-xs text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
                         Powered by Smart Eventos
@@ -99,7 +99,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="events-list-container" style="min-height: 300px;">
-                    <!-- Los eventos se cargarán aquí dinámicamente -->
+                    <!-- Los eventos se cargarÃ¡n aquÃ­ dinÃ¡micamente -->
                     <div class="col-span-full text-center py-12">
                         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary-light)] mb-4">
                             <span class="material-symbols-outlined text-[var(--primary)] text-3xl">event</span>
@@ -127,7 +127,7 @@
                         <h1 id="admin-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
                         <div class="flex items-center gap-2 text-[var(--text-secondary)]">
                             <span class="material-symbols-outlined text-sm">location_on</span>
-                            <span id="admin-event-location" class="text-xs uppercase tracking-wider">Ubicación</span>
+                            <span id="admin-event-location" class="text-xs uppercase tracking-wider">UbicaciÃ³n</span>
                         </div>
                     </div>
                 </div>
@@ -148,7 +148,7 @@
 
             <div class="sub-nav-container mb-8">
                 <button id="ev-nav-guests" class="sub-nav-btn active" data-tab-target="ev-content-guests">Invitados</button>
-                <!-- Personal Asignado, Email y Agenda ahora en Configuración del Evento -->
+                <!-- Personal Asignado, Email y Agenda ahora en ConfiguraciÃ³n del Evento -->
             </div>
 
             <div id="ev-content-guests" class="card !p-0 overflow-hidden">
@@ -165,8 +165,8 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th id="th-name">Invitado / Información</th>
-                                <th id="th-org">Organización</th>
+                                <th id="th-name">Invitado / InformaciÃ³n</th>
+                                <th id="th-org">OrganizaciÃ³n</th>
                                 <th id="th-status" class="text-center">Estado</th>
                                 <th class="text-right">Acciones</th>
                             </tr>
@@ -180,11 +180,11 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
                         <h2 class="text-2xl font-semibold tracking-tight">Staff del <span class="text-[var(--primary)]">Evento</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestiÃ³n y logÃ­stica de este evento.</p>
                     </div>
                     <div class="flex gap-3">
                         <button id="btn-ev-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
-                        <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
+                        <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro RÃ¡pido</button>
                     </div>
                 </div>
                 <div class="card !p-0 overflow-hidden">
@@ -216,22 +216,22 @@
             <div id="ev-content-email" class="hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“§ Email del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automÃ¡ticos que se enviarÃ¡n a los invitados.</p>
                     </div>
-                    <button id="btn-save-event-email-config" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
+                    <button id="btn-save-event-email-config" class="btn-primary !px-5 !py-2.5">ðŸ’¾ Guardar ConfiguraciÃ³n</button>
                 </div>
                 
-                <!-- Configuración SMTP por Evento -->
+                <!-- ConfiguraciÃ³n SMTP por Evento -->
                 <div class="card p-6">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                        Configuración de Envío
+                        ConfiguraciÃ³n de EnvÃ­o
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex items-center gap-2">
                             <input type="checkbox" id="ev-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
-                            <label for="ev-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                            <label for="ev-email-enabled" class="text-sm font-bold">Habilitar emails automÃ¡ticos</label>
                         </div>
                         <div class="md:col-span-2"></div>
                         <div>
@@ -247,8 +247,8 @@
                             <input type="text" id="ev-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                            <input type="password" id="ev-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ContraseÃ±a SMTP</label>
+                            <input type="password" id="ev-email-smtp-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="input-field w-full">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
@@ -275,7 +275,7 @@
                     </button>
                 </div>
 
-                <!-- Botón de prueba -->
+                <!-- BotÃ³n de prueba -->
                 <div class="card p-6">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <span class="material-symbols-outlined text-[var(--primary)]">send</span>
@@ -292,7 +292,7 @@
             <div id="ev-content-agenda" class="hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“‹ Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
                     </div>
                     <button id="btn-add-agenda-item" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
@@ -310,7 +310,7 @@
             </div>
         </section>
 
-        <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
+        <!-- VIEW: CONFIGURACIÃ“N DEL EVENTO -->
         <section id="view-event-config" class="hidden space-y-8">
             <header class="flex flex-col lg:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-6">
@@ -319,7 +319,7 @@
                         <span id="config-event-logo-placeholder" class="material-symbols-outlined text-4xl text-[var(--primary)]">event</span>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-[var(--primary)] uppercase tracking-widest mb-1">Configuración del Evento</p>
+                        <p class="text-xs font-bold text-[var(--primary)] uppercase tracking-widest mb-1">ConfiguraciÃ³n del Evento</p>
                         <h1 id="config-event-title" class="text-3xl font-semibold tracking-tight !mb-1">Cargando...</h1>
                         <div class="flex items-center gap-2 text-[var(--text-secondary)]">
                             <span class="material-symbols-outlined text-sm">calendar_today</span>
@@ -367,7 +367,7 @@
                 </button>
                 <button id="config-nav-settings" class="sub-nav-btn" onclick="window.App && window.App.switchConfigTab ? window.App.switchConfigTab('settings') : console.error('App not available')">
                     <span class="material-symbols-outlined text-sm mr-2">settings</span>
-                    Configuración
+                    ConfiguraciÃ³n
                 </button>
             </div>
 
@@ -376,11 +376,11 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
                         <h2 class="text-2xl font-semibold tracking-tight">Personal <span class="text-[var(--primary)]">Asignado</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestiÃ³n y logÃ­stica de este evento.</p>
                     </div>
                     <div class="flex gap-3">
                         <button id="btn-config-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
-                        <button id="btn-config-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
+                        <button id="btn-config-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro RÃ¡pido</button>
                     </div>
                 </div>
                 <div class="card !p-0 overflow-hidden">
@@ -411,22 +411,22 @@
             <div id="config-content-email" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“§ Email del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automÃ¡ticos que se enviarÃ¡n a los invitados.</p>
                     </div>
-                    <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
+                    <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">ðŸ’¾ Guardar ConfiguraciÃ³n</button>
                 </div>
                 
-                <!-- Configuración SMTP por Evento -->
+                <!-- ConfiguraciÃ³n SMTP por Evento -->
                 <div class="card p-6">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                        Configuración de Envío
+                        ConfiguraciÃ³n de EnvÃ­o
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex items-center gap-2">
                             <input type="checkbox" id="config-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
-                            <label for="config-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                            <label for="config-email-enabled" class="text-sm font-bold">Habilitar emails automÃ¡ticos</label>
                         </div>
                         <div class="md:col-span-2"></div>
                         <div>
@@ -442,8 +442,8 @@
                             <input type="text" id="config-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                            <input type="password" id="config-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ContraseÃ±a SMTP</label>
+                            <input type="password" id="config-email-smtp-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="input-field w-full">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
@@ -474,7 +474,7 @@
             <div id="config-content-agenda" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“‹ Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
                     </div>
                     <button id="btn-config-add-agenda" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
@@ -494,7 +494,7 @@
             <div id="config-content-wheel" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">🎰 Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸŽ° Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
                     </div>
                     <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
@@ -521,9 +521,9 @@
                     </div>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Configuración de la ruleta -->
+                        <!-- ConfiguraciÃ³n de la ruleta -->
                         <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4">Configuración</h3>
+                            <h3 class="text-lg font-bold mb-4">ConfiguraciÃ³n</h3>
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Ruleta</label>
@@ -534,7 +534,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Número de Segmentos</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NÃºmero de Segmentos</label>
                                     <input type="number" id="wheel-segments" min="2" max="12" value="8" class="input-field w-full">
                                 </div>
                                 <div>
@@ -574,10 +574,10 @@
                         </button>
                     </div>
                     
-                    <!-- Botones de acción -->
+                    <!-- Botones de acciÃ³n -->
                     <div class="flex justify-end gap-3">
                         <button id="btn-cancel-wheel" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                        <button id="btn-save-wheel" class="btn-primary !px-5 !py-2">💾 Guardar Ruleta</button>
+                        <button id="btn-save-wheel" class="btn-primary !px-5 !py-2">ðŸ’¾ Guardar Ruleta</button>
                     </div>
                 </div>
             </div>
@@ -585,20 +585,20 @@
             <div id="config-content-settings" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> del Evento</h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Edita los detalles y configuración de tu evento.</p>
+                        <h2 class="text-2xl font-semibold tracking-tight">âš™ï¸ <span class="text-[var(--primary)]">ConfiguraciÃ³n</span> del Evento</h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Edita los detalles y configuraciÃ³n de tu evento.</p>
                     </div>
-                    <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
+                    <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">ðŸ’¾ Guardar Cambios</button>
                 </div>
                 
                 <form id="event-settings-form" class="space-y-6">
                     <input type="hidden" id="evf-id-hidden" value="">
                     
-                    <!-- DATOS BÁSICOS -->
+                    <!-- DATOS BÃSICOS -->
                     <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                             <span class="material-symbols-outlined text-[var(--primary)]">info</span>
-                            Datos Básicos
+                            Datos BÃ¡sicos
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
@@ -606,8 +606,8 @@
                                 <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ubicación</label>
-                                <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">UbicaciÃ³n</label>
+                                <input type="text" id="evf-location" placeholder="UbicaciÃ³n" class="input-field w-full">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -621,12 +621,12 @@
                             </div>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción</label>
-                            <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">DescripciÃ³n</label>
+                            <textarea id="evf-desc" rows="2" placeholder="DescripciÃ³n del evento" class="input-field w-full"></textarea>
                         </div>
                     </div>
 
-                    <!-- CONFIGURACIÓN DE REGISTRO -->
+                    <!-- CONFIGURACIÃ“N DE REGISTRO -->
                     <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                             <span class="material-symbols-outlined text-[var(--primary)]">how_to_reg</span>
@@ -634,32 +634,32 @@
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Título de Registro</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">TÃ­tulo de Registro</label>
                                 <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Bienvenida</label>
-                                <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
+                                <input type="text" id="evf-reg-welcome" placeholder="Â¡Bienvenido!" class="input-field w-full">
                             </div>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Éxito</label>
-                            <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Ã‰xito</label>
+                            <input type="text" id="evf-reg-success" placeholder="Â¡Registro exitoso!" class="input-field w-full">
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Política de Privacidad</label>
-                            <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">PolÃ­tica de Privacidad</label>
+                            <textarea id="evf-reg-policy" rows="2" placeholder="PolÃ­tica de privacidad..." class="input-field w-full"></textarea>
                         </div>
                         
                         <!-- CHECKBOXES DE REGISTRO -->
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
-                                <span class="text-sm text-[var(--text-main)]">Teléfono</span>
+                                <span class="text-sm text-[var(--text-main)]">TelÃ©fono</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
-                                <span class="text-sm text-[var(--text-main)]">Organización</span>
+                                <span class="text-sm text-[var(--text-main)]">OrganizaciÃ³n</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
@@ -675,13 +675,13 @@
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
-                                <span class="text-sm text-[var(--text-main)]">Género</span>
+                                <span class="text-sm text-[var(--text-main)]">GÃ©nero</span>
                             </label>
                         </div>
                         
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
-                            <span class="text-sm text-[var(--text-main)]">Requerir acuerdo de términos y condiciones</span>
+                            <span class="text-sm text-[var(--text-main)]">Requerir acuerdo de tÃ©rminos y condiciones</span>
                         </label>
                     </div>
 
@@ -689,7 +689,7 @@
                     <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                             <span class="material-symbols-outlined text-[var(--primary)]">qr_code_2</span>
-                            Diseño de QR y Ticket
+                            DiseÃ±o de QR y Ticket
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
@@ -722,18 +722,18 @@
                             Filtros de Email
                         </h3>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Whitelist (emails permitidos, uno por línea)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Whitelist (emails permitidos, uno por lÃ­nea)</label>
                             <textarea id="evf-reg-whitelist" rows="3" placeholder="usuario1@dominio.com&#10;usuario2@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Blacklist (emails bloqueados, uno por línea)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Blacklist (emails bloqueados, uno por lÃ­nea)</label>
                             <textarea id="evf-reg-blacklist" rows="3" placeholder="spam@dominio.com&#10;no-deseado@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-3">
                         <button type="button" id="btn-cancel-event-settings" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                        <button type="submit" class="btn-primary !px-5 !py-2">💾 Guardar Cambios</button>
+                        <button type="submit" class="btn-primary !px-5 !py-2">ðŸ’¾ Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -742,10 +742,10 @@
             <div id="config-content-pre-registrations" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📝 <span class="text-[var(--primary)]">Pre-Registros</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“ <span class="text-[var(--primary)]">Pre-Registros</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Gestiona las pre-inscripciones y registros anticipados para tu evento.</p>
                     </div>
-                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">📥 Importar Lista</button>
+                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">ðŸ“¥ Importar Lista</button>
                 </div>
                 
                 <div class="card !p-0 overflow-hidden">
@@ -779,10 +779,10 @@
             <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">📊 <span class="text-[var(--primary)]">Encuestas QR</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Crea y gestiona encuestas con códigos QR para recopilar feedback de los asistentes.</p>
+                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“Š <span class="text-[var(--primary)]">Encuestas QR</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm mt-1">Crea y gestiona encuestas con cÃ³digos QR para recopilar feedback de los asistentes.</p>
                     </div>
-                    <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">➕ Nueva Encuesta</button>
+                    <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">âž• Nueva Encuesta</button>
                 </div>
                 
                 <div class="card !p-0 overflow-hidden">
@@ -813,7 +813,7 @@
             </div>
         </section>
 
-        <!-- VIEW: CONFIGURACIÓN (UNIFIED HUB V12.16.3) -->
+        <!-- VIEW: CONFIGURACIÃ“N (UNIFIED HUB V12.16.3) -->
         <section id="view-system" class="hidden space-y-8">
             <div class="sub-nav-container mb-8">
                 <button class="sub-nav-btn active" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('users') : console.error('App not available')">Equipo</button>
@@ -827,26 +827,25 @@
                         <span class="material-symbols-outlined text-sm transition-transform" id="email-dropdown-arrow">expand_more</span>
                     </button>
                     <div id="email-dropdown-menu" class="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 hidden">
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('config'); } else { console.error('App not available'); }">⚙️ Configuración</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('accounts'); } else { console.error('App not available'); }">📧 Cuentas</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('campaigns'); } else { console.error('App not available'); }">📢 Campañas</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailbox'); } else { console.error('App not available'); }">📬 Buzón</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailing'); } else { console.error('App not available'); }">📤 Mailing</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('templates'); } else { console.error('App not available'); }">📄 Plantillas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('config'); } else { console.error('App not available'); }">âš™ï¸ ConfiguraciÃ³n</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('accounts'); } else { console.error('App not available'); }">ðŸ“§ Cuentas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('campaigns'); } else { console.error('App not available'); }">ðŸ“¢ CampaÃ±as</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailbox'); } else { console.error('App not available'); }">ðŸ“¬ BuzÃ³n</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailing'); } else { console.error('App not available'); }">ðŸ“¤ Mailing</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('templates'); } else { console.error('App not available'); }">ðŸ“„ Plantillas</button>
                     </div>
                 </div>
                 
                 <button class="sub-nav-btn" onclick="window.App && window.App.switchSystemTab ? window.App.switchSystemTab('account') : console.error('App not available')">Mi Perfil</button>
             </div>
 
-            <!-- SECCIÓN: EQUIPO -->
+            <!-- SECCIÃ“N: EQUIPO -->
             <div id="sys-content-users" class="hidden space-y-6">
                 <div class="flex justify-between items-center mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm">Control de acceso y roles de usuario.</p>
+                        <h1 class="text-3xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Equipo</span></h1><p class="text-[var(--text-secondary)] text-sm mt-1">Control de acceso y roles administrativos del sistema.</p>
                     </div>
-                    <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">Añadir Colaborador</button>
+                    <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">AÃ±adir Colaborador</button>
                 </div>
                 <div class="card !p-0 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -865,12 +864,11 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN: EMPRESAS -->
+            <!-- SECCIÃ“N: EMPRESAS -->
             <div id="sys-content-groups" class="hidden space-y-6">
                 <div class="flex justify-between items-center mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                        <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
+                        <h1 class="text-3xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h1><p class="text-[var(--text-secondary)] text-sm mt-1">Administración de organizaciones y entidades vinculadas.</p>
                     </div>
                     <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">Registrar Empresa</button>
                 </div>
@@ -879,7 +877,7 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th class="px-5 py-4">Organización</th>
+                                    <th class="px-5 py-4">OrganizaciÃ³n</th>
                                     <th class="px-5 py-4">Contacto</th>
                                     <th class="px-5 py-4 text-center">Estado</th>
                                     <th class="px-5 py-4 text-right">Acciones</th>
@@ -891,34 +889,30 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN: LEGALES -->
+            <!-- SECCIÃ“N: LEGALES -->
             <div id="sys-content-legal" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="card p-6 flex flex-col">
-                        <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
+                        <h4 class="text-sm font-semibold mb-4">PolÃ­tica de Privacidad</h4>
                         <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px] flex-1 overflow-hidden"></div>
-                        <button id="btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
+                        <button id="btn-save-policy" class="btn-primary mt-4 w-full">Guardar PolÃ­tica</button>
                     </div>
                     <div class="card p-6 flex flex-col">
-                        <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
+                        <h4 class="text-sm font-semibold mb-4">TÃ©rminos del Servicio</h4>
                         <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px] flex-1 overflow-hidden"></div>
-                        <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
+                        <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar TÃ©rminos</button>
                     </div>
                 </div>
             </div>
 
-            <!-- SECCIÓN: EMAIL -->
+            <!-- SECCIÃ“N: EMAIL -->
             <div id="sys-content-email" class="hidden space-y-6">
-                <!-- Header con título dinámico -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                    <div>
-                        <h2 id="email-section-title" class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> de Email</h2>
-                        <p id="email-section-description" class="text-[var(--text-secondary)] text-sm mt-1">Configura los servidores SMTP/IMAP para el envío y recepción de emails.</p>
-                    </div>
+                <!-- Header con tÃ­tulo dinÃ¡mico -->
+                <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"><div><h1 id="email-section-title" class="text-3xl font-semibold tracking-tight">Configuración de <span class="text-[var(--primary)]">Email</span></h1><p id="email-section-description" class="text-[var(--text-secondary)] text-sm mt-1">Gestión centralizada de comunicaciones y servidores.</p></div></header>
                     <div class="flex gap-2">
-                        <!-- Botón para mostrar dropdown en móviles -->
+                        <!-- BotÃ³n para mostrar dropdown en mÃ³viles -->
                         <button id="email-mobile-dropdown-btn" class="md:hidden btn-secondary !px-4 !py-2 flex items-center gap-1" onclick="window.App && window.App.toggleEmailDropdown ? window.App.toggleEmailDropdown() : console.error('App not available')">
-                            Menú
+                            MenÃº
                             <span class="material-symbols-outlined text-sm">expand_more</span>
                         </button>
                     </div>
@@ -927,12 +921,12 @@
                 <div id="email-content-config" class="email-content space-y-6">
                     <div class="card p-6 max-w-2xl">
                         <form id="smtp-form" class="space-y-4">
-                            <h3 class="text-lg font-bold">Configuración SMTP</h3>
+                            <h3 class="text-lg font-bold">ConfiguraciÃ³n SMTP</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="text" id="smtp-host" placeholder="Host SMTP" class="input-field">
                                 <input type="number" id="smtp-port" placeholder="Puerto" class="input-field">
                                 <input type="text" id="smtp-user" placeholder="Usuario" class="input-field">
-                                <input type="password" id="smtp-pass" placeholder="Contraseña" class="input-field">
+                                <input type="password" id="smtp-pass" placeholder="ContraseÃ±a" class="input-field">
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="text" id="smtp-from-name" placeholder="Nombre Remitente" class="input-field">
@@ -942,46 +936,46 @@
                                 <input type="checkbox" id="smtp-secure"> <label for="smtp-secure" class="text-xs uppercase font-bold">Usar SSL/TLS</label>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar SMTP</button>
+                                <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">ðŸ”— Probar SMTP</button>
                             </div>
                             <div class="pt-4 border-t border-[var(--border)]">
-                                <h3 class="text-lg font-bold mb-4">Configuración IMAP (Buzón)</h3>
+                                <h3 class="text-lg font-bold mb-4">ConfiguraciÃ³n IMAP (BuzÃ³n)</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input type="text" id="imap-host" placeholder="Host IMAP" class="input-field">
                                     <input type="number" id="imap-port" placeholder="Puerto IMAP" class="input-field">
                                     <input type="text" id="imap-user" placeholder="Usuario IMAP" class="input-field">
-                                    <input type="password" id="imap-pass" placeholder="Contraseña IMAP" class="input-field">
+                                    <input type="password" id="imap-pass" placeholder="ContraseÃ±a IMAP" class="input-field">
                                 </div>
                                 <div class="flex items-center gap-2 mt-2">
                                     <input type="checkbox" id="imap-tls"> <label for="imap-tls" class="text-xs uppercase font-bold">Usar TLS</label>
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">🔗 Probar IMAP</button>
-                                <button type="submit" class="btn-primary flex-1">💾 Guardar Configuración</button>
+                                <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">ðŸ”— Probar IMAP</button>
+                                <button type="submit" class="btn-primary flex-1">ðŸ’¾ Guardar ConfiguraciÃ³n</button>
                             </div>
                         </form>
                     </div>
-                    <!-- Guía de Entregabilidad -->
+                    <!-- GuÃ­a de Entregabilidad -->
                     <div class="card p-6 border border-yellow-500/20 bg-yellow-500/5">
                         <div class="flex items-center gap-2 mb-4">
                             <span class="material-symbols-outlined text-yellow-500">info</span>
-                            <h3 class="text-lg font-bold text-yellow-500">Guía de Entregabilidad (Anti-Spam)</h3>
+                            <h3 class="text-lg font-bold text-yellow-500">GuÃ­a de Entregabilidad (Anti-Spam)</h3>
                         </div>
                         <div class="space-y-4 text-sm">
                             <div class="p-3 bg-black/20 rounded-lg">
                                 <h4 class="font-bold text-white mb-1">SPF (Sender Policy Framework)</h4>
-                                <p class="text-slate-400 text-xs">Autoriza qué servidores pueden enviar emails desde tu dominio.</p>
+                                <p class="text-slate-400 text-xs">Autoriza quÃ© servidores pueden enviar emails desde tu dominio.</p>
                                 <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=spf1 include:_spf.google.com ~all</code>
                             </div>
                             <div class="p-3 bg-black/20 rounded-lg">
                                 <h4 class="font-bold text-white mb-1">DKIM (DomainKeys Identified Mail)</h4>
                                 <p class="text-slate-400 text-xs">Firma digital que verifica que el email no fue modificado.</p>
-                                <p class="text-slate-500 text-xs mt-1">Genera la clave en tu proveedor de email y agrégala como registro TXT.</p>
+                                <p class="text-slate-500 text-xs mt-1">Genera la clave en tu proveedor de email y agrÃ©gala como registro TXT.</p>
                             </div>
                             <div class="p-3 bg-black/20 rounded-lg">
                                 <h4 class="font-bold text-white mb-1">DMARC</h4>
-                                <p class="text-slate-400 text-xs">Indica qué hacer si SPF o DKIM fallan.</p>
+                                <p class="text-slate-400 text-xs">Indica quÃ© hacer si SPF o DKIM fallan.</p>
                                 <code class="block mt-2 p-2 bg-black/40 rounded text-xs text-green-400">v=DMARC1; p=none; rua=mailto:admin@tudominio.com</code>
                             </div>
                             <div class="p-3 bg-black/20 rounded-lg">
@@ -991,7 +985,7 @@
                                     <li>Configura SPF, DKIM y DMARC correctamente</li>
                                     <li>Evita palabras spam en asuntos y contenido</li>
                                     <li>Incluye siempre un enlace para darse de baja</li>
-                                    <li>Mantén una lista limpia de destinatarios</li>
+                                    <li>MantÃ©n una lista limpia de destinatarios</li>
                                 </ul>
                             </div>
                         </div>
@@ -1006,21 +1000,21 @@
                 </div>
                 <div id="email-content-campaigns" class="email-content hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold">Campañas de Email</h3>
-                        <button class="btn-primary !px-4 !py-2" onclick="App.openCampaignModal()">Nueva Campaña</button>
+                        <h3 class="text-lg font-bold">CampaÃ±as de Email</h3>
+                        <button class="btn-primary !px-4 !py-2" onclick="App.openCampaignModal()">Nueva CampaÃ±a</button>
                     </div>
                     <div id="campaigns-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 <div id="email-content-mailbox" class="email-content hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold">Buzón de Entrada</h3>
+                        <h3 class="text-lg font-bold">BuzÃ³n de Entrada</h3>
                         <button class="btn-primary !px-4 !py-2" onclick="App.refreshMailbox()">Actualizar</button>
                     </div>
                     <div id="mailbox-list" class="space-y-3"></div>
                 </div>
                 <div id="email-content-mailing" class="email-content hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Selección de Plantilla -->
+                        <!-- SelecciÃ³n de Plantilla -->
                         <div class="card p-6">
                             <h3 class="text-lg font-bold mb-4">1. Plantilla</h3>
                             <select id="mailing-template" onchange="App.loadMailingTemplate()" class="input-field w-full mb-4">
@@ -1041,22 +1035,22 @@
                         
                         <!-- Vista Previa -->
                         <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4">4. Previsualización</h3>
+                            <h3 class="text-lg font-bold mb-4">4. PrevisualizaciÃ³n</h3>
                             <input type="text" id="mailing-subject" placeholder="Asunto del email" class="input-field w-full mb-4">
                             <div id="mailing-preview-container" class="bg-white/5 rounded-lg p-4 min-h-[150px] text-sm text-slate-300"></div>
                             <div class="flex gap-2 mt-4">
-                                <button onclick="App.refreshMailingPreview()" class="btn-secondary !py-2 !px-3 text-xs">🔄 Actualizar</button>
-                                <button onclick="App.sendTestEmail()" class="btn-primary !py-2 !px-3 text-xs">📤 Enviar Prueba</button>
+                                <button onclick="App.refreshMailingPreview()" class="btn-secondary !py-2 !px-3 text-xs">ðŸ”„ Actualizar</button>
+                                <button onclick="App.sendTestEmail()" class="btn-primary !py-2 !px-3 text-xs">ðŸ“¤ Enviar Prueba</button>
                             </div>
                             <div class="mt-3">
                                 <input type="text" id="test-email-input" placeholder="Tu email para prueba..." class="input-field w-full text-xs">
                             </div>
                         </div>
                         
-                        <!-- Progreso de Envío -->
+                        <!-- Progreso de EnvÃ­o -->
                         <div id="mailing-progress-card" class="hidden card p-6 border border-primary/30">
                             <div class="flex justify-between items-center mb-3">
-                                <h3 class="text-lg font-bold">Progreso de Envío</h3>
+                                <h3 class="text-lg font-bold">Progreso de EnvÃ­o</h3>
                                 <span id="mailing-status-text" class="text-sm text-primary font-bold">Enviando...</span>
                             </div>
                             <div class="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
@@ -1070,7 +1064,7 @@
                                 <button onclick="App.controlMailingQueue('pause')" id="btn-pause-mailing" class="btn-secondary !py-2 !px-3 text-xs">Pausar</button>
                                 <button onclick="App.controlMailingQueue('resume')" id="btn-resume-mailing" class="btn-secondary !py-2 !px-3 text-xs hidden">Reanudar</button>
                                 <button onclick="App.controlMailingQueue('stop')" class="btn-secondary !py-2 !px-3 text-xs !text-red-400">Detener</button>
-                                <button onclick="App.startBroadcast()" class="btn-primary !py-2 !px-3 text-xs ml-auto">Iniciar Envío</button>
+                                <button onclick="App.startBroadcast()" class="btn-primary !py-2 !px-3 text-xs ml-auto">Iniciar EnvÃ­o</button>
                             </div>
                         </div>
                     </div>
@@ -1084,7 +1078,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN: MI PERFIL -->
+            <!-- SECCIÃ“N: MI PERFIL -->
             <div id="sys-content-account" class="hidden space-y-6">
                 <!-- Notificaciones Push -->
                 <div class="card p-6 border-l-4 border-l-[var(--primary)]">
@@ -1103,10 +1097,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="card p-8">
-                        <h3 class="text-xl font-bold mb-6">Información Personal</h3>
+                        <h3 class="text-xl font-bold mb-6">InformaciÃ³n Personal</h3>
                         <form id="profile-form" class="space-y-4">
                             <input type="text" id="profile-name" placeholder="Tu nombre" class="input-field w-full">
-                            <input type="text" id="profile-phone" placeholder="Teléfono" class="input-field w-full">
+                            <input type="text" id="profile-phone" placeholder="TelÃ©fono" class="input-field w-full">
                             <input type="email" id="profile-email" placeholder="email@ejemplo.com" class="input-field w-full">
                             <select id="profile-company" class="input-field w-full">
                                 <option value="">-- Sin empresa asignada --</option>
@@ -1117,9 +1111,9 @@
                     <div class="card p-8">
                         <h3 class="text-xl font-bold mb-6">Seguridad</h3>
                         <form id="password-form" class="space-y-4">
-                            <input type="password" id="pass-current" placeholder="Contraseña actual" class="input-field w-full">
-                            <input type="password" id="pass-new" placeholder="Nueva contraseña" class="input-field w-full">
-                            <button type="submit" class="btn-primary w-full">Cambiar Contraseña</button>
+                            <input type="password" id="pass-current" placeholder="ContraseÃ±a actual" class="input-field w-full">
+                            <input type="password" id="pass-new" placeholder="Nueva contraseÃ±a" class="input-field w-full">
+                            <button type="submit" class="btn-primary w-full">Cambiar ContraseÃ±a</button>
                         </form>
                     </div>
                 </div>
@@ -1127,11 +1121,7 @@
         </section>
 
         <!-- VIEW: PRE-REGISTRATIONS -->
-        <section id="view-pre-registrations" class="hidden space-y-8">
-            <header>
-                <h1 class="text-3xl font-semibold tracking-tight">Pre-registros</h1>
-                <p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de invitados pre-registrados.</p>
-            </header>
+        <section id="view-pre-registrations" class="hidden space-y-8"><header class="mb-8"><h1 class="text-3xl font-semibold tracking-tight">Lista de <span class="text-[var(--primary)]">Pre-registros</span></h1><p class="text-[var(--text-secondary)] text-sm mt-1">Gestión de invitados pre-registrados para validación de acceso.</p></header>
             <div class="card !p-0 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="data-table">
@@ -1150,11 +1140,7 @@
         </section>
 
         <!-- VIEW: SURVEY MANAGER -->
-        <section id="view-survey-manager" class="hidden space-y-8">
-            <header>
-                <h1 class="text-3xl font-semibold tracking-tight">Encuesta QR</h1>
-                <p class="text-[var(--text-secondary)] text-sm mt-1">Configuración de preguntas para el registro.</p>
-            </header>
+        <section id="view-survey-manager" class="hidden space-y-8"><header class="mb-8"><h1 class="text-3xl font-semibold tracking-tight">Gestor de <span class="text-[var(--primary)]">Encuestas QR</span></h1><p class="text-[var(--text-secondary)] text-sm mt-1">Configuración de preguntas dinámicas para feedback.</p></header>
             <div id="survey-questions-list" class="space-y-4"></div>
         </section>
         </div>
@@ -1166,13 +1152,13 @@
     <!-- Modal para crear/editar evento completo -->
 </div>
 
-<!-- Modal: Gestión de Empresa -->
+<!-- Modal: GestiÃ³n de Empresa -->
 <div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm" aria-hidden="true">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-[var(--primary)] text-xl">corporate_fare</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Gestión de Empresa</h3>
+                <h3 class="text-sm font-bold uppercase tracking-wider">GestiÃ³n de Empresa</h3>
             </div>
             <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
                 <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
@@ -1181,9 +1167,9 @@
         <form id="company-form" class="p-5 space-y-4">
             <input type="hidden" id="company-id-hidden" value="">
             <input type="text" id="company-name" required placeholder="Nombre de la empresa" class="input-field w-full">
-            <textarea id="company-description" placeholder="Breve descripción..." class="input-field w-full" rows="2"></textarea>
+            <textarea id="company-description" placeholder="Breve descripciÃ³n..." class="input-field w-full" rows="2"></textarea>
             <input type="email" id="company-email" placeholder="email@empresa.com" class="input-field w-full">
-            <input type="tel" id="company-phone" placeholder="Teléfono (opcional)" class="input-field w-full">
+            <input type="tel" id="company-phone" placeholder="TelÃ©fono (opcional)" class="input-field w-full">
             <select id="company-status" class="input-field w-full">
                 <option value="ACTIVE">Activo</option>
                 <option value="INACTIVE">Inactivo</option>
@@ -1203,32 +1189,32 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.31.19">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.19">
+<link rel="stylesheet" href="/css/styles.css?v=12.31.20">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.20">
 <script type="module">
-    // Sistema anti-caché avanzado V12.28.15
+    // Sistema anti-cachÃ© avanzado V12.28.15
     (function() {
-        // Verificar si hay una versión esperada guardada (de un reload forzado)
+        // Verificar si hay una versiÃ³n esperada guardada (de un reload forzado)
         const expectedVersion = localStorage.getItem('check_expected_version');
-            const currentVersion = '12.31.19';
+            const currentVersion = '12.31.20';
         
-        // Si hay una versión esperada y no coincide con la actual, forzar recarga
+        // Si hay una versiÃ³n esperada y no coincide con la actual, forzar recarga
         if (expectedVersion && expectedVersion !== currentVersion) {
-            console.warn(`[CACHE FIX] Versión esperada ${expectedVersion} ≠ actual ${currentVersion}, forzando recarga...`);
+            console.warn(`[CACHE FIX] VersiÃ³n esperada ${expectedVersion} â‰  actual ${currentVersion}, forzando recarga...`);
             localStorage.removeItem('check_expected_version'); // Limpiar
             const timestamp = new Date().getTime();
             window.location.reload(true); // true = forzar desde servidor
             return;
         }
         
-        // Cargar app.js con timestamp dinámico para evitar caché
+        // Cargar app.js con timestamp dinÃ¡mico para evitar cachÃ©
         const timestamp = new Date().getTime();
         const script = document.createElement('script');
         script.type = 'module';
         script.src = `/js/app.js?v=${currentVersion}&t=${timestamp}`;
         document.head.appendChild(script);
         
-        // Guardar versión cargada para verificación futura
+        // Guardar versiÃ³n cargada para verificaciÃ³n futura
         localStorage.setItem('check_loaded_version', currentVersion);
     })();
 </script>
@@ -1241,23 +1227,25 @@
     <div class="absolute" id="email-modal-menu" style="top: 0; left: 0;">
         <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg">
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="config">
-                ⚙️ Configuración
+                âš™ï¸ ConfiguraciÃ³n
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="accounts">
-                📧 Cuentas
+                ðŸ“§ Cuentas
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="campaigns">
-                📢 Campañas
+                ðŸ“¢ CampaÃ±as
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="mailbox">
-                📬 Buzón
+                ðŸ“¬ BuzÃ³n
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="mailing">
-                📤 Mailing
+                ðŸ“¤ Mailing
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors" data-tab="templates">
-                📄 Plantillas
+                ðŸ“„ Plantillas
             </button>
         </div>
     </div>
 </div>
+
+

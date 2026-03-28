@@ -206,11 +206,50 @@ git tag --sort=-version:refname | head -5
 ## Credenciales
 - **Login:** admin@check.com / admin123
 - **Puerto validación:** 3000
-
 ---
 
-## Nota sobre Entorno de Validación
+## Reglas de Oro de UI (Diseño Premium)
 
-El código se valida en `C:\Users\carlo\check` (git clone del repositorio).
-El servidor Node corre en puerto 3000.
-El proyecto usa Docker compose.
+Para mantener la coherencia estética y asegurar una experiencia de usuario profesional en **Check Pro**, todos los cambios en la interfaz deben seguir estrictamente estas reglas:
+
+### 1. Estructura de Vista Estándar
+Toda sección principal (Eventos, Invitados, Registros, Sistema) debe seguir este esquema:
+```html
+<section id="view-id" class="hidden space-y-8">
+    <header>
+        <h1 class="text-3xl font-semibold tracking-tight">Título de Sección</h1>
+        <p class="text-[var(--text-secondary)] text-sm mt-1">Descripción clara de la funcionalidad.</p>
+    </header>
+    
+    <!-- Opcional: Sub-navegación -->
+    <div class="sub-nav-container mb-8">
+        <button class="sub-nav-btn active">Sub-sección A</button>
+        <button class="sub-nav-btn">Sub-sección B</button>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="card !p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <!-- Estructura de tabla estándar -->
+            </table>
+        </div>
+    </div>
+</section>
+```
+
+### 2. Componentes de Navegación (Tabs)
+- **Contenedor:** Clase `.sub-nav-container`. Fondo `var(--bg-hover)`, padding `2px`, esquinas `var(--radius-md)`.
+- **Botones:** Clase `.sub-nav-btn`. Texto en `semibold`, sin mayúsculas forzadas.
+- **Estado Activo:** Clase `.active`. Fondo blanco `var(--bg-card)`, sombra suave `var(--shadow-sm)`, color de texto `var(--primary)`.
+
+### 3. Estética y Espaciado
+- **Cards:** Usar `.card` para agrupar contenido. Padding estándar de `28px`.
+- **Tablas:** Usar `.data-table`. Encabezados `th` con fondo `var(--bg-hover)` y fuente `bold` de 13px.
+- **Inputs:** Usar `.input-field` con padding de `12px 16px`. Nunca usar bordes de colores puros.
+- **Colores:** Usar siempre variables CSS (`var(--primary)`, `var(--bg-app)`, etc.) para asegurar compatibilidad con el Modo Oscuro.
+
+### 4. Iconografía
+- Usar exclusivamente **Material Symbols Outlined**.
+- Tamaño estándar para sidebar: `24px`. Para botones: `18px-20px`.
+
