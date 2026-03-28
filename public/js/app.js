@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.59';
+const VERSION = '12.31.60';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1315,9 +1315,14 @@ const App = window.App = {
     },
     
     saveEventFull: async function(e) {
+        console.log('[EVENT CREATE] saveEventFull called, event:', e);
         if (e) e.preventDefault();
         const f = document.getElementById('new-event-full-form');
-        if (!f) return;
+        console.log('[EVENT CREATE] Form element found:', f);
+        if (!f) {
+            console.error('[EVENT CREATE] Form not found!');
+            return;
+        }
         
         const fd = new FormData(f);
         const data = {};
@@ -4643,9 +4648,14 @@ const App = window.App = {
 
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
     async saveEventFull(e) {
+        console.log('[EVENT CREATE LONG FORM] saveEventFull (long form) called');
         if (e && e.preventDefault) e.preventDefault();
         
-        const gv = (id) => document.getElementById(id)?.value || '';
+        const gv = (id) => {
+            const value = document.getElementById(id)?.value;
+            // Convertir null/undefined a string vacío para Zod
+            return value === null || value === undefined || value === 'null' ? '' : value;
+        };
         const gc = (id) => document.getElementById(id)?.checked ? 1 : 0;
         
         const id = gv('evf-id-hidden');
@@ -4653,8 +4663,8 @@ const App = window.App = {
             name:        gv('evf-name'),
             location:    gv('evf-location'),
             description: gv('evf-desc'),
-            date:        gv('evf-date') || null,
-            end_date:    gv('evf-end-date') || null,
+            date:        gv('evf-date'),
+            end_date:    gv('evf-end-date'),
             group_id:    '', // Campo requerido por esquema pero opcional
             // Registro público
             reg_title:           gv('evf-reg-title'),
@@ -4678,6 +4688,9 @@ const App = window.App = {
             reg_email_whitelist: gv('evf-reg-whitelist'),
             reg_email_blacklist: gv('evf-reg-blacklist'),
         };
+        
+        // Debug: mostrar datos que se enviarán
+        console.log('[EVENT CREATE LONG FORM] Data to send:', data);
 
         try {
             let res;
