@@ -3404,6 +3404,13 @@ const App = window.App = {
     showView(viewName, clearSession = false) {
         console.log('[VIEW] Mostrando:', viewName);
         
+        // PREVENIR ejecuciones múltiples
+        if (this._showingView === viewName) {
+            console.log('[VIEW] Ya en proceso de mostrar:', viewName);
+            return;
+        }
+        this._showingView = viewName;
+        
         // Mapear y mostrar
         let targetId = "view-" + viewName;
         if (['legal', 'account'].includes(viewName)) targetId = "view-system";
@@ -3412,6 +3419,7 @@ const App = window.App = {
         const target = document.getElementById(targetId);
         if (target && !target.classList.contains('hidden')) {
             console.log('[VIEW] Ya visible:', viewName);
+            this._showingView = null;
             return;
         }
         
@@ -3484,6 +3492,11 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active', 'bg-primary/10', 'text-primary');
 
         window.scrollTo(0, 0);
+        
+        // Resetear flag de navegación después de un breve delay
+        setTimeout(() => {
+            this._showingView = null;
+        }, 100);
     },
 
     navigate(viewName, params = {}, push = true) {

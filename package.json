@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.28.26",
+  "version": "12.28.27",
   "description": "Sistema de gestión de invitados (Regla de Oro),para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.",
   "main": "script.js",
   "scripts": {
