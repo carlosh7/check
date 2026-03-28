@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.30.4';
+const VERSION = '12.30.5';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2124,7 +2124,10 @@ const App = window.App = {
                 if (sbr) sbr.textContent = data.role || 'Staff';
                 
                 const loginEl = document.getElementById('view-login');
-                if (loginEl) { loginEl.classList.add('hidden'); /* loginEl.style.display = 'none'; // REMOVIDO - redundante */ }
+                if (loginEl) { 
+                    loginEl.classList.add('hidden'); 
+                    loginEl.style.display = 'none';
+                }
                 
                 this.updateUIPermissions();
                 this.updateRoleOptions();
