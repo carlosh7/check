@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.58';
+const VERSION = '12.31.59';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1322,9 +1322,18 @@ const App = window.App = {
         const fd = new FormData(f);
         const data = {};
         
+        // Debug: mostrar todos los campos del formulario
+        console.log('[EVENT CREATE DEBUG] Form elements:');
+        for (let el of f.elements) {
+            if (el.name) {
+                console.log(`  ${el.name}: type=${el.type}, value="${el.value}", checked=${el.checked}, required=${el.required}`);
+            }
+        }
+        
         // El formulario ya tiene los 'name' correctos que coinciden con el esquema Zod
         fd.forEach((v, k) => {
             const el = f.elements[k];
+            console.log(`[EVENT CREATE DEBUG] Processing field ${k}: value="${v}", type=${el?.type}`);
             if (el && el.type === 'checkbox') {
                 data[k] = el.checked;
             } else {
