@@ -6,6 +6,7 @@
 
 # Scripts bash - siempre usar LF
 *.sh text eol=lf
+test-docker-clone.sh text eol=lf
 
 # Scripts de Windows - usar CRLF
 *.bat text eol=crlf
