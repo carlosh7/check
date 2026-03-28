@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.54';
+const VERSION = '12.31.55';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4629,6 +4629,7 @@ const App = window.App = {
             description: gv('evf-desc'),
             date:        gv('evf-date') || null,
             end_date:    gv('evf-end-date') || null,
+            group_id:    '', // Campo requerido por esquema pero opcional
             // Registro público
             reg_title:           gv('evf-reg-title'),
             reg_welcome_text:    gv('evf-reg-welcome'),
