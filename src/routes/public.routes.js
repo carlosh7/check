@@ -18,7 +18,7 @@ router.get('/event/:id', (req, res) => {
     const event = db.prepare(`SELECT id, name, date, end_date, location, description, 
                                      reg_title, reg_welcome_text, reg_success_message, reg_show_phone, 
                                      reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, 
-                                     reg_show_gender, reg_require_agreement, reg_policy, reg_logo_path,
+                                     reg_show_gender, reg_require_agreement, reg_policy, reg_logo_url,
                                      reg_email_whitelist, reg_email_blacklist
                               FROM events WHERE id = ?`).get(id);
 
