@@ -579,12 +579,24 @@
             </div>
 
             <div id="config-content-settings" class="config-tab-content hidden space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">âš™ï¸ <span class="text-[var(--primary)]">Configuración</span> del Evento</h2>
-                        <p class="text-[var(--text-secondary)] text-sm mt-1">Edita los detalles y configuración de tu evento.</p>
+                        <h2 class="text-2xl font-semibold tracking-tight">⚙️ <span class="text-[var(--primary)]">Configuración</span> del Evento</h2>
+                        <div class="flex flex-wrap items-center gap-3 mt-2">
+                             <p class="text-[var(--text-secondary)] text-sm">Edita los detalles y configuración de tu evento.</p>
+                             <div class="flex items-center gap-2 bg-[var(--bg-hover)] px-3 py-1.5 rounded-lg border border-[var(--border)] shadow-sm">
+                                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Link Registro:</span>
+                                <input type="text" id="evf-registration-link" readonly class="bg-transparent border-none text-[11px] w-48 focus:ring-0 p-0 text-[var(--primary)] font-bold" value="Cargando...">
+                                <button type="button" data-action="copyRegistrationLink" class="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors flex items-center" title="Copiar Link">
+                                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                                </button>
+                                <button type="button" data-action="openRegistrationLink" class="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors flex items-center" title="Abrir Registro">
+                                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                                </button>
+                             </div>
+                        </div>
                     </div>
-                    <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">ðŸ’¾ Guardar Cambios</button>
+                    <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
                 </div>
                 
                 <form id="event-settings-form" class="space-y-6">
