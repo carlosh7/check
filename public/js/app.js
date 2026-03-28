@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.25';
+const VERSION = '12.31.26';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1321,20 +1321,19 @@ const App = window.App = {
         
         const fd = new FormData(f);
         const data = {};
+        
+        // El formulario ya tiene los 'name' correctos que coinciden con el esquema Zod
         fd.forEach((v, k) => {
-            if (f.elements[k]?.type === 'checkbox') {
-                data[k.replace('evf-', 'reg_').replace('-', '_')] = f.elements[k].checked;
+            const el = f.elements[k];
+            if (el && el.type === 'checkbox') {
+                data[k] = el.checked;
             } else {
-                data[k.replace('evf-', '').replace(/-/g, '_')] = v;
+                data[k] = v;
             }
         });
         
-        // Mapeo manual de campos problemáticos si es necesario
-        data.name = fd.get('evf-name');
-        data.date = fd.get('evf-date');
-        data.end_date = fd.get('evf-end-date');
-        data.location = fd.get('evf-location');
-        data.description = fd.get('evf-desc');
+        // Forzar tipos de datos específicos para Zod
+        if (data.group_id === "") delete data.group_id;
         
         try {
             const res = await this.fetchAPI('/events', {
