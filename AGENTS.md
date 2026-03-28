@@ -101,7 +101,7 @@ git tag v${VERSION} HEAD && git push origin v${VERSION}
 
 # 3. DESDE CONTENEDOR DE PRUEBAS (C:\Users\carlo\check)
 #    - Sincronizar con cambios del repositorio
-git pull origin main
+git pull origin --tags
 
 # 4. VERIFICAR si server.js cambió
 git diff --name-only HEAD~1 | grep -q server.js && echo "SERVER CAMBIÓ - REINICIAR" || echo "OK"
