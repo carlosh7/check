@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <script type="module" src="/js/app.js?v=12.31.36"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.31.36">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.36">
+    <script type="module" src="/js/app.js?v=12.31.37"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.37">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.37">
     <script src="https://cdn.tailwindcss.com"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -62,12 +62,8 @@
         <div class="max-w-lg w-full glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
             <!-- Header con info del evento -->
             <div id="event-header" class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-8 text-center border-b border-white/5">
-                <div id="event-logo" class="hidden w-16 h-16 mx-auto mb-4 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-3xl text-primary">event</span>
-                </div>
-                <div id="event-fallback-icon" class="w-12 h-12 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-primary text-xl">how_to_reg</span>
-                </div>
+                <!-- Logo (Solo visible si existe) -->
+                <div id="event-logo" class="hidden w-20 h-20 mx-auto mb-6 rounded-2xl overflow-hidden bg-white/10 border border-white/20 flex items-center justify-center shadow-xl shadow-primary/10"></div>
                 <h2 id="page-title" class="text-xl font-black font-display mb-2">Registro de Invitados</h2>
                 <h3 id="event-name" class="text-lg font-black text-primary mb-1"></h3>
                 <div id="event-location-container" class="flex items-center justify-center gap-2 text-slate-400 text-xs mb-2">
