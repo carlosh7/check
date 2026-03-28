@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.26';
+const VERSION = '12.31.27';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1335,6 +1335,25 @@ const App = window.App = {
         // Forzar tipos de datos específicos para Zod
         if (data.group_id === "") delete data.group_id;
         
+        // Validación en el Cliente (Solicitud del Usuario)
+        const missingFields = [];
+        if (!data.name?.trim()) missingFields.push('Nombre del Evento');
+        if (!data.date) missingFields.push('Fecha de Inicio');
+        
+        if (missingFields.length > 0) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos Incompletos',
+                    text: `Debes completar: ${missingFields.join(', ')}`,
+                    confirmButtonColor: 'var(--primary)'
+                });
+            } else {
+                alert("Faltan campos obligatorios: " + missingFields.join(', '));
+            }
+            return;
+        }
+        
         try {
             const res = await this.fetchAPI('/events', {
                 method: 'POST',
@@ -1354,10 +1373,15 @@ const App = window.App = {
                     alert("✓ Evento creado con éxito.");
                 }
                 f.reset();
-                window.navigate('events');
+                this.navigate('my-events');
                 this.loadEvents();
             } else {
-                alert("Error: " + (res.error || res.errors?.join(', ')));
+                const errorMsg = res.errors ? res.errors.map(e => e.message || e).join(', ') : (res.error || 'Error desconocido');
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Error de Validación', text: errorMsg });
+                } else {
+                    alert("Error: " + errorMsg);
+                }
             }
         } catch (err) {
             console.error('Error saving full event:', err);
