@@ -195,7 +195,7 @@ const App = window.App = {
             
             // Mostrar modal
             modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+            modal.style.display = 'block';
             modal.classList.add('show');
             
             // Agregar event listeners a los items del modal
@@ -211,17 +211,6 @@ const App = window.App = {
                     }, 50);
                 };
             });
-            
-            // Cerrar al hacer clic en el backdrop
-            const backdrop = document.getElementById('email-modal-backdrop');
-            const closeOnBackdrop = (e) => {
-                if (e.target === backdrop) {
-                    this.closeEmailModal();
-                }
-            };
-            setTimeout(() => {
-                backdrop.addEventListener('click', closeOnBackdrop);
-            }, 10);
         }
     },
     
