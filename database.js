@@ -108,6 +108,10 @@ db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
     registered_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES events (id)
 )`);
+try { db.exec("ALTER TABLE pre_registrations ADD COLUMN gender TEXT DEFAULT 'O'"); } catch (_) {}
+try { db.exec("ALTER TABLE pre_registrations ADD COLUMN dietary_notes TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE pre_registrations ADD COLUMN position TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE pre_registrations ADD COLUMN organization TEXT"); } catch (_) {}
 
 // 4. Configuración de Mailing por Evento
 db.exec(`CREATE TABLE IF NOT EXISTS event_email_config (
@@ -124,6 +128,10 @@ db.exec(`CREATE TABLE IF NOT EXISTS event_email_config (
     updated_at TEXT,
     FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
+try { db.exec("ALTER TABLE event_email_config ADD COLUMN subject_prefix TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE event_email_config ADD COLUMN template_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE event_email_config ADD COLUMN send_confirmation INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE event_email_config ADD COLUMN send_reminder INTEGER DEFAULT 0"); } catch (_) {}
 
 // 5. Plantillas de Email por Evento
 db.exec(`CREATE TABLE IF NOT EXISTS event_email_templates (
