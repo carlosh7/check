@@ -592,8 +592,9 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 
 /* ===== DROPDOWN PARA EMAILS ===== */
 .email-dropdown {
-    position: relative;
-    display: inline-block;
+    position: relative !important;
+    display: inline-block !important;
+    overflow: visible !important;
 }
 
 #email-dropdown-menu {
@@ -605,22 +606,57 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-md) !important;
-    z-index: 999999 !important;
+    z-index: 9999999 !important;
     display: none;
     overflow: visible !important;
     max-height: none !important;
     position: fixed !important;
-    width: 200px !important;
+    width: 220px !important;
+    clip: auto !important;
+    clip-path: none !important;
 }
 
-/* Todas las secciones de email deben tener overflow visible */
+/* Fuerza el dropdown a posicionarse sobre todo */
+#email-dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    display: block !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Asegurar que ninguna sección de email recorte el dropdown */
 .email-content {
     overflow: visible !important;
     z-index: 1 !important;
     position: relative !important;
+    clip: auto !important;
+    clip-path: none !important;
 }
 
-#sys-content-users, #sys-content-groups, #sys-content-legal, #sys-content-account {
+/* Todas las secciones de sys-content deben permitir overflow */
+#sys-content-users, #sys-content-groups, #sys-content-legal, #sys-content-account,
+#sys-content-email, [id^="sys-content-"] {
+    overflow: visible !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
+
+/* El contenedor del dropdown debe ser visible */
+.sub-nav-container {
+    overflow: visible !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
+
+/* Asegurar que la vista de sistema no recorte */
+#view-system {
+    overflow: visible !important;
+    clip: auto !important;
+}
+
+/* Evitar que cualquier contenedor/interior recorte */
+#view-system > * {
     overflow: visible !important;
 }
 

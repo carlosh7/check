@@ -165,15 +165,15 @@ const App = window.App = {
         }
     },
 
-    // Toggle dropdown de emails
+    // Toggle dropdown de emails - usa position fixed para evitar recorte
     toggleEmailDropdown() {
         console.log('[DROPDOWN] toggleEmailDropdown called');
         const dropdown = document.getElementById('email-dropdown-menu');
         const dropdownContainer = document.querySelector('.email-dropdown');
-        const arrow = document.getElementById('email-dropdown-arrow');
+        const mainBtn = document.getElementById('email-main-btn');
         
-        if (!dropdown) {
-            console.error('[DROPDOWN] Dropdown element not found!');
+        if (!dropdown || !mainBtn) {
+            console.error('[DROPDOWN] Dropdown or button not found!');
             return;
         }
         
@@ -183,13 +183,28 @@ const App = window.App = {
             dropdownContainer.classList.remove('open');
         } else {
             console.log('[DROPDOWN] Opening dropdown');
+            
+            // Calcular posición exacta del botón para posicionar dropdown con fixed
+            const btnRect = mainBtn.getBoundingClientRect();
+            const dropdownWidth = 220; // ancho del dropdown
+            
+            // Posicionar dropdown debajo del botón, alineado a la izquierda
+            const top = btnRect.bottom + 4; // 4px debajo del botón
+            const left = btnRect.left;
+            
+            // Aplicar posición fixed
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = top + 'px';
+            dropdown.style.left = left + 'px';
+            dropdown.style.width = dropdownWidth + 'px';
+            
             dropdown.classList.add('show');
             dropdownContainer.classList.add('open');
             
             // Cerrar al hacer clic fuera
             setTimeout(() => {
                 const closeDropdown = (e) => {
-                    if (!dropdown.contains(e.target) && !document.getElementById('email-main-btn').contains(e.target)) {
+                    if (!dropdown.contains(e.target) && !mainBtn.contains(e.target)) {
                         dropdown.classList.remove('show');
                         dropdownContainer.classList.remove('open');
                         document.removeEventListener('click', closeDropdown);
@@ -264,6 +279,43 @@ const App = window.App = {
         if (tabName === 'mailbox') this.loadMailbox();
         if (tabName === 'mailing') this.loadMailing();
         if (tabName === 'templates') this.loadEmailTemplates();
+    },
+
+    // ─── ALIASES PARA FUNCIONES DE EMAIL (解决缺失函数问题) ───
+    
+    // Alias for email config (calls both SMTP and IMAP config)
+    loadEmailConfig: async function() {
+        console.log('[EMAIL] Loading email config...');
+        if (typeof this.loadSMTPConfig === 'function') {
+            await this.loadSMTPConfig();
+        }
+        if (typeof this.loadIMAPConfig === 'function') {
+            await this.loadIMAPConfig();
+        }
+    },
+    
+    // Alias for campaigns (loadCampaigns existe)
+    loadEmailCampaigns: async function() {
+        console.log('[EMAIL] Loading email campaigns...');
+        if (typeof this.loadCampaigns === 'function') {
+            await this.loadCampaigns();
+        }
+    },
+    
+    // Alias for mailing (loadMailingData existe)
+    loadMailing: async function() {
+        console.log('[EMAIL] Loading mailing...');
+        if (typeof this.loadMailingData === 'function') {
+            await this.loadMailingData();
+        }
+    },
+    
+    // Alias for templates (loadMailingTemplates existe)
+    loadEmailTemplates: async function() {
+        console.log('[EMAIL] Loading email templates...');
+        if (typeof this.loadMailingTemplates === 'function') {
+            await this.loadMailingTemplates();
+        }
     },
 
     // Función interna para mostrar sección de email (para compatibilidad)
