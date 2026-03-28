@@ -111,8 +111,8 @@ router.post('/public-register', async (req, res) => {
         
         res.json({ success: true, message: 'Registro exitoso', guestId, qrToken });
     } catch (err) {
-        console.error('[public-register] Error:', err.message);
-        res.status(500).json({ success: false, error: 'Error al procesar registro' });
+        console.error('[public-register] CRITICAL ERROR:', err);
+        res.status(500).json({ success: false, error: 'Error al procesar registro: ' + err.message });
     }
 });
 
