@@ -539,6 +539,15 @@ app.use('/api/email', emailLimiter);
 app.use(securityHeaders); // Headers de seguridad
 app.use(csrfMiddleware); // Protección CSRF para state-changing requests
 
+// --- ANTI-CACHÉ PARA INDEX.HTML ---
+app.get('/', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+
 // --- STATIC FILES ---
 // Primero servir archivos CSS, JS específicos de la nueva estructura
 app.use('/css', express.static(path.join(__dirname, 'public/css'), {
