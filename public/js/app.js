@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.29';
+const VERSION = '12.31.30';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4534,7 +4534,7 @@ const App = window.App = {
                 </div>
                 <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
                     <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    <div class="flex gap-3" onclick="event.stopPropagation()">
+                    <div class="flex gap-3">
                         <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">visibility</span> Ver
                         </button>
