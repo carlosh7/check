@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.60';
+const VERSION = '12.31.61';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4095,7 +4095,14 @@ const App = window.App = {
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
         const sf = (id, fn) => { 
             const el = document.getElementById(id); 
-            if (el) el.addEventListener('submit', (e) => { e.preventDefault(); fn(e); }); 
+            console.log(`[EVENT LISTENER] Registering submit listener for form: ${id}, element found: ${!!el}`);
+            if (el) {
+                el.addEventListener('submit', (e) => { 
+                    console.log(`[FORM SUBMIT] Form ${id} submitted, preventing default`);
+                    e.preventDefault(); 
+                    fn(e); 
+                }); 
+            }
         };
         const hideModal = (id) => { 
             const m = document.getElementById(id); 
@@ -4649,6 +4656,17 @@ const App = window.App = {
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
     async saveEventFull(e) {
         console.log('[EVENT CREATE LONG FORM] saveEventFull (long form) called');
+        console.log('[EVENT CREATE] Event details:', e);
+        
+        // Verificar si esto es un envío real o automático
+        if (!e || !e.target) {
+            console.error('[EVENT CREATE] No event or target found, aborting');
+            return;
+        }
+        
+        const form = e.target;
+        console.log('[EVENT CREATE] Form element:', form);
+        
         if (e && e.preventDefault) e.preventDefault();
         
         const gv = (id) => {
@@ -4659,11 +4677,24 @@ const App = window.App = {
         const gc = (id) => document.getElementById(id)?.checked ? 1 : 0;
         
         const id = gv('evf-id-hidden');
+        
+        // Validar campos obligatorios
+        const name = gv('evf-name');
+        const date = gv('evf-date');
+        
+        console.log('[EVENT CREATE] Validating fields - name:', name, 'date:', date);
+        
+        if (!name.trim() || !date.trim()) {
+            console.error('[EVENT CREATE] Required fields are empty, aborting');
+            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
+            return;
+        }
+        
         const data = {
-            name:        gv('evf-name'),
+            name:        name,
             location:    gv('evf-location'),
             description: gv('evf-desc'),
-            date:        gv('evf-date'),
+            date:        date,
             end_date:    gv('evf-end-date'),
             group_id:    '', // Campo requerido por esquema pero opcional
             // Registro público
