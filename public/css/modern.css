@@ -107,7 +107,9 @@ body {
 /* Layout Principal */
 #app-container {
     display: flex;
+    flex-direction: row;
     height: 100vh;
+    width: 100%;
     /* overflow: hidden removido - estaba causando que el contenido se oculte */
 }
 
@@ -776,6 +778,10 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 
 /* Prevenir desplazamientos no deseados en toda la aplicación */
 #app-main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
