@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <script type="module" src="/js/app.js?v=12.31.33"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.31.33">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.33">
+    <script type="module" src="/js/app.js?v=12.31.34"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.34">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.34">
     <script src="https://cdn.tailwindcss.com"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -65,12 +65,12 @@
                 <div id="event-logo" class="hidden w-16 h-16 mx-auto mb-4 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center">
                     <span class="material-symbols-outlined text-3xl text-primary">event</span>
                 </div>
-                <div class="w-12 h-12 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div id="event-fallback-icon" class="w-12 h-12 bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-primary text-xl">how_to_reg</span>
                 </div>
                 <h2 id="page-title" class="text-xl font-black font-display mb-2">Registro de Invitados</h2>
                 <h3 id="event-name" class="text-lg font-black text-primary mb-1"></h3>
-                <div class="flex items-center justify-center gap-2 text-slate-400 text-xs mb-2">
+                <div id="event-location-container" class="flex items-center justify-center gap-2 text-slate-400 text-xs mb-2">
                     <span class="material-symbols-outlined text-xs">location_on</span>
                     <span id="event-location"></span>
                 </div>
@@ -250,22 +250,28 @@
                 if (eventData.date) {
                     const eventDate = new Date(eventData.date);
                     const countdownSection = document.getElementById('countdown-section');
-                    
-                    setInterval(() => {
-                        const now = new Date();
-                        const diff = eventDate - now;
-                        if (diff > 0) {
-                            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                            const s = Math.floor((diff % (1000 * 60)) / 1000);
-                            document.getElementById('countdown-timer').innerText =
-                                `${d > 0 ? d + 'd ' : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                        } else {
-                            document.getElementById('countdown-timer').innerText = '¡EVENTO ACTIVO!';
-                            document.getElementById('countdown-timer').classList.add('text-emerald-400');
-                        }
-                    }, 1000);
+                    const now = new Date();
+                    const initialDiff = eventDate - now;
+
+                    if (initialDiff <= 0) {
+                        countdownSection.style.display = 'none';
+                    } else {
+                        const countdownInterval = setInterval(() => {
+                            const now = new Date();
+                            const diff = eventDate - now;
+                            if (diff > 0) {
+                                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                                document.getElementById('countdown-timer').innerText =
+                                    `${d > 0 ? d + 'd ' : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                            } else {
+                                countdownSection.style.display = 'none';
+                                clearInterval(countdownInterval);
+                            }
+                        }, 1000);
+                    }
                 } else {
                     document.getElementById('countdown-section').style.display = 'none';
                 }
