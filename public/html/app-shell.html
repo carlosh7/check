@@ -1,6 +1,6 @@
 <div id="app-container" class="flex h-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden font-sans">
     <!-- Sidebar: Limpio y Minimalista -->
-    <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200 fixed left-0 top-0 h-full">
+    <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200 flex-shrink-0 h-full">
         
         <!-- Logo & Toggle -->
         <div class="p-6 mb-4 flex items-center justify-between logo-container">
@@ -75,7 +75,7 @@
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-xs text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
                         Powered by Smart Eventos
                     </a>
-                    <span class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.20</span>
+                    <span class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.21</span>
                 </div>
             </div>
         </nav>
@@ -83,10 +83,11 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main id="app-main-content" class="flex-1 overflow-y-auto pl-[240px] pt-24">
-        <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
-        <section id="view-my-events" class="hidden">
-            <div class="max-w-6xl mx-auto px-4 py-8">
+    <main id="app-main-content" class="flex-1 overflow-y-auto">
+        <div class="h-full overflow-y-auto">
+            <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
+            <section id="view-my-events" class="hidden">
+                <div class="max-w-6xl mx-auto px-4 py-8">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
                         <h1 class="text-3xl font-semibold tracking-tight mb-2">Mis Eventos</h1>
@@ -1157,6 +1158,7 @@
             </header>
             <div id="survey-questions-list" class="space-y-4"></div>
         </section>
+        </div>
     </main>
 </div>
 
