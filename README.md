@@ -65,16 +65,32 @@ cp .env.example .env
 npm start
 ```
 
-### Opción 2: Docker
+### 🐳 Instalación con Docker (Recomendada)
+
+Para una instalación completamente automática con Docker:
 
 ```bash
-# Clonar repositorio
+# 1. Clonar repositorio
 git clone https://github.com/carlosh7/check.git
 cd check
 
-# Ejecutar con Docker Compose
-docker-compose up -d --build
+# 2. Construir y ejecutar
+docker-compose up --build
 ```
+
+El contenedor Docker hará todo automáticamente:
+- ✅ Construirá la imagen con todas las dependencias
+- ✅ Creará archivo `.env` si no existe
+- ✅ Inicializará la base de datos automáticamente
+- ✅ Creará usuario admin por defecto
+- ✅ Iniciará el servidor en http://localhost:3000
+
+**Credenciales por defecto:**
+- **URL:** http://localhost:3000
+- **Usuario:** admin@check.com
+- **Contraseña:** admin123
+
+Para más detalles, consulta [DOCKER_INSTALL.md](DOCKER_INSTALL.md).
 
 ### Acceso
 

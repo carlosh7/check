@@ -21,11 +21,15 @@ RUN npm install
 # Crear carpeta data automáticamente
 RUN if [ ! -d "data" ]; then mkdir data; fi
 
+# Copiar script de entrada
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Copiar el resto de la aplicación
 COPY . .
 
 # Exponer el puerto
 EXPOSE 3000
 
-# Comando por defecto - inicia el servidor
-CMD ["npm", "start"]
+# Usar script de entrada para inicialización automática
+ENTRYPOINT ["./docker-entrypoint.sh"]

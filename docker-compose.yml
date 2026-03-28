@@ -8,14 +8,17 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - ./data:/usr/src/app/data
       - .:/usr/src/app
       - node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3000
       - ALLOWED_ORIGINS=http://localhost:3000
-    command: >
-      sh -c "npm install && npm start"
+      - JWT_SECRET=check-pro-docker-secret-key
+      - ADMIN_EMAIL=admin@check.com
+      - ADMIN_PASSWORD=admin123
+      - APP_URL=http://localhost:3000
     restart: unless-stopped
     networks:
       - check-network
