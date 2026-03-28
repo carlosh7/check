@@ -592,12 +592,17 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-md) !important;
     z-index: 1000;
+    display: none; /* Ocultar por defecto */
+}
+
+#email-dropdown-menu:not(.hidden) {
+    display: block; /* Mostrar cuando no tiene hidden */
 }
 
 #email-dropdown-menu.show {
     opacity: 1;
     transform: translateY(0);
-    display: block;
+    display: block !important; /* Forzar display block sobre hidden */
 }
 
 .email-dropdown-item {

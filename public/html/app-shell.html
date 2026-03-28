@@ -1,6 +1,6 @@
 <div id="app-container" class="flex h-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden font-sans">
     <!-- Sidebar: Limpio y Minimalista -->
-    <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200">
+    <aside id="global-sidebar" class="w-[240px] bg-[var(--bg-sidebar)] border-r border-[var(--border)] flex flex-col z-50 transition-all duration-200 fixed left-0 top-0 h-full">
         
         <!-- Logo & Toggle -->
         <div class="p-6 mb-4 flex items-center justify-between logo-container">
@@ -43,44 +43,47 @@
                 <span class="material-symbols-outlined text-xl">tune</span>
                 <span class="sidebar-text font-medium text-sm">Sistema</span>
             </button>
-        </nav>
-
-        <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-[var(--border)] mt-auto">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center">
+            
+            <!-- Separador y elementos de usuario -->
+            <div class="mt-6 pt-4 border-t border-[var(--border)]">
+                <!-- Información del usuario -->
+                <div class="flex items-center gap-3 px-4 py-3">
+                    <div class="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[var(--primary)] text-base">person</span>
                     </div>
-                    <div class="flex flex-col">
-                        <span id="sidebar-username" class="sidebar-text text-sm font-medium text-[var(--text-main)]">admin@check.com</span>
+                    <div class="flex flex-col min-w-0">
+                        <span id="sidebar-username" class="sidebar-text text-sm font-medium text-[var(--text-main)] truncate">admin@check.com</span>
                         <span id="sidebar-role" class="sidebar-text text-[10px] font-bold text-[var(--text-secondary)] uppercase">ADMIN</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="flex items-center justify-between">
-                <button id="btn-toggle-theme" class="w-9 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--border)] transition-colors" title="Cambiar tema">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">dark_mode</span>
-                </button>
                 
-                <button id="btn-logout" class="w-9 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors" title="Cerrar sesión">
-                    <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">logout</span>
-                </button>
+                <!-- Botones de acción -->
+                <div class="flex items-center gap-2 px-4 py-2">
+                    <button id="btn-toggle-theme" class="flex-1 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--border)] transition-colors gap-2" title="Cambiar tema">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">dark_mode</span>
+                        <span class="sidebar-text text-xs text-[var(--text-secondary)]">Tema</span>
+                    </button>
+                    
+                    <button id="btn-logout" class="flex-1 h-9 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors gap-2" title="Cerrar sesión">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)] text-lg">logout</span>
+                        <span class="sidebar-text text-xs text-[var(--text-secondary)]">Salir</span>
+                    </button>
+                </div>
+                
+                <!-- Firma y versión -->
+                <div class="px-4 py-2 text-center">
+                    <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[10px] text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
+                        Powered by Smart Eventos
+                    </a>
+                    <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.18</span>
+                </div>
             </div>
-            
-            <div class="mt-3 text-center">
-                <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[10px] text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
-                    Powered by Smart Eventos
-                </a>
-                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.17</span>
-            </div>
-            </div>
+        </nav>
         </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main id="app-main-content" class="flex-1 overflow-y-auto">
+    <main id="app-main-content" class="flex-1 overflow-y-auto pl-[240px]">
         <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
         <section id="view-my-events" class="hidden">
             <div class="max-w-6xl mx-auto px-4 py-8">

@@ -18,53 +18,20 @@ window.lazyLoad = lazyLoad;
 const VERSION = '12.28.18';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
-// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (AGRESIVA) ---
-// Detectar si estamos cargando una versión antigua del script
+// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
+// Desactivado temporalmente para diagnosticar problemas de carga
 (function checkVersion() {
+    console.log(`[VERSION] Script cargado: V${VERSION}`);
+    
+    // Solo verificación básica sin redirecciones automáticas
     const currentScript = document.currentScript;
     if (currentScript && currentScript.src) {
         const scriptUrl = new URL(currentScript.src, window.location.origin);
         const versionParam = scriptUrl.searchParams.get('v');
         
-        // Verificación EXTRA: también verificar en localStorage si hubo un reload forzado
-        const expectedVersion = LS.get('check_expected_version');
-        if (expectedVersion && expectedVersion !== VERSION) {
-            console.error(`[VERSION CRÍTICO 2] Versión esperada ${expectedVersion} ≠ actual ${VERSION}`);
-            LS.remove('check_expected_version');
-            const timestamp = new Date().getTime();
-            window.location.href = `/?force_reload_2=${timestamp}&v=${VERSION}`;
-            return;
-        }
-        
         if (versionParam && versionParam !== VERSION) {
-            console.error(`[VERSION CRÍTICO] Script cargado con versión ${versionParam}, pero VERSION constante es ${VERSION}`);
-            console.error(`[VERSION CRÍTICO] Forzando reload inmediato...`);
-            
-            // Guardar versión esperada en localStorage
-            LS.set('check_expected_version', VERSION);
-            
-            // Forzar reload con parámetro anti-caché
-            const timestamp = new Date().getTime();
-            window.location.href = `/?force_reload=${timestamp}&expected_v=${VERSION}`;
-            return; // Detener ejecución del script antiguo
-        }
-    }
-    
-    // Verificación adicional: si estamos en una versión muy antigua (12.28.17 o menor)
-    if (VERSION === '12.28.18') {
-        const loadedVersion = LS.get('check_loaded_version');
-        if (loadedVersion && loadedVersion < '12.28.18') {
-            console.warn(`[CACHE CLEAN] Versión cargada anteriormente ${loadedVersion} es antigua, limpiando caché...`);
-            LS.remove('check_loaded_version');
-            if ('caches' in window) {
-                caches.keys().then(names => {
-                    names.forEach(name => caches.delete(name));
-                });
-            }
-            // Forzar recarga limpia
-            const timestamp = new Date().getTime();
-            window.location.href = `/?clean_cache=${timestamp}&v=${VERSION}`;
-            return;
+            console.warn(`[VERSION WARNING] Script cargado con versión ${versionParam}, pero VERSION constante es ${VERSION}`);
+            console.warn(`[VERSION WARNING] Posible problema de caché. Presiona Ctrl+F5 para recarga forzada.`);
         }
     }
 })();
@@ -101,8 +68,9 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.18.28',
+        version: '12.28.18',
         groups: [],
+        _navigating: false,
         quillEditor: null,
         editingTemplate: null,
         emailTemplates: [],
@@ -3446,7 +3414,15 @@ const App = window.App = {
     },
 
     navigate(viewName, params = {}, push = true) {
-        console.log('[NAV] Navegando a:', viewName, params);
+        console.log('[NAV DEBUG] Navegando a:', viewName, params, 'push:', push);
+        
+        // Prevenir navegación múltiple simultánea
+        if (this._navigating) {
+            console.log('[NAV DEBUG] Ya navegando, ignorando solicitud adicional');
+            return;
+        }
+        
+        this._navigating = true;
         
         // Resetear bandera de navegación inicial cuando navegamos manualmente
         if (viewName !== 'login') {
@@ -3583,6 +3559,12 @@ const App = window.App = {
                 this.navigateEmailSection(section);
             }
         }
+        
+        // Resetear bandera de navegación
+        setTimeout(() => {
+            this._navigating = false;
+            console.log('[NAV DEBUG] Bandera de navegación reseteada');
+        }, 100);
     },
 
     initRouter() {
@@ -3603,10 +3585,11 @@ const App = window.App = {
                 console.log('[ROUTER] Navigating from history state:', e.state.view);
                 this.navigate(e.state.view, e.state.params || {}, false);
             } 
-            // Solo llamar handleInitialNavigation si no tenemos estado Y la página acaba de cargar
+            // DESACTIVAR navegación inicial automática - ya se maneja en initApp
             else if (!this._hasHandledInitialNav) {
-                console.log('[ROUTER] No history state and initial nav not handled, calling handleInitialNavigation');
-                this.handleInitialNavigation();
+                console.log('[ROUTER] Navegación inicial desactivada (ya se maneja en initApp)');
+                // this.handleInitialNavigation(); // Desactivado
+                this._hasHandledInitialNav = true; // Marcar como manejado
             }
             // Si ya manejamos la navegación inicial pero no hay estado, usar la URL actual
             else {
@@ -7208,12 +7191,19 @@ window.switchAdminTab = function(tabName) {
 };
 
 // --- DOM READY BOOTSTRAP V12.3.2.2 ---
-document.addEventListener('DOMContentLoaded', async () => {
+console.log('[DEBUG] Antes de DOMContentLoaded listener, readyState:', document.readyState);
+
+async function initApp() {
+    try {
     // 0. Helpers Críticos (Hoisting manual)
-    const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+    const sf = (id, fn) => { 
+        const el = document.getElementById(id); 
+        console.log(`[DOM DEBUG] sf: buscando elemento con id "${id}", encontrado:`, !!el);
+        if (el) el.addEventListener('submit', fn); 
+    };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
-    console.log('[DOM] DOMContentLoaded fired');
+    console.log('[DOM] Inicializando aplicación, readyState:', document.readyState);
     
     // 0. Lazy Loading init (Performance)
     window.lazyLoad?.init();
@@ -7290,13 +7280,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Cargar eventos inicialmente para tener la lista lista
                 await App.loadEvents();
                 
-                // Ruteo inteligente inicial - SOLO si no hay estado en el historial
-                if (!history.state || !history.state.view) {
-                    console.log('[INIT] No history state, calling handleInitialNavigation');
-                    App.handleInitialNavigation();
-                } else {
-                    console.log('[INIT] History state exists, using it:', history.state);
-                    App.navigate(history.state.view, history.state.params || {}, false);
+                // DESACTIVAR navegación automática inicial - siempre empezar en my-events
+                console.log('[INIT] Forzando navegación a my-events (navegación automática desactivada)');
+                App.navigate('my-events', {}, false);
+                
+                // Limpiar history.state para evitar navegación circular
+                if (history.replaceState) {
+                    history.replaceState({ view: 'my-events', params: {} }, '', window.location.pathname + window.location.search);
                 }
             } else {
                 console.log('[AUTH] No valid userId/token, showing login');
@@ -7337,10 +7327,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Listeners generales
 
     // Login Form
+    console.log('[DOM DEBUG] Configurando event listener para form-login');
     sf('form-login', async (e) => {
+        console.log('[DOM DEBUG] Formulario login enviado, previniendo default');
         e.preventDefault();
         const u = document.getElementById('login-email').value; 
         const p = document.getElementById('login-password').value;
+        console.log('[DOM DEBUG] Valores obtenidos:', { u, p });
         await App.login(u, p);
     });
 
@@ -8445,8 +8438,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-});
+    } catch (error) {
+        console.error('[DOM CRITICAL ERROR] Error en inicialización:', error);
+        console.error('[DOM CRITICAL ERROR] Stack:', error.stack);
+    }
+}
 
+// Ejecutar initApp dependiendo del estado del DOM
+if (document.readyState === 'loading') {
+    // El DOM todavía no está listo, esperar al evento
+    console.log('[DOM] Esperando DOMContentLoaded (readyState: loading)');
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    // El DOM ya está listo, ejecutar inmediatamente
+    console.log('[DOM] DOM ya está listo (readyState:', document.readyState, '), ejecutando initApp inmediatamente');
+    initApp();
+}
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
