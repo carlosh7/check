@@ -43,6 +43,20 @@
             background-color: var(--bg-app);
         }
     </style>
+    <!-- ANTI-FOUC CRÍTICO: Ejecutar ANTES de renderizar body -->
+    <script>
+        (function() {
+            try {
+                var savedUser = localStorage.getItem('user');
+                if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+                    var user = JSON.parse(savedUser);
+                    if (user && (user.userId || user.token)) {
+                        document.write('<style>#view-login{display:none!important;visibility:hidden!important;}</style>');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="/css/styles.css?v=12.31.18">
     <link rel="stylesheet" href="/css/modern.css?v=12.31.18">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -51,25 +65,6 @@
 </head>
 
 <body class="antialiased">
-
-    <!-- ANTI-FOUC: Ocultar login inmediatamente si hay sesión válida -->
-    <script>
-        (function() {
-            try {
-                const savedUser = localStorage.getItem('user');
-                const loginEl = document.getElementById('view-login');
-                if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
-                    const user = JSON.parse(savedUser);
-                    if (user && (user.userId || user.token)) {
-                        if (loginEl) {
-                            loginEl.style.display = 'none';
-                            loginEl.classList.add('hidden');
-                        }
-                    }
-                }
-            } catch(e) {}
-        })();
-    </script>
 
     <!-- VIEW: LOGIN (oculto por defecto, se muestra solo si no hay sesión) -->
     <div id="view-login" class="fixed inset-0 flex items-center justify-center p-6 bg-[var(--bg-app)]">
