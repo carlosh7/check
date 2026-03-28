@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.61';
+const VERSION = '12.31.62';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -124,7 +124,17 @@ const App = window.App = {
                 document.getElementById('evf-id-hidden').value = '';
                 const form = document.getElementById('new-event-full-form');
                 if (form) form.reset();
-                document.getElementById('modal-event-full')?.classList.remove('hidden');
+                const modal = document.getElementById('modal-event-full');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    // Habilitar el formulario cuando el modal está visible
+                    if (form) {
+                        form.querySelectorAll('input, textarea, button, select').forEach(el => {
+                            el.removeAttribute('disabled');
+                            el.removeAttribute('aria-disabled');
+                        });
+                    }
+                }
             }, 100);
         } else {
             // Abrir formulario corto (Equipo/Empresa) - navegar a system/groups
@@ -4097,11 +4107,27 @@ const App = window.App = {
             const el = document.getElementById(id); 
             console.log(`[EVENT LISTENER] Registering submit listener for form: ${id}, element found: ${!!el}`);
             if (el) {
-                el.addEventListener('submit', (e) => { 
-                    console.log(`[FORM SUBMIT] Form ${id} submitted, preventing default`);
+                // Solo permitir submit si el formulario está dentro de un modal visible
+                const submitHandler = (e) => { 
+                    const modal = el.closest('.modal-container, [id^="modal-"]');
+                    const isModalVisible = modal && !modal.classList.contains('hidden');
+                    
+                    console.log(`[FORM SUBMIT] Form ${id} submitted`);
+                    console.log(`[FORM SUBMIT] Submitter:`, e.submitter);
+                    console.log(`[FORM SUBMIT] Modal visible:`, isModalVisible);
+                    console.log(`[FORM SUBMIT] Modal element:`, modal);
+                    
                     e.preventDefault(); 
-                    fn(e); 
-                }); 
+                    
+                    // Solo procesar si el modal está visible
+                    if (isModalVisible) {
+                        fn(e);
+                    } else {
+                        console.error(`[FORM SUBMIT] Form ${id} is inside hidden modal, ignoring submit`);
+                    }
+                };
+                
+                el.addEventListener('submit', submitHandler); 
             }
         };
         const hideModal = (id) => { 
@@ -4111,6 +4137,17 @@ const App = window.App = {
                 document.body.focus();
                 m.classList.add('hidden'); 
                 m.setAttribute('aria-hidden', 'true'); 
+                
+                // Deshabilitar formularios dentro del modal para prevenir envíos automáticos
+                if (id === 'modal-event-full') {
+                    const form = document.getElementById('new-event-full-form');
+                    if (form) {
+                        form.querySelectorAll('input, textarea, button, select').forEach(el => {
+                            el.setAttribute('disabled', 'disabled');
+                            el.setAttribute('aria-disabled', 'true');
+                        });
+                    }
+                }
             } 
         };
         
@@ -4666,6 +4703,14 @@ const App = window.App = {
         
         const form = e.target;
         console.log('[EVENT CREATE] Form element:', form);
+        
+        // Verificar si el modal que contiene el formulario está visible
+        const modal = form.closest('#modal-event-full');
+        if (modal && modal.classList.contains('hidden')) {
+            console.error('[EVENT CREATE] Form is inside hidden modal, aborting');
+            console.log('[EVENT CREATE] Modal state:', modal.classList);
+            return;
+        }
         
         if (e && e.preventDefault) e.preventDefault();
         
