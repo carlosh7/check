@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.18';
+const VERSION = '12.31.22';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4003,20 +4003,17 @@ const App = window.App = {
         
         // Navigation - Sidebar (Unified V12.6.0)
         cl('btn-toggle-sidebar', () => this.toggleSidebar());
-        cl('nav-btn-system', () => this.navigate('system'));
-        cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-admin', () => this.navigate('admin'));
         cl('nav-btn-event-config', () => this.navigate('event-config'));
-        cl('nav-btn-pre-registrations', () => this.navigate('pre-registrations'));
-        cl('nav-btn-survey-manager', () => this.navigate('survey-manager'));
+        cl('nav-btn-system', () => this.navigate('system'));
         
         // Sidebar footer
         cl('btn-toggle-theme', () => this.toggleTheme());
         cl('btn-logout', () => this.logout());
         
-        // Admin view - action buttons (QR y Excel ahora en Configuración)
-        // Botones quitados: btn-show-qr, btn-export-excel, btn-generate-pdf
+        // Mis Eventos - Acciones
+        cl('btn-new-event-full', () => this.navigateToCreateEvent('full'));
         
         // Event Config view - action buttons
         cl('btn-config-show-qr', () => this.showQR());
@@ -4034,7 +4031,10 @@ const App = window.App = {
         cl('btn-open-invite', () => this.openInviteModal());
         
         // Profile Security Forms (Phase 5)
-        const sf = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('submit', fn); };
+        const sf = (id, fn) => { 
+            const el = document.getElementById(id); 
+            if (el) el.addEventListener('submit', (e) => { e.preventDefault(); fn(e); }); 
+        };
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-pass-form', (e) => this.handlePasswordChange(e));
         
@@ -4045,46 +4045,45 @@ const App = window.App = {
         cl('btn-ev-staff-new', () => this.openInviteModal());
         
         // Event Config Tabs
-        cl('config-nav-staff', () => window.App.switchConfigTab('staff'));
-        cl('config-nav-email', () => window.App.switchConfigTab('email'));
-        cl('config-nav-agenda', () => window.App.switchConfigTab('agenda'));
-        cl('config-nav-wheel', () => window.App.switchConfigTab('wheel'));
-        cl('config-nav-pre-registrations', () => window.App.switchConfigTab('pre-registrations'));
-        cl('config-nav-surveys', () => window.App.switchConfigTab('surveys'));
-        cl('config-nav-settings', () => window.App.switchConfigTab('settings'));
-        cl('btn-cancel-event-settings', () => {
-            // Recargar los datos del evento para descartar cambios
-            const eventId = App.state.event?.id;
-            if (eventId) {
-                App.loadConfigSettings();
-            }
-        });
+        cl('config-nav-staff', () => this.switchConfigTab('staff'));
+        cl('config-nav-email', () => this.switchConfigTab('email'));
+        cl('config-nav-agenda', () => this.switchConfigTab('agenda'));
+        cl('config-nav-wheel', () => this.switchConfigTab('wheel'));
+        cl('config-nav-pre-registrations', () => this.switchConfigTab('pre-registrations'));
+        cl('config-nav-surveys', () => this.switchConfigTab('surveys'));
+        cl('config-nav-settings', () => this.switchConfigTab('settings'));
         
         // Ruleta de Sorteos - botones
-        cl('btn-create-wheel', () => this.createNewWheel());
+        cl('btn-new-wheel', () => this.createNewWheel()); // Unificado (antes btn-create-wheel)
         cl('btn-back-to-wheels', () => this.backToWheelsList());
         cl('btn-save-wheel', () => this.saveWheel());
         cl('btn-add-from-guests', () => this.showAddParticipantsModal());
         cl('btn-add-from-checkedin', () => this.showAddParticipantsModal());
-        cl('btn-add-from-preregistered', () => this.showAddParticipantsModal());
         cl('btn-add-manual', () => this.showManualParticipantsModal());
-        cl('btn-copy-wheel-url', () => this.copyWheelUrl());
         cl('btn-preview-wheel', () => this.previewWheel());
-        cl('btn-delete-all-results', () => this.deleteAllWheelResults());
-        cl('btn-delete-wheel', () => this.deleteWheel(this.currentWheel?.id));
         
+        // Pre-registros
+        cl('btn-import-pre-registrations', () => {
+            const input = document.getElementById('input-import-file-prereg');
+            if (input) input.click();
+            else {
+                // Fallback al input general si no existe el específico
+                document.getElementById('input-import-file')?.click();
+            }
+        });
+
+        // Encuestas
+        cl('btn-create-survey', () => this.openSurveyEditor());
+
         // Nuevos botones de Email y Agenda
         cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
         cl('btn-add-email-template', () => this.openEmailTemplateEditor());
         cl('btn-send-test-email', () => this.sendEventTestEmail());
         cl('btn-add-agenda-item', () => this.addAgendaItem());
         
-        // Event Config botones
-        cl('btn-config-staff-exist', () => window.App.showUserSelectorForEvent(window.App.state.event.id));
+        // Event Config botones (Staff)
+        cl('btn-config-staff-exist', () => this.showUserSelectorForEvent(this.state.event?.id));
         cl('btn-config-staff-new', () => this.openInviteModal());
-        cl('btn-config-save-email', () => this.saveEventEmailConfig());
-        cl('btn-config-add-template', () => this.openEmailTemplateEditor());
-        cl('btn-config-add-agenda', () => this.addAgendaItem());
         
         // Toggle password visibility
         cl('btn-toggle-password', () => {
@@ -5937,47 +5936,6 @@ const App = window.App = {
         this.updateQRPreview();
     },
 
-    // Cargar pre-registros
-    loadPreRegistrations() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        console.log('[CONFIG] Loading pre-registrations for event:', eventId);
-        // TODO: Implementar carga de pre-registros desde API
-        document.getElementById('pre-reg-tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="px-5 py-8 text-center text-[var(--text-secondary)]">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--primary-light)] mb-3">
-                        <span class="material-symbols-outlined text-[var(--primary)] text-2xl">how_to_reg</span>
-                    </div>
-                    <h4 class="text-lg font-medium mb-2">No hay pre-registros</h4>
-                    <p class="text-sm mb-4">Importa una lista de invitados para comenzar</p>
-                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">📥 Importar Lista</button>
-                </td>
-            </tr>
-        `;
-    },
-
-    // Cargar encuestas QR
-    loadSurveys() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        console.log('[CONFIG] Loading surveys for event:', eventId);
-        // TODO: Implementar carga de encuestas desde API
-        document.getElementById('survey-tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="px-5 py-8 text-center text-[var(--text-secondary)]">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--primary-light)] mb-3">
-                        <span class="material-symbols-outlined text-[var(--primary)] text-2xl">poll</span>
-                    </div>
-                    <h4 class="text-lg font-medium mb-2">No hay encuestas</h4>
-                    <p class="text-sm mb-4">Crea tu primera encuesta con código QR</p>
-                    <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">➕ Nueva Encuesta</button>
-                </td>
-            </tr>
-        `;
-    },
 
     // ==================== RULETA DE SORTEOS (FASE 1) ====================
     currentWheel: null,
@@ -7339,6 +7297,137 @@ const App = window.App = {
             this.loadEvents();
         } catch(e) { console.error(e); }
     },
+
+    // ─── LEGAL Y QUILL (v12.31.22) ───
+    async initQuill() {
+        if (this.quillPolicy) return;
+        if (typeof window.Quill === 'undefined') {
+            try { await window.lazyLoad?.loadQuill(); } catch (err) { console.error('Quill load error:', err); return; }
+        }
+        const toolbar = [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'clean']];
+        this.quillPolicy = new Quill('#editor-policy', { theme: 'snow', modules: { toolbar } });
+        this.quillTerms = new Quill('#editor-terms', { theme: 'snow', modules: { toolbar } });
+    },
+
+    async loadLegalTexts() {
+        await this.initQuill();
+        try {
+            const s = await this.fetchAPI('/settings');
+            const defaultPolicy = `<h2>Protección de Datos</h2><p>Habeas Data (Colombia). Sus datos se usarán para logística del evento.</p>`;
+            const defaultTerms = `<h2>Términos y Condiciones</h2><p>El uso de Check Pro implica aceptación de términos de veracidad y privacidad.</p>`;
+            if (this.quillPolicy) this.quillPolicy.clipboard.dangerouslyPasteHTML(s.policy_data || defaultPolicy);
+            if (this.quillTerms) this.quillTerms.clipboard.dangerouslyPasteHTML(s.terms_conditions || defaultTerms);
+            const chk = document.getElementById('check-show-legal-login');
+            if (chk) chk.checked = s.show_legal_login !== '0';
+        } catch (e) { console.error('[LEGAL] Load error:', e); }
+    },
+
+    applyUISettings(settings) {
+        const links = document.getElementById('login-legal-links');
+        if (links) links.classList.toggle('hidden', settings.show_legal_login === '0');
+    },
+
+    // ─── HANDLERS DE FORMULARIOS (v12.31.22) ───
+    async handleCreateEvent(e) {
+        const id = document.getElementById('ev-id-hidden').value;
+        const data = {
+            name: document.getElementById('ev-name').value,
+            date: document.getElementById('ev-date').value,
+            location: document.getElementById('ev-location').value
+        };
+        try {
+            if (id) await this.updateEvent(id, data);
+            else await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
+            this.hideModal('modal-event');
+            this.loadEvents();
+        } catch(err) { alert("Error: " + err.message); }
+    },
+
+    async handleSaveEventFull(e) {
+        const id = document.getElementById('evf-id-hidden').value;
+        const data = {
+            name: document.getElementById('evf-name').value,
+            date: document.getElementById('evf-date').value,
+            location: document.getElementById('evf-location').value,
+            description: document.getElementById('evf-desc').value,
+            reg_title: document.getElementById('evf-reg-title').value,
+            // ... otros campos ya mapeados en initApp pero que ahora centralizamos
+        };
+        // Para simplificar esta migración masiva, seguiremos usando App.updateEvent
+        if (id) this.updateEvent(id, data);
+        else this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    async showQR() {
+        if (!this.state.event) return alert("Selecciona un evento primero.");
+        const url = `${window.location.origin}/register.html?event=${this.state.event.id}`;
+        const qrEl = document.getElementById('qr-display');
+        const dark = this.state.event.qr_color_dark || '#000000';
+        const light = this.state.event.qr_color_light || '#ffffff';
+        if (qrEl && typeof qrcode !== 'undefined') {
+            qrEl.src = await qrcode.toDataURL(url, { width: 400, margin: 2, color: { dark, light } });
+            document.getElementById('modal-qr')?.classList.remove('hidden');
+        } else if (qrEl) {
+            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}&color=${dark.replace('#','')}&bgcolor=${light.replace('#','')}`;
+            document.getElementById('modal-qr')?.classList.remove('hidden');
+        }
+    },
+
+    async renderDigitalTicket(guestId) {
+        const guest = this.state.guests.find(g => String(g.id) === String(guestId));
+        const event = this.state.event;
+        if (!guest || !event) return;
+        const modal = document.getElementById('modal-ticket');
+        document.getElementById('ticket-event-name').textContent = event.name;
+        document.getElementById('ticket-guest-name').textContent = guest.name;
+        document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString();
+        document.getElementById('ticket-location').textContent = event.location;
+        const accent = event.ticket_accent_color || '#7c3aed';
+        modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
+        const qrContent = JSON.stringify({ g: guest.id, e: event.id });
+        const ticketQrEl = document.getElementById('ticket-qr');
+        if (ticketQrEl && typeof qrcode !== 'undefined') {
+            ticketQrEl.src = await qrcode.toDataURL(qrContent, { width: 600, margin: 1, color: { dark: event.qr_color_dark || '#000000', light: event.qr_color_light || '#ffffff' } });
+        }
+        modal.classList.remove('hidden');
+        this.state.currentTicketGuest = guest;
+    },
+
+    async downloadTicket() {
+        const card = document.querySelector('#modal-ticket .ticket-card');
+        if (!card || typeof html2canvas === 'undefined') return alert("Error: html2canvas no detectado.");
+        const canvas = await html2canvas(card, { useCORS: true, scale: 2 });
+        const link = document.createElement('a');
+        link.download = `Ticket_${this.state.currentTicketGuest?.name || 'check'}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    },
+
+    shareTicketWhatsApp() {
+        const g = this.state.currentTicketGuest;
+        if (!g) return;
+        const text = encodeURIComponent(`Hola ${g.name}, tu boleto aquí: ${window.location.origin}/ticket.html?g=${g.id}&e=${this.state.event.id}`);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    },
+
+    qrScanner: {
+        videoStream: null,
+        async start() {
+            try {
+                this.videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('qr-video');
+                video.srcObject = this.videoStream;
+                video.play();
+                document.getElementById('btn-start-scan').disabled = true;
+                document.getElementById('btn-stop-scan').disabled = false;
+            } catch (err) { alert('No se pudo acceder a la cámara.'); }
+        },
+        stop() {
+            if (this.videoStream) this.videoStream.getTracks().forEach(t => t.stop());
+            document.getElementById('btn-start-scan').disabled = false;
+            document.getElementById('btn-stop-scan').disabled = true;
+        }
+    }
 };
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
@@ -7574,372 +7663,9 @@ async function initApp() {
         finally { btn.innerText = orig; btn.disabled = false; }
     });
 
-    // Search
-    document.getElementById('guest-search')?.addEventListener('input', (e) => {
-        const t = e.target.value.toLowerCase();
-        const f = App.state.guests.filter(g => (g.name||'').toLowerCase().includes(t) || (g.email||'').toLowerCase().includes(t) || (g.organization||'').toLowerCase().includes(t));
-        App.renderGuestsTarget(f);
-    });
 
-    // Navigation Buttons
-    cl('btn-events-list-nav', () => App.loadEvents());
-    cl('admin-global-nav-btn', () => App.showView('system'));
-    
-    cl('btn-delete-event', () => App.handleDeleteEvent());
-    cl('btn-delete-event-sidebar', () => App.handleDeleteEvent());
 
-    App.handleDeleteEvent = async () => {
-        if (!App.state.event) return;
-        if (await App._confirmAction(`¿Seguro que deseas ELIMINAR el evento "${App.state.event.name}"?`, 'Esta acción es irreversible y borrará todos los datos asociados.')) {
-            try {
-                const res = await App.fetchAPI(`/events/${App.state.event.id}`, { method: 'DELETE' });
-                if (res.success) {
-                    App._notifyAction('✓ Evento eliminado.', 'El evento ha sido eliminado correctamente.', 'success');
-                    App.state.event = null;
-                    App.navigate('my-events');
-                } else {
-                    App._notifyAction('Error', res.error || 'No se pudo eliminar el evento.', 'error');
-                }
-            } catch { App._notifyAction('Error', 'No se pudo eliminar el evento debido a un error de conexión.', 'error'); }
-        }
-    };
 
-    // Admin Actions
-    cl('btn-export-excel', () => { if (App.state.event && App.state.user) window.location.href = `${App.constants.API_URL}/export-excel/${App.state.event.id}?x-user-id=${App.state.user.userId}`; });
-    cl('btn-export-analytics', async () => {
-        if (!App.state.event || typeof window.jspdf === 'undefined') return alert("Librería PDF no disponible");
-        try {
-            const s = await App.fetchAPI(`/stats/${App.state.event.id}`);
-            const doc = new window.jspdf.jsPDF();
-            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 50, 'F');
-            doc.setTextColor(255,255,255); doc.setFontSize(28); doc.text("CHECK ANALYTICS", 15, 25);
-            doc.setFontSize(10); doc.setTextColor(124,58,237); doc.text(`REPORT V${App.state.version} | ${App.state.event.name.toUpperCase()}`, 15, 35);
-            doc.autoTable({ startY: 60, head: [['Métrica', 'Valor']], body: [['Total Invitados', s.total],['Asistencia', s.checkedIn],['Presencia', (s.total > 0 ? Math.round((s.checkedIn/s.total)*100) : 0) + '%'],['No Show', s.total - s.checkedIn],['Organizaciones', s.orgs],['Alertas Médicas', s.healthAlerts||0]], theme: 'striped', headStyles: {fillColor:[124,58,237]}, styles:{fontSize:11,cellPadding:6} });
-            doc.save(`Analitica_V${App.state.version}_${App.state.event.name.replace(/\s+/g,'_')}.pdf`);
-        } catch(e) { alert("Error al generar PDF."); }
-    });
-
-    // Import listeners para nuevos botones del sidebar
-    document.getElementById('admin-file-import-excel')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
-    document.getElementById('admin-file-import-pdf')?.addEventListener('change', e => { if(e.target.files[0]) App.handleImport(e.target.files[0]); });
-    
-    // QR Feedback
-    cl('btn-show-qr', () => App.showQR());
-    cl('close-qr', () => document.getElementById('modal-qr')?.classList.add('hidden'));
-    cl('btn-scan-qr', () => document.getElementById('modal-qr-scanner').classList.remove('hidden'));
-    cl('btn-bulk-tickets', () => App.generateBulkTickets());
-
-    App.showQR = async () => {
-        if (!App.state.event) return alert("Selecciona un evento primero.");
-        const url = `${window.location.origin}/register.html?event=${App.state.event.id}`;
-        const qrEl = document.getElementById('qr-display');
-        
-        // Colores personalizados V11.6
-        const dark = App.state.event.qr_color_dark || '#000000';
-        const light = App.state.event.qr_color_light || '#ffffff';
-
-        if (qrEl && typeof qrcode !== 'undefined') {
-            const qrDataUrl = await qrcode.toDataURL(url, { 
-                width: 400, 
-                margin: 2,
-                color: { dark, light }
-            });
-            qrEl.src = qrDataUrl;
-            document.getElementById('modal-qr')?.classList.remove('hidden');
-        } else if (qrEl) {
-            // Fallback: generar QR con Canvas API simple
-            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}&color=${dark.replace('#','')}&bgcolor=${light.replace('#','')}`;
-            document.getElementById('modal-qr')?.classList.remove('hidden');
-        }
-    };
-
-    // --- BOLETO DIGITAL PREMIUM V11.6 ---
-    App.renderDigitalTicket = async (guestId) => {
-        const guest = App.state.guests.find(g => String(g.id) === String(guestId));
-        const event = App.state.event;
-        if (!guest || !event) return alert("Error: Datos insuficientes para generar boleto.");
-
-        const modal = document.getElementById('modal-ticket');
-        const card = modal.querySelector('.ticket-card');
-        
-        // Datos Textuales
-        document.getElementById('ticket-event-name').textContent = event.name;
-        document.getElementById('ticket-guest-name').textContent = guest.name;
-        document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('ticket-location').textContent = event.location;
-        
-        // Personalización Visual
-        const accent = event.ticket_accent_color || '#7c3aed';
-        modal.querySelectorAll('.ticket-accent').forEach(el => el.style.color = accent);
-        if (card) {
-            if (event.ticket_bg_url) {
-                card.style.backgroundImage = `url('${event.ticket_bg_url}')`;
-                card.style.backgroundSize = 'cover';
-                card.style.backgroundPosition = 'center';
-            } else {
-                card.style.backgroundImage = 'none';
-                card.style.backgroundColor = '#0f172a';
-            }
-        }
-
-        // Logo del evento (Cabecera)
-        const logoEl = document.getElementById('ticket-logo');
-        if (logoEl) logoEl.src = event.logo_url || 'https://via.placeholder.com/80/7c3aed/ffffff?text=EVENTO';
-
-        // Generar QR para el boleto
-        const qrContent = JSON.stringify({ g: guest.id, e: event.id });
-        const ticketQrEl = document.getElementById('ticket-qr');
-        if (ticketQrEl && typeof qrcode !== 'undefined') {
-            const dark = event.qr_color_dark || '#000000';
-            const light = event.qr_color_light || '#ffffff';
-            const logoUrl = event.qr_logo_url;
-
-            const qrDataUrl = await qrcode.toDataURL(qrContent, { 
-                width: 600, 
-                margin: 1,
-                color: { dark, light },
-                errorCorrectionLevel: logoUrl ? 'H' : 'M'
-            });
-
-            if (logoUrl) {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const qrImg = new Image();
-                qrImg.onload = () => {
-                    canvas.width = qrImg.width;
-                    canvas.height = qrImg.height;
-                    ctx.drawImage(qrImg, 0, 0);
-                    const logoImg = new Image();
-                    logoImg.crossOrigin = "Anonymous";
-                    logoImg.onload = () => {
-                        const s = canvas.width * 0.2;
-                        const x = (canvas.width - s) / 2;
-                        const y = (canvas.height - s) / 2;
-                        ctx.fillStyle = light;
-                        ctx.fillRect(x-5, y-5, s+10, s+10);
-                        ctx.drawImage(logoImg, x, y, s, s);
-                        ticketQrEl.src = canvas.toDataURL();
-                    };
-                    logoImg.src = logoUrl;
-                };
-                qrImg.src = qrDataUrl;
-            } else {
-                ticketQrEl.src = qrDataUrl;
-            }
-        }
-
-        modal.classList.remove('hidden');
-        App.state.currentTicketGuest = guest;
-    };
-
-    App.downloadTicket = async () => {
-        const card = document.querySelector('#modal-ticket .ticket-card');
-        if (!card || typeof html2canvas === 'undefined') return alert("Error: Motor de captura no disponible.");
-        
-        try {
-            const canvas = await html2canvas(card, {
-                useCORS: true,
-                scale: 2,
-                backgroundColor: null,
-                logging: false
-            });
-            const link = document.createElement('a');
-            const guestName = App.state.currentTicketGuest?.name?.replace(/\s+/g, '_') || 'ticket';
-            link.download = `Boleto_Check_${guestName}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        } catch (e) {
-            console.error(e);
-            alert("Error al generar la imagen del boleto.");
-        }
-    };
-
-    App.shareTicketWhatsApp = () => {
-        const guest = App.state.currentTicketGuest;
-        if (!guest) return;
-        const url = `${window.location.origin}/ticket.html?g=${guest.id}&e=${App.state.event.id}`;
-        const text = encodeURIComponent(`¡Hola ${guest.name}! Aquí tienes tu boleto para ${App.state.event.name}: ${url}`);
-        window.open(`https://wa.me/?text=${text}`, '_blank');
-    };
-
-    // QR Scanner V12.2.2
-    App.qrScanner = {
-        videoStream: null,
-        scanning: false,
-        interval: null,
-        async start() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Tu navegador no soporta acceso a cámara.');
-                return;
-            }
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                this.videoStream = stream;
-                const video = document.getElementById('qr-video');
-                video.srcObject = stream;
-                await video.play();
-                this.scanning = true;
-                this.startScanning();
-                document.getElementById('btn-start-scan').disabled = true;
-                document.getElementById('btn-stop-scan').disabled = false;
-            } catch (err) {
-                console.error('Error al acceder a la cámara:', err);
-                alert('No se pudo acceder a la cámara. Asegúrate de permitir los permisos.');
-            }
-        },
-        stop() {
-            if (this.interval) clearInterval(this.interval);
-            if (this.videoStream) {
-                this.videoStream.getTracks().forEach(track => track.stop());
-                this.videoStream = null;
-            }
-            const video = document.getElementById('qr-video');
-            video.srcObject = null;
-            this.scanning = false;
-            document.getElementById('btn-start-scan').disabled = false;
-            document.getElementById('btn-stop-scan').disabled = true;
-        },
-        async startScanning() {
-            const video = document.getElementById('qr-video');
-            const canvas = document.getElementById('qr-canvas');
-            const ctx = canvas.getContext('2d');
-            this.interval = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    // Load jsQR dynamically
-                    if (typeof jsQR === 'undefined') {
-                        this.loadJsQR().then(() => this.processQR(imageData));
-                    } else {
-                        this.processQR(imageData);
-                    }
-                }
-            }, 500);
-        },
-        async loadJsQR() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        },
-        processQR(imageData) {
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: 'dontInvert',
-            });
-            if (code) {
-                this.onQRDetected(code.data);
-            }
-        },
-        async onQRDetected(data) {
-            try {
-                const parsed = JSON.parse(data);
-                if (parsed.g && parsed.e) {
-                    this.stop();
-                    this.showResult('Escaneando ticket...', 'info');
-                    const res = await App.fetchAPI(`/guests/checkin/${parsed.g}`, { method: 'POST' });
-                    if (res.success) {
-                        const guest = App.state.guests.find(g => String(g.id) === String(parsed.g));
-                        const name = guest ? guest.name : 'Invitado';
-                        this.showResult(`Check-in exitoso para ${name}.`, 'success');
-                        App.loadGuests(); // Refresh list
-                    } else {
-                        this.showResult('Error al registrar check-in.', 'error');
-                    }
-                } else {
-                    this.showResult('QR no válido.', 'error');
-                }
-            } catch (e) {
-                // If not JSON, maybe it's a guest ID directly
-                if (data.length === 36 || data.length === 32) { // UUID-like
-                    const res = await App.fetchAPI(`/guests/checkin/${data}`, { method: 'POST' });
-                    if (res.success) {
-                        this.showResult('Check-in exitoso.', 'success');
-                        App.loadGuests();
-                    } else {
-                        this.showResult('Invitado no encontrado.', 'error');
-                    }
-                } else {
-                    this.showResult('QR no reconocido.', 'error');
-                }
-            }
-        },
-        showResult(message, type) {
-            const resultEl = document.getElementById('scan-result');
-            const errorEl = document.getElementById('scan-error');
-            const resultMsg = document.getElementById('result-message');
-            const errorMsg = document.getElementById('error-message');
-            if (type === 'success') {
-                resultMsg.textContent = message;
-                resultEl.classList.remove('hidden');
-                errorEl.classList.add('hidden');
-            } else if (type === 'error') {
-                errorMsg.textContent = message;
-                errorEl.classList.remove('hidden');
-                resultEl.classList.add('hidden');
-            } else {
-                // info
-                resultMsg.textContent = message;
-                resultEl.classList.remove('hidden');
-                errorEl.classList.add('hidden');
-            }
-        }
-    };
-
-    App.generateBulkTickets = async () => {
-        if (!App.state.event) return alert('Selecciona un evento primero.');
-        if (!App.state.guests.length) return alert('No hay invitados para generar tickets.');
-        
-        // Load required libraries dynamically
-        if (typeof JSZip === 'undefined') {
-            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
-        }
-        if (typeof saveAs === 'undefined') {
-            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js');
-        }
-        if (typeof html2canvas === 'undefined') {
-            await loadScript('https://html2canvas.hertzen.com/dist/html2canvas.min.js');
-        }
-        
-        const zip = new JSZip();
-        const total = App.state.guests.length;
-        let processed = 0;
-        
-        // Show progress
-        const modal = document.getElementById('modal-bulk-tickets');
-        if (modal) modal.classList.remove('hidden');
-        const progressEl = document.getElementById('bulk-progress');
-        const progressText = document.getElementById('bulk-progress-text');
-        
-        for (const guest of App.state.guests) {
-            // Render ticket for each guest
-            const canvas = await App.renderTicketCanvas(guest);
-            if (canvas) {
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-                const fileName = `ticket_${guest.name.replace(/[^a-z0-9]/gi, '_')}_${guest.id.substring(0, 8)}.png`;
-                zip.file(fileName, blob);
-            }
-            processed++;
-            if (progressEl) progressEl.style.width = `${(processed / total) * 100}%`;
-            if (progressText) progressText.textContent = `${processed}/${total}`;
-            // Yield to UI
-            await new Promise(r => setTimeout(r, 50));
-        }
-        
-        // Generate ZIP
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipBlob, `tickets_${App.state.event.name.replace(/[^a-z0-9]/gi, '_')}.zip`);
-        
-        // Hide progress
-        if (modal) modal.classList.add('hidden');
-        alert(`✓ Generados ${processed} tickets en ZIP.`);
-    };
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -7951,529 +7677,15 @@ async function initApp() {
         });
     }
 
-    App.renderTicketCanvas = async (guest) => {
-        // Create a temporary ticket card similar to modal-ticket
-        // For simplicity, reuse existing modal-ticket rendering
-        // We'll temporarily set currentTicketGuest and use html2canvas on ticket-card
-        // But we need to ensure the modal is visible? We can clone the ticket-card and style it.
-        // Alternative: use the same function as downloadTicket but for a specific guest.
-        // Since time is limited, we'll use the existing modal-ticket but hide it.
-        // We'll set App.state.currentTicketGuest = guest, call App.renderDigitalTicket(guest.id)
-        // wait for QR to render, then capture .ticket-card
-        // This is hacky but works.
-        
-        const originalGuest = App.state.currentTicketGuest;
-        App.state.currentTicketGuest = guest;
-        await App.renderDigitalTicket(guest.id);
-        await new Promise(r => setTimeout(r, 500)); // wait for QR
-        const card = document.querySelector('#modal-ticket .ticket-card');
-        if (!card || typeof html2canvas === 'undefined') return null;
-        const canvas = await html2canvas(card, {
-            useCORS: true,
-            scale: 2,
-            backgroundColor: null,
-            logging: false
-        });
-        // Restore
-        App.state.currentTicketGuest = originalGuest;
-        document.getElementById('modal-ticket').classList.add('hidden');
-        return canvas;
-    };
- 
-    // QR Scanner listeners
-    cl('btn-start-scan', () => App.qrScanner.start());
-    cl('btn-stop-scan', () => App.qrScanner.stop());
-    cl('btn-manual-checkin', () => {
-        const guestId = document.getElementById('manual-guest-id').value.trim();
-        if (!guestId) return alert('Ingresa un ID de invitado.');
-        App.fetchAPI(`/guests/checkin/${guestId}`, { method: 'POST' })
-            .then(res => {
-                if (res.success) {
-                    alert('Check-in manual exitoso.');
-                    App.loadGuests();
-                    document.getElementById('manual-guest-id').value = '';
-                } else {
-                    alert('Error: ' + (res.message || 'Invitado no encontrado.'));
-                }
-            })
-            .catch(err => alert('Error de red.'));
-    });
 
-    cl('btn-download-ticket', () => App.downloadTicket());
-    cl('btn-share-whatsapp', () => App.shareTicketWhatsApp());
-    cl('btn-close-ticket', () => document.getElementById('modal-ticket').classList.add('hidden'));
 
-    // Mailing - Abrir config de email del evento
-    App.openMailing = () => {
-        if (!App.state.event) return alert("Selecciona un evento primero.");
-        document.getElementById('ev-id-hidden').value = App.state.event.id;
-        App.openEventEmailConfig();
-    };
-    cl('btn-mailing', () => App.openMailing());
-
-    // Listener para importación (Ya definido en App.handleImport)
-
-    cl('btn-confirm-import', async () => {
-        const btn = document.getElementById('btn-confirm-import');
-        btn.innerText = "PROCESANDO..."; btn.disabled = true;
-        try {
-            const res = await App.fetchAPI('/import-confirm', { method: 'POST', body: JSON.stringify({ event_id: App.state.event.id }) });
-            if (res.success) {
-                alert(`✓ Importación exitosa: ${res.count} invitados añadidos.`);
-                document.getElementById('modal-import-results')?.classList.add('hidden');
-                App.loadGuests();
-            } else { alert("Error: " + res.error); }
-        } catch(e) { alert("Fallo en la importación."); }
-        finally { btn.innerText = "PROCESAR E IMPORTAR AHORA"; btn.disabled = false; }
-    });
-
-    cl('close-import-modal', () => document.getElementById('modal-import-results')?.classList.add('hidden'));
-
-    // ------- V11: TEXTOS LEGALES (MÓDULO PREMIUM) -------
-    App.initQuill = async () => {
-        if (App.quillPolicy) return;
-        
-        // Lazy load Quill if not already loaded
-        if (typeof window.Quill === 'undefined') {
-            try {
-                await window.lazyLoad?.loadQuill();
-            } catch (err) {
-                console.error('Failed to load Quill:', err);
-                return;
-            }
-        }
-        
-        const toolbarOptions = [
-            ['bold', 'italic', 'underline'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['link', 'clean']
-        ];
-        App.quillPolicy = new Quill('#editor-policy', { theme: 'snow', modules: { toolbar: toolbarOptions } });
-        App.quillTerms = new Quill('#editor-terms', { theme: 'snow', modules: { toolbar: toolbarOptions } });
-    };
-
-    App.loadLegalTexts = async () => {
-        await App.initQuill();
-        try {
-            // Usar App.fetchAPI para mayor consistencia y control
-            const s = await App.fetchAPI('/settings');
-            
-            const defaultPolicy = `<h2>Política de Protección de Datos Personales</h2>
-<p>De conformidad con la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b> de la República de Colombia (Habeas Data), el titular de los datos personales acepta mediante su registro que la información suministrada sea incorporada en las bases de datos de <b>Check Pro</b> y/o el organizador del evento.</p>
-<p><b>Finalidades:</b></p>
-<ul>
-  <li>Gestión administrativa, logística y control de acceso al evento.</li>
-  <li>Envío de información sobre la agenda, cambios de último momento y materiales post-evento.</li>
-  <li>Generación de estadísticas, reportes de asistencia y certificados de participación.</li>
-</ul>
-<p><b>Derechos del Titular:</b> Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales. Para ejercer estos derechos, puede dirigirse al contacto oficial del evento.</p>`;
-            
-            const defaultTerms = `<h2>Términos y Condiciones de Uso</h2>
-<p>El acceso y uso de la plataforma de registro <b>Check Pro</b> implica la aceptación de los siguientes términos:</p>
-<ol>
-  <li><b>Veracidad:</b> El usuario garantiza que la información proporcionada es veraz, completa y actualizada.</li>
-  <li><b>Uso del Código:</b> El código QR o link de acceso generado es personal e intransferible.</li>
-  <li><b>Responsabilidad:</b> El organizador del evento se reserva el derecho de admisión y permanencia según los protocolos establecidos.</li>
-  <li><b>Privacidad:</b> Sus datos serán tratados bajo estrictos protocolos de seguridad industrial.</li>
-</ol>
-<p>El uso indebido de la plataforma podrá resultar en la cancelación del registro.</p>`;
-            
-            // Usar clipboard para asegurar que el HTML se interprete correctamente en Quill
-            if (App.quillPolicy) App.quillPolicy.clipboard.dangerouslyPasteHTML(s.policy_data || defaultPolicy);
-            if (App.quillTerms) App.quillTerms.clipboard.dangerouslyPasteHTML(s.terms_conditions || defaultTerms);
-
-            // V12.2.2: Sincronizar checkbox de visibilidad
-            const chk = document.getElementById('check-show-legal-login');
-            if (chk) chk.checked = s.show_legal_login !== '0';
-            
-            App.applyUISettings(s);
-        } catch (e) {
-            console.error('[LEGAL] Error al cargar textos:', e);
-        }
-    };
-
-    App.applyUISettings = (settings) => {
-        const links = document.getElementById('login-legal-links');
-        if (links) {
-            links.classList.toggle('hidden', settings.show_legal_login === '0');
-        }
-    };
-
-    cl('btn-save-policy', async () => {
-        const html = App.quillPolicy.root.innerHTML;
-        const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ policy_data: html, show_legal_login: show }) });
-        alert('✓ Política de datos guardada exitosamente.');
-    });
-
-    cl('btn-save-terms', async () => {
-        const html = App.quillTerms.root.innerHTML;
-        const show = document.getElementById('check-show-legal-login')?.checked ? '1' : '0';
-        await App.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ terms_conditions: html, show_legal_login: show }) });
-        alert('✓ Términos y Condiciones guardados exitosamente.');
-    });
-
-    // ------- V10: CAMBIO DE CONTRASEÑA -------
-    sf('change-pass-form', async (e) => {
-        e.preventDefault();
-        const p1 = document.getElementById('new-pass-1').value;
-        const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
-        if (!App.state.user) return;
-        try {
-            await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
-            document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseña.'); }
-    });
-    
-    // ------- V10.6: PERFIL -------
-    sf('profile-form', async (e) => {
-        e.preventDefault();
-        const newEmail = document.getElementById('profile-email').value.trim();
-        const currentEmail = App.state.user?.username || '';
-        
-        const data = {
-            display_name: document.getElementById('profile-name').value,
-            phone: document.getElementById('profile-phone').value,
-            group_id: document.getElementById('profile-company').value || null
-        };
-        
-        // Agregar email solo si cambió
-        if (newEmail && newEmail !== currentEmail) {
-            data.username = newEmail;
-        }
-        
-        await App.saveProfile(data);
-    });
-    
-    // ------- V10.6: COMPANY -------
-    cl('btn-create-group', () => App.openCompanyModal());
-    sf('company-form', async (e) => {
-        e.preventDefault();
-        const data = {
-            name: document.getElementById('company-name').value,
-            description: document.getElementById('company-description').value,
-            email: document.getElementById('company-email').value,
-            phone: document.getElementById('company-phone').value,
-            status: document.getElementById('company-status').value
-        };
-        await App.saveCompany(data);
-    });
-    
-    // ------- V10.6: SMTP -------
-    sf('smtp-form', async (e) => {
-        e.preventDefault();
-        await App.saveSMTPConfig();
-    });
-    
-    cl('btn-test-smtp', async () => {
-        await App.testSMTPConnection();
-    });
-    
-    // IMAP listeners
-    cl('btn-test-imap', async () => {
-        await App.testIMAPConnection();
-    });
-    
-    sf('imap-form', async (e) => {
-        e.preventDefault();
-        await App.saveIMAPConfig();
-    });
 
     // 6. Inicialización V10.5
     // Init removido - se usa DOMContentLoaded
 
     // --- EVENT LISTERS FALTANTES (AGREGADOS V10.5.3) ---
     // Modal de Invitación
-    cl('btn-open-invite', () => {
-        const m = document.getElementById('modal-invite');
-        m?.classList.remove('hidden');
-        m?.setAttribute('aria-hidden', 'false');
-    });
-    cl('btn-close-invite', () => {
-        const m = document.getElementById('modal-invite');
-        m?.classList.add('hidden');
-        m?.setAttribute('aria-hidden', 'true');
-    });
-    cl('btn-open-invite-admin', () => {
-        const m = document.getElementById('modal-invite');
-        m?.classList.remove('hidden');
-        m?.setAttribute('aria-hidden', 'false');
-    });
-    
-    // Modal de Eventos
-    cl('btn-create-event-open', () => App.openCreateEventModal());
-    cl('close-modal', () => { document.body.focus(); document.getElementById('modal-event')?.classList.add('hidden'); });
 
-    // Form de crear/editar evento (FORMULARIO CORTO - modal-event)
-    sf('new-event-form', async (e) => {
-        e.preventDefault();
-        const eventId = document.getElementById('ev-id-hidden').value;
-        
-        const data = {
-            name: document.getElementById('ev-name').value,
-            date: document.getElementById('ev-date').value,
-            end_date: document.getElementById('ev-end-date').value,
-            location: document.getElementById('ev-location').value,
-            description: document.getElementById('ev-desc').value
-        };
-
-        if (eventId) {
-            App.updateEvent(eventId, data);
-        } else {
-            try {
-                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-                if (d.success) {
-                    alert("✓ Evento creado.");
-                    hideModal('modal-event');
-                    App.loadEvents();
-                } else alert("Error: " + d.error);
-            } catch(err) { alert("Error al crear evento: " + err.message); }
-        }
-    });
-
-    // Form de crear/editar evento completo (FORMULARIO LARGO - modal-event-full)
-    sf('new-event-full-form', async (e) => {
-        e.preventDefault();
-        const eventId = document.getElementById('evf-id-hidden').value;
-        
-        const data = {
-            name: document.getElementById('evf-name').value,
-            date: document.getElementById('evf-date').value,
-            end_date: document.getElementById('evf-end-date').value,
-            location: document.getElementById('evf-location').value,
-            description: document.getElementById('evf-desc').value,
-            reg_title: document.getElementById('evf-reg-title').value,
-            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
-            reg_success_message: document.getElementById('evf-reg-success').value,
-            reg_policy: document.getElementById('evf-reg-policy').value,
-            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
-            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
-            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
-            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
-            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
-            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
-            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
-            qr_color_dark: document.getElementById('evf-qr-dark').value,
-            qr_color_light: document.getElementById('evf-qr-light').value,
-            qr_logo_url: document.getElementById('evf-qr-logo').value,
-            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
-            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
-            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
-            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
-        };
-
-        if (eventId) {
-            App.updateEvent(eventId, data);
-        } else {
-            try {
-                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-                if (d.success) {
-                    alert("✓ Evento creado con configuración completa.");
-                    hideModal('modal-event-full');
-                    App.loadEvents();
-                    
-                    // Crear rueda de ejemplo automáticamente
-                    try {
-                        const eventId = d.event?.id || d.id;
-                        if (eventId) {
-                            const wheelConfig = {
-                                visual: {
-                                    wheel_colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
-                                    wheel_text_color: '#FFFFFF',
-                                    pointer_color: '#FF0000',
-                                    sound_enabled: true,
-                                    confetti_on_win: true
-                                }
-                            };
-                            
-                            await App.fetchAPI(`/events/${eventId}/wheels`, {
-                                method: 'POST',
-                                body: JSON.stringify({ 
-                                    name: 'Ruleta de Ejemplo', 
-                                    config: wheelConfig 
-                                })
-                            });
-                            
-                            console.log('✓ Rueda de ejemplo creada automáticamente');
-                        }
-                    } catch (wheelErr) {
-                        console.warn('No se pudo crear rueda de ejemplo:', wheelErr);
-                        // No mostrar error al usuario, es opcional
-                    }
-                } else alert("Error: " + d.error);
-            } catch(err) { alert("Error al crear evento: " + err.message); }
-        }
-    });
-
-    // Form de configuración de evento (misma lógica que new-event-full-form)
-    sf('event-settings-form', async (e) => {
-        e.preventDefault();
-        const eventId = document.getElementById('evf-id-hidden').value;
-        
-        const data = {
-            name: document.getElementById('evf-name').value,
-            date: document.getElementById('evf-date').value,
-            end_date: document.getElementById('evf-end-date').value,
-            location: document.getElementById('evf-location').value,
-            description: document.getElementById('evf-desc').value,
-            reg_title: document.getElementById('evf-reg-title').value,
-            reg_welcome_text: document.getElementById('evf-reg-welcome').value,
-            reg_success_message: document.getElementById('evf-reg-success').value,
-            reg_policy: document.getElementById('evf-reg-policy').value,
-            reg_show_phone: document.getElementById('evf-reg-phone').checked ? 1 : 0,
-            reg_show_org: document.getElementById('evf-reg-org').checked ? 1 : 0,
-            reg_show_position: document.getElementById('evf-reg-position').checked ? 1 : 0,
-            reg_show_vegan: document.getElementById('evf-reg-vegan').checked ? 1 : 0,
-            reg_show_dietary: document.getElementById('evf-reg-dietary').checked ? 1 : 0,
-            reg_show_gender: document.getElementById('evf-reg-gender').checked ? 1 : 0,
-            reg_require_agreement: document.getElementById('evf-reg-agreement').checked ? 1 : 0,
-            qr_color_dark: document.getElementById('evf-qr-dark').value,
-            qr_color_light: document.getElementById('evf-qr-light').value,
-            qr_logo_url: document.getElementById('evf-qr-logo').value,
-            ticket_bg_url: document.getElementById('evf-ticket-bg').value,
-            ticket_accent_color: document.getElementById('evf-ticket-accent').value,
-            reg_email_whitelist: document.getElementById('evf-reg-whitelist').value.trim(),
-            reg_email_blacklist: document.getElementById('evf-reg-blacklist').value.trim()
-        };
-
-        if (eventId) {
-            App.updateEvent(eventId, data);
-        } else {
-            try {
-                const d = await App.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-                if (d.success) {
-                    alert("✓ Evento creado con configuración completa.");
-                    App.loadEvents();
-                    App.navigate('my-events');
-                    
-                    // Crear rueda de ejemplo automáticamente
-                    try {
-                        const eventId = d.event?.id || d.id;
-                        if (eventId) {
-                            const wheelConfig = {
-                                visual: {
-                                    wheel_colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
-                                    wheel_text_color: '#FFFFFF',
-                                    pointer_color: '#FF0000',
-                                    sound_enabled: true,
-                                    confetti_on_win: true
-                                }
-                            };
-                            
-                            await App.fetchAPI(`/events/${eventId}/wheels`, {
-                                method: 'POST',
-                                body: JSON.stringify({ 
-                                    name: 'Ruleta de Ejemplo', 
-                                    config: wheelConfig 
-                                })
-                            });
-                            
-                            console.log('✓ Rueda de ejemplo creada automáticamente');
-                        }
-                    } catch (wheelErr) {
-                        console.warn('No se pudo crear rueda de ejemplo:', wheelErr);
-                        // No mostrar error al usuario, es opcional
-                    }
-                } else alert("Error: " + d.error);
-            } catch(err) { alert("Error al crear evento: " + err.message); }
-        }
-    });
-
-    // Form de invitación/edición de usuario
-    sf('invite-user-form', async (e) => {
-        e.preventDefault();
-        const displayName = document.getElementById('invite-display-name').value;
-        const u = document.getElementById('invite-username').value;
-        const p = document.getElementById('invite-password').value;
-        const r = document.getElementById('invite-role').value;
-        const editingUserId = App.state.editingUserId;
-        
-        try {
-            let res;
-            if (editingUserId) {
-                // Modo edición - actualizar usuario existente
-                const updateData = {
-                    display_name: displayName,
-                    role: r
-                };
-                // Solo actualizar username si es diferente (email)
-                const currentUser = App.state.allUsers?.find(user => user.id === editingUserId);
-                if (currentUser && currentUser.username !== u) {
-                    updateData.username = u;
-                }
-                // Solo actualizar contraseña si se proporcionó
-                if (p && p.length >= 6) {
-                    updateData.password = p;
-                }
-                
-                res = await App.fetchAPI(`/users/${editingUserId}`, { 
-                    method: 'PUT', 
-                    body: JSON.stringify(updateData) 
-                });
-                if (res.success) {
-                    alert(`✓ Usuario "${displayName}" actualizado.`);
-                    delete App.state.editingUserId;
-                } else {
-                    alert('Error: ' + (res.error || 'No se pudo actualizar el usuario.'));
-                    return;
-                }
-            } else {
-                // Modo creación - nuevo usuario
-                res = await App.fetchAPI('/users/invite', { method: 'POST', body: JSON.stringify({username: u, password: p, role: r, display_name: displayName}) });
-                if (!res.success) {
-                    alert('Error: ' + (res.error || 'No se pudo crear el usuario.'));
-                    return;
-                }
-                alert(`✓ Usuario "${displayName}" creado con rol ${r}.`);
-            }
-            
-            document.getElementById('invite-user-form').reset(); 
-            document.getElementById('modal-invite')?.classList.add('hidden'); 
-            App.loadUsersTable();
-            
-            // Si hay pending (vino del selector), volver al selector correspondiente
-            const pendingGroupId = App.state._pendingUserGroupId;
-            const pendingEventId = App.state._pendingUserEventId;
-            
-            if (pendingGroupId) {
-                delete App.state._pendingUserGroupId;
-                delete App.state._pendingUserEventId;
-                App._openUserModalFromSelector = false;
-                App.showUserSelectorForGroup(pendingGroupId);
-            } else if (pendingEventId) {
-                delete App.state._pendingUserGroupId;
-                delete App.state._pendingUserEventId;
-                App._openUserModalFromSelector = false;
-                App.showUserSelectorForEvent(pendingEventId);
-            }
-        } catch(err) { 
-            alert('Error de conexión: ' + (err.message || 'Ver consola para detalles')); 
-        }
-    });
-
-    // Survey form
-    sf('survey-form', async (e) => {
-        e.preventDefault();
-        await App.saveSurveyQuestion();
-    });
-
-    cl('btn-create-survey', () => App.openSurveyEditor());
-
-    // Form de cambio de contraseña
-    sf('change-pass-form', async (e) => {
-        e.preventDefault();
-        const p1 = document.getElementById('new-pass-1').value;
-        const p2 = document.getElementById('new-pass-2').value;
-        if (p1 !== p2) return alert('Las contraseñas no coinciden.');
-        if (!App.state.user) return;
-        try {
-            await App.fetchAPI(`/users/${App.state.user.userId}/password`, { method: 'PUT', body: JSON.stringify({ password: p1 }) });
-            alert('✓ Contraseña actualizada exitosamente.');
-            document.getElementById('change-pass-form').reset();
-        } catch { alert('Error al actualizar contraseña.'); }
-    });
 
     // Clocks
     setInterval(() => {

@@ -332,10 +332,6 @@
                         <span class="material-symbols-outlined">add</span>
                         Nuevo Evento
                     </button>
-                    <button id="btn-create-group" class="btn-secondary !px-5 !py-2.5 flex items-center gap-2">
-                        <span class="material-symbols-outlined">business</span>
-                        Nueva Empresa
-                    </button>
                 </div>
             </header>
 
@@ -379,8 +375,8 @@
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Colaboradores con acceso a la gestión y logística de este evento.</p>
                     </div>
                     <div class="flex gap-3">
-                        <button id="btn-config-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
-                        <button id="btn-config-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
+                        <button id="btn-ev-staff-exist" class="px-4 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">+ Vincular Existente</button>
+                        <button id="btn-ev-staff-new" class="btn-primary !px-5 !py-2.5">+ Registro Rápido</button>
                     </div>
                 </div>
                 <div class="card !p-0 overflow-hidden">
@@ -411,10 +407,10 @@
             <div id="config-content-email" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“§ Email del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">Email del <span class="text-[var(--primary)]">Evento</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
                     </div>
-                    <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">ðŸ’¾ Guardar Configuración</button>
+                    <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">Guardar Configuración</button>
                 </div>
                 
                 <!-- Configuración SMTP por Evento -->
@@ -443,7 +439,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                            <input type="password" id="config-email-smtp-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="input-field w-full">
+                            <input type="password" id="config-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
@@ -474,7 +470,7 @@
             <div id="config-content-agenda" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“‹ Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
                     </div>
                     <button id="btn-config-add-agenda" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
@@ -494,7 +490,7 @@
             <div id="config-content-wheel" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">ðŸŽ° Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
                     </div>
                     <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
@@ -577,7 +573,7 @@
                     <!-- Botones de acción -->
                     <div class="flex justify-end gap-3">
                         <button id="btn-cancel-wheel" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                        <button id="btn-save-wheel" class="btn-primary !px-5 !py-2">ðŸ’¾ Guardar Ruleta</button>
+                        <button id="btn-save-wheel" class="btn-primary !px-5 !py-2">Guardar Ruleta</button>
                     </div>
                 </div>
             </div>
@@ -626,7 +622,7 @@
                         </div>
                     </div>
 
-                    <!-- CONFIGURACIí“N DE REGISTRO -->
+                    <!-- CONFIGURACIÓN DE REGISTRO -->
                     <div class="card p-6 space-y-4">
                         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                             <span class="material-symbols-outlined text-[var(--primary)]">how_to_reg</span>
@@ -639,12 +635,12 @@
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Bienvenida</label>
-                                <input type="text" id="evf-reg-welcome" placeholder="Â¡Bienvenido!" class="input-field w-full">
+                                <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
                             </div>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de í‰xito</label>
-                            <input type="text" id="evf-reg-success" placeholder="Â¡Registro exitoso!" class="input-field w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Éxito</label>
+                            <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Política de Privacidad</label>
@@ -733,7 +729,7 @@
 
                     <div class="flex justify-end gap-3 pt-3">
                         <button type="button" id="btn-cancel-event-settings" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium hover:bg-[var(--border)] transition-colors">Cancelar</button>
-                        <button type="submit" class="btn-primary !px-5 !py-2">ðŸ’¾ Guardar Cambios</button>
+                        <button type="submit" class="btn-primary !px-5 !py-2">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -745,7 +741,7 @@
                         <h2 class="text-2xl font-semibold tracking-tight">ðŸ“ <span class="text-[var(--primary)]">Pre-Registros</span></h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Gestiona las pre-inscripciones y registros anticipados para tu evento.</p>
                     </div>
-                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">ðŸ“¥ Importar Lista</button>
+                    <button id="btn-import-pre-registrations" class="btn-primary !px-5 !py-2.5">Importar Lista</button>
                 </div>
                 
                 <div class="card !p-0 overflow-hidden">
@@ -779,10 +775,10 @@
             <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
-                        <h2 class="text-2xl font-semibold tracking-tight">ðŸ“Š <span class="text-[var(--primary)]">Encuestas QR</span></h2>
+                        <h2 class="text-2xl font-semibold tracking-tight">Encuestas QR</h2>
                         <p class="text-[var(--text-secondary)] text-sm mt-1">Crea y gestiona encuestas con códigos QR para recopilar feedback de los asistentes.</p>
                     </div>
-                    <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">âž• Nueva Encuesta</button>
+                    <button id="btn-create-survey-open" class="btn-primary !px-5 !py-2.5">+ Nueva Encuesta</button>
                 </div>
                 
                 <div class="card !p-0 overflow-hidden">
@@ -827,12 +823,12 @@
                         <span class="material-symbols-outlined text-sm transition-transform" id="email-dropdown-arrow">expand_more</span>
                     </button>
                     <div id="email-dropdown-menu" class="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 hidden">
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('config'); } else { console.error('App not available'); }">⚙️ Configuración</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('accounts'); } else { console.error('App not available'); }">📧 Cuentas</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('campaigns'); } else { console.error('App not available'); }">📢 Campañas</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailbox'); } else { console.error('App not available'); }">📬 Buzón</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailing'); } else { console.error('App not available'); }">📤 Mailing</button>
-                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('templates'); } else { console.error('App not available'); }">📄 Plantillas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('config'); } else { console.error('App not available'); }">Configuración</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('accounts'); } else { console.error('App not available'); }">Cuentas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('campaigns'); } else { console.error('App not available'); }">Campañas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailbox'); } else { console.error('App not available'); }">Buzón</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailing'); } else { console.error('App not available'); }">Mailing</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('templates'); } else { console.error('App not available'); }">Plantillas</button>
                     </div>
                 </div>
                 
@@ -933,7 +929,7 @@
                                 <input type="checkbox" id="smtp-secure"> <label for="smtp-secure" class="text-xs uppercase font-bold">Usar SSL/TLS</label>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">ðŸ”— Probar SMTP</button>
+                                <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-2 !px-4 text-xs">Probar SMTP</button>
                             </div>
                             <div class="pt-4 border-t border-[var(--border)]">
                                 <h3 class="text-lg font-bold mb-4">Configuración IMAP (Buzón)</h3>
@@ -948,7 +944,7 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">ðŸ”— Probar IMAP</button>
+                                <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-2 !px-4 text-xs">Probar IMAP</button>
                                 <button type="submit" class="btn-primary flex-1">ðŸ’¾ Guardar Configuración</button>
                             </div>
                         </form>
@@ -1144,8 +1140,93 @@
 </div>
 
 <!-- Modales (fuera del app-container para evitar problemas de z-index) -->
-<div id="modal-event-full" class="modal hidden">
-    <!-- Modal para crear/editar evento completo -->
+<div id="modal-event-full" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl m-6 p-8 relative shadow-2xl border border-white/10">
+        <button onclick="document.getElementById('modal-event-full').classList.add('hidden')" class="absolute top-6 right-6 p-2 rounded-xl hover:bg-[var(--bg-hover)] transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+             <span class="material-symbols-outlined text-primary text-4xl">event_available</span>
+             Gestión del <span class="text-primary">Evento</span>
+        </h2>
+        <form id="new-event-full-form" class="space-y-8">
+            <input type="hidden" id="evf-id-hidden" value="">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold flex items-center gap-2 border-b border-white/5 pb-2">
+                        <span class="material-symbols-outlined text-primary">info</span> Información Básica
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Nombre del Evento *</label>
+                            <input type="text" id="evf-name" required placeholder="Ej: Convención Anual 2024" class="input-field w-full">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Ubicación</label>
+                            <input type="text" id="evf-location" placeholder="Ciudad, Hotel o Virtual" class="input-field w-full">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Fecha Inicio *</label>
+                                <input type="datetime-local" id="evf-date" required class="input-field w-full">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Fecha Fin</label>
+                                <input type="datetime-local" id="evf-end-date" class="input-field w-full">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Descripción</label>
+                            <textarea id="evf-desc" rows="3" placeholder="Detalles del evento..." class="input-field w-full"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold flex items-center gap-2 border-b border-white/5 pb-2">
+                        <span class="material-symbols-outlined text-primary">how_to_reg</span> Configuración de Registro
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Título de Formulario</label>
+                            <input type="text" id="evf-reg-title" placeholder="Registro de Asistencia" class="input-field w-full">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Bienvenida / Éxito</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
+                                <input type="text" id="evf-reg-success" placeholder="¡Registrado!" class="input-field w-full">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
+                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
+                                <input type="checkbox" id="evf-reg-phone" checked class="w-4 h-4 accent-primary">
+                                <span class="text-sm">Pedir Teléfono</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
+                                <input type="checkbox" id="evf-reg-org" checked class="w-4 h-4 accent-primary">
+                                <span class="text-sm">Organización</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
+                                <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary">
+                                <span class="text-sm">Cargo/Puesto</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
+                                <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary">
+                                <span class="text-sm">Opción Vegana</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-8 border-t border-white/5">
+                <button type="button" onclick="document.getElementById('modal-event-full').classList.add('hidden')" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors font-bold uppercase tracking-wider text-xs">Cancelar</button>
+                <button type="submit" class="btn-primary !px-8 !py-3 !rounded-xl font-bold uppercase tracking-wider text-xs">Guardar Evento</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Modal: Gestión de Empresa -->
@@ -1216,29 +1297,29 @@
 </script>
 
 <!-- MODAL: Email Menu (Portal - siempre visible) -->
-<div id="email-menu-modal" class="fixed inset-0 z-[999999] hidden" style="display: none;">
+<div id="email-menu-modal" class="fixed inset-0 z-[999999] hidden">
     <!-- Backdrop (fondo para cerrar al hacer clic) -->
-    <div id="email-modal-backdrop" style="position: absolute; inset: 0;"></div>
+    <div id="email-modal-backdrop" class="absolute inset-0 bg-black/5"></div>
     <!-- Menu Container -->
-    <div class="absolute" id="email-modal-menu" style="top: 0; left: 0;">
-        <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg">
+    <div class="absolute" id="email-modal-menu">
+        <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg overflow-hidden w-48">
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="config">
-                âš™ï¸ Configuración
+                Configuración
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="accounts">
-                ðŸ“§ Cuentas
+                Cuentas
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="campaigns">
-                ðŸ“¢ Campañas
+                Campañas
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="mailbox">
-                ðŸ“¬ Buzón
+                Buzón
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-light)]" data-tab="mailing">
-                ðŸ“¤ Mailing
+                Mailing
             </button>
             <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors" data-tab="templates">
-                ðŸ“„ Plantillas
+                Plantillas
             </button>
         </div>
     </div>
