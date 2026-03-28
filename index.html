@@ -43,8 +43,8 @@
             background-color: var(--bg-app);
         }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=12.28.18">
-    <link rel="stylesheet" href="/css/modern.css?v=12.28.18">
+    <link rel="stylesheet" href="/css/styles.css?v=12.28.19">
+    <link rel="stylesheet" href="/css/modern.css?v=12.28.19">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -89,7 +89,7 @@
                 </a>
                 <div class="flex items-center gap-4">
                     <p class="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">&copy; 2026 Check Pro</p>
-                    <span id="login-version-display" class="text-xs text-[var(--text-muted)] font-bold app-version-text">v12.28.18</span>
+                    <span id="login-version-display" class="text-xs text-[var(--text-muted)] font-bold app-version-text">v12.28.19</span>
                 </div>
                 <button id="btn-open-terms" class="text-xs text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors uppercase tracking-wider font-bold">Términos y Privacidad</button>
             </div>
@@ -107,7 +107,7 @@
         (function() {
             // Verificar si hay una versión esperada guardada (de un reload forzado)
             const expectedVersion = localStorage.getItem('check_expected_version');
-             const currentVersion = '12.28.18';
+             const currentVersion = '12.28.19';
             
             // Si hay una versión esperada y no coincide con la actual, forzar recarga
             if (expectedVersion && expectedVersion !== currentVersion) {
