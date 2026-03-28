@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.27';
+const VERSION = '12.31.28';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1372,6 +1372,9 @@ const App = window.App = {
                 } else {
                     alert("✓ Evento creado con éxito.");
                 }
+                
+                // Ocultar modal y resetear
+                document.getElementById('modal-event-full')?.classList.add('hidden');
                 f.reset();
                 this.navigate('my-events');
                 this.loadEvents();
