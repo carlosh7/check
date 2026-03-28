@@ -244,6 +244,7 @@ input[type="email"]:focus {
     border-radius: var(--radius-md) !important;
     display: inline-flex !important;
     gap: 2px !important;
+    overflow: visible !important;
 }
 
 .sub-nav-btn {
@@ -604,6 +605,8 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     box-shadow: var(--shadow-md) !important;
     z-index: 1000;
     display: none; /* Ocultar por defecto */
+    overflow: visible !important;
+    max-height: none !important;
 }
 
 #email-dropdown-menu:not(.hidden) {

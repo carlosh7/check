@@ -45,7 +45,9 @@ docker-compose ps
 cd C:\Users\carlo\check
 
 # Hacer pull de últimos cambios
-git pull origin main
+# git pull origin main
+
+git pull origin --tags
 
 # Rebuild del contenedor
 docker-compose down
