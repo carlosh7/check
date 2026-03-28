@@ -2124,7 +2124,7 @@ const App = window.App = {
                 if (sbr) sbr.textContent = data.role || 'Staff';
                 
                 const loginEl = document.getElementById('view-login');
-                if (loginEl) { loginEl.classList.add('hidden'); loginEl.style.display = 'none'; }
+                if (loginEl) { loginEl.classList.add('hidden'); /* loginEl.style.display = 'none'; // REMOVIDO - redundante */ }
                 
                 this.updateUIPermissions();
                 this.updateRoleOptions();
@@ -3418,7 +3418,7 @@ const App = window.App = {
         if (viewName === 'login') {
             console.log('[VIEW] Mostrando login, ocultando app-container');
             document.getElementById('view-login')?.classList.remove('hidden');
-            if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex';
+            // if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex'; // REMOVIDO
             document.getElementById('app-container')?.classList.add('hidden');
             if (clearSession) { window.LS.remove('user'); this.state.user = null; }
             return;
@@ -3437,8 +3437,8 @@ const App = window.App = {
             
             if (appContainer) {
                 appContainer.classList.remove('hidden');
-                appContainer.style.display = 'flex';
-                console.log('[VIEW] app-container mostrado');
+                // appContainer.style.display = 'flex'; // REMOVIDO - ya tiene clase 'flex'
+                console.log('[VIEW] app-container mostrado (clase hidden removida)');
             } else {
                 console.error('[VIEW] ERROR: app-container no encontrado!');
             }
