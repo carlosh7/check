@@ -886,14 +886,25 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
 /* ===== EMAIL MENU MODAL (PORTAL) ===== */
 #email-menu-modal {
     pointer-events: auto;
+    background-color: transparent !important;
 }
 
 #email-menu-modal.show {
-    display: flex !important;
+    display: block !important;
 }
 
 #email-modal-menu {
     z-index: 1000000;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    width: auto !important;
+    min-width: 180px !important;
+}
+
+#email-modal-menu > div {
+    background-color: var(--bg-card) !important;
 }
 
 .email-modal-item {
