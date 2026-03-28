@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.28';
+const VERSION = '12.31.29';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4272,6 +4272,7 @@ const App = window.App = {
                     case 'editEvent': _App.editEvent(p.eventId); break;
                     case 'deleteEvent': _App.deleteEvent(p.eventId); break;
                     case 'copyRegistrationLink': _App.copyRegistrationLink(p.eventId); break;
+                    case 'openRegistrationLink': _App.openRegistrationLink(p.eventId); break;
                     case 'showUserSelectorForEvent': _App.showUserSelectorForEvent(p.eventId); break;
                     
                     // Guests
@@ -4534,13 +4535,22 @@ const App = window.App = {
                 <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
                     <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     <div class="flex gap-3" onclick="event.stopPropagation()">
-                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">link</span> Link
+                        <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">visibility</span> Ver
+                        </button>
+                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-[11px] font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">content_copy</span> Link
                         </button>
                     </div>
                 </div>
             </div>
         `).join('');
+    },
+
+    openRegistrationLink(id) {
+        if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        const link = `${window.location.origin}/registro.html?event=${id}`;
+        window.open(link, '_blank');
     },
 
     async copyRegistrationLink(id) {
@@ -4587,6 +4597,13 @@ const App = window.App = {
         
         document.getElementById('evf-reg-whitelist').value = ev.reg_email_whitelist || '';
         document.getElementById('evf-reg-blacklist').value = ev.reg_email_blacklist || '';
+        
+        // Link de Registro en Modal (NUEVO v12.31.29)
+        const linkStr = `${window.location.origin}/registro.html?event=${ev.id}`;
+        ['evf-registration-link', 'evf-registration-link-modal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = linkStr;
+        });
         
         // Actualizar título del modal para indicar que es edición
         const modalTitle = document.getElementById('modal-event-full-title');
