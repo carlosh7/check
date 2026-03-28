@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <script type="module" src="/js/app.js?v=12.31.34"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.31.34">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.34">
+    <script type="module" src="/js/app.js?v=12.31.35"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.35">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.35">
     <script src="https://cdn.tailwindcss.com"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -202,13 +202,18 @@
                 // Título de la página
                 document.getElementById('page-title').innerText = eventData.reg_title || 'Registro de Invitados';
                 document.getElementById('event-name').innerText = eventData.name || 'Evento';
-                document.getElementById('event-location').innerText = eventData.location || 'Por definir';
-                document.title = `${eventData.reg_title || 'Registro'} | ${eventData.name}`;
-
                 // Logo
                 if (eventData.reg_logo_url) {
                     document.getElementById('event-logo').classList.remove('hidden');
                     document.getElementById('event-logo').innerHTML = `<img src="${eventData.reg_logo_url}" class="w-full h-full object-cover" alt="Logo">`;
+                    document.getElementById('event-fallback-icon').style.display = 'none';
+                }
+
+                // Ubicación
+                if (eventData.location && eventData.location.trim() !== "" && eventData.location !== "Por definir") {
+                    document.getElementById('event-location').innerText = eventData.location;
+                } else {
+                    document.getElementById('event-location-container').style.display = 'none';
                 }
 
                 // Descripción
