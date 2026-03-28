@@ -1,12 +1,12 @@
 {
   "name": "check",
-  "version": "12.30.1",
+  "version": "12.30.2",
   "description": "Sistema de gestión de invitados (Regla de Oro),para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso.",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
     "setup": "npm install && npm start",
-    "start": "node server.js",
+    "start": "node -e \"const fs=require('fs');if(!fs.existsSync('node_modules')){console.log('Installing dependencies...');require('child_process').execSync('npm install',{stdio:'inherit'});}require('child_process').execSync('node server.js',{stdio:'inherit' });\"",
     "build:css": "npx postcss src/styles/main.css -o public/css/styles.css",
     "watch:css": "npx postcss src/styles/main.css -o public/css/styles.css --watch",
     "test": "jest --passWithNoTests",
