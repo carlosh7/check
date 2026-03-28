@@ -11,6 +11,24 @@
 3. **Versionado:** SIEMPRE incrementamos versión y query strings después de cambio significativo
 4. **Flujo de Trabajo:** SIEMPRE sigo el checklist completo al final de cada tarea
 
+### Comunicación y Trabajo en Equipo (OBLIGATORIO)
+
+**ANTES de hacer cualquier cambio de código:**
+1. **EXPLICAR** qué voy a hacer (plan)
+2. **ESPERAR** tu confirmación antes de actuar
+3. **NO actuar solo** - trabajamos juntos paso a paso
+
+**NUNCA:**
+- Hacer cambios sin explicar primero
+- Crear versiones sin confirmación
+- Asumir que sé lo que necesitas
+
+**Siempre pregunta antes de:**
+- Modificar archivos de código
+- Incrementar versión
+- Hacer commit/push
+- Crear tags
+
 ---
 
 ## Ubicación del Proyecto
