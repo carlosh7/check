@@ -42,32 +42,47 @@ Al completar cualquier cambio de código:
 
 ---
 
-## Flujo de Trabajo (Regla de Oro)
+## Flujo de Trabajo (Regla de Oro - ACTUALIZADO)
+
+### ESTRUCTURA DE DIRECTORIOS:
+- **REPOSITORIO ORIGINAL:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro` (aquí se hacen los cambios)
+- **CONTENEDOR DE PRUEBAS:** `C:\Users\carlo\check` (git clone solo para validación)
 
 ### Pasos obligatorios después de CADA tarea:
 
 ```bash
-# 1. desde C:\Users\carlo\OneDrive\Documentos\APP\Registro
+# 1. DESDE REPOSITORIO ORIGINAL (C:\Users\carlo\OneDrive\Documentos\APP\Registro)
+#    - Hacer cambios en el código
+#    - Incrementar versión en package.json si es cambio significativo
+#    - Actualizar referencias de versión en index.html y app-shell.html
 git add . && git commit -m "mensaje descriptivo" && git push origin main
 
-# 2. desde C:\Users\carlo\check (ENTORNO DE VALIDACIÓN)
-git pull
+# 2. CREAR TAG si fue version bump (desde repositorio original)
+git tag v${VERSION} HEAD && git push origin v${VERSION}
 
-# 3. VERIFICAR si server.js cambió
+# 3. DESDE CONTENEDOR DE PRUEBAS (C:\Users\carlo\check)
+#    - Sincronizar con cambios del repositorio
+git pull origin main
+
+# 4. VERIFICAR si server.js cambió
 git diff --name-only HEAD~1 | grep -q server.js && echo "SERVER CAMBIÓ - REINICIAR" || echo "OK"
 
-# 4. Si server.js cambió o hay cambios en archivos del servidor:
+# 5. Si server.js cambió o hay cambios en archivos del servidor:
 #    - Matar procesos node existentes
 #    - Reiniciar servidor node server.js
 
-# 5. VALIDAR
+# 6. VALIDAR que servidor está funcionando
 curl -s http://localhost:3000/api/health
 
-# 6. CREAR TAG si fue version bump
-git tag v${VERSION} HEAD && git push origin v${VERSION}
+# 7. INFORMAR al usuario que cambios están listos para validación
+#    - Especificar versión actual
+#    - Enumerar cambios realizados
+#    - Proporcionar URL para pruebas: http://localhost:3000
 ```
 
-**CRÍTICO:** Si el servidor no se reinicia después de un pull que incluye server.js, el entorno de validación sigue corriendo código antiguo.
+**CRÍTICO:** El contenedor de pruebas (`C:\Users\carlo\check`) es solo para validación. Todos los cambios se hacen en el repositorio original.
+
+**VALIDACIÓN POR USUARIO:** Después de que el agente complete los pasos 1-6, el usuario valida manualmente en `http://localhost:3000`.
 
 **NOTA:** En este proyecto NO hay docker-compose. Solo git pull y reinicio manual del servidor Node.
 
