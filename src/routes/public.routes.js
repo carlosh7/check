@@ -96,8 +96,11 @@ router.post('/public-register', async (req, res) => {
             }
         }
         
-        // Verificar si ya existe el invitado
-        const existing = db.prepare("SELECT id FROM guests WHERE event_id = ? AND (email = ? OR phone = ?)").get(eId, email, phone || '');
+        // Verificar si ya existe el invitado (por correo o por teléfono si no es vacío)
+        const existing = db.prepare(`
+            SELECT id FROM guests 
+            WHERE event_id = ? AND (email = ? OR (phone != '' AND phone IS NOT NULL AND phone = ?))
+        `).get(eId, email, phone || '');
         if (existing) {
             return res.status(400).json({ success: false, error: 'Ya estás registrado en este evento' });
         }
