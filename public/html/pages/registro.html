@@ -146,9 +146,9 @@
                     </button>
                 </form>
                 
-                <div id="success-message" class="hidden text-center py-12">
-                    <p id="success-text" class="text-2xl font-black text-emerald-400 mb-4">¡Registro Exitoso!</p>
-                    <p class="text-slate-400 text-lg">Te esperamos en el evento.</p>
+                <div id="success-message" class="hidden text-center py-16">
+                    <p id="success-text" class="text-4xl font-black text-emerald-400 mb-6 drop-shadow-lg">¡Registro Exitoso!</p>
+                    <p class="text-slate-200 text-2xl font-bold">Te esperamos en el evento.</p>
                 </div>
             </div>
         </div>
@@ -309,8 +309,8 @@
                 if (d.success) {
                     document.getElementById('success-message').classList.remove('hidden');
                     
-                    // Fase 11: Modo Kiosco - Recarga automática tras 2 seg o al hacer clic
-                    setTimeout(() => window.location.reload(), 2000);
+                    // Fase 11: Modo Kiosco v2 - Recarga automática tras 4 seg o al hacer clic
+                    setTimeout(() => window.location.reload(), 4000);
                     document.body.onclick = () => window.location.reload();
                 } else {
                     alert("Error: " + (d.error || 'No se pudo completar el registro'));
