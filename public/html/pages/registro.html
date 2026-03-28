@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
+    <link rel="icon" href="data:,">
+    <script>
+        // Silenciar advertencia de Tailwind CDN en consola
+        const _warn = console.warn;
+        console.warn = (...args) => {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+            _warn(...args);
+        };
+    </script>
     <script type="module" src="/js/app.js?v=12.31.42"></script>
     <link rel="stylesheet" href="/css/styles.css?v=12.31.42">
     <link rel="stylesheet" href="/css/modern.css?v=12.31.42">
@@ -307,6 +316,7 @@
                 });
                 const d = await res.json();
                 if (d.success) {
+                    e.target.style.display = 'none';
                     document.getElementById('success-message').classList.remove('hidden');
                     
                     // Fase 11: Modo Kiosco v2 - Recarga automática tras 4 seg o al hacer clic
