@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.63';
+const VERSION = '12.31.65';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -83,6 +83,7 @@ const App = window.App = {
             status: { label: 'Estado', visible: true, order: 5 }
         },
         importSession: null,
+        eventsViewMode: 'grid', // 'grid' o 'list'
     },
     constants: { API_URL: '/api' },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
@@ -123,24 +124,24 @@ const App = window.App = {
             setTimeout(() => {
                 document.getElementById('evf-id-hidden').value = '';
                 const form = document.getElementById('new-event-full-form');
-                if (form) form.reset();
+                if (form) {
+                    form.reset();
+                    
+                    // REMOVER cualquier listener previo (para evitar duplicados)
+                    const newForm = form.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                    
+                    // AGREGAR listener SOLO AHORA que el usuario va a usar el formulario
+                    newForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        console.log('[FORM SUBMIT MANUAL] Formulario enviado manualmente por usuario');
+                        this.saveEventFull(e);
+                    });
+                }
+                
                 const modal = document.getElementById('modal-event-full');
                 if (modal) {
                     modal.classList.remove('hidden');
-                    // Habilitar el formulario cuando el modal está visible
-                    if (form) {
-                        // Habilitar especialmente el botón submit
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.removeAttribute('disabled');
-                            submitBtn.removeAttribute('aria-disabled');
-                        }
-                        // Habilitar otros campos
-                        form.querySelectorAll('input, textarea, select').forEach(el => {
-                            el.removeAttribute('disabled');
-                            el.removeAttribute('aria-disabled');
-                        });
-                    }
                 }
             }, 100);
         } else {
@@ -1332,12 +1333,27 @@ const App = window.App = {
     },
     
     saveEventFull: async function(e) {
-        console.log('[EVENT CREATE] saveEventFull called, event:', e);
-        if (e) e.preventDefault();
+        console.log('[EVENT CREATE] saveEventFull called (FormData version), event:', e);
+        
+        // Siempre prevenir el comportamiento por defecto
+        if (e && e.preventDefault) e.preventDefault();
+        
         const f = document.getElementById('new-event-full-form');
         console.log('[EVENT CREATE] Form element found:', f);
         if (!f) {
             console.error('[EVENT CREATE] Form not found!');
+            return;
+        }
+        
+        // Validar campos obligatorios antes de procesar
+        const name = document.getElementById('evf-name')?.value?.trim();
+        const date = document.getElementById('evf-date')?.value?.trim();
+        
+        console.log('[EVENT CREATE] Validating fields - name:', name, 'date:', date);
+        
+        if (!name || !date) {
+            console.error('[EVENT CREATE] Required fields are empty, aborting');
+            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
             return;
         }
         
@@ -1357,86 +1373,59 @@ const App = window.App = {
             const el = f.elements[k];
             console.log(`[EVENT CREATE DEBUG] Processing field ${k}: value="${v}", type=${el?.type}`);
             if (el && el.type === 'checkbox') {
-                data[k] = el.checked;
+                // Convertir boolean a 1/0 para compatibilidad con backend
+                data[k] = el.checked ? 1 : 0;
             } else {
-                data[k] = v;
+                // Convertir null/undefined a string vacío para Zod
+                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
             }
         });
         
-        // Forzar tipos de datos específicos para Zod
-        if (data.group_id === "") delete data.group_id;
+        // Asegurar que group_id esté presente (campo requerido por esquema pero opcional)
+        if (!data.group_id) data.group_id = '';
         
-        // Asegurar que campos vacíos sean strings vacíos en lugar de null/undefined
-        // Zod espera strings vacíos '' para campos opcionales
-        const fieldsToClean = [
-            'location', 'description', 'end_date', 'reg_title', 'reg_welcome_text',
-            'reg_success_message', 'reg_policy', 'qr_logo_url', 'ticket_bg_url',
-            'reg_email_whitelist', 'reg_email_blacklist'
-        ];
-        
-        fieldsToClean.forEach(field => {
-            if (data[field] === null || data[field] === undefined || data[field] === 'null') {
-                data[field] = '';
-            }
-        });
+        // Asegurar valores por defecto para campos de color
+        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
+        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
+        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
         
         // Debug: mostrar datos que se enviarán
         console.log('[EVENT CREATE FRONTEND] Data to send:', data);
         
-        // Validación en el Cliente (Solicitud del Usuario)
-        const missingFields = [];
-        if (!data.name?.trim()) missingFields.push('Nombre del Evento');
-        if (!data.date) missingFields.push('Fecha de Inicio');
-        
-        if (missingFields.length > 0) {
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos Incompletos',
-                    text: `Debes completar: ${missingFields.join(', ')}`,
-                    confirmButtonColor: 'var(--primary)'
+        try {
+            let res;
+            const eventId = document.getElementById('evf-id-hidden')?.value;
+            
+            if (eventId) {
+                // Actualizar evento existente
+                res = await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
                 });
             } else {
-                alert("Faltan campos obligatorios: " + missingFields.join(', '));
+                // Crear nuevo evento
+                res = await this.fetchAPI('/events', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
             }
-            return;
-        }
-        
-        try {
-            const res = await this.fetchAPI('/events', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
             
-            if (res.success || res.eventId) {
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Evento Creado',
-                        text: 'El evento se ha configurado correctamente.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                } else {
-                    alert("✓ Evento creado con éxito.");
-                }
-                
-                // Ocultar modal y resetear
-                document.getElementById('modal-event-full')?.classList.add('hidden');
-                f.reset();
-                this.navigate('my-events');
-                this.loadEvents();
-            } else {
-                const errorMsg = res.errors ? res.errors.map(e => e.message || e).join(', ') : (res.error || 'Error desconocido');
-                if (window.Swal) {
-                    Swal.fire({ icon: 'error', title: 'Error de Validación', text: errorMsg });
-                } else {
-                    alert("Error: " + errorMsg);
-                }
+            if (res && res.success === false) {
+                await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
+                return;
             }
+
+            // Actualizar estado local si editamos el evento activo
+            if (eventId && this.state.event && String(this.state.event.id) === String(eventId)) {
+                Object.assign(this.state.event, data);
+            }
+
+            document.getElementById('modal-event-full')?.classList.add('hidden');
+            await this.loadEvents();
+            await this._notifyAction('✓ Guardado', eventId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
         } catch (err) {
-            console.error('Error saving full event:', err);
-            alert("Error de conexión al crear evento.");
+            console.error('[saveEventFull] Error:', err);
+            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
         }
     },
     
@@ -4147,23 +4136,7 @@ const App = window.App = {
                 m.classList.add('hidden'); 
                 m.setAttribute('aria-hidden', 'true'); 
                 
-                // Deshabilitar formularios dentro del modal para prevenir envíos automáticos
-                if (id === 'modal-event-full') {
-                    const form = document.getElementById('new-event-full-form');
-                    if (form) {
-                        // Deshabilitar especialmente el botón submit
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.setAttribute('disabled', 'disabled');
-                            submitBtn.setAttribute('aria-disabled', 'true');
-                        }
-                        // Deshabilitar otros campos
-                        form.querySelectorAll('input, textarea, select').forEach(el => {
-                            el.setAttribute('disabled', 'disabled');
-                            el.setAttribute('aria-disabled', 'true');
-                        });
-                    }
-                }
+                // No necesitamos deshabilitar formularios porque los listeners se agregan solo cuando se abre el modal
             } 
         };
         
@@ -4187,6 +4160,9 @@ const App = window.App = {
         
         // Mis Eventos - Acciones
         cl('btn-new-event-full', () => this.navigateToCreateEvent('full'));
+        cl('btn-new-event-full-empty', () => this.navigateToCreateEvent('full'));
+        cl('btn-events-view-grid', () => this.toggleEventsView());
+        cl('btn-events-view-list', () => this.toggleEventsView());
         
         // Event Config view - action buttons
         cl('btn-config-show-qr', () => this.showQR());
@@ -4203,8 +4179,7 @@ const App = window.App = {
         
         cl('btn-open-invite', () => this.openInviteModal());
         
-        // Event Creation (Full Form)
-        sf('new-event-full-form', (e) => this.saveEventFull(e));
+        // Event Creation (Full Form) - NO registrar listener aquí, se registrará cuando se abra el modal
         
         // Profile Security Forms (Phase 5)
         sf('change-email-form', (e) => this.handleEmailChange(e));
@@ -4596,46 +4571,149 @@ const App = window.App = {
             if (btnAdminNav) {
                 btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
             }
+            
+            // Cargar preferencia de vista desde localStorage
+            const savedViewMode = LS.get('events_view_mode');
+            if (savedViewMode === 'list' || savedViewMode === 'grid') {
+                this.state.eventsViewMode = savedViewMode;
+            }
+            
+            // Actualizar estado de botones de toggle
+            const gridBtn = document.getElementById('btn-events-view-grid');
+            const listBtn = document.getElementById('btn-events-view-list');
+            
+            if (gridBtn && listBtn) {
+                if (this.state.eventsViewMode === 'grid') {
+                    gridBtn.classList.add('active');
+                    listBtn.classList.remove('active');
+                } else {
+                    listBtn.classList.add('active');
+                    gridBtn.classList.remove('active');
+                }
+            }
+            
             this.renderEventsGrid();
         } catch (e) { this.showView('login'); }
     },
 
+    toggleEventsView() {
+        // Cambiar entre modos grid/list
+        this.state.eventsViewMode = this.state.eventsViewMode === 'grid' ? 'list' : 'grid';
+        
+        // Actualizar botones de toggle
+        const gridBtn = document.getElementById('btn-events-view-grid');
+        const listBtn = document.getElementById('btn-events-view-list');
+        
+        if (gridBtn && listBtn) {
+            if (this.state.eventsViewMode === 'grid') {
+                gridBtn.classList.add('active');
+                listBtn.classList.remove('active');
+            } else {
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+            }
+        }
+        
+        // Guardar preferencia en localStorage
+        LS.set('events_view_mode', this.state.eventsViewMode);
+        
+        // Re-renderizar eventos
+        this.renderEventsGrid();
+    },
+    
     renderEventsGrid() {
-        console.log('[EVENTS] renderEventsGrid llamado, eventos:', this.state.events?.length || 0);
+        console.log('[EVENTS] renderEventsGrid llamado, eventos:', this.state.events?.length || 0, 'modo:', this.state.eventsViewMode);
         const c = document.getElementById('events-list-container');
         console.log('[EVENTS] events-list-container:', c);
         if (!c) {
             console.error('[EVENTS] ERROR: events-list-container no encontrado!');
             return;
         }
-        c.innerHTML = this.state.events.map(ev => `
-            <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
-                <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button data-action="editEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all">
-                        <span class="material-symbols-outlined text-base">edit</span>
-                    </button>
-                </div>
-                <div class="w-12 h-12 bg-[var(--primary-light)] text-[var(--primary)] rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-                    <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
-                </div>
-                <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">${ev.name}</h3>
-                <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripción adicional para este evento.'}</p>
-                <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">
-                    <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicación por confirmar'}
-                </div>
-                <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    <div class="flex gap-3">
-                        <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">visibility</span> Ver
-                        </button>
-                        <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-[11px] font-bold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">content_copy</span> Link
-                        </button>
+        
+        // Actualizar clases CSS según el modo de vista
+        if (this.state.eventsViewMode === 'list') {
+            c.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
+            c.classList.add('space-y-4');
+        } else {
+            c.classList.remove('space-y-4');
+            c.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
+        }
+        
+        if (this.state.eventsViewMode === 'list') {
+            // Modo lista
+            c.innerHTML = this.state.events.map(ev => `
+                <div data-action="openEvent" data-event-id="${ev.id}" class="card p-5 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)] flex items-start gap-4">
+                    <div class="w-10 h-10 bg-[var(--primary-light)] text-[var(--primary)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                        <span class="material-symbols-outlined text-xl font-variation-fill">event</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2 mb-1">
+                            <h3 class="text-lg font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                <button data-action="editEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all" title="Editar">
+                                    <span class="material-symbols-outlined text-sm">edit</span>
+                                </button>
+                                <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all" title="Eliminar">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[var(--text-secondary)] text-sm line-clamp-1 mb-2">${ev.description || 'Sin descripción adicional.'}</p>
+                        <div class="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-[var(--primary)]">place</span>
+                                <span>${ev.location || 'Ubicación por confirmar'}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-[var(--primary)]">calendar_month</span>
+                                <span>${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            </div>
+                            <div class="flex gap-2 ml-auto">
+                                <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-xs font-medium flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">visibility</span> Ver
+                                </button>
+                                <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-xs font-medium flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">content_copy</span> Link
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            // Modo grid (por defecto)
+            c.innerHTML = this.state.events.map(ev => `
+                <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
+                    <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button data-action="editEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all" title="Editar">
+                            <span class="material-symbols-outlined text-base">edit</span>
+                        </button>
+                        <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all" title="Eliminar">
+                            <span class="material-symbols-outlined text-base">delete</span>
+                        </button>
+                    </div>
+                    <div class="w-12 h-12 bg-[var(--primary-light)] text-[var(--primary)] rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                        <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">${ev.name}</h3>
+                    <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripción adicional para este evento.'}</p>
+                    <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">
+                        <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicación por confirmar'}
+                    </div>
+                    <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <div class="flex gap-3">
+                            <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">visibility</span> Ver
+                            </button>
+                            <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-[11px] font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">content_copy</span> Link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
     },
 
     openRegistrationLink(id) {
@@ -4707,109 +4785,7 @@ const App = window.App = {
     },
 
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
-    async saveEventFull(e) {
-        console.log('[EVENT CREATE LONG FORM] saveEventFull (long form) called');
-        console.log('[EVENT CREATE] Event details:', e);
-        
-        // Verificar si esto es un envío real o automático
-        if (!e || !e.target) {
-            console.error('[EVENT CREATE] No event or target found, aborting');
-            return;
-        }
-        
-        const form = e.target;
-        console.log('[EVENT CREATE] Form element:', form);
-        
-        // Verificar si el modal que contiene el formulario está visible
-        const modal = form.closest('#modal-event-full');
-        if (modal && modal.classList.contains('hidden')) {
-            console.error('[EVENT CREATE] Form is inside hidden modal, aborting');
-            console.log('[EVENT CREATE] Modal state:', modal.classList);
-            return;
-        }
-        
-        if (e && e.preventDefault) e.preventDefault();
-        
-        const gv = (id) => {
-            const value = document.getElementById(id)?.value;
-            // Convertir null/undefined a string vacío para Zod
-            return value === null || value === undefined || value === 'null' ? '' : value;
-        };
-        const gc = (id) => document.getElementById(id)?.checked ? 1 : 0;
-        
-        const id = gv('evf-id-hidden');
-        
-        // Validar campos obligatorios
-        const name = gv('evf-name');
-        const date = gv('evf-date');
-        
-        console.log('[EVENT CREATE] Validating fields - name:', name, 'date:', date);
-        
-        if (!name.trim() || !date.trim()) {
-            console.error('[EVENT CREATE] Required fields are empty, aborting');
-            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
-            return;
-        }
-        
-        const data = {
-            name:        name,
-            location:    gv('evf-location'),
-            description: gv('evf-desc'),
-            date:        date,
-            end_date:    gv('evf-end-date'),
-            group_id:    '', // Campo requerido por esquema pero opcional
-            // Registro público
-            reg_title:           gv('evf-reg-title'),
-            reg_welcome_text:    gv('evf-reg-welcome'),
-            reg_success_message: gv('evf-reg-success'),
-            reg_policy:          gv('evf-reg-policy'),
-            reg_show_phone:      gc('evf-reg-phone'),
-            reg_show_org:        gc('evf-reg-org'),
-            reg_show_position:   gc('evf-reg-position'),
-            reg_show_vegan:      gc('evf-reg-vegan'),
-            reg_show_dietary:    gc('evf-reg-dietary'),
-            reg_show_gender:     gc('evf-reg-gender'),
-            reg_require_agreement: gc('evf-reg-agreement'),
-            // Personalización QR / ticket
-            qr_color_dark:       gv('evf-qr-dark')    || '#000000',
-            qr_color_light:      gv('evf-qr-light')   || '#ffffff',
-            qr_logo_url:         gv('evf-qr-logo'),
-            ticket_bg_url:       gv('evf-ticket-bg'),
-            ticket_accent_color: gv('evf-ticket-accent') || '#7c3aed',
-            // Listas de acceso
-            reg_email_whitelist: gv('evf-reg-whitelist'),
-            reg_email_blacklist: gv('evf-reg-blacklist'),
-        };
-        
-        // Debug: mostrar datos que se enviarán
-        console.log('[EVENT CREATE LONG FORM] Data to send:', data);
 
-        try {
-            let res;
-            if (id) {
-                res = await this.updateEvent(id, data);
-            } else {
-                res = await this.fetchAPI('/events', { method: 'POST', body: JSON.stringify(data) });
-            }
-
-            if (res && res.success === false) {
-                await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
-                return;
-            }
-
-            // Actualizar estado local si editamos el evento activo
-            if (id && this.state.event && String(this.state.event.id) === String(id)) {
-                Object.assign(this.state.event, data);
-            }
-
-            document.getElementById('modal-event-full')?.classList.add('hidden');
-            await this.loadEvents();
-            await this._notifyAction('✓ Guardado', id ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
-        } catch (err) {
-            console.error('[saveEventFull] Error:', err);
-            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
-        }
-    },
 
     // ── ACTUALIZAR EVENTO vía API (v12.31.46) ──
     async updateEvent(id, data) {

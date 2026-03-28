@@ -92,10 +92,20 @@
                         <h1 class="text-3xl font-semibold tracking-tight mb-2">Mis Eventos</h1>
                         <p class="text-[var(--text-secondary)]">Administra todos tus eventos desde un solo lugar</p>
                     </div>
-                    <button id="btn-new-event-full" class="btn-primary !px-6 !py-3 flex items-center gap-2">
-                        <span class="material-symbols-outlined">add</span>
-                        Nuevo Evento
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center bg-[var(--bg-hover)] rounded-lg p-1">
+                            <button id="btn-events-view-grid" class="w-9 h-9 rounded-md flex items-center justify-center hover:bg-white/5 transition-colors active" title="Vista en cuadrícula">
+                                <span class="material-symbols-outlined text-lg">grid_view</span>
+                            </button>
+                            <button id="btn-events-view-list" class="w-9 h-9 rounded-md flex items-center justify-center hover:bg-white/5 transition-colors" title="Vista en lista">
+                                <span class="material-symbols-outlined text-lg">view_list</span>
+                            </button>
+                        </div>
+                        <button id="btn-new-event-full" class="btn-primary !px-6 !py-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined">add</span>
+                            Nuevo Evento
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="events-list-container" style="min-height: 300px;">
