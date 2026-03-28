@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.57';
+const VERSION = '12.31.58';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1334,6 +1334,20 @@ const App = window.App = {
         
         // Forzar tipos de datos específicos para Zod
         if (data.group_id === "") delete data.group_id;
+        
+        // Asegurar que campos vacíos sean strings vacíos en lugar de null/undefined
+        // Zod espera strings vacíos '' para campos opcionales
+        const fieldsToClean = [
+            'location', 'description', 'end_date', 'reg_title', 'reg_welcome_text',
+            'reg_success_message', 'reg_policy', 'qr_logo_url', 'ticket_bg_url',
+            'reg_email_whitelist', 'reg_email_blacklist'
+        ];
+        
+        fieldsToClean.forEach(field => {
+            if (data[field] === null || data[field] === undefined || data[field] === 'null') {
+                data[field] = '';
+            }
+        });
         
         // Debug: mostrar datos que se enviarán
         console.log('[EVENT CREATE FRONTEND] Data to send:', data);
