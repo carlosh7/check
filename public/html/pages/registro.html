@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <script type="module" src="/js/app.js?v=12.28.0"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.28.0">
-    <link rel="stylesheet" href="/css/modern.css?v=12.28.0">
+    <script type="module" src="/js/app.js?v=12.31.31"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.31">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.31">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script id="tailwind-config">
         tailwind.config = {
           darkMode: 'class',
@@ -196,7 +197,7 @@
             }
 
             try {
-                const res = await fetch(`${API_URL}/events/${eventId}`);
+                const res = await fetch(`${API_URL}/event/${eventId}`);
                 if (!res.ok) throw new Error('Evento no encontrado');
 
                 eventData = await res.json();

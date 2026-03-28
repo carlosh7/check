@@ -8,6 +8,23 @@ const { generateCaptcha, verifyCaptcha } = require('../security/captcha');
 const { AuditLog } = require('../security/audit');
 
 const router = express.Router();
+const { castId } = require('../utils/helpers');
+
+// Obtener detalles públicos de un evento para registro
+router.get('/event/:id', (req, res) => {
+    const id = castId('events', req.params.id);
+    if (!id) return res.status(400).json({ success: false, error: 'ID de evento no válido' });
+
+    const event = db.prepare(`SELECT id, name, date, end_date, location, description, 
+                                     reg_title, reg_welcome_text, reg_success_message, reg_show_phone, 
+                                     reg_show_org, reg_show_position, reg_show_vegan, reg_show_dietary, 
+                                     reg_show_gender, reg_require_agreement, reg_policy, reg_logo_path,
+                                     reg_email_whitelist, reg_email_blacklist
+                              FROM events WHERE id = ?`).get(id);
+
+    if (!event) return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+    res.json(event);
+});
 
 router.get('/captcha', (req, res) => {
     const captcha = generateCaptcha();
