@@ -51,10 +51,16 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
     const { 
-        name, date, location, logo_url, description, group_id, end_date,
-        reg_title, reg_welcome_text, reg_success_message,
-        reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan
+        name, date, location, description, group_id, end_date,
+        reg_title, reg_welcome_text, reg_success_message, reg_policy,
+        reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
+        reg_show_dietary, reg_show_gender, reg_require_agreement,
+        qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
+        reg_email_whitelist, reg_email_blacklist
     } = v.data;
+    
+    // logo_url no viene del formulario, se maneja por separado
+    const logo_url = '';
     
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
@@ -62,13 +68,19 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     db.prepare(`
         INSERT INTO events (
             id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date,
-            reg_title, reg_welcome_text, reg_success_message, 
-            reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reg_title, reg_welcome_text, reg_success_message, reg_policy,
+            reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
+            reg_show_dietary, reg_show_gender, reg_require_agreement,
+            qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
+            reg_email_whitelist, reg_email_blacklist
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         id, req.userId, name, date, location, logo_url || '', description || '', new Date().toISOString(), eventGroupId, end_date || null,
-        reg_title || '', reg_welcome_text || '', reg_success_message || '',
-        reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0
+        reg_title || '', reg_welcome_text || '', reg_success_message || '', reg_policy || '',
+        reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
+        reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
+        qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || '', ticket_bg_url || '', ticket_accent_color || '#7c3aed',
+        reg_email_whitelist || '', reg_email_blacklist || ''
     );
 
     const userEventId = getValidId('user_events');

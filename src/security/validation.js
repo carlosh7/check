@@ -68,10 +68,21 @@ const schemas = {
         reg_title: z.string().optional().or(z.literal('')),
         reg_welcome_text: z.string().optional().or(z.literal('')),
         reg_success_message: z.string().optional().or(z.literal('')),
+        reg_policy: z.string().optional().or(z.literal('')),
         reg_show_phone: z.union([z.boolean(), z.number()]).optional(),
         reg_show_org: z.union([z.boolean(), z.number()]).optional(),
         reg_show_position: z.union([z.boolean(), z.number()]).optional(),
-        reg_show_vegan: z.union([z.boolean(), z.number()]).optional()
+        reg_show_vegan: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_dietary: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_gender: z.union([z.boolean(), z.number()]).optional(),
+        reg_require_agreement: z.union([z.boolean(), z.number()]).optional(),
+        qr_color_dark: z.string().optional(),
+        qr_color_light: z.string().optional(),
+        qr_logo_url: z.string().optional().or(z.literal('')),
+        ticket_bg_url: z.string().optional().or(z.literal('')),
+        ticket_accent_color: z.string().optional(),
+        reg_email_whitelist: z.string().optional().or(z.literal('')),
+        reg_email_blacklist: z.string().optional().or(z.literal(''))
     }),
 
     updateEvent: z.object({
