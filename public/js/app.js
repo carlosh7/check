@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.24';
+const VERSION = '12.31.25';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4034,8 +4034,12 @@ const App = window.App = {
     },
     
     attachAppListeners() {
-        // Click listeners para elementos del app-shell
+        // Helpers
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+        const sf = (id, fn) => { 
+            const el = document.getElementById(id); 
+            if (el) el.addEventListener('submit', (e) => { e.preventDefault(); fn(e); }); 
+        };
         const hideModal = (id) => { 
             const m = document.getElementById(id); 
             if (m) { 
@@ -4086,10 +4090,7 @@ const App = window.App = {
         sf('new-event-full-form', (e) => this.saveEventFull(e));
         
         // Profile Security Forms (Phase 5)
-        const sf = (id, fn) => { 
-            const el = document.getElementById(id); 
-            if (el) el.addEventListener('submit', (e) => { e.preventDefault(); fn(e); }); 
-        };
+        sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-pass-form', (e) => this.handlePasswordChange(e));
         
