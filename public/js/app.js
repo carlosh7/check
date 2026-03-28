@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.1';
+const VERSION = '12.31.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3112,6 +3112,8 @@ const App = window.App = {
         document.querySelectorAll('.email-content').forEach(c => {
             c.classList.add('hidden');
             c.style.display = 'none';
+            c.style.visibility = 'hidden';
+            c.style.opacity = '0';
         });
         
         // Mostrar el contenido seleccionado
@@ -3120,6 +3122,8 @@ const App = window.App = {
         if (contentEl) {
             contentEl.classList.remove('hidden');
             contentEl.style.display = 'block';
+            contentEl.style.visibility = 'visible';
+            contentEl.style.opacity = '1';
             console.log('[EMAIL] Showing content:', contentId);
         } else {
             console.error('[EMAIL] Content not found:', contentId);
@@ -4170,6 +4174,10 @@ const App = window.App = {
             
             const loginVersionDisplay = document.getElementById('login-version-display');
             if (loginVersionDisplay) loginVersionDisplay.textContent = `v${d.version}`;
+            
+            // Actualizar versión en sidebar
+            const appVersionDisplay = document.getElementById('app-version-display');
+            if (appVersionDisplay) appVersionDisplay.textContent = `v${d.version}`;
             
             console.log(`[VERSION] Aplicación actualizada a V${d.version}`);
         } catch(e) {
