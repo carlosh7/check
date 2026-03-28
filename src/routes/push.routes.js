@@ -39,7 +39,10 @@ const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@check.com';
 function initWebPush() {
     const { publicKey, privateKey } = getVapidKeys();
     
-    if (!publicKey || !privateKey) {
+    // Verificar que las keys no sean valores placeholder vacíos o inválidos
+    const isValidKey = (key) => key && key.length > 20 && !key.includes('tu_') && !key.includes('change');
+    
+    if (!isValidKey(publicKey) || !isValidKey(privateKey)) {
         console.warn('⚠️  VAPID keys no configuradas. Notificaciones push no funcionarán.');
         console.warn('   Configura en panel de administración o variables de entorno.');
         return false;
