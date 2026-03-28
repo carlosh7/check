@@ -75,7 +75,7 @@
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-xs text-[var(--primary)] hover:opacity-80 transition-opacity uppercase tracking-[0.1em] font-bold block mb-1">
                         Powered by Smart Eventos
                     </a>
-                    <span class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.19</span>
+                    <span class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">v12.28.20</span>
                 </div>
             </div>
         </nav>
@@ -83,7 +83,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main id="app-main-content" class="flex-1 overflow-y-auto pl-[240px]">
+    <main id="app-main-content" class="flex-1 overflow-y-auto pl-[240px] pt-24">
         <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
         <section id="view-my-events" class="hidden">
             <div class="max-w-6xl mx-auto px-4 py-8">
@@ -827,12 +827,12 @@
                         <span class="material-symbols-outlined text-sm transition-transform" id="email-dropdown-arrow">expand_more</span>
                     </button>
                     <div id="email-dropdown-menu" class="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 hidden">
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('config') : console.error('App not available')">⚙️ Configuración</button>
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('accounts') : console.error('App not available')">📧 Cuentas</button>
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('campaigns') : console.error('App not available')">📢 Campañas</button>
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('mailbox') : console.error('App not available')">📬 Buzón</button>
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('mailing') : console.error('App not available')">📤 Mailing</button>
-                        <button class="email-dropdown-item" onclick="window.App && window.App.switchEmailTab ? window.App.switchEmailTab('templates') : console.error('App not available')">📄 Plantillas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('config'); } else { console.error('App not available'); }">⚙️ Configuración</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('accounts'); } else { console.error('App not available'); }">📧 Cuentas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('campaigns'); } else { console.error('App not available'); }">📢 Campañas</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailbox'); } else { console.error('App not available'); }">📬 Buzón</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('mailing'); } else { console.error('App not available'); }">📤 Mailing</button>
+                        <button class="email-dropdown-item" onclick="if (window.App) { window.App.switchEmailTab('templates'); } else { console.error('App not available'); }">📄 Plantillas</button>
                     </div>
                 </div>
                 

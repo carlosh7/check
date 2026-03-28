@@ -268,7 +268,7 @@ const App = window.App = {
 
     // Función interna para mostrar sección de email (para compatibilidad)
     _showEmailSection(tabName) {
-        this.switchEmailTab(tabName);
+        this._showEmailTab(tabName);
     },
 
     switchEventTab(tabId) {
@@ -3085,10 +3085,73 @@ const App = window.App = {
     },
     
     switchEmailTab: function(tab) {
-        document.querySelectorAll('.email-tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + tab)?.classList.add('active');
-        document.querySelectorAll('.email-tab-content').forEach(c => c.classList.add('hidden'));
-        document.getElementById('content-' + tab)?.classList.remove('hidden');
+        console.log('[EMAIL] Switching to tab:', tab);
+        
+        // Primero, asegurarnos de que estamos en la vista de sistema
+        if (!document.getElementById('view-system') || document.getElementById('view-system').classList.contains('hidden')) {
+            console.log('[EMAIL] Not in system view, navigating first...');
+            this.navigate('system', { tab: 'email' }, true);
+            // Esperar un momento para que la navegación se complete
+            setTimeout(() => {
+                this._showEmailTab(tab);
+            }, 100);
+            return;
+        }
+        
+        // Si ya estamos en system view, mostrar la pestaña
+        this._showEmailTab(tab);
+    },
+    
+    _showEmailTab: function(tab) {
+        console.log('[EMAIL] Showing tab:', tab);
+        
+        // Ocultar todos los contenidos de email
+        document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
+        
+        // Mostrar el contenido seleccionado
+        const contentId = 'email-content-' + tab;
+        const contentEl = document.getElementById(contentId);
+        if (contentEl) {
+            contentEl.classList.remove('hidden');
+            console.log('[EMAIL] Showing content:', contentId);
+        } else {
+            console.error('[EMAIL] Content not found:', contentId);
+        }
+        
+        // Actualizar título de la sección
+        const titles = {
+            'config': 'Configuración',
+            'accounts': 'Cuentas',
+            'campaigns': 'Campañas',
+            'mailbox': 'Buzón',
+            'mailing': 'Mailing',
+            'templates': 'Plantillas'
+        };
+        
+        const titleEl = document.getElementById('email-section-title');
+        const descEl = document.getElementById('email-section-description');
+        
+        if (titleEl) {
+            titleEl.innerHTML = `⚙️ <span class="text-[var(--primary)]">${titles[tab] || tab}</span> de Email`;
+        }
+        
+        if (descEl) {
+            const descriptions = {
+                'config': 'Configura los servidores SMTP/IMAP para el envío y recepción de emails.',
+                'accounts': 'Gestiona las cuentas de email configuradas en el sistema.',
+                'campaigns': 'Crea y gestiona campañas de email marketing.',
+                'mailbox': 'Revisa y gestiona los emails recibidos en el buzón.',
+                'mailing': 'Envía emails masivos a listas de contactos.',
+                'templates': 'Crea y gestiona plantillas de email reutilizables.'
+            };
+            descEl.textContent = descriptions[tab] || 'Gestión de email';
+        }
+        
+        // Cerrar el dropdown si está abierto
+        const dropdown = document.getElementById('email-dropdown-menu');
+        if (dropdown && dropdown.classList.contains('show')) {
+            this.toggleEmailDropdown();
+        }
     },
     
     loadEventEmailConfig: async function(eventId) {
