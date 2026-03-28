@@ -4,36 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Check Pro</title>
-    <link rel="icon" href="data:,">
-    <script>
-        // Silenciar advertencia de Tailwind CDN en consola
-        const _warn = console.warn;
-        console.warn = (...args) => {
-            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-            _warn(...args);
-        };
-    </script>
-    <script type="module" src="/js/app.js?v=12.31.42"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.31.42">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.42">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              colors: {
-                primary: { DEFAULT: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
-                slate: { 850: '#1e293b', 950: '#020617' }
-              },
-              fontFamily: {
-                sans: ['Plus Jakarta Sans', 'sans-serif'],
-                display: ['Manrope', 'sans-serif']
-              }
-            }
-          }
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        :root {
+            --color-primary: #7c3aed;
+            --color-primary-light: #a78bfa;
+            --color-primary-dark: #5b21b6;
         }
-    </script>
+    </style>
+    <script type="module" src="/js/app.js?v=12.31.45"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=12.31.45">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.45">
     <style>
         .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
         input[type="radio"] { accent-color: #7c3aed; }
