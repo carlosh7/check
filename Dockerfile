@@ -12,8 +12,14 @@ RUN apt-get update && apt-get install -y \
 # Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm ci --only=production
+# Copiar .env.example para automatización
+COPY .env.example ./
+
+# Instalar todas las dependencias (incluye devDependencies para build tools)
+RUN npm install
+
+# Crear carpeta data automáticamente
+RUN if [ ! -d "data" ]; then mkdir data; fi
 
 # Copiar el resto de la aplicación
 COPY . .
@@ -21,5 +27,5 @@ COPY . .
 # Exponer el puerto
 EXPOSE 3000
 
-# Comando por defecto
-CMD ["node", "server.js"]
+# Comando por defecto - inicia el servidor
+CMD ["npm", "start"]
