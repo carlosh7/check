@@ -61,17 +61,36 @@ const schemas = {
     createEvent: z.object({
         name: z.string().min(1, 'Nombre requerido').max(200),
         date: z.string().optional(),
-        location: z.string().max(500).optional(),
-        description: z.string().max(2000).optional(),
-        group_id: z.union([z.string(), z.number()]).optional()
+        end_date: z.string().optional().or(z.literal('')),
+        location: z.string().max(500).optional().or(z.literal('')),
+        description: z.string().max(2000).optional().or(z.literal('')),
+        group_id: z.union([z.string(), z.number()]).optional().or(z.literal('')),
+        reg_title: z.string().optional().or(z.literal('')),
+        reg_welcome_text: z.string().optional().or(z.literal('')),
+        reg_success_message: z.string().optional().or(z.literal('')),
+        reg_show_phone: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_org: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_position: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_vegan: z.union([z.boolean(), z.number()]).optional()
     }),
 
     updateEvent: z.object({
         name: z.string().min(1).max(200).optional(),
         date: z.string().optional(),
-        location: z.string().max(500).optional(),
-        description: z.string().max(2000).optional(),
-        status: z.enum(['ACTIVE', 'INACTIVE', 'COMPLETED']).optional()
+        end_date: z.string().optional().or(z.literal('')),
+        location: z.string().max(500).optional().or(z.literal('')),
+        description: z.string().max(2000).optional().or(z.literal('')),
+        status: z.enum(['ACTIVE', 'INACTIVE', 'COMPLETED']).optional(),
+        reg_title: z.string().optional().or(z.literal('')),
+        reg_welcome_text: z.string().optional().or(z.literal('')),
+        reg_success_message: z.string().optional().or(z.literal('')),
+        reg_show_phone: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_org: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_position: z.union([z.boolean(), z.number()]).optional(),
+        reg_show_vegan: z.union([z.boolean(), z.number()]).optional(),
+        qr_color_dark: z.string().optional(),
+        qr_color_light: z.string().optional(),
+        ticket_accent_color: z.string().optional()
     }),
 
     createGuest: z.object({

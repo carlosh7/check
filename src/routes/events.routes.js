@@ -50,12 +50,26 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.createEvent, req.body);
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
-    const { name, date, location, logo_url, description, group_id, end_date } = v.data;
+    const { 
+        name, date, location, logo_url, description, group_id, end_date,
+        reg_title, reg_welcome_text, reg_success_message,
+        reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan
+    } = v.data;
+    
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
 
-    db.prepare("INSERT INTO events (id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?)")
-      .run(id, req.userId, name, date, location, logo_url || '', description || '', new Date().toISOString(), eventGroupId, end_date || null);
+    db.prepare(`
+        INSERT INTO events (
+            id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date,
+            reg_title, reg_welcome_text, reg_success_message, 
+            reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        id, req.userId, name, date, location, logo_url || '', description || '', new Date().toISOString(), eventGroupId, end_date || null,
+        reg_title || '', reg_welcome_text || '', reg_success_message || '',
+        reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0
+    );
 
     const userEventId = getValidId('user_events');
     db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
@@ -108,7 +122,18 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             reg_email_whitelist = COALESCE(?, reg_email_whitelist),
             reg_email_blacklist = COALESCE(?, reg_email_blacklist)
         WHERE id = ?
-    `).run(d.name, d.date, d.location, logo_url, d.description, d.end_date, d.status, d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, d.reg_show_phone, d.reg_show_org, d.reg_show_position, d.reg_show_vegan, d.reg_show_dietary, d.reg_show_gender, d.reg_require_agreement, d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId);
+    `).run(
+        d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status, 
+        d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, 
+        (d.reg_show_phone === true || d.reg_show_phone === 1) ? 1 : 0, 
+        (d.reg_show_org === true || d.reg_show_org === 1) ? 1 : 0, 
+        (d.reg_show_position === true || d.reg_show_position === 1) ? 1 : 0, 
+        (d.reg_show_vegan === true || d.reg_show_vegan === 1) ? 1 : 0, 
+        (d.reg_show_dietary === true || d.reg_show_dietary === 1) ? 1 : 0, 
+        (d.reg_show_gender === true || d.reg_show_gender === 1) ? 1 : 0, 
+        (d.reg_require_agreement === true || d.reg_require_agreement === 1) ? 1 : 0, 
+        d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId
+    );
 
     // Invalidate cache
     await del(CACHE_KEYS.EVENT_LIST);

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.23';
+const VERSION = '12.31.24';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1312,6 +1312,58 @@ const App = window.App = {
                 alert("Error: " + d.error);
             }
         } catch (e) { alert("Error al crear evento."); }
+    },
+    
+    saveEventFull: async function(e) {
+        if (e) e.preventDefault();
+        const f = document.getElementById('new-event-full-form');
+        if (!f) return;
+        
+        const fd = new FormData(f);
+        const data = {};
+        fd.forEach((v, k) => {
+            if (f.elements[k]?.type === 'checkbox') {
+                data[k.replace('evf-', 'reg_').replace('-', '_')] = f.elements[k].checked;
+            } else {
+                data[k.replace('evf-', '').replace(/-/g, '_')] = v;
+            }
+        });
+        
+        // Mapeo manual de campos problemáticos si es necesario
+        data.name = fd.get('evf-name');
+        data.date = fd.get('evf-date');
+        data.end_date = fd.get('evf-end-date');
+        data.location = fd.get('evf-location');
+        data.description = fd.get('evf-desc');
+        
+        try {
+            const res = await this.fetchAPI('/events', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (res.success || res.eventId) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Evento Creado',
+                        text: 'El evento se ha configurado correctamente.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert("✓ Evento creado con éxito.");
+                }
+                f.reset();
+                window.navigate('events');
+                this.loadEvents();
+            } else {
+                alert("Error: " + (res.error || res.errors?.join(', ')));
+            }
+        } catch (err) {
+            console.error('Error saving full event:', err);
+            alert("Error de conexión al crear evento.");
+        }
     },
     
     async updateEvent(id, data) {
@@ -4029,6 +4081,9 @@ const App = window.App = {
         cl('sys-nav-account', () => window.switchSystemTab('account'));
         
         cl('btn-open-invite', () => this.openInviteModal());
+        
+        // Event Creation (Full Form)
+        sf('new-event-full-form', (e) => this.saveEventFull(e));
         
         // Profile Security Forms (Phase 5)
         const sf = (id, fn) => { 
