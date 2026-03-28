@@ -211,6 +211,17 @@ const App = window.App = {
                     }, 50);
                 };
             });
+            
+            // Cerrar al hacer clic en el backdrop
+            const backdrop = document.getElementById('email-modal-backdrop');
+            if (backdrop) {
+                setTimeout(() => {
+                    backdrop.onclick = () => {
+                        console.log('[DROPDOWN] Backdrop clicked, closing modal');
+                        this.closeEmailModal();
+                    };
+                }, 10);
+            }
         }
     },
     

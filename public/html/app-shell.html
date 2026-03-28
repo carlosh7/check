@@ -1203,14 +1203,14 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.31.15">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.15">
+<link rel="stylesheet" href="/css/styles.css?v=12.31.16">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.16">
 <script type="module">
     // Sistema anti-caché avanzado V12.28.15
     (function() {
         // Verificar si hay una versión esperada guardada (de un reload forzado)
         const expectedVersion = localStorage.getItem('check_expected_version');
-            const currentVersion = '12.31.15';
+            const currentVersion = '12.31.16';
         
         // Si hay una versión esperada y no coincide con la actual, forzar recarga
         if (expectedVersion && expectedVersion !== currentVersion) {
@@ -1235,6 +1235,8 @@
 
 <!-- MODAL: Email Menu (Portal - siempre visible) -->
 <div id="email-menu-modal" class="fixed inset-0 z-[999999] hidden" style="display: none;">
+    <!-- Backdrop (fondo para cerrar al hacer clic) -->
+    <div id="email-modal-backdrop" style="position: absolute; inset: 0;"></div>
     <!-- Menu Container -->
     <div class="absolute" id="email-modal-menu" style="top: 0; left: 0;">
         <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg">
