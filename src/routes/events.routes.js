@@ -48,7 +48,11 @@ router.get('/:id', authMiddleware(), async (req, res) => {
 
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const v = validate(schemas.createEvent, req.body);
-    if (!v.valid) return res.status(400).json({ errors: v.errors });
+    if (!v.valid) {
+        console.error('[EVENT CREATE VALIDATION ERROR]', v.errors);
+        console.error('[EVENT CREATE REQUEST BODY]', req.body);
+        return res.status(400).json({ errors: v.errors });
+    }
 
     const { 
         name, date, location, description, group_id, end_date,

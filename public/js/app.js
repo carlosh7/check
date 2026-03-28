@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.56';
+const VERSION = '12.31.57';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1334,6 +1334,9 @@ const App = window.App = {
         
         // Forzar tipos de datos específicos para Zod
         if (data.group_id === "") delete data.group_id;
+        
+        // Debug: mostrar datos que se enviarán
+        console.log('[EVENT CREATE FRONTEND] Data to send:', data);
         
         // Validación en el Cliente (Solicitud del Usuario)
         const missingFields = [];
