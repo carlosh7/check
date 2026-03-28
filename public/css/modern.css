@@ -1,6 +1,6 @@
 /**
  * modern.css - Check Elegant Pro Design System
- * InspiraciÃ³n: Apple / Chrome Browser / Minimalismo Sofisticado
+ * Inspiración: Apple / Chrome Browser / Minimalismo Sofisticado
  */
 
 :root {
@@ -48,15 +48,15 @@
     --content-padding: 40px;
     --transition-speed: 0.25s;
     
-    /* Font Sizes - Sistema estandarizado (mÃ­nimo 11px, mÃ¡ximo 32px) */
-    --font-xs: 11px;    /* Textos muy pequeÃ±os, labels, notas */
-    --font-sm: 13px;    /* Textos pequeÃ±os, botones secundarios */
+    /* Font Sizes - Sistema estandarizado (mínimo 11px, máximo 32px) */
+    --font-xs: 11px;    /* Textos muy pequeños, labels, notas */
+    --font-sm: 13px;    /* Textos pequeños, botones secundarios */
     --font-base: 15px;  /* Texto base, cuerpo principal */
-    --font-lg: 17px;    /* Textos destacados, subtÃ­tulos */
-    --font-xl: 20px;    /* TÃ­tulos pequeÃ±os */
-    --font-2xl: 24px;   /* TÃ­tulos medianos */
-    --font-3xl: 28px;   /* TÃ­tulos grandes */
-    --font-4xl: 32px;   /* TÃ­tulos muy grandes */
+    --font-lg: 17px;    /* Textos destacados, subtítulos */
+    --font-xl: 20px;    /* Títulos pequeños */
+    --font-2xl: 24px;   /* Títulos medianos */
+    --font-3xl: 28px;   /* Títulos grandes */
+    --font-4xl: 32px;   /* Títulos muy grandes */
 }
 
 /* Chrome Dark Mode Palette */
@@ -183,7 +183,7 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* BotÃ³n Primario - Minimalista */
+/* Botón Primario - Minimalista */
 .btn-primary {
     background-color: var(--primary) !important;
     color: var(--text-inverse) !important;
@@ -495,7 +495,7 @@ html.dark .ql-stroke {
     stroke: var(--text-main) !important;
 }
 
-/* Fix para visibilidad adaptativa segÃºn el tema */
+/* Fix para visibilidad adaptativa según el tema */
 .tpl-preview-bg .ql-editor {
     background-color: transparent !important;
     color: inherit !important;
