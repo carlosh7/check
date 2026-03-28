@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.30.9';
+const VERSION = '12.31.0';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3428,9 +3428,16 @@ const App = window.App = {
         
         if (viewName === 'login') {
             console.log('[VIEW] Mostrando login, ocultando app-container');
-            document.getElementById('view-login')?.classList.remove('hidden');
-            // if (document.getElementById('view-login')) document.getElementById('view-login').style.display = 'flex'; // REMOVIDO
-            document.getElementById('app-container')?.classList.add('hidden');
+            const loginEl = document.getElementById('view-login');
+            if (loginEl) {
+                loginEl.classList.remove('hidden');
+                loginEl.style.display = 'flex';
+            }
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) {
+                appContainer.classList.add('hidden');
+                appContainer.style.display = 'none';
+            }
             if (clearSession) { window.LS.remove('user'); this.state.user = null; }
             return;
         } else {
@@ -3443,12 +3450,13 @@ const App = window.App = {
             
             if (loginEl) {
                 loginEl.classList.add('hidden');
+                loginEl.style.display = 'none';
                 console.log('[VIEW] Login ocultado');
             }
             
             if (appContainer) {
                 appContainer.classList.remove('hidden');
-                // appContainer.style.display = 'flex'; // REMOVIDO - ya tiene clase 'flex'
+                appContainer.style.display = 'flex';
                 console.log('[VIEW] app-container mostrado (clase hidden removida)');
             } else {
                 console.error('[VIEW] ERROR: app-container no encontrado!');
