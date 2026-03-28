@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.0';
+const VERSION = '12.31.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3109,13 +3109,17 @@ const App = window.App = {
         console.log('[EMAIL] Showing tab:', tab);
         
         // Ocultar todos los contenidos de email
-        document.querySelectorAll('.email-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.email-content').forEach(c => {
+            c.classList.add('hidden');
+            c.style.display = 'none';
+        });
         
         // Mostrar el contenido seleccionado
         const contentId = 'email-content-' + tab;
         const contentEl = document.getElementById(contentId);
         if (contentEl) {
             contentEl.classList.remove('hidden');
+            contentEl.style.display = 'block';
             console.log('[EMAIL] Showing content:', contentId);
         } else {
             console.error('[EMAIL] Content not found:', contentId);
