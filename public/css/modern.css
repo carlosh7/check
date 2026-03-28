@@ -603,10 +603,12 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-md) !important;
-    z-index: 1000;
+    z-index: 99999 !important;
     display: none; /* Ocultar por defecto */
     overflow: visible !important;
     max-height: none !important;
+    position: fixed !important;
+    width: 200px !important;
 }
 
 #email-dropdown-menu:not(.hidden) {
