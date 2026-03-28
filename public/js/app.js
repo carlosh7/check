@@ -165,53 +165,73 @@ const App = window.App = {
         }
     },
 
-    // Toggle dropdown de emails - usa position fixed para evitar recorte
+    // Toggle dropdown de emails - usa MODAL/PORTAL para evitar recorte
     toggleEmailDropdown() {
         console.log('[DROPDOWN] toggleEmailDropdown called');
-        const dropdown = document.getElementById('email-dropdown-menu');
-        const dropdownContainer = document.querySelector('.email-dropdown');
+        const modal = document.getElementById('email-menu-modal');
+        const modalMenu = document.getElementById('email-modal-menu');
         const mainBtn = document.getElementById('email-main-btn');
         
-        if (!dropdown || !mainBtn) {
-            console.error('[DROPDOWN] Dropdown or button not found!');
+        if (!modal || !mainBtn) {
+            console.error('[DROPDOWN] Modal or button not found!');
             return;
         }
         
-        if (dropdown.classList.contains('show')) {
-            console.log('[DROPDOWN] Closing dropdown');
-            dropdown.classList.remove('show');
-            dropdownContainer.classList.remove('open');
+        if (modal.classList.contains('show')) {
+            console.log('[DROPDOWN] Closing modal');
+            this.closeEmailModal();
         } else {
-            console.log('[DROPDOWN] Opening dropdown');
+            console.log('[DROPDOWN] Opening modal');
             
-            // Calcular posición exacta del botón para posicionar dropdown con fixed
+            // Calcular posición exacta del botón
             const btnRect = mainBtn.getBoundingClientRect();
-            const dropdownWidth = 220; // ancho del dropdown
             
-            // Posicionar dropdown debajo del botón, alineado a la izquierda
-            const top = btnRect.bottom + 4; // 4px debajo del botón
+            // Posicionar el menú debajo del botón
+            const top = btnRect.bottom + 4;
             const left = btnRect.left;
             
-            // Aplicar posición fixed
-            dropdown.style.position = 'fixed';
-            dropdown.style.top = top + 'px';
-            dropdown.style.left = left + 'px';
-            dropdown.style.width = dropdownWidth + 'px';
+            modalMenu.style.top = top + 'px';
+            modalMenu.style.left = left + 'px';
             
-            dropdown.classList.add('show');
-            dropdownContainer.classList.add('open');
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            modal.classList.add('show');
             
-            // Cerrar al hacer clic fuera
-            setTimeout(() => {
-                const closeDropdown = (e) => {
-                    if (!dropdown.contains(e.target) && !mainBtn.contains(e.target)) {
-                        dropdown.classList.remove('show');
-                        dropdownContainer.classList.remove('open');
-                        document.removeEventListener('click', closeDropdown);
-                    }
+            // Agregar event listeners a los items del modal
+            const modalItems = modal.querySelectorAll('.email-modal-item');
+            modalItems.forEach(item => {
+                item.onclick = (e) => {
+                    const tab = item.getAttribute('data-tab');
+                    console.log('[DROPDOWN] Modal item clicked:', tab);
+                    this.closeEmailModal();
+                    // Pequeño delay para que se cierre el modal antes de navegar
+                    setTimeout(() => {
+                        this.switchEmailTab(tab);
+                    }, 50);
                 };
-                document.addEventListener('click', closeDropdown);
+            });
+            
+            // Cerrar al hacer clic en el backdrop
+            const backdrop = document.getElementById('email-modal-backdrop');
+            const closeOnBackdrop = (e) => {
+                if (e.target === backdrop) {
+                    this.closeEmailModal();
+                }
+            };
+            setTimeout(() => {
+                backdrop.addEventListener('click', closeOnBackdrop);
             }, 10);
+        }
+    },
+    
+    // Cerrar el modal de email
+    closeEmailModal() {
+        const modal = document.getElementById('email-menu-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
         }
     },
 

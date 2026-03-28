@@ -882,3 +882,35 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
 #view-login button[type="submit"]:active {
     transform: translateY(0);
 }
+
+/* ===== EMAIL MENU MODAL (PORTAL) ===== */
+#email-menu-modal {
+    pointer-events: auto;
+}
+
+#email-menu-modal.show {
+    display: flex !important;
+}
+
+#email-modal-menu {
+    z-index: 1000000;
+}
+
+.email-modal-item {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+}
+
+.email-modal-item:hover {
+    background-color: var(--bg-hover) !important;
+    color: var(--text-main) !important;
+}
+
+.email-modal-item:active {
+    background-color: var(--bg-active) !important;
+}

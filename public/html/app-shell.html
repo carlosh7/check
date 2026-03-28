@@ -1203,8 +1203,8 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 </style>
-<link rel="stylesheet" href="/css/styles.css?v=12.31.10">
-    <link rel="stylesheet" href="/css/modern.css?v=12.31.10">
+<link rel="stylesheet" href="/css/styles.css?v=12.31.11">
+    <link rel="stylesheet" href="/css/modern.css?v=12.31.11">
 <script type="module">
     // Sistema anti-caché avanzado V12.28.15
     (function() {
@@ -1232,3 +1232,32 @@
         localStorage.setItem('check_loaded_version', currentVersion);
     })();
 </script>
+
+<!-- MODAL: Email Menu (Portal - siempre visible) -->
+<div id="email-menu-modal" class="fixed inset-0 z-[999999] hidden" style="display: none;">
+    <!-- Backdrop -->
+    <div id="email-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <!-- Menu Container -->
+    <div class="absolute" id="email-modal-menu" style="top: 0; left: 0;">
+        <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden min-w-[200px]">
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)]" data-tab="config">
+                ⚙️ Configuración
+            </button>
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)]" data-tab="accounts">
+                📧 Cuentas
+            </button>
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)]" data-tab="campaigns">
+                📢 Campañas
+            </button>
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)]" data-tab="mailbox">
+                📬 Buzón
+            </button>
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)]" data-tab="mailing">
+                📤 Mailing
+            </button>
+            <button class="email-modal-item w-full text-left px-4 py-3 hover:bg-[var(--bg-hover)] transition-colors" data-tab="templates">
+                📄 Plantillas
+            </button>
+        </div>
+    </div>
+</div>
