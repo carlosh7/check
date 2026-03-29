@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.78';
+const VERSION = '12.31.65';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -119,18 +119,6 @@ const App = window.App = {
     },
 
     navigateToCreateEvent(type = 'short') {
-        console.log('[NAVIGATE TO CREATE EVENT] Type:', type);
-        
-        // Cerrar cualquier SweetAlert abierto de forma agresiva
-        if (Swal && Swal.close) {
-            Swal.close();
-        }
-        // Remover cualquier overlay de SweetAlert que pueda estar bloqueando
-        const swalOverlay = document.querySelector('.swal2-container');
-        if (swalOverlay) {
-            swalOverlay.remove();
-        }
-        
         if (type === 'full') {
             // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
             setTimeout(() => {
@@ -154,20 +142,12 @@ const App = window.App = {
                 const modal = document.getElementById('modal-event-full');
                 if (modal) {
                     modal.classList.remove('hidden');
-                    modal.style.display = 'flex';
                 }
-            }, 150);
+            }, 100);
         } else {
-            // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
-            const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
-            const isInSystem = currentView && currentView.id === 'view-system';
-            
-            if (!isInSystem) {
-                this.navigate('system');
-            }
-            
+            // Abrir formulario corto (Equipo/Empresa) - navegar a system/groups
+            this.navigate('system');
             setTimeout(() => {
-                console.log('[NAVIGATE TO CREATE EVENT] Opening short form modal');
                 document.getElementById('ev-id-hidden').value = '';
                 const form = document.getElementById('new-event-form');
                 if (form) {
@@ -185,17 +165,8 @@ const App = window.App = {
                     });
                 }
                 if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
-                
-                const modal = document.getElementById('modal-event');
-                console.log('[NAVIGATE TO CREATE EVENT] Modal element:', modal);
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    modal.style.display = 'flex';
-                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now, classes:', modal.className);
-                } else {
-                    console.error('[NAVIGATE TO CREATE EVENT] Modal not found!');
-                }
-            }, 150);
+                document.getElementById('modal-event')?.classList.remove('hidden');
+            }, 100);
         }
     },
 
@@ -930,20 +901,8 @@ const App = window.App = {
     },
 
     async showEventSelector(userId, selectedEventIds = []) {
-        // Guardar el userId actual para cuando se cree un nuevo evento
-        this._pendingEventUserId = userId;
-        
         let events = [];
         try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
-
-        const createEventHandler = function() {
-            // Cerrar SweetAlert primero
-            if (Swal && Swal.close) Swal.close();
-            // Luego navegar a crear evento
-            setTimeout(() => {
-                window.App.navigateToCreateEvent('short');
-            }, 200);
-        };
 
         const html = `
             <div class="space-y-6 text-left">
@@ -952,12 +911,12 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
                         <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
                     </div>
-                    <button id="btn-create-event-from-selector" class="btn-primary !py-2 !px-4 !text-xs">
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
                         + NUEVO EVENTO
                     </button>
                 </div>
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.length > 0 ? events.map(e => `
+                    ${events.map(e => `
                         <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
@@ -970,18 +929,14 @@ const App = window.App = {
                                 <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
                             </div>
                         </div>
-                    `).join('') : '<div class="text-center py-8 text-slate-500">No hay eventos disponibles</div>'}
+                    `).join('')}
                 </div>
             </div>`;
 
         Swal.fire({
             html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
             showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' },
-            willOpen: () => {
-                // Agregar event listener después de que se abra el SweetAlert
-                document.getElementById('btn-create-event-from-selector')?.addEventListener('click', createEventHandler);
-            }
+            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
         });
     },
 
@@ -1545,19 +1500,8 @@ const App = window.App = {
             }
             
             document.getElementById('modal-event')?.classList.add('hidden');
-            document.getElementById('modal-event')?.style.display = 'none';
             await this.loadEvents();
             await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
-            
-            // Si se creó desde el selector de eventos, volver a abrir el selector
-            if (this._pendingEventUserId) {
-                const userId = this._pendingEventUserId;
-                delete this._pendingEventUserId;
-                // Obtener los eventos actuales del usuario
-                const user = this.state.allUsers?.find(u => u.id === userId);
-                const userEvents = user?.events || [];
-                this.showEventSelector(userId, userEvents);
-            }
         } catch (err) {
             console.error('[saveEventShort] Error:', err);
             await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
@@ -4320,8 +4264,6 @@ const App = window.App = {
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-pass-form', (e) => this.handlePasswordChange(e));
-        sf('invite-user-form', (e) => this.handleInviteSubmit(e));
-        sf('company-form', (e) => this.handleCompanySubmit(e));
         
         // Event Tabs (Panel de Control - solo Invitados)
         cl('ev-nav-guests', () => window.switchEventTab('guests'));
@@ -4875,45 +4817,34 @@ const App = window.App = {
         const ev = this.state.events.find(e => String(e.id) === String(id));
         if (!ev) return;
         
-        // Función auxiliar para establecer valor solo si el elemento existe
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.value = value;
-        };
-        
-        const setChecked = (id, checked) => {
-            const el = document.getElementById(id);
-            if (el) el.checked = checked;
-        };
-        
         // Usar formulario completo (modal-event-full) con prefijo evf-
-        setValue('evf-id-hidden', ev.id);
-        setValue('evf-name', ev.name || '');
-        setValue('evf-location', ev.location || '');
-        setValue('evf-desc', ev.description || '');
-        setValue('evf-date', ev.date ? ev.date.slice(0, 16) : '');
-        setValue('evf-end-date', ev.end_date ? ev.end_date.slice(0, 16) : '');
+        document.getElementById('evf-id-hidden').value = ev.id;
+        document.getElementById('evf-name').value = ev.name || '';
+        document.getElementById('evf-location').value = ev.location || '';
+        document.getElementById('evf-desc').value = ev.description || '';
+        document.getElementById('evf-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        document.getElementById('evf-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
         
-        setValue('evf-reg-title', ev.reg_title || '');
-        setValue('evf-reg-welcome', ev.reg_welcome_text || '');
-        setValue('evf-reg-success', ev.reg_success_message || '');
-        setValue('evf-reg-policy', ev.reg_policy || '');
-        setChecked('evf-reg-phone', ev.reg_show_phone !== 0);
-        setChecked('evf-reg-org', ev.reg_show_org !== 0);
-        setChecked('evf-reg-position', ev.reg_show_position === 1);
-        setChecked('evf-reg-vegan', ev.reg_show_vegan !== 0);
-        setChecked('evf-reg-dietary', ev.reg_show_dietary !== 0);
-        setChecked('evf-reg-gender', ev.reg_show_gender === 1);
-        setChecked('evf-reg-agreement', ev.reg_require_agreement !== 0);
+        document.getElementById('evf-reg-title').value = ev.reg_title || '';
+        document.getElementById('evf-reg-welcome').value = ev.reg_welcome_text || '';
+        document.getElementById('evf-reg-success').value = ev.reg_success_message || '';
+        document.getElementById('evf-reg-policy').value = ev.reg_policy || '';
+        document.getElementById('evf-reg-phone').checked = ev.reg_show_phone !== 0;
+        document.getElementById('evf-reg-org').checked = ev.reg_show_org !== 0;
+        document.getElementById('evf-reg-position').checked = ev.reg_show_position === 1;
+        document.getElementById('evf-reg-vegan').checked = ev.reg_show_vegan !== 0;
+        document.getElementById('evf-reg-dietary').checked = ev.reg_show_dietary !== 0;
+        document.getElementById('evf-reg-gender').checked = ev.reg_show_gender === 1;
+        document.getElementById('evf-reg-agreement').checked = ev.reg_require_agreement !== 0;
         
-        setValue('evf-qr-dark', ev.qr_color_dark || '#000000');
-        setValue('evf-qr-light', ev.qr_color_light || '#ffffff');
-        setValue('evf-qr-logo', ev.qr_logo_url || '');
-        setValue('evf-ticket-bg', ev.ticket_bg_url || '');
-        setValue('evf-ticket-accent', ev.ticket_accent_color || '#7c3aed');
+        document.getElementById('evf-qr-dark').value = ev.qr_color_dark || '#000000';
+        document.getElementById('evf-qr-light').value = ev.qr_color_light || '#ffffff';
+        document.getElementById('evf-qr-logo').value = ev.qr_logo_url || '';
+        document.getElementById('evf-ticket-bg').value = ev.ticket_bg_url || '';
+        document.getElementById('evf-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
         
-        setValue('evf-reg-whitelist', ev.reg_email_whitelist || '');
-        setValue('evf-reg-blacklist', ev.reg_email_blacklist || '');
+        document.getElementById('evf-reg-whitelist').value = ev.reg_email_whitelist || '';
+        document.getElementById('evf-reg-blacklist').value = ev.reg_email_blacklist || '';
         
         // Link de Registro en Modal (NUEVO v12.31.29)
         const linkStr = `${window.location.origin}/registro.html?event=${ev.id}`;
@@ -4951,26 +4882,15 @@ const App = window.App = {
                 console.log('[DELETE EVENT] Response:', res);
                 
                 // Verificar si la eliminación fue exitosa
-                if (!res || res.success === false) {
-                    const errorMsg = res?.error || 'El evento no puede ser eliminado porque tiene invitados registrados.';
-                    this._notifyAction('Error', errorMsg, 'error');
+                if (res && res.success === false) {
+                    this._notifyAction('Error', res.error || 'No se pudo eliminar el evento', 'error');
                     return;
                 }
                 
-                // Eliminar el evento del estado local inmediatamente
-                this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
-                
-                // Forzar renderizado de la lista
-                this.renderEventsGrid();
-                
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
+                this.loadEvents();
             } catch (e) { 
-                // Error de constraints typically means there are related records
-                if (e.message && e.message.includes('FOREIGN KEY')) {
-                    this._notifyAction('Error', 'El evento no puede ser eliminado porque tiene invitados registrados.', 'error');
-                } else {
-                    this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
-                }
+                this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
             }
         }
     },
@@ -7326,96 +7246,6 @@ const App = window.App = {
                 e.target.reset();
             }
         } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
-    },
-
-    async handleInviteSubmit(e) {
-        e.preventDefault();
-        const displayName = document.getElementById('invite-display-name')?.value;
-        const username = document.getElementById('invite-username')?.value;
-        const password = document.getElementById('invite-password')?.value;
-        const role = document.getElementById('invite-role')?.value;
-        
-        const editingUserId = this.state.editingUserId;
-        
-        // Validación diferente para crear vs editar
-        if (editingUserId) {
-            // Modo edición - solo requiere nombre
-            if (!displayName) {
-                this._notifyAction('Error', 'El nombre es requerido', 'error');
-                return;
-            }
-        } else {
-            // Modo creación - requiere todos los campos
-            if (!displayName || !username || !password) {
-                this._notifyAction('Error', 'Completa todos los campos requeridos', 'error');
-                return;
-            }
-        }
-        
-        try {
-            if (editingUserId) {
-                // Editar usuario existente
-                await this.fetchAPI(`/users/${editingUserId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ display_name: displayName, role })
-                });
-                this._notifyAction('✓ Actualizado', 'Colaborador actualizado correctamente', 'success');
-                delete this.state.editingUserId;
-            } else {
-                // Crear nuevo usuario
-                await this.fetchAPI('/users', {
-                    method: 'POST',
-                    body: JSON.stringify({ display_name: displayName, username, password, role })
-                });
-                this._notifyAction('✓ Creado', 'Colaborador creado correctamente', 'success');
-            }
-            
-            this.closeInvite();
-            this.loadUsersTable();
-        } catch(err) {
-            this._notifyAction('Error', err.message || 'Error al guardar colaborador', 'error');
-        }
-    },
-
-    async handleCompanySubmit(e) {
-        e.preventDefault();
-        const name = document.getElementById('company-name')?.value;
-        const description = document.getElementById('company-description')?.value;
-        const email = document.getElementById('company-email')?.value;
-        const phone = document.getElementById('company-phone')?.value;
-        const status = document.getElementById('company-status')?.value;
-        
-        if (!name) {
-            this._notifyAction('Error', 'El nombre de la empresa es requerido', 'error');
-            return;
-        }
-        
-        const groupId = document.getElementById('company-id-hidden')?.value;
-        
-        try {
-            const data = { name, description, email, phone, status };
-            
-            if (groupId) {
-                // Editar empresa existente
-                await this.fetchAPI(`/groups/${groupId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify(data)
-                });
-                this._notifyAction('✓ Actualizado', 'Empresa actualizada correctamente', 'success');
-            } else {
-                // Crear nueva empresa
-                await this.fetchAPI('/groups', {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-                this._notifyAction('✓ Creado', 'Empresa creada correctamente', 'success');
-            }
-            
-            this.closeCompanyModal();
-            this.loadGroups();
-        } catch(err) {
-            this._notifyAction('Error', err.message || 'Error al guardar empresa', 'error');
-        }
     },
 
     async testIMAP() {
