@@ -3969,119 +3969,79 @@ const App = window.App = {
             return;
         }
         
-        // Si estamos en la raíz, verificar si hay vista guardada Y si la URL no tiene参数 específica
-        if (view === 'my-events' || view === '') {
-            const savedView = LS.get('active_view');
-            const savedTab = LS.get('active_system_tab');
-            
-            // Si hay una vista guardada que no sea login, usarla
-            if (savedView && savedView !== 'login' && savedView !== 'my-events') {
-                console.log('[ROUTER] Using saved view from root:', savedView);
-                // Obtener parámetros de la URL si existen
-                if (savedView === 'system' && savedTab) {
-                    params.tab = savedTab;
-                }
-                if (savedView === 'admin' || savedView === 'event-config') {
-                    params.id = LS.get('active_event_id');
-                }
-                this.navigate(savedView, params, false);
-                this._hasHandledInitialNav = true;
-                return;
-            }
-            
-            // Si hay una pestaña del sistema guardada, usarla
-            if (savedTab) {
-                console.log('[ROUTER] Using saved system tab:', savedTab);
-                params.tab = savedTab;
-                this.navigate('system', params, false);
-                this._hasHandledInitialNav = true;
-                return;
-            }
-        }
+        // SIEMPRE restaurar la vista guardada si existe y no hay parámetros específicos en la URL
+        const savedView = LS.get('active_view');
+        const savedTab = LS.get('active_system_tab');
+        const savedEventId = LS.get('active_event_id');
         
-        // Para event-config, necesitamos un event id
-        if (view === 'event-config' && !params.id) {
-            // Primero intentar usar el evento actual
-            if (this.state.event?.id) {
-                params.id = this.state.event.id;
-                console.log('[ROUTER] Using current event for event-config:', params.id);
-            } 
-            // Si no hay evento actual, intentar usar el evento guardado
-            else {
-                const savedEventId = LS.get('active_event_id');
-                if (savedEventId) {
-                    // Verificar que events sea un array antes de usar find
-                    if (!Array.isArray(this.state.events)) {
-                        console.warn('[ROUTER] events is not an array, redirecting to my-events');
-                        this.navigate('my-events', {}, false);
+        console.log('[ROUTER] Checking saved state - savedView:', savedView, 'savedTab:', savedTab, 'savedEventId:', savedEventId);
+        
+        // Si hay una vista guardada que no sea login
+        if (savedView && savedView !== 'login') {
+            // Si la URL actual es raíz (/), restaurar la vista guardada directamente
+            if (path === '/' || view === '' || (view === 'my-events' && parts.length === 0)) {
+                console.log('[ROUTER] Root URL detected, restoring saved view:', savedView);
+                
+                if (savedView === 'system') {
+                    params.tab = savedTab || 'users';
+                    this.navigate('system', params, false);
+                    this._hasHandledInitialNav = true;
+                    return;
+                }
+                
+                if (savedView === 'admin' || savedView === 'event-config') {
+                    if (savedEventId) {
+                        params.id = savedEventId;
+                        this.navigate(savedView, params, false);
                         this._hasHandledInitialNav = true;
                         return;
                     }
-                    
-                    // Buscar el evento en la lista de eventos cargados
-                    if (this.state.events && this.state.events.length > 0) {
-                        const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
-                        if (savedEvent) {
-                            this.state.event = savedEvent;
-                            params.id = savedEventId;
-                            console.log('[ROUTER] Using saved event for event-config:', params.id);
-                        } else {
-                            // El evento no está en memoria, pero la URL tiene un ID válido
-                            // Navegar igual - el sistema cargará el evento
-                            console.log('[ROUTER] Event not in memory, but navigating to event-config:', savedEventId);
-                        }
-                    } else {
-                        // No hay eventos cargados aún, navegar igual y dejar que el sistema cargue
-                        console.log('[ROUTER] Events not loaded yet, navigating to event-config:', savedEventId);
-                    }
-                } else {
-                    // Si no hay evento guardado, redirigir a my-events
-                    console.log('[ROUTER] No event id for event-config, redirecting to my-events');
-                    this.navigate('my-events', {}, false);
+                }
+                
+                // Para cualquier otra vista (incluyendo my-events), navegar
+                if (savedView !== 'my-events' || savedTab) {
+                    this.navigate(savedView, params, false);
                     this._hasHandledInitialNav = true;
                     return;
                 }
             }
         }
         
-        // Para admin, también necesitamos un event id
+        // Si estamos en la raíz y no hay vista guardada, verificar si hay savedTab
+        if ((path === '/' || view === '') && savedTab) {
+            console.log('[ROUTER] No savedView but have savedTab, navigating to system:', savedTab);
+            params.tab = savedTab;
+            this.navigate('system', params, false);
+            this._hasHandledInitialNav = true;
+            return;
+        }
+        
+        // Para event-config, necesitamos un event id - pero NO redirigir a my-events si hay savedEventId
+        if (view === 'event-config' && !params.id) {
+            // Si hay savedEventId en LS, usarlo aunque events no esté cargado
+            const savedEventId = LS.get('active_event_id');
+            if (savedEventId) {
+                params.id = savedEventId;
+                console.log('[ROUTER] Using saved event ID for event-config:', savedEventId);
+            } else if (this.state.event?.id) {
+                params.id = this.state.event.id;
+                console.log('[ROUTER] Using current event for event-config:', params.id);
+            }
+            // Si no hay params.id, el navigate al final se encargará (no redirigir a my-events aquí)
+        }
+        
+        // Para admin, también necesitamos un event id - pero NO redirigir a my-events si hay savedView
         if (view === 'admin' && !params.id) {
-            // Primero intentar usar el evento actual
-            if (this.state.event?.id) {
+            // Si hay savedEventId en LS, usarlo aunque events no esté cargado
+            const savedEventId = LS.get('active_event_id');
+            if (savedEventId) {
+                params.id = savedEventId;
+                console.log('[ROUTER] Using saved event ID for admin:', savedEventId);
+            } else if (this.state.event?.id) {
                 params.id = this.state.event.id;
                 console.log('[ROUTER] Using current event for admin:', params.id);
-            } 
-            // Si no hay evento actual, intentar usar el evento guardado
-            else {
-                const savedEventId = LS.get('active_event_id');
-                if (savedEventId) {
-                    // Buscar el evento en la lista de eventos cargados
-                    if (this.state.events && this.state.events.length > 0) {
-                        const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
-                        if (savedEvent) {
-                            this.state.event = savedEvent;
-                            params.id = savedEventId;
-                            console.log('[ROUTER] Using saved event for admin:', params.id);
-                        } else {
-                            // El evento no está en memoria, pero la URL tiene un ID válido
-                            console.log('[ROUTER] Event not in memory, but navigating to admin:', savedEventId);
-                        }
-                    } else {
-                        // No hay eventos cargados aún, navegar igual
-                        console.log('[ROUTER] Events not loaded yet, navigating to admin:', savedEventId);
-                    }
-                } else {
-                    // Hay params.id desde la URL, intentar cargar el evento
-                    if (params.id) {
-                        console.log('[ROUTER] No saved event, but have ID from URL:', params.id);
-                    } else {
-                        console.log('[ROUTER] No event id for admin, redirecting to my-events');
-                        this.navigate('my-events', {}, false);
-                        this._hasHandledInitialNav = true;
-                        return;
-                    }
-                }
             }
+            // Si no hay params.id, el navigate al final se encargará (no redirigir a my-events aquí)
         }
         
         // Navegar a la vista determinada
