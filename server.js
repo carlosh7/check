@@ -485,46 +485,46 @@ const skipLocal = (req) => {
            !ip;                          // No IP (internal)
 };
 
-// Rate limit general: 1000 pet/15min (aumentado para evitar 429)
+// Rate limit general: 10000 pet/15min (aumentado para evitar 429)
 const apiLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
-    max: 1000, 
+    max: 10000, 
     skip: skipLocal, 
-    message: { error: 'Demasiadas peticiones. Espera 15 minutos.' } 
+    message: { error: 'Demasiadas peticiones. Espera unos segundos.' } 
 });
 
-// Rate limit estricto para auth: 10 pet/15min
+// Rate limit estricto para auth: 50 pet/15min (aumentado)
 const authLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
-    max: 10, 
+    max: 50, 
     skip: skipLocal, 
-    message: { error: 'Demasiados intentos de login. Espera 15 minutos.' },
+    message: { error: 'Demasiados intentos de login. Espera unos segundos.' },
     standardHeaders: true,
     legacyHeaders: false
 });
 
-// Rate limit para guests: 50 pet/15min (prevenir enumeración)
+// Rate limit para guests: 500 pet/15min (aumentado para evitar 429)
 const guestLimiter = rateLimit({ 
+    windowMs: 15*60*1000, 
+    max: 500, 
+    skip: skipLocal, 
+    message: { error: 'Demasiadas consultas. Espera unos segundos.' } 
+});
+
+// Rate limit para email: 50 pet/15min (aumentado)
+const emailLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
     max: 50, 
     skip: skipLocal, 
-    message: { error: 'Demasiadas consultas. Espera 15 minutos.' } 
+    message: { error: 'Demasiados emails. Espera unos segundos.' } 
 });
 
-// Rate limit para email: 20 pet/15min
-const emailLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 20, 
-    skip: skipLocal, 
-    message: { error: 'Demasiados emails. Espera 15 minutos.' } 
-});
-
-// Rate limit para uploads: 10 pet/15min
+// Rate limit para uploads: 30 pet/15min (aumentado)
 const uploadLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
-    max: 10, 
+    max: 30, 
     skip: skipLocal, 
-    message: { error: 'Demasiadas cargas. Espera 15 minutos.' } 
+    message: { error: 'Demasiadas cargas. Espera unos segundos.' } 
 });
 
 app.use('/api/', apiLimiter);
