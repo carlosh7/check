@@ -1,4 +1,4 @@
-const CACHE_NAME = 'check-v12.31.90-cache';
+const CACHE_NAME = 'check-v12.31.91-cache';
 const assets = [
   '/',
   '/css/styles.css',
