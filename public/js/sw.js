@@ -1,7 +1,6 @@
-const CACHE_NAME = 'check-v12.26.8-cache';
+const CACHE_NAME = 'check-v12.31.90-cache';
 const assets = [
   '/',
-  '/html/pages/login.html',
   '/css/styles.css',
   '/css/modern.css',
   '/js/app.js',
@@ -38,9 +37,9 @@ self.addEventListener('fetch', (e) => {
         return caches.match(e.request).then((response) => {
           if (response) return response;
           
-          // Fallback para HTML (navegación)
+          // Fallback para HTML (navegación) - usar index.html
           if (e.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/html/pages/login.html');
+            return caches.match('/');
           }
           
           // Para otros recursos, devolver respuesta vacía válida
