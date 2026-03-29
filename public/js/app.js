@@ -7907,14 +7907,8 @@ async function initApp() {
                 // Cargar eventos inicialmente para tener la lista lista
                 await App.loadEvents();
                 
-                // DESACTIVAR navegación automática inicial - siempre empezar en my-events
-                console.log('[INIT] Forzando navegación a my-events (navegación automática desactivada)');
-                App.navigate('my-events', {}, false);
-                
-                // Limpiar history.state para evitar navegación circular
-                if (history.replaceState) {
-                    history.replaceState({ view: 'my-events', params: {} }, '', window.location.pathname + window.location.search);
-                }
+                // NO forzar navegación a my-events - el router restaurará la vista guardada
+                console.log('[INIT] Restaurando vista guardada o navegación desde URL');
             } else {
                 console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');
