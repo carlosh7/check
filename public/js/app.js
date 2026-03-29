@@ -199,32 +199,6 @@ const App = window.App = {
         }
     },
 
-    switchSystemTab(tabId) {
-        console.log(`[NAV] System Tab: ${tabId}`);
-        document.querySelectorAll('[id^="sys-content-"]').forEach(el => el.classList.add('hidden'));
-        const target = document.getElementById(`sys-content-${tabId}`);
-        if (target) target.classList.remove('hidden');
-
-        document.querySelectorAll('#view-system .sub-nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('onclick')?.includes(`'${tabId}'`)) btn.classList.add('active');
-        });
-
-        if (tabId === 'users') this.loadUsersTable();
-        if (tabId === 'groups') this.loadGroups();
-        if (tabId === 'account') this.loadProfileData();
-        if (tabId === 'email') {
-            this._showEmailSection('config');
-            // Activar el botón de Emails en la navegación principal
-            document.querySelectorAll('#view-system .sub-nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.id === 'email-main-btn' || btn.getAttribute('onclick')?.includes("'email'")) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-    },
-
     // Toggle dropdown de emails - usa MODAL/PORTAL para evitar recorte
     toggleEmailDropdown() {
         console.log('[DROPDOWN] toggleEmailDropdown called');
@@ -293,72 +267,6 @@ const App = window.App = {
             modal.style.display = 'none';
             modal.classList.remove('show');
         }
-    },
-
-    // Cambiar sección de email
-    switchEmailTab(tabName) {
-        console.log('[EMAIL] Switching to tab:', tabName);
-        
-        // Primero, asegurarnos de que estamos en la vista de sistema y en la sección de email
-        if (!document.getElementById('view-system') || document.getElementById('view-system').classList.contains('hidden')) {
-            console.log('[EMAIL] Switching to system view first');
-            this.switchSystemTab('email');
-        }
-        
-        // Ocultar todas las secciones de email
-        document.querySelectorAll('.email-content').forEach(el => {
-            console.log('[EMAIL] Hiding:', el.id);
-            el.classList.add('hidden');
-        });
-        
-        // Mostrar la sección seleccionada
-        const target = document.getElementById(`email-content-${tabName}`);
-        if (target) {
-            console.log('[EMAIL] Showing:', target.id);
-            target.classList.remove('hidden');
-        } else {
-            console.error('[EMAIL] Target not found:', `email-content-${tabName}`);
-        }
-        
-        // Actualizar título y descripción
-        const titles = {
-            'config': ['⚙️ Configuración de Email', 'Configura los servidores SMTP/IMAP para el envío y recepción de emails.'],
-            'accounts': ['📧 Cuentas de Email', 'Gestiona las cuentas de email configuradas en el sistema.'],
-            'campaigns': ['📢 Campañas de Email', 'Crea y gestiona campañas de email para tus eventos.'],
-            'mailbox': ['📬 Buzón de Email', 'Revisa y gestiona los emails recibidos en el buzón configurado.'],
-            'mailing': ['📤 Mailing Masivo', 'Envía emails masivos a grupos de invitados.'],
-            'templates': ['📄 Plantillas de Email', 'Gestiona las plantillas de email para diferentes tipos de comunicaciones.']
-        };
-        
-        if (titles[tabName]) {
-            const titleEl = document.getElementById('email-section-title');
-            const descEl = document.getElementById('email-section-description');
-            if (titleEl) titleEl.innerHTML = `<span class="text-[var(--primary)]">${titles[tabName][0]}</span>`;
-            if (descEl) descEl.textContent = titles[tabName][1];
-        }
-        
-        // Actualizar estado activo en dropdown
-        document.querySelectorAll('.email-dropdown-item').forEach(item => {
-            item.classList.remove('active');
-            const onclick = item.getAttribute('onclick');
-            if (onclick && onclick.includes(`'${tabName}'`)) {
-                item.classList.add('active');
-            }
-        });
-        
-        // Cerrar dropdown
-        const dropdown = document.getElementById('email-dropdown-menu');
-        if (dropdown) dropdown.classList.remove('show');
-        const dropdownContainer = document.querySelector('.email-dropdown');
-        if (dropdownContainer) dropdownContainer.classList.remove('open');
-        
-        // Cargar datos si es necesario
-        if (tabName === 'config') this.loadEmailConfig();
-        if (tabName === 'accounts') this.loadEmailAccounts();
-        if (tabName === 'campaigns') this.loadEmailCampaigns();
-        if (tabName === 'mailbox') this.loadMailbox();
-        if (tabName === 'mailing') this.loadMailing();
-        if (tabName === 'templates') this.loadEmailTemplates();
     },
 
     // ─── ALIASES PARA FUNCIONES DE EMAIL (解决缺失函数问题) ───
