@@ -4899,8 +4899,13 @@ const App = window.App = {
                     return;
                 }
                 
+                // Eliminar el evento del estado local inmediatamente
+                this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
+                
+                // Forzar renderizado de la lista
+                this.renderEventsGrid();
+                
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
-                this.loadEvents();
             } catch (e) { 
                 // Error de constraints typically means there are related records
                 if (e.message && e.message.includes('FOREIGN KEY')) {
