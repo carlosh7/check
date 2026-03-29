@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.31.86';
+const VERSION = '12.32.1';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -114,8 +114,119 @@ const App = window.App = {
             // Scroll al inicio
             const mainContent = document.getElementById('app-main-content');
             if (mainContent) mainContent.scrollTop = 0;
+            
+            // Auto-collapse sidebar en móvil tras navegar
+            if (window.innerWidth < 1024) {
+                document.getElementById('global-sidebar')?.classList.add('collapsed');
+            }
         }
         LS.set('last_view', viewId);
+    },
+
+    // ─── UI PREMIUM UTILS (v12.32.0) ───
+    
+    // Notificación Toast Premium
+    showPremiumToast(title, message, type = 'success', duration = 4000) {
+        const container = document.getElementById('premium-toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `premium-toast ${type}`;
+        
+        const icons = {
+            success: 'check_circle',
+            error: 'cancel',
+            warning: 'warning',
+            info: 'info'
+        };
+
+        toast.innerHTML = `
+            <div class="premium-toast-icon">
+                <span class="material-symbols-outlined">${icons[type] || 'notifications'}</span>
+            </div>
+            <div class="premium-toast-content">
+                <div class="premium-toast-title">${title}</div>
+                <div class="premium-toast-message">${message}</div>
+            </div>
+        `;
+
+        container.appendChild(toast);
+        this.playPremiumSound(type);
+
+        // Auto-remover
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => toast.remove(), 500);
+        }, duration);
+    },
+
+    // Audio Feedback (Sintetizado para evitar assets externos)
+    playPremiumSound(type) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+            
+            if (type === 'success') {
+                // Soft Double Chime
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1320, now + 0.1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'error') {
+                // Low Dull Thud
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        } catch (e) { console.warn('Audio not supported or blocked'); }
+    },
+
+    // Smart Sidebar Toggle
+    toggleSidebar() {
+        const sidebar = document.getElementById('global-sidebar');
+        if (!sidebar) return;
+        
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        LS.set('sidebar_collapsed', isCollapsed);
+        
+        // Actualizar icono del botón si existe
+        const btnIcon = document.querySelector('#btn-toggle-sidebar .material-symbols-outlined');
+        if (btnIcon) {
+            btnIcon.textContent = isCollapsed ? 'menu' : 'menu_open';
+        }
+    },
+
+    // Iniciar estado del sidebar
+    initSidebar() {
+        const sidebar = document.getElementById('global-sidebar');
+        if (!sidebar) return;
+        
+        const wasCollapsed = LS.get('sidebar_collapsed') === true;
+        if (wasCollapsed) {
+            sidebar.classList.add('collapsed');
+            const btnIcon = document.querySelector('#btn-toggle-sidebar .material-symbols-outlined');
+            if (btnIcon) btnIcon.textContent = 'menu';
+        }
+    },
+
+    // Reemplazo de la función antigua de notificación
+    _notifyAction(title, message, type = 'success') {
+        this.showPremiumToast(title, message, type);
     },
 
     navigateToCreateEvent(type = 'short') {
@@ -964,20 +1075,16 @@ const App = window.App = {
             const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
             
             // Guardar datos para filtros
-            this.state.allUsers = users;
-            this.state.allGroups = groups;
             this.state.allEvents = events;
-            
-            // Renderizar con filtros
             this.renderUsersTable(users, groups, events);
-            
-        } catch(e) { console.error('Error loading users:', e); }
+        } catch (error) {
+            console.error('Error loading users table:', error);
+        }
     },
-    
+
     renderUsersTable: function(users, groups, events) {
-        if (!this.state.user) return; // No renderizar si no hay sesión
+        if (!this.state.user) return;
         
-        // Sincronizar filtros de la interfaz
         const filterGroup = document.getElementById('filter-group');
         const filterEvent = document.getElementById('filter-event');
         
@@ -995,7 +1102,6 @@ const App = window.App = {
             filterEvent.value = currentVal;
         }
         
-        // Gestión de solicitudes pendientes (Amber Style)
         const pending = users.filter(u => u.status === 'PENDING');
         const badge = document.getElementById('pending-badge');
         const pendingSection = document.getElementById('pending-requests-section');
@@ -1016,7 +1122,10 @@ const App = window.App = {
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="px-4 py-2 bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition-all">APROBAR ACCESO</button>
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            APROBAR ACCESO
+                        </button>
                     </div>
                 </div>`).join('');
         }
@@ -1033,83 +1142,104 @@ const App = window.App = {
 
             tbody.innerHTML = users.map((u) => {
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
-                const canRemoveGroup = isAdmin; // Solo ADMIN puede desvincular empresas
+                const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
                     ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
                 
-                // --- EVENTOS (Para Columna 1) ---
+                // --- EVENTOS (Premium Chips) ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <div class="inline-flex items-center gap-1 mt-1">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        </span>
-                        ${canEdit ? `<button data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
+                    <div class="action-chip-premium mt-1 mr-1">
+                        <span class="material-symbols-outlined text-[14px] text-primary">event</span>
+                        <span>${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        ${canEdit ? `<div data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="btn-unlink" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></div>` : ''}
                     </div>
                 `).join('');
 
                 // --- COLUMNA 1: COLABORADOR ---
                 const col1 = `
-                    <div class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</div>
-                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
-                    <div class="flex flex-wrap gap-1 mt-1">${eventChips}</div>
+                    <div class="flex flex-col gap-1">
+                        <div class="font-bold text-[var(--text-main)] text-sm tracking-tight">${u.display_name || u.username}</div>
+                        <div class="text-[10px] text-[var(--text-secondary)] font-mono opacity-60">${u.username}</div>
+                        <div class="flex flex-wrap gap-1 mt-1">${eventChips}</div>
+                    </div>
                 `;
 
-                // --- COLUMNA 2: ROL / ACCESO (MULTITENANT) ---
+                // --- COLUMNA 2: ROL / EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <div class="inline-flex items-center gap-1 mt-1 mb-1 mr-1">
-                        <span class="px-2.5 py-1 inline-flex items-center gap-1.5 bg-[var(--bg-hover)] text-xs font-semibold rounded-md text-[var(--text-main)] border border-[var(--border)] shadow-sm">
-                            <span class="material-symbols-outlined text-[14px] text-[var(--text-secondary)]">corporate_fare</span>
-                            <span class="truncate max-w-[150px]" title="${userGroup.name}">${userGroup.name}</span>
-                        </span>
-                        ${canRemoveGroup ? `<button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></button>` : ''}
+                    <div class="action-chip-premium mt-1 mr-1">
+                        <span class="material-symbols-outlined text-[14px] text-slate-400">corporate_fare</span>
+                        <span class="truncate max-w-[120px]" title="${userGroup.name}">${userGroup.name}</span>
+                        ${canRemoveGroup ? `<div data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="btn-unlink" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></div>` : ''}
                     </div>
-                `).join('') : `<span class="italic text-[var(--text-muted)] text-xs mt-1 mb-1 block">Sin Empresa</span>`;
+                `).join('') : `<span class="italic text-[var(--text-muted)] text-[10px] mt-1 opacity-50 block">Sin Empresa Asignada</span>`;
 
                 const roleSelect = canEdit ? `
-                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[11px] font-medium rounded px-2 py-1 border border-[var(--border)] outline-none w-[130px] focus:border-[var(--primary)] mt-1.5">
+                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-800/40 text-[var(--text-main)] text-[10px] font-bold uppercase rounded-lg px-2 py-1.5 border border-white/5 outline-none w-[120px] focus:border-primary mt-2 cursor-pointer transition-all">
                         ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                    </select>` : `<div class="text-xs font-semibold mt-1.5">${u.role}</div>`;
+                    </select>` : `<div class="text-[10px] font-black tracking-widest uppercase text-primary mt-2">${u.role}</div>`;
 
                 const col2 = `
-                    <div class="text-[11px] font-medium text-[var(--text-main)] flex flex-wrap items-center gap-0.5">${groupDisplay}</div>
-                    ${roleSelect}
+                    <div class="flex flex-col">
+                        <div class="flex flex-wrap items-center gap-1">${groupDisplay}</div>
+                        ${roleSelect}
+                    </div>
                 `;
 
                 // --- COLUMNA 3: ESTADO ---
-                const statusLabel = u.status === 'APPROVED' ? 'ACTIVO' : u.status === 'PENDING' ? 'PENDIENTE' : 'SUSPENDIDO';
-                const statusClass = u.status === 'APPROVED' ? 'status-active' : u.status === 'PENDING' ? 'status-pending' : 'status-error';
-                const col3 = `<span class="status-pill inline-block ${statusClass}">${statusLabel}</span>`;
+                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
+                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
+                const col3 = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
 
                 // --- COLUMNA 4: ACCIONES ---
-                const actionAssignCompany = (isAdmin && canEdit) ? `<button data-action="showGroupSelector" data-user-id="${u.id}" class="text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Empresa</button>` : '';
-                const actionAssignEvent = canEdit ? `<button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>` : '';
+                const actionAssignCompany = (isAdmin && canEdit) ? `
+                    <button data-action="showGroupSelector" data-user-id="${u.id}" class="action-btn-pill">
+                        <span class="material-symbols-outlined">add_business</span>
+                        Empresa
+                    </button>` : '';
+
+                const actionAssignEvent = canEdit ? `
+                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="action-btn-pill">
+                        <span class="material-symbols-outlined">event_note</span>
+                        Evento
+                    </button>` : '';
                 
                 const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="text-xs font-medium text-emerald-500 hover:text-emerald-400 transition-colors whitespace-nowrap">Activar</button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors whitespace-nowrap">Suspender</button>`) : '';
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
+                        <span class="material-symbols-outlined">lock_open</span>
+                        Activar
+                    </button>` : 
+                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="action-btn-pill btn-danger-soft">
+                        <span class="material-symbols-outlined">lock</span>
+                        Suspender
+                    </button>`) : '';
                 
-                const editBtn = canEdit ? `<button data-action="editUser" data-user-id="${u.id}" class="p-2 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--primary)] transition-colors" title="Editar colaborador">
-                    <span class="material-symbols-outlined text-lg">edit</span>
-                </button>` : '';
+                const editBtn = canEdit ? `
+                    <button data-action="editUser" data-user-id="${u.id}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-lg" title="Editar Perfil">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>` : '';
                 
                 const col4 = `
-                    <div class="flex flex-col items-end gap-2 text-right">
-                        ${actionAssignCompany}
-                        ${actionAssignEvent}
-                        ${accessBtn}
-                        ${editBtn}
+                    <div class="flex items-center justify-end gap-2">
+                        <div class="flex flex-col gap-1.5">
+                            ${actionAssignCompany}
+                            ${actionAssignEvent}
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            ${accessBtn}
+                            ${editBtn}
+                        </div>
                     </div>
                 `;
 
                 return `
-                <tr class="hover:bg-[var(--bg-hover)] transition-colors">
-                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)]">${col1}</td>
-                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)]">${col2}</td>
-                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)] text-center">${col3}</td>
-                    <td class="px-5 py-4 align-top border-b border-[var(--border-light)] text-right">${col4}</td>
+                <tr class="user-row-premium">
+                    <td class="px-5 py-5 align-top">${col1}</td>
+                    <td class="px-5 py-5 align-top">${col2}</td>
+                    <td class="px-5 py-5 align-top text-center">${col3}</td>
+                    <td class="px-5 py-5 align-top text-right">${col4}</td>
                 </tr>`;
             }).join('');
         }
@@ -4641,101 +4771,124 @@ const App = window.App = {
     },
     
     renderEventsGrid() {
-        console.log('[EVENTS] renderEventsGrid llamado, eventos:', this.state.events?.length || 0, 'modo:', this.state.eventsViewMode);
         const c = document.getElementById('events-list-container');
-        console.log('[EVENTS] events-list-container:', c);
-        if (!c) {
-            console.error('[EVENTS] ERROR: events-list-container no encontrado!');
-            return;
-        }
+        if (!c) return;
         
-        // Asegurar que events sea un array válido
         const events = Array.isArray(this.state.events) ? this.state.events : [];
         
-        // Actualizar clases CSS según el modo de vista
+        // Determinar clases de contenedor
         if (this.state.eventsViewMode === 'list') {
-            c.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
-            c.classList.add('space-y-4');
+            c.className = 'space-y-3';
         } else {
-            c.classList.remove('space-y-4');
-            c.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
+            c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
         }
         
-        if (this.state.eventsViewMode === 'list') {
-            // Modo lista
-            c.innerHTML = events.map(ev => `
-                <div data-action="openEvent" data-event-id="${ev.id}" class="card p-5 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)] flex items-start gap-4">
-                    <div class="w-10 h-10 bg-[var(--primary-light)] text-[var(--primary)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                        <span class="material-symbols-outlined text-xl font-variation-fill">event</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between gap-2 mb-1">
-                            <h3 class="text-lg font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                <button data-action="editEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all" title="Editar">
-                                    <span class="material-symbols-outlined text-sm">edit</span>
-                                </button>
-                                <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-8 h-8 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all" title="Eliminar">
-                                    <span class="material-symbols-outlined text-sm">delete</span>
-                                </button>
+        c.innerHTML = events.map(ev => {
+            const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            // Métricas (Desglose rápido)
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const pending = ev.pending_pre_reg || 0;
+            
+            if (this.state.eventsViewMode === 'list') {
+                return `
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="event-list-row cursor-pointer">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center shadow-lg flex-shrink-0">
+                                <span class="material-symbols-outlined text-xl font-variation-fill">event</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="text-base font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="event-status-pill"><span class="dot"></span>Activo</span>
+                                    <span class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[12px]">calendar_month</span> ${dateStr}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <p class="text-[var(--text-secondary)] text-sm line-clamp-1 mb-2">${ev.description || 'Sin descripción adicional.'}</p>
-                        <div class="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
-                            <div class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm text-[var(--primary)]">place</span>
-                                <span>${ev.location || 'Ubicación por confirmar'}</span>
+
+                        <div class="hidden md:flex items-center gap-4">
+                            <div class="metric-badge">
+                                <span class="metric-value">${total}</span>
+                                <span class="metric-label">Registrados</span>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm text-[var(--primary)]">calendar_month</span>
-                                <span>${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            <div class="metric-badge">
+                                <span class="metric-value text-emerald-400">${attended}</span>
+                                <span class="metric-label">Asistieron</span>
                             </div>
-                            <div class="flex gap-2 ml-auto">
-                                <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-xs font-medium flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-xs">visibility</span> Ver
-                                </button>
-                                <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-xs font-medium flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-xs">content_copy</span> Link
-                                </button>
+                            <div class="metric-badge opacity-60">
+                                <span class="metric-value">${pending}</span>
+                                <span class="metric-label">Pendientes</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            // Modo grid (por defecto)
-            c.innerHTML = events.map(ev => `
-                <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
-                    <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <button data-action="editEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all" title="Editar">
-                            <span class="material-symbols-outlined text-base">edit</span>
-                        </button>
-                        <button data-action="deleteEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all" title="Eliminar">
-                            <span class="material-symbols-outlined text-base">delete</span>
-                        </button>
-                    </div>
-                    <div class="w-12 h-12 bg-[var(--primary-light)] text-[var(--primary)] rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-                        <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2 text-[var(--text-main)]">${ev.name}</h3>
-                    <p class="text-[var(--text-secondary)] text-sm line-clamp-2 mb-5 leading-relaxed">${ev.description || 'Sin descripción adicional para este evento.'}</p>
-                    <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.1em]">
-                        <span class="material-symbols-outlined text-base text-[var(--primary)]">place</span> ${ev.location || 'Ubicación por confirmar'}
-                    </div>
-                    <div class="mt-6 pt-5 border-t border-[var(--border)] flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-[var(--text-secondary)]">${new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        <div class="flex gap-3">
-                            <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] hover:text-[var(--primary)]/80 text-[11px] font-bold flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">visibility</span> Ver
+
+                        <div class="flex-shrink-0 text-right pr-4">
+                            <div class="text-[11px] font-bold text-[var(--text-muted)] uppercase mb-1">Registro</div>
+                            <div class="flex gap-2">
+                                <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] text-xs font-bold hover:underline">V. Previa</button>
+                                <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-400 text-xs font-bold hover:text-white">Copiar</button>
+                            </div>
+                        </div>
+
+                        <div class="action-btn-group ml-4">
+                            <button data-action="editEvent" data-event-id="${ev.id}" class="action-btn-circle" title="Editar">
+                                <span class="material-symbols-outlined text-xl">edit</span>
                             </button>
-                            <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-500 hover:text-slate-400 text-[11px] font-bold flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">content_copy</span> Link
+                            <button data-action="deleteEvent" data-event-id="${ev.id}" class="action-btn-circle btn-delete" title="Eliminar">
+                                <span class="material-symbols-outlined text-xl">delete</span>
                             </button>
                         </div>
                     </div>
-                </div>
-            `).join('');
-        }
+                `;
+            } else {
+                return `
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="event-card-premium p-6 cursor-pointer relative group">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center shadow-xl">
+                                <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
+                            </div>
+                            <div class="action-btn-group">
+                                <button data-action="editEvent" data-event-id="${ev.id}" class="action-btn-circle" title="Editar">
+                                    <span class="material-symbols-outlined text-xl">edit</span>
+                                </button>
+                                <button data-action="deleteEvent" data-event-id="${ev.id}" class="action-btn-circle btn-delete" title="Eliminar">
+                                    <span class="material-symbols-outlined text-xl">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-[var(--text-main)] mb-2 line-clamp-1">${ev.name}</h3>
+                        <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-6 min-h-[40px]">${ev.description || 'Sin descripción adicional para este evento.'}</p>
+                        
+                        <div class="grid grid-cols-3 gap-3 mb-6">
+                            <div class="metric-badge py-3">
+                                <span class="metric-value">${total}</span>
+                                <span class="metric-label">Reg.</span>
+                            </div>
+                            <div class="metric-badge py-3">
+                                <span class="metric-value text-emerald-400">${attended}</span>
+                                <span class="metric-label">Asist.</span>
+                            </div>
+                            <div class="metric-badge py-3 opacity-60">
+                                <span class="metric-value">${pending}</span>
+                                <span class="metric-label">Pend.</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-base">calendar_month</span> ${dateStr}
+                            </div>
+                            <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="action-btn-circle btn-link" title="Copiar Link de Registro">
+                                <span class="material-symbols-outlined text-xl">link</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
     },
 
     openRegistrationLink(id) {
@@ -7993,6 +8146,8 @@ async function initApp() {
                 // CARGAR APP-SHELL
                 try {
                     await App.loadAppShell();
+                    // Inicializar estado del sidebar (v12.32.0)
+                    App.initSidebar();
                 } catch(err) {
                     console.error('[AUTH] Error cargando app-shell:', err);
                     App.showView('login');
@@ -8121,6 +8276,9 @@ async function initApp() {
 
     // Logout
     cl('btn-logout', () => App.logout());
+
+    // Sidebar Toggle (v12.32.0)
+    cl('btn-toggle-sidebar', () => App.toggleSidebar());
 
     // Public Reg Form
     sf('public-reg-form', async (e) => {

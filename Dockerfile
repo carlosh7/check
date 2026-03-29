@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar package.json y package-lock.json
+# Copiar package.json y package-lock.jsonpar
 COPY package*.json ./
 
 # Copiar .env.example para automatización

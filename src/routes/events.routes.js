@@ -20,16 +20,20 @@ router.get('/', authMiddleware(), async (req, res) => {
         : `events:list:user:${req.userId}`;
     
     const rows = await cacheOrFetch(cacheKey, () => {
+        const sql = `
+            SELECT e.*, 
+                (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id) as total_guests,
+                (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id AND g.checked_in = 1) as attended_guests,
+                (SELECT COUNT(*) FROM pre_registrations pr WHERE pr.event_id = e.id AND pr.status = 'PENDING') as pending_pre_reg
+            FROM events e
+            ${req.userRole === 'ADMIN' ? '' : 'WHERE e.group_id IN (SELECT group_id FROM group_users WHERE user_id = ?)'}
+            ORDER BY e.created_at DESC
+        `;
+
         if (req.userRole === 'ADMIN') {
-            return db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+            return db.prepare(sql).all();
         } else {
-            const groupIds = getProducerGroups(req.userId);
-            if (groupIds.length === 0) {
-                return [];
-            } else {
-                const placeholders = groupIds.map(() => '?').join(',');
-                return db.prepare(`SELECT * FROM events WHERE group_id IN (${placeholders}) ORDER BY created_at DESC`).all(...groupIds);
-            }
+            return db.prepare(sql).all(req.userId);
         }
     }, 60); // TTL 60 seconds
     
