@@ -121,8 +121,15 @@ const App = window.App = {
     navigateToCreateEvent(type = 'short') {
         console.log('[NAVIGATE TO CREATE EVENT] Type:', type);
         
-        // Cerrar cualquier SweetAlert abierto
-        if (Swal && Swal.close) Swal.close();
+        // Cerrar cualquier SweetAlert abierto de forma agresiva
+        if (Swal && Swal.close) {
+            Swal.close();
+        }
+        // Remover cualquier overlay de SweetAlert que pueda estar bloqueando
+        const swalOverlay = document.querySelector('.swal2-container');
+        if (swalOverlay) {
+            swalOverlay.remove();
+        }
         
         if (type === 'full') {
             // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
@@ -147,8 +154,9 @@ const App = window.App = {
                 const modal = document.getElementById('modal-event-full');
                 if (modal) {
                     modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
                 }
-            }, 100);
+            }, 150);
         } else {
             // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
             const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
@@ -182,11 +190,12 @@ const App = window.App = {
                 console.log('[NAVIGATE TO CREATE EVENT] Modal element:', modal);
                 if (modal) {
                     modal.classList.remove('hidden');
-                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now');
+                    modal.style.display = 'flex';
+                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now, classes:', modal.className);
                 } else {
                     console.error('[NAVIGATE TO CREATE EVENT] Modal not found!');
                 }
-            }, 100);
+            }, 150);
         }
     },
 
@@ -4284,6 +4293,8 @@ const App = window.App = {
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-email-form', (e) => this.handleEmailChange(e));
         sf('change-pass-form', (e) => this.handlePasswordChange(e));
+        sf('invite-user-form', (e) => this.handleInviteSubmit(e));
+        sf('company-form', (e) => this.handleCompanySubmit(e));
         
         // Event Tabs (Panel de Control - solo Invitados)
         cl('ev-nav-guests', () => window.switchEventTab('guests'));
@@ -7288,6 +7299,86 @@ const App = window.App = {
                 e.target.reset();
             }
         } catch(err) { Swal.fire('Error', 'Error al actualizar contraseña.', 'error'); }
+    },
+
+    async handleInviteSubmit(e) {
+        e.preventDefault();
+        const displayName = document.getElementById('invite-display-name')?.value;
+        const username = document.getElementById('invite-username')?.value;
+        const password = document.getElementById('invite-password')?.value;
+        const role = document.getElementById('invite-role')?.value;
+        
+        if (!displayName || !username || !password) {
+            this._notifyAction('Error', 'Completa todos los campos requeridos', 'error');
+            return;
+        }
+        
+        const editingUserId = this.state.editingUserId;
+        
+        try {
+            if (editingUserId) {
+                // Editar usuario existente
+                await this.fetchAPI(`/users/${editingUserId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ display_name: displayName, role })
+                });
+                this._notifyAction('✓ Actualizado', 'Colaborador actualizado correctamente', 'success');
+                delete this.state.editingUserId;
+            } else {
+                // Crear nuevo usuario
+                await this.fetchAPI('/users', {
+                    method: 'POST',
+                    body: JSON.stringify({ display_name: displayName, username, password, role })
+                });
+                this._notifyAction('✓ Creado', 'Colaborador creado correctamente', 'success');
+            }
+            
+            this.closeInvite();
+            this.loadUsersTable();
+        } catch(err) {
+            this._notifyAction('Error', err.message || 'Error al guardar colaborador', 'error');
+        }
+    },
+
+    async handleCompanySubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('company-name')?.value;
+        const description = document.getElementById('company-description')?.value;
+        const email = document.getElementById('company-email')?.value;
+        const phone = document.getElementById('company-phone')?.value;
+        const status = document.getElementById('company-status')?.value;
+        
+        if (!name) {
+            this._notifyAction('Error', 'El nombre de la empresa es requerido', 'error');
+            return;
+        }
+        
+        const groupId = document.getElementById('company-id-hidden')?.value;
+        
+        try {
+            const data = { name, description, email, phone, status };
+            
+            if (groupId) {
+                // Editar empresa existente
+                await this.fetchAPI(`/groups/${groupId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+                this._notifyAction('✓ Actualizado', 'Empresa actualizada correctamente', 'success');
+            } else {
+                // Crear nueva empresa
+                await this.fetchAPI('/groups', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                this._notifyAction('✓ Creado', 'Empresa creada correctamente', 'success');
+            }
+            
+            this.closeCompanyModal();
+            this.loadGroups();
+        } catch(err) {
+            this._notifyAction('Error', err.message || 'Error al guardar empresa', 'error');
+        }
     },
 
     async testIMAP() {
