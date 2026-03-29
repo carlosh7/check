@@ -1387,7 +1387,7 @@ const App = window.App = {
             }
 
             this.hideModal('modal-event-full');
-            await this.loadEvents();
+            await this.loadEvents(true); // true = forzar recarga desde el servidor
             await this._notifyAction('✓ Guardado', eventId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
         } catch (err) {
             console.error('[saveEventFull] Error:', err);
@@ -1453,7 +1453,7 @@ const App = window.App = {
             }
             
             hideModal('modal-event');
-            await this.loadEvents();
+            await this.loadEvents(true); // true = forzar recarga desde el servidor
             await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
         } catch (err) {
             console.error('[saveEventShort] Error:', err);
@@ -4846,6 +4846,8 @@ const App = window.App = {
                 this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
                 // También actualizar la caché
                 this._eventsCache = this._eventsCache.filter(e => String(e.id) !== String(id));
+                // Resetear timestamp de caché para permitir recarga inmediata si se necesita
+                this._lastEventsLoad = 0;
                 
                 // Forzar renderizado de la lista
                 this.renderEventsGrid();
