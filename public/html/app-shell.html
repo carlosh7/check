@@ -596,7 +596,7 @@
                              <p class="text-[var(--text-secondary)] text-sm">Edita los detalles y configuración de tu evento.</p>
                              <div class="flex items-center gap-2 bg-[var(--bg-hover)] px-3 py-1.5 rounded-lg border border-[var(--border)] shadow-sm">
                                 <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Link Registro:</span>
-                                <input type="text" id="evf-registration-link" readonly class="bg-transparent border-none text-[11px] w-48 focus:ring-0 p-0 text-[var(--primary)] font-bold" value="Cargando...">
+                                <input type="text" id="evs-registration-link" readonly class="bg-transparent border-none text-[11px] w-48 focus:ring-0 p-0 text-[var(--primary)] font-bold" value="Cargando...">
                                 <button type="button" data-action="copyRegistrationLink" class="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors flex items-center" title="Copiar Link">
                                     <span class="material-symbols-outlined text-sm">content_copy</span>
                                 </button>
@@ -656,7 +656,7 @@
 </div>
 
                 <form id="event-settings-form" class="space-y-6">
-                    <input type="hidden" id="evf-id-hidden" value="">
+                    <input type="hidden" id="evs-id-hidden" value="">
                     
                     <!-- DATOS BíSICOS -->
                     <div class="card p-6 space-y-4">
@@ -667,26 +667,26 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Evento *</label>
-                                <input type="text" id="evf-name" required placeholder="Nombre del evento" class="input-field w-full">
+                                <input type="text" id="evs-name" required placeholder="Nombre del evento" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ubicación</label>
-                                <input type="text" id="evf-location" placeholder="Ubicación" class="input-field w-full">
+                                <input type="text" id="evs-location" placeholder="Ubicación" class="input-field w-full">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Inicio *</label>
-                                <input type="datetime-local" id="evf-date" required class="input-field w-full">
+                                <input type="datetime-local" id="evs-date" required class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Fin</label>
-                                <input type="datetime-local" id="evf-end-date" class="input-field w-full">
+                                <input type="datetime-local" id="evs-end-date" class="input-field w-full">
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción</label>
-                            <textarea id="evf-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                            <textarea id="evs-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
                         </div>
                     </div>
 
@@ -699,52 +699,52 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Título de Registro</label>
-                                <input type="text" id="evf-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
+                                <input type="text" id="evs-reg-title" placeholder="Registro de Invitados" class="input-field w-full">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Bienvenida</label>
-                                <input type="text" id="evf-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
+                                <input type="text" id="evs-reg-welcome" placeholder="¡Bienvenido!" class="input-field w-full">
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mensaje de Éxito</label>
-                            <input type="text" id="evf-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
+                            <input type="text" id="evs-reg-success" placeholder="¡Registro exitoso!" class="input-field w-full">
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Política de Privacidad</label>
-                            <textarea id="evf-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
+                            <textarea id="evs-reg-policy" rows="2" placeholder="Política de privacidad..." class="input-field w-full"></textarea>
                         </div>
                         
                         <!-- CHECKBOXES DE REGISTRO -->
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-phone" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-phone" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Teléfono</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-org" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-org" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Organización</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-position" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-position" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Cargo</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-vegan" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-vegan" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Vegano</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-dietary" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-dietary" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Restricciones</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="evf-reg-gender" class="w-4 h-4 accent-primary rounded">
+                                <input type="checkbox" id="evs-reg-gender" class="w-4 h-4 accent-primary rounded">
                                 <span class="text-sm text-[var(--text-main)]">Género</span>
                             </label>
                         </div>
                         
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="evf-reg-agreement" class="w-4 h-4 accent-primary rounded">
+                            <input type="checkbox" id="evs-reg-agreement" class="w-4 h-4 accent-primary rounded">
                             <span class="text-sm text-[var(--text-main)]">Requerir acuerdo de términos y condiciones</span>
                         </label>
                     </div>
@@ -758,24 +758,24 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Oscuro QR</label>
-                                <input type="color" id="evf-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
+                                <input type="color" id="evs-qr-dark" value="#000000" class="w-full h-10 rounded cursor-pointer">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Claro QR</label>
-                                <input type="color" id="evf-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
+                                <input type="color" id="evs-qr-light" value="#ffffff" class="w-full h-10 rounded cursor-pointer">
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL Logo QR (opcional)</label>
-                            <input type="text" id="evf-qr-logo" placeholder="https://..." class="input-field w-full">
+                            <input type="text" id="evs-qr-logo" placeholder="https://..." class="input-field w-full">
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL Fondo Ticket (opcional)</label>
-                            <input type="text" id="evf-ticket-bg" placeholder="https://..." class="input-field w-full">
+                            <input type="text" id="evs-ticket-bg" placeholder="https://..." class="input-field w-full">
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color Acento Ticket</label>
-                            <input type="color" id="evf-ticket-accent" value="#7c3aed" class="w-full h-10 rounded cursor-pointer">
+                            <input type="color" id="evs-ticket-accent" value="#7c3aed" class="w-full h-10 rounded cursor-pointer">
                         </div>
                     </div>
 
@@ -787,11 +787,11 @@
                         </h3>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Whitelist (emails permitidos, uno por línea)</label>
-                            <textarea id="evf-reg-whitelist" rows="3" placeholder="usuario1@dominio.com&#10;usuario2@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
+                            <textarea id="evs-reg-whitelist" rows="3" placeholder="usuario1@dominio.com&#10;usuario2@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Blacklist (emails bloqueados, uno por línea)</label>
-                            <textarea id="evf-reg-blacklist" rows="3" placeholder="spam@dominio.com&#10;no-deseado@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
+                            <textarea id="evs-reg-blacklist" rows="3" placeholder="spam@dominio.com&#10;no-deseado@empresa.com" class="input-field w-full font-mono text-sm"></textarea>
                         </div>
                     </div>
 
@@ -1218,7 +1218,7 @@
              Gestión del <span class="text-primary">Evento</span>
         </h2>
         <form id="new-event-full-form" class="space-y-8">
-            <input type="hidden" id="evf-id-hidden" value="">
+            <input type="hidden" id="evs-id-hidden" value="">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">

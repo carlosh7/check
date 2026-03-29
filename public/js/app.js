@@ -4878,7 +4878,15 @@ const App = window.App = {
         if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
         if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
             try {
-                await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
+                const res = await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
+                console.log('[DELETE EVENT] Response:', res);
+                
+                // Verificar si la eliminación fue exitosa
+                if (res && res.success === false) {
+                    this._notifyAction('Error', res.error || 'No se pudo eliminar el evento', 'error');
+                    return;
+                }
+                
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
                 this.loadEvents();
             } catch (e) { 
@@ -6261,34 +6269,34 @@ const App = window.App = {
         if (!ev) return;
         
         // Llenar el formulario con los datos del evento
-        // Usamos los mismos IDs que en editEvent pero con prefijo evf-
-        document.getElementById('evf-id-hidden').value = ev.id;
-        document.getElementById('evf-name').value = ev.name || '';
-        document.getElementById('evf-location').value = ev.location || '';
-        document.getElementById('evf-desc').value = ev.description || '';
-        document.getElementById('evf-date').value = ev.date ? ev.date.slice(0, 16) : '';
-        document.getElementById('evf-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        // Ahora usamos prefijo evs- para evitar conflictos con evf- del formulario completo
+        document.getElementById('evs-id-hidden').value = ev.id;
+        document.getElementById('evs-name').value = ev.name || '';
+        document.getElementById('evs-location').value = ev.location || '';
+        document.getElementById('evs-desc').value = ev.description || '';
+        document.getElementById('evs-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        document.getElementById('evs-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
         
-        document.getElementById('evf-reg-title').value = ev.reg_title || '';
-        document.getElementById('evf-reg-welcome').value = ev.reg_welcome_text || '';
-        document.getElementById('evf-reg-success').value = ev.reg_success_message || '';
-        document.getElementById('evf-reg-policy').value = ev.reg_policy || '';
-        document.getElementById('evf-reg-phone').checked = ev.reg_show_phone !== 0;
-        document.getElementById('evf-reg-org').checked = ev.reg_show_org !== 0;
-        document.getElementById('evf-reg-position').checked = ev.reg_show_position === 1;
-        document.getElementById('evf-reg-vegan').checked = ev.reg_show_vegan !== 0;
-        document.getElementById('evf-reg-dietary').checked = ev.reg_show_dietary !== 0;
-        document.getElementById('evf-reg-gender').checked = ev.reg_show_gender === 1;
-        document.getElementById('evf-reg-agreement').checked = ev.reg_require_agreement !== 0;
+        document.getElementById('evs-reg-title').value = ev.reg_title || '';
+        document.getElementById('evs-reg-welcome').value = ev.reg_welcome_text || '';
+        document.getElementById('evs-reg-success').value = ev.reg_success_message || '';
+        document.getElementById('evs-reg-policy').value = ev.reg_policy || '';
+        document.getElementById('evs-reg-phone').checked = ev.reg_show_phone !== 0;
+        document.getElementById('evs-reg-org').checked = ev.reg_show_org !== 0;
+        document.getElementById('evs-reg-position').checked = ev.reg_show_position === 1;
+        document.getElementById('evs-reg-vegan').checked = ev.reg_show_vegan !== 0;
+        document.getElementById('evs-reg-dietary').checked = ev.reg_show_dietary !== 0;
+        document.getElementById('evs-reg-gender').checked = ev.reg_show_gender === 1;
+        document.getElementById('evs-reg-agreement').checked = ev.reg_require_agreement !== 0;
         
-        document.getElementById('evf-qr-dark').value = ev.qr_color_dark || '#000000';
-        document.getElementById('evf-qr-light').value = ev.qr_color_light || '#ffffff';
-        document.getElementById('evf-qr-logo').value = ev.qr_logo_url || '';
-        document.getElementById('evf-ticket-bg').value = ev.ticket_bg_url || '';
-        document.getElementById('evf-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
+        document.getElementById('evs-qr-dark').value = ev.qr_color_dark || '#000000';
+        document.getElementById('evs-qr-light').value = ev.qr_color_light || '#ffffff';
+        document.getElementById('evs-qr-logo').value = ev.qr_logo_url || '';
+        document.getElementById('evs-ticket-bg').value = ev.ticket_bg_url || '';
+        document.getElementById('evs-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
         
-        document.getElementById('evf-reg-whitelist').value = ev.reg_email_whitelist || '';
-        document.getElementById('evf-reg-blacklist').value = ev.reg_email_blacklist || '';
+        document.getElementById('evs-reg-whitelist').value = ev.reg_email_whitelist || '';
+        document.getElementById('evs-reg-blacklist').value = ev.reg_email_blacklist || '';
         
         // Actualizar vista previa QR
         this.updateQRPreview();
