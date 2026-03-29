@@ -4830,39 +4830,59 @@ const App = window.App = {
 
     async deleteEvent(id) {
         if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        
+        console.log('[DELETE EVENT] Intentando eliminar evento:', id);
+        
         if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
             try {
-                const res = await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
-                console.log('[DELETE EVENT] Response:', res);
+                // Guardar referencia al evento antes de eliminar
+                const eventToDelete = this.state.events?.find(e => String(e.id) === String(id));
+                console.log('[DELETE EVENT] Evento a eliminar:', eventToDelete);
                 
-                // Verificar si la eliminación fue exitosa
-                if (!res || res.success === false) {
-                    const errorMsg = res?.error || 'El evento no puede ser eliminado porque tiene invitados registrados.';
+                // Eliminar del estado local PRIMERO (optimista)
+                const previousEvents = [...(this.state.events || [])];
+                const previousCache = [...(this._eventsCache || [])];
+                
+                this.state.events = (this.state.events || []).filter(e => String(e.id) !== String(id));
+                this._eventsCache = (this._eventsCache || []).filter(e => String(e.id) !== String(id));
+                this._lastEventsLoad = 0;
+                
+                // Renderizar inmediatamente
+                this.renderEventsGrid();
+                this._notifyAction('Eliminando...', 'Procesando eliminación', 'info', 2000);
+                
+                // Llamar al servidor
+                const res = await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
+                console.log('[DELETE EVENT] Response del servidor:', res);
+                
+                // Verificar respuesta del servidor
+                if (!res) {
+                    console.warn('[DELETE EVENT] Sin respuesta del servidor, revirtiendo cambios locales');
+                    this.state.events = previousEvents;
+                    this._eventsCache = previousCache;
+                    this.renderEventsGrid();
+                    this._notifyAction('Error', 'No se recibió respuesta del servidor', 'error');
+                    return;
+                }
+                
+                if (res.success === false) {
+                    console.warn('[DELETE EVENT] Error del servidor, revirtiendo:', res.error);
+                    this.state.events = previousEvents;
+                    this._eventsCache = previousCache;
+                    this.renderEventsGrid();
+                    const errorMsg = res?.error || 'El evento no puede ser eliminado.';
                     this._notifyAction('Error', errorMsg, 'error');
                     return;
                 }
                 
-                // Eliminar el evento del estado local inmediatamente
-                this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
-                // También actualizar la caché
-                this._eventsCache = this._eventsCache.filter(e => String(e.id) !== String(id));
-                // Resetear timestamp de caché para permitir recarga inmediata
-                this._lastEventsLoad = 0;
-                
-                // Forzar renderizado de la lista
-                this.renderEventsGrid();
-                
-                // Recargar desde el servidor para confirmar eliminación
-                await this.loadEvents(true);
-                
+                // Eliminación exitosa
+                console.log('[DELETE EVENT] Eliminado correctamente del servidor');
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
+                
             } catch (e) { 
-                // Error de constraints typically means there are related records
-                if (e.message && e.message.includes('FOREIGN KEY')) {
-                    this._notifyAction('Error', 'El evento no puede ser eliminado porque tiene invitados registrados.', 'error');
-                } else {
-                    this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
-                }
+                console.error('[DELETE EVENT] Error:', e);
+                // Revirtir cambios locales en caso de error
+                this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
             }
         }
     },
