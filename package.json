@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.32.2",
-  "description": "Sistema de gestión de invitados (Regla de Oro), para la gestión y registro de invitados en eventos. Diseñada con un enfoque en la estética premium y la facilidad de uso. v12.32.2 - Team interface stabilization, HTML repair and premium UI expansion",
+  "version": "12.34.0",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.0 - Deep Dark Mode, Internal Sidebar Email & Premium Login UI",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

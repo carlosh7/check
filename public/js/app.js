@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.32.2';
+const VERSION = '12.34.0';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1792,6 +1792,24 @@ const App = window.App = {
         }
     },
     
+    switchEmailTab: function(tabId, element) {
+        console.log('[EMAIL] Switching to internal tab:', tabId);
+        
+        // 1. Actualizar estado visual de la sidebar interna
+        const sidebarItems = document.querySelectorAll('.inner-sidebar-item');
+        sidebarItems.forEach(item => item.classList.remove('active'));
+        
+        if (element) {
+            element.classList.add('active');
+        } else {
+            const target = document.querySelector(`.inner-sidebar-item[onclick*="'${tabId}'"]`);
+            if (target) target.classList.add('active');
+        }
+
+        // 2. Ejecutar lógica de carga y visualización
+        this._showEmailSection(tabId);
+    },
+
     navigateEmailSection: function(section) {
         // En la versión V12.16.x, Email es una pestaña de System
         // No forzamos this.navigate('smtp') si ya estamos en system
@@ -1809,13 +1827,25 @@ const App = window.App = {
         // Mostrar el contenido seleccionado
         const content = document.getElementById('email-content-' + section);
         const navBtn = document.getElementById('email-nav-' + section);
+        const sidebarItem = document.querySelector(`.inner-sidebar-item[onclick*="'${section}'"]`);
+
         if (content) content.classList.remove('hidden');
+        
+        // Actualizar botones legacy si existen
         if (navBtn) {
             navBtn.classList.remove('bg-white/5', 'text-slate-400');
             navBtn.classList.add('active', 'bg-primary', 'text-white', 'shadow-xl');
         }
+
+        // Actualizar nueva sidebar interna
+        if (sidebarItem) {
+            const allSidebarItems = document.querySelectorAll('.inner-sidebar-item');
+            allSidebarItems.forEach(i => i.classList.remove('active'));
+            sidebarItem.classList.add('active');
+        }
         
         // Guardar preferencia en localStorage
+        LS.set('active_email_tab', section);
         LS.set('email_admin_section', section);
         
         // Cargar datos según sección

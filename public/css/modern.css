@@ -61,34 +61,50 @@
     --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Chrome Dark Mode Palette - Premium Space */
+/* Deep Dark Mode Palette - v12.34.0 Premium */
 .dark {
-    --bg-app: #0f1115;
-    --bg-sidebar: rgba(22, 24, 28, 0.8);
-    --bg-card: rgba(28, 30, 35, 0.7);
-    --bg-input: #1c1e22;
-    --bg-hover: rgba(138, 180, 248, 0.1);
-    --bg-active: rgba(138, 180, 248, 0.15);
+    --bg-app: #020617; /* Deepest Slate */
+    --bg-sidebar: rgba(2, 6, 23, 0.8);
+    --bg-card: rgba(15, 23, 42, 0.6);
+    --bg-input: rgba(30, 41, 59, 0.4);
+    --bg-hover: rgba(139, 92, 246, 0.1);
+    --bg-active: rgba(139, 92, 246, 0.15);
     
-    --primary: #8ab4f8;
-    --primary-vibrant: #b388ff;
-    --primary-gradient: linear-gradient(135deg, #8ab4f8 0%, #b388ff 100%);
-    --primary-hover: #aecbfa;
-    --primary-light: rgba(138, 180, 248, 0.15);
+    --primary: #8b5cf6; /* Cyber Violet */
+    --primary-vibrant: #3b82f6; /* Electric Blue */
+    --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+    --primary-hover: #7c3aed;
+    --primary-light: rgba(139, 92, 246, 0.15);
     
-    /* Glassmorphism Tokens Dark */
-    --glass-bg: rgba(22, 24, 28, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    /* Glassmorphism Tokens - Deep Refraction */
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
     
-    --text-main: #f8f9fa;
-    --text-secondary: #9aa0a6;
-    --text-muted: #70757a;
+    --text-main: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     
-    --border: rgba(255, 255, 255, 0.1);
-    --border-light: rgba(255, 255, 255, 0.05);
-    --border-focus: rgba(138, 180, 248, 0.5);
-    --bg-card-rgb: 28, 30, 35;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.04);
+    --border-focus: rgba(139, 92, 246, 0.4);
+    --bg-card-rgb: 15, 23, 42;
+}
+
+/* Efectos Premium v12.34.0 */
+.blur-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+    animation: blob-float 20s infinite alternate ease-in-out;
+}
+
+@keyframes blob-float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(100px, 50px) scale(1.1); }
 }
 
 /* Modo Claro - Chrome Light Palette (ya definido en :root) */
@@ -1307,4 +1323,80 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
     height: 6px;
     border-radius: 50%;
     background: currentColor;
+}
+
+/* --- NAVEGACIÓN INTERNA (SIDEBAR) v12.34.0 --- */
+.inner-layout {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+.inner-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: sticky;
+    top: 20px;
+}
+
+.inner-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.inner-sidebar-item:hover {
+    background: rgba(139, 92, 246, 0.05);
+    color: var(--text-main);
+    transform: translateX(4px);
+}
+
+.inner-sidebar-item.active {
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
+    border-radius: 4px 16px 16px 4px;
+}
+
+.inner-sidebar-item .material-symbols-outlined {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+.inner-sidebar-item.active .material-symbols-outlined {
+    opacity: 1;
+    color: var(--primary);
+}
+
+.inner-content-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 1024px) {
+    .inner-layout {
+        flex-direction: column;
+    }
+    .inner-sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        position: static;
+    }
+    .inner-sidebar-item {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 }
