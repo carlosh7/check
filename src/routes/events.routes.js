@@ -177,7 +177,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     res.json({ success: true });
 });
 
-router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
+router.delete('/:id', authMiddleware(['ADMIN']), async (req, res) => {
     const targetId = castId('events', req.params.id);
 
     // Eliminar en cascada todos los registros relacionados con el evento
@@ -194,6 +194,11 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
         
         // Eliminar el evento
         db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
+        
+        // INVALIDAR CACHÉ cuando se elimina un evento
+        await del(CACHE_KEYS.EVENT_LIST);
+        await del(`events:list:user:${req.userId}`);
+        await del(CACHE_KEYS.EVENT(targetId));
         
         logAction(req, AUDIT_ACTIONS.EVENT_DELETED, { eventId: targetId });
         res.json({ success: true });
