@@ -4882,15 +4882,21 @@ const App = window.App = {
                 console.log('[DELETE EVENT] Response:', res);
                 
                 // Verificar si la eliminación fue exitosa
-                if (res && res.success === false) {
-                    this._notifyAction('Error', res.error || 'No se pudo eliminar el evento', 'error');
+                if (!res || res.success === false) {
+                    const errorMsg = res?.error || 'El evento no puede ser eliminado porque tiene invitados registrados.';
+                    this._notifyAction('Error', errorMsg, 'error');
                     return;
                 }
                 
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
                 this.loadEvents();
             } catch (e) { 
-                this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
+                // Error de constraints typically means there are related records
+                if (e.message && e.message.includes('FOREIGN KEY')) {
+                    this._notifyAction('Error', 'El evento no puede ser eliminado porque tiene invitados registrados.', 'error');
+                } else {
+                    this._notifyAction('Error', 'No se pudo eliminar: ' + e.message, 'error'); 
+                }
             }
         }
     },
