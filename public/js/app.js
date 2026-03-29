@@ -930,8 +930,20 @@ const App = window.App = {
     },
 
     async showEventSelector(userId, selectedEventIds = []) {
+        // Guardar el userId actual para cuando se cree un nuevo evento
+        this._pendingEventUserId = userId;
+        
         let events = [];
         try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+
+        const createEventHandler = function() {
+            // Cerrar SweetAlert primero
+            if (Swal && Swal.close) Swal.close();
+            // Luego navegar a crear evento
+            setTimeout(() => {
+                window.App.navigateToCreateEvent('short');
+            }, 200);
+        };
 
         const html = `
             <div class="space-y-6 text-left">
@@ -940,12 +952,12 @@ const App = window.App = {
                         <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
                         <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
+                    <button id="btn-create-event-from-selector" class="btn-primary !py-2 !px-4 !text-xs">
                         + NUEVO EVENTO
                     </button>
                 </div>
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(e => `
+                    ${events.length > 0 ? events.map(e => `
                         <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
@@ -958,14 +970,18 @@ const App = window.App = {
                                 <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
                             </div>
                         </div>
-                    `).join('')}
+                    `).join('') : '<div class="text-center py-8 text-slate-500">No hay eventos disponibles</div>'}
                 </div>
             </div>`;
 
         Swal.fire({
             html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
             showConfirmButton: false, showCloseButton: true,
-            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
+            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' },
+            willOpen: () => {
+                // Agregar event listener después de que se abra el SweetAlert
+                document.getElementById('btn-create-event-from-selector')?.addEventListener('click', createEventHandler);
+            }
         });
     },
 
@@ -1529,8 +1545,19 @@ const App = window.App = {
             }
             
             document.getElementById('modal-event')?.classList.add('hidden');
+            document.getElementById('modal-event')?.style.display = 'none';
             await this.loadEvents();
             await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
+            
+            // Si se creó desde el selector de eventos, volver a abrir el selector
+            if (this._pendingEventUserId) {
+                const userId = this._pendingEventUserId;
+                delete this._pendingEventUserId;
+                // Obtener los eventos actuales del usuario
+                const user = this.state.allUsers?.find(u => u.id === userId);
+                const userEvents = user?.events || [];
+                this.showEventSelector(userId, userEvents);
+            }
         } catch (err) {
             console.error('[saveEventShort] Error:', err);
             await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
