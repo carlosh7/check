@@ -4536,7 +4536,25 @@ const App = window.App = {
     // --- DATA LOADERS ---
     async loadEvents() {
         try {
-            this.state.events = await this.fetchAPI('/events');
+            const response = await this.fetchAPI('/events');
+            
+            // Validar que la respuesta sea un array válido
+            if (Array.isArray(response)) {
+                this.state.events = response;
+            } else if (response && response.success === false) {
+                // Si hay error (rate limit, etc), mantener eventos anteriores si existen
+                console.warn('[EVENTS] Error del servidor:', response.error);
+                if (!this.state.events || !Array.isArray(this.state.events)) {
+                    this.state.events = [];
+                }
+            } else {
+                // Respuesta inválida, mantener eventos anteriores o vacío
+                console.warn('[EVENTS] Respuesta inválida, manteniendo eventos anteriores');
+                if (!this.state.events || !Array.isArray(this.state.events)) {
+                    this.state.events = [];
+                }
+            }
+            
             const btnAdminNav = document.getElementById('nav-btn-admin');
             if (btnAdminNav) {
                 btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
@@ -4567,8 +4585,10 @@ const App = window.App = {
             this.updateSidebarVisibility();
         } catch (e) { 
             console.warn('[EVENTS] Error cargando eventos:', e);
-            // No mostrar login - solo mostrar grid vacío
-            this.state.events = [];
+            // Mantener eventos anteriores si existen
+            if (!this.state.events || !Array.isArray(this.state.events)) {
+                this.state.events = [];
+            }
             this.renderEventsGrid();
         }
     },
@@ -4607,6 +4627,9 @@ const App = window.App = {
             return;
         }
         
+        // Asegurar que events sea un array válido
+        const events = Array.isArray(this.state.events) ? this.state.events : [];
+        
         // Actualizar clases CSS según el modo de vista
         if (this.state.eventsViewMode === 'list') {
             c.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
@@ -4618,7 +4641,7 @@ const App = window.App = {
         
         if (this.state.eventsViewMode === 'list') {
             // Modo lista
-            c.innerHTML = this.state.events.map(ev => `
+            c.innerHTML = events.map(ev => `
                 <div data-action="openEvent" data-event-id="${ev.id}" class="card p-5 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)] flex items-start gap-4">
                     <div class="w-10 h-10 bg-[var(--primary-light)] text-[var(--primary)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                         <span class="material-symbols-outlined text-xl font-variation-fill">event</span>
@@ -4659,7 +4682,7 @@ const App = window.App = {
             `).join('');
         } else {
             // Modo grid (por defecto)
-            c.innerHTML = this.state.events.map(ev => `
+            c.innerHTML = events.map(ev => `
                 <div data-action="openEvent" data-event-id="${ev.id}" class="card p-7 hover:shadow-md transition-all relative group cursor-pointer border-[var(--border)]">
                     <div class="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <button data-action="editEvent" data-event-id="${ev.id}" class="w-9 h-9 rounded-full bg-[var(--bg-hover)] flex items-center justify-center hover:bg-[var(--primary-light)] hover:text-[var(--primary)] transition-all" title="Editar">
