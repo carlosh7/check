@@ -166,10 +166,27 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
     const targetId = castId('events', req.params.id);
 
-    logAction(req, AUDIT_ACTIONS.EVENT_DELETED, { eventId: targetId });
-
-    db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
-    res.json({ success: true });
+    // Eliminar en cascada todos los registros relacionados con el evento
+    try {
+        // Eliminar registros relacionados en orden inverso a las dependencias
+        db.prepare("DELETE FROM surveys WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM event_wheels WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM event_email_templates WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM event_email_config WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
+        
+        // Eliminar el evento
+        db.prepare("DELETE FROM events WHERE id = ?").run(targetId);
+        
+        logAction(req, AUDIT_ACTIONS.EVENT_DELETED, { eventId: targetId });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[DELETE EVENT] Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // Obtener invitados de evento
