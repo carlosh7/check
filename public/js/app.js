@@ -7907,8 +7907,9 @@ async function initApp() {
                 // Cargar eventos inicialmente para tener la lista lista
                 await App.loadEvents();
                 
-                // NO forzar navegación a my-events - el router restaurará la vista guardada
+                // Restaurar vista guardada o navegar según URL
                 console.log('[INIT] Restaurando vista guardada o navegación desde URL');
+                App.handleInitialNavigation();
             } else {
                 console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');
