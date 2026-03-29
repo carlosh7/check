@@ -539,14 +539,16 @@ const App = window.App = {
         const btnAdmin = document.getElementById('nav-btn-admin');
         if (btnAdmin) {
             const shouldShow = isAdmin && hasSelectedEvent;
-            btnAdmin.classList.toggle('hidden', !shouldShow);
+            // Usar style.display directamente para mayor compatibilidad
+            btnAdmin.style.display = shouldShow ? '' : 'none';
             console.log('[SIDEBAR] Panel Admin - visible:', shouldShow, '(isAdmin:', isAdmin, 'hasEvent:', hasSelectedEvent, ')');
         }
         
         // Config. Evento - solo visible si hay evento seleccionado
         const btnEventConfig = document.getElementById('nav-btn-event-config');
         if (btnEventConfig) {
-            btnEventConfig.classList.toggle('hidden', !hasSelectedEvent);
+            // Usar style.display directamente para mayor compatibilidad
+            btnEventConfig.style.display = hasSelectedEvent ? '' : 'none';
             console.log('[SIDEBAR] Config Evento - visible:', hasSelectedEvent);
         }
     },
