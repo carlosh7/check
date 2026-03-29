@@ -530,6 +530,27 @@ const App = window.App = {
         }
     },
 
+    // ─── ACTUALIZAR VISIBILIDAD DEL SIDEBAR ───
+    updateSidebarVisibility() {
+        const hasSelectedEvent = !!this.state.event?.id;
+        const isAdmin = this.state.user?.role === 'ADMIN';
+        
+        // Panel Admin - solo visible si es ADMIN Y hay evento seleccionado
+        const btnAdmin = document.getElementById('nav-btn-admin');
+        if (btnAdmin) {
+            const shouldShow = isAdmin && hasSelectedEvent;
+            btnAdmin.classList.toggle('hidden', !shouldShow);
+            console.log('[SIDEBAR] Panel Admin - visible:', shouldShow, '(isAdmin:', isAdmin, 'hasEvent:', hasSelectedEvent, ')');
+        }
+        
+        // Config. Evento - solo visible si hay evento seleccionado
+        const btnEventConfig = document.getElementById('nav-btn-event-config');
+        if (btnEventConfig) {
+            btnEventConfig.classList.toggle('hidden', !hasSelectedEvent);
+            console.log('[SIDEBAR] Config Evento - visible:', hasSelectedEvent);
+        }
+    },
+
     initSidebar() {
         console.log('[SIDEBAR] Inicializando sidebar...');
         
@@ -4531,6 +4552,8 @@ const App = window.App = {
             }
             
             this.renderEventsGrid();
+            // Actualizar visibilidad del sidebar basada en evento seleccionado
+            this.updateSidebarVisibility();
         } catch (e) { 
             console.warn('[EVENTS] Error cargando eventos:', e);
             // No mostrar login - solo mostrar grid vacío
@@ -4798,6 +4821,9 @@ const App = window.App = {
         this.loadGuests();
         this.updateStats();
         if (this.state.socket) this.state.socket.emit('join_event', id);
+        
+        // Actualizar visibilidad del sidebar
+        this.updateSidebarVisibility();
     },
     
     // Restaurar evento desde localStorage
@@ -4817,6 +4843,8 @@ const App = window.App = {
                 this.navigate('admin', { id: event.id });
                 this.loadGuests();
                 this.updateStats();
+                // Actualizar visibilidad del sidebar
+                this.updateSidebarVisibility();
                 return true;
             }
         }
