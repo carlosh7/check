@@ -1160,6 +1160,44 @@ section[id^="view-"], section[id^="sys-content-"], section[id^="config-content-"
     box-shadow: 0 0 10px currentColor;
 }
 
+/* --- TABLAS MODERNAS (PREMIUM REFINEMENT) --- */
+.data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background: transparent;
+}
+
+.data-table thead th {
+    background: rgba(255, 255, 255, 0.02);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.data-table td {
+    padding: 16px 24px;
+    vertical-align: middle;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Transición suave para filas premium */
+.user-row-premium {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.3s var(--transition-timing);
+}
+
+.user-row-premium:hover {
+    background: rgba(124, 58, 237, 0.04);
+    backdrop-filter: blur(4px);
+}
+
 /* --- EQUIPO Y COLABORADORES PREMIUM (v12.32.1) --- */
 .user-row-premium {
     background: rgba(15, 23, 42, 0.4);
