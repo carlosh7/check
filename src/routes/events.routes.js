@@ -380,69 +380,6 @@ router.post('/:id/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
     res.json({ success: true, message: `Email de prueba enviado a ${email}` });
 });
 
-// --- AGENDA DEL EVENTO (NUEVO V12.18.17) ---
-router.get('/:id/agenda', authMiddleware(), async (req, res) => {
-    const eventId = castId('events', req.params.id);
-    const rows = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY start_time ASC").all(eventId);
-    res.json(rows);
-});
-
-router.post('/:id/agenda', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const eventId = castId('events', req.params.id);
-    
-    if (!hasEventAccess(req.userId, eventId, req.userRole)) {
-        return res.status(403).json({ error: 'No tienes acceso a este evento' });
-    }
-    
-    const { title, description, start_time, end_time, duration, speaker, location } = req.body;
-    const id = getValidId('event_agenda');
-    
-    db.prepare(`
-        INSERT INTO event_agenda (id, event_id, title, description, start_time, end_time, duration, speaker, location, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, eventId, title, description, start_time, end_time, duration, speaker, location, new Date().toISOString());
-    
-    res.json({ success: true, id });
-});
-
-router.put('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const agendaId = castId('event_agenda', req.params.agendaId);
-    const { title, description, start_time, end_time, duration, speaker, location } = req.body;
-    
-    // Verificar acceso a través del evento
-    const agenda = db.prepare("SELECT event_id FROM event_agenda WHERE id = ?").get(agendaId);
-    if (!agenda || !hasEventAccess(req.userId, agenda.event_id, req.userRole)) {
-        return res.status(403).json({ error: 'No tienes acceso' });
-    }
-    
-    db.prepare(`
-        UPDATE event_agenda SET 
-            title = COALESCE(?, title),
-            description = COALESCE(?, description),
-            start_time = COALESCE(?, start_time),
-            end_time = COALESCE(?, end_time),
-            duration = COALESCE(?, duration),
-            speaker = COALESCE(?, speaker),
-            location = COALESCE(?, location)
-        WHERE id = ?
-    `).run(title, description, start_time, end_time, duration, speaker, location, agendaId);
-    
-    res.json({ success: true });
-});
-
-router.delete('/agenda/:agendaId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const agendaId = castId('event_agenda', req.params.agendaId);
-    
-    // Verificar acceso
-    const agenda = db.prepare("SELECT event_id FROM event_agenda WHERE id = ?").get(agendaId);
-    if (!agenda || !hasEventAccess(req.userId, agenda.event_id, req.userRole)) {
-        return res.status(403).json({ error: 'No tienes acceso' });
-    }
-    
-    db.prepare("DELETE FROM event_agenda WHERE id = ?").run(agendaId);
-    res.json({ success: true });
-});
-
 // --- EVENTOS DE USUARIO (NUEVO V12.18.17) ---
 router.get('/user/:userId', authMiddleware(), async (req, res) => {
     const targetUserId = castId('users', req.params.userId);
