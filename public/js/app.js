@@ -4630,7 +4630,12 @@ const App = window.App = {
             }
             
             this.renderEventsGrid();
-        } catch (e) { this.showView('login'); }
+        } catch (e) { 
+            console.warn('[EVENTS] Error cargando eventos:', e);
+            // No mostrar login - solo mostrar grid vacío
+            this.state.events = [];
+            this.renderEventsGrid();
+        }
     },
 
     toggleEventsView() {

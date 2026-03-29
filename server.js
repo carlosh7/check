@@ -485,10 +485,10 @@ const skipLocal = (req) => {
            !ip;                          // No IP (internal)
 };
 
-// Rate limit general: 200 pet/15min
+// Rate limit general: 1000 pet/15min (aumentado para evitar 429)
 const apiLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
-    max: 200, 
+    max: 1000, 
     skip: skipLocal, 
     message: { error: 'Demasiadas peticiones. Espera 15 minutos.' } 
 });
