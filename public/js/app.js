@@ -3779,7 +3779,7 @@ const App = window.App = {
         }
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
-        if (viewName === 'my-events') this.loadEvents();
+        if (viewName === 'my-events') this.loadEvents(false); // false = usar cache si está disponible
         if (viewName === 'system') {
             this.hideRestrictedSystemTabs();
             window.switchSystemTab(params.tab || 'users');
@@ -4534,25 +4534,46 @@ const App = window.App = {
 
 
     // --- DATA LOADERS ---
-    async loadEvents() {
+    _lastEventsLoad: 0,
+    _eventsCache: null,
+    
+    async loadEvents(force = false) {
+        // Cache de 30 segundos para evitar múltiples cargas seguidas
+        const now = Date.now();
+        const CACHE_DURATION = 30000; // 30 segundos
+        
+        // Si hay datos en caché y no se fuerza recarga, usarlos
+        if (!force && this._eventsCache && (now - this._lastEventsLoad) < CACHE_DURATION) {
+            console.log('[EVENTS] Usando cache de eventos, tiempo restante:', Math.round((CACHE_DURATION - (now - this._lastEventsLoad)) / 1000), 's');
+            this.state.events = this._eventsCache;
+            this.renderEventsGrid();
+            this.updateSidebarVisibility();
+            return;
+        }
+        
         try {
             const response = await this.fetchAPI('/events');
             
             // Validar que la respuesta sea un array válido
             if (Array.isArray(response)) {
                 this.state.events = response;
+                this._eventsCache = response;
+                this._lastEventsLoad = now;
+                console.log('[EVENTS] Eventos cargados y guardados en cache');
             } else if (response && response.success === false) {
                 // Si hay error (rate limit, etc), mantener eventos anteriores si existen
                 console.warn('[EVENTS] Error del servidor:', response.error);
-                if (!this.state.events || !Array.isArray(this.state.events)) {
-                    this.state.events = [];
+                if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
+                    this._eventsCache = [];
                 }
+                this.state.events = this._eventsCache;
             } else {
                 // Respuesta inválida, mantener eventos anteriores o vacío
                 console.warn('[EVENTS] Respuesta inválida, manteniendo eventos anteriores');
-                if (!this.state.events || !Array.isArray(this.state.events)) {
-                    this.state.events = [];
+                if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
+                    this._eventsCache = [];
                 }
+                this.state.events = this._eventsCache;
             }
             
             const btnAdminNav = document.getElementById('nav-btn-admin');
@@ -4586,9 +4607,10 @@ const App = window.App = {
         } catch (e) { 
             console.warn('[EVENTS] Error cargando eventos:', e);
             // Mantener eventos anteriores si existen
-            if (!this.state.events || !Array.isArray(this.state.events)) {
-                this.state.events = [];
+            if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
+                this._eventsCache = [];
             }
+            this.state.events = this._eventsCache;
             this.renderEventsGrid();
         }
     },
@@ -4822,6 +4844,8 @@ const App = window.App = {
                 
                 // Eliminar el evento del estado local inmediatamente
                 this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
+                // También actualizar la caché
+                this._eventsCache = this._eventsCache.filter(e => String(e.id) !== String(id));
                 
                 // Forzar renderizado de la lista
                 this.renderEventsGrid();
