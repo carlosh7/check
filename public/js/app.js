@@ -1013,17 +1013,6 @@ const App = window.App = {
         }
     },
     
-    removeUserFromEvent: async function(userId, eventId) {
-        if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
-        try {
-            await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
-            // Recargar usuarios
-            const users = await this.fetchAPI('/users');
-            this.state.allUsers = users;
-            this.loadUsersTable();
-        } catch(e) { console.error('Error removing user from event:', e); }
-    },
-    
     // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
     loadUsersTable: async function() {
         if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
