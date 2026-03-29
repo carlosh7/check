@@ -120,6 +120,22 @@ function registerRoutes(app, rootDir) {
     // Stats (Dashboard Analítica)
     app.use('/api', statsRoutes);
     
+    // SPA Catch-all: Cualquier ruta que no sea API sirve index.html
+    // Esto permite que las rutas como /system/email, /event-config/123 funcionen
+    app.get('*', (req, res) => {
+        // No aplicar a rutas de archivos estáticos已知问题
+        if (req.path.startsWith('/api/') || req.path.startsWith('/css/') || 
+            req.path.startsWith('/js/') || req.path.startsWith('/html/') ||
+            req.path.startsWith('/uploads/') || req.path.startsWith('/socket.io/') ||
+            req.path.includes('.')) {
+            return res.status(404).json({ error: 'Not found' });
+        }
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.sendFile(path.join(rootDir, 'index.html'));
+    });
+
     console.log('✓ Rutas registradas (modulares)');
 }
 
