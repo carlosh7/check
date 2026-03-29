@@ -122,14 +122,16 @@ function registerRoutes(app, rootDir) {
     
     // SPA Catch-all: Cualquier ruta que no sea API sirve index.html
     // Esto permite que las rutas como /system/email, /event-config/123 funcionen
-    app.get('*', (req, res) => {
-        // No aplicar a rutas de archivos estáticos已知问题
+    app.use((req, res, next) => {
+        // Ignorar si ya hay respuesta o es una ruta de API/archivos
         if (req.path.startsWith('/api/') || req.path.startsWith('/css/') || 
             req.path.startsWith('/js/') || req.path.startsWith('/html/') ||
             req.path.startsWith('/uploads/') || req.path.startsWith('/socket.io/') ||
-            req.path.includes('.')) {
-            return res.status(404).json({ error: 'Not found' });
+            req.path.includes('.') || req.method !== 'GET') {
+            return next();
         }
+        
+        // Para todas las demás rutas GET, servir index.html (SPA)
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
