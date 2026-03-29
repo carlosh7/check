@@ -47,6 +47,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS events (
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN end_date TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN has_wheel INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN has_own_db INTEGER DEFAULT 0"); } catch (_) {}
 
 // Campos de personalización de registro público
 try { db.exec("ALTER TABLE events ADD COLUMN reg_title TEXT"); } catch (_) {}

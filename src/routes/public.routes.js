@@ -3,7 +3,7 @@
  */
 
 const express = require('express');
-const { db } = require('../../database');
+const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { generateCaptcha, verifyCaptcha } = require('../security/captcha');
 const { AuditLog } = require('../security/audit');
 
@@ -96,8 +96,12 @@ router.post('/public-register', async (req, res) => {
             }
         }
         
+        // Determinar qué base de datos usar (del evento o maestra)
+        const useEventDb = event.has_own_db === 1 && eventDatabaseExists(eId);
+        const targetDb = useEventDb ? getEventConnection(eId) : db;
+        
         // Verificar si ya existe el invitado (por correo o por teléfono si no es vacío)
-        const existing = db.prepare(`
+        const existing = targetDb.prepare(`
             SELECT id FROM guests 
             WHERE event_id = ? AND (email = ? OR (phone != '' AND phone IS NOT NULL AND phone = ?))
         `).get(eId, email, phone || '');
@@ -108,9 +112,18 @@ router.post('/public-register', async (req, res) => {
         const guestId = getValidId('guests');
         const qrToken = uuidv4();
         
-        db.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
+        targetDb.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
           .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken);
+        
+        // Si usa BD del evento, también registrar en BD maestra (para compatibilidad)
+        if (useEventDb && targetDb !== db) {
+            try {
+                db.prepare(`INSERT OR IGNORE INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
+                  .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken);
+            } catch (_) {}
+        }
         
         res.json({ success: true, message: 'Registro exitoso', guestId, qrToken });
     } catch (err) {

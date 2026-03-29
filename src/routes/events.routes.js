@@ -4,7 +4,7 @@
 
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../../database');
+const { db, createEventDatabase, deleteEventDatabase } = require('../../database');
 const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
@@ -60,7 +60,8 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
         reg_show_dietary, reg_show_gender, reg_require_agreement,
         qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
-        reg_email_whitelist, reg_email_blacklist
+        reg_email_whitelist, reg_email_blacklist,
+        has_own_db
     } = v.data;
     
     // logo_url no viene del formulario, se maneja por separado
@@ -68,6 +69,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
+    const hasOwnDb = has_own_db ? 1 : 0;
 
     db.prepare(`
         INSERT INTO events (
@@ -76,16 +78,28 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
             reg_show_dietary, reg_show_gender, reg_require_agreement,
             qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
-            reg_email_whitelist, reg_email_blacklist
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reg_email_whitelist, reg_email_blacklist, has_own_db
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         id, req.userId, name, date, location, logo_url || '', description || '', 'ACTIVE', new Date().toISOString(), eventGroupId, end_date || null,
         reg_title || '', reg_welcome_text || '', reg_success_message || '', reg_policy || '',
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
         reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
         qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || '', ticket_bg_url || '', ticket_accent_color || '#7c3aed',
-        reg_email_whitelist || '', reg_email_blacklist || ''
+        reg_email_whitelist || '', reg_email_blacklist || '', hasOwnDb
     );
+
+    // Crear base de datos independiente si se solicita
+    if (hasOwnDb) {
+        try {
+            const eventDb = createEventDatabase(id);
+            if (eventDb) {
+                console.log('✓ Base de datos independiente creada para evento:', id);
+            }
+        } catch (error) {
+            console.error('✗ Error al crear base de datos del evento:', error.message);
+        }
+    }
 
     const userEventId = getValidId('user_events');
     db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
@@ -955,6 +969,101 @@ router.delete('/wheels/:wheelId/results', authMiddleware(), async (req, res) => 
     
     db.prepare("DELETE FROM wheel_results WHERE wheel_id = ?").run(wheelId);
     res.json({ success: true });
+});
+
+// ═══ GESTIÓN DE BASE DE DATOS POR EVENTO ═══
+
+// POST /api/events/:id/database - Crear base de datos independiente para un evento
+router.post('/:id/database', authMiddleware(['ADMIN']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    if (!eventId) {
+        return res.status(400).json({ success: false, error: 'ID de evento no válido' });
+    }
+    
+    const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+    if (!event) {
+        return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+    }
+    
+    if (event.has_own_db === 1) {
+        return res.json({ success: true, message: 'El evento ya tiene base de datos independiente' });
+    }
+    
+    try {
+        const eventDb = createEventDatabase(eventId);
+        if (eventDb) {
+            // Actualizar campo en la tabla events
+            db.prepare("UPDATE events SET has_own_db = 1 WHERE id = ?").run(eventId);
+            
+            // Invalidar cache
+            await del(CACHE_KEYS.EVENT(eventId));
+            
+            return res.json({ success: true, message: 'Base de datos independiente creada' });
+        } else {
+            return res.status(500).json({ success: false, error: 'Error al crear base de datos' });
+        }
+    } catch (error) {
+        console.error('Error creando base de datos del evento:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/events/:id/database - Eliminar base de datos independiente de un evento
+router.delete('/:id/database', authMiddleware(['ADMIN']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    if (!eventId) {
+        return res.status(400).json({ success: false, error: 'ID de evento no válido' });
+    }
+    
+    const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+    if (!event) {
+        return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+    }
+    
+    if (event.has_own_db !== 1) {
+        return res.json({ success: true, message: 'El evento no tiene base de datos independiente' });
+    }
+    
+    try {
+        const deleted = deleteEventDatabase(eventId);
+        if (deleted) {
+            // Actualizar campo en la tabla events
+            db.prepare("UPDATE events SET has_own_db = 0 WHERE id = ?").run(eventId);
+            
+            // Invalidar cache
+            await del(CACHE_KEYS.EVENT(eventId));
+            
+            return res.json({ success: true, message: 'Base de datos independiente eliminada' });
+        } else {
+            return res.status(500).json({ success: false, error: 'Error al eliminar base de datos' });
+        }
+    } catch (error) {
+        console.error('Error eliminando base de datos del evento:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /api/events/:id/database - Verificar estado de base de datos del evento
+router.get('/:id/database', authMiddleware(), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    if (!eventId) {
+        return res.status(400).json({ error: 'ID de evento no válido' });
+    }
+    
+    const event = db.prepare("SELECT id, name, has_own_db FROM events WHERE id = ?").get(eventId);
+    if (!event) {
+        return res.status(404).json({ error: 'Evento no encontrado' });
+    }
+    
+    const hasDb = eventDatabaseExists(eventId);
+    
+    res.json({
+        eventId: event.id,
+        eventName: event.name,
+        has_own_db: event.has_own_db,
+        database_exists: hasDb,
+        status: event.has_own_db === 1 && hasDb ? 'active' : 'inactive'
+    });
 });
 
 module.exports = router;
