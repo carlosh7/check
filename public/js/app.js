@@ -121,8 +121,15 @@ const App = window.App = {
     navigateToCreateEvent(type = 'short') {
         console.log('[NAVIGATE TO CREATE EVENT] Type:', type);
         
-        // Cerrar cualquier SweetAlert abierto
-        if (Swal && Swal.close) Swal.close();
+        // Cerrar cualquier SweetAlert abierto de forma agresiva
+        if (Swal && Swal.close) {
+            Swal.close();
+        }
+        // Remover cualquier overlay de SweetAlert que pueda estar bloqueando
+        const swalOverlay = document.querySelector('.swal2-container');
+        if (swalOverlay) {
+            swalOverlay.remove();
+        }
         
         if (type === 'full') {
             // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
@@ -147,8 +154,9 @@ const App = window.App = {
                 const modal = document.getElementById('modal-event-full');
                 if (modal) {
                     modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
                 }
-            }, 100);
+            }, 150);
         } else {
             // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
             const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
@@ -182,11 +190,12 @@ const App = window.App = {
                 console.log('[NAVIGATE TO CREATE EVENT] Modal element:', modal);
                 if (modal) {
                     modal.classList.remove('hidden');
-                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now');
+                    modal.style.display = 'flex';
+                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now, classes:', modal.className);
                 } else {
                     console.error('[NAVIGATE TO CREATE EVENT] Modal not found!');
                 }
-            }, 100);
+            }, 150);
         }
     },
 
