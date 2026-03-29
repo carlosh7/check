@@ -5,7 +5,7 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../../database');
+const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
@@ -15,6 +15,16 @@ const { sendPushToEventUsers } = require('./push.routes');
 const router = express.Router();
 
 let tempImport = {};
+
+// Función helper para obtener la BD correcta según el evento
+function getEventDb(eventId) {
+    const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
+    if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
+        const eventDb = getEventConnection(eventId);
+        if (eventDb) return eventDb;
+    }
+    return db;
+}
 
 // Obtener invitado por ID (público - para tickets)
 router.get('/by-id/:guestId', (req, res) => {
@@ -35,6 +45,9 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
     const offset = (page - 1) * limit;
     const search = (req.query.search || '').trim();
 
+    // Usar BD del evento si existe
+    const targetDb = getEventDb(eId);
+
     let whereClause = 'event_id = ?';
     let params = [eId];
 
@@ -44,8 +57,8 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
         params.push(searchTerm, searchTerm, searchTerm);
     }
 
-    const total = db.prepare(`SELECT COUNT(*) as count FROM guests WHERE ${whereClause}`).get(...params).count;
-    const rows = db.prepare(`SELECT * FROM guests WHERE ${whereClause} ORDER BY name ASC LIMIT ? OFFSET ?`).all(...params, limit, offset);
+    const total = targetDb.prepare(`SELECT COUNT(*) as count FROM guests WHERE ${whereClause}`).get(...params).count;
+    const rows = targetDb.prepare(`SELECT * FROM guests WHERE ${whereClause} ORDER BY name ASC LIMIT ? OFFSET ?`).all(...params, limit, offset);
 
     res.json({
         data: rows,
@@ -75,6 +88,9 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
     const { mapping, event_id } = req.body;
     const eId = castId('events', event_id);
     const guests = [];
+    
+    // Usar BD del evento si existe
+    const targetDb = getEventDb(eId);
 
     try {
         if (session.isPDF) {
@@ -106,7 +122,7 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
             });
         }
 
-        const existing = db.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(eId);
+        const existing = targetDb.prepare("SELECT email, phone FROM guests WHERE event_id = ?").all(eId);
         const existingEmails = new Set(existing.map(e => (e.email || '').toLowerCase().trim()));
         const existingPhones = new Set(existing.map(e => (e.phone || '').replace(/\D/g, '')));
         
@@ -121,9 +137,9 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
             return true;
         });
 
-        const insertGuest = db.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, position, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        const insertGuest = targetDb.prepare("INSERT INTO guests (id, event_id, name, email, organization, phone, gender, dietary_notes, position, qr_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         const insertedGuests = [];
-        const insertMany = db.transaction((list) => {
+        const insertMany = targetDb.transaction((list) => {
             for (const g of list) {
                 const guestId = getValidId('guests');
                 const qrToken = uuidv4();
@@ -165,7 +181,8 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
 // Exportar Excel
 router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
     const eId = castId('events', req.params.eventId);
-    const rows = db.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(eId);
+    const targetDb = getEventDb(eId);
+    const rows = targetDb.prepare("SELECT name as Nombre, email as Email, organization as Organizacion, phone as Telefono, gender as Genero, CASE WHEN checked_in = 1 THEN 'SÍ' ELSE 'NO' END as Asistio, checkin_time as Hora FROM guests WHERE event_id = ?").all(eId);
     
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Check Pro V10';
@@ -210,10 +227,11 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
     const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
     
+    const targetDb = getEventDb(guest.event_id);
     const io = socketGetIO();
     
     if (guest.checked_in) {
-        db.prepare("UPDATE guests SET checked_in = 0, checkin_time = NULL WHERE id = ?").run(gId);
+        targetDb.prepare("UPDATE guests SET checked_in = 0, checkin_time = NULL WHERE id = ?").run(gId);
         if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
         
         // Trigger webhook for uncheck-in
@@ -238,7 +256,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         return res.json({ success: true, action: 'uncheckin' });
     }
     
-    db.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), gId);
+    targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), gId);
     if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
     
     // Trigger webhook for check-in
@@ -266,7 +284,8 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
 // Limpiar base de datos de evento
 router.post('/clear/:eventId', authMiddleware(['ADMIN']), (req, res) => {
     const eId = castId('events', req.params.eventId);
-    db.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
+    const targetDb = getEventDb(eId);
+    targetDb.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
     res.json({ success: true });
 });
 
