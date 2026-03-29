@@ -4019,16 +4019,20 @@ const App = window.App = {
                     }
                     
                     // Buscar el evento en la lista de eventos cargados
-                    const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
-                    if (savedEvent) {
-                        this.state.event = savedEvent;
-                        params.id = savedEventId;
-                        console.log('[ROUTER] Using saved event for event-config:', params.id);
+                    if (this.state.events && this.state.events.length > 0) {
+                        const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
+                        if (savedEvent) {
+                            this.state.event = savedEvent;
+                            params.id = savedEventId;
+                            console.log('[ROUTER] Using saved event for event-config:', params.id);
+                        } else {
+                            // El evento no está en memoria, pero la URL tiene un ID válido
+                            // Navegar igual - el sistema cargará el evento
+                            console.log('[ROUTER] Event not in memory, but navigating to event-config:', savedEventId);
+                        }
                     } else {
-                        console.log('[ROUTER] Saved event not found, redirecting to my-events');
-                        this.navigate('my-events', {}, false);
-                        this._hasHandledInitialNav = true;
-                        return;
+                        // No hay eventos cargados aún, navegar igual y dejar que el sistema cargue
+                        console.log('[ROUTER] Events not loaded yet, navigating to event-config:', savedEventId);
                     }
                 } else {
                     // Si no hay evento guardado, redirigir a my-events
@@ -4052,22 +4056,30 @@ const App = window.App = {
                 const savedEventId = LS.get('active_event_id');
                 if (savedEventId) {
                     // Buscar el evento en la lista de eventos cargados
-                    const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
-                    if (savedEvent) {
-                        this.state.event = savedEvent;
-                        params.id = savedEventId;
-                        console.log('[ROUTER] Using saved event for admin:', params.id);
+                    if (this.state.events && this.state.events.length > 0) {
+                        const savedEvent = this.state.events.find(e => String(e.id) === String(savedEventId));
+                        if (savedEvent) {
+                            this.state.event = savedEvent;
+                            params.id = savedEventId;
+                            console.log('[ROUTER] Using saved event for admin:', params.id);
+                        } else {
+                            // El evento no está en memoria, pero la URL tiene un ID válido
+                            console.log('[ROUTER] Event not in memory, but navigating to admin:', savedEventId);
+                        }
                     } else {
-                        console.log('[ROUTER] Saved event not found, redirecting to my-events');
+                        // No hay eventos cargados aún, navegar igual
+                        console.log('[ROUTER] Events not loaded yet, navigating to admin:', savedEventId);
+                    }
+                } else {
+                    // Hay params.id desde la URL, intentar cargar el evento
+                    if (params.id) {
+                        console.log('[ROUTER] No saved event, but have ID from URL:', params.id);
+                    } else {
+                        console.log('[ROUTER] No event id for admin, redirecting to my-events');
                         this.navigate('my-events', {}, false);
                         this._hasHandledInitialNav = true;
                         return;
                     }
-                } else {
-                    console.log('[ROUTER] No event id for admin, redirecting to my-events');
-                    this.navigate('my-events', {}, false);
-                    this._hasHandledInitialNav = true;
-                    return;
                 }
             }
         }
