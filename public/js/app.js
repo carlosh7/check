@@ -7963,6 +7963,18 @@ async function initApp() {
         }
     });
 
+    // Handler de Escape para cerrar modales
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            console.log('[MODAL] Escape presionado, cerrando modales...');
+            // Cerrar todos los modales visibles
+            document.querySelectorAll('[id^="modal-"]:not(.hidden)').forEach(modal => {
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        }
+    });
+
     // 3. Sockets
     if (typeof io !== 'undefined') {
         window.App.state.socket = io();
