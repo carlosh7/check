@@ -1382,7 +1382,7 @@ const App = window.App = {
                 Object.assign(this.state.event, data);
             }
 
-            document.getElementById('modal-event-full')?.classList.add('hidden');
+            this.hideModal('modal-event-full');
             await this.loadEvents();
             await this._notifyAction('✓ Guardado', eventId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
         } catch (err) {
@@ -1448,7 +1448,7 @@ const App = window.App = {
                 return;
             }
             
-            document.getElementById('modal-event')?.classList.add('hidden');
+            hideModal('modal-event');
             await this.loadEvents();
             await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
         } catch (err) {
