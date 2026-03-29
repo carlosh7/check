@@ -891,5 +891,27 @@ for (const sql of additionalIndices) {
     try { db.exec(sql); } catch (_) {}
 }
 
+// Importar Database Manager para bases de datos por evento
+const { 
+    getEventConnection, 
+    createEventDatabase, 
+    eventDatabaseExists,
+    getEventDbPath,
+    getEventDatabases,
+    getEventDatabaseInfo,
+    deleteEventDatabase
+} = require('./src/utils/database-manager');
+
 // Exportar función para usar en server.js
-module.exports = { db, createEventEmailTemplates };
+module.exports = { 
+    db, 
+    createEventEmailTemplates,
+    // Funciones de base de datos por evento
+    getEventConnection,
+    createEventDatabase,
+    eventDatabaseExists,
+    getEventDbPath,
+    getEventDatabases,
+    getEventDatabaseInfo,
+    deleteEventDatabase
+};
