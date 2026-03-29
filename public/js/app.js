@@ -4846,11 +4846,14 @@ const App = window.App = {
                 this.state.events = this.state.events.filter(e => String(e.id) !== String(id));
                 // También actualizar la caché
                 this._eventsCache = this._eventsCache.filter(e => String(e.id) !== String(id));
-                // Resetear timestamp de caché para permitir recarga inmediata si se necesita
+                // Resetear timestamp de caché para permitir recarga inmediata
                 this._lastEventsLoad = 0;
                 
                 // Forzar renderizado de la lista
                 this.renderEventsGrid();
+                
+                // Recargar desde el servidor para confirmar eliminación
+                await this.loadEvents(true);
                 
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
             } catch (e) { 
