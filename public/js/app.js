@@ -3737,7 +3737,13 @@ const App = window.App = {
         }
 
         this.showView(viewName);
-        LS.set('active_view', viewName); // Persistencia de vista V12.16.0
+        
+        // Guardar en AMBOS localStorage y sessionStorage para persistencia en refresh
+        LS.set('active_view', viewName);
+        try {
+            sessionStorage.setItem('check_current_view', JSON.stringify({ view: viewName, params: params }));
+            sessionStorage.setItem('check_current_url', window.location.pathname);
+        } catch (e) { console.warn('[NAV] sessionStorage not available'); }
         
         // Guardar evento actual si estamos en admin o event-config
         if ((viewName === 'admin' || viewName === 'event-config') && this.state.event?.id) {
@@ -3910,36 +3916,9 @@ const App = window.App = {
         }
         
         console.log('[ROUTER] handleInitialNavigation called');
-        console.log('[ROUTER] window.location.pathname:', window.location.pathname);
-        console.log('[ROUTER] history.state:', history.state);
         
         const path = window.location.pathname;
-        const parts = path.split('/').filter(p => p);
         
-        // Determinar la vista basada en la URL
-        let view = parts[0] || 'my-events';
-        const params = {};
-        
-        console.log('[ROUTER] Parsed view:', view, 'parts:', parts, 'full path:', path);
-        
-        // Manejar parámetros específicos de vista
-        if (view === 'admin' && parts[1]) {
-            params.id = parts[1];
-        }
-        
-        if (view === 'system' && parts[1]) {
-            params.tab = parts[1];
-        }
-        
-        if (view === 'event-config' && parts[1]) {
-            params.id = parts[1];
-        }
-        
-        // Manejar rutas legacy con parámetros
-        if (view === 'groups' || view === 'legal' || view === 'account' || view === 'smtp') {
-            // Estas serán redirigidas más adelante
-        }
-
         // Verificar autenticación
         const user = this.state.user;
         if (!user) {
@@ -3947,106 +3926,63 @@ const App = window.App = {
             this.showView('login');
             return;
         }
-
-        // Si no hay tab especificado para system, usar el guardado
-        if (view === 'system' && !params.tab) {
-            params.tab = LS.get('active_system_tab') || 'users';
-        }
-
-        console.log('[ROUTER] Checking view:', view, 'savedView:', LS.get('active_view'), 'current event:', this.state.event?.id);
         
-        // Manejar redirecciones de compatibilidad
-        if (view === 'groups' || view === 'legal' || view === 'account' || view === 'smtp') {
-            console.log('[ROUTER] Redirecting legacy view:', view);
-            const tabMap = {
-                'groups': 'groups',
-                'legal': 'legal', 
-                'account': 'account',
-                'smtp': 'email'
-            };
-            this.navigate('system', { tab: tabMap[view] }, false);
-            this._hasHandledInitialNav = true;
-            return;
-        }
+        // NUEVA ESTRATEGIA: Prioridad de restauración
+        // 1. Primero: sessionStorage ( survives refresh)
+        // 2. Segundo: localStorage (persistente)
+        // 3. Tercero: URL actual
         
-        // SIEMPRE restaurar la vista guardada si existe y no hay parámetros específicos en la URL
-        const savedView = LS.get('active_view');
-        const savedTab = LS.get('active_system_tab');
-        const savedEventId = LS.get('active_event_id');
+        let targetView = null;
+        let targetParams = {};
         
-        console.log('[ROUTER] Checking saved state - savedView:', savedView, 'savedTab:', savedTab, 'savedEventId:', savedEventId);
-        
-        // Si hay una vista guardada que no sea login
-        if (savedView && savedView !== 'login') {
-            // Si la URL actual es raíz (/), restaurar la vista guardada directamente
-            if (path === '/' || view === '' || (view === 'my-events' && parts.length === 0)) {
-                console.log('[ROUTER] Root URL detected, restoring saved view:', savedView);
+        // 1. Intentar desde sessionStorage
+        try {
+            const sessionData = sessionStorage.getItem('check_current_view');
+            if (sessionData) {
+                const parsed = JSON.parse(sessionData);
+                console.log('[ROUTER] Found sessionStorage data:', parsed);
                 
-                if (savedView === 'system') {
-                    params.tab = savedTab || 'users';
-                    this.navigate('system', params, false);
-                    this._hasHandledInitialNav = true;
-                    return;
+                // Solo usar sessionStorage si la URL es raíz o my-events
+                if (path === '/' || path === '/my-events') {
+                    targetView = parsed.view;
+                    targetParams = parsed.params || {};
                 }
+            }
+        } catch (e) { console.warn('[ROUTER] sessionStorage parse error:', e); }
+        
+        // 2. Si no hay sessionStorage, usar localStorage
+        if (!targetView || targetView === 'login') {
+            const lsView = LS.get('active_view');
+            if (lsView && lsView !== 'login') {
+                targetView = lsView;
+                const lsTab = LS.get('active_system_tab');
+                const lsEventId = LS.get('active_event_id');
                 
-                if (savedView === 'admin' || savedView === 'event-config') {
-                    if (savedEventId) {
-                        params.id = savedEventId;
-                        this.navigate(savedView, params, false);
-                        this._hasHandledInitialNav = true;
-                        return;
-                    }
+                if (lsView === 'system' && lsTab) {
+                    targetParams = { tab: lsTab };
+                } else if ((lsView === 'admin' || lsView === 'event-config') && lsEventId) {
+                    targetParams = { id: lsEventId };
                 }
-                
-                // Para cualquier otra vista (incluyendo my-events), navegar
-                if (savedView !== 'my-events' || savedTab) {
-                    this.navigate(savedView, params, false);
-                    this._hasHandledInitialNav = true;
-                    return;
-                }
+                console.log('[ROUTER] Using localStorage data:', targetView);
             }
         }
         
-        // Si estamos en la raíz y no hay vista guardada, verificar si hay savedTab
-        if ((path === '/' || view === '') && savedTab) {
-            console.log('[ROUTER] No savedView but have savedTab, navigating to system:', savedTab);
-            params.tab = savedTab;
-            this.navigate('system', params, false);
-            this._hasHandledInitialNav = true;
-            return;
+        // 3. Si nada funciona, usar la URL actual
+        if (!targetView || targetView === 'login') {
+            const parts = path.split('/').filter(p => p);
+            targetView = parts[0] || 'my-events';
+            
+            if (targetView === 'admin' && parts[1]) targetParams = { id: parts[1] };
+            if (targetView === 'system' && parts[1]) targetParams = { tab: parts[1] };
+            if (targetView === 'event-config' && parts[1]) targetParams = { id: parts[1] };
+            
+            console.log('[ROUTER] Using URL data:', targetView);
         }
         
-        // Para event-config, necesitamos un event id - pero NO redirigir a my-events si hay savedEventId
-        if (view === 'event-config' && !params.id) {
-            // Si hay savedEventId en LS, usarlo aunque events no esté cargado
-            const savedEventId = LS.get('active_event_id');
-            if (savedEventId) {
-                params.id = savedEventId;
-                console.log('[ROUTER] Using saved event ID for event-config:', savedEventId);
-            } else if (this.state.event?.id) {
-                params.id = this.state.event.id;
-                console.log('[ROUTER] Using current event for event-config:', params.id);
-            }
-            // Si no hay params.id, el navigate al final se encargará (no redirigir a my-events aquí)
-        }
-        
-        // Para admin, también necesitamos un event id - pero NO redirigir a my-events si hay savedView
-        if (view === 'admin' && !params.id) {
-            // Si hay savedEventId en LS, usarlo aunque events no esté cargado
-            const savedEventId = LS.get('active_event_id');
-            if (savedEventId) {
-                params.id = savedEventId;
-                console.log('[ROUTER] Using saved event ID for admin:', savedEventId);
-            } else if (this.state.event?.id) {
-                params.id = this.state.event.id;
-                console.log('[ROUTER] Using current event for admin:', params.id);
-            }
-            // Si no hay params.id, el navigate al final se encargará (no redirigir a my-events aquí)
-        }
+        console.log('[ROUTER] Final target - view:', targetView, 'params:', targetParams);
         
         // Navegar a la vista determinada
-        console.log('[ROUTER] Navigating to view:', view, 'params:', params);
-        this.navigate(view, params, false);
+        this.navigate(targetView, targetParams, false);
         this._hasHandledInitialNav = true;
     },
 
@@ -4057,6 +3993,11 @@ const App = window.App = {
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
+        // Limpiar sessionStorage también
+        try {
+            sessionStorage.removeItem('check_current_view');
+            sessionStorage.removeItem('check_current_url');
+        } catch (e) {}
         this.state.user = null;
         this.state.event = null;
         // Remover app-shell si existe
