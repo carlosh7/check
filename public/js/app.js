@@ -119,6 +119,11 @@ const App = window.App = {
     },
 
     navigateToCreateEvent(type = 'short') {
+        console.log('[NAVIGATE TO CREATE EVENT] Type:', type);
+        
+        // Cerrar cualquier SweetAlert abierto
+        if (Swal && Swal.close) Swal.close();
+        
         if (type === 'full') {
             // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
             setTimeout(() => {
@@ -145,9 +150,16 @@ const App = window.App = {
                 }
             }, 100);
         } else {
-            // Abrir formulario corto (Equipo/Empresa) - navegar a system/groups
-            this.navigate('system');
+            // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
+            const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
+            const isInSystem = currentView && currentView.id === 'view-system';
+            
+            if (!isInSystem) {
+                this.navigate('system');
+            }
+            
             setTimeout(() => {
+                console.log('[NAVIGATE TO CREATE EVENT] Opening short form modal');
                 document.getElementById('ev-id-hidden').value = '';
                 const form = document.getElementById('new-event-form');
                 if (form) {
@@ -165,7 +177,15 @@ const App = window.App = {
                     });
                 }
                 if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
-                document.getElementById('modal-event')?.classList.remove('hidden');
+                
+                const modal = document.getElementById('modal-event');
+                console.log('[NAVIGATE TO CREATE EVENT] Modal element:', modal);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now');
+                } else {
+                    console.error('[NAVIGATE TO CREATE EVENT] Modal not found!');
+                }
             }, 100);
         }
     },
