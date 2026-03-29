@@ -150,7 +150,20 @@ const App = window.App = {
             setTimeout(() => {
                 document.getElementById('ev-id-hidden').value = '';
                 const form = document.getElementById('new-event-form');
-                if (form) form.reset();
+                if (form) {
+                    form.reset();
+                    
+                    // REMOVER cualquier listener previo (para evitar duplicados)
+                    const newForm = form.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                    
+                    // AGREGAR listener SOLO AHORA que el usuario va a usar el formulario
+                    newForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        console.log('[FORM SUBMIT SHORT] Formulario corto enviado por usuario');
+                        this.saveEventShort(e);
+                    });
+                }
                 if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
                 document.getElementById('modal-event')?.classList.remove('hidden');
             }, 100);
@@ -1345,9 +1358,9 @@ const App = window.App = {
             return;
         }
         
-        // Validar campos obligatorios antes de procesar
-        const name = document.getElementById('evf-name')?.value?.trim();
-        const date = document.getElementById('evf-date')?.value?.trim();
+        // Validar campos obligatorios antes de procesar - buscar dentro del formulario específico
+        const name = f.querySelector('#evf-name')?.value?.trim();
+        const date = f.querySelector('#evf-date')?.value?.trim();
         
         console.log('[EVENT CREATE] Validating fields - name:', name, 'date:', date);
         
@@ -1429,6 +1442,72 @@ const App = window.App = {
         }
     },
     
+    saveEventShort: async function(e) {
+        console.log('[EVENT CREATE] saveEventShort called, event:', e);
+        
+        // Siempre prevenir el comportamiento por defecto
+        if (e && e.preventDefault) e.preventDefault();
+        
+        const form = document.getElementById('new-event-form');
+        console.log('[EVENT CREATE] Short form element found:', form);
+        if (!form) {
+            console.error('[EVENT CREATE] Short form not found!');
+            return;
+        }
+        
+        // Validar campos obligatorios - buscar dentro del formulario específico
+        const name = form.querySelector('#ev-name')?.value?.trim();
+        const date = form.querySelector('#ev-date')?.value?.trim();
+        
+        console.log('[EVENT CREATE] Validating short fields - name:', name, 'date:', date);
+        
+        if (!name || !date) {
+            console.error('[EVENT CREATE] Required fields are empty, aborting');
+            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
+            return;
+        }
+        
+        const fd = new FormData(form);
+        const data = {};
+        
+        // Convertir FormData a objeto
+        fd.forEach((v, k) => {
+            const el = form.elements[k];
+            if (el && el.type === 'checkbox') {
+                data[k] = el.checked ? 1 : 0;
+            } else {
+                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
+            }
+        });
+        
+        // Valores por defecto para el formulario corto
+        if (!data.group_id) data.group_id = '';
+        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
+        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
+        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
+        
+        console.log('[EVENT CREATE SHORT] Data to send:', data);
+        
+        try {
+            const res = await this.fetchAPI('/events', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (res && res.success === false) {
+                await this._notifyAction('Error', res.error || 'No se pudo crear el evento.', 'error', 0);
+                return;
+            }
+            
+            document.getElementById('modal-event')?.classList.add('hidden');
+            await this.loadEvents();
+            await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
+        } catch (err) {
+            console.error('[saveEventShort] Error:', err);
+            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
+        }
+    },
+     
     async updateEvent(id, data) {
         try {
             const res = await this.fetchAPI(`/events/${id}`, { 

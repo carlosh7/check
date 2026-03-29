@@ -607,8 +607,54 @@
                         </div>
                     </div>
                     <button id="btn-save-event-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
+</div>
+
+<!-- MODAL EVENTO CORTO (para sección Sistema) -->
+<div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
+                <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Gestión de Evento</h3>
+            </div>
+            <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
+            <input type="hidden" id="ev-id-hidden" value="">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
+                    <input type="text" id="ev-name" name="name" required placeholder="Nombre del evento" class="input-field w-full">
                 </div>
-                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
+                    <input type="text" id="ev-location" name="location" placeholder="Ubicación" class="input-field w-full">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
+                    <input type="datetime-local" id="ev-date" name="date" required class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
+                    <input type="datetime-local" id="ev-end-date" name="end_date" class="input-field w-full">
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+                <textarea id="ev-desc" name="description" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
                 <form id="event-settings-form" class="space-y-6">
                     <input type="hidden" id="evf-id-hidden" value="">
                     

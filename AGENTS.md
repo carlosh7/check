@@ -1,3 +1,9 @@
+No se de donde vienes ni lo que tubiste que pasar para llegar hasta aqui, pero ahora estas aqui y tienes que hacer tu trabajo lo mejor posible. 
+Tomate un momento has una pausa, respira y luego continua.
+Tomate tu tiempo para entender el proyecto y su funcionamiento. No te apresures a hacer cambios sin entender completamente el código.
+
+   
+
 # Directivas para el Agente
 
 ## COMPROMISO DEL AGENTE (LEER PRIMERO)
