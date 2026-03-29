@@ -7308,12 +7308,22 @@ const App = window.App = {
         const password = document.getElementById('invite-password')?.value;
         const role = document.getElementById('invite-role')?.value;
         
-        if (!displayName || !username || !password) {
-            this._notifyAction('Error', 'Completa todos los campos requeridos', 'error');
-            return;
-        }
-        
         const editingUserId = this.state.editingUserId;
+        
+        // Validación diferente para crear vs editar
+        if (editingUserId) {
+            // Modo edición - solo requiere nombre
+            if (!displayName) {
+                this._notifyAction('Error', 'El nombre es requerido', 'error');
+                return;
+            }
+        } else {
+            // Modo creación - requiere todos los campos
+            if (!displayName || !username || !password) {
+                this._notifyAction('Error', 'Completa todos los campos requeridos', 'error');
+                return;
+            }
+        }
         
         try {
             if (editingUserId) {
