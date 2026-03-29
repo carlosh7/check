@@ -934,13 +934,17 @@ const App = window.App = {
         const m = document.getElementById(id);
         if (m) {
             // Quitar foco de todos los elementos interactivos antes de cerrar
-            const focusableElements = m.querySelectorAll('input, button, select, textarea');
-            focusableElements?.forEach(el => el.blur());
+            const focusableElements = m.querySelectorAll('input, button, select, textarea, a[href]');
+            focusableElements?.forEach(el => {
+                el.blur();
+                el.setAttribute('tabindex', '-1');
+            });
             // Quitar foco del body
             document.body.focus();
-            // Ocultar modal
+            // Ocultar modal - clase hidden Y limpiar style display
             m.classList.add('hidden');
-            m.setAttribute('aria-hidden', 'true');
+            m.style.display = '';
+            m.removeAttribute('aria-hidden');
         }
     },
     
@@ -4326,7 +4330,12 @@ const App = window.App = {
     openCreateEventModal: function() {
         document.getElementById('new-event-full-form')?.reset();
         document.getElementById('evf-id-hidden').value = '';
-        document.getElementById('modal-event-full')?.classList.remove('hidden');
+        const modal = document.getElementById('modal-event-full');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            modal.removeAttribute('aria-hidden');
+        }
     },
     
     saveLegalText: async function(type) {
