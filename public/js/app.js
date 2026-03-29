@@ -3969,13 +3969,31 @@ const App = window.App = {
             return;
         }
         
-        // Si estamos en la raíz o my-events, verificar si hay vista guardada
-        if (view === 'my-events') {
+        // Si estamos en la raíz, verificar si hay vista guardada Y si la URL no tiene参数 específica
+        if (view === 'my-events' || view === '') {
             const savedView = LS.get('active_view');
+            const savedTab = LS.get('active_system_tab');
+            
+            // Si hay una vista guardada que no sea login, usarla
             if (savedView && savedView !== 'login' && savedView !== 'my-events') {
-                console.log('[ROUTER] Using saved view instead of my-events:', savedView);
-                // Navegar a la vista guardada
-                this.navigate(savedView, {}, false);
+                console.log('[ROUTER] Using saved view from root:', savedView);
+                // Obtener parámetros de la URL si existen
+                if (savedView === 'system' && savedTab) {
+                    params.tab = savedTab;
+                }
+                if (savedView === 'admin' || savedView === 'event-config') {
+                    params.id = LS.get('active_event_id');
+                }
+                this.navigate(savedView, params, false);
+                this._hasHandledInitialNav = true;
+                return;
+            }
+            
+            // Si hay una pestaña del sistema guardada, usarla
+            if (savedTab) {
+                console.log('[ROUTER] Using saved system tab:', savedTab);
+                params.tab = savedTab;
+                this.navigate('system', params, false);
                 this._hasHandledInitialNav = true;
                 return;
             }
