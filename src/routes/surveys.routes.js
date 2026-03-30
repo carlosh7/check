@@ -28,7 +28,7 @@ router.get('/:eventId/surveys', (req, res) => {
     res.json(questions);
 });
 
-// Actualizar encuestas de evento
+// Actualizar encuestas de evento (reemplazar todas)
 router.put('/:eventId/surveys', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const eventId = castId('events', req.params.eventId);
     const { questions } = req.body;
@@ -44,6 +44,23 @@ router.put('/:eventId/surveys', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
     }
     
     res.json({ success: true });
+});
+
+// Crear una pregunta de encuesta individual
+router.post('/:eventId/surveys', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eventId = castId('events', req.params.eventId);
+    const { title, type, options } = req.body;
+    const targetDb = getEventDb(eventId);
+    
+    if (!title) {
+        return res.status(400).json({ error: 'El título de la pregunta es requerido' });
+    }
+    
+    const id = getValidId('surveys');
+    targetDb.prepare("INSERT INTO surveys (id, event_id, question, type, options) VALUES (?, ?, ?, ?, ?)")
+      .run(id, eventId, title, type || 'stars', options || null);
+    
+    res.json({ success: true, id });
 });
 
 // Enviar respuesta de encuesta
