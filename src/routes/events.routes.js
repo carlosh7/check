@@ -199,15 +199,17 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
     // Eliminar en cascada todos los registros relacionados con el evento
     try {
         // Obtener IDs de ruletas primero
-        const wheelIds = db.prepare("SELECT id FROM event_wheels WHERE event_id = ?").all(targetId).map(w => w.id);
+        const wheelRows = db.prepare("SELECT id FROM event_wheels WHERE event_id = ?").all(targetId);
+        const wheelIds = wheelRows.map(w => w.id);
         
         // Eliminar participantes de ruletas primero
         if (wheelIds.length > 0) {
-            const wheelIdsStr = wheelIds.map(() => '?').join(',');
-            db.prepare("DELETE FROM wheel_participants WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
-            db.prepare("DELETE FROM wheel_results WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
-            db.prepare("DELETE FROM wheel_spins WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
-            db.prepare("DELETE FROM wheel_leads WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
+            for (const wheelId of wheelIds) {
+                db.prepare("DELETE FROM wheel_participants WHERE wheel_id = ?").run(wheelId);
+                db.prepare("DELETE FROM wheel_results WHERE wheel_id = ?").run(wheelId);
+                db.prepare("DELETE FROM wheel_spins WHERE wheel_id = ?").run(wheelId);
+                db.prepare("DELETE FROM wheel_leads WHERE wheel_id = ?").run(wheelId);
+            }
         }
         
         // Eliminar registros relacionados en orden inverso a las dependencias
