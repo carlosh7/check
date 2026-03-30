@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.56';
+const VERSION = '12.34.57';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1265,14 +1265,33 @@ const App = window.App = {
         
         let filtered = this.state.allUsers || [];
         
-        // Filtro de búsqueda
+        // Filtro de búsqueda - buscar por todos los campos
         if (searchTerm) {
-            filtered = filtered.filter(u => 
-                (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
-                u.username.toLowerCase().includes(searchTerm) ||
-                (u.role && u.role.toLowerCase().includes(searchTerm)) ||
-                (u.group_name && u.group_name.toLowerCase().includes(searchTerm))
-            );
+            filtered = filtered.filter(u => {
+                const term = searchTerm.toLowerCase();
+                
+                // Campos básicos
+                const basicMatch = 
+                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
+                    u.username.toLowerCase().includes(term) ||
+                    (u.role && u.role.toLowerCase().includes(term)) ||
+                    (u.group_name && u.group_name.toLowerCase().includes(term));
+                
+                // Buscar en empresas/grupos (array)
+                const groupMatch = u.groups && Array.isArray(u.groups) && 
+                    u.groups.some(g => g.name && g.name.toLowerCase().includes(term));
+                
+                // Buscar en eventos
+                const eventMatch = u.events && Array.isArray(u.events) && 
+                    u.events.some(e => String(e).includes(term));
+                
+                // Buscar en nombres de eventos (si están en el objeto del usuario)
+                const eventNameMatch = u.events && Array.isArray(u.events) && 
+                    this.state.allEvents && this.state.allEvents.some(e => 
+                        u.events.includes(e.id) && e.name && e.name.toLowerCase().includes(term));
+                
+                return basicMatch || groupMatch || eventMatch || eventNameMatch;
+            });
         }
         
         // Filtro por empresa - buscar en el array de grupos del usuario
