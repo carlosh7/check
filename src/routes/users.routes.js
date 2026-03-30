@@ -442,9 +442,15 @@ router.put('/:id/profile', authMiddleware(), (req, res) => {
 router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
     
-    // PRODUCTOR no puede eliminar usuarios
+    // PRODUCTOR no puede eliminar admins
     if (req.userRole === 'PRODUCTOR') {
-        return res.status(403).json({ error: 'No tienes permisos para eliminar usuarios' });
+        const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+        if (!targetUser) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        if (targetUser.role === 'ADMIN') {
+            return res.status(403).json({ error: 'No puedes eliminar administradores' });
+        }
     }
     
     // No puede eliminarse a sí mismo

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.37';
+const VERSION = '12.34.38';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1146,8 +1146,8 @@ const App = window.App = {
                 const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
                 // PRODUCTOR puede eliminar usuarios (pero no ADMIN)
-                // Solo ADMIN puede eliminar usuarios del sistema
-                const canRemoveUser = isAdmin && u.role !== 'ADMIN';
+                // ADMIN y PRODUCTOR pueden eliminar usuarios del sistema (pero no admins)
+                const canRemoveUser = (isAdmin || isProductor) && u.role !== 'ADMIN';
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'] :
                     ['PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];

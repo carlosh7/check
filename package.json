@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.37",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.37 - Fix: PRODUCTOR no puede eliminar usuarios del sistema",
+  "version": "12.34.38",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.38 - Fix: PRODUCTOR puede eliminar usuarios del sistema",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
