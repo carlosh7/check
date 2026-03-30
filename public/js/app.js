@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.27';
+const VERSION = '12.34.28';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -355,7 +355,7 @@ const App = window.App = {
         }
     },
 
-    // ─── ALIASES PARA FUNCIONES DE EMAIL (解决缺失函数问题) ───
+    // --- ALIASES PARA FUNCIONES DE EMAIL ---
     
     // Alias for email config (calls both SMTP and IMAP config)
     loadEmailConfig: async function() {
