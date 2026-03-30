@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.32';
+const VERSION = '12.34.33';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6491,15 +6491,25 @@ const App = window.App = {
     // Cargar staff en config view
     loadConfigStaff() {
         const eventId = this.state.event?.id;
-        if (!eventId) return;
+        console.log('[CONFIG STAFF] loadConfigStaff called, eventId:', eventId);
+        if (!eventId) {
+            console.warn('[CONFIG STAFF] No eventId, returning');
+            return;
+        }
         
         this.loadEventStaff(eventId).then(() => {
+            console.log('[CONFIG STAFF] loadEventStaff completed');
             // Copiar del view-admin al view-config
             const evStaffTbody = document.getElementById('ev-staff-tbody');
             const configStaffTbody = document.getElementById('config-staff-tbody');
+            console.log('[CONFIG STAFF] evStaffTbody:', evStaffTbody ? 'found' : 'NOT FOUND');
+            console.log('[CONFIG STAFF] configStaffTbody:', configStaffTbody ? 'found' : 'NOT FOUND');
             if (evStaffTbody && configStaffTbody) {
                 configStaffTbody.innerHTML = evStaffTbody.innerHTML;
+                console.log('[CONFIG STAFF] Content copied');
             }
+        }).catch(err => {
+            console.error('[CONFIG STAFF] Error:', err);
         });
     },
     
@@ -7502,9 +7512,12 @@ const App = window.App = {
     },
 
     async loadEventStaff(eventId) {
+        console.log('[LOAD EVENT STAFF] Called with eventId:', eventId);
         try {
             const users = await this.fetchAPI(`/events/${eventId}/users`);
+            console.log('[LOAD EVENT STAFF] API returned:', users);
             const tbody = document.getElementById('ev-staff-tbody');
+            console.log('[LOAD EVENT STAFF] tbody found:', !!tbody);
             if (!tbody) return;
             
             if (!users || users.length === 0) {
