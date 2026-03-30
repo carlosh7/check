@@ -4815,35 +4815,60 @@ const App = window.App = {
         
         const events = Array.isArray(this.state.events) ? this.state.events : [];
         
-        // Grid compacta
-        c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
-        
-        c.innerHTML = events.map(ev => {
-            const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-            const total = ev.total_guests || 0;
-            const attended = ev.attended_guests || 0;
-            
-            return `
-                <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/10 rounded-xl p-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
-                    <div class="flex items-center gap-3">
+        if (this.state.eventsViewMode === 'list') {
+            c.className = 'space-y-2';
+            c.innerHTML = events.map(ev => {
+                const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                const total = ev.total_guests || 0;
+                const attended = ev.attended_guests || 0;
+                
+                return `
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="flex items-center gap-3 bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
                             <span class="material-symbols-outlined text-base font-variation-fill">event</span>
                         </div>
-                        <div class="min-w-0 flex-1 overflow-hidden">
-                            <h3 class="text-sm font-bold text-[var(--text-main)] truncate leading-tight">${ev.name}</h3>
-                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-1">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
+                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-1">
                                 <span class="material-symbols-outlined text-xs">calendar_month</span> ${dateStr}
                             </p>
                         </div>
+                        <div class="flex items-center gap-4 text-xs">
+                            <span><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
+                            <span><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
+                        </div>
                     </div>
-                    
-                    <div class="flex items-center gap-4 mt-3 pt-2 border-t border-white/5">
-                        <span class="text-xs"><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
-                        <span class="text-xs"><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
+                `;
+            }).join('');
+        } else {
+            c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+            c.innerHTML = events.map(ev => {
+                const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                const total = ev.total_guests || 0;
+                const attended = ev.attended_guests || 0;
+                
+                return `
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/10 rounded-xl p-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-base font-variation-fill">event</span>
+                            </div>
+                            <div class="min-w-0 flex-1 overflow-hidden">
+                                <h3 class="text-sm font-bold text-[var(--text-main)] truncate leading-tight">${ev.name}</h3>
+                                <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-1">
+                                    <span class="material-symbols-outlined text-xs">calendar_month</span> ${dateStr}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mt-3 pt-2 border-t border-white/5">
+                            <span class="text-xs"><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
+                            <span class="text-xs"><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        }
     },
 
     openRegistrationLink(id) {
