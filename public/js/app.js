@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.61';
+const VERSION = '12.34.62';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1142,12 +1142,14 @@ const App = window.App = {
             }
 
             tbody.innerHTML = users.map((u) => {
+                const isSelf = u.id === this.state.user?.userId;
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
-                // PRODUCTOR puede eliminar usuarios (pero no ADMIN)
-                // ADMIN y PRODUCTOR pueden eliminar usuarios del sistema (pero no admins)
-                const canRemoveUser = (isAdmin || isProductor) && u.role !== 'ADMIN';
+                // ADMIN puede eliminar a otros ADMIN (no a sí mismo)
+                // PRODUCTOR no puede eliminar ADMIN
+                // La validación del último ADMIN se hace en el servidor
+                const canRemoveUser = (isAdmin && !isSelf) || (isProductor && u.role !== 'ADMIN');
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'] :
                     ['PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
