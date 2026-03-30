@@ -117,6 +117,7 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
 
     logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: id, name });
 
+    console.log('[EVENT CREATE SERVER] ID generado:', id, 'tipo:', typeof id);
     res.json({ success: true, eventId: id });
 });
 
