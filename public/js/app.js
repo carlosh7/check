@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.64';
+const VERSION = '12.34.65';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1146,112 +1146,51 @@ const App = window.App = {
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
-                // ADMIN puede eliminar a otros ADMIN (no a sí mismo)
-                // PRODUCTOR no puede eliminar ADMIN
-                // La validación del último ADMIN se hace en el servidor
-                const canRemoveUser = (isAdmin && !isSelf) || (isProductor && u.role !== 'ADMIN');
-                const roleOptions = isAdmin ? 
-                    ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'] :
-                    ['PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
                 
-                // --- EVENTOS (Premium Chips) ---
+                // --- CHECKBOX DE SELECCIÓN ---
+                const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
+                
+                // --- COLUMNA 1: STAFF (Nombre + Email) ---
+                const colStaff = `
+                    <div class="flex flex-col gap-0.5">
+                        <div class="font-bold text-sm text-white">${u.display_name || 'Sin nombre'}</div>
+                        <div class="text-xs text-slate-400 font-mono">${u.username}</div>
+                    </div>
+                `;
+
+                // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <div class="action-chip-premium mt-1 mr-1">
-                        <span class="material-symbols-outlined text-[14px] text-primary">event</span>
-                        <span>${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
-                        ${canEdit ? `<div data-action="removeUserFromEvent" data-user-id="${u.id}" data-event-id="${e.id}" class="btn-unlink" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></div>` : ''}
-                    </div>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-[10px] font-medium">
+                        <span class="material-symbols-outlined text-[12px]">event</span>
+                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
+                    </span>
                 `).join('');
+                const colEventos = userEvents.length > 0 ? 
+                    `<div class="flex flex-wrap gap-1">${eventChips}</div>` : 
+                    `<span class="text-[10px] text-slate-500 italic">Sin eventos</span>`;
 
-                // --- COLUMNA 1: COLABORADOR ---
-                const col1 = `
-                    <div class="flex flex-col gap-1">
-                        <div class="font-bold text-[var(--text-main)] text-sm tracking-tight">${u.display_name || u.username}</div>
-                        <div class="text-[10px] text-[var(--text-secondary)] font-mono opacity-60">${u.username}</div>
-                        <div class="flex flex-wrap gap-1 mt-1">${eventChips}</div>
-                    </div>
-                `;
-
-                // --- COLUMNA 2: ROL / EMPRESA ---
+                // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <div class="action-chip-premium mt-1 mr-1">
-                        <span class="material-symbols-outlined text-[14px] text-slate-400">corporate_fare</span>
-                        <span class="truncate max-w-[120px]" title="${userGroup.name}">${userGroup.name}</span>
-                        ${canRemoveGroup ? `<div data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${userGroup.id}" class="btn-unlink" title="Desvincular Empresa"><span class="material-symbols-outlined text-[14px]">close</span></div>` : ''}
-                    </div>
-                `).join('') : `<span class="italic text-[var(--text-muted)] text-[10px] mt-1 opacity-50 block">Sin Empresa Asignada</span>`;
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-[10px] font-medium">
+                        <span class="material-symbols-outlined text-[12px]">corporate_fare</span>
+                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
+                    </span>
+                `).join('') : `<span class="text-[10px] text-slate-500 italic">Sin empresa</span>`;
+                const colEmpresa = `<div class="flex flex-wrap gap-1">${groupDisplay}</div>`;
 
-                const roleSelect = canEdit ? `
-                    <select data-action="changeUserRole" data-user-id="${u.id}" class="bg-slate-800/40 text-[var(--text-main)] text-[10px] font-bold uppercase rounded-lg px-2 py-1.5 border border-white/5 outline-none w-[120px] focus:border-primary mt-2 cursor-pointer transition-all">
-                        ${roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
-                    </select>` : `<div class="text-[10px] font-black tracking-widest uppercase text-primary mt-2">${u.role}</div>`;
-
-                const col2 = `
-                    <div class="flex flex-col">
-                        <div class="flex flex-wrap items-center gap-1">${groupDisplay}</div>
-                        ${roleSelect}
-                    </div>
-                `;
-
-                // --- COLUMNA 3: ESTADO ---
+                // --- COLUMNA 4: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
-                const col3 = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
-
-                // --- COLUMNA 4: ACCIONES ---
-                const actionAssignCompany = (isAdmin && canEdit) ? `
-                    <button data-action="showGroupSelector" data-user-id="${u.id}" class="action-btn-pill">
-                        <span class="material-symbols-outlined">add_business</span>
-                        Empresa
-                    </button>` : '';
-
-                const actionAssignEvent = canEdit ? `
-                    <button data-action="showEventSelector" data-user-id="${u.id}" data-events='${JSON.stringify(u.events || [])}' class="action-btn-pill">
-                        <span class="material-symbols-outlined">event_note</span>
-                        Evento
-                    </button>` : '';
-                
-                const accessBtn = canEdit ? (u.status !== 'APPROVED' ? 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
-                        <span class="material-symbols-outlined">lock_open</span>
-                        Activar
-                    </button>` : 
-                    `<button data-action="approveUser" data-user-id="${u.id}" data-status="SUSPENDED" class="action-btn-pill btn-danger-soft">
-                        <span class="material-symbols-outlined">lock</span>
-                        Suspender
-                    </button>`) : '';
-                
-                const editBtn = canEdit ? `
-                    <button data-action="editUser" data-user-id="${u.id}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-lg" title="Editar Perfil">
-                        <span class="material-symbols-outlined text-lg">edit</span>
-                    </button>` : '';
-                
-                const deleteBtn = canRemoveUser ? `
-                    <button data-action="deleteUser" data-user-id="${u.id}" data-user-name="${u.display_name || u.username}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg" title="Eliminar Usuario">
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                    </button>` : '';
-                
-                const col4 = `
-                    <div class="flex items-center justify-end gap-2">
-                        <div class="flex flex-col gap-1.5">
-                            ${actionAssignCompany}
-                            ${actionAssignEvent}
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            ${accessBtn}
-                            ${editBtn}
-                            ${deleteBtn}
-                        </div>
-                    </div>
-                `;
+                const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-5 py-5 align-top">${col1}</td>
-                    <td class="px-5 py-5 align-top">${col2}</td>
-                    <td class="px-5 py-5 align-top text-center">${col3}</td>
-                    <td class="px-5 py-5 align-top text-right">${col4}</td>
+                    <td class="px-3 py-4 align-middle">${checkbox}</td>
+                    <td class="px-3 py-4 align-middle">${colStaff}</td>
+                    <td class="px-3 py-4 align-middle">${colEventos}</td>
+                    <td class="px-3 py-4 align-middle">${colEmpresa}</td>
+                    <td class="px-3 py-4 align-middle text-center">${colEstado}</td>
                 </tr>`;
             }).join('');
         }
@@ -1264,6 +1203,7 @@ const App = window.App = {
         const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
         const groupFilter = document.getElementById('filter-group')?.value || '';
         const eventFilter = document.getElementById('filter-event')?.value || '';
+        const roleFilter = document.getElementById('filter-role')?.value || '';
         
         let filtered = this.state.allUsers || [];
         
@@ -1312,9 +1252,338 @@ const App = window.App = {
             filtered = filtered.filter(u => u.events && u.events.includes(eventFilter));
         }
         
+        // Filtro por rol
+        if (roleFilter) {
+            filtered = filtered.filter(u => u.role === roleFilter);
+        }
+        
         this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
     },
-    
+
+    // Toggle seleccionar todos los usuarios
+    toggleSelectAllUsers: function() {
+        const selectAll = document.getElementById('select-all-users');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        
+        if (selectAll.checked) {
+            // Seleccionar todos los usuarios visibles
+            this.state.selectedUsers = Array.from(checkboxes).map(cb => cb.dataset.userId);
+            checkboxes.forEach(cb => cb.checked = true);
+        } else {
+            // Deseleccionar todos
+            this.state.selectedUsers = [];
+            checkboxes.forEach(cb => cb.checked = false);
+        }
+    },
+
+    // Manejar cambio de checkbox individual
+    toggleUserSelection: function(userId) {
+        if (!this.state.selectedUsers) this.state.selectedUsers = [];
+        
+        const index = this.state.selectedUsers.indexOf(userId);
+        if (index > -1) {
+            this.state.selectedUsers.splice(index, 1);
+        } else {
+            this.state.selectedUsers.push(userId);
+        }
+        
+        // Actualizar estado del checkbox "seleccionar todos"
+        const selectAll = document.getElementById('select-all-users');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        selectAll.checked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+    },
+
+    // Manejar acciones en lote
+    handleBulkAction: async function() {
+        const actionSelect = document.getElementById('bulk-action');
+        const action = actionSelect.value;
+        
+        if (!action) return;
+        
+        // Obtener usuarios seleccionados
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.userId);
+        
+        if (selectedIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            actionSelect.value = '';
+            return;
+        }
+        
+        switch (action) {
+            case 'activate':
+                await this.bulkUpdateStatus(selectedIds, 'APPROVED');
+                break;
+            case 'suspend':
+                await this.bulkUpdateStatus(selectedIds, 'SUSPENDED');
+                break;
+            case 'delete':
+                if (!(await this._confirmAction('¿Eliminar usuarios?', `¿Estás seguro de eliminar ${selectedIds.length} usuario(s)? Esta acción no se puede deshacer.`))) {
+                    actionSelect.value = '';
+                    return;
+                }
+                await this.bulkDeleteUsers(selectedIds);
+                break;
+            case 'assign-company':
+                // Mostrar selector de empresa
+                this.showGroupSelectorForBulk(selectedIds);
+                break;
+            case 'assign-event':
+                // Mostrar selector de evento
+                this.showEventSelectorForBulk(selectedIds);
+                break;
+        }
+        
+        actionSelect.value = '';
+    },
+
+    // Cambiar rol de múltiples usuarios
+    handleBulkRoleChange: async function() {
+        const roleSelect = document.getElementById('bulk-role');
+        const newRole = roleSelect.value;
+        
+        if (!newRole) return;
+        
+        // Obtener usuarios seleccionados
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.userId);
+        
+        if (selectedIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            roleSelect.value = '';
+            return;
+        }
+        
+        if (!(await this._confirmAction('¿Cambiar rol?', `¿Cambiar el rol a ${newRole} para ${selectedIds.length} usuario(s)?`))) {
+            roleSelect.value = '';
+            return;
+        }
+        
+        try {
+            const promises = selectedIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/role`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ role: newRole })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Rol actualizado', 
+                text: `Rol cambiado a ${newRole} para ${selectedIds.length} usuario(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al cambiar rol', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+        
+        roleSelect.value = '';
+    },
+
+    // Actualizar estado de múltiples usuarios
+    bulkUpdateStatus: async function(userIds, status) {
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Actualizado', 
+                text: `${userIds.length} usuario(s) ${status === 'APPROVED' ? 'activados' : 'suspendidos'}`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar usuarios', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Eliminar múltiples usuarios
+    bulkDeleteUsers: async function(userIds) {
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}`, { method: 'DELETE' })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Eliminado', 
+                text: `${userIds.length} usuario(s) eliminado(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al eliminar usuarios', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Mostrar selector de empresa para bulk
+    showGroupSelectorForBulk: function(userIds) {
+        const groups = this.state.allGroups || [];
+        
+        if (groups.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay empresas disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const options = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        
+        Swal.fire({
+            title: 'Asignar Empresa',
+            html: `
+                <select id="bulk-company-select" class="swal2-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569;">
+                    <option value="">Seleccionar empresa...</option>
+                    ${options}
+                </select>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff',
+            preConfirm: () => {
+                const companyId = document.getElementById('bulk-company-select').value;
+                if (!companyId) {
+                    Swal.showValidationMessage('Selecciona una empresa');
+                    return false;
+                }
+                return companyId;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.bulkAssignCompany(userIds, result.value);
+            }
+        });
+    },
+
+    // Asignar empresa a múltiples usuarios
+    bulkAssignCompany: async function(userIds, companyId) {
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/group`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: companyId })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Empresa asignada a ${userIds.length} usuario(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Mostrar selector de evento para bulk
+    showEventSelectorForBulk: function(userIds) {
+        const events = this.state.allEvents || [];
+        
+        if (events.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const options = events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        
+        Swal.fire({
+            title: 'Asignar Evento',
+            html: `
+                <select id="bulk-event-select" class="swal2-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569;">
+                    <option value="">Seleccionar evento...</option>
+                    ${options}
+                </select>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff',
+            preConfirm: () => {
+                const eventId = document.getElementById('bulk-event-select').value;
+                if (!eventId) {
+                    Swal.showValidationMessage('Selecciona un evento');
+                    return false;
+                }
+                return eventId;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.bulkAssignEvent(userIds, result.value);
+            }
+        });
+    },
+
+    // Asignar evento a múltiples usuarios
+    bulkAssignEvent: async function(userIds, eventId) {
+        try {
+            // Para cada usuario, agregar el evento a su lista actual
+            const promises = userIds.map(async (userId) => {
+                const user = this.state.allUsers?.find(u => u.id === userId);
+                const currentEvents = user?.events || [];
+                const newEvents = [...currentEvents, eventId];
+                
+                return this.fetchAPI(`/users/${userId}/events`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ events: newEvents })
+                });
+            });
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Evento asignado a ${userIds.length} usuario(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
     // Crear empresa rápido desde modal
     quickCreateGroup: async function() {
         const name = prompt('Nombre de la nueva empresa:');
