@@ -11,9 +11,31 @@ const dbPath = require('path').resolve(__dirname, '../../database.js');
 try {
     const mod = require(dbPath);
     db = mod.db;
+    console.log('[AUTH] DB loaded from database.js');
 } catch (e) {
+    console.log('[AUTH] Fallback to direct DB connection, error:', e.message);
     const Database = require('better-sqlite3');
-    db = new Database(require('path').resolve(__dirname, '../../check_app.db'));
+    // Buscar en múltiples ubicaciones posibles
+    const possiblePaths = [
+        require('path').resolve(__dirname, '../../data/check_app.db'),
+        require('path').resolve(__dirname, '../../check_app.db'),
+        require('path').resolve(process.cwd(), 'data/check_app.db'),
+        require('path').resolve(process.cwd(), 'check_app.db')
+    ];
+    let dbFile = null;
+    for (const p of possiblePaths) {
+        try {
+            require('fs').accessSync(p);
+            dbFile = p;
+            break;
+        } catch {}
+    }
+    if (dbFile) {
+        db = new Database(dbFile);
+        console.log('[AUTH] DB loaded from:', dbFile);
+    } else {
+        console.error('[AUTH] Database file not found in any location');
+    }
 }
 
 function authMiddleware(roles = []) {
