@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.33",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.33 - Debug: logs en loadEventStaff",
+  "version": "12.34.34",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.34 - Fix: staff en config evento con botones editar/crear",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.33';
+const VERSION = '12.34.34';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6497,18 +6497,8 @@ const App = window.App = {
             return;
         }
         
-        this.loadEventStaff(eventId).then(() => {
-            console.log('[CONFIG STAFF] loadEventStaff completed');
-            // Copiar del view-admin al view-config
-            const evStaffTbody = document.getElementById('ev-staff-tbody');
-            const configStaffTbody = document.getElementById('config-staff-tbody');
-            console.log('[CONFIG STAFF] evStaffTbody:', evStaffTbody ? 'found' : 'NOT FOUND');
-            console.log('[CONFIG STAFF] configStaffTbody:', configStaffTbody ? 'found' : 'NOT FOUND');
-            if (evStaffTbody && configStaffTbody) {
-                configStaffTbody.innerHTML = evStaffTbody.innerHTML;
-                console.log('[CONFIG STAFF] Content copied');
-            }
-        }).catch(err => {
+        // Llamar loadEventStaff que ahora escribe directamente en config-staff-tbody
+        this.loadEventStaff(eventId).catch(err => {
             console.error('[CONFIG STAFF] Error:', err);
         });
     },
@@ -7516,7 +7506,11 @@ const App = window.App = {
         try {
             const users = await this.fetchAPI(`/events/${eventId}/users`);
             console.log('[LOAD EVENT STAFF] API returned:', users);
-            const tbody = document.getElementById('ev-staff-tbody');
+            
+            // Buscar el tbody correcto - config-staff-tbody para vista de configuración, ev-staff-tbody para admin
+            let tbody = document.getElementById('config-staff-tbody');
+            if (!tbody) tbody = document.getElementById('ev-staff-tbody');
+            
             console.log('[LOAD EVENT STAFF] tbody found:', !!tbody);
             if (!tbody) return;
             
@@ -7540,12 +7534,21 @@ const App = window.App = {
                         </span>
                     </td>
                     <td class="px-5 py-4 text-right">
-                        ${canEdit ? `<button data-action="removeEventStaff" data-user-id="${u.id}" class="w-8 h-8 inline-flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors shadow-sm ml-auto opacity-70 group-hover:opacity-100" title="Desvincular del Evento"><span class="material-symbols-outlined text-[16px]">close</span></button>` : ''}
+                        <div class="flex items-center justify-end gap-2">
+                            ${canEdit ? `<button data-action="editStaff" data-user-id="${u.id}" data-user-username="${u.username}" data-user-display="${u.display_name || ''}" data-user-role="${u.role}" class="w-8 h-8 inline-flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors shadow-sm" title="Editar"><span class="material-symbols-outlined text-[16px]">edit</span></button>` : ''}
+                            ${canEdit ? `<button data-action="removeEventStaff" data-user-id="${u.id}" class="w-8 h-8 inline-flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors shadow-sm" title="Desvincular del Evento"><span class="material-symbols-outlined text-[16px]">close</span></button>` : ''}
+                        </div>
                     </td>
                 </tr>
             `).join('');
             
         } catch(e) { console.error('Error loading event staff:', e); }
+    },
+
+    // Editar staff desde el panel de configuración del evento
+    editStaff: function(userId, username, displayName, role) {
+        // Usar la función editUser existente
+        this.editUser(userId);
     },
 
     async removeEventStaff(userId) {
@@ -8724,6 +8727,12 @@ async function initApp() {
             if (action === 'removeUserFromEvent') App.removeUserFromEvent(userId, eventId);
             else if (action === 'removeUserFromGroup') App.removeUserFromGroup(userId, groupId);
             else if (action === 'removeEventStaff') App.removeEventStaff(userId);
+            else if (action === 'editStaff') {
+                const username = actionEl.dataset.userUsername;
+                const displayName = actionEl.dataset.userDisplay;
+                const role = actionEl.dataset.userRole;
+                App.editStaff(userId, username, displayName, role);
+            }
             else if (action === 'removeEventFromCompany') App.removeEventFromCompany(eventId, groupId);
             else if (action === 'showEventSelectorForCompany' || action === 'showUserSelectorForGroup' || action === 'showGroupSelector' || action === 'showEventSelector' || action === 'approveUser' || action === 'openCompanyModal') {
                 // If the function triggers a modal or standard call
