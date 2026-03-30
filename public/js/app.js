@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.39';
+const VERSION = '12.34.40';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1379,20 +1379,13 @@ const App = window.App = {
         }
     },
     
-    // Eliminar usuario completamente
+// Eliminar usuario completamente
     deleteUser: async function(userId, userName) {
         const currentUserId = this.state.user?.userId;
-        const currentUserRole = this.state.user?.role;
         
         // Validaciones de seguridad
         if (userId === currentUserId) {
             Swal.fire('Error', 'No puedes eliminarte a ti mismo', 'error');
-            return;
-        }
-        
-        // PRODUCTOR no puede eliminar ADMIN
-        if (currentUserRole === 'PRODUCTOR') {
-            Swal.fire('Error', 'No tienes permisos para eliminar usuarios', 'error');
             return;
         }
         
