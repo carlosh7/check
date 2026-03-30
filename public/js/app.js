@@ -1513,9 +1513,23 @@ const App = window.App = {
                 return;
             }
 
+            // Obtener el ID del evento creado o actualizado
+            const savedEventId = eventId || res?.id;
+            
             // Actualizar estado local si editamos el evento activo
             if (eventId && this.state.event && String(this.state.event.id) === String(eventId)) {
                 Object.assign(this.state.event, data);
+            }
+
+            // GENERAR LINK DE REGISTRO para nuevo evento creado
+            if (!eventId && savedEventId) {
+                const linkStr = `${window.location.origin}/registro.html?event=${savedEventId}`;
+                ['evf-registration-link', 'evf-registration-link-modal'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = linkStr;
+                });
+                // Mostrar el link antes de cerrar el modal
+                await this._notifyAction('✓ Link Generado', `Registro: ${linkStr}`, 'success', 5000);
             }
 
             this.hideModal('modal-event-full');
