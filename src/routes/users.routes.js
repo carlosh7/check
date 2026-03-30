@@ -198,17 +198,20 @@ router.put('/:id/password', authMiddleware(), (req, res) => {
 // Actualizar usuario (editar colaborador)
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
+    console.log('[PUT USER] userId:', req.userId, 'targetId:', targetId, 'userRole:', req.userRole);
     
     // Permisos: ADMIN puede editar cualquier usuario, PRODUCTOR solo puede editar usuarios que no sean ADMIN
     // EXCEPCIÓN: cualquier usuario puede editar su propio perfil
     if (req.userId !== targetId && req.userRole !== 'ADMIN') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+        console.log('[PUT USER] targetUser:', targetUser);
         if (!targetUser || targetUser.role === 'ADMIN') {
             return res.status(403).json({ error: 'No tienes permiso para editar este usuario' });
         }
     }
     
     const { username, display_name, role, password } = req.body;
+    console.log('[PUT USER] body:', req.body);
     
     // Validar username si se proporciona
     if (username) {
@@ -223,6 +226,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     }
     
     // Validar role si se proporciona (solo ADMIN puede cambiar role)
+    console.log('[PUT USER] role provided:', role, 'userRole:', req.userRole);
     if (role && req.userRole !== 'ADMIN') {
         return res.status(403).json({ error: 'Solo ADMIN puede cambiar el rol' });
     }
