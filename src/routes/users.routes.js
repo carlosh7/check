@@ -298,11 +298,16 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     res.json({ success: true });
 });
 
-// Cambiar rol de usuario (ADMIN)
-router.put('/:id/role', authMiddleware(['ADMIN']), (req, res) => {
+// Cambiar rol de usuario (ADMIN y PRODUCTOR)
+router.put('/:id/role', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const roleSchema = z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS', 'LOGISTICO']);
     const result = roleSchema.safeParse(req.body.role);
     if (!result.success) return res.status(400).json({ errors: result.error.issues });
+
+    // PRODUCTOR no puede asignar rol ADMIN
+    if (req.userRole === 'PRODUCTOR' && result.data === 'ADMIN') {
+        return res.status(403).json({ error: 'No puedes asignar rol ADMIN' });
+    }
 
     const targetId = castId('users', req.params.id);
     db.prepare("UPDATE users SET role = ? WHERE id = ?").run(result.data, targetId);
