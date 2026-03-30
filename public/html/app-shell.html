@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.67</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.68</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -749,14 +749,8 @@
                 </div>
 
                 <!-- SECCIÓN: EQUIPO -->
-                <div id="sys-content-users" class="hidden space-y-8">
-                    <div class="flex justify-end items-center mb-4">
-                        <button class="btn-primary !px-6 !py-3 uppercase tracking-widest text-[10px] font-black" onclick="App.openInviteModal()">
-                            + Invitar
-                        </button>
-                    </div>
-
-                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02] mb-6" style="display: flex !important;">
+                <div id="sys-content-users" class="hidden" style="margin-top: -20px;">
+                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02] mb-4" style="display: flex !important;">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
                             <input id="user-search" type="text" placeholder="Buscar..." 
                                    style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
@@ -795,6 +789,9 @@
                                 <option value="suspend">Suspender</option>
                                 <option value="delete">Eliminar</option>
                             </select>
+                            <button onclick="App.openInviteModal()" style="padding: 6px 12px; font-size: 11px; border-radius: 8px; background: rgba(124, 58, 237, 0.8); border: 1px solid rgba(124, 58, 237, 1); color: white; font-weight: bold; cursor: pointer;">
+                                + Invitar
+                            </button>
                         </div>
                     </div>
 
@@ -809,8 +806,8 @@
                                         <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
                                         <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
                                         <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                        <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Rol</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Rol</th>
                                     </tr>
                                 </thead>
                                 <tbody id="users-tbody" class="divide-y divide-white/[0.03]"></tbody>
