@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.62';
+const VERSION = '12.34.63';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1378,17 +1378,19 @@ const App = window.App = {
     
     // Quitar empresa de un usuario
     removeUserGroup: async function(userId) {
-        if (!confirm('¿Quitar la empresa asignada a este usuario?')) return;
+        if (!(await this._confirmAction('¿Quitar empresa?', 'El usuario perderá la empresa asignada.'))) return;
         try {
             const res = await this.fetchAPI(`/users/${userId}/group`, { 
                 method: 'PUT', 
                 body: JSON.stringify({ group_id: null }) 
             });
             if (res.success) {
-                console.log('Empresa quitada');
+                Swal.fire({ title: '✓ Actualizado', text: 'Empresa quitada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
                 this.loadUsersTable();
             }
-        } catch(e) { console.error('Error removing group:', e); }
+        } catch(e) { 
+            Swal.fire({ title: '⚠️ Error', text: 'Error al quitar empresa', icon: 'error', background: '#0f172a', color: '#fff' }); 
+        }
     },
     
     // Quitar un evento específico de un usuario
@@ -1412,21 +1414,21 @@ const App = window.App = {
         
         // Validaciones de seguridad
         if (userId === currentUserId) {
-            Swal.fire('Error', 'No puedes eliminarte a ti mismo', 'error');
+            Swal.fire({ title: '⚠️ Acción denegada', text: 'No puedes eliminarte a ti mismo', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
         
-        if (!confirm(`¿Estás seguro de eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`)) return;
+        if (!(await this._confirmAction('¿Eliminar usuario?', `¿Estás seguro de eliminar a "${userName}"? Esta acción no se puede deshacer.`))) return;
         
         try {
             const res = await this.fetchAPI(`/users/${userId}`, { method: 'DELETE' });
             if (res.success) {
-                Swal.fire({ title: 'Éxito', text: 'Usuario eliminado', icon: 'success', timer: 1000, showConfirmButton: false });
+                Swal.fire({ title: '✓ Eliminado', text: 'Usuario eliminado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
                 this.loadUsersTable();
             } else {
-                Swal.fire('Error', res.error || 'No se pudo eliminar el usuario', 'error');
+                Swal.fire({ title: '⚠️ Error', text: res.error || 'No se pudo eliminar el usuario', icon: 'error', background: '#0f172a', color: '#fff' });
             }
-        } catch { Swal.fire('Error', 'Error de red', 'error'); }
+        } catch { Swal.fire({ title: '⚠️ Error', text: 'Error de red', icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
     
     // openCreateGroupModal - ver versión en línea ~5632 (showGroupSelector)
@@ -7884,12 +7886,13 @@ const App = window.App = {
             text,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#1a73e8',
-            cancelButtonColor: '#3c4043',
+            confirmButtonColor: '#7c3aed',
+            cancelButtonColor: '#475569',
             confirmButtonText: confirmText,
             cancelButtonText: 'Cancelar',
-            background: '#292a2d',
-            color: '#e8eaed'
+            background: '#0f172a',
+            color: '#fff',
+            backdrop: 'rgba(0,0,0,0.7)'
         });
         return result.isConfirmed;
     },
