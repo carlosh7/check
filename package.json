@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.53",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.53 - Fix: filtros justificados derecha",
+  "version": "12.34.54",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.54 - Fix: input busqueda ocupa espacio",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
