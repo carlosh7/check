@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.65</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.66</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -750,40 +750,36 @@
 
                 <!-- SECCIÓN: EQUIPO -->
                 <div id="sys-content-users" class="hidden space-y-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h1 class="text-4xl font-black text-white">Gestion de <span class="text-violet-400">Equipo</span></h1>
-                            <p class="text-slate-400 font-medium">Control de acceso y roles operativos v12.34.0</p>
-                        </div>
-                        <button class="btn-primary !px-8 !py-4 uppercase tracking-widest text-[10px] font-black" onclick="App.openInviteModal()">
-                            Invitar Miembro
+                    <div class="flex justify-end items-center mb-4">
+                        <button class="btn-primary !px-6 !py-3 uppercase tracking-widest text-[10px] font-black" onclick="App.openInviteModal()">
+                            + Invitar
                         </button>
                     </div>
 
-                    <div class="glass-card p-4 flex items-center gap-4 border-white/5 bg-white/[0.02] mb-6" style="display: flex !important;">
+                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02] mb-6" style="display: flex !important;">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
-                            <input id="user-search" type="text" placeholder="Buscar: colaborador, empresa, evento..." 
-                                   style="width: 100%; padding-right: 70px; padding-left: 12px; padding-top: 12px; padding-bottom: 12px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px;"
+                            <input id="user-search" type="text" placeholder="Buscar..." 
+                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
                                    oninput="App.filterUsers()">
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer;" onclick="document.getElementById('user-search').value=''; App.filterUsers();">close</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); color: #64748b;">search</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
                         </div>
-                        <div style="display: flex; gap: 12px; flex-shrink: 0; align-items: center;">
-                            <select id="filter-group" onchange="App.filterUsers()" style="padding: 10px 14px; font-size: 12px; min-width: 120px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+                            <select id="filter-group" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
                                 <option value="">Empresas</option>
                             </select>
-                            <select id="filter-event" onchange="App.filterUsers()" style="padding: 10px 14px; font-size: 12px; min-width: 120px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                            <select id="filter-event" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
                                 <option value="">Eventos</option>
                             </select>
-                            <select id="filter-role" onchange="App.filterUsers()" style="padding: 10px 14px; font-size: 12px; min-width: 110px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
-                                <option value="">Filtrar Rol</option>
+                            <select id="filter-role" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 90px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                <option value="">Rol</option>
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="PRODUCTOR">PRODUCTOR</option>
                                 <option value="LOGISTICO">LOGISTICO</option>
                                 <option value="STAFF">STAFF</option>
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
-                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" style="padding: 10px 14px; font-size: 12px; min-width: 130px; border-radius: 10px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #60a5fa; font-weight: bold;">
+                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #60a5fa; font-weight: bold;">
                                 <option value="">Cambiar Rol</option>
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="PRODUCTOR">PRODUCTOR</option>
@@ -791,7 +787,7 @@
                                 <option value="STAFF">STAFF</option>
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
-                            <select id="bulk-action" onchange="App.handleBulkAction()" style="padding: 10px 14px; font-size: 12px; min-width: 140px; border-radius: 10px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
+                            <select id="bulk-action" onchange="App.handleBulkAction()" style="padding: 6px 10px; font-size: 11px; min-width: 110px; border-radius: 8px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
                                 <option value="">Acciones</option>
                                 <option value="assign-company">Asignar Empresa</option>
                                 <option value="assign-event">Asignar Evento</option>
@@ -807,13 +803,14 @@
                             <table class="data-table">
                                 <thead>
                                     <tr class="bg-white/[0.01]">
-                                        <th class="!py-4 !px-4 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                            <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" style="width: 18px; height: 18px; cursor: pointer;">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                            <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" style="width: 16px; height: 16px; cursor: pointer;">
                                         </th>
-                                        <th class="!py-4 !px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
-                                        <th class="!py-4 !px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
-                                        <th class="!py-4 !px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-4 !px-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
+                                        <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Rol</th>
                                     </tr>
                                 </thead>
                                 <tbody id="users-tbody" class="divide-y divide-white/[0.03]"></tbody>

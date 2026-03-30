@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.65';
+const VERSION = '12.34.66';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1054,6 +1054,7 @@ const App = window.App = {
             // Guardar datos para filtros
             this.state.allUsers = users;
             this.state.allEvents = events;
+            this.state.allGroups = groups;
             this.renderUsersTable(users, groups, events);
         } catch (error) {
             console.error('Error loading users table:', error);
@@ -1161,8 +1162,7 @@ const App = window.App = {
                 // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-[10px] font-medium">
-                        <span class="material-symbols-outlined text-[12px]">event</span>
+                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-[10px] font-medium">
                         ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
                     </span>
                 `).join('');
@@ -1172,8 +1172,7 @@ const App = window.App = {
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-[10px] font-medium">
-                        <span class="material-symbols-outlined text-[12px]">corporate_fare</span>
+                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-[10px] font-medium">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
                 `).join('') : `<span class="text-[10px] text-slate-500 italic">Sin empresa</span>`;
@@ -1184,13 +1183,17 @@ const App = window.App = {
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
                 const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
 
+                // --- COLUMNA 5: ROL ---
+                const colRol = `<span class="text-xs font-bold text-violet-400">${u.role}</span>`;
+
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-3 py-4 align-middle">${checkbox}</td>
-                    <td class="px-3 py-4 align-middle">${colStaff}</td>
-                    <td class="px-3 py-4 align-middle">${colEventos}</td>
-                    <td class="px-3 py-4 align-middle">${colEmpresa}</td>
-                    <td class="px-3 py-4 align-middle text-center">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle">${checkbox}</td>
+                    <td class="px-2 py-3 align-middle">${colStaff}</td>
+                    <td class="px-2 py-3 align-middle">${colEventos}</td>
+                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
+                    <td class="px-2 py-3 align-middle text-center">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle text-center">${colRol}</td>
                 </tr>`;
             }).join('');
         }
