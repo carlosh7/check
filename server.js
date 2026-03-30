@@ -614,6 +614,15 @@ if (isProduction) {
     }));
 }
 
+// --- RUTAS PÚBLICAS DE RULETA (antes del registro de rutas) ---
+// Debe estar ANTES de registerRoutes para que tenga prioridad
+app.get(/\/wheel\/[^/]+\/public$/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/pages/wheel.html'));
+});
+app.get(/\/[^/]+\/wheel\/[^/]+\/public$/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/pages/wheel.html'));
+});
+
 // --- REGISTRAR RUTAS MODULARES ---
 registerRoutes(app);
 
@@ -630,11 +639,6 @@ app.use((req, res, next) => {
     // Ruta raíz (login) cargando desde raíz del proyecto
     if (req.path === '/' || req.path === '/index.html') {
         return res.sendFile(path.join(__dirname, 'index.html'));
-    }
-    
-    // Rutas públicas de ruleta: /wheel/:wheelId/public o /:eventName/wheel/:wheelId/public
-    if ((req.path.startsWith('/wheel/') || req.path.match(/^\/[^/]+\/wheel\//)) && req.path.endsWith('/public')) {
-        return res.sendFile(path.join(__dirname, 'public/html/pages/wheel.html'));
     }
     
     // Solo servir login.html para rutas que no son API/social y que aceptan HTML
