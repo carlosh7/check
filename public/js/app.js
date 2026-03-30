@@ -1506,7 +1506,10 @@ const App = window.App = {
                     method: 'POST',
                     body: JSON.stringify(data)
                 });
+                console.log('[EVENT CREATE] Respuesta del servidor:', res);
             }
+            
+            console.log('[EVENT CREATE] savedEventId será:', eventId || res?.eventId, '| res:', JSON.stringify(res));
             
             if (res && res.success === false) {
                 await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
