@@ -5023,9 +5023,11 @@ const App = window.App = {
         }
         
         const modal = document.getElementById('modal-event-full');
-        modal?.classList.remove('hidden');
-        modal?.style.display = 'flex';
-        modal?.removeAttribute('aria-hidden');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            modal.removeAttribute('aria-hidden');
+        }
     },
 
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
