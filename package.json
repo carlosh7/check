@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.4",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.4 - Fix: Config section layout unified with System design",
+  "version": "12.34.6",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.6 - Fix: hideModal local corregido - usa removeAttribute aria-hidden",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

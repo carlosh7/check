@@ -4257,12 +4257,18 @@ const App = window.App = {
         const hideModal = (id) => { 
             const m = document.getElementById(id); 
             if (m) { 
-                // Mover focus fuera del modal antes de ocultar (accessibility)
+                // Quitar foco de todos los elementos interactivos antes de cerrar
+                const focusableElements = m.querySelectorAll('input, button, select, textarea, a[href]');
+                focusableElements?.forEach(el => {
+                    el.blur();
+                    el.setAttribute('tabindex', '-1');
+                });
+                // Quitar foco del body
                 document.body.focus();
-                m.classList.add('hidden'); 
-                m.setAttribute('aria-hidden', 'true'); 
-                
-                // No necesitamos deshabilitar formularios porque los listeners se agregan solo cuando se abre el modal
+                // Ocultar modal - clase hidden Y limpiar style display
+                m.classList.add('hidden');
+                m.style.display = '';
+                m.removeAttribute('aria-hidden');
             } 
         };
         
