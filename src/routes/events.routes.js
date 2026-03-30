@@ -182,8 +182,19 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     res.json({ success: true });
 });
 
-router.delete('/:id', authMiddleware(['ADMIN']), async (req, res) => {
+router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const targetId = castId('events', req.params.id);
+    
+    // Verificar permisos: PRODUCTOR solo puede borrar sus propios eventos
+    if (req.userRole === 'PRODUCTOR') {
+        const event = db.prepare("SELECT user_id FROM events WHERE id = ?").get(targetId);
+        if (!event) {
+            return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+        }
+        if (event.user_id !== req.userId) {
+            return res.status(403).json({ success: false, error: 'Acceso denegado' });
+        }
+    }
 
     // Eliminar en cascada todos los registros relacionados con el evento
     try {
@@ -195,6 +206,7 @@ router.delete('/:id', authMiddleware(['ADMIN']), async (req, res) => {
         db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM event_users WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         
         // Eliminar el evento
