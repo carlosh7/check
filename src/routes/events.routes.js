@@ -198,6 +198,8 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
     // Eliminar en cascada todos los registros relacionados con el evento
     try {
+        // Eliminar participantes de ruletas primero
+        db.prepare("DELETE FROM wheel_participants WHERE wheel_id IN (SELECT id FROM event_wheels WHERE event_id = ?)").run(targetId);
         // Eliminar registros relacionados en orden inverso a las dependencias
         db.prepare("DELETE FROM surveys WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM event_wheels WHERE event_id = ?").run(targetId);
@@ -206,7 +208,6 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
         db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         
         // Eliminar el evento
