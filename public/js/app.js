@@ -1514,7 +1514,7 @@ const App = window.App = {
             }
 
             // Obtener el ID del evento creado o actualizado
-            const savedEventId = eventId || res?.id;
+            const savedEventId = eventId || res?.eventId;
             
             // Actualizar estado local si editamos el evento activo
             if (eventId && this.state.event && String(this.state.event.id) === String(eventId)) {
