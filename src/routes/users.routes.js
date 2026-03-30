@@ -83,12 +83,27 @@ router.post('/', (req, res) => {
     if (!v.valid) return res.status(400).json({ errors: v.errors });
 
     const { username, password, role } = v.data;
+    const { group_id, event_id } = req.body; // Campos opcionales para asignación automática
+    
     const id = getValidId('users');
     const status = (role === 'ADMIN') ? 'APPROVED' : 'PENDING';
     const hashedPassword = bcrypt.hashSync(password, 10);
     try {
         db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
           .run(id, username, hashedPassword, role || 'PRODUCTOR', status, new Date().toISOString());
+        
+        // Asignar a grupo si se proporciona
+        if (group_id) {
+            db.prepare("INSERT INTO group_users (id, group_id, user_id, created_at) VALUES (?, ?, ?, ?)")
+              .run(getValidId('group_users'), group_id, id, new Date().toISOString());
+        }
+        
+        // Asignar a evento si se proporciona
+        if (event_id) {
+            db.prepare("INSERT INTO event_users (id, event_id, user_id, role, created_at) VALUES (?, ?, ?, ?, ?)")
+              .run(getValidId('event_users'), event_id, id, 'COLABORADOR', new Date().toISOString());
+        }
+        
         res.json({ success: true, userId: id, status });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
@@ -386,6 +401,48 @@ router.put('/:id/profile', authMiddleware(), (req, res) => {
     
     const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
     res.json({ success: true, user });
+});
+
+// Eliminar usuario
+router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const targetId = castId('users', req.params.id);
+    
+    // PRODUCTOR no puede eliminar usuarios
+    if (req.userRole === 'PRODUCTOR') {
+        return res.status(403).json({ error: 'No tienes permisos para eliminar usuarios' });
+    }
+    
+    // No puede eliminarse a sí mismo
+    if (targetId === req.userId) {
+        return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+    }
+    
+    try {
+        // Verificar que el usuario existe
+        const user = db.prepare("SELECT id, role FROM users WHERE id = ?").get(targetId);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        // No eliminar admins
+        if (user.role === 'ADMIN') {
+            return res.status(400).json({ error: 'No se pueden eliminar usuarios ADMIN' });
+        }
+        
+        // Eliminar de grupos
+        db.prepare("DELETE FROM group_users WHERE user_id = ?").run(targetId);
+        
+        // Eliminar de eventos
+        db.prepare("DELETE FROM event_users WHERE user_id = ?").run(targetId);
+        
+        // Eliminar usuario
+        db.prepare("DELETE FROM users WHERE id = ?").run(targetId);
+        
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Error deleting user:', e);
+        res.status(500).json({ error: 'Error al eliminar usuario' });
+    }
 });
 
 module.exports = router;

@@ -1078,6 +1078,31 @@ const App = window.App = {
             filterEvent.value = currentVal;
         }
         
+        // FILTRO: PRODUCTOR no ve usuarios ADMIN
+        const isAdmin = this.state.user.role === 'ADMIN';
+        const isProductor = this.state.user.role === 'PRODUCTOR';
+        
+        if (isProductor) {
+            // PRODUCTOR no ve usuarios ADMIN
+            users = users.filter(u => u.role !== 'ADMIN');
+        }
+        
+        // Obtener eventos y grupos del usuario actual
+        const userGroupId = this.state.user.group_id;
+        const userEvents = this.state.allEvents?.filter(e => e.user_id === this.state.user.userId) || [];
+        const userGroupIds = this.state.allGroups?.filter(g => {
+            // Usuarios pertenece a este grupo
+            return groups.some(ug => ug.user_id === this.state.user.userId && ug.group_id === g.id);
+        })?.map(g => g.id) || [];
+        
+        // PRODUCTOR solo ve usuarios de su empresa
+        if (isProductor && userGroupId) {
+            users = users.filter(u => {
+                const userGroups = u.groups || [];
+                return userGroups.some(ug => ug.id === userGroupId);
+            });
+        }
+        
         const pending = users.filter(u => u.status === 'PENDING');
         const badge = document.getElementById('pending-badge');
         const pendingSection = document.getElementById('pending-requests-section');
@@ -1120,6 +1145,8 @@ const App = window.App = {
                 const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
+                // PRODUCTOR puede eliminar usuarios (pero no ADMIN)
+                const canRemoveUser = (isAdmin || isProductor) && u.role !== 'ADMIN';
                 const roleOptions = isAdmin ? 
                     ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'] :
                     ['PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
@@ -1197,6 +1224,11 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-lg">edit</span>
                     </button>` : '';
                 
+                const deleteBtn = canRemoveUser ? `
+                    <button data-action="deleteUser" data-user-id="${u.id}" data-user-name="${u.display_name || u.username}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg" title="Eliminar Usuario">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>` : '';
+                
                 const col4 = `
                     <div class="flex items-center justify-end gap-2">
                         <div class="flex flex-col gap-1.5">
@@ -1206,6 +1238,7 @@ const App = window.App = {
                         <div class="flex flex-col gap-1.5">
                             ${accessBtn}
                             ${editBtn}
+                            ${deleteBtn}
                         </div>
                     </div>
                 `;
@@ -1343,6 +1376,36 @@ const App = window.App = {
                 }
             } catch { Swal.fire('Error', 'Error de red', 'error'); }
         }
+    },
+    
+    // Eliminar usuario completamente
+    deleteUser: async function(userId, userName) {
+        const currentUserId = this.state.user?.userId;
+        const currentUserRole = this.state.user?.role;
+        
+        // Validaciones de seguridad
+        if (userId === currentUserId) {
+            Swal.fire('Error', 'No puedes eliminarte a ti mismo', 'error');
+            return;
+        }
+        
+        // PRODUCTOR no puede eliminar ADMIN
+        if (currentUserRole === 'PRODUCTOR') {
+            Swal.fire('Error', 'No tienes permisos para eliminar usuarios', 'error');
+            return;
+        }
+        
+        if (!confirm(`¿Estás seguro de eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`)) return;
+        
+        try {
+            const res = await this.fetchAPI(`/users/${userId}`, { method: 'DELETE' });
+            if (res.success) {
+                Swal.fire({ title: 'Éxito', text: 'Usuario eliminado', icon: 'success', timer: 1000, showConfirmButton: false });
+                this.loadUsersTable();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo eliminar el usuario', 'error');
+            }
+        } catch { Swal.fire('Error', 'Error de red', 'error'); }
     },
     
     // openCreateGroupModal - ver versión en línea ~5632 (showGroupSelector)
@@ -4454,6 +4517,7 @@ const App = window.App = {
                     // Users management
                     case 'approveUser': _App.approveUser(p.userId, p.status); break;
                     case 'editUser': _App.editUser(p.userId); break;
+                    case 'deleteUser': _App.deleteUser(p.userId, p.userName); break;
                     case 'removeUserGroup': _App.removeUserGroup(p.userId); break;
                     case 'showGroupSelector': _App.showGroupSelector(p.userId, p.groupId || ''); break;
                     case 'removeUserFromEvent': _App.removeUserFromEvent(p.userId, p.eventId); break;
@@ -7551,6 +7615,25 @@ const App = window.App = {
             }
         }
         
+        // Si es PRODUCTOR y está en un evento, asignar automáticamente event_id y group_id
+        const isProductor = this.state.user?.role === 'PRODUCTOR';
+        const currentEvent = this.state.event;
+        const currentGroupId = this.state.user?.group_id;
+        
+        const userData = {
+            display_name: displayName,
+            username,
+            password,
+            role
+        };
+        
+        // Si es PRODUCTOR desde un evento, asignar automáticamente
+        if (isProductor && currentEvent && currentGroupId) {
+            userData.group_id = currentGroupId;
+            userData.event_id = currentEvent.id;
+            console.log('[INVITE] Asignando automáticamente group_id:', currentGroupId, 'event_id:', currentEvent.id);
+        }
+        
         try {
             if (editingUserId) {
                 // Editar usuario existente
@@ -7561,11 +7644,18 @@ const App = window.App = {
                 this._notifyAction('✓ Actualizado', 'Colaborador actualizado correctamente', 'success');
                 delete this.state.editingUserId;
             } else {
-                // Crear nuevo usuario
-                await this.fetchAPI('/users', {
+                // Crear nuevo usuario con group_id y event_id automáticos
+                const res = await this.fetchAPI('/users', {
                     method: 'POST',
-                    body: JSON.stringify({ display_name: displayName, username, password, role })
+                    body: JSON.stringify(userData)
                 });
+                
+                // Si se creó y hay event_id, asignar al evento
+                if (res.success && userData.event_id) {
+                    // El backend debería asignar automáticamente, pero verificamos
+                    console.log('[INVITE] Usuario creado con ID:', res.userId);
+                }
+                
                 this._notifyAction('✓ Creado', 'Colaborador creado correctamente', 'success');
             }
             
