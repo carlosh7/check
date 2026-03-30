@@ -206,7 +206,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
         db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
-        db.prepare("DELETE FROM event_users WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         
         // Eliminar el evento
