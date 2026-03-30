@@ -1033,3 +1033,88 @@
         </form>
     </div>
 </div>
+
+<!-- MODAL: INVITAR COLABORADOR -->
+<div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
+            </div>
+            <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="invite-user-form" class="p-5 space-y-4">
+            <div>
+                <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
+            </div>
+            <div>
+                <input type="email" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
+            </div>
+            <div class="relative">
+                <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
+                <button type="button" id="btn-toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text)]">
+                    <span class="material-symbols-outlined text-lg">visibility</span>
+                </button>
+            </div>
+            <p class="text-xs text-[var(--text-secondary)] -mt-2 ml-1">Mínimo 6 caracteres</p>
+            <div>
+                <select id="invite-role" class="input-field w-full">
+                    <option value="ADMIN">Administrador</option>
+                    <option value="PRODUCTOR">Productor</option>
+                    <option value="STAFF">Staff</option>
+                    <option value="CLIENTE">Cliente</option>
+                    <option value="LOGISTICO">Logístico</option>
+                </select>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)]">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDITOR DE ENCUESTAS -->
+<div id="modal-survey-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">quiz</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nueva Pregunta</h3>
+            </div>
+            <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="survey-question-form" class="p-5 space-y-4">
+            <input type="hidden" id="survey-question-id" value="">
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase mb-1">Pregunta</label>
+                <input type="text" id="survey-question-title" required placeholder="Escribe tu pregunta..." class="input-field w-full">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Respuesta</label>
+                <select id="survey-question-type" onchange="App.toggleSurveyOptions()" class="input-field w-full">
+                    <option value="stars">Estrellas (1-5)</option>
+                    <option value="yesno">Sí / No</option>
+                    <option value="text">Texto libre</option>
+                    <option value="multiple">Opción múltiple</option>
+                </select>
+            </div>
+            <div id="survey-options-container" class="hidden">
+                <label class="text-xs font-bold text-slate-500 uppercase mb-1">Opciones (separadas por coma)</label>
+                <input type="text" id="survey-question-options" placeholder="Opción 1, Opción 2, Opción 3" class="input-field w-full">
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)]">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
