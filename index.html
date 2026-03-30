@@ -8,10 +8,10 @@
     <style>
         /* Estilos críticos para prevenir FOUC */
         html.dark {
-            --bg-app: #020617;
-            --bg-sidebar: rgba(2, 6, 23, 0.8);
-            --bg-card: rgba(15, 23, 42, 0.6);
-            --bg-input: rgba(30, 41, 59, 0.4);
+            --bg-app: #121212;
+            --bg-sidebar: rgba(18, 18, 18, 0.8);
+            --bg-card: rgba(30, 30, 30, 0.6);
+            --bg-input: rgba(40, 40, 40, 0.4);
             --bg-hover: rgba(139, 92, 246, 0.1);
             --bg-active: rgba(139, 92, 246, 0.15);
             --primary: #8b5cf6;
@@ -121,7 +121,7 @@
                     <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">&copy; 2026 Check Pro</p>
                     <div class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5 animate-pulse">
                         <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        <span id="login-version-display" class="text-[10px] text-slate-400 font-black app-version-text">v12.34.1</span>
+                        <span id="login-version-display" class="text-[10px] text-slate-400 font-black app-version-text">v12.34.2</span>
                     </div>
                 </div>
             </div>
@@ -136,7 +136,7 @@
     
     <script type="module">
         (function() {
-            const currentVersion = '12.34.1';
+            const currentVersion = '12.34.2';
             
             // 1. FORZAR recarga si hay cualquier parámetro de cache bust
             const urlParams = new URLSearchParams(window.location.search);

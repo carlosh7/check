@@ -3,7 +3,7 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.19.1
+ * Version: V12.34.2 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.1';
+const VERSION = '12.34.2';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3907,7 +3907,8 @@ const App = window.App = {
             return;
         }
         
-        this._navigating = true;
+        try {
+            this._navigating = true;
         
         // Resetear bandera de navegación inicial cuando navegamos manualmente
         if (viewName !== 'login') {
@@ -4051,11 +4052,11 @@ const App = window.App = {
             }
         }
         
-        // Resetear bandera de navegación
-        setTimeout(() => {
+        } finally {
+            // Resetear bandera de navegación SIEMPRE
             this._navigating = false;
-            console.log('[NAV DEBUG] Bandera de navegación reseteada');
-        }, 100);
+            console.log('[NAV DEBUG] Bandera de navegación reseteada (finally)');
+        }
     },
 
     initRouter() {
@@ -6388,6 +6389,15 @@ const App = window.App = {
         if (tabName === 'settings') this.loadConfigSettings();
     },
     
+    // Cargar encuestas (v12.34.2)
+    loadSurveys() {
+        if (typeof this.loadSurveyQuestions === 'function') {
+            this.loadSurveyQuestions();
+        } else {
+            console.warn('[CONFIG] loadSurveyQuestions not available');
+        }
+    },
+    
     // Cargar staff en config view
     loadConfigStaff() {
         const eventId = this.state.event?.id;
@@ -6451,33 +6461,37 @@ const App = window.App = {
         
         // Llenar el formulario con los datos del evento
         // Ahora usamos prefijo evs- para evitar conflictos con evf- del formulario completo
-        document.getElementById('evs-id-hidden').value = ev.id;
-        document.getElementById('evs-name').value = ev.name || '';
-        document.getElementById('evs-location').value = ev.location || '';
-        document.getElementById('evs-desc').value = ev.description || '';
-        document.getElementById('evs-date').value = ev.date ? ev.date.slice(0, 16) : '';
-        document.getElementById('evs-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+        const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+
+        setVal('evs-id-hidden', ev.id);
+        if (document.getElementById('evs-name')) document.getElementById('evs-name').value = ev.name || '';
+        if (document.getElementById('evs-location')) document.getElementById('evs-location').value = ev.location || '';
+        if (document.getElementById('evs-desc')) document.getElementById('evs-desc').value = ev.description || '';
+        if (document.getElementById('evs-date')) document.getElementById('evs-date').value = ev.date ? ev.date.slice(0, 16) : '';
+        if (document.getElementById('evs-end-date')) document.getElementById('evs-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
         
-        document.getElementById('evs-reg-title').value = ev.reg_title || '';
-        document.getElementById('evs-reg-welcome').value = ev.reg_welcome_text || '';
-        document.getElementById('evs-reg-success').value = ev.reg_success_message || '';
-        document.getElementById('evs-reg-policy').value = ev.reg_policy || '';
-        document.getElementById('evs-reg-phone').checked = ev.reg_show_phone !== 0;
-        document.getElementById('evs-reg-org').checked = ev.reg_show_org !== 0;
-        document.getElementById('evs-reg-position').checked = ev.reg_show_position === 1;
-        document.getElementById('evs-reg-vegan').checked = ev.reg_show_vegan !== 0;
-        document.getElementById('evs-reg-dietary').checked = ev.reg_show_dietary !== 0;
-        document.getElementById('evs-reg-gender').checked = ev.reg_show_gender === 1;
-        document.getElementById('evs-reg-agreement').checked = ev.reg_require_agreement !== 0;
+        setVal('evs-reg-title', ev.reg_title);
+        setVal('evs-reg-welcome', ev.reg_welcome_text);
+        setVal('evs-reg-success', ev.reg_success_message);
+        setVal('evs-reg-policy', ev.reg_policy);
         
-        document.getElementById('evs-qr-dark').value = ev.qr_color_dark || '#000000';
-        document.getElementById('evs-qr-light').value = ev.qr_color_light || '#ffffff';
-        document.getElementById('evs-qr-logo').value = ev.qr_logo_url || '';
-        document.getElementById('evs-ticket-bg').value = ev.ticket_bg_url || '';
-        document.getElementById('evs-ticket-accent').value = ev.ticket_accent_color || '#7c3aed';
+        setCheck('evs-reg-phone', ev.reg_show_phone !== 0);
+        setCheck('evs-reg-org', ev.reg_show_org !== 0);
+        setCheck('evs-reg-position', ev.reg_show_position === 1);
+        setCheck('evs-reg-vegan', ev.reg_show_vegan !== 0);
+        setCheck('evs-reg-dietary', ev.reg_show_dietary !== 0);
+        setCheck('evs-reg-gender', ev.reg_show_gender === 1);
+        setCheck('evs-reg-agreement', ev.reg_require_agreement !== 0);
         
-        document.getElementById('evs-reg-whitelist').value = ev.reg_email_whitelist || '';
-        document.getElementById('evs-reg-blacklist').value = ev.reg_email_blacklist || '';
+        setVal('evs-qr-dark', ev.qr_color_dark || '#000000');
+        setVal('evs-qr-light', ev.qr_color_light || '#ffffff');
+        setVal('evs-qr-logo', ev.qr_logo_url);
+        setVal('evs-ticket-bg', ev.ticket_bg_url);
+        setVal('evs-ticket-accent', ev.ticket_accent_color || '#7c3aed');
+        
+        setVal('evs-reg-whitelist', ev.reg_email_whitelist);
+        setVal('evs-reg-blacklist', ev.reg_email_blacklist);
         
         // Actualizar vista previa QR
         this.updateQRPreview();

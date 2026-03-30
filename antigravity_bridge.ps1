@@ -1,7 +1,7 @@
-# Antigravity Bridge for Check Pro (v12.34.1)
+# Antigravity Bridge for Check Pro (v12.34.2)
 # This script executes the Golden Rule on Windows 11 bypassing sandbox limitations.
 
-$VERSION = "12.34.1"
+$VERSION = "12.34.2"
 $REPO_PATH = "c:\Users\carlo\OneDrive\Documentos\APP\Registro"
 $CHECK_PATH = "C:\Users\carlo\check"
 
@@ -11,7 +11,7 @@ Write-Host "--- Iniciando Regla de Oro (v$VERSION) ---" -ForegroundColor Cyan
 Write-Host "[1/5] Preparando commit en repositorio original..." -ForegroundColor Yellow
 cd $REPO_PATH
 git add .
-git commit -m "Automated update: Check Pro v$VERSION - Deep Dark Mode, Internal Sidebar Email & Premium Login UI"
+git commit -m "Automated update: Check Pro v$VERSION - Neutral Dark Stability & Navigation Fix"
 git push origin main
 
 # 2. Creating Tag
