@@ -4817,112 +4817,59 @@ const App = window.App = {
         
         // Determinar clases de contenedor
         if (this.state.eventsViewMode === 'list') {
-            c.className = 'space-y-3';
+            c.className = 'space-y-2';
         } else {
-            c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+            c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
         }
         
         c.innerHTML = events.map(ev => {
             const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
             
-            // Métricas (Desglose rápido)
+            // Métricas simples
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
-            const pending = ev.pending_pre_reg || 0;
             
             if (this.state.eventsViewMode === 'list') {
                 return `
-                    <div data-action="openEvent" data-event-id="${ev.id}" class="event-list-row cursor-pointer">
-                        <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center shadow-lg flex-shrink-0">
-                                <span class="material-symbols-outlined text-xl font-variation-fill">event</span>
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="event-list-row cursor-pointer py-3 px-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-lg font-variation-fill">event</span>
                             </div>
-                            <div class="min-w-0">
-                                <h3 class="text-base font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="event-status-pill"><span class="dot"></span>Activo</span>
-                                    <span class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[12px]">calendar_month</span> ${dateStr}
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-sm font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[9px] text-[var(--text-muted)] flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[10px]">calendar_month</span> ${dateStr}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="hidden md:flex items-center gap-4">
-                            <div class="metric-badge">
-                                <span class="metric-value">${total}</span>
-                                <span class="metric-label">Registrados</span>
-                            </div>
-                            <div class="metric-badge">
-                                <span class="metric-value text-emerald-400">${attended}</span>
-                                <span class="metric-label">Asistieron</span>
-                            </div>
-                            <div class="metric-badge opacity-60">
-                                <span class="metric-value">${pending}</span>
-                                <span class="metric-label">Pendientes</span>
-                            </div>
-                        </div>
-
-                        <div class="flex-shrink-0 text-right pr-4">
-                            <div class="text-[11px] font-bold text-[var(--text-muted)] uppercase mb-1">Registro</div>
-                            <div class="flex gap-2">
-                                <button data-action="openRegistrationLink" data-event-id="${ev.id}" class="text-[var(--primary)] text-xs font-bold hover:underline">V. Previa</button>
-                                <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="text-slate-400 text-xs font-bold hover:text-white">Copiar</button>
-                            </div>
-                        </div>
-
-                        <div class="action-btn-group ml-4">
-                            <button data-action="editEvent" data-event-id="${ev.id}" class="action-btn-circle" title="Editar">
-                                <span class="material-symbols-outlined text-xl">edit</span>
-                            </button>
-                            <button data-action="deleteEvent" data-event-id="${ev.id}" class="action-btn-circle btn-delete" title="Eliminar">
-                                <span class="material-symbols-outlined text-xl">delete</span>
-                            </button>
+                        <div class="flex items-center gap-4 text-xs">
+                            <span class="text-[10px]"><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-500">Reg.</span></span>
+                            <span class="text-[10px]"><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-500">Asist.</span></span>
                         </div>
                     </div>
                 `;
             } else {
                 return `
-                    <div data-action="openEvent" data-event-id="${ev.id}" class="event-card-premium p-6 cursor-pointer relative group">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center shadow-xl">
-                                <span class="material-symbols-outlined text-2xl font-variation-fill">event</span>
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/5 rounded-xl p-4 cursor-pointer hover:border-violet-500/30 hover:bg-white/[0.02] transition-all">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-lg font-variation-fill">event</span>
                             </div>
-                            <div class="action-btn-group">
-                                <button data-action="editEvent" data-event-id="${ev.id}" class="action-btn-circle" title="Editar">
-                                    <span class="material-symbols-outlined text-xl">edit</span>
-                                </button>
-                                <button data-action="deleteEvent" data-event-id="${ev.id}" class="action-btn-circle btn-delete" title="Eliminar">
-                                    <span class="material-symbols-outlined text-xl">delete</span>
-                                </button>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-sm font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
+                                <p class="text-[10px] text-[var(--text-muted)] mt-0.5 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[10px]">calendar_month</span> ${dateStr}
+                                </p>
                             </div>
                         </div>
                         
-                        <h3 class="text-xl font-bold text-[var(--text-main)] mb-2 line-clamp-1">${ev.name}</h3>
-                        <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-6 min-h-[40px]">${ev.description || 'Sin descripción adicional para este evento.'}</p>
-                        
-                        <div class="grid grid-cols-3 gap-3 mb-6">
-                            <div class="metric-badge py-3">
-                                <span class="metric-value">${total}</span>
-                                <span class="metric-label">Reg.</span>
-                            </div>
-                            <div class="metric-badge py-3">
-                                <span class="metric-value text-emerald-400">${attended}</span>
-                                <span class="metric-label">Asist.</span>
-                            </div>
-                            <div class="metric-badge py-3 opacity-60">
-                                <span class="metric-value">${pending}</span>
-                                <span class="metric-label">Pend.</span>
-                            </div>
-                        </div>
-
-                        <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                            <div class="flex items-center gap-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                                <span class="material-symbols-outlined text-base">calendar_month</span> ${dateStr}
-                            </div>
-                            <button data-action="copyRegistrationLink" data-event-id="${ev.id}" class="action-btn-circle btn-link" title="Copiar Link de Registro">
-                                <span class="material-symbols-outlined text-xl">link</span>
-                            </button>
+                        <div class="flex items-center gap-3 text-xs pt-2 border-t border-white/5">
+                            <span class="text-[10px]"><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-500">Registrados</span></span>
+                            <span class="text-[10px]"><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-500">Asistieron</span></span>
                         </div>
                     </div>
                 `;
