@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.42';
+const VERSION = '12.34.43';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -7699,9 +7699,16 @@ const App = window.App = {
         try {
             if (editingUserId) {
                 // Editar usuario existente
+                // Solo ADMIN puede cambiar el rol
+                const isAdmin = this.state.user?.role === 'ADMIN';
+                const updateData = { display_name: displayName };
+                if (isAdmin && role) {
+                    updateData.role = role;
+                }
+                
                 await this.fetchAPI(`/users/${editingUserId}`, {
                     method: 'PUT',
-                    body: JSON.stringify({ display_name: displayName, role })
+                    body: JSON.stringify(updateData)
                 });
                 this._notifyAction('✓ Actualizado', 'Colaborador actualizado correctamente', 'success');
                 delete this.state.editingUserId;
