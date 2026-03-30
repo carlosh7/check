@@ -259,14 +259,31 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     res.json({ success: true, user });
 });
 
-// Eliminar usuario (ADMIN)
-router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
+// Eliminar usuario (ADMIN y PRODUCTOR)
+router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
-
+    
+    // No puede eliminarse a sí mismo
     if (targetId === req.userId) {
         return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
     }
-
+    
+    // Verificar si es PRODUCTOR tratando de eliminar un ADMIN
+    if (req.userRole === 'PRODUCTOR') {
+        const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+        if (!targetUser) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        if (targetUser.role === 'ADMIN') {
+            return res.status(403).json({ error: 'No puedes eliminar usuarios ADMIN' });
+        }
+    }
+    
+    // Eliminar de grupos
+    db.prepare("DELETE FROM group_users WHERE user_id = ?").run(targetId);
+    // Eliminar de eventos
+    db.prepare("DELETE FROM user_events WHERE user_id = ?").run(targetId);
+    // Eliminar usuario
     db.prepare("DELETE FROM users WHERE id = ?").run(targetId);
 
     logAction(req, AUDIT_ACTIONS.USER_DELETED, { targetId });
