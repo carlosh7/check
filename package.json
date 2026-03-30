@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.34.47",
+  "version": "12.34.48",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.47 - Fix: ocultar tabs sistema con delay",
   "main": "script.js",
   "scripts": {

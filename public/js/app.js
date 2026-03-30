@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.47';
+const VERSION = '12.34.48';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6373,17 +6373,25 @@ const App = window.App = {
     switchSystemTab(tabName) {
         console.log('[SYS] Switching to tab:', tabName);
         
-        // Definir pestañas permitidas según rol
-        const userRole = this.state.user?.role;
+        // Obtener rol del usuario
+        const userRole = this.state.user?.role || 'PRODUCTOR';
         const isAdmin = userRole === 'ADMIN';
+        
+        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin);
         
         // Pestañas que solo ADMIN puede ver
         const adminOnlyTabs = ['groups', 'legal', 'email'];
         
         // Verificar acceso - si no es ADMIN y la pestaña es restringida, redirigir
         if (!isAdmin && adminOnlyTabs.includes(tabName)) {
+            console.log('[SYS] Tab restringida, redirigiendo a users');
             this.switchSystemTab('users');
             return;
+        }
+        
+        // Asegurar que las pestañas restringidas estén ocultas para no ADMIN
+        if (!isAdmin) {
+            this.hideRestrictedSystemTabs();
         }
         
         // Guardar tab activo
