@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.14",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.14 - Fix: Eliminar botón Nuevo Evento de config, arreglar addAgendaItem, createNewWheel, botón encuestas",
+  "version": "12.34.15",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.15 - Fix: Rueda con wheel-editor HTML completo, null checks en funciones de wheel",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
