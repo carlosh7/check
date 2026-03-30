@@ -79,6 +79,7 @@ function authMiddleware(roles = []) {
             }
 
             if (roles.length > 0 && !roles.includes(user.role)) {
+                console.log('[AUTH] Rol del usuario:', user.role, 'Roles permitidos:', roles);
                 return res.status(403).json({ error: 'Acceso denegado' });
             }
 
