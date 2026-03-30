@@ -5006,8 +5006,25 @@ const App = window.App = {
         }
         
         this.updateQRPreview();
+        
+        // AGREGAR event listener para guardar cambios editados (igual que en crear evento)
+        const form = document.getElementById('new-event-full-form');
+        if (form) {
+            // REMOVER cualquier listener previo (para evitar duplicados)
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            
+            // AGREGAR listener para guardar
+            newForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('[FORM SUBMIT EDIT] Guardando evento editado');
+                this.saveEventFull(e);
+            });
+        }
+        
         const modal = document.getElementById('modal-event-full');
         modal?.classList.remove('hidden');
+        modal?.style.display = 'flex';
         modal?.removeAttribute('aria-hidden');
     },
 
