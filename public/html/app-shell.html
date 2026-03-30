@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.68</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.69</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -749,24 +749,25 @@
                 </div>
 
                 <!-- SECCIÓN: EQUIPO -->
-                <div id="sys-content-users" class="hidden" style="margin-top: -20px;">
-                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02] mb-4" style="display: flex !important;">
-                        <div style="flex: 1 1 auto; min-width: 0; position: relative;">
-                            <input id="user-search" type="text" placeholder="Buscar..." 
-                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
-                                   oninput="App.filterUsers()">
-                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
-                            <select id="filter-group" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
-                                <option value="">Empresas</option>
-                            </select>
-                            <select id="filter-event" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
-                                <option value="">Eventos</option>
-                            </select>
-                            <select id="filter-role" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 90px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
-                                <option value="">Rol</option>
+                <div id="sys-content-users" class="hidden space-y-4">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]" style="display: flex !important; flex: 1;">
+                            <div style="flex: 1 1 auto; min-width: 0; position: relative;">
+                                <input id="user-search" type="text" placeholder="Buscar..." 
+                                       style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
+                                       oninput="App.filterUsers()">
+                                <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
+                                <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+                                <select id="filter-group" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                    <option value="">Empresas</option>
+                                </select>
+                                <select id="filter-event" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                    <option value="">Eventos</option>
+                                </select>
+                                <select id="filter-role" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 90px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                    <option value="">Rol</option>
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="PRODUCTOR">PRODUCTOR</option>
                                 <option value="LOGISTICO">LOGISTICO</option>
@@ -789,10 +790,11 @@
                                 <option value="suspend">Suspender</option>
                                 <option value="delete">Eliminar</option>
                             </select>
-                            <button onclick="App.openInviteModal()" style="padding: 6px 12px; font-size: 11px; border-radius: 8px; background: rgba(124, 58, 237, 0.8); border: 1px solid rgba(124, 58, 237, 1); color: white; font-weight: bold; cursor: pointer;">
-                                + Invitar
-                            </button>
                         </div>
+                        </div>
+                        <button onclick="App.openInviteModal()" style="padding: 8px 16px; font-size: 12px; border-radius: 8px; background: rgba(124, 58, 237, 0.9); border: 1px solid rgba(124, 58, 237, 1); color: white; font-weight: bold; cursor: pointer; margin-left: 12px;">
+                            + Staff
+                        </button>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
