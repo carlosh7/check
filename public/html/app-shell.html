@@ -351,7 +351,7 @@
                                 <h2 class="text-2xl font-semibold tracking-tight">📋 Agenda del <span class="text-[var(--primary)]">Evento</span></h2>
                                 <p class="text-[var(--text-secondary)] text-sm mt-1">Administra los puntos de la agenda de tu evento.</p>
                             </div>
-                            <button id="btn-config-add-agenda" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
+                            <button id="btn-add-agenda-item" class="btn-primary !px-5 !py-2.5">+ Agregar Punto</button>
                         </div>
                         
                         <div class="card p-6">
@@ -372,7 +372,7 @@
                                 <h2 class="text-2xl font-semibold tracking-tight">🎰 Ruleta de <span class="text-[var(--primary)]">Sorteos</span></h2>
                                 <p class="text-[var(--text-secondary)] text-sm mt-1">Crea sorteos interactivos para tus eventos.</p>
                             </div>
-                            <button id="btn-create-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
+                            <button id="btn-new-wheel" class="btn-primary !px-5 !py-2.5">+ Nueva Ruleta</button>
                         </div>
                         <div id="wheels-list" class="space-y-3"></div>
                     </div>
@@ -389,8 +389,25 @@
 
                     <!-- CONTENIDO: ENCUESTAS -->
                     <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
-                        <h2 class="text-2xl font-semibold tracking-tight">Encuesta QR</h2>
-                        <div id="config-survey-questions-list" class="space-y-4"></div>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-semibold tracking-tight">Encuesta QR</h2>
+                            <button id="btn-create-survey-open" class="btn-primary !px-5 !py-2.5">+ Nueva Encuesta</button>
+                        </div>
+                        <div class="card !p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-5 py-4">Nombre</th>
+                                            <th class="px-5 py-4 text-center">Estado</th>
+                                            <th class="px-5 py-4 text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="survey-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="survey-questions-list" class="space-y-4"></div>
                     </div>
 
                     <!-- CONTENIDO: AJUSTES -->
@@ -438,6 +455,34 @@
                             <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
                             <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
                             <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: EMPRESAS -->
+                <div id="sys-content-groups" class="hidden space-y-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h1 class="text-4xl font-black text-white">Gestión de <span class="text-violet-400">Empresas</span></h1>
+                            <p class="text-slate-400 font-medium">Administración de organizaciones y entidades vinculadas</p>
+                        </div>
+                        <button class="btn-primary !px-8 !py-4 uppercase tracking-widest text-[10px] font-black" onclick="App.navigateToCreateGroup()">
+                            Registrar Empresa
+                        </button>
+                    </div>
+                    <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="!py-6 !px-8 text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
+                                        <th class="!py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Contacto</th>
+                                        <th class="!py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="!py-6 !px-8 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groups-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -631,6 +676,47 @@
                                     <div id="mailbox-list" class="space-y-4"></div>
                                 </div>
                             </div>                        </main>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: PERFIL -->
+                <div id="sys-content-account" class="hidden space-y-6">
+                    <!-- Notificaciones Push -->
+                    <div class="card p-6 border-l-4 border-l-violet-400 border-white/5 bg-white/[0.01]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-black text-white">Notificaciones Push</h3>
+                                <p class="text-sm text-slate-400 mt-1">Recibe alertas en tu navegador cuando hayan nuevos registros.</p>
+                                <p id="push-status-text" class="text-xs text-slate-500 mt-2">Estado: No activo</p>
+                            </div>
+                            <button id="btn-enable-push" onclick="App.enablePushNotifications()" class="btn-primary !px-6 !py-4 uppercase tracking-widest text-[10px] font-black">
+                                <span class="material-symbols-outlined text-sm mr-1">notifications</span>
+                                Activar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-8 border-white/5 bg-white/[0.01]">
+                            <h3 class="text-xl font-black text-white mb-6">Información Personal</h3>
+                            <form id="profile-form" class="space-y-4">
+                                <input type="text" id="profile-name" placeholder="Tu nombre" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                <input type="text" id="profile-phone" placeholder="Teléfono" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                <input type="email" id="profile-email" placeholder="email@ejemplo.com" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                <select id="profile-company" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                    <option value="">-- Sin empresa asignada --</option>
+                                </select>
+                                <button type="submit" class="btn-primary w-full !py-4 uppercase tracking-widest text-[10px] font-black">Actualizar Perfil</button>
+                            </form>
+                        </div>
+                        <div class="card p-8 border-white/5 bg-white/[0.01]">
+                            <h3 class="text-xl font-black text-white mb-6">Seguridad</h3>
+                            <form id="password-form" class="space-y-4">
+                                <input type="password" id="pass-current" placeholder="Contraseña actual" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                <input type="password" id="pass-new" placeholder="Nueva contraseña" class="input-field w-full !bg-black/40 !rounded-xl !border-white/5 !py-4 !px-5">
+                                <button type="submit" class="btn-primary w-full !py-4 uppercase tracking-widest text-[10px] font-black">Cambiar Contraseña</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </section>
