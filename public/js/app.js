@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.49';
+const VERSION = '12.34.50';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1068,14 +1068,14 @@ const App = window.App = {
         
         if (filterGroup && groups.length > 0) {
             const currentVal = filterGroup.value;
-            filterGroup.innerHTML = '<option value="">Todas las empresas</option>' + 
+            filterGroup.innerHTML = '<option value="">Empresas</option>' + 
                 groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
             filterGroup.value = currentVal;
         }
         
         if (filterEvent && events.length > 0) {
             const currentVal = filterEvent.value;
-            filterEvent.innerHTML = '<option value="">Todos los eventos</option>' + 
+            filterEvent.innerHTML = '<option value="">Eventos</option>' + 
                 events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
             filterEvent.value = currentVal;
         }
@@ -1275,9 +1275,15 @@ const App = window.App = {
             );
         }
         
-        // Filtro por empresa
+        // Filtro por empresa - buscar en el array de grupos del usuario
         if (groupFilter) {
-            filtered = filtered.filter(u => u.group_id === groupFilter);
+            filtered = filtered.filter(u => {
+                // Verificar si el usuario tiene grupos y si alguno coincide con el filtro
+                if (u.groups && Array.isArray(u.groups)) {
+                    return u.groups.some(g => String(g.id) === String(groupFilter));
+                }
+                return false;
+            });
         }
         
         // Filtro por evento
@@ -5213,7 +5219,7 @@ const App = window.App = {
         const filterOrg = document.getElementById('filter-guest-org');
         if (filterOrg) {
             const orgs = [...new Set(this.state.guests.map(g => g.organization).filter(Boolean))];
-            filterOrg.innerHTML = '<option value="">Todas las empresas</option>' + 
+            filterOrg.innerHTML = '<option value="">Empresas</option>' + 
                 orgs.map(o => `<option value="${o}">${o}</option>`).join('');
         }
         
