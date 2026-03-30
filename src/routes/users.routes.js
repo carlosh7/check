@@ -79,18 +79,35 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 });
 
 router.post('/', (req, res) => {
-    const v = validate(schemas.signup, req.body);
-    if (!v.valid) return res.status(400).json({ errors: v.errors });
-
-    const { username, password, role } = v.data;
+    // Validar solo los campos que nos interesan, ignorando campos extra
+    const { username, password, role, display_name } = req.body;
     const { group_id, event_id } = req.body; // Campos opcionales para asignación automática
     
+    // Validación básica
+    if (!username || !password || !display_name) {
+        return res.status(400).json({ errors: ['username, password y display_name son requeridos'] });
+    }
+    
+    if (password.length < 6) {
+        return res.status(400).json({ errors: ['La contraseña debe tener al menos 6 caracteres'] });
+    }
+    
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+        return res.status(400).json({ errors: ['Email inválido'] });
+    }
+    
+    // Validar rol
+    const validRoles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
+    const userRole = role && validRoles.includes(role) ? role : 'PRODUCTOR';
+    
     const id = getValidId('users');
-    const status = (role === 'ADMIN') ? 'APPROVED' : 'PENDING';
+    const status = (userRole === 'ADMIN') ? 'APPROVED' : 'PENDING';
     const hashedPassword = bcrypt.hashSync(password, 10);
     try {
-        db.prepare("INSERT INTO users (id, username, password, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(id, username, hashedPassword, role || 'PRODUCTOR', status, new Date().toISOString());
+        db.prepare("INSERT INTO users (id, username, password, role, display_name, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+          .run(id, username.toLowerCase(), hashedPassword, userRole, display_name, status, new Date().toISOString());
         
         // Asignar a grupo si se proporciona
         if (group_id) {
@@ -106,6 +123,7 @@ router.post('/', (req, res) => {
         
         res.json({ success: true, userId: id, status });
     } catch (err) {
+        console.error('Error creating user:', err);
         res.status(400).json({ success: false, error: err.message });
     }
 });

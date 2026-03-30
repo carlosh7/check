@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.21';
+const VERSION = '12.34.22';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4212,11 +4212,21 @@ const App = window.App = {
             const parts = path.split('/').filter(p => p);
             targetView = parts[0] || 'my-events';
             
+            // Si la vista es 'system', cambiar a 'my-events' como vista por defecto
+            if (targetView === 'system') {
+                targetView = 'my-events';
+            }
+            
             if (targetView === 'admin' && parts[1]) targetParams = { id: parts[1] };
             if (targetView === 'system' && parts[1]) targetParams = { tab: parts[1] };
             if (targetView === 'event-config' && parts[1]) targetParams = { id: parts[1] };
             
             console.log('[ROUTER] Using URL data:', targetView);
+        }
+        
+        // Si después de todo es 'system', cambiar a 'my-events'
+        if (targetView === 'system') {
+            targetView = 'my-events';
         }
         
         console.log('[ROUTER] Final target - view:', targetView, 'params:', targetParams);
@@ -4892,12 +4902,22 @@ const App = window.App = {
         
         const events = Array.isArray(this.state.events) ? this.state.events : [];
         
+        // Verificar permisos para mostrar botón de eliminar
+        const userRole = this.state.user?.role;
+        const canDelete = userRole === 'ADMIN' || userRole === 'PRODUCTOR';
+        
         if (this.state.eventsViewMode === 'list') {
             c.className = 'space-y-2';
             c.innerHTML = events.map(ev => {
                 const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
                 const total = ev.total_guests || 0;
                 const attended = ev.attended_guests || 0;
+                
+                const deleteBtn = canDelete ? `
+                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation()" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                ` : '';
                 
                 return `
                     <div data-action="openEvent" data-event-id="${ev.id}" class="flex items-center gap-3 bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
@@ -4914,6 +4934,7 @@ const App = window.App = {
                             <span><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
                             <span><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
                         </div>
+                        ${deleteBtn}
                     </div>
                 `;
             }).join('');
@@ -4924,8 +4945,15 @@ const App = window.App = {
                 const total = ev.total_guests || 0;
                 const attended = ev.attended_guests || 0;
                 
+                const deleteBtn = canDelete ? `
+                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation(); App.deleteEvent('${ev.id}')" class="absolute top-2 right-2 p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                ` : '';
+                
                 return `
-                    <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/10 rounded-xl p-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
+                    <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/10 rounded-xl p-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all relative">
+                        ${deleteBtn}
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
                                 <span class="material-symbols-outlined text-base font-variation-fill">event</span>
@@ -5061,6 +5089,13 @@ const App = window.App = {
 
     async deleteEvent(id) {
         if(id && typeof id === 'object') id = id.target?.closest('[data-action]')?.dataset.eventId;
+        
+        // Verificar permisos: solo ADMIN y PRODUCTOR pueden eliminar
+        const userRole = this.state.user?.role;
+        if (userRole !== 'ADMIN' && userRole !== 'PRODUCTOR') {
+            Swal.fire('Error', 'No tienes permisos para eliminar eventos', 'error');
+            return;
+        }
         
         console.log('[DELETE EVENT] Intentando eliminar evento:', id);
         

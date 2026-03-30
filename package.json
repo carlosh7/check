@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.21",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.21 - Fix: Permisos usuarios, eliminar miembro, crear colaborador desde evento",
+  "version": "12.34.22",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.22 - Fix: Login, permisos, errores varios",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
