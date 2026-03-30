@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.43';
+const VERSION = '12.34.44';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -7698,11 +7698,11 @@ const App = window.App = {
         
         try {
             if (editingUserId) {
-                // Editar usuario existente
-                // Solo ADMIN puede cambiar el rol
-                const isAdmin = this.state.user?.role === 'ADMIN';
+                // Editar usuario existente - puede editar todos los campos incluyendo rol
                 const updateData = { display_name: displayName };
-                if (isAdmin && role) {
+                
+                // Si hay role, incluirlo (el backend validará permisos)
+                if (role) {
                     updateData.role = role;
                 }
                 

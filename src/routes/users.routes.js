@@ -225,10 +225,10 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
     
-    // Validar role si se proporciona (solo ADMIN puede cambiar role)
+    // Validar role si se proporciona (PRODUCTOR puede cambiar rol, pero no a ADMIN)
     console.log('[PUT USER] role provided:', role, 'userRole:', req.userRole);
-    if (role && req.userRole !== 'ADMIN') {
-        return res.status(403).json({ error: 'Solo ADMIN puede cambiar el rol' });
+    if (role && req.userRole !== 'ADMIN' && role === 'ADMIN') {
+        return res.status(403).json({ error: 'No puedes asignar rol ADMIN' });
     }
     
     // Construir query dinámicamente
@@ -243,7 +243,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         updates.push("display_name = ?");
         params.push(display_name);
     }
-    if (role && req.userRole === 'ADMIN') {
+    // PRODUCTOR puede cambiar rol (pero no a ADMIN)
+    if (role && (req.userRole === 'ADMIN' || req.userRole === 'PRODUCTOR') && role !== 'ADMIN') {
         updates.push("role = ?");
         params.push(role);
     }

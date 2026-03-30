@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.43",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.43 - Fix: PRODUCTOR no puede cambiar rol al editar",
+  "version": "12.34.44",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.44 - Fix: PRODUCTOR puede editar todos los datos y rol",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
