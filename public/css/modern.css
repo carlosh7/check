@@ -1,7 +1,29 @@
 /**
- * modern.css - Check Elegant Pro Design System
- * Inspiración: Apple / Chrome Browser / Minimalismo Sofisticado
+ * modern.css - Check Elegant Pro Design System (v12.34.1)
+ * Inspiración: Apple / Chrome Browser / Deep Dark Premium
  */
+
+html.dark {
+    /* Tokens para Modo Oscuro Profundo (Deep Dark) v12.34.1 */
+    --bg-app: #020617;
+    --bg-sidebar: rgba(2, 6, 23, 0.85);
+    --bg-card: rgba(15, 23, 42, 0.3);
+    --bg-input: rgba(2, 6, 23, 0.6);
+    --bg-hover: rgba(139, 92, 246, 0.08);
+    --bg-active: rgba(139, 92, 246, 0.12);
+    --bg-card-rgb: 2, 6, 23;
+    --primary: #8b5cf6;
+    --primary-vibrant: #7c3aed;
+    --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    --primary-hover: #a78bfa;
+    --primary-light: rgba(139, 92, 246, 0.1);
+    --text-main: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-light: rgba(255, 255, 255, 0.03);
+    --border-focus: rgba(139, 92, 246, 0.5);
+}
 
 :root {
     /* Chrome Light Palette - Refined Premium */

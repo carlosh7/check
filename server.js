@@ -1,5 +1,5 @@
-// server.js — Check Elite Pro v12.9.9
-// Regla de Oro V12 - Sistema Modular con Glassmorphismg();
+// server.js — Check Pro v12.34.1
+// Regla de Oro V12 - Sistema Modular con Deep Dark Mode
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -627,9 +627,9 @@ app.use((req, res, next) => {
     if (req.path === '/toolbar_v16.html') return res.sendFile(path.join(__dirname, 'public/html/pages/toolbar_v16.html'));
     if (req.path === '/app-shell.html') return res.sendFile(path.join(__dirname, 'public/html/app-shell.html'));
     
-    // Ruta raíz (login)
+    // Ruta raíz (login) cargando desde raíz del proyecto
     if (req.path === '/' || req.path === '/index.html') {
-        return res.sendFile(path.join(__dirname, 'public/html/pages/login.html'));
+        return res.sendFile(path.join(__dirname, 'index.html'));
     }
     
     // Rutas públicas de ruleta: /wheel/:wheelId/public o /:eventName/wheel/:wheelId/public
@@ -641,7 +641,7 @@ app.use((req, res, next) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
         const accept = req.headers.accept || '';
         if (accept.includes('text/html')) {
-            return res.sendFile(path.join(__dirname, 'public/html/pages/login.html'));
+            return res.sendFile(path.join(__dirname, 'index.html'));
         }
     }
     next();

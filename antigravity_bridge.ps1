@@ -1,7 +1,7 @@
-# Antigravity Bridge for Check Pro (v12.34.0)
+# Antigravity Bridge for Check Pro (v12.34.1)
 # This script executes the Golden Rule on Windows 11 bypassing sandbox limitations.
 
-$VERSION = "12.34.0"
+$VERSION = "12.34.1"
 $REPO_PATH = "c:\Users\carlo\OneDrive\Documentos\APP\Registro"
 $CHECK_PATH = "C:\Users\carlo\check"
 

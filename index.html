@@ -8,22 +8,22 @@
     <style>
         /* Estilos críticos para prevenir FOUC */
         html.dark {
-            --bg-app: #202124;
-            --bg-sidebar: #292a2d;
-            --bg-card: #292a2d;
-            --bg-input: #35363a;
-            --bg-hover: #3c4043;
-            --bg-active: #4a4d51;
-            --primary: #8ab4f8;
-            --primary-hover: #aecbfa;
-            --primary-light: rgba(138, 180, 248, 0.15);
-            --text-main: #e8eaed;
-            --text-secondary: #9aa0a6;
-            --text-muted: #80868b;
-            --border: #3c4043;
-            --border-light: #303134;
-            --border-focus: rgba(138, 180, 248, 0.5);
-            --bg-card-rgb: 41, 42, 45;
+            --bg-app: #020617;
+            --bg-sidebar: rgba(2, 6, 23, 0.8);
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --bg-input: rgba(30, 41, 59, 0.4);
+            --bg-hover: rgba(139, 92, 246, 0.1);
+            --bg-active: rgba(139, 92, 246, 0.15);
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --primary-light: rgba(139, 92, 246, 0.15);
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.04);
+            --border-focus: rgba(139, 92, 246, 0.4);
+            --bg-card-rgb: 2, 6, 23;
         }
         
         body {
@@ -57,8 +57,8 @@
             } catch(e) {}
         })();
     </script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.34.0">
-    <link rel="stylesheet" href="/css/modern.css?v=12.34.0">
+    <link rel="stylesheet" href="/css/styles.css?v=12.34.1">
+    <link rel="stylesheet" href="/css/modern.css?v=12.34.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -121,7 +121,7 @@
                     <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">&copy; 2026 Check Pro</p>
                     <div class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5 animate-pulse">
                         <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        <span id="login-version-display" class="text-[10px] text-slate-400 font-black app-version-text">v12.34.0</span>
+                        <span id="login-version-display" class="text-[10px] text-slate-400 font-black app-version-text">v12.34.1</span>
                     </div>
                 </div>
             </div>
@@ -136,7 +136,7 @@
     
     <script type="module">
         (function() {
-            const currentVersion = '12.32.2';
+            const currentVersion = '12.34.1';
             
             // 1. FORZAR recarga si hay cualquier parámetro de cache bust
             const urlParams = new URLSearchParams(window.location.search);
