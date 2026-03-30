@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.5';
+const VERSION = '12.34.21';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1132,8 +1132,6 @@ const App = window.App = {
         }
         
         const tbody = document.getElementById('users-tbody');
-        const isAdmin = this.state.user.role === 'ADMIN';
-        const isProductor = this.state.user.role === 'PRODUCTOR';
         
         if (tbody) {
             if (users.length === 0) {
