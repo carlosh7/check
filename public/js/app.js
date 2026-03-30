@@ -3727,6 +3727,10 @@ const App = window.App = {
     
     addAgendaItem: function() {
         const container = document.getElementById('event-agenda-list');
+        if (!container) {
+            console.warn('[addAgendaItem] Container not found');
+            return;
+        }
         const index = container.children.length;
         const div = document.createElement('div');
         div.className = 'agenda-item flex gap-3 items-start';
@@ -7201,26 +7205,38 @@ const App = window.App = {
             this.currentWheel = wheel;
             
             // Limpiar formulario y establecer valores
-            document.getElementById('wheel-name').value = wheel.name || name;
-            document.getElementById('wheel-color-1').value = '#FF6B6B';
-            document.getElementById('wheel-color-2').value = '#4ECDC4';
-            document.getElementById('wheel-text-color').value = '#FFFFFF';
-            document.getElementById('wheel-pointer-color').value = '#FF0000';
-            document.getElementById('wheel-sound').checked = true;
-            document.getElementById('wheel-confetti').checked = true;
+            const wheelNameEl = document.getElementById('wheel-name');
+            const wheelColor1El = document.getElementById('wheel-color-1');
+            const wheelColor2El = document.getElementById('wheel-color-2');
+            const wheelTextColorEl = document.getElementById('wheel-text-color');
+            const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
+            const wheelSoundEl = document.getElementById('wheel-sound');
+            const wheelConfettiEl = document.getElementById('wheel-confetti');
+            const wheelShareUrlEl = document.getElementById('wheel-share-url');
+            const wheelParticipantsTbodyEl = document.getElementById('wheel-participants-tbody');
+            const wheelsListEl = document.getElementById('wheels-list');
+            const wheelEditorEl = document.getElementById('wheel-editor');
+            
+            if (wheelNameEl) wheelNameEl.value = wheel.name || name;
+            if (wheelColor1El) wheelColor1El.value = '#FF6B6B';
+            if (wheelColor2El) wheelColor2El.value = '#4ECDC4';
+            if (wheelTextColorEl) wheelTextColorEl.value = '#FFFFFF';
+            if (wheelPointerColorEl) wheelPointerColorEl.value = '#FF0000';
+            if (wheelSoundEl) wheelSoundEl.checked = true;
+            if (wheelConfettiEl) wheelConfettiEl.checked = true;
             
             // Generar URL pública
             const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
             
             // Limpiar participantes
             this.wheelParticipants = [];
-            document.getElementById('wheel-participants-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
+            if (wheelParticipantsTbodyEl) wheelParticipantsTbodyEl.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
             
             // Mostrar editor, ocultar lista
-            document.getElementById('wheels-list').closest('.card').classList.add('hidden');
-            document.getElementById('wheel-editor').classList.remove('hidden');
+            if (wheelsListEl) wheelsListEl.closest('.card')?.classList.add('hidden');
+            if (wheelEditorEl) wheelEditorEl.classList.remove('hidden');
             
             this._notifyAction('Éxito', 'Ruleta creada', 'success');
             
