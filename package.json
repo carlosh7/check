@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.60",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.60 - Fix: fuentes min 11px, firma correcta, sidebar nombre/rol",
+  "version": "12.34.61",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.61 - Fix: no eliminar ultimo admin",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

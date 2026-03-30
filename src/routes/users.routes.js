@@ -274,6 +274,16 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
     }
     
+    // Verificar si el usuario a eliminar es ADMIN
+    const targetUserCheck = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+    if (targetUserCheck && targetUserCheck.role === 'ADMIN') {
+        // Contar admins restantes (sin contar el que se va a eliminar)
+        const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'ADMIN' AND id != ?").get(targetId);
+        if (adminCount.count === 0) {
+            return res.status(400).json({ error: 'No puedes eliminar al único administrador del sistema' });
+        }
+    }
+    
     // Verificar si es PRODUCTOR tratando de eliminar un ADMIN
     if (req.userRole === 'PRODUCTOR') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
