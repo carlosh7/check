@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.23';
+const VERSION = '12.34.24';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -480,11 +480,11 @@ const App = window.App = {
 
     updateRoleOptions() {
         const roleSelect = document.getElementById('invite-role');
-        const roleContainer = document.getElementById('invite-role-container');
-        if (!roleSelect || !roleContainer) return;
+        if (!roleSelect) return;
+        
         const role = this.state.user?.role;
+        
         if (role === 'ADMIN') {
-            roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
                 <option value="ADMIN">ADMIN (Super Administrador)</option>
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
@@ -492,14 +492,16 @@ const App = window.App = {
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         } else if (role === 'PRODUCTOR') {
-            roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
                 <option value="LOGISTICO">LOGISTICO (Logística)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         } else {
-            roleContainer.classList.add('hidden');
+            // Otros roles: solo STAFF y CLIENTE
+            roleSelect.innerHTML = `
+                <option value="STAFF" selected>STAFF (Check-in en Sitio)</option>
+                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         }
     },
 
@@ -4914,7 +4916,7 @@ const App = window.App = {
                 const attended = ev.attended_guests || 0;
                 
                 const deleteBtn = canDelete ? `
-                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation()" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
+                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation(); App.deleteEvent('${ev.id}')" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
                         <span class="material-symbols-outlined text-lg">delete</span>
                     </button>
                 ` : '';
@@ -7652,6 +7654,10 @@ const App = window.App = {
         const isProductor = this.state.user?.role === 'PRODUCTOR';
         const currentEvent = this.state.event;
         
+        console.log('[INVITE] isProductor:', isProductor);
+        console.log('[INVITE] currentEvent:', currentEvent);
+        console.log('[INVITE] state.event:', this.state.event);
+        
         // Obtener group_id del evento actual (no del usuario)
         const currentGroupId = currentEvent?.group_id;
         
@@ -7662,15 +7668,13 @@ const App = window.App = {
             role
         };
         
-        // Si es PRODUCTOR desde un evento, asignar automáticamente
-        if (isProductor && currentEvent && currentGroupId) {
-            userData.group_id = currentGroupId;
+        // SIEMPRE asignar event_id si estamos en un evento (asignar al evento aunque no tenga empresa)
+        if (isProductor && currentEvent) {
             userData.event_id = currentEvent.id;
-            console.log('[INVITE] Asignando automáticamente group_id:', currentGroupId, 'event_id:', currentEvent.id);
-        } else if (isProductor && currentEvent) {
-            // Si no tiene group_id pero está en un evento, crear sin grupo
-            userData.event_id = currentEvent.id;
-            console.log('[INVITE] Asignando solo event_id:', currentEvent.id, '(sin group_id)');
+            if (currentGroupId) {
+                userData.group_id = currentGroupId;
+            }
+            console.log('[INVITE] Asignando event_id:', currentEvent.id, 'group_id:', currentGroupId);
         }
         
         try {
