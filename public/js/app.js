@@ -3707,7 +3707,7 @@ const App = window.App = {
     },
     
     renderEventAgenda: function(agenda) {
-        const container = document.getElementById('event-agenda-list');
+        const container = document.getElementById('config-agenda-list');
         if (!container) return;
         
         container.innerHTML = agenda.map((item, index) => `
@@ -3726,7 +3726,7 @@ const App = window.App = {
     },
     
     addAgendaItem: function() {
-        const container = document.getElementById('event-agenda-list');
+        const container = document.getElementById('config-agenda-list');
         if (!container) {
             console.warn('[addAgendaItem] Container not found');
             return;
@@ -3753,7 +3753,7 @@ const App = window.App = {
         const eventId = this.currentEventId;
         const items = [];
         
-        document.querySelectorAll('#event-agenda-list .agenda-item').forEach(div => {
+        document.querySelectorAll('#config-agenda-list .agenda-item').forEach(div => {
             const item = {};
             div.querySelectorAll('input').forEach(input => {
                 item[input.dataset.field] = input.value;
@@ -4332,10 +4332,21 @@ const App = window.App = {
         cl('btn-new-wheel', () => this.createNewWheel()); // Unificado (antes btn-create-wheel)
         cl('btn-back-to-wheels', () => this.backToWheelsList());
         cl('btn-save-wheel', () => this.saveWheel());
+        cl('btn-delete-wheel', () => this.deleteWheel());
         cl('btn-add-from-guests', () => this.showAddParticipantsModal());
         cl('btn-add-from-checkedin', () => this.showAddParticipantsModal());
+        cl('btn-add-from-preregistered', () => this.showAddParticipantsModal());
         cl('btn-add-manual', () => this.showManualParticipantsModal());
         cl('btn-preview-wheel', () => this.previewWheel());
+        cl('btn-copy-wheel-url', () => {
+            const url = document.getElementById('wheel-share-url')?.value;
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    this._notifyAction('Copiado', 'URL copiada al portapapeles', 'success');
+                });
+            }
+        });
+        cl('btn-delete-all-results', () => this.deleteAllWheelResults());
         
         // Pre-registros
         cl('btn-import-pre-registrations', () => {
@@ -6404,7 +6415,7 @@ const App = window.App = {
         
         this.loadEventAgenda(eventId).then(() => {
             // Copiar del view-admin al view-config
-            const evList = document.getElementById('event-agenda-list');
+            const evList = document.getElementById('config-agenda-list');
             const configList = document.getElementById('config-agenda-list');
             if (evList && configList) {
                 configList.innerHTML = evList.innerHTML;
@@ -6622,21 +6633,32 @@ const App = window.App = {
             this.currentWheel = wheel;
             
             // Mostrar editor, ocultar lista
-            document.getElementById('wheels-list').closest('.card').classList.add('hidden');
-            document.getElementById('wheel-editor').classList.remove('hidden');
+            const wheelsListEl = document.getElementById('wheels-list');
+            const wheelEditorEl = document.getElementById('wheel-editor');
+            if (wheelsListEl) wheelsListEl.closest('.card')?.classList.add('hidden');
+            if (wheelEditorEl) wheelEditorEl.classList.remove('hidden');
             
             // Llenar datos
-            document.getElementById('wheel-name').value = wheel.name || '';
+            const wheelNameEl = document.getElementById('wheel-name');
+            const wheelColor1El = document.getElementById('wheel-color-1');
+            const wheelColor2El = document.getElementById('wheel-color-2');
+            const wheelTextColorEl = document.getElementById('wheel-text-color');
+            const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
+            const wheelSoundEl = document.getElementById('wheel-sound');
+            const wheelConfettiEl = document.getElementById('wheel-confetti');
+            const wheelShareUrlEl = document.getElementById('wheel-share-url');
+            
+            if (wheelNameEl) wheelNameEl.value = wheel.name || '';
             
             // Cargar configuración visual
             const config = wheel.config || {};
             if (config.visual) {
-                document.getElementById('wheel-color-1').value = config.visual.wheel_colors?.[0] || '#FF6B6B';
-                document.getElementById('wheel-color-2').value = config.visual.wheel_colors?.[1] || '#4ECDC4';
-                document.getElementById('wheel-text-color').value = config.visual.wheel_text_color || '#FFFFFF';
-                document.getElementById('wheel-pointer-color').value = config.visual.pointer_color || '#FF0000';
-                document.getElementById('wheel-sound').checked = config.visual.sound_enabled !== false;
-                document.getElementById('wheel-confetti').checked = config.visual.confetti_on_win !== false;
+                if (wheelColor1El) wheelColor1El.value = config.visual.wheel_colors?.[0] || '#FF6B6B';
+                if (wheelColor2El) wheelColor2El.value = config.visual.wheel_colors?.[1] || '#4ECDC4';
+                if (wheelTextColorEl) wheelTextColorEl.value = config.visual.wheel_text_color || '#FFFFFF';
+                if (wheelPointerColorEl) wheelPointerColorEl.value = config.visual.pointer_color || '#FF0000';
+                if (wheelSoundEl) wheelSoundEl.checked = config.visual.sound_enabled !== false;
+                if (wheelConfettiEl) wheelConfettiEl.checked = config.visual.confetti_on_win !== false;
             }
             
             // Cargar participantes
@@ -6648,7 +6670,7 @@ const App = window.App = {
             // Generar URL pública
             const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-            document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+            if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
             
         } catch (e) {
             console.error('Error loading wheel:', e);
@@ -6929,7 +6951,16 @@ const App = window.App = {
         const eventId = this.state.event?.id;
         if (!eventId) return;
         
-        const name = document.getElementById('wheel-name').value;
+        const wheelNameEl = document.getElementById('wheel-name');
+        const wheelColor1El = document.getElementById('wheel-color-1');
+        const wheelColor2El = document.getElementById('wheel-color-2');
+        const wheelTextColorEl = document.getElementById('wheel-text-color');
+        const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
+        const wheelSoundEl = document.getElementById('wheel-sound');
+        const wheelConfettiEl = document.getElementById('wheel-confetti');
+        const wheelShareUrlEl = document.getElementById('wheel-share-url');
+        
+        const name = wheelNameEl?.value;
         if (!name) {
             this._notifyAction('Error', 'El nombre es requerido', 'error');
             return;
@@ -6938,13 +6969,13 @@ const App = window.App = {
         const config = {
             visual: {
                 wheel_colors: [
-                    document.getElementById('wheel-color-1').value,
-                    document.getElementById('wheel-color-2').value
+                    wheelColor1El?.value || '#FF6B6B',
+                    wheelColor2El?.value || '#4ECDC4'
                 ],
-                wheel_text_color: document.getElementById('wheel-text-color').value,
-                pointer_color: document.getElementById('wheel-pointer-color').value,
-                sound_enabled: document.getElementById('wheel-sound').checked,
-                confetti_on_win: document.getElementById('wheel-confetti').checked
+                wheel_text_color: wheelTextColorEl?.value || '#FFFFFF',
+                pointer_color: wheelPointerColorEl?.value || '#FF0000',
+                sound_enabled: wheelSoundEl?.checked || false,
+                confetti_on_win: wheelConfettiEl?.checked || false
             }
         };
         
@@ -6970,7 +7001,7 @@ const App = window.App = {
             if (wheel.id) {
                 const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
                 const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-                document.getElementById('wheel-share-url').value = window.location.origin + shareUrl;
+                if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
             }
             
             this._notifyAction('Éxito', 'Ruleta guardada', 'success');
@@ -7238,6 +7269,9 @@ const App = window.App = {
             if (wheelsListEl) wheelsListEl.closest('.card')?.classList.add('hidden');
             if (wheelEditorEl) wheelEditorEl.classList.remove('hidden');
             
+            // Recargar lista de ruletas
+            await this.loadWheels();
+            
             this._notifyAction('Éxito', 'Ruleta creada', 'success');
             
         } catch (e) {
@@ -7248,8 +7282,10 @@ const App = window.App = {
     
     // Volver a lista de ruletas
     backToWheelsList() {
-        document.getElementById('wheels-list').closest('.card').classList.remove('hidden');
-        document.getElementById('wheel-editor').classList.add('hidden');
+        const wheelsListEl = document.getElementById('wheels-list');
+        const wheelEditorEl = document.getElementById('wheel-editor');
+        if (wheelsListEl) wheelsListEl.closest('.card')?.classList.remove('hidden');
+        if (wheelEditorEl) wheelEditorEl.classList.add('hidden');
         this.currentWheel = null;
         this.loadWheels();
     },
