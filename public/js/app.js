@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.45';
+const VERSION = '12.34.46';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6370,16 +6370,23 @@ const App = window.App = {
     switchSystemTab(tabName) {
         console.log('[SYS] Switching to tab:', tabName);
         
-        // Restringir acceso para rol PRODUCTOR
-        const isProductor = this.state.user?.role === 'PRODUCTOR';
-        const restrictedTabs = ['groups', 'legal', 'email'];
-        if (isProductor && restrictedTabs.includes(tabName)) {
-            alert('No tienes acceso a esta sección');
+        // Definir pestañas permitidas según rol
+        const userRole = this.state.user?.role;
+        const isAdmin = userRole === 'ADMIN';
+        
+        // Pestañas que solo ADMIN puede ver
+        const adminOnlyTabs = ['groups', 'legal', 'email'];
+        
+        // Verificar acceso - si no es ADMIN y la pestaña es restringida, redirigir
+        if (!isAdmin && adminOnlyTabs.includes(tabName)) {
             this.switchSystemTab('users');
             return;
         }
         
-        LS.set('active_system_tab', tabName); // Persistencia V12.16.0
+        // Guardar tab activo
+        LS.set('active_system_tab', tabName);
+        
+        // Obtener todos los tabs
         const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
         
         // Ocultar todos los contenidos
@@ -6410,15 +6417,19 @@ const App = window.App = {
         if (tabName === 'account') this.loadUserProfile();
     },
 
-    // Ocultar pestañas restringidas para rol PRODUCTOR
+    // Ocultar pestañas restringidas según el rol del usuario
     hideRestrictedSystemTabs: function() {
-        const isProductor = this.state.user?.role === 'PRODUCTOR';
-        if (!isProductor) return;
+        const userRole = this.state.user?.role;
+        const isAdmin = userRole === 'ADMIN';
         
-        // Ocultar botones de pestañas restringidas
+        // Si es ADMIN, mostrar todo
+        if (isAdmin) return;
+        
+        // Pestañas que solo ADMIN puede ver
+        const tabsToHide = ['groups', 'legal', 'email'];
+        
         const subNavContainer = document.querySelector('#view-system .sub-nav-container');
         if (subNavContainer) {
-            const tabsToHide = ['groups', 'legal', 'email'];
             const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
             btns.forEach(btn => {
                 const onclick = btn.getAttribute('onclick') || '';
@@ -6429,6 +6440,14 @@ const App = window.App = {
                 });
             });
         }
+        
+        // Ocultar secciones de contenido restringidas
+        tabsToHide.forEach(tab => {
+            const contentEl = document.getElementById(`sys-content-${tab}`);
+            if (contentEl) {
+                contentEl.classList.add('hidden');
+            }
+        });
     },
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
