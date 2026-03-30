@@ -44,21 +44,6 @@ function authMiddleware(roles = []) {
             return res.status(401).json({ error: 'Token requerido. Usa Authorization: Bearer <token>' });
         }
 
-        let userId = null;
-
-        // SOLO JWT - única forma de autenticación válida
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.substring(7);
-            const decoded = verifyToken(token);
-            if (decoded) {
-                userId = decoded.userId;
-            }
-        }
-
-        if (!userId) {
-            return res.status(401).json({ error: 'Token requerido. Usa Authorization: Bearer <token>' });
-        }
-
         try {
             const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
             if (!user) {
