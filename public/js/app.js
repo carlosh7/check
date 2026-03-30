@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.31';
+const VERSION = '12.34.32';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4345,7 +4345,14 @@ const App = window.App = {
         cl('btn-toggle-sidebar', () => this.toggleSidebar());
         cl('nav-btn-my-events', () => this.navigate('my-events'));
         cl('nav-btn-admin', () => this.navigate('admin'));
-        cl('nav-btn-event-config', () => this.navigate('event-config'));
+        cl('nav-btn-event-config', () => {
+            const eventId = this.state.event?.id;
+            if (eventId) {
+                this.navigate('event-config', { id: eventId });
+            } else {
+                this.navigate('my-events');
+            }
+        });
         cl('nav-btn-system', () => this.navigate('system'));
         
         // Sidebar footer
