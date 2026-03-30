@@ -45,7 +45,9 @@ function authMiddleware(roles = []) {
         }
 
         try {
+            console.log('[AUTH DEBUG] Buscando usuario con ID:', userId);
             const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+            console.log('[AUTH DEBUG] Usuario encontrado:', user ? user.username : 'NO ENCONTRADO');
             if (!user) {
                 return res.status(401).json({ error: 'Token inválido' });
             }
