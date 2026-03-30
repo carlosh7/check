@@ -1539,6 +1539,17 @@ const App = window.App = {
             }
         });
         
+        //También obtener campos por ID para el formulario corto
+        const evName = form.querySelector('#ev-name')?.value?.trim();
+        const evDate = form.querySelector('#ev-date')?.value?.trim();
+        const evLocation = form.querySelector('#ev-location')?.value?.trim();
+        const evDesc = form.querySelector('#ev-desc')?.value?.trim();
+        
+        if (evName) data.name = evName;
+        if (evDate) data.date = evDate;
+        if (evLocation) data.location = evLocation;
+        if (evDesc) data.description = evDesc;
+        
         // Valores por defecto para el formulario corto
         if (!data.group_id) data.group_id = '';
         if (!data.qr_color_dark) data.qr_color_dark = '#000000';
