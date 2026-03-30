@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.48';
+const VERSION = '12.34.49';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6430,35 +6430,47 @@ const App = window.App = {
 
     // Ocultar pestañas restringidas según el rol del usuario
     hideRestrictedSystemTabs: function() {
+        console.log('[SYS] hideRestrictedSystemTabs llamado');
         const userRole = this.state.user?.role;
-        console.log('[HIDE TABS] userRole:', userRole);
         const isAdmin = userRole === 'ADMIN';
+        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin);
         
         // Si es ADMIN, mostrar todo
         if (isAdmin) {
-            console.log('[HIDE TABS] Es ADMIN, mostrar todo');
+            console.log('[SYS] Es ADMIN, no se ocultan pestañas');
             return;
         }
-        
-        console.log('[HIDE TABS] Ocultando pestañas restringidas');
         
         // Pestañas que solo ADMIN puede ver
         const tabsToHide = ['groups', 'legal', 'email'];
         
         const subNavContainer = document.querySelector('#view-system .sub-nav-container');
-        console.log('[HIDE TABS] subNavContainer found:', !!subNavContainer);
+        console.log('[SYS] subNavContainer encontrado:', !!subNavContainer);
+        
         if (subNavContainer) {
             const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
-            console.log('[HIDE TABS] botones encontrados:', btns.length);
+            console.log('[SYS] Botones encontrados:', btns.length);
+            
             btns.forEach(btn => {
                 const onclick = btn.getAttribute('onclick') || '';
-                console.log('[HIDE TABS] boton onclick:', onclick);
-                tabsToHide.forEach(tab => {
-                    if (onclick.includes(`'${tab}'`)) {
-                        btn.classList.add('hidden');
-                        console.log('[HIDE TABS] ocultando:', tab);
-                    }
+                const btnText = btn.textContent.trim().toLowerCase();
+                console.log('[SYS] Botón onclick:', onclick, 'texto:', btnText);
+                
+                // Verificar por onclick o por texto del botón
+                const shouldHide = tabsToHide.some(tab => {
+                    // Buscar por onclick: puede tener 'groups', "groups", o en formato {tab: 'groups'}
+                    const hasTabInOnclick = onclick.includes(tab) || onclick.includes(`'${tab}'`) || onclick.includes(`"${tab}"`);
+                    // Buscar por texto del botón
+                    const hasTabInText = btnText.includes(tab);
+                    return hasTabInOnclick || hasTabInText;
                 });
+                
+                if (shouldHide) {
+                    console.log('[SYS] Ocultando botón:', btnText);
+                    // Usar clase hidden de Tailwind + style en línea para asegurar
+                    btn.classList.add('hidden');
+                    btn.style.display = 'none';
+                }
             });
         }
         
@@ -6466,9 +6478,13 @@ const App = window.App = {
         tabsToHide.forEach(tab => {
             const contentEl = document.getElementById(`sys-content-${tab}`);
             if (contentEl) {
+                console.log('[SYS] Ocultando contenido:', `sys-content-${tab}`);
                 contentEl.classList.add('hidden');
+                contentEl.style.display = 'none';
             }
         });
+        
+        console.log('[SYS] hideRestrictedSystemTabs completado');
     },
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
