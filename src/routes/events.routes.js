@@ -198,15 +198,27 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
 
     // Eliminar en cascada todos los registros relacionados con el evento
     try {
+        // Obtener IDs de ruletas primero
+        const wheelIds = db.prepare("SELECT id FROM event_wheels WHERE event_id = ?").all(targetId).map(w => w.id);
+        
         // Eliminar participantes de ruletas primero
-        db.prepare("DELETE FROM wheel_participants WHERE wheel_id IN (SELECT id FROM event_wheels WHERE event_id = ?)").run(targetId);
+        if (wheelIds.length > 0) {
+            const wheelIdsStr = wheelIds.map(() => '?').join(',');
+            db.prepare("DELETE FROM wheel_participants WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
+            db.prepare("DELETE FROM wheel_results WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
+            db.prepare("DELETE FROM wheel_spins WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
+            db.prepare("DELETE FROM wheel_leads WHERE wheel_id IN (" + wheelIdsStr + ")", ...wheelIds).run();
+        }
+        
         // Eliminar registros relacionados en orden inverso a las dependencias
         db.prepare("DELETE FROM surveys WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM survey_responses WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM event_wheels WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM event_email_templates WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM event_email_config WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM event_agenda WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM pre_registrations WHERE event_id = ?").run(targetId);
+        db.prepare("DELETE FROM guest_suggestions WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM guests WHERE event_id = ?").run(targetId);
         db.prepare("DELETE FROM user_events WHERE event_id = ?").run(targetId);
         
