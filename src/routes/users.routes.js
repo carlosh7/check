@@ -262,6 +262,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 // Eliminar usuario (ADMIN y PRODUCTOR)
 router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const targetId = castId('users', req.params.id);
+    console.log('[DELETE USER] userRole:', req.userRole, 'targetId:', targetId);
     
     // No puede eliminarse a sí mismo
     if (targetId === req.userId) {
@@ -271,6 +272,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     // Verificar si es PRODUCTOR tratando de eliminar un ADMIN
     if (req.userRole === 'PRODUCTOR') {
         const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
+        console.log('[DELETE USER] targetUser:', targetUser);
         if (!targetUser) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
@@ -436,54 +438,6 @@ router.put('/:id/profile', authMiddleware(), (req, res) => {
     
     const user = db.prepare("SELECT id, username, display_name, role, group_id, phone, status FROM users WHERE id = ?").get(targetId);
     res.json({ success: true, user });
-});
-
-// Eliminar usuario
-router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const targetId = castId('users', req.params.id);
-    
-    // PRODUCTOR no puede eliminar admins
-    if (req.userRole === 'PRODUCTOR') {
-        const targetUser = db.prepare("SELECT role FROM users WHERE id = ?").get(targetId);
-        if (!targetUser) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-        if (targetUser.role === 'ADMIN') {
-            return res.status(403).json({ error: 'No puedes eliminar administradores' });
-        }
-    }
-    
-    // No puede eliminarse a sí mismo
-    if (targetId === req.userId) {
-        return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
-    }
-    
-    try {
-        // Verificar que el usuario existe
-        const user = db.prepare("SELECT id, role FROM users WHERE id = ?").get(targetId);
-        if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-        
-        // No eliminar admins
-        if (user.role === 'ADMIN') {
-            return res.status(400).json({ error: 'No se pueden eliminar usuarios ADMIN' });
-        }
-        
-        // Eliminar de grupos
-        db.prepare("DELETE FROM group_users WHERE user_id = ?").run(targetId);
-        
-        // Eliminar de eventos
-        db.prepare("DELETE FROM event_users WHERE user_id = ?").run(targetId);
-        
-        // Eliminar usuario
-        db.prepare("DELETE FROM users WHERE id = ?").run(targetId);
-        
-        res.json({ success: true });
-    } catch (e) {
-        console.error('Error deleting user:', e);
-        res.status(500).json({ error: 'Error al eliminar usuario' });
-    }
 });
 
 module.exports = router;
