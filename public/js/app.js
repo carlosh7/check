@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.59';
+const VERSION = '12.34.60';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2568,7 +2568,8 @@ const App = window.App = {
                 
                 const sbu = document.getElementById('sidebar-username');
                 const sbr = document.getElementById('sidebar-role');
-                if (sbu) sbu.textContent = data.username || 'Usuario';
+                // Mostrar nombre si existe, si no mostrar email (username)
+                if (sbu) sbu.textContent = data.display_name || data.username || 'Usuario';
                 if (sbr) sbr.textContent = data.role || 'Staff';
                 
                 const loginEl = document.getElementById('view-login');
