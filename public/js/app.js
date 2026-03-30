@@ -242,34 +242,8 @@ const App = window.App = {
             swalOverlay.remove();
         }
         
-        if (type === 'full') {
-            // Abrir formulario completo (Mis Eventos) - NO navegar, solo abrir modal
-            setTimeout(() => {
-                document.getElementById('evf-id-hidden').value = '';
-                const form = document.getElementById('new-event-full-form');
-                if (form) {
-                    form.reset();
-                    
-                    // REMOVER cualquier listener previo (para evitar duplicados)
-                    const newForm = form.cloneNode(true);
-                    form.parentNode.replaceChild(newForm, form);
-                    
-                    // AGREGAR listener SOLO AHORA que el usuario va a usar el formulario
-                    newForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        console.log('[FORM SUBMIT MANUAL] Formulario enviado manualmente por usuario');
-                        this.saveEventFull(e);
-                    });
-                }
-                
-                const modal = document.getElementById('modal-event-full');
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    modal.style.display = 'flex';
-                    modal.removeAttribute('aria-hidden');
-                }
-            }, 150);
-        } else {
+        // Siempre abrir el formulario corto (modal-event) para crear eventos
+        {
             // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
             const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
             const isInSystem = currentView && currentView.id === 'view-system';
@@ -4302,6 +4276,20 @@ const App = window.App = {
         cl('btn-create-event-open', () => this.openCreateEventModal());
         cl('btn-create-group', () => this.openCompanyModal());
         
+        // Link de registro en Ajustes
+        cl('btn-copy-reg-link', () => {
+            const link = document.getElementById('evs-registration-link')?.value;
+            if (link) {
+                navigator.clipboard.writeText(link).then(() => {
+                    this._notifyAction('Copiado', 'Link copiado al portapapeles', 'success');
+                });
+            }
+        });
+        cl('btn-open-reg-link', () => {
+            const link = document.getElementById('evs-registration-link')?.value;
+            if (link) window.open(link, '_blank');
+        });
+        
         // System tabs (Unified 5-Tab Hub)
         cl('sys-nav-users', () => window.switchSystemTab('users'));
         cl('sys-nav-groups', () => window.switchSystemTab('groups'));
@@ -4334,6 +4322,7 @@ const App = window.App = {
         cl('config-nav-pre-registrations', () => this.switchConfigTab('pre-registrations'));
         cl('config-nav-surveys', () => this.switchConfigTab('surveys'));
         cl('config-nav-settings', () => this.switchConfigTab('settings'));
+        cl('btn-config-save-settings', () => this.saveConfigSettings());
         
         // Ruleta de Sorteos - botones
         cl('btn-new-wheel', () => this.createNewWheel()); // Unificado (antes btn-create-wheel)
@@ -4497,9 +4486,9 @@ const App = window.App = {
     },
     
     openCreateEventModal: function() {
-        document.getElementById('new-event-full-form')?.reset();
-        document.getElementById('evf-id-hidden').value = '';
-        const modal = document.getElementById('modal-event-full');
+        document.getElementById('new-event-form')?.reset();
+        document.getElementById('ev-id-hidden').value = '';
+        const modal = document.getElementById('modal-event');
         if (modal) {
             modal.classList.remove('hidden');
             modal.style.display = 'flex';
@@ -6440,6 +6429,10 @@ const App = window.App = {
         if (document.getElementById('evs-date')) document.getElementById('evs-date').value = ev.date ? ev.date.slice(0, 16) : '';
         if (document.getElementById('evs-end-date')) document.getElementById('evs-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
         
+        // Link de registro
+        const regLink = `${window.location.origin}/registro.html?event=${ev.id}`;
+        setVal('evs-registration-link', regLink);
+        
         setVal('evs-reg-title', ev.reg_title);
         setVal('evs-reg-welcome', ev.reg_welcome_text);
         setVal('evs-reg-success', ev.reg_success_message);
@@ -6464,6 +6457,65 @@ const App = window.App = {
         
         // Actualizar vista previa QR
         this.updateQRPreview();
+    },
+    
+    // Guardar configuración del evento desde Ajustes
+    saveConfigSettings: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Error', 'No hay evento seleccionado', 'error');
+            return;
+        }
+        
+        const getVal = (id) => document.getElementById(id)?.value || '';
+        const getCheck = (id) => document.getElementById(id)?.checked || false;
+        
+        const data = {
+            name: getVal('evs-name'),
+            location: getVal('evs-location'),
+            description: getVal('evs-desc'),
+            date: getVal('evs-date'),
+            end_date: getVal('evs-end-date'),
+            reg_title: getVal('evs-reg-title'),
+            reg_welcome_text: getVal('evs-reg-welcome'),
+            reg_success_message: getVal('evs-reg-success'),
+            reg_policy: getVal('evs-reg-policy'),
+            reg_show_phone: getCheck('evs-reg-phone') ? 1 : 0,
+            reg_show_org: getCheck('evs-reg-org') ? 1 : 0,
+            reg_show_position: getCheck('evs-reg-position') ? 1 : 0,
+            reg_show_vegan: getCheck('evs-reg-vegan') ? 1 : 0,
+            reg_show_dietary: getCheck('evs-reg-dietary') ? 1 : 0,
+            reg_show_gender: getCheck('evs-reg-gender') ? 1 : 0,
+            reg_require_agreement: getCheck('evs-reg-agreement') ? 1 : 0,
+            qr_color_dark: getVal('evs-qr-dark'),
+            qr_color_light: getVal('evs-qr-light'),
+            qr_logo_url: getVal('evs-qr-logo'),
+            ticket_bg_url: getVal('evs-ticket-bg'),
+            ticket_accent_color: getVal('evs-ticket-accent'),
+            reg_email_whitelist: getVal('evs-reg-whitelist'),
+            reg_email_blacklist: getVal('evs-reg-blacklist')
+        };
+        
+        try {
+            const res = await this.fetchAPI(`/events/${eventId}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            
+            if (res && (res.success || res.id)) {
+                // Actualizar el evento en el estado local
+                const idx = this.state.events.findIndex(e => String(e.id) === String(eventId));
+                if (idx !== -1) {
+                    this.state.events[idx] = { ...this.state.events[idx], ...data };
+                }
+                this._notifyAction('Guardado', 'Configuración guardada correctamente', 'success');
+            } else {
+                this._notifyAction('Error', res?.error || 'No se pudo guardar', 'error');
+            }
+        } catch (e) {
+            console.error('[saveConfigSettings] Error:', e);
+            this._notifyAction('Error', 'Error al guardar: ' + e.message, 'error');
+        }
     },
 
 

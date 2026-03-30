@@ -417,16 +417,154 @@
                             <h2 class="text-2xl font-semibold">⚙️ Ajustes del <span class="text-[var(--primary)]">Evento</span></h2>
                             <button id="btn-config-save-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
                         </div>
-                        <div class="card p-6 space-y-6">
+                        
+                        <div class="card p-6 space-y-8">
                             <input type="hidden" id="evs-id-hidden">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Título de Registro</label>
-                                    <input type="text" id="evs-reg-title" class="input-field w-full">
+                            
+                            <!-- Link de Registro -->
+                            <div class="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4">
+                                <h3 class="text-sm font-bold text-violet-400 mb-3 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">link</span> Enlace de Registro Público
+                                </h3>
+                                <div class="flex gap-2">
+                                    <input type="text" id="evs-registration-link" readonly class="input-field flex-1 bg-black/20 text-sm" placeholder="Selecciona un evento para ver el link">
+                                    <button type="button" id="btn-copy-reg-link" class="btn-secondary !py-2 !px-3" title="Copiar">
+                                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    </button>
+                                    <button type="button" id="btn-open-reg-link" class="btn-primary !py-2 !px-3" title="Abrir">
+                                        <span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    </button>
                                 </div>
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Mensaje Bienvenida</label>
-                                    <input type="text" id="evs-reg-welcome" class="input-field w-full">
+                            </div>
+                            
+                            <!-- Información del Evento -->
+                            <div>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">info</span> Información del Evento
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2 md:col-span-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Nombre del Evento</label>
+                                        <input type="text" id="evs-name" class="input-field w-full" placeholder="Nombre del evento">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Ubicación</label>
+                                        <input type="text" id="evs-location" class="input-field w-full" placeholder="Ciudad, Hotel o Virtual">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Descripción</label>
+                                        <input type="text" id="evs-desc" class="input-field w-full" placeholder="Breve descripción">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Fecha Inicio</label>
+                                        <input type="datetime-local" id="evs-date" class="input-field w-full">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Fecha Fin</label>
+                                        <input type="datetime-local" id="evs-end-date" class="input-field w-full">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Configuración de Registro -->
+                            <div>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">how_to_reg</span> Configuración de Registro
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Título del Formulario</label>
+                                        <input type="text" id="evs-reg-title" class="input-field w-full" placeholder="Registro de Asistencia">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Mensaje Bienvenida</label>
+                                        <input type="text" id="evs-reg-welcome" class="input-field w-full" placeholder="¡Bienvenido!">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Mensaje de Éxito</label>
+                                        <input type="text" id="evs-reg-success" class="input-field w-full" placeholder="¡Registrado exitosamente!">
+                                    </div>
+                                    <div class="space-y-2 md:col-span-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Política de Privacidad</label>
+                                        <textarea id="evs-reg-policy" class="input-field w-full" rows="2" placeholder="Política de privacidad..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-phone" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Teléfono</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-org" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Organización</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-position" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Cargo/Puesto</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-vegan" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Opción Vegana</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-dietary" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Notas Dietéticas</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-gender" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Género</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" id="evs-reg-agreement" class="w-4 h-4 accent-primary">
+                                        <span class="text-xs font-medium">Aceptar Términos</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Personalización Visual -->
+                            <div>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">palette</span> Personalización Visual
+                                </h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">QR Oscuro</label>
+                                        <input type="color" id="evs-qr-dark" class="w-full h-10 rounded-lg cursor-pointer" value="#000000">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">QR Claro</label>
+                                        <input type="color" id="evs-qr-light" class="w-full h-10 rounded-lg cursor-pointer" value="#ffffff">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Color Acento Ticket</label>
+                                        <input type="color" id="evs-ticket-accent" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Logo QR (URL)</label>
+                                        <input type="text" id="evs-qr-logo" class="input-field w-full" placeholder="https://...">
+                                    </div>
+                                    <div class="space-y-2 md:col-span-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Logo Ticket (URL)</label>
+                                        <input type="text" id="evs-ticket-bg" class="input-field w-full" placeholder="https://...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Restricciones de Email -->
+                            <div>
+                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">email</span> Restricciones de Registro
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Emails Permitidos (whitelist)</label>
+                                        <textarea id="evs-reg-whitelist" class="input-field w-full" rows="2" placeholder="uno@email.com, dos@email.com (vacío = todos)"></textarea>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Emails Bloqueados (blacklist)</label>
+                                        <textarea id="evs-reg-blacklist" class="input-field w-full" rows="2" placeholder="spam@email.com, etc."></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -728,103 +866,47 @@
 <!-- Modales Premium v12.34.0 -->
 <div id="modal-container-portal"></div>
 
-<!-- MODAL: EVENTO FULL -->
-<div id="modal-event-full" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl m-6 p-8 relative shadow-2xl border border-white/10">
-        <button id="btn-close-event-full-modal" class="absolute top-6 right-6 p-2 rounded-xl hover:bg-[var(--bg-hover)] transition-colors">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-        <h2 id="modal-event-full-title" class="text-3xl font-bold mb-8 flex items-center gap-3">
-             <span class="material-symbols-outlined text-primary text-4xl">event_available</span>
-             Gestión del <span class="text-primary">Evento</span>
-        </h2>
-        <form id="new-event-full-form" class="space-y-8">
-            <input type="hidden" id="evf-id-hidden" value="">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <h3 class="text-lg font-bold flex items-center gap-2 border-b border-white/5 pb-2">
-                        <span class="material-symbols-outlined text-primary">info</span> Información Básica
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Nombre del Evento <span class="text-red-500">*</span></label>
-                            <input type="text" id="evf-name" name="name" required placeholder="Ej: Convención Anual 2024" class="input-field w-full border-primary/30">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Ubicación</label>
-                            <input type="text" id="evf-location" name="location" placeholder="Ciudad, Hotel o Virtual" class="input-field w-full">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Fecha Inicio <span class="text-red-500">*</span></label>
-                                <input type="datetime-local" id="evf-date" name="date" required class="input-field w-full border-primary/30">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Fecha Fin</label>
-                                <input type="datetime-local" id="evf-end-date" name="end_date" class="input-field w-full">
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Descripción</label>
-                            <textarea id="evf-desc" name="description" rows="3" placeholder="Detalles del evento..." class="input-field w-full"></textarea>
-                        </div>
-                        <div class="space-y-1 pt-4 border-t border-white/5">
-                            <label class="block text-xs font-bold text-primary uppercase">Enlace de Registro Público</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="evf-registration-link-modal" readonly placeholder="Cargando enlace..." class="input-field flex-1 bg-white/5 text-xs">
-                                <button type="button" data-action="copyRegistrationLink" class="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">content_copy</span>
-                                </button>
-                                <button type="button" data-action="openRegistrationLink" class="btn-primary !py-2 !px-3 text-xs flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">open_in_new</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+<!-- MODAL: EVENTO CORTO (Crear Evento) -->
+<div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-xl max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
+                <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
+            </div>
+            <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
+            <input type="hidden" id="ev-id-hidden" value="">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
+                    <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
                 </div>
-
-                <div class="space-y-6">
-                    <h3 class="text-lg font-bold flex items-center gap-2 border-b border-white/5 pb-2">
-                        <span class="material-symbols-outlined text-primary">how_to_reg</span> Configuración de Registro
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Título de Formulario</label>
-                            <input type="text" id="evf-reg-title" name="reg_title" placeholder="Registro de Asistencia" class="input-field w-full">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Bienvenida / Éxito</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" id="evf-reg-welcome" name="reg_welcome_text" placeholder="¡Bienvenido!" class="input-field w-full">
-                                <input type="text" id="evf-reg-success" name="reg_success_message" placeholder="¡Registrado!" class="input-field w-full">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
-                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
-                                <input type="checkbox" id="evf-reg-phone" name="reg_show_phone" checked class="w-4 h-4 accent-primary">
-                                <span class="text-sm">Pedir Teléfono</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
-                                <input type="checkbox" id="evf-reg-org" name="reg_show_org" checked class="w-4 h-4 accent-primary">
-                                <span class="text-sm">Organización</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
-                                <input type="checkbox" id="evf-reg-position" name="reg_show_position" class="w-4 h-4 accent-primary">
-                                <span class="text-sm">Cargo/Puesto</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5">
-                                <input type="checkbox" id="evf-reg-vegan" name="reg_show_vegan" class="w-4 h-4 accent-primary">
-                                <span class="text-sm">Opción Vegana</span>
-                            </label>
-                        </div>
-                    </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
+                    <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
                 </div>
             </div>
-
-            <div class="flex justify-end gap-4 pt-8 border-t border-white/5">
-                <button type="button" id="btn-cancel-event-full" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors font-bold uppercase tracking-wider text-xs">Cancelar</button>
-                <button type="submit" class="btn-primary !px-8 !py-3 !rounded-xl font-bold uppercase tracking-wider text-xs">Guardar Evento</button>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
+                    <input type="datetime-local" id="ev-date" required class="input-field w-full">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
+                    <input type="datetime-local" id="ev-end-date" class="input-field w-full">
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+                <textarea id="ev-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>
             </div>
         </form>
     </div>
