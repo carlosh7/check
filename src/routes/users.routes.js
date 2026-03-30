@@ -117,8 +117,8 @@ router.post('/', (req, res) => {
         
         // Asignar a evento si se proporciona
         if (event_id) {
-            db.prepare("INSERT INTO event_users (id, event_id, user_id, role, created_at) VALUES (?, ?, ?, ?, ?)")
-              .run(getValidId('event_users'), event_id, id, 'COLABORADOR', new Date().toISOString());
+            db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+              .run(getValidId('user_events'), event_id, id, new Date().toISOString());
         }
         
         res.json({ success: true, userId: id, status });
