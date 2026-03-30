@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.9",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.9 - Fix: Restaurar saveEventFull a v12.31.116",
+  "version": "12.35.0",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.0 - Fix: Tarjetas compactas y dinamicas",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
