@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.35';
+const VERSION = '12.34.36';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -7552,7 +7552,9 @@ const App = window.App = {
     },
 
     async removeEventStaff(userId) {
+        console.log('[removeEventStaff] Called with userId:', userId);
         const eventId = this.state.event?.id;
+        console.log('[removeEventStaff] eventId:', eventId);
         if (!eventId) return;
         
         const result = await Swal.fire({
@@ -8715,7 +8717,9 @@ async function initApp() {
     document.addEventListener('click', (e) => {
         const actionEl = e.target.closest('[data-action]');
         if (!actionEl) return;
+        
         const action = actionEl.dataset.action;
+        console.log('[CLICK] action detected:', action, 'element:', actionEl);
         
         if (typeof App[action] === 'function') {
             const userId = actionEl.dataset.userId;
