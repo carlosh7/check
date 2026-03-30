@@ -1506,37 +1506,20 @@ const App = window.App = {
                     method: 'POST',
                     body: JSON.stringify(data)
                 });
-                console.log('[EVENT CREATE] Respuesta del servidor:', res);
             }
-            
-            console.log('[EVENT CREATE] savedEventId será:', eventId || res?.eventId, '| res:', JSON.stringify(res));
             
             if (res && res.success === false) {
                 await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
                 return;
             }
 
-            // Obtener el ID del evento creado o actualizado
-            const savedEventId = eventId || res?.eventId;
-            
             // Actualizar estado local si editamos el evento activo
             if (eventId && this.state.event && String(this.state.event.id) === String(eventId)) {
                 Object.assign(this.state.event, data);
             }
 
-            // GENERAR LINK DE REGISTRO para nuevo evento creado
-            if (!eventId && savedEventId) {
-                const linkStr = `${window.location.origin}/registro.html?event=${savedEventId}`;
-                ['evf-registration-link', 'evf-registration-link-modal'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = linkStr;
-                });
-                // Mostrar el link antes de cerrar el modal
-                await this._notifyAction('✓ Link Generado', `Registro: ${linkStr}`, 'success', 5000);
-            }
-
-            this.hideModal('modal-event-full');
-            await this.loadEvents(true); // true = forzar recarga desde el servidor
+            document.getElementById('modal-event-full')?.classList.add('hidden');
+            await this.loadEvents();
             await this._notifyAction('✓ Guardado', eventId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
         } catch (err) {
             console.error('[saveEventFull] Error:', err);
