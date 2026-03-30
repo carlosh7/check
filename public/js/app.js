@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.4';
+const VERSION = '12.34.5';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -266,6 +266,7 @@ const App = window.App = {
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.style.display = 'flex';
+                    modal.removeAttribute('aria-hidden');
                 }
             }, 150);
         } else {
@@ -4999,7 +5000,9 @@ const App = window.App = {
         }
         
         this.updateQRPreview();
-        document.getElementById('modal-event-full')?.classList.remove('hidden');
+        const modal = document.getElementById('modal-event-full');
+        modal?.classList.remove('hidden');
+        modal?.removeAttribute('aria-hidden');
     },
 
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
