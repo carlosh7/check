@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.66';
+const VERSION = '12.34.67';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1162,20 +1162,20 @@ const App = window.App = {
                 // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-[10px] font-medium">
+                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-xs font-medium">
                         ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
                     </span>
                 `).join('');
                 const colEventos = userEvents.length > 0 ? 
                     `<div class="flex flex-wrap gap-1">${eventChips}</div>` : 
-                    `<span class="text-[10px] text-slate-500 italic">Sin eventos</span>`;
+                    `<span class="text-xs text-slate-500 italic">Sin eventos</span>`;
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-[10px] font-medium">
+                    <span class="inline-flex px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-xs font-medium">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
-                `).join('') : `<span class="text-[10px] text-slate-500 italic">Sin empresa</span>`;
+                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
                 const colEmpresa = `<div class="flex flex-wrap gap-1">${groupDisplay}</div>`;
 
                 // --- COLUMNA 4: ESTADO ---
