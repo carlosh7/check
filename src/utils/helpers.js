@@ -112,12 +112,18 @@ function hasEventAccess(userId, eventId, role) {
     try {
         const event = db.prepare("SELECT group_id FROM events WHERE id = ?").get(eventId);
         if (!event) return false;
+        
+        // Verificar acceso directo a través de user_events (el usuario fue asignado directamente al evento)
+        const userEvents = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);
+        if (userEvents) return true;
+        
+        // Si el evento tiene group_id, verificar si el usuario pertenece a ese grupo
         if (event.group_id) {
             const groups = getProducerGroups(userId);
             return groups.includes(event.group_id);
         }
-        const userEvents = db.prepare("SELECT 1 FROM user_events WHERE user_id = ? AND event_id = ?").get(userId, eventId);
-        return !!userEvents;
+        
+        return false;
     } catch(e) { return false; }
 }
 
