@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.46';
+const VERSION = '12.34.47';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3990,7 +3990,10 @@ const App = window.App = {
         // Lógica específica por vista (V12.6.0 Unified Hub)
         if (viewName === 'my-events') this.loadEvents(false); // false = usar cache si está disponible
         if (viewName === 'system') {
-            this.hideRestrictedSystemTabs();
+            // Ocultar pestañas.restringidas después de un pequeño delay para asegurar DOM listo
+            setTimeout(() => {
+                this.hideRestrictedSystemTabs();
+            }, 100);
             window.switchSystemTab(params.tab || 'users');
         }
         
@@ -6420,22 +6423,32 @@ const App = window.App = {
     // Ocultar pestañas restringidas según el rol del usuario
     hideRestrictedSystemTabs: function() {
         const userRole = this.state.user?.role;
+        console.log('[HIDE TABS] userRole:', userRole);
         const isAdmin = userRole === 'ADMIN';
         
         // Si es ADMIN, mostrar todo
-        if (isAdmin) return;
+        if (isAdmin) {
+            console.log('[HIDE TABS] Es ADMIN, mostrar todo');
+            return;
+        }
+        
+        console.log('[HIDE TABS] Ocultando pestañas restringidas');
         
         // Pestañas que solo ADMIN puede ver
         const tabsToHide = ['groups', 'legal', 'email'];
         
         const subNavContainer = document.querySelector('#view-system .sub-nav-container');
+        console.log('[HIDE TABS] subNavContainer found:', !!subNavContainer);
         if (subNavContainer) {
             const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
+            console.log('[HIDE TABS] botones encontrados:', btns.length);
             btns.forEach(btn => {
                 const onclick = btn.getAttribute('onclick') || '';
+                console.log('[HIDE TABS] boton onclick:', onclick);
                 tabsToHide.forEach(tab => {
                     if (onclick.includes(`'${tab}'`)) {
                         btn.classList.add('hidden');
+                        console.log('[HIDE TABS] ocultando:', tab);
                     }
                 });
             });
