@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.22';
+const VERSION = '12.34.23';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -7651,7 +7651,9 @@ const App = window.App = {
         // Si es PRODUCTOR y está en un evento, asignar automáticamente event_id y group_id
         const isProductor = this.state.user?.role === 'PRODUCTOR';
         const currentEvent = this.state.event;
-        const currentGroupId = this.state.user?.group_id;
+        
+        // Obtener group_id del evento actual (no del usuario)
+        const currentGroupId = currentEvent?.group_id;
         
         const userData = {
             display_name: displayName,
@@ -7665,6 +7667,10 @@ const App = window.App = {
             userData.group_id = currentGroupId;
             userData.event_id = currentEvent.id;
             console.log('[INVITE] Asignando automáticamente group_id:', currentGroupId, 'event_id:', currentEvent.id);
+        } else if (isProductor && currentEvent) {
+            // Si no tiene group_id pero está en un evento, crear sin grupo
+            userData.event_id = currentEvent.id;
+            console.log('[INVITE] Asignando solo event_id:', currentEvent.id, '(sin group_id)');
         }
         
         try {
