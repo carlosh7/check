@@ -488,16 +488,16 @@ const App = window.App = {
             roleSelect.innerHTML = `
                 <option value="ADMIN">ADMIN (Super Administrador)</option>
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="LOGISTICO">LOGISTICO (Logística)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
-                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
-                <option value="OTROS">OTROS (Acceso Restringido)</option>`;
+                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         } else if (role === 'PRODUCTOR') {
             roleContainer.classList.remove('hidden');
             roleSelect.innerHTML = `
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="LOGISTICO">LOGISTICO (Logística)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
-                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>
-                <option value="OTROS">OTROS (Acceso Restringido)</option>`;
+                <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         } else {
             roleContainer.classList.add('hidden');
         }
@@ -1121,8 +1121,8 @@ const App = window.App = {
                 const canRemoveGroup = isAdmin;
                 const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
                 const roleOptions = isAdmin ? 
-                    ['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'] :
-                    ['PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS'];
+                    ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'] :
+                    ['PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
                 
                 // --- EVENTOS (Premium Chips) ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
