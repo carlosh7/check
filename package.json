@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.93",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.93 - Fix: remove duplicate template code causing syntax error",
+  "version": "12.34.94",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.94 - Fix: add missing columns to email_templates table",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

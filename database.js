@@ -717,6 +717,8 @@ if (imapCount.count === 0) {
 
 // Semilla de plantillas globales administrativas
 try { db.exec("ALTER TABLE email_templates ADD COLUMN is_base INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN created_at TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN updated_at TEXT"); } catch (_) {}
 
 const baseTemplateNames = ['Recuperación de contraseña', 'Invitación a la plataforma', 'Bienvenida al sistema', 'Notificación de acceso concedido', 'Recordatorio de credenciales', 'Notificación de evento asignado'];
 
