@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.36.0</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.37.0</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -199,7 +199,7 @@
                         <span class="material-symbols-outlined text-sm">person</span> Personal
                     </button>
                     <button id="config-nav-email" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('email')">
-                        <span class="material-symbols-outlined text-sm">mail</span> Email
+                        <span class="material-symbols-outlined text-sm">mail</span> Comunicación
                     </button>
                     <button id="config-nav-agenda" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('agenda')">
                         <span class="material-symbols-outlined text-sm">schedule</span> Agenda
@@ -275,67 +275,252 @@
                         </div>
                     </div>
 
-                    <!-- CONTENIDO: EMAIL DEL EVENTO -->
+                    <!-- CONTENIDO: COMUNICACIÓN DEL EVENTO (MAILING v2.0) -->
                     <div id="config-content-email" class="config-tab-content hidden space-y-6">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-                            <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">📧 Email del <span class="text-[var(--primary)]">Evento</span></h2>
-                                <p class="text-[var(--text-secondary)] text-sm mt-1">Configura los correos automáticos que se enviarán a los invitados.</p>
-                            </div>
-                            <button id="btn-config-save-email" class="btn-primary !px-5 !py-2.5">💾 Guardar Configuración</button>
-                        </div>
-                        
-                        <!-- Configuración SMTP por Evento -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">mail</span>
-                                Configuración de Envío
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="config-email-enabled" class="w-5 h-5 rounded accent-[var(--primary)]">
-                                    <label for="config-email-enabled" class="text-sm font-bold">Habilitar emails automáticos</label>
+                        <!-- Sidebar Interno de Comunicación del Evento -->
+                        <div class="inner-layout">
+                            <aside class="inner-sidebar bg-white/[0.01] p-2 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl">
+                                <div class="inner-sidebar-item active group" onclick="App.switchEventEmailTab('evt-config', this)">
+                                    <span class="material-symbols-outlined text-violet-400">settings</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Configuración</span>
                                 </div>
-                                <div class="md:col-span-2"></div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Servidor SMTP</label>
-                                    <input type="text" id="config-email-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-accounts', this)">
+                                    <span class="material-symbols-outlined text-blue-400">dns</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Cuentas SMTP</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Puerto</label>
-                                    <input type="number" id="config-email-smtp-port" placeholder="587" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-templates', this)">
+                                    <span class="material-symbols-outlined text-fuchsia-400">dashboard_customize</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Plantillas</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario SMTP</label>
-                                    <input type="text" id="config-email-smtp-user" placeholder="tu@email.com" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-mailing', this)">
+                                    <span class="material-symbols-outlined text-emerald-400">outgoing_mail</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Mailing</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña SMTP</label>
-                                    <input type="password" id="config-email-smtp-pass" placeholder="••••••••" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-campaigns', this)">
+                                    <span class="material-symbols-outlined text-amber-400">campaign</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Campañas</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Remitente</label>
-                                    <input type="text" id="config-email-from-name" placeholder="Check Pro" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-mailbox', this)">
+                                    <span class="material-symbols-outlined text-indigo-400">inbox</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Buzón</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Remitente</label>
-                                    <input type="email" id="config-email-from-email" placeholder="noreply@tu-dominio.com" class="input-field w-full">
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-stats', this)">
+                                    <span class="material-symbols-outlined text-rose-400">bar_chart</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Stats</span>
                                 </div>
-                            </div>
-                        </div>
+                                <div class="inner-sidebar-item group" onclick="App.switchEventEmailTab('evt-automation', this)">
+                                    <span class="material-symbols-outlined text-cyan-400">bolt</span>
+                                    <span class="uppercase tracking-widest text-[9px] font-black">Automatiz.</span>
+                                </div>
+                            </aside>
 
-                        <!-- Plantillas de Email -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[var(--primary)]">drafts</span>
-                                Plantillas de Email
-                            </h3>
-                            <div id="config-email-templates-list" class="space-y-4">
-                                <p class="text-slate-500 text-sm">Cargando plantillas...</p>
-                            </div>
-                            <button id="btn-config-add-template" class="mt-4 px-4 py-2 border border-dashed border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white font-bold rounded-xl transition-colors text-sm">
-                                + Nueva Plantilla
-                            </button>
+                            <main class="inner-content-wrapper min-h-[600px]">
+                                <div id="event-email-modules-container">
+                                    
+                                    <!-- CONFIGURACIÓN SMTP DEL EVENTO -->
+                                    <div id="evt-email-content-config" class="email-content space-y-6 animate-fade-in">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Configuración SMTP del Evento</h3>
+                                            <button onclick="App.saveEventEmailConfig()" class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase">💾 Guardar</button>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <!-- SMTP -->
+                                            <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                                <div class="flex items-center gap-3 mb-4">
+                                                    <span class="material-symbols-outlined text-violet-400">send</span>
+                                                    <h4 class="text-sm font-black text-white uppercase">Configuración SMTP</h4>
+                                                </div>
+                                                <div class="space-y-4">
+                                                    <div class="flex items-center gap-2">
+                                                        <input type="checkbox" id="evt-email-enabled" class="w-5 h-5 accent-violet-600 rounded">
+                                                        <label for="evt-email-enabled" class="text-sm font-bold">Habilitar emails</label>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-xs font-bold text-slate-500 uppercase">Host SMTP</label>
+                                                        <input type="text" id="evt-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full !bg-black/40">
+                                                    </div>
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Puerto</label>
+                                                            <input type="number" id="evt-smtp-port" value="587" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Usuario</label>
+                                                            <input type="text" id="evt-smtp-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-xs font-bold text-slate-500 uppercase">Contraseña</label>
+                                                        <input type="password" id="evt-smtp-pass" placeholder="••••••••" class="input-field w-full !bg-black/40">
+                                                    </div>
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Remitente</label>
+                                                            <input type="text" id="evt-smtp-from-name" placeholder="Mi Evento" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Email</label>
+                                                            <input type="email" id="evt-smtp-from-email" placeholder="noreply@evento.com" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <input type="checkbox" id="evt-smtp-secure" class="w-4 h-4 accent-violet-600 rounded">
+                                                        <label for="evt-smtp-secure" class="text-xs">SSL/TLS</label>
+                                                    </div>
+                                                    <button onclick="App.testEventSMTP()" class="btn-secondary !w-full !py-2 text-xs">🧪 Probar Conexión</button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- IMAP -->
+                                            <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                                <div class="flex items-center gap-3 mb-4">
+                                                    <span class="material-symbols-outlined text-blue-400">markunread_mailbox</span>
+                                                    <h4 class="text-sm font-black text-white uppercase">Configuración IMAP</h4>
+                                                </div>
+                                                <div class="space-y-4">
+                                                    <div>
+                                                        <label class="text-xs font-bold text-slate-500 uppercase">Host IMAP</label>
+                                                        <input type="text" id="evt-imap-host" placeholder="imap.gmail.com" class="input-field w-full !bg-black/40">
+                                                    </div>
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Puerto</label>
+                                                            <input type="number" id="evt-imap-port" value="993" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-xs font-bold text-slate-500 uppercase">Usuario</label>
+                                                            <input type="text" id="evt-imap-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40">
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-xs font-bold text-slate-500 uppercase">Contraseña</label>
+                                                        <input type="password" id="evt-imap-pass" placeholder="••••••••" class="input-field w-full !bg-black/40">
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <input type="checkbox" id="evt-imap-tls" class="w-4 h-4 accent-blue-600 rounded" checked>
+                                                        <label for="evt-imap-tls" class="text-xs">TLS</label>
+                                                    </div>
+                                                    <button onclick="App.testEventIMAP()" class="btn-secondary !w-full !py-2 text-xs">🧪 Probar IMAP</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CUENTAS SMTP DEL EVENTO -->
+                                    <div id="evt-email-content-accounts" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Cuentas SMTP del Evento</h3>
+                                            <button onclick="App.openEventSmtpAccountModal()" class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase">+ Nueva Cuenta</button>
+                                        </div>
+                                        <div id="event-smtp-accounts-list" class="grid grid-cols-1 gap-4"></div>
+                                    </div>
+
+                                    <!-- PLANTILLAS DEL EVENTO -->
+                                    <div id="evt-email-content-templates" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Plantillas del Evento</h3>
+                                            <button onclick="App.openEventTemplateModal()" class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase">+ Nueva Plantilla</button>
+                                        </div>
+                                        
+                                        <!-- Automáticas -->
+                                        <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                            <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">📨 Automáticas</h4>
+                                            <div id="event-auto-templates-list" class="space-y-3"></div>
+                                        </div>
+                                        
+                                        <!-- Personalizadas -->
+                                        <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                            <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">📝 Personalizadas</h4>
+                                            <div id="event-custom-templates-list" class="space-y-3"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- MAILING PRO DEL EVENTO -->
+                                    <div id="evt-email-content-mailing" class="email-content hidden animate-fade-in">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-violet-400 mb-4">1. Diseño de Transmisión</h4>
+                                                <select id="event-mailing-template" class="input-field w-full mb-4 !bg-black/60 !py-3 text-xs">
+                                                    <option value="">-- Seleccionar plantilla --</option>
+                                                </select>
+                                                <div id="event-template-preview" class="bg-black/40 rounded-xl p-4 min-h-[200px] text-[10px] text-slate-500">Vista previa...</div>
+                                            </div>
+                                            <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                                <div class="flex justify-between items-center mb-4">
+                                                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">2. Audiencia</h4>
+                                                    <span id="event-mailing-count" class="text-[9px] font-black bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full">0 INVITADOS</span>
+                                                </div>
+                                                <input type="text" id="event-mailing-search" placeholder="Buscar invitados..." class="input-field w-full mb-4 !bg-black/60 !py-3 text-xs">
+                                                <div id="event-mailing-recipients" class="max-h-[250px] overflow-y-auto space-y-2 pr-2"></div>
+                                            </div>
+                                            <div class="card p-6 border-white/5 bg-white/[0.02] lg:col-span-2">
+                                                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-4">3. Envío</h4>
+                                                <input type="text" id="event-mailing-subject" placeholder="Asunto del email..." class="input-field w-full mb-4 !bg-black/60 !py-3">
+                                                <div class="flex gap-4">
+                                                    <button onclick="App.sendEventTestEmail()" class="btn-secondary flex-1 !py-3 text-xs font-black uppercase">📧 Prueba</button>
+                                                    <button onclick="App.startEventBroadcast()" class="btn-primary flex-1 !py-3 text-xs font-black uppercase shadow-lg">🚀 ENVIAR AHORA</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CAMPAÑAS DEL EVENTO -->
+                                    <div id="evt-email-content-campaigns" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Campañas del Evento</h3>
+                                            <button onclick="App.openEventCampaignModal()" class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase">+ Nueva Campaña</button>
+                                        </div>
+                                        <div id="event-campaigns-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                                    </div>
+
+                                    <!-- BUZÓN DEL EVENTO -->
+                                    <div id="evt-email-content-mailbox" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Buzón del Evento</h3>
+                                            <button onclick="App.syncEventMailbox()" class="btn-secondary !px-4 !py-2 text-xs font-black uppercase">🔄 Sincronizar</button>
+                                        </div>
+                                        <div id="event-mailbox-list" class="space-y-3"></div>
+                                    </div>
+
+                                    <!-- ESTADÍSTICAS DEL EVENTO -->
+                                    <div id="evt-email-content-stats" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Estadísticas del Evento</h3>
+                                        </div>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div class="card p-4 border-l-4 border-l-violet-400 bg-white/[0.02]">
+                                                <p class="text-[10px] font-black text-slate-400 uppercase">Enviados</p>
+                                                <p id="evt-stat-sent" class="text-2xl font-black text-white">0</p>
+                                            </div>
+                                            <div class="card p-4 border-l-4 border-l-green-400 bg-white/[0.02]">
+                                                <p class="text-[10px] font-black text-slate-400 uppercase">Exitosos</p>
+                                                <p id="evt-stat-success" class="text-2xl font-black text-white">0</p>
+                                            </div>
+                                            <div class="card p-4 border-l-4 border-l-red-400 bg-white/[0.02]">
+                                                <p class="text-[10px] font-black text-slate-400 uppercase">Errors</p>
+                                                <p id="evt-stat-errors" class="text-2xl font-black text-white">0</p>
+                                            </div>
+                                            <div class="card p-4 border-l-4 border-l-blue-400 bg-white/[0.02]">
+                                                <p class="text-[10px] font-black text-slate-400 uppercase">Abiertos</p>
+                                                <p id="evt-stat-opens" class="text-2xl font-black text-white">0</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- AUTOMATIZACIONES DEL EVENTO -->
+                                    <div id="evt-email-content-automation" class="email-content hidden animate-fade-in space-y-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-black text-white uppercase tracking-widest">Automatizaciones</h3>
+                                        </div>
+                                        <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                            <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">¿Cuándo se envían los emails automáticamente?</h4>
+                                            <div id="event-automation-list" class="space-y-4"></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </main>
                         </div>
                     </div>
 

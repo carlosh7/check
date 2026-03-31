@@ -8184,21 +8184,379 @@ const App = window.App = {
         const eventId = this.state.event?.id;
         if (!eventId) return;
         
-        this.loadEventEmailConfig(eventId).then(() => {
-            // Copiar del view-admin al view-config
-            const fields = ['enabled', 'smtp-host', 'smtp-port', 'smtp-user', 'smtp-pass', 'from-name', 'from-email'];
-            fields.forEach(field => {
-                const source = document.getElementById('ev-email-' + field);
-                const target = document.getElementById('config-email-' + field);
-                if (source && target) {
-                    if (source.type === 'checkbox') {
-                        target.checked = source.checked;
-                    } else {
-                        target.value = source.value;
-                    }
-                }
-            });
+        // Cargar configuración SMTP del evento
+        this.loadEventEmailConfig(eventId);
+        
+        // Por defecto mostrar la primera sub-sección
+        this.switchEventEmailTab('evt-config');
+    },
+
+    // ─── SUB-SEECCIONES DE COMUNICACIÓN DEL EVENTO (MAILING v2.0) ───
+    
+    switchEventEmailTab: function(tabId, element) {
+        console.log('[EVENT EMAIL] Switching to tab:', tabId);
+        
+        // Actualizar sidebar interno
+        const sidebarItems = document.querySelectorAll('#config-content-email .inner-sidebar-item');
+        sidebarItems.forEach(item => item.classList.remove('active'));
+        
+        if (element) {
+            element.classList.add('active');
+        } else {
+            const target = document.querySelector(`#config-content-email .inner-sidebar-item[onclick*="'${tabId}'"]`);
+            if (target) target.classList.add('active');
+        }
+        
+        // Ocultar todos los contenidos
+        document.querySelectorAll('#event-email-modules-container .email-content').forEach(el => {
+            el.classList.add('hidden');
         });
+        
+        // Mostrar el contenido seleccionado
+        const contentMap = {
+            'evt-config': 'evt-email-content-config',
+            'evt-accounts': 'evt-email-content-accounts',
+            'evt-templates': 'evt-email-content-templates',
+            'evt-mailing': 'evt-email-content-mailing',
+            'evt-campaigns': 'evt-email-content-campaigns',
+            'evt-mailbox': 'evt-email-content-mailbox',
+            'evt-stats': 'evt-email-content-stats',
+            'evt-automation': 'evt-email-content-automation'
+        };
+        
+        const contentId = contentMap[tabId];
+        if (contentId) {
+            document.getElementById(contentId)?.classList.remove('hidden');
+        }
+        
+        // Cargar datos según sección
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        if (tabId === 'evt-config') {
+            this.loadEventEmailConfig(eventId);
+        } else if (tabId === 'evt-accounts') {
+            this.loadEventSmtpAccounts(eventId);
+        } else if (tabId === 'evt-templates') {
+            this.loadEventTemplates(eventId);
+        } else if (tabId === 'evt-mailing') {
+            this.loadEventMailingData(eventId);
+        } else if (tabId === 'evt-campaigns') {
+            this.loadEventCampaigns(eventId);
+        } else if (tabId === 'evt-stats') {
+            this.loadEventEmailStats(eventId);
+        } else if (tabId === 'evt-automation') {
+            this.loadEventAutomation(eventId);
+        }
+    },
+
+    // Cargar configuración SMTP del evento
+    loadEventEmailConfig: async function(eventId) {
+        try {
+            const config = await this.fetchAPI(`/events/${eventId}/email-config`);
+            
+            // SMTP
+            document.getElementById('evt-email-enabled').checked = config.enabled == 1;
+            document.getElementById('evt-smtp-host').value = config.smtp_host || '';
+            document.getElementById('evt-smtp-port').value = config.smtp_port || 587;
+            document.getElementById('evt-smtp-user').value = config.smtp_user || '';
+            document.getElementById('evt-smtp-pass').value = config.smtp_pass ? '***' : '';
+            document.getElementById('evt-smtp-from-name').value = config.from_name || '';
+            document.getElementById('evt-smtp-from-email').value = config.from_email || '';
+            document.getElementById('evt-smtp-secure').checked = config.smtp_secure == 1;
+            
+        } catch (e) {
+            console.error('Error loading event email config:', e);
+        }
+    },
+
+    saveEventEmailConfig: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        const data = {
+            enabled: document.getElementById('evt-email-enabled').checked,
+            smtp_host: document.getElementById('evt-smtp-host').value,
+            smtp_port: parseInt(document.getElementById('evt-smtp-port').value) || 587,
+            smtp_user: document.getElementById('evt-smtp-user').value,
+            smtp_pass: document.getElementById('evt-smtp-pass').value,
+            smtp_secure: document.getElementById('evt-smtp-secure').checked,
+            from_name: document.getElementById('evt-smtp-from-name').value,
+            from_email: document.getElementById('evt-smtp-from-email').value
+        };
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}/email-config`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            this._notifyAction('✓ Guardado', 'Configuración de email guardada', 'success');
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+
+    testEventSMTP: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        try {
+            const data = {
+                smtp_host: document.getElementById('evt-smtp-host').value,
+                smtp_port: parseInt(document.getElementById('evt-smtp-port').value),
+                smtp_user: document.getElementById('evt-smtp-user').value,
+                smtp_pass: document.getElementById('evt-smtp-pass').value,
+                smtp_secure: document.getElementById('evt-smtp-secure').checked
+            };
+            
+            if (!data.smtp_host || !data.smtp_user) {
+                return alert('Completa host y usuario SMTP');
+            }
+            
+            const res = await this.fetchAPI('/email/smtp-test', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (res.success) {
+                this._notifyAction('✓ Conexión exitosa', res.message, 'success');
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+
+    testEventIMAP: async function() {
+        alert('IMAP test en desarrollo');
+    },
+
+    // Cuentas SMTP del evento
+    loadEventSmtpAccounts: async function(eventId) {
+        const container = document.getElementById('event-smtp-accounts-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-4 text-center text-slate-500">Cargando cuentas...</div>';
+        
+        try {
+            const accounts = await this.fetchAPI(`/events/${eventId}/email/accounts`);
+            
+            if (!accounts || accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="card p-6 text-center border-white/5 bg-white/[0.02]">
+                        <p class="text-slate-400 text-sm">No hay cuentas SMTP configuradas para este evento</p>
+                        <button onclick="App.openEventSmtpAccountModal()" class="btn-primary mt-4">+ Agregar Cuenta</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = accounts.map(a => `
+                <div class="card p-4 border-l-4 ${a.is_default ? 'border-l-green-500' : 'border-l-primary'} bg-white/[0.02]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white">${a.name}</h4>
+                            <p class="text-xs text-slate-400">${a.smtp_host} • ${a.from_email}</p>
+                            <p class="text-xs text-slate-500 mt-1">Límite: ${a.used_today || 0}/${a.daily_limit} hoy</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.testEventSmtpAccount('${a.id}')" class="btn-secondary !py-1 !px-2 text-xs">🧪</button>
+                            <button onclick="App.deleteEventSmtpAccount('${a.id}')" class="btn-secondary !py-1 !px-2 text-xs !text-red-400">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            container.innerHTML = `<div class="text-red-400 text-sm">Error: ${e.message}</div>`;
+        }
+    },
+
+    openEventSmtpAccountModal: function() {
+        alert('Modal de cuenta SMTP del evento - en desarrollo');
+    },
+
+    // Plantillas del evento
+    loadEventTemplates: async function(eventId) {
+        const autoContainer = document.getElementById('event-auto-templates-list');
+        const customContainer = document.getElementById('event-custom-templates-list');
+        
+        if (!autoContainer || !customContainer) return;
+        
+        try {
+            const templates = await this.fetchAPI(`/events/${eventId}/email-templates`);
+            
+            const auto = templates.filter(t => t.auto_send);
+            const custom = templates.filter(t => !t.auto_send);
+            
+            autoContainer.innerHTML = auto.length ? auto.map(t => `
+                <div class="flex items-center justify-between p-3 bg-black/40 rounded-lg">
+                    <div>
+                        <span class="text-white font-bold text-sm">${t.name}</span>
+                        <p class="text-[10px] text-slate-500">${t.template_type}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" ${t.is_active ? 'checked' : ''} onchange="App.toggleEventTemplate('${t.id}', this.checked)" class="w-4 h-4">
+                        <button onclick="App.editEventTemplate('${t.id}')" class="text-violet-400 text-xs">✏️</button>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-slate-500 text-sm">Sin automatizaciones</p>';
+            
+            customContainer.innerHTML = custom.length ? custom.map(t => `
+                <div class="flex items-center justify-between p-3 bg-black/40 rounded-lg">
+                    <div>
+                        <span class="text-white font-bold text-sm">${t.name}</span>
+                        <p class="text-[10px] text-slate-500">${t.subject}</p>
+                    </div>
+                    <button onclick="App.editEventTemplate('${t.id}')" class="text-violet-400 text-xs">✏️</button>
+                </div>
+            `).join('') : '<p class="text-slate-500 text-sm">Sin plantillas personalizadas</p>';
+            
+        } catch (e) {
+            console.error('Error loading event templates:', e);
+        }
+    },
+
+    openEventTemplateModal: function() {
+        alert('Modal de plantilla del evento - en desarrollo');
+    },
+
+    // Mailing del evento
+    loadEventMailingData: async function(eventId) {
+        // Cargar invitados como audiencia
+        const container = document.getElementById('event-mailing-recipients');
+        const countEl = document.getElementById('event-mailing-count');
+        const templateSelect = document.getElementById('event-mailing-template');
+        
+        if (!container) return;
+        
+        try {
+            // Cargar invitados
+            const guests = await this.fetchAPI(`/guests?event_id=${eventId}&limit=500`);
+            this.state.eventMailingGuests = guests;
+            
+            if (countEl) countEl.textContent = `${guests.length} INVITADOS`;
+            
+            container.innerHTML = guests.slice(0, 50).map(g => `
+                <div class="flex items-center gap-2 p-2 bg-black/40 rounded-lg">
+                    <input type="checkbox" class="event-mailing-check w-4 h-4" value="${g.id}" checked>
+                    <span class="text-xs text-white">${g.name}</span>
+                    <span class="text-[10px] text-slate-500">${g.email}</span>
+                </div>
+            `).join('');
+            
+            // Cargar plantillas
+            if (templateSelect) {
+                const templates = await this.fetchAPI(`/events/${eventId}/email-templates`);
+                templateSelect.innerHTML = '<option value="">-- Seleccionar --</option>' + 
+                    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+            
+        } catch (e) {
+            console.error('Error loading event mailing:', e);
+        }
+    },
+
+    startEventBroadcast: function() {
+        alert('Envío masivo del evento - en desarrollo');
+    },
+
+    sendEventTestEmail: function() {
+        alert('Email de prueba del evento - en desarrollo');
+    },
+
+    // Campañas del evento
+    loadEventCampaigns: async function(eventId) {
+        const container = document.getElementById('event-campaigns-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="text-center text-slate-500">Cargando...</div>';
+        
+        try {
+            const campaigns = await this.fetchAPI(`/events/${eventId}/email/campaigns`);
+            
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="card p-6 text-center border-white/5 bg-white/[0.02]">
+                        <p class="text-slate-400">No hay campañas</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = campaigns.map(c => `
+                <div class="card p-4 border-l-4 border-l-amber-400 bg-white/[0.02]">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white">${c.name}</h4>
+                            <span class="text-[10px] font-black ${c.status === 'RUNNING' ? 'text-green-400' : 'text-slate-400'}">${c.status}</span>
+                            <p class="text-xs text-slate-500 mt-1">${c.total_recipients || 0} destinatarios</p>
+                        </div>
+                        <button onclick="App.startEventCampaign('${c.id}')" class="btn-primary !py-1 !px-2 text-xs">▶️</button>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            container.innerHTML = `<div class="text-red-400">Error: ${e.message}</div>`;
+        }
+    },
+
+    openEventCampaignModal: function() {
+        alert('Modal de campaña del evento - en desarrollo');
+    },
+
+    startEventCampaign: function(id) {
+        alert('Iniciar campaña - en desarrollo');
+    },
+
+    // Buzón del evento
+    syncEventMailbox: function() {
+        alert('Sincronizar buzón del evento - en desarrollo');
+    },
+
+    // Stats del evento
+    loadEventEmailStats: async function(eventId) {
+        const sent = document.getElementById('evt-stat-sent');
+        const success = document.getElementById('evt-stat-success');
+        const errors = document.getElementById('evt-stat-errors');
+        
+        if (sent) sent.textContent = '0';
+        if (success) success.textContent = '0';
+        if (errors) errors.textContent = '0';
+        
+        // Por desarrollar con tracking real
+    },
+
+    // Automatizaciones del evento
+    loadEventAutomation: async function(eventId) {
+        const container = document.getElementById('event-automation-list');
+        if (!container) return;
+        
+        const automations = [
+            { name: 'Confirmación de Registro', type: 'confirmation', desc: 'Se envía cuando un invitado se registra' },
+            { name: 'Bienvenida (Check-in)', type: 'welcome', desc: 'Se envía cuando el invitado hace check-in' },
+            { name: 'Recordatorio 24h', type: 'reminder', desc: 'Se envía 24 horas antes del evento' },
+            { name: 'Agradecimiento', type: 'thanks', desc: 'Se envía cuando termina el evento' }
+        ];
+        
+        container.innerHTML = automations.map(a => `
+            <div class="flex items-center justify-between p-4 bg-black/40 rounded-xl">
+                <div>
+                    <h5 class="font-bold text-white text-sm">${a.name}</h5>
+                    <p class="text-[10px] text-slate-500">${a.desc}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" class="w-4 h-4 accent-cyan-400" onchange="App.toggleEventAutomation('${a.type}', this.checked)">
+                    <button class="text-violet-400 text-xs">✏️</button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    toggleEventAutomation: function(type, enabled) {
+        console.log('Toggle automation:', type, enabled);
     },
     
     // Cargar agenda en config view
