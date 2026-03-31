@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.89';
+const VERSION = '12.34.90';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -401,6 +401,9 @@ const App = window.App = {
         const grid = document.getElementById('templates-grid');
         if (!grid) return;
         
+        // Mostrar grid
+        grid.classList.remove('hidden');
+        
         if (!templates || templates.length === 0) {
             grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">
                 <span class="material-symbols-outlined text-5xl mb-4">mail</span>
@@ -416,7 +419,7 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-violet-400 text-2xl">mail</span>
                         <div>
                             <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-wider">${t.is_active ? 'Activa' : 'Inactiva'}</p>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-wider">${t.is_active ? 'Activa' : 'Inactiva'}${t.is_base ? ' • Base' : ''}</p>
                         </div>
                     </div>
                     <span class="px-2 py-1 rounded text-[10px] font-bold ${t.is_active ? 'bg-green-500/20 text-green-400' : 'bg-slate-500/20 text-slate-400'}">
@@ -430,14 +433,211 @@ const App = window.App = {
                     <button onclick="App.toggleEmailTemplate('${t.id}')" class="px-3 py-2 ${t.is_active ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'} rounded-lg text-xs font-bold transition-colors">
                         ${t.is_active ? '○' : '●'}
                     </button>
-                    <button onclick="App.deleteEmailTemplate('${t.id}')" class="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition-colors">🗑</button>
+                    ${t.is_base ? `
+                    <button onclick="App.restoreEmailTemplate('${t.id}')" class="px-3 py-2 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 rounded-lg text-xs font-bold transition-colors" title="Restaurar original">↺</button>
+                    ` : `
+                    <button onclick="App.deleteEmailTemplate('${t.id}')" class="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition-colors" title="Eliminar">🗑</button>
+                    `}
                 </div>
             </div>
         `).join('');
     },
 
+    // Restaurar plantilla base a su versión original
+    restoreEmailTemplate: async function(id) {
+        const templates = this.state.globalEmailTemplates || [];
+        const template = templates.find(t => String(t.id) === String(id));
+        if (!template || !template.is_base) return;
+        
+        if (!confirm('¿Restaurar esta plantilla a su versión original? Los cambios se perderán.')) return;
+        
+        // Obtener la versión original de la base de datos
+        const baseTemplates = this.getBaseEmailTemplates();
+        const original = baseTemplates.find(t => t.name === template.name);
+        
+        if (!original) {
+            alert('No se encontró la versión original.');
+            return;
+        }
+        
+        try {
+            await this.fetchAPI(`/email/email-templates/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ 
+                    name: original.name, 
+                    subject: original.subject, 
+                    body: original.body,
+                    is_active: 1
+                })
+            });
+            this._notifyAction('Restaurada', 'La plantilla ha sido restaurada.', 'success');
+            this.loadEmailTemplates();
+        } catch (e) {
+            console.error('Error restoring template:', e);
+            alert('Error al restaurar plantilla');
+        }
+    },
+
+    // Obtener plantillas base originales (hardcoded)
+    getBaseEmailTemplates: function() {
+        return [
+            {
+                name: 'Recuperación de contraseña',
+                subject: 'Recupera tu acceso - {{app_name}}',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🔐 Recuperar Contraseña</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, hemos recibido una solicitud para recuperar tu contraseña.</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{reset_link}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Crear Nueva Contraseña</a>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">Si no solicitaste este cambio, ignora este correo. El enlace expira en 24 horas.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: 'Invitación a la plataforma',
+                subject: '¡Te invitamos a unirte! - {{app_name}}',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🎉 ¡Estás Invitado!</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, has sido invitado a unirte a <strong>{{app_name}}</strong>.</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📧 Tu email:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>🎭 Tu rol:</strong> {{user_role}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{invite_link}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Aceptar Invitación</a>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">Esta invitación expira en 7 días.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: 'Bienvenida al sistema',
+                subject: '¡Bienvenido a {{app_name}}!',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🚀 ¡Bienvenido!</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, ¡bienvenido a <strong>{{app_name}}</strong>!</p>
+            <p style="line-height: 1.6; font-size: 14px; color: #94a3b8; margin-top: 15px;">Tus credenciales de acceso:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 20px 0; border: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📧 Usuario:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>🔑 Contraseña:</strong> {{temp_password}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Iniciar Sesión</a>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">Te recomendamos cambiar tu contraseña en el primer acceso.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: 'Notificación de acceso concedido',
+                subject: 'Tienes acceso a {{entity_name}} - {{app_name}}',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">✅ Acceso Concedido</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, se te ha concedido acceso a:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px; font-weight: 700;">{{entity_name}}</p>
+                <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 14px;">{{entity_type}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{access_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Ir al Panel</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: 'Recordatorio de credenciales',
+                subject: 'Tus credenciales de acceso - {{app_name}}',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🔑 Tus Credenciales</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, aquí están tus datos de acceso:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📧 Usuario:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>🔑 Contraseña:</strong> {{temp_password}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Iniciar Sesión</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: 'Notificación de evento asignado',
+                subject: 'Te han asignado un evento: {{event_name}}',
+                body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">📅 Evento Asignado</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, se te ha asignado un nuevo evento:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px; font-weight: 700; text-align: center;">{{event_name}}</p>
+                <div style="margin-top: 15px; border-top: 1px solid rgba(124, 58, 237, 0.1); padding-top: 15px;">
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📅 Fecha:</strong> {{event_date}}</p>
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📍 Ubicación:</strong> {{event_location}}</p>
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>👤 Tu rol:</strong> {{user_role}}</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{event_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Ver Evento</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+            }
+        ];
+    },
+
     // Abrir modal para nueva plantilla
     openTemplateEditor: function() {
+        // Ocultar grid de plantillas
+        const grid = document.getElementById('templates-grid');
+        if (grid) grid.classList.add('hidden');
+        
         document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
         document.getElementById('template-id').value = '';
         document.getElementById('template-name').value = '';
@@ -450,6 +650,11 @@ const App = window.App = {
     // Cerrar modal del editor
     closeTemplateEditor: function() {
         document.getElementById('modal-template-editor').classList.add('hidden');
+        // Mostrar grid de plantillas
+        const grid = document.getElementById('templates-grid');
+        if (grid) {
+            this.loadEmailTemplates();
+        }
     },
 
     // Insertar variable en el editor
@@ -465,6 +670,10 @@ const App = window.App = {
 
     // Editar plantilla existente
     editEmailTemplate: function(id) {
+        // Ocultar grid de plantillas
+        const grid = document.getElementById('templates-grid');
+        if (grid) grid.classList.add('hidden');
+        
         const templates = this.state.globalEmailTemplates || [];
         const template = templates.find(t => String(t.id) === String(id));
         if (!template) return;

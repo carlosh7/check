@@ -716,7 +716,9 @@ if (imapCount.count === 0) {
 }
 
 // Semilla de plantillas globales administrativas si no existen
-const globalTemplatesCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL").get();
+try { db.exec("ALTER TABLE email_templates ADD COLUMN is_base INTEGER DEFAULT 0"); } catch (_) {}
+
+const globalTemplatesCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL AND is_base = 1").get();
 if (globalTemplatesCount.count === 0) {
     const globalTemplates = [
         {
@@ -739,7 +741,8 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         },
         {
             name: 'Invitación a la plataforma',
@@ -765,7 +768,8 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         },
         {
             name: 'Bienvenida al sistema',
@@ -792,7 +796,8 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         },
         {
             name: 'Notificación de acceso concedido',
@@ -817,7 +822,8 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         },
         {
             name: 'Recordatorio de credenciales',
@@ -842,7 +848,8 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         },
         {
             name: 'Notificación de evento asignado',
@@ -871,13 +878,14 @@ if (globalTemplatesCount.count === 0) {
         </div>
     </div>
 </div>`,
-            is_active: 1
+            is_active: 1,
+            is_base: 1
         }
     ];
     
-    const insert = db.prepare("INSERT INTO email_templates (id, name, subject, body, event_id, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, ?, ?, ?)");
+    const insert = db.prepare("INSERT INTO email_templates (id, name, subject, body, event_id, is_active, is_base, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)");
     globalTemplates.forEach(t => {
-        insert.run(uuidv4(), t.name, t.subject, t.body, t.is_active, new Date().toISOString(), new Date().toISOString());
+        insert.run(uuidv4(), t.name, t.subject, t.body, t.is_active, t.is_base || 0, new Date().toISOString(), new Date().toISOString());
     });
 }
 
