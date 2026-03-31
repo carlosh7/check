@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.97",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.97 - Fix: Event view persistence with proper event loading and tab restoration",
+  "version": "12.34.98",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.98 - Debug: Add more logging for navigation persistence issues",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

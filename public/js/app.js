@@ -5241,6 +5241,8 @@ const App = window.App = {
         }
         
         console.log('[ROUTER] handleInitialNavigation called');
+        console.log('[ROUTER DEBUG] Current URL:', window.location.href);
+        console.log('[ROUTER DEBUG] Current path:', window.location.pathname);
         
         const path = window.location.pathname;
         
@@ -5254,6 +5256,7 @@ const App = window.App = {
         
         const userRole = user.role;
         console.log('[ROUTER] User role:', userRole);
+        console.log('[ROUTER DEBUG] User object:', JSON.stringify(user));
         
         // Cargar eventos si no están cargados (necesario para restaurar vistas de evento)
         if (!this.state.events || this.state.events.length === 0) {
@@ -5274,9 +5277,12 @@ const App = window.App = {
         let useDefaultView = false;
         
         // 1. Intentar desde sessionStorage (nuevo sistema con validación de rol)
+        console.log('[ROUTER DEBUG] Checking sessionStorage for saved state...');
         const savedState = this.loadViewState();
         if (savedState) {
             console.log('[ROUTER] Found saved state:', savedState);
+            console.log('[ROUTER DEBUG] Saved state role:', savedState.role, 'Current role:', userRole);
+            console.log('[ROUTER DEBUG] Saved state view:', savedState.view);
             
             // Validar que el rol guardado coincida con el rol actual
             if (savedState.role && savedState.role !== userRole) {
@@ -5285,17 +5291,24 @@ const App = window.App = {
                 useDefaultView = true;
             }
             // Validar permisos para la vista guardada
-            else if (!this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab)) {
+            const hasPermission = this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab);
+            console.log('[ROUTER DEBUG] Permission check for view', savedState.view, ':', hasPermission);
+            if (!hasPermission) {
                 console.log('[ROUTER] No permission for saved view:', savedState.view);
                 useDefaultView = true;
             }
             // Solo usar sessionStorage si la URL es raíz o compatible
-            else if (path === '/' || path === '/' + savedState.view) {
+            // Para vistas de evento, también permitir URLs como /event-config/123 o /admin/456
+            const isRootOrViewPath = path === '/' || path === '/' + savedState.view;
+            const isEventViewPath = (savedState.view === 'event-config' && path.startsWith('/event-config/')) ||
+                                   (savedState.view === 'admin' && path.startsWith('/admin/'));
+            
+            if (isRootOrViewPath || isEventViewPath) {
                 targetView = savedState.view;
                 targetParams = savedState.params || {};
                 console.log('[ROUTER] Using saved state from sessionStorage');
             } else {
-                console.log('[ROUTER] URL mismatch, not using saved state');
+                console.log('[ROUTER] URL mismatch, not using saved state. Path:', path, 'saved view:', savedState.view);
                 useDefaultView = true;
             }
         } else {
