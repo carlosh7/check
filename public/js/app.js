@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.94';
+const VERSION = '12.34.96';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -98,29 +98,86 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // ─── NAVEGACIÓN V12.16.3 ───
+    // ─── NAVEGACIÓN V12.16.3 (MANTENIDA PARA COMPATIBILIDAD) ───
     navigate(viewId) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
-        const activeView = document.getElementById('view-' + viewId);
-        if (activeView) {
-            activeView.classList.remove('hidden');
-            this._updateSidebarUI(viewId);
-            
-            // Inicialización por vista
-            if (viewId === 'system') this.switchSystemTab('users');
-            if (viewId === 'my-events') this.loadEvents();
-            if (viewId === 'admin') this.switchEventTab('guests');
+        // Redirigir a la función navigate() completa con parámetros por defecto
+        this.navigate(viewId, {}, true);
+    },
 
-            // Scroll al inicio
-            const mainContent = document.getElementById('app-main-content');
-            if (mainContent) mainContent.scrollTop = 0;
-            
-            // Auto-collapse sidebar en móvil tras navegar
-            if (window.innerWidth < 1024) {
-                document.getElementById('global-sidebar')?.classList.add('collapsed');
-            }
+    // ─── PERSISTENCIA Y NAVEGACIÓN POR ROL (v12.34.96) ───
+    
+    // Obtener vista por defecto según rol
+    getDefaultViewByRole(role) {
+        if (role === 'ADMIN') {
+            return { view: 'system', tab: 'users' };
+        } else {
+            return { view: 'my-events', tab: null };
         }
-        LS.set('last_view', viewId);
+    },
+
+    // Validar permisos para una vista
+    hasPermissionForView(role, view, tab) {
+        // ADMIN tiene acceso completo
+        if (role === 'ADMIN') return true;
+        
+        // Todos pueden ver Mis Eventos
+        if (view === 'my-events') return true;
+        
+        // PRODUCTOR puede ver Sistema (con restricciones ya implementadas)
+        if (view === 'system' && role === 'PRODUCTOR') return true;
+        
+        // Otros roles no pueden ver Sistema
+        return false;
+    },
+
+    // Guardar estado de navegación en sessionStorage
+    saveViewState(view, params = {}, role = null) {
+        try {
+            const state = {
+                view: view,
+                params: params || {},
+                role: role || this.state.user?.role,
+                timestamp: Date.now()
+            };
+            sessionStorage.setItem('check_current_view', JSON.stringify(state));
+            console.log('[PERSISTENCE] Saved view state:', state);
+        } catch (e) {
+            console.warn('[PERSISTENCE] Error saving view state:', e);
+        }
+    },
+
+    // Cargar estado de navegación desde sessionStorage
+    loadViewState() {
+        try {
+            const sessionData = sessionStorage.getItem('check_current_view');
+            if (!sessionData) return null;
+            
+            const state = JSON.parse(sessionData);
+            console.log('[PERSISTENCE] Loaded view state:', state);
+            
+            // Validar que el estado no sea demasiado viejo (24 horas)
+            const maxAge = 24 * 60 * 60 * 1000; // 24 horas
+            if (Date.now() - state.timestamp > maxAge) {
+                console.log('[PERSISTENCE] State too old, discarding');
+                return null;
+            }
+            
+            return state;
+        } catch (e) {
+            console.warn('[PERSISTENCE] Error loading view state:', e);
+            return null;
+        }
+    },
+
+    // Limpiar estado de navegación
+    clearViewState() {
+        try {
+            sessionStorage.removeItem('check_current_view');
+            sessionStorage.removeItem('check_current_url');
+            console.log('[PERSISTENCE] Cleared view state');
+        } catch (e) {
+            console.warn('[PERSISTENCE] Error clearing view state:', e);
+        }
     },
 
     // ─── UI PREMIUM UTILS (v12.32.0) ───
@@ -4979,10 +5036,8 @@ const App = window.App = {
         
         // Guardar en AMBOS localStorage y sessionStorage para persistencia en refresh
         LS.set('active_view', viewName);
-        try {
-            sessionStorage.setItem('check_current_view', JSON.stringify({ view: viewName, params: params }));
-            sessionStorage.setItem('check_current_url', window.location.pathname);
-        } catch (e) { console.warn('[NAV] sessionStorage not available'); }
+        // Usar nuestra nueva función saveViewState que incluye el rol del usuario
+        this.saveViewState(viewName, params);
         
         // Guardar evento actual si estamos en admin o event-config
         if ((viewName === 'admin' || viewName === 'event-config') && this.state.event?.id) {
@@ -5169,69 +5224,64 @@ const App = window.App = {
             return;
         }
         
-        // NUEVA ESTRATEGIA: Prioridad de restauración
-        // 1. Primero: sessionStorage ( survives refresh)
-        // 2. Segundo: localStorage (persistente)
-        // 3. Tercero: URL actual
+        const userRole = user.role;
+        console.log('[ROUTER] User role:', userRole);
+        
+        // ESTRATEGIA MEJORADA: Prioridad de restauración con validación de permisos
+        // 1. Intentar restaurar desde sessionStorage (con validación de rol)
+        // 2. Si no hay o no es válido, usar vista por defecto según rol
         
         let targetView = null;
         let targetParams = {};
+        let useDefaultView = false;
         
-        // 1. Intentar desde sessionStorage
-        try {
-            const sessionData = sessionStorage.getItem('check_current_view');
-            if (sessionData) {
-                const parsed = JSON.parse(sessionData);
-                console.log('[ROUTER] Found sessionStorage data:', parsed);
-                
-                // Solo usar sessionStorage si la URL es raíz o my-events
-                if (path === '/' || path === '/my-events') {
-                    targetView = parsed.view;
-                    targetParams = parsed.params || {};
-                }
+        // 1. Intentar desde sessionStorage (nuevo sistema con validación de rol)
+        const savedState = this.loadViewState();
+        if (savedState) {
+            console.log('[ROUTER] Found saved state:', savedState);
+            
+            // Validar que el rol guardado coincida con el rol actual
+            if (savedState.role && savedState.role !== userRole) {
+                console.log('[ROUTER] Role changed, discarding saved state');
+                this.clearViewState();
+                useDefaultView = true;
             }
-        } catch (e) { console.warn('[ROUTER] sessionStorage parse error:', e); }
-        
-        // 2. Si no hay sessionStorage, usar localStorage
-        if (!targetView || targetView === 'login') {
-            const lsView = LS.get('active_view');
-            if (lsView && lsView !== 'login') {
-                targetView = lsView;
-                const lsTab = LS.get('active_system_tab');
-                const lsEventId = LS.get('active_event_id');
-                
-                if (lsView === 'system' && lsTab) {
-                    targetParams = { tab: lsTab };
-                } else if ((lsView === 'admin' || lsView === 'event-config') && lsEventId) {
-                    targetParams = { id: lsEventId };
-                }
-                console.log('[ROUTER] Using localStorage data:', targetView);
+            // Validar permisos para la vista guardada
+            else if (!this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab)) {
+                console.log('[ROUTER] No permission for saved view:', savedState.view);
+                useDefaultView = true;
             }
+            // Solo usar sessionStorage si la URL es raíz o compatible
+            else if (path === '/' || path === '/' + savedState.view) {
+                targetView = savedState.view;
+                targetParams = savedState.params || {};
+                console.log('[ROUTER] Using saved state from sessionStorage');
+            } else {
+                console.log('[ROUTER] URL mismatch, not using saved state');
+                useDefaultView = true;
+            }
+        } else {
+            console.log('[ROUTER] No saved state found');
+            useDefaultView = true;
         }
         
-        // 3. Si nada funciona, usar la URL actual
-        if (!targetView || targetView === 'login') {
-            const parts = path.split('/').filter(p => p);
-            targetView = parts[0] || 'my-events';
-            
-            // Si la vista es 'system', cambiar a 'my-events' como vista por defecto
-            if (targetView === 'system') {
-                targetView = 'my-events';
-            }
-            
-            if (targetView === 'admin' && parts[1]) targetParams = { id: parts[1] };
-            if (targetView === 'system' && parts[1]) targetParams = { tab: parts[1] };
-            if (targetView === 'event-config' && parts[1]) targetParams = { id: parts[1] };
-            
-            console.log('[ROUTER] Using URL data:', targetView);
+        // 2. Si necesitamos vista por defecto, obtener según rol
+        if (useDefaultView || !targetView || targetView === 'login') {
+            const defaultView = this.getDefaultViewByRole(userRole);
+            targetView = defaultView.view;
+            targetParams = defaultView.tab ? { tab: defaultView.tab } : {};
+            console.log('[ROUTER] Using default view for role', userRole, ':', targetView);
         }
         
-        // Si después de todo es 'system', cambiar a 'my-events'
-        if (targetView === 'system') {
-            targetView = 'my-events';
+        // 3. Validación final de permisos (seguridad extra)
+        if (!this.hasPermissionForView(userRole, targetView, targetParams?.tab)) {
+            console.warn('[ROUTER] Security check failed, falling back to safe view');
+            const safeView = this.getDefaultViewByRole(userRole);
+            targetView = safeView.view;
+            targetParams = safeView.tab ? { tab: safeView.tab } : {};
         }
         
-        console.log('[ROUTER] Final target - view:', targetView, 'params:', targetParams);
+        console.log('[ROUTER] Final target - view:', targetView, 'params:', targetParams, 'role:', userRole);
         
         // Navegar a la vista determinada
         this.navigate(targetView, targetParams, false);
@@ -5245,11 +5295,8 @@ const App = window.App = {
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
-        // Limpiar sessionStorage también
-        try {
-            sessionStorage.removeItem('check_current_view');
-            sessionStorage.removeItem('check_current_url');
-        } catch (e) {}
+        // Limpiar sessionStorage usando nuestra función
+        this.clearViewState();
         this.state.user = null;
         this.state.event = null;
         // Remover app-shell si existe
@@ -7399,6 +7446,19 @@ const App = window.App = {
         
         // Guardar tab activo
         LS.set('active_system_tab', tabName);
+        
+        // Actualizar estado guardado en sessionStorage si estamos en la vista 'system'
+        try {
+            const currentState = this.loadViewState();
+            if (currentState && currentState.view === 'system') {
+                // Actualizar solo el parámetro 'tab' manteniendo el resto del estado
+                const updatedParams = { ...(currentState.params || {}), tab: tabName };
+                this.saveViewState('system', updatedParams);
+                console.log('[SYS] Updated saved state with tab:', tabName);
+            }
+        } catch (e) {
+            console.warn('[SYS] Error updating saved state:', e);
+        }
         
         // Obtener todos los tabs
         const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
