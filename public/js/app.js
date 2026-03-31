@@ -158,15 +158,15 @@ const App = window.App = {
                     state.eventId = params.id;
                 }
                 
-                // Guardar pestaña activa dentro del evento
+                // Guardar pestaña activa dentro del evento (usando sessionStorage para independencia entre pestañas)
                 if (view === 'event-config') {
-                    const activeConfigTab = LS.get('active_config_tab');
+                    const activeConfigTab = sessionStorage.getItem('active_config_tab');
                     if (activeConfigTab) {
                         state.eventTab = activeConfigTab;
                         state.eventTabType = 'config';
                     }
                 } else if (view === 'admin') {
-                    const activeEventTab = LS.get('active_event_tab');
+                    const activeEventTab = sessionStorage.getItem('active_event_tab');
                     if (activeEventTab) {
                         state.eventTab = activeEventTab;
                         state.eventTabType = 'admin';
@@ -215,7 +215,9 @@ const App = window.App = {
         try {
             sessionStorage.removeItem('check_current_view');
             sessionStorage.removeItem('check_current_url');
-            console.log('[PERSISTENCE] Cleared view state');
+            sessionStorage.removeItem('active_config_tab');
+            sessionStorage.removeItem('active_event_tab');
+            console.log('[PERSISTENCE] Cleared view state and event tabs');
         } catch (e) {
             console.warn('[PERSISTENCE] Error clearing view state:', e);
         }
@@ -5175,15 +5177,45 @@ const App = window.App = {
         
         // Event Config View - Similar to admin but focused on settings
         if (viewName === 'event-config') {
+            console.log('[NAV DEBUG] Entering event-config view logic');
+            console.log('[NAV DEBUG] params.id:', params.id);
+            console.log('[NAV DEBUG] this.state.event?.id:', this.state.event?.id);
+            console.log('[NAV DEBUG] this.state.events count:', this.state.events?.length || 0);
+            
             const id = params.id || (this.state.event ? this.state.event.id : null);
             if (id) {
+                console.log('[NAV] Looking for event with id:', id);
+                
+                // Buscar el evento si no está establecido o si es diferente
                 if (!this.state.event || String(this.state.event.id) !== String(id)) {
-                    this.state.event = this.state.events.find(e => String(e.id) === String(id));
+                    console.log('[NAV] Event not set or different, searching in events list');
+                    if (this.state.events && Array.isArray(this.state.events)) {
+                        const foundEvent = this.state.events.find(e => String(e.id) === String(id));
+                        if (foundEvent) {
+                            console.log('[NAV] Event found in list:', foundEvent.name);
+                            this.state.event = foundEvent;
+                        } else {
+                            console.warn('[NAV] Event not found in events list, redirecting to my-events');
+                            this.navigate('my-events');
+                            return;
+                        }
+                    } else {
+                        console.warn('[NAV] Events list not available, redirecting to my-events');
+                        this.navigate('my-events');
+                        return;
+                    }
                 }
+                
+                // A este punto, this.state.event debería estar establecido
                 if (this.state.event) {
                     const event = this.state.event;
-                    document.getElementById('config-event-title').textContent = event.name;
+                    console.log('[NAV] Setting up event-config for event:', event.name);
                     
+                    // Actualizar título del evento
+                    const titleEl = document.getElementById('config-event-title');
+                    if (titleEl) titleEl.textContent = event.name;
+                    
+                    // Actualizar logo
                     const logoImg = document.getElementById('config-event-logo');
                     const logoPlaceholder = document.getElementById('config-event-logo-placeholder');
                     if (logoImg && logoPlaceholder) {
@@ -5206,13 +5238,15 @@ const App = window.App = {
                     }
                     
                     // Cargar pestaña activa guardada
-                    const activeTab = LS.get('active_config_tab') || 'staff';
+                    const activeTab = sessionStorage.getItem('active_config_tab') || 'staff';
                     console.log('[NAV] Restoring active config tab:', activeTab);
                     this.switchConfigTab(activeTab);
                 } else {
+                    console.error('[NAV] Critical: this.state.event is null after search, redirecting to my-events');
                     this.navigate('my-events');
                 }
             } else {
+                console.warn('[NAV] No event id provided for event-config, redirecting to my-events');
                 this.navigate('my-events');
             }
         }
@@ -5304,9 +5338,20 @@ const App = window.App = {
             console.log('[ROUTER] Loading events for navigation...');
             try {
                 await this.loadEvents(true); // true = forzar recarga
+                console.log('[ROUTER] Events loaded successfully, count:', this.state.events?.length || 0);
             } catch (e) {
                 console.warn('[ROUTER] Error loading events:', e);
+                // Si falla la carga, intentar usar cache
+                if (this._eventsCache && Array.isArray(this._eventsCache)) {
+                    console.log('[ROUTER] Using cached events as fallback');
+                    this.state.events = this._eventsCache;
+                } else {
+                    console.warn('[ROUTER] No cached events available, using empty array');
+                    this.state.events = [];
+                }
             }
+        } else {
+            console.log('[ROUTER] Events already loaded, count:', this.state.events.length);
         }
         
         // ESTRATEGIA MEJORADA: Prioridad de restauración con validación de permisos
@@ -5350,13 +5395,25 @@ const App = window.App = {
                 targetView = savedState.view;
                 targetParams = savedState.params || {};
                 
-                // Si estamos en una URL del sistema con pestaña específica (/system/email, /system/legal, etc.)
-                // Extraer la pestaña de la URL y usarla en lugar de la guardada
+                // CRÍTICO: Si estamos en system y la URL tiene un tab diferente al guardado,
+                // usar el tab de la URL y actualizar el estado guardado
                 if (savedState.view === 'system' && path.startsWith('/system/')) {
                     const tabFromUrl = path.split('/')[2]; // Obtener "email", "legal", etc.
                     if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
-                        targetParams.tab = tabFromUrl;
-                        console.log('[ROUTER] Extracted tab from URL:', tabFromUrl);
+                        // Si el tab de la URL es diferente al guardado, usar el de la URL
+                        if (savedState.params?.tab !== tabFromUrl) {
+                            console.log('[ROUTER] URL tab differs from saved tab. URL:', tabFromUrl, 'Saved:', savedState.params?.tab);
+                            console.log('[ROUTER] Using URL tab and updating saved state');
+                            targetParams.tab = tabFromUrl;
+                            
+                            // Actualizar inmediatamente el estado guardado para sincronizar
+                            setTimeout(() => {
+                                this.saveViewState('system', { tab: tabFromUrl });
+                            }, 100);
+                        } else {
+                            console.log('[ROUTER] URL tab matches saved tab:', tabFromUrl);
+                            targetParams.tab = tabFromUrl;
+                        }
                     }
                 }
                 
@@ -5392,10 +5449,16 @@ const App = window.App = {
         // Si estamos restaurando una vista de evento, necesitamos cargar el evento primero
         if ((targetView === 'admin' || targetView === 'event-config') && savedState?.eventId) {
             console.log('[ROUTER] Preparing to restore event view with eventId:', savedState.eventId);
+            console.log('[ROUTER DEBUG] Available events count:', this.state.events?.length || 0);
+            console.log('[ROUTER DEBUG] Available events IDs:', this.state.events?.map(e => e.id).join(', ') || 'none');
             
             // Buscar el evento en la lista de eventos del usuario
             const eventId = savedState.eventId;
-            const event = this.state.events?.find(e => String(e.id) === String(eventId));
+            let event = null;
+            
+            if (this.state.events && Array.isArray(this.state.events)) {
+                event = this.state.events.find(e => String(e.id) === String(eventId));
+            }
             
             if (event) {
                 console.log('[ROUTER] Event found, setting as current event:', event.name);
@@ -5405,13 +5468,13 @@ const App = window.App = {
                 if (savedState.eventTab && savedState.eventTabType) {
                     console.log('[ROUTER] Restoring event tab:', savedState.eventTab, 'type:', savedState.eventTabType);
                     
-                    // Para event-config, guardar la pestaña activa en localStorage
+                    // Para event-config, guardar la pestaña activa en sessionStorage
                     if (savedState.eventTabType === 'config') {
-                        LS.set('active_config_tab', savedState.eventTab);
+                        sessionStorage.setItem('active_config_tab', savedState.eventTab);
                     }
-                    // Para admin, guardar la pestaña activa en localStorage
+                    // Para admin, guardar la pestaña activa en sessionStorage
                     else if (savedState.eventTabType === 'admin') {
-                        LS.set('active_event_tab', savedState.eventTab);
+                        sessionStorage.setItem('active_event_tab', savedState.eventTab);
                     }
                 }
                 
@@ -5419,8 +5482,11 @@ const App = window.App = {
                 if (!targetParams.id) {
                     targetParams.id = eventId;
                 }
+                
+                console.log('[ROUTER] Event restoration complete, params:', targetParams);
             } else {
-                console.warn('[ROUTER] Event not found in user events list, falling back to default view');
+                console.warn('[ROUTER] Event not found in user events list, eventId:', eventId);
+                console.warn('[ROUTER] Falling back to default view');
                 // Si el evento no existe, usar vista por defecto
                 const defaultView = this.getDefaultViewByRole(userRole);
                 targetView = defaultView.view;
@@ -7730,8 +7796,8 @@ const App = window.App = {
         const panel = document.getElementById('config-content-' + tabName);
         if (panel) panel.classList.remove('hidden');
 
-        // Guardar pestaña activa
-        LS.set('active_config_tab', tabName);
+        // Guardar pestaña activa en sessionStorage
+        sessionStorage.setItem('active_config_tab', tabName);
         console.log('[CONFIG] Saved active tab:', tabName);
         
         // Actualizar estado guardado en sessionStorage si estamos en la vista 'event-config'
@@ -8776,8 +8842,8 @@ const App = window.App = {
         const panel = document.getElementById('ev-content-' + tabName); // Updated to match actual IDs
         if (panel) panel.classList.remove('hidden');
 
-        // Guardar pestaña activa
-        LS.set('active_event_tab', tabName);
+        // Guardar pestaña activa en sessionStorage
+        sessionStorage.setItem('active_event_tab', tabName);
         console.log('[EVENT] Saved active tab:', tabName);
         
         // Actualizar estado guardado en sessionStorage si estamos en la vista 'admin'
