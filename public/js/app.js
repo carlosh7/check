@@ -8432,8 +8432,9 @@ const App = window.App = {
         if (!container) return;
         
         try {
-            // Cargar invitados
-            const guests = await this.fetchAPI(`/guests?event_id=${eventId}&limit=500`);
+            // Cargar invitados - la API devuelve { data: [...], pagination: {...} }
+            const response = await this.fetchAPI(`/guests/${eventId}?limit=500`);
+            const guests = response.data || response;
             this.state.eventMailingGuests = guests;
             
             if (countEl) countEl.textContent = `${guests.length} INVITADOS`;

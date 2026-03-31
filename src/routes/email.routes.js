@@ -547,6 +547,269 @@ router.post('/events/:eventId/email-test', authMiddleware(['ADMIN', 'PRODUCTOR']
     res.json({ success: true, message: 'Email de prueba enviado (simulado)' });
 });
 
+// ═══ EVENT EMAIL ACCOUNTS (Owner: EVENT) ═══
+
+// Listar cuentas SMTP de un evento
+router.get('/events/:eventId/email/accounts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const accounts = db.prepare(`
+        SELECT * FROM email_accounts 
+        WHERE owner_type = 'EVENT' AND owner_id = ?
+        ORDER BY is_default DESC, name ASC
+    `).all(eId);
+    
+    res.json(accounts);
+});
+
+// Crear cuenta SMTP para evento
+router.post('/events/:eventId/email/accounts', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit } = req.body;
+    
+    if (!name || !smtp_host || !smtp_user || !smtp_pass || !from_email) {
+        return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+    
+    const accountId = getValidId('acc');
+    const now = new Date().toISOString();
+    
+    // Si es default, quitar default de otras cuentas del evento
+    if (is_default) {
+        db.prepare("UPDATE email_accounts SET is_default = 0 WHERE owner_type = 'EVENT' AND owner_id = ?").run(eId);
+    }
+    
+    db.prepare(`
+        INSERT INTO email_accounts (id, name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, is_active, daily_limit, used_today, owner_type, owner_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0, 'EVENT', ?, ?, ?)
+    `).run(accountId, name, smtp_host, smtp_port || 587, smtp_user, smtp_pass, smtp_secure ? 1 : 0, from_name || name, from_email, is_default ? 1 : 0, daily_limit || 500, eId, now, now);
+    
+    const account = db.prepare('SELECT * FROM email_accounts WHERE id = ?').get(accountId);
+    res.json(account);
+});
+
+// Actualizar cuenta SMTP de evento
+router.put('/events/:eventId/email/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit, is_active } = req.body;
+    
+    const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!existing) return res.status(404).json({ error: 'Cuenta no encontrada' });
+    
+    const now = new Date().toISOString();
+    
+    // Si es default, quitar default de otras cuentas
+    if (is_default) {
+        db.prepare("UPDATE email_accounts SET is_default = 0 WHERE owner_type = 'EVENT' AND owner_id = ? AND id != ?").run(eId, req.params.id);
+    }
+    
+    db.prepare(`
+        UPDATE email_accounts SET 
+            name = ?, smtp_host = ?, smtp_port = ?, smtp_user = ?, smtp_pass = ?, smtp_secure = ?,
+            from_name = ?, from_email = ?, is_default = ?, daily_limit = ?, is_active = ?, updated_at = ?
+        WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?
+    `).run(
+        name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure ? 1 : 0,
+        from_name, from_email, is_default ? 1 : 0, daily_limit, is_active ? 1 : 0, now,
+        req.params.id, eId
+    );
+    
+    const account = db.prepare('SELECT * FROM email_accounts WHERE id = ?').get(req.params.id);
+    res.json(account);
+});
+
+// Eliminar cuenta SMTP de evento
+router.delete('/events/:eventId/email/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!existing) return res.status(404).json({ error: 'Cuenta no encontrada' });
+    
+    db.prepare('DELETE FROM email_accounts WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// Probar cuenta SMTP de evento
+router.post('/events/:eventId/email/accounts/:id/test', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+    
+    // Simulated test - in production would test actual SMTP connection
+    console.log('🧪 TEST: Probando cuenta SMTP', account.name, 'para evento', eId);
+    res.json({ success: true, message: 'Conexión exitosa (simulado)' });
+});
+
+// ═══ EVENT EMAIL CAMPAIGNS (Owner: EVENT) ═══
+
+// Listar campañas de un evento
+router.get('/events/:eventId/email/campaigns', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaigns = db.prepare(`
+        SELECT c.*, t.name as template_name
+        FROM email_campaigns c
+        LEFT JOIN email_templates t ON c.template_id = t.id
+        WHERE c.owner_type = 'EVENT' AND c.owner_id = ?
+        ORDER BY c.created_at DESC
+    `).all(eId);
+    
+    res.json(campaigns);
+});
+
+// Crear campaña para evento
+router.post('/events/:eventId/email/campaigns', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { name, template_id, subject, body_html, filters, scheduled_at } = req.body;
+    
+    if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+    
+    const campaignId = getValidId('cmp');
+    const now = new Date().toISOString();
+    
+    // Contar destinatarios desde la base de datos del evento
+    let recipientCount = 0;
+    if (eId) {
+        try {
+            // Importar funciones de base de datos del evento
+            const { getEventConnection, eventDatabaseExists } = require('../../database');
+            const hasOwnDb = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eId);
+            
+            if (hasOwnDb && hasOwnDb.has_own_db === 1 && eventDatabaseExists(eId)) {
+                const eventDb = getEventConnection(eId);
+                recipientCount = eventDb.prepare('SELECT COUNT(*) as count FROM guests WHERE event_id = ?').get(eId)?.count || 0;
+            } else {
+                // Usar BD principal
+                recipientCount = db.prepare('SELECT COUNT(*) as count FROM guests WHERE event_id = ?').get(eId)?.count || 0;
+            }
+        } catch (e) {
+            console.error('Error counting recipients:', e);
+            recipientCount = 0;
+        }
+    }
+    
+    db.prepare(`
+        INSERT INTO email_campaigns (id, name, event_id, template_id, subject, body_html, filters, status, total_recipients, sent_count, error_count, owner_type, owner_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, 0, 0, 'EVENT', ?, ?, ?)
+    `).run(campaignId, name, eId, template_id, subject, body_html, filters ? JSON.stringify(filters) : null, recipientCount, eId, now, now);
+    
+    const campaign = db.prepare('SELECT * FROM email_campaigns WHERE id = ?').get(campaignId);
+    res.json(campaign);
+});
+
+// Actualizar campaña de evento
+router.put('/events/:eventId/email/campaigns/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    const { name, template_id, subject, body_html, filters, scheduled_at } = req.body;
+    
+    const existing = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!existing) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    const now = new Date().toISOString();
+    
+    db.prepare(`
+        UPDATE email_campaigns SET 
+            name = ?, template_id = ?, subject = ?, body_html = ?, filters = ?, scheduled_at = ?, updated_at = ?
+        WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?
+    `).run(name, template_id, subject, body_html, filters ? JSON.stringify(filters) : null, scheduled_at, now, req.params.id, eId);
+    
+    const campaign = db.prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+    res.json(campaign);
+});
+
+// Iniciar campaña de evento
+router.post('/events/:eventId/email/campaigns/:id/start', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    if (campaign.status !== 'DRAFT' && campaign.status !== 'PAUSED') {
+        return res.status(400).json({ error: 'La campaña no puede iniciarse en este estado' });
+    }
+    
+    const now = new Date().toISOString();
+    db.prepare("UPDATE email_campaigns SET status = 'RUNNING', started_at = ? WHERE id = ?").run(now, req.params.id);
+    
+    console.log('🚀 CAMPAIGN STARTED:', campaign.name, 'for event', eId);
+    res.json({ success: true, message: 'Campaña iniciada' });
+});
+
+// Pausar campaña de evento
+router.post('/events/:eventId/email/campaigns/:id/pause', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    if (campaign.status !== 'RUNNING') {
+        return res.status(400).json({ error: 'Solo se pueden pausar campañas en ejecución' });
+    }
+    
+    db.prepare("UPDATE email_campaigns SET status = 'PAUSED' WHERE id = ?").run(req.params.id);
+    res.json({ success: true, message: 'Campaña pausada' });
+});
+
+// Reanudar campaña de evento
+router.post('/events/:eventId/email/campaigns/:id/resume', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    if (campaign.status !== 'PAUSED') {
+        return res.status(400).json({ error: 'Solo se pueden reanudar campañas pausadas' });
+    }
+    
+    db.prepare("UPDATE email_campaigns SET status = 'RUNNING' WHERE id = ?").run(req.params.id);
+    res.json({ success: true, message: 'Campaña reanudada' });
+});
+
+// Cancelar campaña de evento
+router.post('/events/:eventId/email/campaigns/:id/cancel', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    db.prepare("UPDATE email_campaigns SET status = 'CANCELLED' WHERE id = ?").run(req.params.id);
+    res.json({ success: true, message: 'Campaña cancelada' });
+});
+
+// Eliminar campaña de evento
+router.delete('/events/:eventId/email/campaigns/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare("SELECT * FROM email_campaigns WHERE id = ? AND owner_type = 'EVENT' AND owner_id = ?").get(req.params.id, eId);
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    db.prepare('DELETE FROM email_campaigns WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// Reporte de campaña de evento
+router.get('/events/:eventId/email/campaigns/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const eId = castId('events', req.params.eventId);
+    
+    const campaign = db.prepare(`
+        SELECT c.*, t.name as template_name
+        FROM email_campaigns c
+        LEFT JOIN email_templates t ON c.template_id = t.id
+        WHERE c.id = ? AND c.owner_type = 'EVENT' AND c.owner_id = ?
+    `).get(req.params.id, eId);
+    
+    if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+    
+    // Get campaign logs
+    const logs = db.prepare(`
+        SELECT * FROM email_campaign_logs WHERE campaign_id = ?
+        ORDER BY created_at DESC LIMIT 100
+    `).all(req.params.id);
+    
+    res.json({ campaign, logs });
+});
+
 // ═══ CAMPAIGN MANAGEMENT ═══
 
 // Listar campañas
