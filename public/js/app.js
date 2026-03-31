@@ -3127,6 +3127,11 @@ const App = window.App = {
             App.loadCampaigns();  // Cargar campañas
         } else if (section === 'accounts') {
             App.loadEmailAccounts(); // Cargar cuentas
+        } else if (section === 'contacts') {
+            App.loadSystemContacts(); // Cargar contactos del sistema
+            App.loadContactGroups(); // Cargar grupos
+        } else if (section === 'email-stats') {
+            App.loadEmailStats(); // Cargar estadísticas
         }
     },
 
@@ -4013,6 +4018,331 @@ const App = window.App = {
             }
         } catch (e) {
             alert('Error: ' + e.message);
+        }
+    },
+
+    // ─── SISTEMA DE CONTACTOS (MAILING v2.0) ───
+    
+    loadSystemContacts: async function() {
+        const container = document.getElementById('contacts-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-8 text-center animate-pulse text-slate-500">Cargando contactos...</div>';
+        
+        try {
+            const search = document.getElementById('contacts-search')?.value || '';
+            const group_id = document.getElementById('contacts-group-filter')?.value || '';
+            
+            let url = '/email/contacts?limit=100';
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (group_id) url += `&group_id=${group_id}`;
+            
+            const res = await this.fetchAPI(url);
+            const contacts = res.data || [];
+            
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="card p-8 text-center border-white/5 bg-white/[0.02]">
+                        <span class="material-symbols-outlined text-5xl text-slate-600 block mb-4">person_search</span>
+                        <h3 class="text-lg font-bold text-slate-400 mb-2">No hay contactos</h3>
+                        <p class="text-sm text-slate-500 mb-4">Agrega contactos para enviar mailing desde el sistema</p>
+                        <button onclick="App.openContactModal()" class="btn-primary">+ Agregar Contacto</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = contacts.map(c => `
+                <div class="card p-4 border-white/5 bg-white/[0.02] flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-cyan-400">person</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white">${c.name}</h4>
+                            <p class="text-xs text-slate-400">${c.email} ${c.organization ? '• ' + c.organization : ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="App.editContact('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs">✏️</button>
+                        <button onclick="App.deleteContact('${c.id}')" class="btn-secondary !py-1 !px-2 text-xs !text-red-400">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            container.innerHTML = `<div class="p-8 text-center text-red-400">Error: ${e.message}</div>`;
+        }
+    },
+    
+    loadContactGroups: async function() {
+        const container = document.getElementById('contact-groups-list');
+        const filter = document.getElementById('contacts-group-filter');
+        if (!container) return;
+        
+        try {
+            const groups = await this.fetchAPI('/email/contact-groups');
+            
+            // Actualizar filtro
+            if (filter) {
+                filter.innerHTML = '<option value="">Todos los grupos</option>' + 
+                    groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            }
+            
+            container.innerHTML = groups.map(g => `
+                <div class="card p-4 border-white/5 bg-white/[0.02]">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white">${g.name}</h4>
+                        <button onclick="App.deleteContactGroup('${g.id}')" class="text-red-400 hover:text-red-300 text-xs">🗑️</button>
+                    </div>
+                    <p class="text-xs text-slate-500">${g.description || 'Sin descripción'}</p>
+                </div>
+            `).join('') || '<p class="text-slate-500 text-sm">No hay grupos creados</p>';
+            
+        } catch (e) {
+            container.innerHTML = `<div class="text-red-400 text-sm">Error: ${e.message}</div>`;
+        }
+    },
+    
+    filterContacts: function() {
+        this.loadSystemContacts();
+    },
+    
+    openContactModal: function(contactId = null) {
+        document.getElementById('modal-contact-editor').classList.remove('hidden');
+        
+        if (contactId) {
+            // Cargar contacto para edición
+            this.fetchAPI('/email/contacts').then(res => {
+                const contact = (res.data || []).find(c => c.id === contactId);
+                if (contact) {
+                    document.getElementById('contact-id').value = contact.id;
+                    document.getElementById('contact-name').value = contact.name;
+                    document.getElementById('contact-email').value = contact.email;
+                    document.getElementById('contact-organization').value = contact.organization || '';
+                    document.getElementById('contact-phone').value = contact.phone || '';
+                    document.getElementById('contact-tags').value = contact.tags || '';
+                    document.getElementById('contact-notes').value = contact.notes || '';
+                    document.getElementById('contact-active').checked = contact.is_active === 1;
+                }
+            });
+        } else {
+            // Limpiar formulario
+            document.getElementById('contact-id').value = '';
+            document.getElementById('contact-name').value = '';
+            document.getElementById('contact-email').value = '';
+            document.getElementById('contact-organization').value = '';
+            document.getElementById('contact-phone').value = '';
+            document.getElementById('contact-tags').value = '';
+            document.getElementById('contact-notes').value = '';
+            document.getElementById('contact-active').checked = true;
+        }
+    },
+    
+    editContact: function(id) {
+        this.openContactModal(id);
+    },
+    
+    saveContact: async function() {
+        const id = document.getElementById('contact-id').value;
+        const data = {
+            name: document.getElementById('contact-name').value,
+            email: document.getElementById('contact-email').value,
+            organization: document.getElementById('contact-organization').value,
+            phone: document.getElementById('contact-phone').value,
+            tags: document.getElementById('contact-tags').value,
+            notes: document.getElementById('contact-notes').value,
+            is_active: document.getElementById('contact-active').checked
+        };
+        
+        if (!data.name || !data.email) {
+            return alert('Nombre y email son requeridos');
+        }
+        
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const endpoint = id ? `/email/contacts/${id}` : '/email/contacts';
+            
+            await this.fetchAPI(endpoint, {
+                method: method,
+                body: JSON.stringify(data)
+            });
+            
+            document.getElementById('modal-contact-editor').classList.add('hidden');
+            this._notifyAction('✓ Guardado', 'Contacto guardado correctamente', 'success');
+            this.loadSystemContacts();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    deleteContact: async function(id) {
+        if (!confirm('¿Eliminar este contacto?')) return;
+        try {
+            await this.fetchAPI(`/email/contacts/${id}`, { method: 'DELETE' });
+            this._notifyAction('✓ Eliminado', 'Contacto eliminado', 'success');
+            this.loadSystemContacts();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    openGroupModal: function(groupId = null) {
+        document.getElementById('modal-group-editor').classList.remove('hidden');
+        document.getElementById('group-id').value = groupId || '';
+        document.getElementById('group-name').value = '';
+        document.getElementById('group-description').value = '';
+    },
+    
+    saveContactGroup: async function() {
+        const name = document.getElementById('group-name').value;
+        const description = document.getElementById('group-description').value;
+        
+        if (!name) return alert('El nombre es requerido');
+        
+        try {
+            await this.fetchAPI('/email/contact-groups', {
+                method: 'POST',
+                body: JSON.stringify({ name, description })
+            });
+            
+            document.getElementById('modal-group-editor').classList.add('hidden');
+            this._notifyAction('✓ Guardado', 'Grupo creado', 'success');
+            this.loadContactGroups();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    deleteContactGroup: async function(id) {
+        if (!confirm('¿Eliminar este grupo?')) return;
+        try {
+            await this.fetchAPI(`/email/contact-groups/${id}`, { method: 'DELETE' });
+            this._notifyAction('✓ Eliminado', 'Grupo eliminado', 'success');
+            this.loadContactGroups();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    },
+    
+    importContactsModal: function() {
+        document.getElementById('modal-import-contacts').classList.remove('hidden');
+        document.getElementById('csv-preview').classList.add('hidden');
+    },
+    
+    handleContactsFile: function(input) {
+        // Preview del CSV - simplificado
+        const file = input.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(l => l.trim());
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            const preview = lines.slice(1, 6).map(line => {
+                const values = line.split(',');
+                return {
+                    name: values[headers.indexOf('name')] || values[0] || '',
+                    email: values[headers.indexOf('email')] || values[1] || ''
+                };
+            });
+            
+            document.getElementById('csv-preview-list').innerHTML = preview.map(p => 
+                `<div class="text-slate-300">${p.name} - ${p.email}</div>`
+            ).join('');
+            document.getElementById('csv-preview').classList.remove('hidden');
+        };
+        reader.readAsText(file);
+    },
+    
+    importContacts: async function() {
+        const fileInput = document.getElementById('contacts-csv-file');
+        const file = fileInput.files[0];
+        if (!file) return alert('Selecciona un archivo CSV');
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(l => l.trim());
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            const contacts = lines.slice(1).map(line => {
+                const values = line.split(',');
+                return {
+                    name: values[headers.indexOf('name')]?.trim() || values[0]?.trim() || '',
+                    email: values[headers.indexOf('email')]?.trim() || values[1]?.trim() || '',
+                    organization: values[headers.indexOf('organization')]?.trim() || values[2]?.trim() || '',
+                    phone: values[headers.indexOf('phone')]?.trim() || values[3]?.trim() || ''
+                };
+            }).filter(c => c.name && c.email);
+            
+            try {
+                const res = await this.fetchAPI('/email/contacts/import', {
+                    method: 'POST',
+                    body: JSON.stringify({ contacts })
+                });
+                
+                document.getElementById('modal-import-contacts').classList.add('hidden');
+                this._notifyAction('✓ Importados', `${res.imported} contactos importados`, 'success');
+                this.loadSystemContacts();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        };
+        reader.readAsText(file);
+    },
+
+    // ─── ESTADÍSTICAS DE EMAIL ───
+    
+    loadEmailStats: async function() {
+        const range = document.getElementById('email-stats-range')?.value || 30;
+        
+        // Actualizar contadores
+        const statSent = document.getElementById('stat-emails-sent');
+        const statSuccess = document.getElementById('stat-emails-success');
+        const statErrors = document.getElementById('stat-emails-errors');
+        const statOpens = document.getElementById('stat-emails-opens');
+        
+        if (statSent) statSent.textContent = '0';
+        if (statSuccess) statSuccess.textContent = '0';
+        if (statErrors) statErrors.textContent = '0';
+        if (statOpens) statOpens.textContent = '0';
+        
+        try {
+            // Cargar stats de la API
+            const res = await this.fetchAPI(`/email/email-logs?limit=1000`);
+            const logs = res.data || [];
+            
+            const now = new Date();
+            const cutoff = new Date(now.getTime() - parseInt(range) * 24 * 60 * 60 * 1000);
+            
+            const filtered = logs.filter(l => new Date(l.created_at) >= cutoff);
+            
+            const sent = filtered.length;
+            const success = filtered.filter(l => l.status === 'SENT' || !l.status).length;
+            const errors = filtered.filter(l => l.status === 'ERROR').length;
+            
+            if (statSent) statSent.textContent = sent.toLocaleString();
+            if (statSuccess) statSuccess.textContent = success.toLocaleString();
+            if (statErrors) statErrors.textContent = errors.toLocaleString();
+            if (statOpens) statOpens.textContent = '0'; // Pending tracking implementation
+            
+            // Cargar plantillas más usadas
+            const templates = await this.fetchAPI('/email/email-templates');
+            const topTemplates = document.getElementById('top-templates-list');
+            if (topTemplates && templates.length > 0) {
+                topTemplates.innerHTML = templates.slice(0, 5).map(t => `
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-sm text-slate-300">${t.name}</span>
+                        <span class="text-xs font-bold text-violet-400">${t.usage_count || 0}</span>
+                    </div>
+                `).join('');
+            }
+            
+        } catch (e) {
+            console.error('Error loading email stats:', e);
         }
     },
 

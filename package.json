@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.35.7",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.7 - Restore: Botones +Staff y +Empresa en módulos de sistema",
+  "version": "12.36.0",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.36.0 - Mailing v2.0: Nueva estructura con contactos, estadísticas y 8 sub-secciones",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.35.7</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.36.0</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -852,7 +852,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN: EMAIL (SIDEBAR INTEGRADO) -->
+                <!-- SECCIÓN: EMAIL (SIDEBAR INTEGRADO) - MAILING v2.0 -->
                 <div id="sys-content-email" class="hidden space-y-8 animate-fade-in">
                     <div class="inner-layout">
                         <!-- Sidebar Interna Premium -->
@@ -862,12 +862,16 @@
                                 <span class="uppercase tracking-widest text-[10px] font-black">Configuración</span>
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('accounts', this)">
-                                <span class="material-symbols-outlined text-blue-400">account_circle</span>
+                                <span class="material-symbols-outlined text-blue-400">dns</span>
                                 <span class="uppercase tracking-widest text-[10px] font-black">Cuentas SMTP</span>
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('templates', this)">
                                 <span class="material-symbols-outlined text-fuchsia-400">dashboard_customize</span>
                                 <span class="uppercase tracking-widest text-[10px] font-black">Plantillas</span>
+                            </div>
+                            <div class="inner-sidebar-item group" onclick="App.switchEmailTab('contacts', this)">
+                                <span class="material-symbols-outlined text-cyan-400">contacts</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">Contactos</span>
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('mailing', this)">
                                 <span class="material-symbols-outlined text-emerald-400">outgoing_mail</span>
@@ -879,7 +883,11 @@
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('mailbox', this)">
                                 <span class="material-symbols-outlined text-indigo-400">inbox</span>
-                                <span class="uppercase tracking-widest text-[10px] font-black">Buzón IMAP</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">Buzón</span>
+                            </div>
+                            <div class="inner-sidebar-item group" onclick="App.switchEmailTab('email-stats', this)">
+                                <span class="material-symbols-outlined text-rose-400">bar_chart</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">Estadísticas</span>
                             </div>
                         </aside>
 
@@ -1041,6 +1049,102 @@
                                         <button class="btn-secondary !px-6 !py-4 text-[10px] font-black uppercase tracking-widest" onclick="App.refreshMailbox()">Sincronizar</button>
                                     </div>
                                     <div id="mailbox-list" class="space-y-4"></div>
+                                </div>
+
+                                <!-- CONTACTOS DEL SISTEMA (NUEVO v2.0) -->
+                                <div id="email-content-contacts" class="email-content hidden animate-fade-in space-y-6">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="text-2xl font-black text-white uppercase tracking-widest">Contactos del Sistema</h3>
+                                        <div class="flex gap-3">
+                                            <button class="btn-secondary !px-4 !py-3 text-[10px] font-black uppercase" onclick="App.importContactsModal()">📥 Importar CSV</button>
+                                            <button class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase" onclick="App.openContactModal()">+ Nuevo Contacto</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Toolbar -->
+                                    <div class="glass-card p-4 flex items-center gap-4 border-white/5 bg-white/[0.02]">
+                                        <input type="text" id="contacts-search" placeholder="Buscar contactos..." 
+                                            class="flex-1 !bg-black/40 !py-3 !px-4 !rounded-xl text-sm"
+                                            oninput="App.filterContacts()">
+                                        <select id="contacts-group-filter" class="!bg-black/40 !py-3 !px-4 !rounded-xl text-sm !w-48"
+                                            onchange="App.filterContacts()">
+                                            <option value="">Todos los grupos</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Lista de Contactos -->
+                                    <div id="contacts-list" class="space-y-3"></div>
+                                    
+                                    <!-- Grupos de Contactos -->
+                                    <div class="pt-6 border-t border-white/10">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="text-lg font-black text-white uppercase tracking-widest">Grupos de Contactos</h4>
+                                            <button class="btn-secondary !px-4 !py-2 text-[10px] font-black" onclick="App.openGroupModal()">+ Nuevo Grupo</button>
+                                        </div>
+                                        <div id="contact-groups-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                                    </div>
+                                </div>
+
+                                <!-- ESTADÍSTICAS DE EMAIL (NUEVO v2.0) -->
+                                <div id="email-content-stats" class="email-content hidden animate-fade-in space-y-6">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="text-2xl font-black text-white uppercase tracking-widest">Estadísticas de Mailing</h3>
+                                        <select id="email-stats-range" class="!bg-black/40 !py-2 !px-4 !rounded-xl text-xs" onchange="App.loadEmailStats()">
+                                            <option value="7">Últimos 7 días</option>
+                                            <option value="30" selected>Últimos 30 días</option>
+                                            <option value="90">Últimos 90 días</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Stats Grid -->
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div class="card p-6 border-l-4 border-l-violet-400 bg-white/[0.02]">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="material-symbols-outlined text-violet-400">send</span>
+                                                <span class="text-xs font-black text-slate-400 uppercase">Enviados</span>
+                                            </div>
+                                            <p id="stat-emails-sent" class="text-3xl font-black text-white">0</p>
+                                        </div>
+                                        <div class="card p-6 border-l-4 border-l-green-400 bg-white/[0.02]">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="material-symbols-outlined text-green-400">check_circle</span>
+                                                <span class="text-xs font-black text-slate-400 uppercase">Exitosos</span>
+                                            </div>
+                                            <p id="stat-emails-success" class="text-3xl font-black text-white">0</p>
+                                        </div>
+                                        <div class="card p-6 border-l-4 border-l-red-400 bg-white/[0.02]">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="material-symbols-outlined text-red-400">error</span>
+                                                <span class="text-xs font-black text-slate-400 uppercase">Errors</span>
+                                            </div>
+                                            <p id="stat-emails-errors" class="text-3xl font-black text-white">0</p>
+                                        </div>
+                                        <div class="card p-6 border-l-4 border-l-blue-400 bg-white/[0.02]">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="material-symbols-outlined text-blue-400">visibility</span>
+                                                <span class="text-xs font-black text-slate-400 uppercase">Abiertos</span>
+                                            </div>
+                                            <p id="stat-emails-opens" class="text-3xl font-black text-white">0</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Chart -->
+                                    <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                        <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">Emails por Día</h4>
+                                        <div id="email-stats-chart" class="h-64 bg-black/40 rounded-xl"></div>
+                                    </div>
+                                    
+                                    <!-- Top Plantillas -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                            <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">Top Plantillas</h4>
+                                            <div id="top-templates-list" class="space-y-3"></div>
+                                        </div>
+                                        <div class="card p-6 border-white/5 bg-white/[0.02]">
+                                            <h4 class="text-sm font-black text-white uppercase tracking-widest mb-4">Últimos Envíos</h4>
+                                            <div id="recent-sends-list" class="space-y-3"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>                        </main>
                     </div>
@@ -1367,6 +1471,130 @@
         </div>
         <div class="p-6 overflow-y-auto flex-1">
             <div id="template-preview-content" class="prose prose-invert max-w-none"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Editor de Contacto -->
+<div id="modal-contact-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-cyan-400 text-xl">person</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Contacto</h3>
+            </div>
+            <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4 overflow-y-auto flex-1">
+            <input type="hidden" id="contact-id">
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Nombre *</label>
+                <input type="text" id="contact-name" placeholder="Juan Pérez" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Email *</label>
+                <input type="email" id="contact-email" placeholder="juan@empresa.com" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Organización</label>
+                <input type="text" id="contact-organization" placeholder="Empresa XYZ" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Teléfono</label>
+                <input type="text" id="contact-phone" placeholder="+57 300 123 4567" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Etiquetas (separadas por coma)</label>
+                <input type="text" id="contact-tags" placeholder="vip, newsletter, cliente" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Notas</label>
+                <textarea id="contact-notes" rows="3" placeholder="Notas sobre este contacto..." class="input-field w-full"></textarea>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="contact-active" class="w-4 h-4 accent-cyan-400" checked>
+                <label for="contact-active" class="text-xs">Activo</label>
+            </div>
+            
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.saveContact()" class="btn-primary flex-1">💾 Guardar</button>
+                <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Editor de Grupo de Contactos -->
+<div id="modal-group-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-cyan-400 text-xl">group</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Grupo de Contactos</h3>
+            </div>
+            <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4">
+            <input type="hidden" id="group-id">
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Nombre del Grupo *</label>
+                <input type="text" id="group-name" placeholder="Newsletter" class="input-field w-full">
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-400">Descripción</label>
+                <textarea id="group-description" rows="2" placeholder="Descripción del grupo..." class="input-field w-full"></textarea>
+            </div>
+            
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.saveContactGroup()" class="btn-primary flex-1">💾 Guardar</button>
+                <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Importar Contactos CSV -->
+<div id="modal-import-contacts" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-cyan-400 text-xl">upload_file</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Importar Contactos</h3>
+            </div>
+            <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="p-6 border-2 border-dashed border-white/10 rounded-xl text-center">
+                <span class="material-symbols-outlined text-4xl text-slate-500 mb-2">cloud_upload</span>
+                <p class="text-sm text-slate-400 mb-4">Arrastra un archivo CSV o haz clic para seleccionar</p>
+                <input type="file" id="contacts-csv-file" accept=".csv" class="hidden" onchange="App.handleContactsFile(this)">
+                <button onclick="document.getElementById('contacts-csv-file').click()" class="btn-secondary !px-6 !py-2">Seleccionar Archivo</button>
+            </div>
+            
+            <div id="csv-preview" class="hidden">
+                <p class="text-xs text-slate-400 mb-2">Vista previa (primeros 5 contactos):</p>
+                <div id="csv-preview-list" class="bg-black/40 rounded-lg p-3 text-xs font-mono max-h-40 overflow-y-auto"></div>
+            </div>
+            
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.importContacts()" class="btn-primary flex-1">📥 Importar</button>
+                <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+            </div>
         </div>
     </div>
 </div>
