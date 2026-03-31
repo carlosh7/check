@@ -5034,7 +5034,7 @@ const App = window.App = {
     },
 
     navigate(viewName, params = {}, push = true) {
-        console.log('[NAV DEBUG] Navegando a:', viewName, params, 'push:', push);
+        console.log('[NAV DEBUG] Navegando a:', viewName, params, 'push:', push, 'from:', new Error().stack.split('\n')[2]);
         
         // Prevenir navegación múltiple simultánea
         if (this._navigating) {
@@ -7525,13 +7525,13 @@ const App = window.App = {
     },
 
     switchSystemTab(tabName) {
-        console.log('[SYS] Switching to tab:', tabName);
+        console.log('[SYS] Switching to tab:', tabName, 'current URL:', window.location.href);
         
         // Obtener rol del usuario
         const userRole = this.state.user?.role || 'PRODUCTOR';
         const isAdmin = userRole === 'ADMIN';
         
-        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin);
+        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin, 'current state tab:', this.state.activeSystemTab);
         
         // Pestañas que solo ADMIN puede ver
         const adminOnlyTabs = ['groups', 'legal', 'email'];
