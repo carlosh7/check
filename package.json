@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.34.78",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.78 - Fix: font size 12px for events and companies",
+  "version": "12.34.79",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.34.79 - Fix: restore text-xs to 12px in CSS",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
