@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.87';
+const VERSION = '12.34.88';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2580,130 +2580,8 @@ const App = window.App = {
         }
     },
 
-    // ─── MAILING & MAILBOX LOGIC V11.1 ───
-    
-    async loadEmailTemplates() {
-        const grid = document.getElementById('templates-grid');
-        if (!grid) return;
-        try {
-            const response = await this.fetchAPI('/email/email-templates');
-            const templates = Array.isArray(response) ? response : (response.data || []);
-            this.state.emailTemplates = templates;
-            grid.innerHTML = `
-                <div onclick="App.openTemplateEditor()" class="card p-6 rounded-xl border border-dashed border-white/20 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all group flex flex-col items-center justify-center gap-3 cursor-pointer min-h-[180px]">
-                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-secondary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
-                        <span class="material-symbols-outlined text-2xl">add</span>
-                    </div>
-                    <span class="text-xs font-bold text-[var(--text-secondary)] group-hover:text-[var(--primary)]">NUEVA PLANTILLA</span>
-                </div>
-            ` + templates.map(t => `
-                <div class="card p-6 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all group relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative z-10 flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined">mail</span>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-white">${t.name}</h4>
-                            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">${t.subject || 'Sin Asunto'}</p>
-                        </div>
-                    </div>
-                    <div class="relative z-10 pt-4 border-t border-white/5 flex gap-2">
-                        <button onclick="App.selectTemplateFromLibrary('${t.id}')" class="btn-primary !py-1.5 !px-3 text-[10px] flex-1">
-                            <span class="material-symbols-outlined text-xs">send</span> USAR PARA ENVÍO
-                        </button>
-                        <button onclick="App.openTemplateEditor('${t.id}')" class="btn-secondary !py-1.5 !px-3 text-[10px] flex-1">
-                            <span class="material-symbols-outlined text-xs">edit</span> EDITAR
-                        </button>
-                        <button onclick="App.deleteEmailTemplate('${t.id}')" class="btn-secondary !py-1.5 !px-2 !text-red-500 hover:!bg-red-500/10">
-                            <span class="material-symbols-outlined text-xs">delete</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        } catch(e) { console.error('Error templates:', e); }
-    },
-
-    async openTemplateEditor(id = null) {
-        console.log('[TEMPLATES] Abriendo editor:', id || 'Nueva');
-        const modal = document.getElementById('modal-template-editor');
-        if (!modal) return;
-
-        // Limpiar campos
-        document.getElementById('tpl-name').value = '';
-        document.getElementById('tpl-subject').value = '';
-        if (this.quillTemplate) this.quillTemplate.setContents([]);
-        window.active_template_id = id;
-
-        if (id) {
-            const t = this.state.emailTemplates?.find(x => String(x.id) === String(id));
-            if (t) {
-                document.getElementById('tpl-name').value = t.name;
-                document.getElementById('tpl-subject').value = t.subject;
-                if (this.quillTemplate) this.quillTemplate.clipboard.dangerouslyPasteHTML(t.body || '');
-            }
-        }
-
-        modal.classList.remove('hidden');
-        
-        // Inicializar Quill si no existe
-        if (!this.quillTemplate) {
-            const selector = '#tpl-quill-editor';
-            if (document.querySelector(selector)) {
-                this.quillTemplate = new Quill(selector, {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            ['bold', 'italic', 'underline'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'clean']
-                        ]
-                    }
-                });
-            }
-        }
-    },
-
-    async saveEmailTemplate() {
-        const id = window.active_template_id;
-        const data = {
-            name: document.getElementById('tpl-name').value,
-            subject: document.getElementById('tpl-subject').value,
-            body: this.quillTemplate ? this.quillTemplate.root.innerHTML : ''
-        };
-
-        if (!data.name) return Swal.fire('Atención', 'El nombre de la plantilla es obligatorio.', 'warning');
-
-        try {
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email/email-templates/${id}` : '/email/email-templates';
-            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
-            
-            if (res.success) {
-                this._notifyAction('Guardado', 'Plantilla actualizada correctamente.', 'success');
-                document.getElementById('modal-template-editor').classList.add('hidden');
-                this.loadEmailTemplates();
-                this.loadMailingData(); 
-            } else {
-                Swal.fire('Error', res.error || 'No se pudo guardar la plantilla.', 'error');
-            }
-        } catch(e) { console.error('Error saving template:', e); }
-    },
-
-    async deleteEmailTemplate(id) {
-        if (await this._confirmAction('¿Eliminar Plantilla?', 'Esta acción no se puede deshacer.')) {
-            try {
-                const res = await this.fetchAPI(`/email/email-templates/${id}`, { method: 'DELETE' });
-                if (res.success) {
-                    this._notifyAction('Eliminada', 'La plantilla ha sido borrada.', 'success');
-                    this.loadEmailTemplates();
-                    this.loadMailingData();
-                }
-            } catch(e) { console.error('Error deleting template:', e); }
-        }
-    },
-
-    async selectTemplateFromLibrary(id) {
+    // Función para seleccionar plantilla de la biblioteca y usarla en mailing
+    selectTemplateFromLibrary: async function(id) {
         await this.navigateEmailSection('mailing');
         setTimeout(() => {
             const selector = document.getElementById('mailing-template-selector');
