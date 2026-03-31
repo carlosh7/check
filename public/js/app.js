@@ -133,6 +133,8 @@ const App = window.App = {
     // Guardar estado de navegación en sessionStorage
     saveViewState(view, params = {}, role = null) {
         try {
+            console.log('[PERSISTENCE DEBUG] saveViewState called with:', { view, params, role });
+            
             const state = {
                 view: view,
                 params: params || {},
@@ -182,6 +184,7 @@ const App = window.App = {
             
             const state = JSON.parse(sessionData);
             console.log('[PERSISTENCE] Loaded view state:', state);
+            console.log('[PERSISTENCE DEBUG] Raw sessionStorage data:', sessionData);
             
             // Validar que el estado no sea demasiado viejo (24 horas)
             const maxAge = 24 * 60 * 60 * 1000; // 24 horas

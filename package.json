@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.35.2",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.2 - Fix: System tab persistence with URL synchronization",
+  "version": "12.35.3",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.3 - Debug: Add detailed logging for saveViewState params issue",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
