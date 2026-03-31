@@ -715,14 +715,27 @@ if (imapCount.count === 0) {
     db.prepare("INSERT INTO imap_config (id, imap_host, imap_port, imap_tls) VALUES (1, '', 993, 1)").run();
 }
 
-// Semilla de plantillas globales administrativas si no existen
+// Semilla de plantillas globales administrativas
 try { db.exec("ALTER TABLE email_templates ADD COLUMN is_base INTEGER DEFAULT 0"); } catch (_) {}
 
 const baseTemplateNames = ['Recuperación de contraseña', 'Invitación a la plataforma', 'Bienvenida al sistema', 'Notificación de acceso concedido', 'Recordatorio de credenciales', 'Notificación de evento asignado'];
-const existingBaseCount = db.prepare("SELECT COUNT(*) as count FROM email_templates WHERE event_id IS NULL AND is_base = 1").get();
 
-// Si no hay plantillas base, insertar las 6
-if (existingBaseCount.count === 0) {
+// Obtener plantillas globales existentes
+const existingTemplates = db.prepare("SELECT id, name FROM email_templates WHERE event_id IS NULL").all();
+const existingNames = existingTemplates.map(t => t.name);
+
+// 1. Marcar como base las que ya existen y coinciden con los nombres oficiales
+const markBase = db.prepare("UPDATE email_templates SET is_base = 1 WHERE name = ? AND event_id IS NULL");
+baseTemplateNames.forEach(name => {
+    if (existingNames.includes(name)) {
+        markBase.run(name);
+    }
+});
+
+// 2. Insertar las que no existen
+const templatesToInsert = baseTemplateNames.filter(name => !existingNames.includes(name));
+
+if (templatesToInsert.length > 0) {
     const globalTemplates = [
         {
             name: 'Recuperación de contraseña',
@@ -743,9 +756,7 @@ if (existingBaseCount.count === 0) {
             </div>
         </div>
     </div>
-</div>`,
-            is_active: 1,
-            is_base: 1
+</div>`
         },
         {
             name: 'Invitación a la plataforma',
@@ -770,10 +781,120 @@ if (existingBaseCount.count === 0) {
             </div>
         </div>
     </div>
-</div>`,
-            is_active: 1,
-            is_base: 1
+</div>`
         },
+        {
+            name: 'Bienvenida al sistema',
+            subject: '¡Bienvenido a {{app_name}}!',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🚀 ¡Bienvenido!</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, ¡bienvenido a <strong>{{app_name}}</strong>!</p>
+            <p style="line-height: 1.6; font-size: 14px; color: #94a3b8; margin-top: 15px;">Tus credenciales de acceso:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 20px 0; border: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📧 Usuario:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>🔑 Contraseña:</strong> {{temp_password}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Iniciar Sesión</a>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">Te recomendamos cambiar tu contraseña en el primer acceso.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+        },
+        {
+            name: 'Notificación de acceso concedido',
+            subject: 'Tienes acceso a {{entity_name}} - {{app_name}}',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">✅ Acceso Concedido</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, se te ha concedido acceso a:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px; font-weight: 700;">{{entity_name}}</p>
+                <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 14px;">{{entity_type}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{access_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Ir al Panel</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+        },
+        {
+            name: 'Recordatorio de credenciales',
+            subject: 'Tus credenciales de acceso - {{app_name}}',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">🔑 Tus Credenciales</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, aquí están tus datos de acceso:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📧 Usuario:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>🔑 Contraseña:</strong> {{temp_password}}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{login_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Iniciar Sesión</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+        },
+        {
+            name: 'Notificación de evento asignado',
+            subject: 'Te han asignado un evento: {{event_name}}',
+            body: `<div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; color: inherit; background: transparent;">
+    <div style="max-width: 600px; margin: 0 auto; background: transparent; border-radius: 24px; border: 1px solid rgba(124, 58, 237, 0.15); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 40px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">📅 Evento Asignado</h1>
+        </div>
+        <div style="padding: 40px;">
+            <p style="line-height: 1.6; font-size: 16px; color: inherit;">Hola <strong>{{user_name}}</strong>, se te ha asignado un nuevo evento:</p>
+            <div style="background: rgba(124, 58, 237, 0.05); border-radius: 16px; padding: 25px; margin: 25px 0; border: 1px solid rgba(124, 58, 237, 0.1);">
+                <p style="margin: 5px 0; color: inherit; font-size: 18px; font-weight: 700; text-align: center;">{{event_name}}</p>
+                <div style="margin-top: 15px; border-top: 1px solid rgba(124, 58, 237, 0.1); padding-top: 15px;">
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📅 Fecha:</strong> {{event_date}}</p>
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>📍 Ubicación:</strong> {{event_location}}</p>
+                    <p style="margin: 5px 0; color: inherit; font-size: 14px;"><strong>👤 Tu rol:</strong> {{user_role}}</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{event_url}}" style="display: inline-block; background: #7c3aed; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700;">Ver Evento</a>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.1); text-align: center;">
+                <p style="font-size: 11px; opacity: 0.4;">Power By <a href="https://smarteventos.co" style="color: #7c3aed; text-decoration: none;">Smart Eventos</a></p>
+            </div>
+        </div>
+    </div>
+</div>`
+        }
+    ];
+    
+    const insert = db.prepare("INSERT INTO email_templates (id, name, subject, body, event_id, is_active, is_base, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)");
+    templatesToInsert.forEach(name => {
+        const tpl = globalTemplates.find(t => t.name === name);
+        if (tpl) {
+            insert.run(uuidv4(), tpl.name, tpl.subject, tpl.body, 1, 1, new Date().toISOString(), new Date().toISOString());
+        }
+    });
+}
         {
             name: 'Bienvenida al sistema',
             subject: '¡Bienvenido a {{app_name}}!',
