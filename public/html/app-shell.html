@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.72</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.73</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -695,8 +695,8 @@
             </section>
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
-            <section id="view-system" class="hidden space-y-2 animate-fade-in">
-                <div class="sub-nav-container p-1.5 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-2 mb-2">
+            <section id="view-system" class="hidden animate-fade-in">
+                <div class="sub-nav-container p-1.5 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-2 mb-0">
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('users')">Equipo</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('groups')">Empresas</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('legal')">Legales</button>
@@ -749,13 +749,13 @@
                 </div>
 
                 <!-- SECCIÓN: EQUIPO -->
-                <div id="sys-content-users" class="hidden space-y-4">
-                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
+                <div id="sys-content-users" class="hidden">
+                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 4px;">
                         <button onclick="App.openInviteModal()" style="padding: 8px 16px; font-size: 12px; border-radius: 8px; background: rgba(124, 58, 237, 0.9); border: 1px solid rgba(124, 58, 237, 1); color: white; font-weight: bold; cursor: pointer;">
                             + Staff
                         </button>
                     </div>
-                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]" style="margin-top: 0;">
+                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
                             <input id="user-search" type="text" placeholder="Buscar..." 
                                    style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"

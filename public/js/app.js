@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.72';
+const VERSION = '12.34.73';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1172,11 +1172,11 @@ const App = window.App = {
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-sm font-medium mb-1">
+                    <span class="block px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-sm font-medium mb-1" style="box-shadow: none !important; text-shadow: none !important; filter: none !important;">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
                 `).join('') : `<span class="text-sm text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div class="flex flex-col">${groupDisplay}</div>`;
+                const colEmpresa = `<div class="flex flex-col" style="box-shadow: none !important;">${groupDisplay}</div>`;
 
                 // --- COLUMNA 4: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
