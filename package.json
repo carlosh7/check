@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.35.3",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.3 - Debug: Add detailed logging for saveViewState params issue",
+  "version": "12.35.4",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.35.4 - Debug: Track when system view is saved without tab parameter",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -133,7 +133,12 @@ const App = window.App = {
     // Guardar estado de navegación en sessionStorage
     saveViewState(view, params = {}, role = null) {
         try {
-            console.log('[PERSISTENCE DEBUG] saveViewState called with:', { view, params, role });
+            console.log('[PERSISTENCE DEBUG] saveViewState called with - view:', view, 'params:', JSON.stringify(params), 'role:', role);
+            
+            // DEBUG: Registrar si params no tiene 'tab' pero estamos en vista 'system'
+            if (view === 'system' && (!params || !params.tab)) {
+                console.warn('[PERSISTENCE WARNING] Saving system view without tab parameter! Stack:', new Error().stack);
+            }
             
             const state = {
                 view: view,
@@ -185,6 +190,11 @@ const App = window.App = {
             const state = JSON.parse(sessionData);
             console.log('[PERSISTENCE] Loaded view state:', state);
             console.log('[PERSISTENCE DEBUG] Raw sessionStorage data:', sessionData);
+            
+            // DEBUG: Registrar si el estado cargado no tiene 'tab' pero es vista 'system'
+            if (state.view === 'system' && (!state.params || !state.params.tab)) {
+                console.warn('[PERSISTENCE WARNING] Loaded system view without tab parameter!');
+            }
             
             // Validar que el estado no sea demasiado viejo (24 horas)
             const maxAge = 24 * 60 * 60 * 1000; // 24 horas
