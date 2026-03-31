@@ -5056,6 +5056,18 @@ const App = window.App = {
             if (viewName === 'admin' && params.id) url = `/admin/${params.id}`;
             if (viewName === 'system' && params.tab) url = `/system/${params.tab}`;
             if (viewName === 'event-config' && params.id) url = `/event-config/${params.id}`;
+            
+            // Si estamos en system y no hay tab en params pero la URL actual tiene tab,
+            // usar el tab de la URL actual
+            if (viewName === 'system' && !params.tab && window.location.pathname.startsWith('/system/')) {
+                const tabFromUrl = window.location.pathname.split('/')[2];
+                if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
+                    url = `/system/${tabFromUrl}`;
+                    params.tab = tabFromUrl; // Actualizar params también
+                    console.log('[NAV] Updated URL and params from current path:', tabFromUrl);
+                }
+            }
+            
             history.pushState({ view: viewName, params }, '', url);
             setTimeout(() => { this._isPushingState = false; }, 100);
         }
@@ -5080,7 +5092,22 @@ const App = window.App = {
             setTimeout(() => {
                 this.hideRestrictedSystemTabs();
             }, 100);
-            window.switchSystemTab(params.tab || 'users');
+            
+            // Determinar qué pestaña mostrar:
+            // 1. Primero, usar el parámetro 'tab' si existe
+            // 2. Si no, extraer de la URL actual (/system/email, /system/legal, etc.)
+            // 3. Si no hay nada, usar 'users' por defecto
+            let tabToShow = params.tab;
+            
+            if (!tabToShow && window.location.pathname.startsWith('/system/')) {
+                const tabFromUrl = window.location.pathname.split('/')[2];
+                if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
+                    tabToShow = tabFromUrl;
+                    console.log('[NAV] Extracted tab from URL for system view:', tabToShow);
+                }
+            }
+            
+            window.switchSystemTab(tabToShow || 'users');
         }
         
         // Redirecciones de compatibilidad para el Hub unificado
