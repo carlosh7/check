@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.73';
+const VERSION = '12.34.74';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1172,7 +1172,7 @@ const App = window.App = {
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-sm font-medium mb-1" style="box-shadow: none !important; text-shadow: none !important; filter: none !important;">
+                    <span class="block px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-sm font-medium mb-1" style="background: rgba(148, 163, 184, 0.2) !important; border: none !important; outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important; -moz-box-shadow: none !important; text-shadow: none !important;">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
                 `).join('') : `<span class="text-sm text-slate-500 italic">Sin empresa</span>`;
