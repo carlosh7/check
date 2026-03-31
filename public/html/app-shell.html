@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.83</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.84</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -722,15 +722,47 @@
 
                 <!-- SECCIÓN: EMPRESAS -->
                 <div id="sys-content-groups" class="hidden space-y-6">
+                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
+                        <div style="flex: 1 1 auto; min-width: 0; position: relative;">
+                            <input id="group-search" type="text" placeholder="Buscar..." 
+                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
+                                   oninput="App.filterGroups()">
+                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+                            <select id="filter-group-event" onchange="App.filterGroups()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                <option value="">Eventos</option>
+                            </select>
+                            <select id="filter-group-user" onchange="App.filterGroups()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                <option value="">Staff</option>
+                            </select>
+                            <select id="filter-group-status" onchange="App.filterGroups()" style="padding: 6px 10px; font-size: 11px; min-width: 90px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                                <option value="">Estado</option>
+                                <option value="ACTIVE">Activo</option>
+                                <option value="INACTIVE">Inactivo</option>
+                            </select>
+                            <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" style="padding: 6px 10px; font-size: 11px; min-width: 110px; border-radius: 8px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
+                                <option value="">Acciones</option>
+                                <option value="activate">Activar</option>
+                                <option value="deactivate">Desactivar</option>
+                                <option value="delete">Eliminar</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
                         <div class="overflow-x-auto">
                             <table class="data-table">
                                 <thead>
-                                    <tr>
-                                        <th class="!py-6 !px-8 text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
-                                        <th class="!py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Contacto</th>
-                                        <th class="!py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                        <th class="!py-6 !px-8 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Acciones</th>
+                                    <tr class="bg-white/[0.01]">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                            <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        </th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody id="groups-tbody" class="divide-y divide-white/[0.03]"></tbody>

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.83';
+const VERSION = '12.34.84';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -839,6 +839,9 @@ const App = window.App = {
             this.state.allUsers = users;
             this.state.allEvents = events;
             
+            // Poblar filtros
+            this.populateGroupFilters();
+            
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
@@ -862,37 +865,224 @@ const App = window.App = {
                         </div>`).join('');
                     
                     return `
-                    <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none">
-                        <td class="px-6 py-4">
+                    <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
+                        <td class="px-3 py-4" style="width: 40px;">
+                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                        </td>
+                        <td class="px-3 py-4">
                             <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                            <div class="text-[11px] text-[var(--text-secondary)] mt-1">${g.description || 'Sin descripción'}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="text-[var(--text-main)] text-xs font-medium">${g.email || '-'}</div>
-                            <div class="text-[var(--text-secondary)] text-[11px] mt-0.5">${g.phone || ''}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
+                        <td class="px-3 py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
                             <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-wrap gap-1.5 max-w-[250px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin usuarios</span>'}</div>
-                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Usuario</button>
+                        <td class="px-3 py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin staff</span>'}</div>
+                            <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Staff</button>
                         </td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-3 py-4 text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                                 ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                             </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <button data-action="openCompanyModal" data-group-id="${g.id}" class="px-4 py-2 bg-[var(--bg-hover)] text-[var(--text-main)] hover:bg-[var(--border)] rounded-lg text-xs font-bold transition-all">Editar</button>
                         </td>
                     </tr>`;
                 }).join('');
             }
         } catch(e) { console.error('Error loading groups:', e); }
     },
-    
+
+    // Poblar filtros de empresas
+    populateGroupFilters: function() {
+        const eventSelect = document.getElementById('filter-group-event');
+        const userSelect = document.getElementById('filter-group-user');
+        
+        if (eventSelect && this.state.allEvents) {
+            const currentVal = eventSelect.value;
+            eventSelect.innerHTML = '<option value="">Eventos</option>';
+            this.state.allEvents.forEach(e => {
+                eventSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+            });
+            eventSelect.value = currentVal;
+        }
+        
+        if (userSelect && this.state.allUsers) {
+            const currentVal = userSelect.value;
+            userSelect.innerHTML = '<option value="">Staff</option>';
+            this.state.allUsers.forEach(u => {
+                userSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
+            });
+            userSelect.value = currentVal;
+        }
+    },
+
+    // Filtrar empresas
+    filterGroups: function() {
+        if (!this.state.groups) return;
+        
+        const searchTerm = document.getElementById('group-search')?.value.toLowerCase() || '';
+        const eventFilter = document.getElementById('filter-group-event')?.value || '';
+        const userFilter = document.getElementById('filter-group-user')?.value || '';
+        const statusFilter = document.getElementById('filter-group-status')?.value || '';
+        
+        const filtered = this.state.groups.filter(g => {
+            // Filtro por búsqueda (nombre o email)
+            const matchesSearch = !searchTerm || 
+                (g.name && g.name.toLowerCase().includes(searchTerm)) ||
+                (g.email && g.email.toLowerCase().includes(searchTerm));
+            
+            // Filtro por evento
+            let matchesEvent = true;
+            if (eventFilter && this.state.allEvents) {
+                const groupEvents = this.state.allEvents.filter(e => String(e.group_id) === String(g.id));
+                matchesEvent = groupEvents.some(e => String(e.id) === eventFilter);
+            }
+            
+            // Filtro por usuario
+            let matchesUser = true;
+            if (userFilter && this.state.allUsers) {
+                const groupUsers = this.state.allUsers.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
+                matchesUser = groupUsers.some(u => String(u.id) === userFilter);
+            }
+            
+            // Filtro por estado
+            const matchesStatus = !statusFilter || g.status === statusFilter;
+            
+            return matchesSearch && matchesEvent && matchesUser && matchesStatus;
+        });
+        
+        this.renderFilteredGroups(filtered);
+    },
+
+    // Renderizar empresas filtradas
+    renderFilteredGroups: function(groups) {
+        const tbody = document.getElementById('groups-tbody');
+        if (!tbody) return;
+        
+        const users = this.state.allUsers || [];
+        const events = this.state.allEvents || [];
+        
+        if (!groups || groups.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-[var(--text-muted)] italic">No hay empresas que coincidan con los filtros.</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = groups.map(g => {
+            const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
+            const userChips = groupUsers.map(u => `
+                <div class="inline-flex items-center gap-1">
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-medium rounded">
+                        ${u.display_name || u.username}
+                    </span>
+                </div>`).join('');
+            
+            const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
+            const eventChips = groupEvents.map(e => `
+                <div class="inline-flex items-center gap-1">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-medium rounded">
+                        ${e.name.length > 12 ? e.name.substring(0, 12) + '...' : e.name}
+                    </span>
+                </div>`).join('');
+            
+            return `
+            <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
+                <td class="px-3 py-4" style="width: 40px;">
+                    <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" ${this.state.selectedGroups?.includes(g.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                </td>
+                <td class="px-3 py-4">
+                    <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
+                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                </td>
+                <td class="px-3 py-4">
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
+                    <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
+                </td>
+                <td class="px-3 py-4">
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin staff</span>'}</div>
+                    <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Staff</button>
+                </td>
+                <td class="px-3 py-4 text-left">
+                    <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
+                        ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                    </span>
+                </td>
+            </tr>`;
+        }).join('');
+    },
+
+    // Toggle seleccionar todas las empresas
+    toggleSelectAllGroups: function() {
+        const selectAll = document.getElementById('select-all-groups');
+        if (!selectAll) return;
+        
+        const checkboxes = document.querySelectorAll('.group-checkbox');
+        const isChecked = selectAll.checked;
+        
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+            const groupId = cb.dataset.groupId;
+            this.toggleGroupSelection(groupId, isChecked);
+        });
+    },
+
+    // Toggle selección de una empresa
+    toggleGroupSelection: function(groupId, forceChecked) {
+        if (!this.state.selectedGroups) {
+            this.state.selectedGroups = [];
+        }
+        
+        const idx = this.state.selectedGroups.indexOf(groupId);
+        const isChecked = forceChecked !== undefined ? forceChecked : document.querySelector(`.group-checkbox[data-group-id="${groupId}"]`)?.checked;
+        
+        if (isChecked && idx === -1) {
+            this.state.selectedGroups.push(groupId);
+        } else if (!isChecked && idx > -1) {
+            this.state.selectedGroups.splice(idx, 1);
+        }
+    },
+
+    // Acciones masivas para empresas
+    handleBulkGroupAction: async function() {
+        const action = document.getElementById('bulk-group-action')?.value;
+        if (!action || !this.state.selectedGroups || this.state.selectedGroups.length === 0) {
+            alert('Selecciona al menos una empresa.');
+            return;
+        }
+        
+        const count = this.state.selectedGroups.length;
+        let confirmMsg = '';
+        
+        if (action === 'activate') confirmMsg = `¿Activar ${count} empresa(s)?`;
+        else if (action === 'deactivate') confirmMsg = `¿Desactivar ${count} empresa(s)?`;
+        else if (action === 'delete') confirmMsg = `¿Eliminar ${count} empresa(s)? Esta acción no se puede deshacer.`;
+        
+        if (!confirm(confirmMsg)) {
+            document.getElementById('bulk-group-action').value = '';
+            return;
+        }
+        
+        try {
+            for (const groupId of this.state.selectedGroups) {
+                if (action === 'activate') {
+                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ status: 'ACTIVE' }) });
+                } else if (action === 'deactivate') {
+                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ status: 'INACTIVE' }) });
+                } else if (action === 'delete') {
+                    await this.fetchAPI(`/groups/${groupId}`, { method: 'DELETE' });
+                }
+            }
+            
+            this.state.selectedGroups = [];
+            document.getElementById('select-all-groups').checked = false;
+            document.getElementById('bulk-group-action').value = '';
+            
+            this.loadGroups();
+        } catch(e) {
+            console.error('Error en acción masiva:', e);
+            alert('Error al realizar la acción.');
+        }
+    },
+
     async removeUserFromGroup(userId, groupId) {
         // Solo ADMIN puede desvincular usuarios de empresas
         if (this.state.user?.role !== 'ADMIN') {
