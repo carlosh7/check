@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.76';
+const VERSION = '12.34.77';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1172,10 +1172,10 @@ const App = window.App = {
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span style="display: inline-block; padding: 2px 6px; background: transparent; color: #94a3b8; font-size: 13px; font-weight: 500; border-radius: 4px;">
+                    <span style="display: inline-block; padding: 2px 6px; background: transparent; color: #94a3b8; font-size: 12px; font-weight: 500; border-radius: 4px;">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
-                `).join('') : `<span style="font-size: 13px; color: #64748b; font-style: italic;">Sin empresa</span>`;
+                `).join('') : `<span style="font-size: 12px; color: #64748b; font-style: italic;">Sin empresa</span>`;
                 const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
 
                 // --- COLUMNA 4: ESTADO ---
