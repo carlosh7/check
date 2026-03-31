@@ -1440,7 +1440,12 @@ const App = window.App = {
         const count = this.state.selectedGroups.length;
         let confirmMsg = '';
         
-        if (action === 'activate') confirmMsg = `¿Activar ${count} empresa(s)?`;
+        if (action === 'edit') {
+            await this.editSelectedGroups(this.state.selectedGroups);
+            document.getElementById('bulk-group-action').value = '';
+            return;
+        }
+        else if (action === 'activate') confirmMsg = `¿Activar ${count} empresa(s)?`;
         else if (action === 'deactivate') confirmMsg = `¿Desactivar ${count} empresa(s)?`;
         else if (action === 'delete') confirmMsg = `¿Eliminar ${count} empresa(s)? Esta acción no se puede deshacer.`;
         
@@ -1892,6 +1897,9 @@ const App = window.App = {
         }
         
         switch (action) {
+            case 'edit':
+                await this.editSelectedUsers(selectedIds);
+                break;
             case 'activate':
                 await this.bulkUpdateStatus(selectedIds, 'APPROVED');
                 break;
@@ -2022,6 +2030,238 @@ const App = window.App = {
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al eliminar usuarios', icon: 'error', background: '#0f172a', color: '#fff' });
         }
+    },
+
+    // Editar usuarios seleccionados
+    editSelectedUsers: async function(userIds) {
+        if (!userIds || userIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar que solo se edite un usuario a la vez
+        if (userIds.length > 1) {
+            Swal.fire({ 
+                title: '⚠️ Atención', 
+                text: 'Solo puedes editar un usuario a la vez. Por favor, selecciona solo un usuario.', 
+                icon: 'warning', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        const userId = userIds[0];
+        const user = this.state.allUsers?.find(u => u.id === userId);
+        
+        if (!user) {
+            Swal.fire({ title: '⚠️ Error', text: 'Usuario no encontrado', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar permisos
+        const currentUser = this.state.user;
+        if (!currentUser) return;
+        
+        const isAdmin = currentUser.role === 'ADMIN';
+        const isProductor = currentUser.role === 'PRODUCTOR';
+        
+        // ADMIN puede editar cualquier usuario
+        // PRODUCTOR solo puede editar usuarios que NO sean ADMIN
+        if (!isAdmin && !isProductor) {
+            Swal.fire({ 
+                title: '⚠️ Permiso denegado', 
+                text: 'No tienes permisos para editar usuarios', 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        if (isProductor) {
+            // PRODUCTOR no puede editar ADMINs
+            if (user.role === 'ADMIN') {
+                Swal.fire({ 
+                    title: '⚠️ Permiso denegado', 
+                    text: 'No puedes editar usuarios ADMIN', 
+                    icon: 'error', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
+                return;
+            }
+            
+            // PRODUCTOR solo puede editar usuarios de su empresa
+            const userGroupId = currentUser.group_id;
+            if (userGroupId) {
+                const userBelongsToGroup = user.groups && user.groups.some(g => String(g.id) === String(userGroupId));
+                if (!userBelongsToGroup) {
+                    Swal.fire({ 
+                        title: '⚠️ Permiso denegado', 
+                        text: 'Solo puedes editar usuarios de tu empresa', 
+                        icon: 'error', 
+                        background: '#0f172a', 
+                        color: '#fff' 
+                    });
+                    return;
+                }
+            }
+        }
+        
+        // Llamar a la función existente editUser
+        this.editUser(userId);
+    },
+
+    // Editar empresas seleccionadas
+    editSelectedGroups: async function(groupIds) {
+        if (!groupIds || groupIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar que solo se edite una empresa a la vez
+        if (groupIds.length > 1) {
+            Swal.fire({ 
+                title: '⚠️ Atención', 
+                text: 'Solo puedes editar una empresa a la vez. Por favor, selecciona solo una empresa.', 
+                icon: 'warning', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        const groupId = groupIds[0];
+        const group = this.state.groups?.find(g => g.id === groupId);
+        
+        if (!group) {
+            Swal.fire({ title: '⚠️ Error', text: 'Empresa no encontrada', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar permisos
+        const currentUser = this.state.user;
+        if (!currentUser) return;
+        
+        const isAdmin = currentUser.role === 'ADMIN';
+        const isProductor = currentUser.role === 'PRODUCTOR';
+        
+        // ADMIN puede editar cualquier empresa
+        // PRODUCTOR solo puede editar su propia empresa
+        if (!isAdmin && !isProductor) {
+            Swal.fire({ 
+                title: '⚠️ Permiso denegado', 
+                text: 'No tienes permisos para editar empresas', 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        if (isProductor) {
+            // PRODUCTOR solo puede editar su propia empresa
+            const userGroupId = currentUser.group_id;
+            if (!userGroupId || String(userGroupId) !== String(groupId)) {
+                Swal.fire({ 
+                    title: '⚠️ Permiso denegado', 
+                    text: 'Solo puedes editar tu propia empresa', 
+                    icon: 'error', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
+                return;
+            }
+        }
+        
+        // Llamar a la función para editar grupo
+        this.editGroup(groupId);
+    },
+
+    // Editar empresa (grupo)
+    editGroup: async function(groupId) {
+        const group = this.state.groups?.find(g => g.id === groupId);
+        if (!group) {
+            Swal.fire({ title: '⚠️ Error', text: 'Empresa no encontrada', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Usar SweetAlert2 para un modal más profesional
+        Swal.fire({
+            title: 'Editar Empresa',
+            html: `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Nombre de la empresa</label>
+                        <input id="edit-group-name" type="text" value="${group.name || ''}" 
+                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Email de contacto</label>
+                        <input id="edit-group-email" type="email" value="${group.email || ''}" 
+                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Estado</label>
+                        <select id="edit-group-status" class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            <option value="ACTIVE" ${group.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
+                            <option value="INACTIVE" ${group.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Cambios',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff',
+            preConfirm: () => {
+                const name = document.getElementById('edit-group-name').value.trim();
+                const email = document.getElementById('edit-group-email').value.trim();
+                const status = document.getElementById('edit-group-status').value;
+                
+                if (!name) {
+                    Swal.showValidationMessage('El nombre de la empresa es requerido');
+                    return false;
+                }
+                
+                return { name, email, status };
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const { name, email, status } = result.value;
+                    
+                    await this.fetchAPI(`/groups/${groupId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ name, email, status })
+                    });
+                    
+                    Swal.fire({ 
+                        title: '✓ Actualizado', 
+                        text: 'Empresa actualizada exitosamente', 
+                        icon: 'success', 
+                        background: '#0f172a', 
+                        color: '#fff', 
+                        timer: 1500, 
+                        showConfirmButton: false 
+                    });
+                    
+                    // Recargar la tabla de empresas
+                    this.loadGroups();
+                    
+                } catch (error) {
+                    Swal.fire({ 
+                        title: '⚠️ Error', 
+                        text: 'Error al actualizar la empresa', 
+                        icon: 'error', 
+                        background: '#0f172a', 
+                        color: '#fff' 
+                    });
+                }
+            }
+        });
     },
 
     // Mostrar selector de empresa para bulk

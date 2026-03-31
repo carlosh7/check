@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.94</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.95</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -700,7 +700,7 @@
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('users')">Equipo</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('groups')">Empresas</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('legal')">Legales</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.navigate('system', {tab: 'email'}, true)">Email Pro</button>
+                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.navigate('system', {tab: 'email'}, true)">Mailing</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('account')">Perfil</button>
                 </div>
 
@@ -744,6 +744,7 @@
                             </select>
                             <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" style="padding: 6px 10px; font-size: 11px; min-width: 110px; border-radius: 8px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
                                 <option value="">Acciones</option>
+                                <option value="edit">Editar</option>
                                 <option value="activate">Activar</option>
                                 <option value="deactivate">Desactivar</option>
                                 <option value="delete">Eliminar</option>
@@ -806,6 +807,7 @@
                             </select>
                             <select id="bulk-action" onchange="App.handleBulkAction()" style="padding: 6px 10px; font-size: 11px; min-width: 110px; border-radius: 8px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
                                 <option value="">Acciones</option>
+                                <option value="edit">Editar</option>
                                 <option value="assign-company">Asignar Empresa</option>
                                 <option value="assign-event">Asignar Evento</option>
                                 <option value="activate">Activar</option>
