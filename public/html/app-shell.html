@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.35.6</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.35.7</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -722,6 +722,13 @@
 
                 <!-- SECCIÓN: EMPRESAS -->
                 <div id="sys-content-groups" class="hidden space-y-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
+                        </div>
+                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                    </div>
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
                             <input id="group-search" type="text" placeholder="Buscar..." 
@@ -774,6 +781,13 @@
 
                 <!-- SECCIÓN: EQUIPO -->
                 <div id="sys-content-users" class="hidden space-y-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Control de acceso y roles de usuario.</p>
+                        </div>
+                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">+ Staff</button>
+                    </div>
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
                             <input id="user-search" type="text" placeholder="Buscar..." 
