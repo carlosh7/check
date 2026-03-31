@@ -347,7 +347,8 @@ const App = window.App = {
             const isInSystem = currentView && currentView.id === 'view-system';
             
             if (!isInSystem) {
-                this.navigate('system');
+                // Navegar a system con la pestaña 'users' por defecto
+                this.navigate('system', { tab: 'users' });
             }
             
             setTimeout(() => {
@@ -929,7 +930,7 @@ const App = window.App = {
         try {
             const event = await this.fetchAPI(`/events/${id}`);
             this.state.event = event;
-            this.navigate('admin');
+            this.navigate('admin', { id: id });
             
             // Actualizar UI del panel de control
             document.getElementById('admin-event-title').textContent = event.name;
@@ -5535,7 +5536,14 @@ const App = window.App = {
         // Navigation - Sidebar (Unified V12.6.0)
         cl('btn-toggle-sidebar', () => this.toggleSidebar());
         cl('nav-btn-my-events', () => this.navigate('my-events'));
-        cl('nav-btn-admin', () => this.navigate('admin'));
+        cl('nav-btn-admin', () => {
+            const eventId = this.state.event?.id;
+            if (eventId) {
+                this.navigate('admin', { id: eventId });
+            } else {
+                this.navigate('my-events');
+            }
+        });
         cl('nav-btn-event-config', () => {
             const eventId = this.state.event?.id;
             if (eventId) {
@@ -5544,7 +5552,7 @@ const App = window.App = {
                 this.navigate('my-events');
             }
         });
-        cl('nav-btn-system', () => this.navigate('system'));
+        cl('nav-btn-system', () => this.navigate('system', { tab: 'users' }));
         
         // Sidebar footer
         cl('btn-toggle-theme', () => this.toggleTheme());
