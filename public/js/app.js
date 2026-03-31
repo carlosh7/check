@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.74';
+const VERSION = '12.34.75';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1172,11 +1172,11 @@ const App = window.App = {
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block px-2 py-0.5 rounded-lg bg-slate-500/20 text-slate-300 text-sm font-medium mb-1" style="background: rgba(148, 163, 184, 0.2) !important; border: none !important; outline: none !important; box-shadow: none !important; -webkit-box-shadow: none !important; -moz-box-shadow: none !important; text-shadow: none !important;">
+                    <span style="display: block; padding: 2px 8px; border-radius: 6px; background: rgba(148, 163, 184, 0.15); color: #cbd5e1; font-size: 14px; font-weight: 500; margin-bottom: 2px; border: 0; outline: 0; box-shadow: none; text-shadow: none;">
                         ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
                     </span>
-                `).join('') : `<span class="text-sm text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div class="flex flex-col" style="box-shadow: none !important;">${groupDisplay}</div>`;
+                `).join('') : `<span style="font-size: 14px; color: #64748b; font-style: italic;">Sin empresa</span>`;
+                const colEmpresa = `<div style="display: flex; flex-direction: column;">${groupDisplay}</div>`;
 
                 // --- COLUMNA 4: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
