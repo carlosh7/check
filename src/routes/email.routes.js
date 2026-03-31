@@ -833,4 +833,164 @@ router.post('/send-test', authMiddleware(['ADMIN']), async (req, res) => {
     }
 });
 
+// ═══ SISTEMA DE CONTACTOS (PARA MAILING DEL SISTEMA) ═══
+
+// Listar contactos del sistema
+router.get('/contacts', authMiddleware(['ADMIN']), (req, res) => {
+    const { search, group_id, tags, page = 1, limit = 50 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    
+    let whereClause = '1=1';
+    let params = [];
+    
+    if (search) {
+        whereClause += ' AND (name LIKE ? OR email LIKE ? OR organization LIKE ?)';
+        const searchPattern = `%${search}%`;
+        params.push(searchPattern, searchPattern, searchPattern);
+    }
+    
+    if (group_id) {
+        whereClause += ' AND id IN (SELECT contact_id FROM system_contact_group_members WHERE group_id = ?)';
+        params.push(group_id);
+    }
+    
+    const total = db.prepare(`SELECT COUNT(*) as count FROM system_contacts WHERE ${whereClause}`).get(...params).count;
+    const contacts = db.prepare(`
+        SELECT * FROM system_contacts 
+        WHERE ${whereClause} 
+        ORDER BY created_at DESC 
+        LIMIT ? OFFSET ?
+    `).all(...params, parseInt(limit), offset);
+    
+    res.json({ data: contacts, pagination: { page: parseInt(page), limit: parseInt(limit), total } });
+});
+
+// Crear contacto
+router.post('/contacts', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, email, organization, phone, tags, notes } = req.body;
+    
+    if (!name || !email) {
+        return res.status(400).json({ error: 'Nombre y email requeridos' });
+    }
+    
+    const id = getValidId('ctc');
+    const now = new Date().toISOString();
+    
+    try {
+        db.prepare(`
+            INSERT INTO system_contacts (id, name, email, organization, phone, tags, notes, is_active, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+        `).run(id, name, email, organization || null, phone || null, tags || null, notes || null, now, now);
+        
+        res.json({ success: true, id });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Actualizar contacto
+router.put('/contacts/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, email, organization, phone, tags, notes, is_active } = req.body;
+    
+    const existing = db.prepare("SELECT id FROM system_contacts WHERE id = ?").get(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Contacto no encontrado' });
+    
+    db.prepare(`
+        UPDATE system_contacts SET 
+            name = ?, email = ?, organization = ?, phone = ?, tags = ?, notes = ?, 
+            is_active = ?, updated_at = ?
+        WHERE id = ?
+    `).run(
+        name || existing.name,
+        email || existing.email,
+        organization, phone, tags, notes,
+        is_active !== undefined ? (is_active ? 1 : 0) : 1,
+        new Date().toISOString(),
+        req.params.id
+    );
+    
+    res.json({ success: true });
+});
+
+// Eliminar contacto
+router.delete('/contacts/:id', authMiddleware(['ADMIN']), (req, res) => {
+    db.prepare("DELETE FROM system_contacts WHERE id = ?").run(req.params.id);
+    res.json({ success: true });
+});
+
+// Importar contactos (CSV simplificado)
+router.post('/contacts/import', authMiddleware(['ADMIN']), (req, res) => {
+    const { contacts } = req.body;
+    
+    if (!Array.isArray(contacts)) {
+        return res.status(400).json({ error: 'Array de contactos requerido' });
+    }
+    
+    const insert = db.prepare(`
+        INSERT INTO system_contacts (id, name, email, organization, phone, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const c of contacts) {
+        if (c.name && c.email) {
+            try {
+                insert.run(getValidId('ctc'), c.name, c.email, c.organization || null, c.phone || null, now, now);
+                imported++;
+            } catch (e) { /* skip duplicates */ }
+        }
+    }
+    
+    res.json({ success: true, imported });
+});
+
+// Grupos de contactos
+router.get('/contact-groups', authMiddleware(['ADMIN']), (req, res) => {
+    const groups = db.prepare("SELECT * FROM system_contact_groups ORDER BY name ASC").all();
+    res.json(groups);
+});
+
+router.post('/contact-groups', authMiddleware(['ADMIN']), (req, res) => {
+    const { name, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+    
+    const id = getValidId('gcp');
+    db.prepare("INSERT INTO system_contact_groups (id, name, description, created_at) VALUES (?, ?, ?, ?)")
+        .run(id, name, description || null, new Date().toISOString());
+    
+    res.json({ success: true, id });
+});
+
+router.delete('/contact-groups/:id', authMiddleware(['ADMIN']), (req, res) => {
+    db.prepare("DELETE FROM system_contact_group_members WHERE group_id = ?").run(req.params.id);
+    db.prepare("DELETE FROM system_contact_groups WHERE id = ?").run(req.params.id);
+    res.json({ success: true });
+});
+
+router.post('/contact-groups/:id/members', authMiddleware(['ADMIN']), (req, res) => {
+    const { contact_ids } = req.body;
+    if (!Array.isArray(contact_ids)) return res.status(400).json({ error: 'Array requerido' });
+    
+    const insert = db.prepare("INSERT OR IGNORE INTO system_contact_group_members (group_id, contact_id, added_at) VALUES (?, ?, ?)");
+    const now = new Date().toISOString();
+    
+    for (const contact_id of contact_ids) {
+        insert.run(req.params.id, contact_id, now);
+    }
+    
+    res.json({ success: true });
+});
+
+router.get('/contact-groups/:id/members', authMiddleware(['ADMIN']), (req, res) => {
+    const members = db.prepare(`
+        SELECT c.* FROM system_contacts c
+        JOIN system_contact_group_members m ON c.id = m.contact_id
+        WHERE m.group_id = ?
+    `).all(req.params.id);
+    
+    res.json(members);
+});
+
 module.exports = router;
