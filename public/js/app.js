@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.86';
+const VERSION = '12.34.87';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -384,12 +384,191 @@ const App = window.App = {
         }
     },
     
-    // Alias for templates (loadMailingTemplates existe)
+    // Cargar plantillas globales en la Biblioteca
     loadEmailTemplates: async function() {
-        console.log('[EMAIL] Loading email templates...');
-        if (typeof this.loadMailingTemplates === 'function') {
-            await this.loadMailingTemplates();
+        console.log('[EMAIL] Loading global email templates...');
+        try {
+            const templates = await this.fetchAPI('/email/email-templates');
+            this.state.globalEmailTemplates = templates;
+            this.renderEmailTemplatesGrid(templates);
+        } catch (e) { 
+            console.error('Error loading email templates:', e); 
         }
+    },
+
+    // Renderizar grid de plantillas
+    renderEmailTemplatesGrid: function(templates) {
+        const grid = document.getElementById('templates-grid');
+        if (!grid) return;
+        
+        if (!templates || templates.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">
+                <span class="material-symbols-outlined text-5xl mb-4">mail</span>
+                <p class="text-sm">No hay plantillas disponibles</p>
+            </div>`;
+            return;
+        }
+        
+        grid.innerHTML = templates.map(t => `
+            <div class="card p-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-violet-400 text-2xl">mail</span>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-wider">${t.is_active ? 'Activa' : 'Inactiva'}</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 rounded text-[10px] font-bold ${t.is_active ? 'bg-green-500/20 text-green-400' : 'bg-slate-500/20 text-slate-400'}">
+                        ${t.is_active ? '✓' : '✗'}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 line-clamp-2">${t.subject || 'Sin asunto'}</p>
+                <div class="flex gap-2">
+                    <button onclick="App.previewEmailTemplate('${t.id}')" class="flex-1 px-3 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-xs font-bold transition-colors">Ver</button>
+                    <button onclick="App.editEmailTemplate('${t.id}')" class="flex-1 px-3 py-2 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-lg text-xs font-bold transition-colors">Editar</button>
+                    <button onclick="App.toggleEmailTemplate('${t.id}')" class="px-3 py-2 ${t.is_active ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'} rounded-lg text-xs font-bold transition-colors">
+                        ${t.is_active ? '○' : '●'}
+                    </button>
+                    <button onclick="App.deleteEmailTemplate('${t.id}')" class="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition-colors">🗑</button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    // Abrir modal para nueva plantilla
+    openTemplateEditor: function() {
+        document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
+        document.getElementById('template-id').value = '';
+        document.getElementById('template-name').value = '';
+        document.getElementById('template-subject').value = '';
+        document.getElementById('template-body').value = '';
+        document.getElementById('template-active').checked = true;
+        document.getElementById('modal-template-editor').classList.remove('hidden');
+    },
+
+    // Cerrar modal del editor
+    closeTemplateEditor: function() {
+        document.getElementById('modal-template-editor').classList.add('hidden');
+    },
+
+    // Insertar variable en el editor
+    insertTemplateVariable: function(variable) {
+        const textarea = document.getElementById('template-body');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + variable + text.substring(end);
+        textarea.focus();
+        textarea.setSelectionRange(start + variable.length, start + variable.length);
+    },
+
+    // Editar plantilla existente
+    editEmailTemplate: function(id) {
+        const templates = this.state.globalEmailTemplates || [];
+        const template = templates.find(t => String(t.id) === String(id));
+        if (!template) return;
+        
+        document.getElementById('template-editor-title').textContent = 'Editar Plantilla';
+        document.getElementById('template-id').value = template.id;
+        document.getElementById('template-name').value = template.name || '';
+        document.getElementById('template-subject').value = template.subject || '';
+        document.getElementById('template-body').value = template.body || '';
+        document.getElementById('template-active').checked = template.is_active === 1;
+        document.getElementById('modal-template-editor').classList.remove('hidden');
+    },
+
+    // Guardar plantilla (crear o actualizar)
+    saveEmailTemplate: async function() {
+        const id = document.getElementById('template-id').value;
+        const name = document.getElementById('template-name').value;
+        const subject = document.getElementById('template-subject').value;
+        const body = document.getElementById('template-body').value;
+        const is_active = document.getElementById('template-active').checked ? 1 : 0;
+        
+        if (!name || !subject || !body) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
+        
+        try {
+            if (id) {
+                // Actualizar
+                await this.fetchAPI(`/email/email-templates/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, subject, body, is_active })
+                });
+            } else {
+                // Crear
+                await this.fetchAPI('/email/email-templates', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, subject, body, is_active })
+                });
+            }
+            
+            this.closeTemplateEditor();
+            this.loadEmailTemplates();
+        } catch (e) {
+            console.error('Error saving template:', e);
+            alert('Error al guardar plantilla');
+        }
+    },
+
+    // Eliminar plantilla
+    deleteEmailTemplate: async function(id) {
+        if (!confirm('¿Estás seguro de eliminar esta plantilla? Esta acción no se puede deshacer.')) return;
+        
+        try {
+            await this.fetchAPI(`/email/email-templates/${id}`, { method: 'DELETE' });
+            this.loadEmailTemplates();
+        } catch (e) {
+            console.error('Error deleting template:', e);
+            alert('Error al eliminar plantilla');
+        }
+    },
+
+    // Toggle activo/inactivo
+    toggleEmailTemplate: async function(id) {
+        const templates = this.state.globalEmailTemplates || [];
+        const template = templates.find(t => String(t.id) === String(id));
+        if (!template) return;
+        
+        try {
+            await this.fetchAPI(`/email/email-templates/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ 
+                    name: template.name, 
+                    subject: template.subject, 
+                    body: template.body,
+                    is_active: template.is_active ? 0 : 1
+                })
+            });
+            this.loadEmailTemplates();
+        } catch (e) {
+            console.error('Error toggling template:', e);
+        }
+    },
+
+    // Vista previa de plantilla
+    previewEmailTemplate: function(id) {
+        const templates = this.state.globalEmailTemplates || [];
+        const template = templates.find(t => String(t.id) === String(id));
+        if (!template) return;
+        
+        // Reemplazar variables con valores de ejemplo
+        let body = template.body || '';
+        body = body.replace(/{{user_name}}/g, 'Juan Pérez');
+        body = body.replace(/{{user_email}}/g, 'juan@ejemplo.com');
+        body = body.replace(/{{app_name}}/g, 'Check Pro');
+        body = body.replace(/{{temp_password}}/g, '••••••••');
+        body = body.replace(/{{reset_link}}/g, '#');
+        body = body.replace(/{{login_url}}/g, '#');
+        body = body.replace(/{{event_name}}/g, 'Evento de Ejemplo');
+        body = body.replace(/{{event_date}}/g, '31 de Marzo, 2026');
+        body = body.replace(/{{event_location}}/g, 'Centro de Convenciones');
+        
+        document.getElementById('template-preview-content').innerHTML = body;
+        document.getElementById('modal-template-preview').classList.remove('hidden');
     },
 
     // Función interna para mostrar sección de email (para compatibilidad)

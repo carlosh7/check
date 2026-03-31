@@ -283,9 +283,9 @@ router.post('/email-templates', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 router.put('/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
-    const { subject, body } = req.body;
-    db.prepare("UPDATE email_templates SET subject = ?, body = ?, updated_at = ? WHERE id = ?")
-      .run(subject, body, new Date().toISOString(), req.params.id);
+    const { name, subject, body, is_active } = req.body;
+    db.prepare("UPDATE email_templates SET name = ?, subject = ?, body = ?, is_active = ?, updated_at = ? WHERE id = ?")
+      .run(name, subject, body, is_active ? 1 : 0, new Date().toISOString(), req.params.id);
     res.json({ success: true });
 });
 
