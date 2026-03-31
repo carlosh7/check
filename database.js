@@ -559,6 +559,67 @@ db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_clicks_campaign ON email_tracki
 db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_opens_email ON email_tracking_opens(to_email)");
 db.exec("CREATE INDEX IF NOT EXISTS idx_tracking_clicks_email ON email_tracking_clicks(to_email)");
 
+// ═══ FASE 5: MAILING v2.0 - ESTRUCTURA INDEPENDIENTE (v12.36.0) ═══
+
+// Agregar columnas owner_type y owner_id a tablas existentes para soportar sistema y eventos
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE smtp_config ADD COLUMN owner_type TEXT DEFAULT 'SYSTEM'"); } catch (_) {}
+try { db.exec("ALTER TABLE imap_config ADD COLUMN owner_type TEXT DEFAULT 'SYSTEM'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN template_type TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN is_base INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN is_public INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE email_queue ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_queue ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_queue ADD COLUMN account_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_campaigns ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_campaigns ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_logs ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_logs ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_tracking_opens ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_tracking_opens ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_tracking_clicks ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_tracking_clicks ADD COLUMN owner_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_campaign_logs ADD COLUMN owner_type TEXT DEFAULT 'EVENT'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_campaign_logs ADD COLUMN owner_id TEXT"); } catch (_) {}
+
+// Tablas de contactos del sistema (para Mailing del Sistema)
+db.exec(`CREATE TABLE IF NOT EXISTS system_contacts (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    organization TEXT,
+    phone TEXT,
+    tags TEXT,
+    notes TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT,
+    updated_at TEXT
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS system_contact_groups (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TEXT
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS system_contact_group_members (
+    group_id TEXT NOT NULL,
+    contact_id TEXT NOT NULL,
+    added_at TEXT,
+    PRIMARY KEY (group_id, contact_id)
+)`);
+
+// Índices para nueva estructura
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_accounts_owner ON email_accounts(owner_type, owner_id)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_templates_owner ON email_templates(owner_type, owner_id)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_owner ON email_queue(owner_type, owner_id, status)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_owner ON email_campaigns(owner_type, owner_id)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_email_logs_owner ON email_logs(owner_type, owner_id, created_at)");
+
 // 17. Webhooks para integraciones externas (Slack, Discord, etc)
 db.exec(`CREATE TABLE IF NOT EXISTS webhooks (
     id TEXT PRIMARY KEY,
