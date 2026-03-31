@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.85</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.34.86</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -899,6 +899,64 @@
                                             <button type="submit" class="btn-primary flex-1 !py-4 uppercase tracking-[0.2em] font-black text-[10px] text-white">Desplegar Configuración</button>
                                         </div>
                                     </form>
+
+                                    <!-- Configuración IMAP -->
+                                    <form id="imap-form" class="space-y-6 pt-6 border-t border-white/10">
+                                        <div class="flex items-center gap-4 mb-2">
+                                            <div class="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
+                                                <span class="material-symbols-outlined text-blue-400">markunread_mailbox</span>
+                                            </div>
+                                            <h3 class="text-xl font-black text-white uppercase tracking-widest">Configuración IMAP</h3>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <input type="text" id="imap-host" placeholder="Host IMAP" class="input-field !bg-black/40 !py-4">
+                                            <input type="number" id="imap-port" placeholder="Puerto" class="input-field !bg-black/40 !py-4">
+                                            <input type="text" id="imap-user" placeholder="Usuario" class="input-field !bg-black/40 !py-4">
+                                            <input type="password" id="imap-pass" placeholder="Contraseña" class="input-field !bg-black/40 !py-4">
+                                        </div>
+                                        <div class="flex items-center gap-3 py-2">
+                                            <input type="checkbox" id="imap-tls" class="w-5 h-5 accent-blue-600 rounded"> 
+                                            <label for="imap-tls" class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Usar Conexión TLS Segura</label>
+                                        </div>
+                                        <div class="flex gap-4 pt-4">
+                                            <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-4 !px-8 text-[10px] font-black uppercase tracking-widest">Probar IMAP</button>
+                                        </div>
+                                    </form>
+
+                                    <!-- Guía Anti-Spam -->
+                                    <div class="pt-6 border-t border-white/10">
+                                        <div class="p-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.02]">
+                                            <div class="flex items-center gap-3 mb-4">
+                                                <span class="material-symbols-outlined text-amber-400">shield</span>
+                                                <h3 class="text-lg font-black text-amber-400 uppercase tracking-widest">Guía de Entregabilidad</h3>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="p-4 bg-black/40 rounded-xl">
+                                                    <h4 class="text-xs font-black text-green-400 uppercase tracking-widest mb-2">SPF</h4>
+                                                    <p class="text-[10px] text-slate-400 mb-2">Autoriza servidores que pueden enviar emails</p>
+                                                    <code class="block p-2 bg-black/60 rounded text-[10px] text-green-400 font-mono">v=spf1 include:_spf.google.com ~all</code>
+                                                </div>
+                                                <div class="p-4 bg-black/40 rounded-xl">
+                                                    <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">DKIM</h4>
+                                                    <p class="text-[10px] text-slate-400 mb-2">Firma digital que verifica el email</p>
+                                                    <p class="text-[10px] text-slate-500">Genera la clave en tu proveedor de email</p>
+                                                </div>
+                                                <div class="p-4 bg-black/40 rounded-xl">
+                                                    <h4 class="text-xs font-black text-purple-400 uppercase tracking-widest mb-2">DMARC</h4>
+                                                    <p class="text-[10px] text-slate-400 mb-2">Qué hacer si SPF o DKIM fallan</p>
+                                                    <code class="block p-2 bg-black/60 rounded text-[10px] text-purple-400 font-mono">v=DMARC1; p=none</code>
+                                                </div>
+                                                <div class="p-4 bg-black/40 rounded-xl">
+                                                    <h4 class="text-xs font-black text-amber-400 uppercase tracking-widest mb-2">Consejos</h4>
+                                                    <ul class="text-[10px] text-slate-400 space-y-1">
+                                                        <li>• Evita palabras "Gratis", "Urgente"</li>
+                                                        <li>• Incluye enlace de desuscripción</li>
+                                                        <li>• Calienta tu IP enviando pocos correos</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div id="email-content-accounts" class="email-content hidden animate-fade-in space-y-8">
