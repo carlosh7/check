@@ -5299,13 +5299,26 @@ const App = window.App = {
             }
             // Solo usar sessionStorage si la URL es raíz o compatible
             // Para vistas de evento, también permitir URLs como /event-config/123 o /admin/456
+            // Para vistas del sistema, permitir URLs como /system/email, /system/legal, etc.
             const isRootOrViewPath = path === '/' || path === '/' + savedState.view;
             const isEventViewPath = (savedState.view === 'event-config' && path.startsWith('/event-config/')) ||
                                    (savedState.view === 'admin' && path.startsWith('/admin/'));
+            const isSystemViewPath = (savedState.view === 'system' && path.startsWith('/system/'));
             
-            if (isRootOrViewPath || isEventViewPath) {
+            if (isRootOrViewPath || isEventViewPath || isSystemViewPath) {
                 targetView = savedState.view;
                 targetParams = savedState.params || {};
+                
+                // Si estamos en una URL del sistema con pestaña específica (/system/email, /system/legal, etc.)
+                // Extraer la pestaña de la URL y usarla en lugar de la guardada
+                if (savedState.view === 'system' && path.startsWith('/system/')) {
+                    const tabFromUrl = path.split('/')[2]; // Obtener "email", "legal", etc.
+                    if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
+                        targetParams.tab = tabFromUrl;
+                        console.log('[ROUTER] Extracted tab from URL:', tabFromUrl);
+                    }
+                }
+                
                 console.log('[ROUTER] Using saved state from sessionStorage');
             } else {
                 console.log('[ROUTER] URL mismatch, not using saved state. Path:', path, 'saved view:', savedState.view);
