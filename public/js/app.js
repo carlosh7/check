@@ -4218,45 +4218,123 @@ const App = window.App = {
         
         if (accountId) {
             try {
-                console.log('[ACCOUNT EDITOR] Fetching account data...');
+                console.log('[ACCOUNT EDITOR] Fetching account data from API:', `/email/accounts/${accountId}`);
                 const account = await this.fetchAPI(`/email/accounts/${accountId}`);
                 console.log('[ACCOUNT EDITOR] Account data received:', account);
                 
-                document.getElementById('account-editor-title').textContent = 'Editar Cuenta';
-                document.getElementById('account-id').value = account.id;
-                document.getElementById('account-name').value = account.name;
-                document.getElementById('account-provider').value = account.provider || 'custom';
-                document.getElementById('account-from-name').value = account.from_name || '';
-                document.getElementById('account-from-email').value = account.from_email;
-                document.getElementById('account-active').checked = account.is_active == 1;
-                document.getElementById('account-default').checked = account.is_default == 1;
+                if (!account || !account.id) {
+                    console.error('[ACCOUNT EDITOR] Invalid account data received:', account);
+                    alert('No se pudo cargar la información de la cuenta');
+                    return;
+                }
+                
+                console.log('[ACCOUNT EDITOR] Setting form fields...');
+                
+                // Verificar que los elementos existen
+                const elements = {
+                    title: document.getElementById('account-editor-title'),
+                    id: document.getElementById('account-id'),
+                    name: document.getElementById('account-name'),
+                    provider: document.getElementById('account-provider'),
+                    fromName: document.getElementById('account-from-name'),
+                    fromEmail: document.getElementById('account-from-email'),
+                    active: document.getElementById('account-active'),
+                    default: document.getElementById('account-default')
+                };
+                
+                console.log('[ACCOUNT EDITOR] Form elements found:', Object.keys(elements).map(key => ({
+                    key,
+                    exists: !!elements[key],
+                    id: elements[key]?.id
+                })));
+                
+                if (!elements.title || !elements.id || !elements.name) {
+                    console.error('[ACCOUNT EDITOR] Required form elements not found!');
+                    alert('Error: El formulario de edición no está disponible. Por favor recarga la página.');
+                    return;
+                }
+                
+                elements.title.textContent = 'Editar Cuenta';
+                elements.id.value = account.id;
+                elements.name.value = account.name;
+                if (elements.provider) elements.provider.value = account.provider || 'custom';
+                if (elements.fromName) elements.fromName.value = account.from_name || '';
+                if (elements.fromEmail) elements.fromEmail.value = account.from_email || '';
+                if (elements.active) elements.active.checked = account.is_active == 1;
+                if (elements.default) elements.default.checked = account.is_default == 1;
                 
                 // SMTP
                 console.log('[ACCOUNT EDITOR] Setting SMTP fields:', {
                     host: account.smtp_host,
                     port: account.smtp_port,
-                    user: account.smtp_user
+                    user: account.smtp_user,
+                    secure: account.smtp_secure,
+                    tls: account.smtp_tls
                 });
-                document.getElementById('account-smtp-host').value = account.smtp_host;
-                document.getElementById('account-smtp-port').value = account.smtp_port || 465;
-                document.getElementById('account-smtp-user').value = account.smtp_user;
-                document.getElementById('account-smtp-pass').value = '';
-                document.getElementById('account-smtp-secure').checked = account.smtp_secure == 1;
-                document.getElementById('account-smtp-tls').checked = account.smtp_tls == 1;
+                
+                const smtpFields = {
+                    host: document.getElementById('account-smtp-host'),
+                    port: document.getElementById('account-smtp-port'),
+                    user: document.getElementById('account-smtp-user'),
+                    pass: document.getElementById('account-smtp-pass'),
+                    secure: document.getElementById('account-smtp-secure'),
+                    tls: document.getElementById('account-smtp-tls')
+                };
+                
+                console.log('[ACCOUNT EDITOR] SMTP elements found:', Object.keys(smtpFields).map(key => ({
+                    key,
+                    exists: !!smtpFields[key],
+                    id: smtpFields[key]?.id
+                })));
+                
+                if (smtpFields.host) smtpFields.host.value = account.smtp_host || '';
+                if (smtpFields.port) smtpFields.port.value = account.smtp_port || 465;
+                if (smtpFields.user) smtpFields.user.value = account.smtp_user || '';
+                if (smtpFields.pass) smtpFields.pass.value = ''; // Nunca mostrar contraseña
+                if (smtpFields.secure) smtpFields.secure.checked = account.smtp_secure == 1;
+                if (smtpFields.tls) smtpFields.tls.checked = account.smtp_tls == 1;
                 
                 // IMAP
-                document.getElementById('account-imap-host').value = account.imap_host || '';
-                document.getElementById('account-imap-port').value = account.imap_port || 993;
-                document.getElementById('account-imap-user').value = account.imap_user || '';
-                document.getElementById('account-imap-pass').value = '';
-                document.getElementById('account-imap-secure').checked = account.imap_secure == 1;
+                const imapFields = {
+                    host: document.getElementById('account-imap-host'),
+                    port: document.getElementById('account-imap-port'),
+                    user: document.getElementById('account-imap-user'),
+                    pass: document.getElementById('account-imap-pass'),
+                    secure: document.getElementById('account-imap-secure')
+                };
+                
+                console.log('[ACCOUNT EDITOR] IMAP elements found:', Object.keys(imapFields).map(key => ({
+                    key,
+                    exists: !!imapFields[key],
+                    id: imapFields[key]?.id
+                })));
+                
+                if (imapFields.host) imapFields.host.value = account.imap_host || '';
+                if (imapFields.port) imapFields.port.value = account.imap_port || 993;
+                if (imapFields.user) imapFields.user.value = account.imap_user || '';
+                if (imapFields.pass) imapFields.pass.value = ''; // Nunca mostrar contraseña
+                if (imapFields.secure) imapFields.secure.checked = account.imap_secure == 1;
                 
                 // Avanzado
-                document.getElementById('account-daily-limit').value = account.daily_limit || 500;
-                document.getElementById('account-send-speed').value = account.send_speed || 'medium';
-                document.getElementById('account-notes').value = account.notes || '';
-                document.getElementById('account-track-opens').checked = account.track_opens == 1;
-                document.getElementById('account-track-clicks').checked = account.track_clicks == 1;
+                const advancedFields = {
+                    dailyLimit: document.getElementById('account-daily-limit'),
+                    sendSpeed: document.getElementById('account-send-speed'),
+                    notes: document.getElementById('account-notes'),
+                    trackOpens: document.getElementById('account-track-opens'),
+                    trackClicks: document.getElementById('account-track-clicks')
+                };
+                
+                console.log('[ACCOUNT EDITOR] Advanced elements found:', Object.keys(advancedFields).map(key => ({
+                    key,
+                    exists: !!advancedFields[key],
+                    id: advancedFields[key]?.id
+                })));
+                
+                if (advancedFields.dailyLimit) advancedFields.dailyLimit.value = account.daily_limit || 500;
+                if (advancedFields.sendSpeed) advancedFields.sendSpeed.value = account.send_speed || 'medium';
+                if (advancedFields.notes) advancedFields.notes.value = account.notes || '';
+                if (advancedFields.trackOpens) advancedFields.trackOpens.checked = account.track_opens == 1;
+                if (advancedFields.trackClicks) advancedFields.trackClicks.checked = account.track_clicks == 1;
                 
                 // Si hay proveedor conocido, llenar configuración
                 if (account.provider && account.provider !== 'custom') {
@@ -12019,14 +12097,14 @@ App.loadQuillLibrary = function() {
         if (!document.querySelector('link[href*="quill.snow.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css';
+            link.href = 'https://unpkg.com/quill@2.0.2/dist/quill.snow.css';
             document.head.appendChild(link);
             console.log('[QUILL] CSS loaded');
         }
         
         // Cargar script (Quill 2.0.2)
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js';
+            script.src = 'https://unpkg.com/quill@2.0.2/dist/quill.js';
         script.onload = () => {
             console.log('[QUILL] Library loaded successfully');
             resolve();
