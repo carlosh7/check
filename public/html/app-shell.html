@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.37.0</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.37.17</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -1780,6 +1780,52 @@
     </div>
 </div>
 
+<!-- MODAL: GESTIÓN DE EMPRESAS/GRUPOS -->
+<div id="modal-company" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">corporate_fare</span>
+                <h3 id="modal-company-title" class="text-sm font-bold uppercase tracking-wider">Nueva Organización</h3>
+            </div>
+            <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <input type="hidden" id="company-id-hidden" value="">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre de la Organización</label>
+                <input type="text" id="company-name" required placeholder="Ej: Tech Solutions Inc" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email de Contacto</label>
+                <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
+                <input type="text" id="company-phone" placeholder="+57 300 123 4567" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Estado</label>
+                <select id="company-status" class="input-field w-full">
+                    <option value="ACTIVE">Activo</option>
+                    <option value="INACTIVE">Inactivo</option>
+                    <option value="PENDING">Pendiente</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+                <textarea id="company-description" rows="3" placeholder="Breve descripción de la empresa o grupo..." class="input-field w-full"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-company" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Guardar Organización</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- MODAL: INVITAR COLABORADOR -->
 <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
@@ -1893,21 +1939,13 @@
                 <div class="flex justify-between items-center mb-3">
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Cuerpo del Email</label>
                     <div class="flex gap-2">
-                        <button type="button" id="btn-visual-editor" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors border border-violet-500/30" onclick="App.switchTemplateEditorMode('visual')">Visual</button>
-                        <button type="button" id="btn-html-editor" class="px-3 py-1.5 bg-slate-500/20 text-slate-400 rounded-lg text-xs font-bold hover:bg-slate-500/30 transition-colors" onclick="App.switchTemplateEditorMode('html')">HTML</button>
+                        <button type="button" id="btn-visual-editor" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors border border-violet-500/30">Visual</button>
+                        <button type="button" id="btn-html-editor" class="px-3 py-1.5 bg-slate-500/20 text-slate-400 rounded-lg text-xs font-bold hover:bg-slate-500/30 transition-colors">HTML</button>
                     </div>
                 </div>
                 
-                <div class="flex gap-2 mb-3 flex-wrap">
-                    <button type="button" onclick="App.insertTemplateVariable('{{user_name}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{user_name}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{user_email}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{user_email}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{app_name}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{app_name}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{temp_password}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{temp_password}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{reset_link}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{reset_link}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{login_url}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{login_url}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{event_name}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{event_name}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{event_date}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{event_date}}</button>
-                    <button type="button" onclick="App.insertTemplateVariable('{{event_location}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{event_location}}</button>
+                <div id="template-variables-palette" class="flex gap-2 mb-3 flex-wrap">
+                    <!-- Dinámico desde App._loadVariablesPalette() -->
                 </div>
                 
                 <!-- Editor Visual (Quill) -->

@@ -4216,7 +4216,7 @@ const App = window.App = {
         const accountsContainer = document.getElementById('email-content-accounts');
         if (accountsContainer) accountsContainer.classList.add('hidden');
         
-        if (accountId) {
+        if (accountId && accountId !== 'null' && accountId !== 'undefined') {
             try {
                 console.log('[ACCOUNT EDITOR] Fetching account data from API:', `/email/accounts/${accountId}`);
                 const account = await this.fetchAPI(`/email/accounts/${accountId}`);
@@ -4612,6 +4612,10 @@ const App = window.App = {
     
     // Eliminar cuenta
     deleteAccount: async function(id) {
+        if (!id || id === 'null' || id === 'undefined') {
+            this._notifyAction('Error', 'ID de cuenta inválido', 'error');
+            return;
+        }
         if (!confirm('¿Estás seguro de eliminar esta cuenta?\n\nEsta acción no se puede deshacer y afectará todas las campañas que usen esta cuenta.')) return;
         
         try {
@@ -5701,8 +5705,8 @@ const App = window.App = {
         }
         this.state.editingTemplate = template;
         document.getElementById('template-editor-title').textContent = 'Editar: ' + (template.name || templateName);
-        document.getElementById('tpl-name').value = template.name || '';
-        document.getElementById('tpl-subject').value = template.subject || '';
+        document.getElementById('template-name').value = template.name || '';
+        document.getElementById('template-subject').value = template.subject || '';
         document.getElementById('modal-template-editor').classList.remove('hidden');
         await this._initTemplateEditor(template.body || '');
         this.switchTemplateEditorTab('visual');
@@ -5735,7 +5739,7 @@ const App = window.App = {
         }
         
         // Limpiar el contenedor y ELIMINAR toolbars remanentes (Quill 2.0 puede dejarlas como hermanos)
-        const container = document.getElementById('tpl-quill-editor');
+        const container = document.getElementById('template-quill-editor');
         if (container) {
             const parent = container.parentElement;
             if (parent) {
@@ -5751,7 +5755,7 @@ const App = window.App = {
             this.state.quillEditor = null;
         }
         
-        this.state.quillEditor = new Quill('#tpl-quill-editor', {
+        this.state.quillEditor = new Quill('#template-quill-editor', {
             theme: 'snow',
             placeholder: 'Escribe el contenido de tu email aquí...',
             modules: {
@@ -5798,7 +5802,7 @@ const App = window.App = {
             ? ['{{guest_name}}', '{{guest_email}}', '{{event_name}}', '{{event_date}}', '{{event_location}}', '{{agenda}}', '{{qr_code}}', '{{checkin_time}}']
             : ['{{user_name}}', '{{email}}', '{{password}}', '{{role}}', '{{company_name}}', '{{login_url}}', '{{reset_url}}', '{{reset_code}}'];
         
-        const palette = document.getElementById('tpl-variables-palette');
+        const palette = document.getElementById('template-variables-palette');
         if (!palette) return;
         
         palette.innerHTML = vars.map(v => 
@@ -5813,7 +5817,7 @@ const App = window.App = {
             this.state.quillEditor.setSelection(range.index + varName.length);
             this.state.quillEditor.focus();
         } else {
-            const ta = document.getElementById('tpl-code-editor');
+            const ta = document.getElementById('template-body');
             if (ta) {
                 const start = ta.selectionStart;
                 ta.value = ta.value.substring(0, start) + varName + ta.value.substring(start);
@@ -5826,11 +5830,11 @@ const App = window.App = {
     switchTemplateEditorTab: function(tab) {
         const tabs = ['visual', 'code', 'preview'];
         tabs.forEach(t => {
-            document.getElementById('tab-btn-' + t)?.classList.remove('bg-primary', 'text-white', 'shadow');
-            document.getElementById('tab-btn-' + t)?.classList.add('bg-white/5', 'text-slate-400');
+            document.getElementById('btn-' + (t === 'code' ? 'html' : t) + '-editor')?.classList.remove('bg-primary', 'text-white', 'shadow');
+            document.getElementById('btn-' + (t === 'code' ? 'html' : t) + '-editor')?.classList.add('bg-white/5', 'text-slate-400');
         });
         
-        const activeTab = document.getElementById('tab-btn-' + tab);
+        const activeTab = document.getElementById('btn-' + (tab === 'code' ? 'html' : tab) + '-editor');
         if (activeTab) {
             activeTab.classList.remove('bg-white/5', 'text-slate-400');
             activeTab.classList.add('bg-primary', 'text-white', 'shadow');
@@ -5839,24 +5843,24 @@ const App = window.App = {
         const prevTab = this.state.templateActiveTab || 'visual';
         this.state.templateActiveTab = tab;
 
-        document.getElementById('editor-visual-container')?.classList.add('hidden');
-        document.getElementById('editor-code-container')?.classList.add('hidden');
+        document.getElementById('visual-editor-container')?.classList.add('hidden');
+        document.getElementById('html-editor-container')?.classList.add('hidden');
         document.getElementById('editor-preview-container')?.classList.add('hidden');
         
         if (tab === 'visual') {
-            document.getElementById('editor-visual-container')?.classList.remove('hidden');
+            document.getElementById('visual-editor-container')?.classList.remove('hidden');
             // Sincronizar desde Código a Visual si venimos de allá
             if (prevTab === 'code' && this.state.quillEditor) {
-                const codeContent = document.getElementById('tpl-code-editor').value;
+                const codeContent = document.getElementById('template-body').value;
                 this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(codeContent));
             }
             setTimeout(() => this.state.quillEditor?.focus(), 50);
         } else if (tab === 'code') {
-            document.getElementById('editor-code-container')?.classList.remove('hidden');
+            document.getElementById('html-editor-container')?.classList.remove('hidden');
             // Sincronizar desde Visual a Código
             const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
-            document.getElementById('tpl-code-editor').value = body;
-            setTimeout(() => document.getElementById('tpl-code-editor')?.focus(), 50);
+            document.getElementById('template-body').value = body;
+            setTimeout(() => document.getElementById('template-body')?.focus(), 50);
         } else if (tab === 'preview') {
             document.getElementById('editor-preview-container')?.classList.remove('hidden');
             // Sincronizar antes de previsualizar
@@ -6948,9 +6952,8 @@ const App = window.App = {
         // Event Creation (Full Form) - NO registrar listener aquí, se registrará cuando se abra el modal
         
         // Profile Security Forms (Phase 5)
-        sf('change-email-form', (e) => this.handleEmailChange(e));
-        sf('change-email-form', (e) => this.handleEmailChange(e));
-        sf('change-pass-form', (e) => this.handlePasswordChange(e));
+        sf('profile-form', (e) => this.handleEmailChange(e));
+        sf('password-form', (e) => this.handlePasswordChange(e));
         sf('invite-user-form', (e) => this.handleInviteSubmit(e));
         sf('company-form', (e) => this.handleCompanySubmit(e));
         
@@ -7065,6 +7068,8 @@ const App = window.App = {
         cl('btn-cancel-event-full', () => hideModal('modal-event-full'));
         cl('btn-cancel-invite', () => hideModal('modal-invite'));
         cl('btn-cancel-company', () => hideModal('modal-company'));
+        cl('btn-visual-editor', () => this.switchTemplateEditorTab('visual'));
+        cl('btn-html-editor', () => this.switchTemplateEditorTab('code'));
 
         // EVENT DELEGATION para botones dinámicos (reemplaza onclick inline violando CSP)
         // Los templates dinámicos usan data-action y data-params-* en lugar de onclick
@@ -7082,6 +7087,7 @@ const App = window.App = {
                     case 'removeUserFromGroup': _App.removeUserFromGroup(p.userId, p.groupId); break;
                     case 'showUserSelectorForGroup': _App.showUserSelectorForGroup(p.groupId); break;
                     case 'openCompanyModal': _App.openCompanyModal(p.groupId); break;
+                    case 'insertVariable': _App.insertVariable(p.varName); break;
                     // Users management
                     case 'approveUser': _App.approveUser(p.userId, p.status); break;
                     case 'editUser': _App.editUser(p.userId); break;
