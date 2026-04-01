@@ -490,6 +490,14 @@ const App = window.App = {
         console.log('[EMAIL] Loading global email templates...');
         try {
             const templates = await this.fetchAPI('/email/email-templates');
+            console.log('[EMAIL] Templates loaded:', templates?.length || 0, 'templates');
+            if (templates && templates.length > 0) {
+                console.log('[EMAIL] First template sample:', {
+                    id: templates[0].id,
+                    name: templates[0].name,
+                    body_length: templates[0].body?.length || 0
+                });
+            }
             this.state.globalEmailTemplates = templates;
             this.renderEmailTemplatesGrid(templates);
         } catch (e) { 
@@ -822,14 +830,26 @@ const App = window.App = {
             btnHtml.classList.remove('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
             
             // Inicializar Quill si no existe
-            if (!quillEditor) {
-                console.log('[TEMPLATE EDITOR] Checking Quill availability...');
+            if (!this.quillTemplate) {
+                console.log('[TEMPLATE EDITOR] Initializing Quill editor for the first time...');
                 
+                // Asegurar que Quill esté cargado
                 if (typeof Quill === 'undefined') {
-                    console.error('[TEMPLATE EDITOR] Quill library not loaded! Trying to load it...');
-                    // Intentar cargar Quill dinámicamente
-                    await this.loadQuillLibrary();
+                    console.log('[TEMPLATE EDITOR] Quill not loaded, loading dynamically...');
+                    try {
+                        await this.loadQuillLibrary();
+                    } catch (error) {
+                        console.error('[TEMPLATE EDITOR] Failed to load Quill:', error);
+                        // Fallback a editor HTML
+                        visualContainer.classList.add('hidden');
+                        htmlContainer.classList.remove('hidden');
+                        alert('No se pudo cargar el editor visual. Usando editor HTML.');
+                        return;
+                    }
                 }
+                
+                // Esperar un momento para que el DOM se actualice
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 const editorElement = document.getElementById('template-quill-editor');
                 if (!editorElement) {
@@ -837,7 +857,7 @@ const App = window.App = {
                     return;
                 }
                 
-                console.log('[TEMPLATE EDITOR] Initializing Quill editor...');
+                console.log('[TEMPLATE EDITOR] Creating Quill instance...');
                 try {
                     this.quillTemplate = new Quill('#template-quill-editor', {
                         theme: 'snow',
@@ -853,16 +873,8 @@ const App = window.App = {
                         },
                         placeholder: 'Escribe el contenido del email aquí...'
                     });
-                    console.log('[TEMPLATE EDITOR] Quill initialized successfully');
                     
-                    // Sincronizar contenido si hay texto en el textarea
-                    if (textarea && textarea.value) {
-                        console.log('[TEMPLATE EDITOR] Loading content from textarea:', textarea.value.substring(0, 100) + '...');
-                        this.quillTemplate.root.innerHTML = textarea.value;
-                    } else {
-                        // Establecer contenido por defecto si está vacío
-                        this.quillTemplate.root.innerHTML = '<p>Escribe el contenido del email aquí...</p>';
-                    }
+                    console.log('[TEMPLATE EDITOR] Quill instance created successfully');
                     
                     // Agregar evento para sincronizar con textarea
                     this.quillTemplate.on('text-change', () => {
@@ -872,14 +884,25 @@ const App = window.App = {
                     });
                     
                 } catch (error) {
-                    console.error('[TEMPLATE EDITOR] Error initializing Quill:', error);
-                    // Fallback: mostrar editor HTML
+                    console.error('[TEMPLATE EDITOR] Error creating Quill instance:', error);
+                    this.quillTemplate = null;
+                    // Fallback a editor HTML
                     visualContainer.classList.add('hidden');
                     htmlContainer.classList.remove('hidden');
-                    alert('Error al cargar el editor visual. Usando editor HTML.');
+                    alert('Error al crear el editor visual. Usando editor HTML.');
+                    return;
                 }
-            } else {
-                console.log('[TEMPLATE EDITOR] Quill editor already initialized');
+            }
+            
+            // Ahora cargar contenido si existe
+            if (this.quillTemplate && textarea) {
+                if (textarea.value && textarea.value.trim() !== '') {
+                    console.log('[TEMPLATE EDITOR] Loading content from textarea');
+                    this.quillTemplate.root.innerHTML = textarea.value;
+                } else {
+                    console.log('[TEMPLATE EDITOR] Setting default content');
+                    this.quillTemplate.root.innerHTML = '<p>Escribe el contenido del email aquí...</p>';
+                }
             }
         } else {
             // Mostrar editor HTML, ocultar visual
@@ -11914,7 +11937,7 @@ App.replyToMail = function(mailId) {
     hideModal('mail-detail-modal');
 };
 
-// Cargar librería Quill dinámicamente
+// Cargar librería Quill dinámicamente (usa misma versión que index.html: 1.3.6)
 App.loadQuillLibrary = function() {
     return new Promise((resolve, reject) => {
         if (typeof Quill !== 'undefined') {
@@ -11923,17 +11946,18 @@ App.loadQuillLibrary = function() {
             return;
         }
         
-        console.log('[QUILL] Loading Quill library dynamically...');
+        console.log('[QUILL] Loading Quill 1.3.6 library dynamically...');
         
-        // Cargar CSS si no está cargado
+        // Cargar CSS si no está cargado (misma URL que index.html)
         if (!document.querySelector('link[href*="quill.snow.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
             document.head.appendChild(link);
+            console.log('[QUILL] CSS loaded');
         }
         
-        // Cargar script
+        // Cargar script (misma URL que index.html)
         const script = document.createElement('script');
         script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
         script.onload = () => {
@@ -11942,7 +11966,13 @@ App.loadQuillLibrary = function() {
         };
         script.onerror = (error) => {
             console.error('[QUILL] Failed to load library:', error);
-            reject(new Error('Failed to load Quill library'));
+            // Intentar usar lazyLoad si está disponible
+            if (window.lazyLoad && window.lazyLoad.loadQuill) {
+                console.log('[QUILL] Trying lazyLoad.loadQuill() as fallback...');
+                window.lazyLoad.loadQuill().then(resolve).catch(reject);
+            } else {
+                reject(new Error('Failed to load Quill library'));
+            }
         };
         document.head.appendChild(script);
     });
