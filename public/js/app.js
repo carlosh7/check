@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.22';
+const VERSION = '12.37.23';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -43,17 +43,15 @@ if ('caches' in window) {
         caches.keys().then(names => {
             for (let name of names) caches.delete(name);
         }).then(() => {
+            // SANEAMIENTO RADICAL V12.37.23
+            console.log(`[VERSION] Saneamiento radical: Borrando localStorage...`);
+            localStorage.clear(); 
+            sessionStorage.clear();
             LS.set('check_app_version', VERSION);
             console.log(`[VERSION] Cache borrada por actualización a V${VERSION}`);
             
-            // Forzar reload si la versión en localStorage es diferente
-            if (v && v !== VERSION) {
-                console.log(`[VERSION] Versión anterior ${v} ≠ nueva ${VERSION}, forzando reload...`);
-                // Pequeño delay para asegurar que todo está listo
-                setTimeout(() => {
-                    window.location.reload(true); // true = forzar carga desde servidor
-                }, 500);
-            }
+            // Forzar reload inmediato
+            window.location.reload(true); 
         });
     }
 }
@@ -5709,7 +5707,19 @@ const App = window.App = {
         document.getElementById('template-subject').value = template.subject || '';
         document.getElementById('modal-template-editor').classList.remove('hidden');
         await this._initTemplateEditor(template.body || '');
-        this.switchTemplateEditorTab('visual');
+        
+        // --- DETECCIÓN DE FALLO VISUAL ---
+        if (template.body && template.body.length > 0) {
+            setTimeout(() => {
+                const editorText = this.state.quillEditor ? this.state.quillEditor.getText().trim() : '';
+                const editorHtml = this.state.quillEditor ? this.state.quillEditor.root.innerHTML.trim() : '';
+                if (editorText === '' && editorHtml === '<p><br></p>') {
+                    console.warn('[TEMPLATE FIX] Quill falló al renderizar. Cambiando a modo HTML...');
+                    this.switchTemplateEditorTab('code');
+                }
+            }, 500);
+        }
+        
         this._templateEditorOpening = false;
     },
     
@@ -5881,7 +5891,16 @@ const App = window.App = {
             document.getElementById('html-editor-container')?.classList.remove('hidden');
             // Sincronizar desde Visual a Código
             const body = this.state.quillEditor ? this.state.quillEditor.root.innerHTML : (this.state.editingTemplate?.body || '');
-            document.getElementById('template-body').value = body;
+            const textarea = document.getElementById('template-body');
+            if (textarea) {
+                textarea.value = body;
+                textarea.style.display = 'block';
+                textarea.style.visibility = 'visible';
+                textarea.style.opacity = '1';
+                textarea.style.minHeight = '400px';
+                textarea.style.backgroundColor = '#1e293b';
+                textarea.style.color = '#f1f5f9';
+            }
             setTimeout(() => document.getElementById('template-body')?.focus(), 50);
         } else if (tab === 'preview') {
             document.getElementById('editor-preview-container')?.classList.remove('hidden');

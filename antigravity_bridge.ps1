@@ -1,39 +1,42 @@
-# Antigravity Bridge v12.37.22
-# ESTATUS: SANACION DEFINITIVA (Sincronizacion de Carpeta de Pruebas)
-$VERSION = "12.37.22"
-$REPO_ORIGINAL = "C:\Users\carlo\OneDrive\Documentos\APP\Registro"
-$CONTENEDOR_PRUEBAS = "C:\Users\carlo\check"
+# Bridge antigravity v12.37.23 (Radical Clean & Dual DB Fix)
+Write-Host "--- REGLA DE ORO: CHECK PRO v12.37.23 ---" -ForegroundColor Cyan
 
-Write-Host "🚀 Iniciando SANACION Check Pro v$VERSION..." -ForegroundColor Cyan
+$REPO_PATH = "C:\Users\carlo\OneDrive\Documentos\APP\Registro"
+$CHECK_PATH = "C:\Users\carlo\check"
+$VERSION = "12.37.23"
 
-# 1. Registro Original
-Set-Location $REPO_ORIGINAL
+# 1. Sincronizar repositorio original
+Set-Location $REPO_PATH
+Write-Host "[GIT] Subiendo cambios del repositorio..."
 git add .
-git commit -m "Automated update: Check Pro v$VERSION - Final Synchronization & Quill Blindage"
+git commit -m "Automated update: Check Pro v$VERSION - Radical IDs & Fallback"
 git push origin main
-git tag "v$VERSION"
-git push origin "v$VERSION"
 
-# 2. Sincronizacion Contenedor Pruebas
-Write-Host "📥 Actualizando carpeta de pruebas en $CONTENEDOR_PRUEBAS..." -ForegroundColor Yellow
-Set-Location $CONTENEDOR_PRUEBAS
-git pull origin main
-git pull origin --tags
+# 2. Reparar Base de Datos (REPO) - Asegurar que fix_db.js exista
+Write-Host "[DB] Saneando IDs en repositorio..."
+node fix_db.js "$REPO_PATH\data\check_app.db"
 
-# 3. PARADA Y SANACION (CRITICO)
-Write-Host "🛑 Deteniendo servidor para saneamiento..." -ForegroundColor Red
-taskkill /F /IM node.exe 2>$null
-Start-Sleep -Seconds 2
+# 3. Sincronizar C:\Users\carlo\check
+Write-Host "[GIT] Sincronizando entorno de pruebas (check)..."
+git -C $CHECK_PATH pull origin main
 
-# REPARAR BASE DE DATOS DEL CONTENEDOR (La que tú ves)
-Write-Host "🛠️ Saneando base de datos del CONTENEDOR..." -ForegroundColor Yellow
-node "$REPO_ORIGINAL\fix_db.js" "$CONTENEDOR_PRUEBAS\data\check_app.db"
+# 4. Reparar Base de Datos (CHECK)
+Write-Host "[DB] Saneando IDs en entorno de pruebas..."
+node fix_db.js "$CHECK_PATH\data\check_app.db"
 
-# REPARAR BASE DE DATOS DEL REPOSITORIO (Para el futuro)
-Write-Host "🛠️ Saneando base de datos del REPOSITORIO..." -ForegroundColor Yellow
-node "$REPO_ORIGINAL\fix_db.js" "$REPO_ORIGINAL\data\check_app.db"
+# 5. Auditoría Final (RESULTADOS VISIBLES)
+Write-Host "[AUDIT] Verificando integridad de IDs..."
+node audit.js "$CHECK_PATH\data\check_app.db"
 
-# 4. REINICIO
-Write-Host "✅ Sanacion completada exitosamente v$VERSION." -ForegroundColor Green
-Write-Host "🚀 Iniciando servidor..." -ForegroundColor Cyan
-node server.js
+# 6. Reiniciar Servidor (Procedimiento Seguro)
+Write-Host "[SERVER] Reiniciando procesos..."
+taskkill /F /IM node.exe /T 2>$null
+Start-Sleep -s 1
+
+Set-Location $CHECK_PATH
+Write-Host "[SERVER] Iniciando Check Pro en puerto 3000..."
+# Iniciamos en segundo plano para no bloquear
+Start-Process node -ArgumentList "server.js" -WindowStyle Normal
+
+Write-Host "--- DESPLIEGUE COMPLETADO: v$VERSION ---" -ForegroundColor Green
+Write-Host "Por favor, recarga el navegador. Cache limpiada automáticamente por versión."
