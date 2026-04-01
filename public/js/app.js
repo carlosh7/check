@@ -12097,14 +12097,14 @@ App.loadQuillLibrary = function() {
         if (!document.querySelector('link[href*="quill.snow.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/quill@2.0.2/dist/quill.snow.css';
+            link.href = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css';
             document.head.appendChild(link);
             console.log('[QUILL] CSS loaded');
         }
         
         // Cargar script (Quill 2.0.2)
         const script = document.createElement('script');
-            script.src = 'https://unpkg.com/quill@2.0.2/dist/quill.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js';
         script.onload = () => {
             console.log('[QUILL] Library loaded successfully');
             resolve();

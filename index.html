@@ -57,11 +57,11 @@
             } catch(e) {}
         })();
     </script>
-    <link rel="stylesheet" href="/css/styles.css?v=12.37.10">
-    <link rel="stylesheet" href="/css/modern.css?v=12.37.10">
+    <link rel="stylesheet" href="/css/styles.css?v=12.37.11">
+    <link rel="stylesheet" href="/css/modern.css?v=12.37.11">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="https://unpkg.com/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 </head>
 
 <body class="antialiased">
@@ -131,15 +131,15 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://unpkg.com/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://unpkg.com/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Quill 2.0.2 - Misma versión que usa lazyLoad.loadQuill() -->
-    <script src="https://unpkg.com/quill@2.0.2/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     
     <script type="module">
         (function() {
-            const currentVersion = '12.37.10';
+            const currentVersion = '12.37.11';
             
             // 1. FORZAR recarga si hay cualquier parámetro de cache bust
             const urlParams = new URLSearchParams(window.location.search);
