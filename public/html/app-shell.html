@@ -1526,170 +1526,165 @@
             </button>
         </div>
         
-        <form id="account-editor-form" class="p-6 space-y-6 overflow-y-auto flex-1" onsubmit="event.preventDefault(); App.saveAccount();">
+        <form id="account-editor-form" class="p-6 space-y-8 overflow-y-auto flex-1" onsubmit="event.preventDefault(); App.saveAccount();">
             <input type="hidden" id="account-id">
             
-            <!-- Pestañas -->
-            <div class="flex border-b border-white/10">
-                <button type="button" id="tab-account-basic" class="tab-button active" onclick="App.switchAccountTab('basic')">Información Básica</button>
-                <button type="button" id="tab-account-smtp" class="tab-button" onclick="App.switchAccountTab('smtp')">Configuración SMTP</button>
-                <button type="button" id="tab-account-imap" class="tab-button" onclick="App.switchAccountTab('imap')">Configuración IMAP</button>
-                <button type="button" id="tab-account-advanced" class="tab-button" onclick="App.switchAccountTab('advanced')">Avanzado</button>
+            <!-- INFORMACIÓN BÁSICA -->
+            <div>
+                <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">info</span> Información Básica
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre de la Cuenta *</label>
+                        <input type="text" id="account-name" placeholder="Ej: Gmail Principal" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Proveedor</label>
+                        <select id="account-provider" class="input-field w-full !bg-black/40 !py-4" onchange="App.fillProviderConfig(this.value)">
+                            <option value="">-- Seleccionar proveedor --</option>
+                            <option value="gmail">Gmail / G Suite</option>
+                            <option value="outlook">Outlook / Office 365</option>
+                            <option value="yahoo">Yahoo Mail</option>
+                            <option value="sendgrid">SendGrid</option>
+                            <option value="amazon">Amazon SES</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre Remitente *</label>
+                        <input type="text" id="account-from-name" placeholder="Ej: Check Pro" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Email Remitente *</label>
+                        <input type="email" id="account-from-email" placeholder="noreply@tudominio.com" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6 mt-4">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-active" class="w-5 h-5 accent-violet-600 rounded" checked>
+                        <label for="account-active" class="text-xs font-bold text-slate-400 uppercase">Activa</label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-default" class="w-5 h-5 accent-violet-600 rounded">
+                        <label for="account-default" class="text-xs font-bold text-slate-400 uppercase">Cuenta Predeterminada</label>
+                    </div>
+                </div>
             </div>
             
-            <!-- Contenido de pestañas -->
-            <div id="account-tab-content">
-                <!-- Pestaña 1: Información Básica -->
-                <div id="account-tab-basic" class="tab-content active space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre de la Cuenta *</label>
-                            <input type="text" id="account-name" placeholder="Ej: Gmail Principal" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Proveedor</label>
-                            <select id="account-provider" class="input-field w-full !bg-black/40 !py-4" onchange="App.fillProviderConfig(this.value)">
-                                <option value="">-- Seleccionar proveedor --</option>
-                                <option value="gmail">Gmail / G Suite</option>
-                                <option value="outlook">Outlook / Office 365</option>
-                                <option value="yahoo">Yahoo Mail</option>
-                                <option value="sendgrid">SendGrid</option>
-                                <option value="amazon">Amazon SES</option>
-                                <option value="custom">Personalizado</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre Remitente *</label>
-                            <input type="text" id="account-from-name" placeholder="Ej: Check Pro" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Email Remitente *</label>
-                            <input type="email" id="account-from-email" placeholder="noreply@tudominio.com" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="account-active" class="w-5 h-5 accent-violet-600 rounded" checked>
-                            <label for="account-active" class="text-xs font-bold text-slate-400 uppercase">Activa</label>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="account-default" class="w-5 h-5 accent-violet-600 rounded">
-                            <label for="account-default" class="text-xs font-bold text-slate-400 uppercase">Cuenta Predeterminada</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Pestaña 2: Configuración SMTP -->
-                <div id="account-tab-smtp" class="tab-content hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host SMTP *</label>
-                            <input type="text" id="account-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto SMTP *</label>
-                            <input type="number" id="account-smtp-port" value="465" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario SMTP *</label>
-                            <input type="text" id="account-smtp-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña SMTP *</label>
-                            <input type="password" id="account-smtp-pass" placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="account-smtp-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
-                            <label for="account-smtp-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="account-smtp-tls" class="w-5 h-5 accent-violet-600 rounded">
-                            <label for="account-smtp-tls" class="text-xs font-bold text-slate-400 uppercase">STARTTLS</label>
-                        </div>
-                        <div>
-                            <button type="button" onclick="App.testAccountSMTP()" class="btn-secondary w-full !py-3 text-[10px] font-black uppercase">Probar SMTP</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Pestaña 3: Configuración IMAP -->
-                <div id="account-tab-imap" class="tab-content hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host IMAP</label>
-                            <input type="text" id="account-imap-host" placeholder="imap.gmail.com" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto IMAP</label>
-                            <input type="number" id="account-imap-port" value="993" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario IMAP</label>
-                            <input type="text" id="account-imap-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña IMAP</label>
-                            <input type="password" id="account-imap-pass" placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="account-imap-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
-                            <label for="account-imap-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
-                        </div>
-                        <div>
-                            <button type="button" onclick="App.testAccountIMAP()" class="btn-secondary w-full !py-3 text-[10px] font-black uppercase">Probar IMAP</button>
-                        </div>
-                    </div>
-                    
-                    <div class="text-sm text-slate-500">
-                        <p>Nota: La configuración IMAP es opcional. Se usa para recibir respuestas y gestionar el buzón.</p>
-                    </div>
-                </div>
-                
-                <!-- Pestaña 4: Avanzado -->
-                <div id="account-tab-advanced" class="tab-content hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Límite Diario</label>
-                            <input type="number" id="account-daily-limit" value="500" min="1" max="10000" class="input-field w-full !bg-black/40 !py-4">
-                            <p class="text-[10px] text-slate-500 mt-2">Máximo de emails enviados por día</p>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Velocidad de Envío</label>
-                            <select id="account-send-speed" class="input-field w-full !bg-black/40 !py-4">
-                                <option value="slow">Lenta (10/min)</option>
-                                <option value="medium" selected>Media (30/min)</option>
-                                <option value="fast">Rápida (60/min)</option>
-                                <option value="custom">Personalizada</option>
-                            </select>
-                        </div>
-                    </div>
-                    
+            <!-- CONFIGURACIÓN SMTP -->
+            <div class="border-t border-white/10 pt-6">
+                <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">send</span> Configuración SMTP
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Notas Internas</label>
-                        <textarea id="account-notes" rows="3" placeholder="Notas sobre esta cuenta..." class="input-field w-full !bg-black/40 !py-4"></textarea>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host SMTP *</label>
+                        <input type="text" id="account-smtp-host" placeholder="smtp.gmail.com" class="input-field w-full !bg-black/40 !py-4">
                     </div>
-                    
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto SMTP *</label>
+                        <input type="number" id="account-smtp-port" value="465" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario SMTP *</label>
+                        <input type="text" id="account-smtp-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña SMTP *</label>
+                        <input type="password" id="account-smtp-pass" placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6 mt-4">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-smtp-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
+                        <label for="account-smtp-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-smtp-tls" class="w-5 h-5 accent-violet-600 rounded">
+                        <label for="account-smtp-tls" class="text-xs font-bold text-slate-400 uppercase">STARTTLS</label>
+                    </div>
+                    <button type="button" onclick="App.testAccountSMTP()" class="btn-secondary !py-2 px-4 text-[10px] font-black uppercase">Probar SMTP</button>
+                </div>
+            </div>
+            
+            <!-- CONFIGURACIÓN IMAP -->
+            <div class="border-t border-white/10 pt-6">
+                <h4 class="text-sm font-black text-green-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">mail</span> Configuración IMAP
+                    <span class="text-[10px] font-normal text-slate-500">(Opcional)</span>
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host IMAP</label>
+                        <input type="text" id="account-imap-host" placeholder="imap.gmail.com" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto IMAP</label>
+                        <input type="number" id="account-imap-port" value="993" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario IMAP</label>
+                        <input type="text" id="account-imap-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña IMAP</label>
+                        <input type="password" id="account-imap-pass" placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6 mt-4">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-imap-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
+                        <label for="account-imap-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
+                    </div>
+                    <button type="button" onclick="App.testAccountIMAP()" class="btn-secondary !py-2 px-4 text-[10px] font-black uppercase">Probar IMAP</button>
+                </div>
+            </div>
+            
+            <!-- CONFIGURACIÓN AVANZADA -->
+            <div class="border-t border-white/10 pt-6">
+                <h4 class="text-sm font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">tune</span> Configuración Avanzada
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Límite Diario</label>
+                        <input type="number" id="account-daily-limit" value="500" min="1" max="10000" class="input-field w-full !bg-black/40 !py-4">
+                        <p class="text-[10px] text-slate-500 mt-2">Máximo de emails enviados por día</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Velocidad de Envío</label>
+                        <select id="account-send-speed" class="input-field w-full !bg-black/40 !py-4">
+                            <option value="slow">Lenta (10/min)</option>
+                            <option value="medium" selected>Media (30/min)</option>
+                            <option value="fast">Rápida (60/min)</option>
+                            <option value="custom">Personalizada</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Notas Internas</label>
+                    <textarea id="account-notes" rows="3" placeholder="Notas sobre esta cuenta..." class="input-field w-full !bg-black/40 !py-4"></textarea>
+                </div>
+                
+                <div class="flex items-center gap-6 mt-4">
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="account-track-opens" class="w-5 h-5 accent-violet-600 rounded" checked>
                         <label for="account-track-opens" class="text-xs font-bold text-slate-400 uppercase">Rastrear aperturas</label>
                     </div>
-                    
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="account-track-clicks" class="w-5 h-5 accent-violet-600 rounded" checked>
                         <label for="account-track-clicks" class="text-xs font-bold text-slate-400 uppercase">Rastrear clicks</label>
