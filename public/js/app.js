@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.20';
+const VERSION = '12.37.21';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -5755,6 +5755,14 @@ const App = window.App = {
             this.state.quillEditor = null;
         }
         
+        // FORZAR VISIBILIDAD DE CONTENEDOR ANTES DE CREAR (V12.37.21)
+        const visualContainer = document.getElementById('visual-editor-container');
+        if (visualContainer) {
+            visualContainer.style.setProperty('display', 'block', 'important');
+            visualContainer.style.setProperty('opacity', '1', 'important');
+            visualContainer.style.setProperty('visibility', 'visible', 'important');
+        }
+        
         this.state.quillEditor = new Quill('#template-quill-editor', {
             theme: 'snow',
             placeholder: 'Escribe el contenido de tu email aquí...',
@@ -5770,6 +5778,14 @@ const App = window.App = {
                 ]
             }
         });
+        
+        // Forzar estilos internos para evitar invisibilidad en modo oscuro
+        const qlEditor = container.querySelector('.ql-editor');
+        if (qlEditor) {
+            qlEditor.style.setProperty('color', 'black', 'important');
+            qlEditor.style.setProperty('background-color', 'white', 'important');
+            qlEditor.style.setProperty('min-height', '300px', 'important');
+        }
 
         if (initialHtml) {
             console.log('[QUILL] Pasting HTML, length:', initialHtml.length);
