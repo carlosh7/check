@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.24';
+const VERSION = '12.37.25';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -11262,7 +11262,7 @@ const App = window.App = {
     // ─── GESTIÓN DE CUENTAS SMTP (HUB SISTEMA) ───
     async loadAccounts() {
         try {
-            const accounts = await this.fetchAPI('/email-accounts');
+            const accounts = await this.fetchAPI('/email/accounts');
             const list = document.getElementById('accounts-list');
             if (!list) return;
             
@@ -11320,7 +11320,7 @@ const App = window.App = {
 
         if (id && id !== 'undefined' && id !== 'null') {
             try {
-                const acc = await this.fetchAPI(`/email-accounts/${id}`);
+                const acc = await this.fetchAPI(`/email/accounts/${id}`);
                 console.log('[ACCOUNTS] Fetiched account data:', acc);
                 if (acc) {
                     setValue('account-name', acc.name);
@@ -11395,7 +11395,7 @@ const App = window.App = {
 
         try {
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email-accounts/${id}` : '/email-accounts';
+            const url = id ? `/email/accounts/${id}` : '/email/accounts';
             const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
 
             if (res.success || res.id) {
@@ -11414,7 +11414,7 @@ const App = window.App = {
     async deleteAccount(id) {
         if (!(await this._confirmAction('¿Eliminar esta cuenta?', 'Esta acción no se puede deshacer.'))) return;
         try {
-            const res = await this.fetchAPI(`/email-accounts/${id}`, { method: 'DELETE' });
+            const res = await this.fetchAPI(`/email/accounts/${id}`, { method: 'DELETE' });
             if (res.success) {
                 this._notifyAction('Eliminado', 'La cuenta ha sido eliminada.', 'success');
                 this.loadAccounts();
@@ -11427,7 +11427,7 @@ const App = window.App = {
     // ─── GESTIÓN DE PLANTILLAS (HUB SISTEMA) ───
     async loadEmailTemplates() {
         try {
-            const templates = await this.fetchAPI('/email-templates');
+            const templates = await this.fetchAPI('/email/email-templates');
             const grid = document.getElementById('templates-grid');
             if (!grid) return;
 
@@ -11499,7 +11499,7 @@ const App = window.App = {
 
         if (id && id !== 'undefined' && id !== 'null') {
             try {
-                const t = await this.fetchAPI(`/email-templates/${id}`);
+                const t = await this.fetchAPI(`/email/email-templates/${id}`);
                 if (t) {
                     document.getElementById('template-name').value = t.name;
                     document.getElementById('template-subject').value = t.subject;
@@ -11535,7 +11535,7 @@ const App = window.App = {
 
         try {
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/email-templates/${id}` : '/email-templates';
+            const url = id ? `/email/email-templates/${id}` : '/email/email-templates';
             const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
             if (res.success || res.id) {
                 this._notifyAction('Guardado', 'Plantilla actualizada exitosamente.', 'success');
@@ -11548,7 +11548,7 @@ const App = window.App = {
     async deleteEmailTemplate(id) {
         if (!(await this._confirmAction('¿Eliminar esta plantilla?', 'Esta acción no se puede deshacer.'))) return;
         try {
-            const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+            const res = await this.fetchAPI(`/email/email-templates/${id}`, { method: 'DELETE' });
             if (res.success) {
                 this._notifyAction('Eliminado', 'La plantilla ha sido eliminada.', 'success');
                 this.loadEmailTemplates();

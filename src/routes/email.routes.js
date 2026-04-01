@@ -66,19 +66,21 @@ router.get('/accounts', authMiddleware(['ADMIN']), (req, res) => {
 router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     const { 
         name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
-        from_name, from_email, is_default, daily_limit,
+        from_name, from_email, is_default, is_active, active, daily_limit,
         provider, send_speed, track_opens, track_clicks, notes,
         imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
     } = req.body;
     
+    // V12.37.25: Flexibilidad de estados
+    const finalActive = (active !== undefined ? (active ? 1 : 0) : (is_active !== undefined ? (is_active ? 1 : 0) : 1));
+
     if (!name || !smtp_host || !smtp_user || !smtp_pass || !from_email) {
         return res.status(400).json({ success: false, error: 'Todos los campos básicos son requeridos' });
     }
     
-    const accountId = uuidv4(); // V12.37.20: Bypass getValidId for reliability
+    const accountId = uuidv4();
     const now = new Date().toISOString();
     
-    // Si es default, quitar default de otros
     if (is_default) {
         db.prepare("UPDATE email_accounts SET is_default = 0").run();
     }
@@ -86,13 +88,13 @@ router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     db.prepare(`
         INSERT INTO email_accounts (
             id, name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
-            from_name, from_email, is_default, daily_limit, created_at, updated_at,
+            from_name, from_email, is_default, is_active, daily_limit, created_at, updated_at,
             provider, send_speed, track_opens, track_clicks, notes,
             imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         accountId, name, smtp_host, smtp_port || 465, smtp_user, smtp_pass, smtp_secure ? 1 : 0, 
-        from_name || name, from_email, is_default ? 1 : 0, daily_limit || 500, now, now,
+        from_name || name, from_email, is_default ? 1 : 0, finalActive, daily_limit || 500, now, now,
         provider || 'custom', send_speed || 'normal', track_opens ? 1 : 0, track_clicks ? 1 : 0, notes || null,
         imap_host || null, imap_port || 993, imap_user || null, imap_pass || null, imap_tls ? 1 : 0, imap_ssl ? 1 : 0, imap_folder || 'INBOX'
     );
@@ -104,11 +106,14 @@ router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
 router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
     const { 
         name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
-        from_name, from_email, is_default, is_active, daily_limit,
+        from_name, from_email, is_default, is_active, active, daily_limit,
         provider, send_speed, track_opens, track_clicks, notes,
         imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
     } = req.body;
     
+    // V12.37.25: Flexibilidad de estados
+    const finalActive = (active !== undefined ? (active ? 1 : 0) : (is_active !== undefined ? (is_active ? 1 : 0) : 1));
+
     const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
     if (!existing) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
     
@@ -145,22 +150,22 @@ router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
         smtp_secure !== undefined ? (smtp_secure ? 1 : 0) : existing.smtp_secure,
         from_name || existing.from_name,
         from_email || existing.from_email,
-        is_default !== undefined ? (is_default ? 1 : 0) : existing.is_default,
-        is_active !== undefined ? (is_active ? 1 : 0) : existing.is_active,
+        is_default ? 1 : 0,
+        finalActive,
         daily_limit || existing.daily_limit,
         new Date().toISOString(),
-        provider || existing.provider || 'custom',
-        send_speed || existing.send_speed || 'normal',
+        provider || existing.provider,
+        send_speed || existing.send_speed,
         track_opens !== undefined ? (track_opens ? 1 : 0) : existing.track_opens,
         track_clicks !== undefined ? (track_clicks ? 1 : 0) : existing.track_clicks,
-        notes !== undefined ? notes : existing.notes,
-        imap_host !== undefined ? imap_host : existing.imap_host,
+        notes || existing.notes,
+        imap_host || existing.imap_host,
         imap_port || existing.imap_port,
-        imap_user !== undefined ? imap_user : existing.imap_user,
+        imap_user || existing.imap_user,
         imapPassToSave,
         imap_tls !== undefined ? (imap_tls ? 1 : 0) : existing.imap_tls,
         imap_ssl !== undefined ? (imap_ssl ? 1 : 0) : existing.imap_ssl,
-        imap_folder || existing.imap_folder || 'INBOX',
+        imap_folder || existing.imap_folder,
         req.params.id
     );
     
@@ -326,18 +331,25 @@ router.get('/email-templates', authMiddleware(['ADMIN']), (req, res) => {
 });
 
 router.post('/email-templates', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, subject, body, event_id } = req.body;
+    const { name, subject, body, body_html, active, is_active, event_id } = req.body;
+    const finalBody = body || body_html || '';
+    const finalActive = (active !== undefined ? (active ? 1 : 0) : (is_active !== undefined ? (is_active ? 1 : 0) : 1));
+    
     try {
-        const result = db.prepare("INSERT INTO email_templates (name, subject, body, event_id, is_active) VALUES (?, ?, ?, ?, 1)")
-            .run(name, subject, body, event_id || null);
-        res.json({ success: true, id: result.lastInsertRowid });
+        const id = uuidv4();
+        db.prepare("INSERT INTO email_templates (id, name, subject, body, event_id, is_active) VALUES (?, ?, ?, ?, ?, ?)")
+            .run(id, name, subject, finalBody, event_id || null, finalActive);
+        res.json({ success: true, id });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.put('/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, subject, body, is_active } = req.body;
+    const { name, subject, body, body_html, active, is_active } = req.body;
+    const finalBody = body || body_html || '';
+    const finalActive = (active !== undefined ? (active ? 1 : 0) : (is_active !== undefined ? (is_active ? 1 : 0) : 1));
+
     db.prepare("UPDATE email_templates SET name = ?, subject = ?, body = ?, is_active = ?, updated_at = ? WHERE id = ?")
-      .run(name, subject, body, is_active ? 1 : 0, new Date().toISOString(), req.params.id);
+      .run(name, subject, finalBody, finalActive, new Date().toISOString(), req.params.id);
     res.json({ success: true });
 });
 
