@@ -735,6 +735,8 @@ const App = window.App = {
 
     // Abrir modal para nueva plantilla
     openTemplateEditor: function() {
+        console.log('[TEMPLATE EDITOR] openTemplateEditor called');
+        
         // Ocultar el contenedor completo de plantillas
         const templatesContainer = document.getElementById('email-content-templates');
         if (templatesContainer) templatesContainer.classList.add('hidden');
@@ -789,12 +791,24 @@ const App = window.App = {
 
     // Cambiar modo del editor (visual/HTML)
     switchTemplateEditorMode: function(mode) {
+        console.log('[TEMPLATE EDITOR] switchTemplateEditorMode called with mode:', mode);
+        
         const visualContainer = document.getElementById('visual-editor-container');
         const htmlContainer = document.getElementById('html-editor-container');
         const btnVisual = document.getElementById('btn-visual-editor');
         const btnHtml = document.getElementById('btn-html-editor');
         const textarea = document.getElementById('template-body');
         const quillEditor = this.quillTemplate;
+        
+        console.log('[TEMPLATE EDITOR] Elements found:', {
+            visualContainer: !!visualContainer,
+            htmlContainer: !!htmlContainer,
+            btnVisual: !!btnVisual,
+            btnHtml: !!btnHtml,
+            textarea: !!textarea,
+            quillEditor: !!quillEditor,
+            QuillDefined: typeof Quill !== 'undefined'
+        });
         
         if (mode === 'visual') {
             // Mostrar editor visual, ocultar HTML
@@ -809,24 +823,33 @@ const App = window.App = {
             
             // Inicializar Quill si no existe
             if (!quillEditor && typeof Quill !== 'undefined') {
-                this.quillTemplate = new Quill('#template-quill-editor', {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'header': [1, 2, 3, false] }],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            [{ 'align': [] }],
-                            ['link', 'image'],
-                            ['clean']
-                        ]
+                console.log('[TEMPLATE EDITOR] Initializing Quill editor...');
+                try {
+                    this.quillTemplate = new Quill('#template-quill-editor', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'header': [1, 2, 3, false] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    console.log('[TEMPLATE EDITOR] Quill initialized successfully');
+                    
+                    // Sincronizar contenido si hay texto en el textarea
+                    if (textarea && textarea.value) {
+                        console.log('[TEMPLATE EDITOR] Loading content from textarea:', textarea.value.substring(0, 100) + '...');
+                        this.quillTemplate.root.innerHTML = textarea.value;
                     }
-                });
-                
-                // Sincronizar contenido si hay texto en el textarea
-                if (textarea && textarea.value) {
-                    this.quillTemplate.root.innerHTML = textarea.value;
+                } catch (error) {
+                    console.error('[TEMPLATE EDITOR] Error initializing Quill:', error);
                 }
+            } else if (!quillEditor) {
+                console.error('[TEMPLATE EDITOR] Quill library not loaded!');
             }
         } else {
             // Mostrar editor HTML, ocultar visual
@@ -839,9 +862,12 @@ const App = window.App = {
             btnVisual.classList.add('bg-slate-500/20', 'text-slate-400');
             btnVisual.classList.remove('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
             
-            // Sincronizar contenido de Quill a textarea si existe
+            // Sincronizar contenido de Quill al textarea si existe
             if (quillEditor && textarea) {
+                console.log('[TEMPLATE EDITOR] Syncing Quill content to textarea');
                 textarea.value = quillEditor.root.innerHTML;
+            } else if (textarea) {
+                console.log('[TEMPLATE EDITOR] No Quill editor, using textarea value:', textarea.value.substring(0, 100) + '...');
             }
         }
     },
