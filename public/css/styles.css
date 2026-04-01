@@ -2366,3 +2366,31 @@
     }
   }
 }
+
+/* ═══ BLINDAJE DE EDITOR QUILL (V12.37.22) ═══ */
+#visual-editor-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+#template-quill-editor {
+    background-color: white !important;
+    color: black !important;
+    border-radius: 8px !important;
+}
+
+.ql-editor {
+    background-color: white !important;
+    color: black !important;
+    min-height: 350px !important;
+    text-align: left !important;
+}
+
+.ql-toolbar {
+    background-color: #f8fafc !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+}
