@@ -211,15 +211,17 @@ router.post('/accounts/:id/test', authMiddleware(['ADMIN']), async (req, res) =>
 
 // Obtener cuenta por ID (para usar en envíos y edición)
 router.get('/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    // Admin puede ver todas las cuentas (para editar), PRODUCTOR solo las activas
-    let query = "SELECT * FROM email_accounts WHERE id = ?";
-    if (req.user.role !== 'ADMIN') {
-        query += " AND is_active = 1";
-    }
-    const account = db.prepare(query).get(req.params.id);
-    if (!account) return res.status(404).json({ error: 'Cuenta no encontrada o inactiva' });
+    // ADMIN y PRODUCTOR pueden ver todas las cuentas (para editar)
+    // La verificación de límite diario se hace al enviar, no al editar
+    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
+    if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
     
-    // Verificar límite diario
+    // Si la cuenta está inactiva, devolverla igual (para que admin/productor puedan editarla)
+    if (!account.is_active) {
+        return res.json({ ...account, used_today: 0 });
+    }
+    
+    // Verificar límite diario solo para cuentas activas (para envíos)
     const today = new Date().toISOString().split('T')[0];
     if (account.last_used_at?.split('T')[0] !== today) {
         account.used_today = 0;
