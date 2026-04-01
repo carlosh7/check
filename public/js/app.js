@@ -4377,9 +4377,8 @@ const App = window.App = {
             document.getElementById('account-track-clicks').checked = true;
         }
         
-        // Mostrar modal y resetear pestañas
+        // Mostrar modal (sin pestañas ahora)
         document.getElementById('modal-account-editor').classList.remove('hidden');
-        this.switchAccountTab('basic');
     },
     
     // Cerrar editor de cuenta
@@ -5974,6 +5973,8 @@ const App = window.App = {
         // Cargar datos según la pestaña
         if (tab === 'templates') {
             this.loadEmailTemplates();
+        } else if (tab === 'accounts') {
+            this.loadAccounts();
         }
     },
     
