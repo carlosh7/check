@@ -1,42 +1,43 @@
-# Bridge antigravity v12.37.23 (Radical Clean & Dual DB Fix)
-Write-Host "--- REGLA DE ORO: CHECK PRO v12.37.23 ---" -ForegroundColor Cyan
+# Antigravity Bridge - Automated Deployment Script (Turbo-All)
+# Version: 12.37.26 - Email Hub Reconstruction
 
-$REPO_PATH = "C:\Users\carlo\OneDrive\Documentos\APP\Registro"
-$CHECK_PATH = "C:\Users\carlo\check"
-$VERSION = "12.37.23"
+Write-Host "Iniciando despliegue de version 12.37.26 (Email Hub Reconstruction)..." -ForegroundColor Cyan
 
-# 1. Sincronizar repositorio original
-Set-Location $REPO_PATH
-Write-Host "[GIT] Subiendo cambios del repositorio..."
+# 1. Añadir y hacer commit en el repositorio original
+Write-Host "1. Guardando cambios..." -ForegroundColor Yellow
 git add .
-git commit -m "Automated update: Check Pro v$VERSION - Radical IDs & Fallback"
+git commit -m "Automated update: Check Pro v12.37.26 - Email Hub Reconstruction"
+
+# 2. Subir a main
+Write-Host "2. Subiendo a origin main..." -ForegroundColor Yellow
 git push origin main
 
-# 2. Reparar Base de Datos (REPO) - Asegurar que fix_db.js exista
-Write-Host "[DB] Saneando IDs en repositorio..."
-node fix_db.js "$REPO_PATH\data\check_app.db"
+# 3. Crear el tag y subirlo
+Write-Host "3. Creando y subiendo tag v12.37.26..." -ForegroundColor Yellow
+git tag v12.37.26 HEAD
+git push origin v12.37.26
 
-# 3. Sincronizar C:\Users\carlo\check
-Write-Host "[GIT] Sincronizando entorno de pruebas (check)..."
-git -C $CHECK_PATH pull origin main
+# 4. Actualizar el contenedor de pruebas
+Write-Host "4. Actualizando entorno de validacion en C:\Users\carlo\check..." -ForegroundColor Yellow
+git -C C:\Users\carlo\check pull origin main
+git -C C:\Users\carlo\check pull origin --tags
 
-# 4. Reparar Base de Datos (CHECK)
-Write-Host "[DB] Saneando IDs en entorno de pruebas..."
-node fix_db.js "$CHECK_PATH\data\check_app.db"
+# 5. Reiniciar el servidor
+Write-Host "5. Reiniciando el servidor Node.js..." -ForegroundColor Yellow
+$proc = Get-Process node -ErrorAction SilentlyContinue
+if ($proc) {
+    Write-Host "Matando procesos de Node..." -ForegroundColor Yellow
+    taskkill /F /IM node.exe
+} else {
+    Write-Host "No hay procesos previos de node." -ForegroundColor Gray
+}
 
-# 5. Auditoría Final (RESULTADOS VISIBLES)
-Write-Host "[AUDIT] Verificando integridad de IDs..."
-node audit.js "$CHECK_PATH\data\check_app.db"
+Write-Host "Iniciando server.js en entorno de produccion/pruebas..." -ForegroundColor Yellow
+Set-Location C:\Users\carlo\check
+Start-Process -NoNewWindow node server.js
 
-# 6. Reiniciar Servidor (Procedimiento Seguro)
-Write-Host "[SERVER] Reiniciando procesos..."
-taskkill /F /IM node.exe /T 2>$null
-Start-Sleep -s 1
-
-Set-Location $CHECK_PATH
-Write-Host "[SERVER] Iniciando Check Pro en puerto 3000..."
-# Iniciamos en segundo plano para no bloquear
-Start-Process node -ArgumentList "server.js" -WindowStyle Normal
-
-Write-Host "--- DESPLIEGUE COMPLETADO: v$VERSION ---" -ForegroundColor Green
-Write-Host "Por favor, recarga el navegador. Cache limpiada automáticamente por versión."
+Write-Host ""
+Write-Host "=============================================" -ForegroundColor Green
+Write-Host "     DESPLIEGUE FINALIZADO EXISTOSAMENTE      " -ForegroundColor Green
+Write-Host "=============================================" -ForegroundColor Green
+Write-Host "Ya puedes validar en http://localhost:3000" -ForegroundColor Cyan

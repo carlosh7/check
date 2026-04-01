@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.25';
+const VERSION = '12.37.26';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -11289,6 +11289,9 @@ const App = window.App = {
                         </div>
                         <div class="flex items-center gap-2">
                             ${acc.is_default ? '<span class="text-[9px] font-black bg-violet-500/20 text-violet-400 px-2 py-1 rounded-lg border border-violet-500/30">DEFAULT</span>' : ''}
+                            <button onclick="App.previewAccount('${acc.id}')" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-green-500/20 hover:text-green-400 transition-all border border-white/5" title="Previsualizar / Probar">
+                                <span class="material-symbols-outlined text-lg">bug_report</span>
+                            </button>
                             <button onclick="App.openAccountEditor('${acc.id}')" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-blue-500/20 hover:text-blue-400 transition-all border border-white/5">
                                 <span class="material-symbols-outlined text-lg">edit</span>
                             </button>
@@ -11424,6 +11427,21 @@ const App = window.App = {
         }
     },
 
+    async previewAccount(id) {
+        Swal.fire({
+            title: 'Probando Conexión...',
+            text: 'Verificando credenciales SMTP de la cuenta.',
+            didOpen: () => Swal.showLoading()
+        });
+        try {
+            const res = await this.fetchAPI(`/email/accounts/${id}/test`, { method: 'POST' });
+            if (res.success) Swal.fire('Éxito', 'Conexión SMTP exitosa.', 'success');
+            else Swal.fire('Error de Conexión', res.error || 'La prueba ha fallado.', 'error');
+        } catch(e) {
+            Swal.fire('Error', 'Fallo de red al probar la cuenta.', 'error');
+        }
+    },
+
     // ─── GESTIÓN DE PLANTILLAS (HUB SISTEMA) ───
     async loadEmailTemplates() {
         try {
@@ -11446,6 +11464,9 @@ const App = window.App = {
                         <div class="flex items-center justify-between mb-4">
                             <span class="text-[9px] font-black px-2 py-1 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-widest">${t.category || 'GENERAL'}</span>
                             <div class="flex gap-2">
+                                <button onclick="App.previewEmailTemplate('${t.id}')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-green-500/20 hover:text-green-400 border border-white/5" title="Previsualizar">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
+                                </button>
                                 <button onclick="App.openTemplateEditor('${t.id}')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-blue-500/20 hover:text-blue-400 border border-white/5">
                                     <span class="material-symbols-outlined text-base">edit</span>
                                 </button>
@@ -11554,6 +11575,24 @@ const App = window.App = {
                 this.loadEmailTemplates();
             }
         } catch (e) { console.error(e); }
+    },
+
+    async previewEmailTemplate(id) {
+        try {
+            const t = await this.fetchAPI(`/email/email-templates/${id}`);
+            if (t) {
+                Swal.fire({
+                    title: `Previsualización: ${t.name}`,
+                    html: `<div style="text-align: left; padding: 10px; border: 1px solid #444; border-radius: 8px; max-height: 60vh; overflow-y: auto; background: #fff; color: #000;">${t.body_html || t.body || '<i>(Vacío)</i>'}</div>`,
+                    width: '600px',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl' }
+                });
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo cargar la vista previa.', 'error');
+        }
     },
 
     // ─── LEGAL Y QUILL (v12.31.22) ───

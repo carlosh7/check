@@ -62,6 +62,16 @@ router.get('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     res.json(safeAccounts);
 });
 
+// Obtener cuenta individual por ID
+router.get('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
+    if (!account) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
+    account.smtp_pass = '***';
+    account.imap_pass = '***';
+    account.active = account.is_active; // Compatibilidad con frontend
+    return res.json(account);
+});
+
 // Crear cuenta
 router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     const { 
@@ -327,7 +337,19 @@ router.post('/imap-test', authMiddleware(['ADMIN']), async (req, res) => {
 // Templates de email
 router.get('/email-templates', authMiddleware(['ADMIN']), (req, res) => {
     const templates = db.prepare("SELECT * FROM email_templates WHERE event_id IS NULL ORDER BY name ASC").all();
-    res.json(templates);
+    const mapped = templates.map(t => ({ ...t, active: t.is_active, body_html: t.body || '' }));
+    res.json(mapped);
+});
+
+// Obtener plantilla por ID o slug (name)
+router.get('/email-templates/:id', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        const template = db.prepare("SELECT * FROM email_templates WHERE id = ? OR name = ?").get(req.params.id, req.params.id);
+        if (!template) return res.status(404).json({ error: 'Plantilla no encontrada' });
+        template.active = template.is_active; 
+        template.body_html = template.body_html || template.body || '';
+        res.json(template);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/email-templates', authMiddleware(['ADMIN']), (req, res) => {
