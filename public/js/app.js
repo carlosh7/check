@@ -746,11 +746,18 @@ const App = window.App = {
         document.getElementById('template-body').value = '';
         document.getElementById('template-active').checked = true;
         document.getElementById('modal-template-editor').classList.remove('hidden');
+        
+        // Inicializar editor
+        this.initTemplateEditor();
     },
 
     // Cerrar modal del editor
     closeTemplateEditor: function() {
         document.getElementById('modal-template-editor').classList.add('hidden');
+        // Limpiar editor Quill si existe
+        if (this.quillTemplate) {
+            this.quillTemplate.root.innerHTML = '';
+        }
         // Mostrar el contenedor completo de plantillas
         const templatesContainer = document.getElementById('email-content-templates');
         if (templatesContainer) {
@@ -762,12 +769,87 @@ const App = window.App = {
     // Insertar variable en el editor
     insertTemplateVariable: function(variable) {
         const textarea = document.getElementById('template-body');
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = textarea.value;
-        textarea.value = text.substring(0, start) + variable + text.substring(end);
-        textarea.focus();
-        textarea.setSelectionRange(start + variable.length, start + variable.length);
+        const quillEditor = this.quillTemplate;
+        
+        if (quillEditor && document.getElementById('visual-editor-container').classList.contains('hidden') === false) {
+            // Insertar en editor visual (Quill)
+            const range = quillEditor.getSelection();
+            quillEditor.insertText(range ? range.index : quillEditor.getLength(), variable);
+            quillEditor.focus();
+        } else if (textarea) {
+            // Insertar en editor HTML (textarea)
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+        }
+    },
+
+    // Cambiar modo del editor (visual/HTML)
+    switchTemplateEditorMode: function(mode) {
+        const visualContainer = document.getElementById('visual-editor-container');
+        const htmlContainer = document.getElementById('html-editor-container');
+        const btnVisual = document.getElementById('btn-visual-editor');
+        const btnHtml = document.getElementById('btn-html-editor');
+        const textarea = document.getElementById('template-body');
+        const quillEditor = this.quillTemplate;
+        
+        if (mode === 'visual') {
+            // Mostrar editor visual, ocultar HTML
+            visualContainer.classList.remove('hidden');
+            htmlContainer.classList.add('hidden');
+            
+            // Actualizar estilos de botones
+            btnVisual.classList.add('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
+            btnVisual.classList.remove('bg-slate-500/20', 'text-slate-400');
+            btnHtml.classList.add('bg-slate-500/20', 'text-slate-400');
+            btnHtml.classList.remove('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
+            
+            // Inicializar Quill si no existe
+            if (!quillEditor && typeof Quill !== 'undefined') {
+                this.quillTemplate = new Quill('#template-quill-editor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'header': [1, 2, 3, false] }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['link', 'image'],
+                            ['clean']
+                        ]
+                    }
+                });
+                
+                // Sincronizar contenido si hay texto en el textarea
+                if (textarea && textarea.value) {
+                    this.quillTemplate.root.innerHTML = textarea.value;
+                }
+            }
+        } else {
+            // Mostrar editor HTML, ocultar visual
+            visualContainer.classList.add('hidden');
+            htmlContainer.classList.remove('hidden');
+            
+            // Actualizar estilos de botones
+            btnHtml.classList.add('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
+            btnHtml.classList.remove('bg-slate-500/20', 'text-slate-400');
+            btnVisual.classList.add('bg-slate-500/20', 'text-slate-400');
+            btnVisual.classList.remove('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
+            
+            // Sincronizar contenido de Quill a textarea si existe
+            if (quillEditor && textarea) {
+                textarea.value = quillEditor.root.innerHTML;
+            }
+        }
+    },
+
+    // Inicializar editor de plantillas
+    initTemplateEditor: function() {
+        // Por defecto, modo visual
+        this.switchTemplateEditorMode('visual');
     },
 
     // Editar plantilla existente
@@ -787,15 +869,47 @@ const App = window.App = {
         document.getElementById('template-body').value = template.body || '';
         document.getElementById('template-active').checked = template.is_active === 1;
         document.getElementById('modal-template-editor').classList.remove('hidden');
+        
+        // Inicializar editor con contenido de la plantilla
+        this.initTemplateEditor();
+        
+        // Si hay contenido, cargarlo en Quill
+        if (template.body && this.quillTemplate) {
+            this.quillTemplate.root.innerHTML = template.body;
+        }
     },
 
     // Guardar plantilla (crear o actualizar)
     saveEmailTemplate: async function() {
-        const id = document.getElementById('template-id').value;
-        const name = document.getElementById('template-name').value;
-        const subject = document.getElementById('template-subject').value;
-        const body = document.getElementById('template-body').value;
-        const is_active = document.getElementById('template-active').checked ? 1 : 0;
+        const idEl = document.getElementById('template-id');
+        const nameEl = document.getElementById('template-name');
+        const subjectEl = document.getElementById('template-subject');
+        const bodyEl = document.getElementById('template-body');
+        const activeEl = document.getElementById('template-active');
+        
+        if (!idEl || !nameEl || !subjectEl || !bodyEl || !activeEl) {
+            console.error('Elementos del formulario no encontrados:', { idEl, nameEl, subjectEl, bodyEl, activeEl });
+            alert('Error: No se pudo acceder al formulario. Por favor recarga la página.');
+            return;
+        }
+        
+        const id = idEl.value;
+        const name = nameEl.value;
+        const subject = subjectEl.value;
+        const is_active = activeEl.checked ? 1 : 0;
+        
+        // Obtener contenido del editor activo
+        let body = '';
+        const quillEditor = this.quillTemplate;
+        const isVisualMode = document.getElementById('visual-editor-container').classList.contains('hidden') === false;
+        
+        if (isVisualMode && quillEditor) {
+            // Usar contenido de Quill
+            body = quillEditor.root.innerHTML;
+        } else {
+            // Usar contenido del textarea
+            body = bodyEl.value;
+        }
         
         if (!name || !subject || !body) {
             alert('Por favor completa todos los campos');
@@ -3698,7 +3812,7 @@ const App = window.App = {
     testSMTPConnection: async function() {
         const data = {
             smtp_host: document.getElementById('smtp-host')?.value.trim() || '',
-            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 587,
+            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 465,
             smtp_user: document.getElementById('smtp-user')?.value.trim() || '',
             smtp_pass: document.getElementById('smtp-pass')?.value.trim() || '',
             smtp_secure: document.getElementById('smtp-secure')?.checked ? 1 : 0
@@ -3722,7 +3836,7 @@ const App = window.App = {
     saveSMTPConfig: async function() {
         const data = {
             smtp_host: document.getElementById('smtp-host')?.value.trim() || '',
-            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 587,
+            smtp_port: parseInt(document.getElementById('smtp-port')?.value) || 465,
             smtp_user: document.getElementById('smtp-user')?.value.trim() || '',
             smtp_pass: document.getElementById('smtp-pass')?.value.trim() || '',
             smtp_secure: document.getElementById('smtp-secure')?.checked ? 1 : 0,
@@ -4416,7 +4530,7 @@ const App = window.App = {
         } catch (e) { console.error('Error updating mailing stats:', e); }
     },
     
-    saveEmailTemplate: async function() {
+    /* saveEmailTemplate: async function() {
         const id = window.active_template_id;
         const name = document.getElementById('tpl-name').value;
         const subject = document.getElementById('tpl-subject').value;
@@ -4447,7 +4561,7 @@ const App = window.App = {
             console.error('Error saving template:', e);
             alert('Error al guardar: ' + e.message); 
         }
-    },
+    }, */
 
     initDNSGuide: function() {
         const isDismissed = LS.get('dns_guide_dismissed');

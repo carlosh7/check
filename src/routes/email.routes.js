@@ -195,7 +195,7 @@ router.post('/smtp-test', authMiddleware(['ADMIN']), async (req, res) => {
         
         const transporter = nodemailer.createTransport({
             host: smtp_host,
-            port: parseInt(smtp_port) || 587,
+            port: parseInt(smtp_port) || 465,
             secure: smtp_secure === true || smtp_secure === 1,
             auth: {
                 user: smtp_user,

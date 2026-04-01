@@ -119,7 +119,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS event_email_config (
     id TEXT PRIMARY KEY,
     event_id TEXT UNIQUE,
     smtp_host TEXT,
-    smtp_port INTEGER DEFAULT 587,
+    smtp_port INTEGER DEFAULT 465,
     smtp_user TEXT,
     smtp_pass TEXT,
     smtp_secure INTEGER DEFAULT 0,
@@ -386,7 +386,7 @@ try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
 db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     smtp_host TEXT,
-    smtp_port INTEGER DEFAULT 587,
+    smtp_port INTEGER DEFAULT 465,
     smtp_user TEXT,
     smtp_pass TEXT,
     smtp_secure INTEGER DEFAULT 0,
@@ -400,7 +400,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     smtp_host TEXT NOT NULL,
-    smtp_port INTEGER DEFAULT 587,
+    smtp_port INTEGER DEFAULT 465,
     smtp_user TEXT NOT NULL,
     smtp_pass TEXT NOT NULL,
     smtp_secure INTEGER DEFAULT 0,
@@ -767,7 +767,7 @@ if (userCount.count === 0) {
 // Semilla de SMTP config si no existe
 const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
 if (smtpCount.count === 0) {
-    db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 587, '', 0, 'Check Attendance')").run();
+    db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 465, '', 0, 'Check Attendance')").run();
 }
 
 // Semilla de IMAP config si no existe

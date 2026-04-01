@@ -1617,7 +1617,14 @@
                 </div>
             </div>
             <div>
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Cuerpo del Email (HTML)</label>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Cuerpo del Email</label>
+                    <div class="flex gap-2">
+                        <button type="button" id="btn-visual-editor" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors border border-violet-500/30" onclick="App.switchTemplateEditorMode('visual')">Visual</button>
+                        <button type="button" id="btn-html-editor" class="px-3 py-1.5 bg-slate-500/20 text-slate-400 rounded-lg text-xs font-bold hover:bg-slate-500/30 transition-colors" onclick="App.switchTemplateEditorMode('html')">HTML</button>
+                    </div>
+                </div>
+                
                 <div class="flex gap-2 mb-3 flex-wrap">
                     <button type="button" onclick="App.insertTemplateVariable('{{user_name}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{user_name}}</button>
                     <button type="button" onclick="App.insertTemplateVariable('{{user_email}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{user_email}}</button>
@@ -1629,7 +1636,16 @@
                     <button type="button" onclick="App.insertTemplateVariable('{{event_date}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{event_date}}</button>
                     <button type="button" onclick="App.insertTemplateVariable('{{event_location}}')" class="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold hover:bg-violet-500/30 transition-colors">{{event_location}}</button>
                 </div>
-                <textarea id="template-body" rows="15" required placeholder="Cuerpo del email en HTML..." class="input-field w-full !bg-black/40 !py-4 font-mono text-sm"></textarea>
+                
+                <!-- Editor Visual (Quill) -->
+                <div id="visual-editor-container" class="mb-4">
+                    <div id="template-quill-editor" class="h-64 bg-white rounded-lg"></div>
+                </div>
+                
+                <!-- Editor HTML (textarea original) -->
+                <div id="html-editor-container" class="hidden">
+                    <textarea id="template-body" rows="15" placeholder="Cuerpo del email en HTML..." class="input-field w-full !bg-black/40 !py-4 font-mono text-sm"></textarea>
+                </div>
             </div>
             <div class="flex items-center justify-between pt-4 border-t border-white/10">
                 <div class="flex items-center gap-3">
