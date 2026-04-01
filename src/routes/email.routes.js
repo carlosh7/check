@@ -209,9 +209,14 @@ router.post('/accounts/:id/test', authMiddleware(['ADMIN']), async (req, res) =>
     }
 });
 
-// Obtener cuenta por ID (para usar en envíos)
+// Obtener cuenta por ID (para usar en envíos y edición)
 router.get('/accounts/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const account = db.prepare("SELECT * FROM email_accounts WHERE id = ? AND is_active = 1").get(req.params.id);
+    // Admin puede ver todas las cuentas (para editar), PRODUCTOR solo las activas
+    let query = "SELECT * FROM email_accounts WHERE id = ?";
+    if (req.user.role !== 'ADMIN') {
+        query += " AND is_active = 1";
+    }
+    const account = db.prepare(query).get(req.params.id);
     if (!account) return res.status(404).json({ error: 'Cuenta no encontrada o inactiva' });
     
     // Verificar límite diario
