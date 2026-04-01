@@ -790,7 +790,7 @@ const App = window.App = {
     },
 
     // Cambiar modo del editor (visual/HTML)
-    switchTemplateEditorMode: function(mode) {
+    switchTemplateEditorMode: async function(mode) {
         console.log('[TEMPLATE EDITOR] switchTemplateEditorMode called with mode:', mode);
         
         const visualContainer = document.getElementById('visual-editor-container');
@@ -822,7 +822,21 @@ const App = window.App = {
             btnHtml.classList.remove('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
             
             // Inicializar Quill si no existe
-            if (!quillEditor && typeof Quill !== 'undefined') {
+            if (!quillEditor) {
+                console.log('[TEMPLATE EDITOR] Checking Quill availability...');
+                
+                if (typeof Quill === 'undefined') {
+                    console.error('[TEMPLATE EDITOR] Quill library not loaded! Trying to load it...');
+                    // Intentar cargar Quill dinámicamente
+                    await this.loadQuillLibrary();
+                }
+                
+                const editorElement = document.getElementById('template-quill-editor');
+                if (!editorElement) {
+                    console.error('[TEMPLATE EDITOR] Editor element #template-quill-editor not found!');
+                    return;
+                }
+                
                 console.log('[TEMPLATE EDITOR] Initializing Quill editor...');
                 try {
                     this.quillTemplate = new Quill('#template-quill-editor', {
@@ -836,7 +850,8 @@ const App = window.App = {
                                 ['link', 'image'],
                                 ['clean']
                             ]
-                        }
+                        },
+                        placeholder: 'Escribe el contenido del email aquí...'
                     });
                     console.log('[TEMPLATE EDITOR] Quill initialized successfully');
                     
@@ -844,12 +859,27 @@ const App = window.App = {
                     if (textarea && textarea.value) {
                         console.log('[TEMPLATE EDITOR] Loading content from textarea:', textarea.value.substring(0, 100) + '...');
                         this.quillTemplate.root.innerHTML = textarea.value;
+                    } else {
+                        // Establecer contenido por defecto si está vacío
+                        this.quillTemplate.root.innerHTML = '<p>Escribe el contenido del email aquí...</p>';
                     }
+                    
+                    // Agregar evento para sincronizar con textarea
+                    this.quillTemplate.on('text-change', () => {
+                        if (textarea) {
+                            textarea.value = this.quillTemplate.root.innerHTML;
+                        }
+                    });
+                    
                 } catch (error) {
                     console.error('[TEMPLATE EDITOR] Error initializing Quill:', error);
+                    // Fallback: mostrar editor HTML
+                    visualContainer.classList.add('hidden');
+                    htmlContainer.classList.remove('hidden');
+                    alert('Error al cargar el editor visual. Usando editor HTML.');
                 }
-            } else if (!quillEditor) {
-                console.error('[TEMPLATE EDITOR] Quill library not loaded!');
+            } else {
+                console.log('[TEMPLATE EDITOR] Quill editor already initialized');
             }
         } else {
             // Mostrar editor HTML, ocultar visual
@@ -4097,13 +4127,18 @@ const App = window.App = {
     
     // Abrir editor de cuenta (nueva o editar)
     openAccountEditor: async function(accountId = null) {
+        console.log('[ACCOUNT EDITOR] openAccountEditor called with accountId:', accountId);
+        
         // Ocultar lista de cuentas
         const accountsContainer = document.getElementById('email-content-accounts');
         if (accountsContainer) accountsContainer.classList.add('hidden');
         
         if (accountId) {
             try {
+                console.log('[ACCOUNT EDITOR] Fetching account data...');
                 const account = await this.fetchAPI(`/email/accounts/${accountId}`);
+                console.log('[ACCOUNT EDITOR] Account data received:', account);
+                
                 document.getElementById('account-editor-title').textContent = 'Editar Cuenta';
                 document.getElementById('account-id').value = account.id;
                 document.getElementById('account-name').value = account.name;
@@ -4114,6 +4149,11 @@ const App = window.App = {
                 document.getElementById('account-default').checked = account.is_default == 1;
                 
                 // SMTP
+                console.log('[ACCOUNT EDITOR] Setting SMTP fields:', {
+                    host: account.smtp_host,
+                    port: account.smtp_port,
+                    user: account.smtp_user
+                });
                 document.getElementById('account-smtp-host').value = account.smtp_host;
                 document.getElementById('account-smtp-port').value = account.smtp_port || 465;
                 document.getElementById('account-smtp-user').value = account.smtp_user;
@@ -11872,6 +11912,40 @@ App.replyToMail = function(mailId) {
     // TODO: Implementar respuesta
     App._notifyAction('Info', 'Función de respuesta en desarrollo', 'info');
     hideModal('mail-detail-modal');
+};
+
+// Cargar librería Quill dinámicamente
+App.loadQuillLibrary = function() {
+    return new Promise((resolve, reject) => {
+        if (typeof Quill !== 'undefined') {
+            console.log('[QUILL] Library already loaded');
+            resolve();
+            return;
+        }
+        
+        console.log('[QUILL] Loading Quill library dynamically...');
+        
+        // Cargar CSS si no está cargado
+        if (!document.querySelector('link[href*="quill.snow.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+            document.head.appendChild(link);
+        }
+        
+        // Cargar script
+        const script = document.createElement('script');
+        script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+        script.onload = () => {
+            console.log('[QUILL] Library loaded successfully');
+            resolve();
+        };
+        script.onerror = (error) => {
+            console.error('[QUILL] Failed to load library:', error);
+            reject(new Error('Failed to load Quill library'));
+        };
+        document.head.appendChild(script);
+    });
 };
 
 // ========== FUNCIONES DE TEMPLATES PARA EVENTOS ==========
