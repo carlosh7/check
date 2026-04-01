@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.37.3",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.3 - Fix: Editor visual plantillas, errores SMTP/IMAP, puerto 465",
+  "version": "12.37.4",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.4 - Rediseño completo módulo email: DNS/Seguridad, cuentas múltiples, importación, mailbox, templates",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

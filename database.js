@@ -415,6 +415,20 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
     updated_at TEXT
 )`);
 
+// Campos adicionales para nueva estructura de cuentas
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN provider TEXT DEFAULT 'custom'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN send_speed TEXT DEFAULT 'normal'"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN track_opens INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN track_clicks INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN notes TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_host TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_port INTEGER DEFAULT 993"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_user TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_pass TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_tls INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_ssl INTEGER DEFAULT 1"); } catch (_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_folder TEXT DEFAULT 'INBOX'"); } catch (_) {}
+
 // 12c. Configuración IMAP Global
 db.exec(`CREATE TABLE IF NOT EXISTS imap_config (
     id INTEGER PRIMARY KEY CHECK (id = 1),

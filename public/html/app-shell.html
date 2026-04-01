@@ -1043,12 +1043,12 @@
                         <!-- Sidebar Interna Premium -->
                         <aside class="inner-sidebar bg-white/[0.01] p-2 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl">
                             <div class="inner-sidebar-item active group" onclick="App.switchEmailTab('config', this)">
-                                <span class="material-symbols-outlined text-violet-400">settings</span>
-                                <span class="uppercase tracking-widest text-[10px] font-black">Configuración</span>
+                                <span class="material-symbols-outlined text-violet-400">dns</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">DNS & Seguridad</span>
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('accounts', this)">
-                                <span class="material-symbols-outlined text-blue-400">dns</span>
-                                <span class="uppercase tracking-widest text-[10px] font-black">Cuentas SMTP</span>
+                                <span class="material-symbols-outlined text-blue-400">mail</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">Cuentas</span>
                             </div>
                             <div class="inner-sidebar-item group" onclick="App.switchEmailTab('templates', this)">
                                 <span class="material-symbols-outlined text-fuchsia-400">dashboard_customize</span>
@@ -1080,87 +1080,115 @@
                         <main class="inner-content-wrapper min-h-[600px]">
                             <!-- Los contenedores email-content-* irán aquí operados por app.js -->
                             <div id="email-modules-container">
-                                <!-- CONFIGURACIÓN -->
+                                <!-- DNS & SEGURIDAD -->
                                 <div id="email-content-config" class="email-content space-y-6 animate-fade-in card p-8 border-white/5 bg-white/[0.02]">
-                                    <form id="smtp-form" class="space-y-6">
-                                        <div class="flex items-center gap-4 mb-2">
-                                            <div class="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center border border-violet-500/30">
-                                                <span class="material-symbols-outlined text-violet-400">dns</span>
-                                            </div>
-                                            <h3 class="text-xl font-black text-white uppercase tracking-widest">Configuración SMTP</h3>
+                                    <div class="flex items-center gap-4 mb-2">
+                                        <div class="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center border border-violet-500/30">
+                                            <span class="material-symbols-outlined text-violet-400">dns</span>
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <input type="text" id="smtp-host" placeholder="Host SMTP" class="input-field !bg-black/40 !py-4">
-                                            <input type="number" id="smtp-port" placeholder="Puerto" class="input-field !bg-black/40 !py-4">
-                                            <input type="text" id="smtp-user" placeholder="Usuario" class="input-field !bg-black/40 !py-4">
-                                            <input type="password" id="smtp-pass" placeholder="Contraseña" class="input-field !bg-black/40 !py-4">
-                                        </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <input type="text" id="smtp-from-name" placeholder="Nombre Remitente" class="input-field !bg-black/40 !py-4">
-                                            <input type="email" id="smtp-from-email" placeholder="Email Remitente" class="input-field !bg-black/40 !py-4">
-                                        </div>
-                                        <div class="flex items-center gap-3 py-2">
-                                            <input type="checkbox" id="smtp-secure" class="w-5 h-5 accent-violet-600 rounded"> 
-                                            <label for="smtp-secure" class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Usar Conexión SSL/TLS Segura</label>
-                                        </div>
-                                        <div class="flex gap-4 pt-4">
-                                            <button type="button" onclick="App.testSMTP()" class="btn-secondary !py-4 !px-8 text-[10px] font-black uppercase tracking-widest">Probar Canal</button>
-                                            <button type="submit" class="btn-primary flex-1 !py-4 uppercase tracking-[0.2em] font-black text-[10px] text-white">Desplegar Configuración</button>
-                                        </div>
-                                    </form>
-
-                                    <!-- Configuración IMAP -->
-                                    <form id="imap-form" class="space-y-6 pt-6 border-t border-white/10">
-                                        <div class="flex items-center gap-4 mb-2">
-                                            <div class="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-                                                <span class="material-symbols-outlined text-blue-400">markunread_mailbox</span>
-                                            </div>
-                                            <h3 class="text-xl font-black text-white uppercase tracking-widest">Configuración IMAP</h3>
-                                        </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <input type="text" id="imap-host" placeholder="Host IMAP" class="input-field !bg-black/40 !py-4">
-                                            <input type="number" id="imap-port" placeholder="Puerto" class="input-field !bg-black/40 !py-4">
-                                            <input type="text" id="imap-user" placeholder="Usuario" class="input-field !bg-black/40 !py-4">
-                                            <input type="password" id="imap-pass" placeholder="Contraseña" class="input-field !bg-black/40 !py-4">
-                                        </div>
-                                        <div class="flex items-center gap-3 py-2">
-                                            <input type="checkbox" id="imap-tls" class="w-5 h-5 accent-blue-600 rounded"> 
-                                            <label for="imap-tls" class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Usar Conexión TLS Segura</label>
-                                        </div>
-                                        <div class="flex gap-4 pt-4">
-                                            <button type="button" onclick="App.testIMAP()" class="btn-secondary !py-4 !px-8 text-[10px] font-black uppercase tracking-widest">Probar IMAP</button>
-                                        </div>
-                                    </form>
+                                        <h3 class="text-xl font-black text-white uppercase tracking-widest">Configuración DNS & Seguridad</h3>
+                                    </div>
+                                    
+                                    <p class="text-sm text-slate-400 mb-6">
+                                        Configura los registros DNS de tu dominio para mejorar la entregabilidad de emails y evitar el spam.
+                                    </p>
 
                                     <!-- Guía Anti-Spam -->
-                                    <div class="pt-6 border-t border-white/10">
+                                    <div class="space-y-6">
+                                        <div class="p-6 rounded-2xl border border-green-500/20 bg-green-500/[0.02]">
+                                            <div class="flex items-center gap-3 mb-4">
+                                                <span class="material-symbols-outlined text-green-400">verified</span>
+                                                <h3 class="text-lg font-black text-green-400 uppercase tracking-widest">SPF (Sender Policy Framework)</h3>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mb-3">Autoriza qué servidores pueden enviar emails desde tu dominio.</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Registro SPF Recomendado</label>
+                                                    <code class="block p-3 bg-black/60 rounded text-xs text-green-400 font-mono break-all">v=spf1 include:_spf.google.com include:spf.protection.outlook.com ~all</code>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Para Gmail</label>
+                                                    <code class="block p-3 bg-black/60 rounded text-xs text-green-400 font-mono">v=spf1 include:_spf.google.com ~all</code>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <button onclick="navigator.clipboard.writeText('v=spf1 include:_spf.google.com ~all')" class="text-xs px-3 py-1.5 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors">
+                                                    📋 Copiar SPF
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.02]">
+                                            <div class="flex items-center gap-3 mb-4">
+                                                <span class="material-symbols-outlined text-blue-400">key</span>
+                                                <h3 class="text-lg font-black text-blue-400 uppercase tracking-widest">DKIM (DomainKeys Identified Mail)</h3>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mb-3">Firma digital que verifica la autenticidad del email.</p>
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Nombre del Selector</label>
+                                                    <input type="text" value="google._domainkey" class="input-field w-full !bg-black/40 !py-3 text-xs" readonly>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Registro DKIM</label>
+                                                    <textarea class="input-field w-full !bg-black/40 !py-3 text-xs font-mono" rows="3" readonly>k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...</textarea>
+                                                </div>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-3">Genera la clave DKIM en el panel de tu proveedor de email (Gmail, Outlook, etc.)</p>
+                                        </div>
+
+                                        <div class="p-6 rounded-2xl border border-purple-500/20 bg-purple-500/[0.02]">
+                                            <div class="flex items-center gap-3 mb-4">
+                                                <span class="material-symbols-outlined text-purple-400">policy</span>
+                                                <h3 class="text-lg font-black text-purple-400 uppercase tracking-widest">DMARC (Domain-based Message Authentication)</h3>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mb-3">Qué hacer si SPF o DKIM fallan.</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Modo Monitoreo</label>
+                                                    <code class="block p-3 bg-black/60 rounded text-xs text-purple-400 font-mono">v=DMARC1; p=none</code>
+                                                    <p class="text-[9px] text-slate-500 mt-1">Solo monitorea, no bloquea</p>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Modo Cuarentena</label>
+                                                    <code class="block p-3 bg-black/60 rounded text-xs text-purple-400 font-mono">v=DMARC1; p=quarantine</code>
+                                                    <p class="text-[9px] text-slate-500 mt-1">Envía a spam si falla</p>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-bold text-slate-400 mb-2 block">Modo Rechazo</label>
+                                                    <code class="block p-3 bg-black/60 rounded text-xs text-purple-400 font-mono">v=DMARC1; p=reject</code>
+                                                    <p class="text-[9px] text-slate-500 mt-1">Rechaza si falla</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <button onclick="navigator.clipboard.writeText('v=DMARC1; p=none; rua=mailto:reportes@tudominio.com')" class="text-xs px-3 py-1.5 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors">
+                                                    📋 Copiar DMARC
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div class="p-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.02]">
                                             <div class="flex items-center gap-3 mb-4">
                                                 <span class="material-symbols-outlined text-amber-400">shield</span>
-                                                <h3 class="text-lg font-black text-amber-400 uppercase tracking-widest">Guía de Entregabilidad</h3>
+                                                <h3 class="text-lg font-black text-amber-400 uppercase tracking-widest">Consejos de Entregabilidad</h3>
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div class="p-4 bg-black/40 rounded-xl">
-                                                    <h4 class="text-xs font-black text-green-400 uppercase tracking-widest mb-2">SPF</h4>
-                                                    <p class="text-[10px] text-slate-400 mb-2">Autoriza servidores que pueden enviar emails</p>
-                                                    <code class="block p-2 bg-black/60 rounded text-[10px] text-green-400 font-mono">v=spf1 include:_spf.google.com ~all</code>
-                                                </div>
-                                                <div class="p-4 bg-black/40 rounded-xl">
-                                                    <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">DKIM</h4>
-                                                    <p class="text-[10px] text-slate-400 mb-2">Firma digital que verifica el email</p>
-                                                    <p class="text-[10px] text-slate-500">Genera la clave en tu proveedor de email</p>
-                                                </div>
-                                                <div class="p-4 bg-black/40 rounded-xl">
-                                                    <h4 class="text-xs font-black text-purple-400 uppercase tracking-widest mb-2">DMARC</h4>
-                                                    <p class="text-[10px] text-slate-400 mb-2">Qué hacer si SPF o DKIM fallan</p>
-                                                    <code class="block p-2 bg-black/60 rounded text-[10px] text-purple-400 font-mono">v=DMARC1; p=none</code>
-                                                </div>
-                                                <div class="p-4 bg-black/40 rounded-xl">
-                                                    <h4 class="text-xs font-black text-amber-400 uppercase tracking-widest mb-2">Consejos</h4>
+                                                <div class="space-y-2">
+                                                    <h4 class="text-xs font-black text-amber-400 uppercase tracking-widest">Evitar Spam</h4>
                                                     <ul class="text-[10px] text-slate-400 space-y-1">
-                                                        <li>• Evita palabras "Gratis", "Urgente"</li>
-                                                        <li>• Incluye enlace de desuscripción</li>
-                                                        <li>• Calienta tu IP enviando pocos correos</li>
+                                                        <li>• No uses "GRATIS", "URGENTE", "GANADOR"</li>
+                                                        <li>• Evita muchos signos de exclamación !!!</li>
+                                                        <li>• No escribas TODO EN MAYÚSCULAS</li>
+                                                        <li>• Incluye dirección física en el pie</li>
+                                                    </ul>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <h4 class="text-xs font-black text-amber-400 uppercase tracking-widest">Mejores Prácticas</h4>
+                                                    <ul class="text-[10px] text-slate-400 space-y-1">
+                                                        <li>• Siempre incluye enlace de desuscripción</li>
+                                                        <li>• Calienta tu IP enviando gradualmente</li>
+                                                        <li>• Mantén lista de contactos limpia</li>
+                                                        <li>• Monitorea tasa de rebotes (< 2%)</li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -1230,10 +1258,44 @@
 
                                 <div id="email-content-mailbox" class="email-content hidden animate-fade-in space-y-8">
                                     <div class="flex justify-between items-center">
-                                        <h3 class="text-2xl font-black text-white uppercase tracking-widest">Buzón de Respuesta IMAP</h3>
-                                        <button class="btn-secondary !px-6 !py-4 text-[10px] font-black uppercase tracking-widest" onclick="App.refreshMailbox()">Sincronizar</button>
+                                        <h3 class="text-2xl font-black text-white uppercase tracking-widest">Buzón de Correo</h3>
+                                        <div class="flex gap-3">
+                                            <div class="relative">
+                                                <select id="mailbox-account-select" class="select-primary !pr-10" onchange="App.selectMailboxAccount(this.value)">
+                                                    <option value="">Seleccionar cuenta...</option>
+                                                </select>
+                                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">arrow_drop_down</span>
+                                            </div>
+                                            <button class="btn-secondary !px-6 !py-4 text-[10px] font-black uppercase tracking-widest" onclick="App.refreshMailbox()">Sincronizar</button>
+                                        </div>
                                     </div>
+                                    
+                                    <!-- Selector de carpetas -->
+                                    <div id="mailbox-folders" class="hidden flex-wrap gap-2 mb-6">
+                                        <button onclick="App.loadMailboxFolder('INBOX')" class="mailbox-folder active px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg text-xs font-bold uppercase tracking-widest border border-blue-500/30">
+                                            <span class="material-symbols-outlined align-text-bottom mr-1 text-sm">inbox</span> Bandeja de entrada
+                                        </button>
+                                        <button onclick="App.loadMailboxFolder('SENT')" class="mailbox-folder px-4 py-2 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 rounded-lg text-xs font-bold uppercase tracking-widest border border-slate-700/50">
+                                            <span class="material-symbols-outlined align-text-bottom mr-1 text-sm">send</span> Enviados
+                                        </button>
+                                        <button onclick="App.loadMailboxFolder('DRAFTS')" class="mailbox-folder px-4 py-2 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 rounded-lg text-xs font-bold uppercase tracking-widest border border-slate-700/50">
+                                            <span class="material-symbols-outlined align-text-bottom mr-1 text-sm">drafts</span> Borradores
+                                        </button>
+                                        <button onclick="App.loadMailboxFolder('SPAM')" class="mailbox-folder px-4 py-2 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 rounded-lg text-xs font-bold uppercase tracking-widest border border-slate-700/50">
+                                            <span class="material-symbols-outlined align-text-bottom mr-1 text-sm">report</span> Spam
+                                        </button>
+                                        <button onclick="App.loadMailboxFolder('TRASH')" class="mailbox-folder px-4 py-2 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 rounded-lg text-xs font-bold uppercase tracking-widest border border-slate-700/50">
+                                            <span class="material-symbols-outlined align-text-bottom mr-1 text-sm">delete</span> Papelera
+                                        </button>
+                                    </div>
+                                    
                                     <div id="mailbox-list" class="space-y-4"></div>
+                                    
+                                    <!-- Estado del buzón -->
+                                    <div id="mailbox-status" class="hidden text-center p-8">
+                                        <span class="material-symbols-outlined text-4xl text-slate-600 mb-2">mail</span>
+                                        <p class="text-sm font-bold text-slate-500">Selecciona una cuenta para ver el buzón</p>
+                                    </div>
                                 </div>
 
                                 <!-- CONTACTOS DEL SISTEMA (NUEVO v2.0) -->
@@ -1241,8 +1303,65 @@
                                     <div class="flex justify-between items-center">
                                         <h3 class="text-2xl font-black text-white uppercase tracking-widest">Contactos del Sistema</h3>
                                         <div class="flex gap-3">
-                                            <button class="btn-secondary !px-4 !py-3 text-[10px] font-black uppercase" onclick="App.importContactsModal()">📥 Importar CSV</button>
+                                            <button class="btn-secondary !px-4 !py-3 text-[10px] font-black uppercase" onclick="App.showImportSources()">📥 Importar</button>
                                             <button class="btn-primary !px-6 !py-3 text-[10px] font-black uppercase" onclick="App.openContactModal()">+ Nuevo Contacto</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Selector de Fuentes de Importación -->
+                                    <div id="import-sources" class="hidden glass-card p-6 border-white/5 bg-white/[0.02] space-y-4">
+                                        <h4 class="text-lg font-black text-white uppercase tracking-widest">Importar Contactos Desde</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            <button onclick="App.importFromEvents()" class="p-4 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-blue-400">event</span>
+                                                    <span class="text-sm font-bold text-white">Eventos</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Invitados registrados en eventos</p>
+                                            </button>
+                                            
+                                            <button onclick="App.importFromSurveys()" class="p-4 bg-green-500/10 hover:bg-green-500/20 rounded-xl border border-green-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-green-400">poll</span>
+                                                    <span class="text-sm font-bold text-white">Encuestas</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Participantes de encuestas</p>
+                                            </button>
+                                            
+                                            <button onclick="App.importFromRaffles()" class="p-4 bg-purple-500/10 hover:bg-purple-500/20 rounded-xl border border-purple-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-purple-400">confirmation_number</span>
+                                                    <span class="text-sm font-bold text-white">Rifas</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Participantes de rifas y sorteos</p>
+                                            </button>
+                                            
+                                            <button onclick="App.importFromGuests()" class="p-4 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-amber-400">group</span>
+                                                    <span class="text-sm font-bold text-white">Invitados</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Base de datos de invitados</p>
+                                            </button>
+                                            
+                                            <button onclick="App.importFromCompanies()" class="p-4 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-xl border border-cyan-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-cyan-400">business</span>
+                                                    <span class="text-sm font-bold text-white">Empresas</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Contactos de empresas</p>
+                                            </button>
+                                            
+                                            <button onclick="App.importCSVModal()" class="p-4 bg-slate-500/10 hover:bg-slate-500/20 rounded-xl border border-slate-500/20 transition-colors text-left">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="material-symbols-outlined text-slate-400">upload</span>
+                                                    <span class="text-sm font-bold text-white">CSV/Excel</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400">Importar archivo manual</p>
+                                            </button>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button onclick="App.hideImportSources()" class="text-xs px-3 py-1.5 bg-slate-500/20 text-slate-400 rounded-lg hover:bg-slate-500/30">Cancelar</button>
                                         </div>
                                     </div>
                                     
@@ -1254,6 +1373,17 @@
                                         <select id="contacts-group-filter" class="!bg-black/40 !py-3 !px-4 !rounded-xl text-sm !w-48"
                                             onchange="App.filterContacts()">
                                             <option value="">Todos los grupos</option>
+                                        </select>
+                                        <select id="contacts-source-filter" class="!bg-black/40 !py-3 !px-4 !rounded-xl text-sm !w-48"
+                                            onchange="App.filterContacts()">
+                                            <option value="">Todas las fuentes</option>
+                                            <option value="event">Eventos</option>
+                                            <option value="survey">Encuestas</option>
+                                            <option value="raffle">Rifas</option>
+                                            <option value="guest">Invitados</option>
+                                            <option value="company">Empresas</option>
+                                            <option value="manual">Manual</option>
+                                            <option value="csv">CSV</option>
                                         </select>
                                     </div>
                                     
@@ -1383,81 +1513,200 @@
 <!-- Modales Premium v12.34.0 -->
 <div id="modal-container-portal"></div>
 
-<!-- MODAL: Editor de Cuentas de Email -->
-<div id="modal-account-editor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-4 flex flex-col">
-        <div class="premium-modal-header">
+<!-- MODAL: Editor de Cuentas de Email (COMPLETO) -->
+<div id="modal-account-editor" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="card w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl flex flex-col border border-white/10 bg-[var(--bg-app)]">
+        <div class="flex items-center justify-between p-6 border-b border-white/10">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Cuenta de Email</h3>
+                <span class="material-symbols-outlined text-[var(--primary)] text-2xl">mail</span>
+                <h3 id="account-editor-title" class="text-lg font-black text-white uppercase tracking-widest">Nueva Cuenta</h3>
             </div>
-            <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            <button onclick="App.closeAccountEditor()" class="w-10 h-10 rounded-xl hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-slate-400">close</span>
             </button>
         </div>
-        <div class="p-5 space-y-4 overflow-y-auto flex-1">
+        
+        <form id="account-editor-form" class="p-6 space-y-6 overflow-y-auto flex-1" onsubmit="event.preventDefault(); App.saveAccount();">
             <input type="hidden" id="account-id">
             
-            <div>
-                <label class="text-xs font-bold text-slate-400">Nombre de la Cuenta *</label>
-                <input type="text" id="account-name" placeholder="Ej: Gmail Trabajo" class="input-field w-full">
+            <!-- Pestañas -->
+            <div class="flex border-b border-white/10">
+                <button type="button" id="tab-account-basic" class="tab-button active" onclick="App.switchAccountTab('basic')">Información Básica</button>
+                <button type="button" id="tab-account-smtp" class="tab-button" onclick="App.switchAccountTab('smtp')">Configuración SMTP</button>
+                <button type="button" id="tab-account-imap" class="tab-button" onclick="App.switchAccountTab('imap')">Configuración IMAP</button>
+                <button type="button" id="tab-account-advanced" class="tab-button" onclick="App.switchAccountTab('advanced')">Avanzado</button>
             </div>
             
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Host SMTP *</label>
-                    <input type="text" id="account-host" placeholder="smtp.gmail.com" class="input-field w-full">
+            <!-- Contenido de pestañas -->
+            <div id="account-tab-content">
+                <!-- Pestaña 1: Información Básica -->
+                <div id="account-tab-basic" class="tab-content active space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre de la Cuenta *</label>
+                            <input type="text" id="account-name" required placeholder="Ej: Gmail Principal" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Proveedor</label>
+                            <select id="account-provider" class="input-field w-full !bg-black/40 !py-4" onchange="App.fillProviderConfig(this.value)">
+                                <option value="">-- Seleccionar proveedor --</option>
+                                <option value="gmail">Gmail / G Suite</option>
+                                <option value="outlook">Outlook / Office 365</option>
+                                <option value="yahoo">Yahoo Mail</option>
+                                <option value="sendgrid">SendGrid</option>
+                                <option value="amazon">Amazon SES</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Nombre Remitente *</label>
+                            <input type="text" id="account-from-name" required placeholder="Ej: Check Pro" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Email Remitente *</label>
+                            <input type="email" id="account-from-email" required placeholder="noreply@tudominio.com" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="account-active" class="w-5 h-5 accent-violet-600 rounded" checked>
+                            <label for="account-active" class="text-xs font-bold text-slate-400 uppercase">Activa</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="account-default" class="w-5 h-5 accent-violet-600 rounded">
+                            <label for="account-default" class="text-xs font-bold text-slate-400 uppercase">Cuenta Predeterminada</label>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Puerto</label>
-                    <input type="number" id="account-port" value="587" class="input-field w-full">
+                
+                <!-- Pestaña 2: Configuración SMTP -->
+                <div id="account-tab-smtp" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host SMTP *</label>
+                            <input type="text" id="account-smtp-host" required placeholder="smtp.gmail.com" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto SMTP *</label>
+                            <input type="number" id="account-smtp-port" required value="465" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario SMTP *</label>
+                            <input type="text" id="account-smtp-user" required placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña SMTP *</label>
+                            <input type="password" id="account-smtp-pass" required placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="account-smtp-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
+                            <label for="account-smtp-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="account-smtp-tls" class="w-5 h-5 accent-violet-600 rounded">
+                            <label for="account-smtp-tls" class="text-xs font-bold text-slate-400 uppercase">STARTTLS</label>
+                        </div>
+                        <div>
+                            <button type="button" onclick="App.testAccountSMTP()" class="btn-secondary w-full !py-3 text-[10px] font-black uppercase">Probar SMTP</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pestaña 3: Configuración IMAP -->
+                <div id="account-tab-imap" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Host IMAP</label>
+                            <input type="text" id="account-imap-host" placeholder="imap.gmail.com" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Puerto IMAP</label>
+                            <input type="number" id="account-imap-port" value="993" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Usuario IMAP</label>
+                            <input type="text" id="account-imap-user" placeholder="tu@email.com" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contraseña IMAP</label>
+                            <input type="password" id="account-imap-pass" placeholder="••••••••" class="input-field w-full !bg-black/40 !py-4">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="account-imap-secure" class="w-5 h-5 accent-violet-600 rounded" checked>
+                            <label for="account-imap-secure" class="text-xs font-bold text-slate-400 uppercase">SSL/TLS</label>
+                        </div>
+                        <div>
+                            <button type="button" onclick="App.testAccountIMAP()" class="btn-secondary w-full !py-3 text-[10px] font-black uppercase">Probar IMAP</button>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-slate-500">
+                        <p>Nota: La configuración IMAP es opcional. Se usa para recibir respuestas y gestionar el buzón.</p>
+                    </div>
+                </div>
+                
+                <!-- Pestaña 4: Avanzado -->
+                <div id="account-tab-advanced" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Límite Diario</label>
+                            <input type="number" id="account-daily-limit" value="500" min="1" max="10000" class="input-field w-full !bg-black/40 !py-4">
+                            <p class="text-[10px] text-slate-500 mt-2">Máximo de emails enviados por día</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Velocidad de Envío</label>
+                            <select id="account-send-speed" class="input-field w-full !bg-black/40 !py-4">
+                                <option value="slow">Lenta (10/min)</option>
+                                <option value="medium" selected>Media (30/min)</option>
+                                <option value="fast">Rápida (60/min)</option>
+                                <option value="custom">Personalizada</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Notas Internas</label>
+                        <textarea id="account-notes" rows="3" placeholder="Notas sobre esta cuenta..." class="input-field w-full !bg-black/40 !py-4"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-track-opens" class="w-5 h-5 accent-violet-600 rounded" checked>
+                        <label for="account-track-opens" class="text-xs font-bold text-slate-400 uppercase">Rastrear aperturas</label>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="account-track-clicks" class="w-5 h-5 accent-violet-600 rounded" checked>
+                        <label for="account-track-clicks" class="text-xs font-bold text-slate-400 uppercase">Rastrear clicks</label>
+                    </div>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Usuario SMTP *</label>
-                    <input type="text" id="account-user" placeholder="tu@email.com" class="input-field w-full">
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                <div class="text-xs text-slate-500">
+                    * Campos obligatorios
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Contraseña *</label>
-                    <input type="password" id="account-pass" placeholder="••••••••" class="input-field w-full">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Nombre Remitente</label>
-                    <input type="text" id="account-from-name" placeholder="Check Pro" class="input-field w-full">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400">Email Remitente *</label>
-                    <input type="email" id="account-from-email" placeholder="noreply@tudominio.com" class="input-field w-full">
+                <div class="flex gap-3">
+                    <button type="button" onclick="App.closeAccountEditor()" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary flex-1">💾 Guardar Cuenta</button>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="account-secure" class="w-4 h-4 accent-primary">
-                    <span class="text-xs">SSL/TLS</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="account-default" class="w-4 h-4 accent-primary">
-                    <span class="text-xs">Cuenta Default</span>
-                </label>
-            </div>
-            
-            <div>
-                <label class="text-xs font-bold text-slate-400">Límite Diario</label>
-                <input type="number" id="account-limit" value="500" class="input-field w-full">
-                <p class="text-[10px] text-slate-500">Cantidad máxima de emails por día</p>
-            </div>
-            
-            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
-                <button onclick="App.saveEmailAccount()" class="btn-primary flex-1">💾 Guardar</button>
-                <button onclick="document.getElementById('modal-account-editor').classList.add('hidden')" class="btn-secondary">Cancelar</button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -1499,6 +1748,35 @@
                 <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
                 <textarea id="ev-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
+            
+            <!-- Selección de Template de Email -->
+            <div class="space-y-1.5 border-t border-white/10 pt-4">
+                <div class="flex items-center justify-between">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Template de Email</label>
+                    <button type="button" onclick="App.openTemplateManager()" class="text-[9px] font-bold text-primary hover:underline">Gestionar Templates</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="relative">
+                        <select id="ev-email-template" class="select-primary w-full" onchange="App.previewSelectedTemplate(this.value)">
+                            <option value="">Seleccionar template...</option>
+                            <option value="default-welcome">Bienvenida por defecto</option>
+                            <option value="default-confirmation">Confirmación por defecto</option>
+                            <option value="default-reminder">Recordatorio por defecto</option>
+                            <option value="custom">Personalizado...</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">arrow_drop_down</span>
+                    </div>
+                    <button type="button" onclick="App.createNewTemplate()" class="btn-secondary !px-4 !py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        Nuevo Template
+                    </button>
+                </div>
+                <div id="template-preview" class="hidden mt-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                    <p class="text-xs text-slate-400 mb-2">Vista previa:</p>
+                    <div id="template-preview-content" class="text-sm text-slate-300"></div>
+                </div>
+            </div>
+            
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 !py-2">Guardar</button>

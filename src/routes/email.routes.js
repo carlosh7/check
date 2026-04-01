@@ -46,22 +46,33 @@ router.get('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     const accounts = db.prepare(`
         SELECT id, name, smtp_host, smtp_port, smtp_user, smtp_secure, 
                from_name, from_email, is_default, is_active, daily_limit, 
-               used_today, last_used_at, created_at
+               used_today, last_used_at, created_at, updated_at,
+               provider, send_speed, track_opens, track_clicks, notes,
+               imap_host, imap_port, imap_user, imap_tls, imap_ssl, imap_folder
         FROM email_accounts 
         ORDER BY is_default DESC, name ASC
     `).all();
     
     // Ocultar contraseñas
-    const safeAccounts = accounts.map(a => ({...a, smtp_pass: '***'}));
+    const safeAccounts = accounts.map(a => ({
+        ...a, 
+        smtp_pass: '***',
+        imap_pass: '***'
+    }));
     res.json(safeAccounts);
 });
 
 // Crear cuenta
 router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit } = req.body;
+    const { 
+        name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
+        from_name, from_email, is_default, daily_limit,
+        provider, send_speed, track_opens, track_clicks, notes,
+        imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
+    } = req.body;
     
     if (!name || !smtp_host || !smtp_user || !smtp_pass || !from_email) {
-        return res.status(400).json({ success: false, error: 'Todos los campos son requeridos' });
+        return res.status(400).json({ success: false, error: 'Todos los campos básicos son requeridos' });
     }
     
     const accountId = getValidId('ema');
@@ -73,16 +84,30 @@ router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
     }
     
     db.prepare(`
-        INSERT INTO email_accounts (id, name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, daily_limit, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(accountId, name, smtp_host, smtp_port || 587, smtp_user, smtp_pass, smtp_secure ? 1 : 0, from_name || name, from_email, is_default ? 1 : 0, daily_limit || 500, now, now);
+        INSERT INTO email_accounts (
+            id, name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
+            from_name, from_email, is_default, daily_limit, created_at, updated_at,
+            provider, send_speed, track_opens, track_clicks, notes,
+            imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        accountId, name, smtp_host, smtp_port || 465, smtp_user, smtp_pass, smtp_secure ? 1 : 0, 
+        from_name || name, from_email, is_default ? 1 : 0, daily_limit || 500, now, now,
+        provider || 'custom', send_speed || 'normal', track_opens ? 1 : 0, track_clicks ? 1 : 0, notes || null,
+        imap_host || null, imap_port || 993, imap_user || null, imap_pass || null, imap_tls ? 1 : 0, imap_ssl ? 1 : 0, imap_folder || 'INBOX'
+    );
     
     res.json({ success: true, id: accountId });
 });
 
 // Actualizar cuenta
 router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
-    const { name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, from_name, from_email, is_default, is_active, daily_limit } = req.body;
+    const { 
+        name, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_secure, 
+        from_name, from_email, is_default, is_active, daily_limit,
+        provider, send_speed, track_opens, track_clicks, notes,
+        imap_host, imap_port, imap_user, imap_pass, imap_tls, imap_ssl, imap_folder
+    } = req.body;
     
     const existing = db.prepare("SELECT * FROM email_accounts WHERE id = ?").get(req.params.id);
     if (!existing) return res.status(404).json({ success: false, error: 'Cuenta no encontrada' });
@@ -90,6 +115,11 @@ router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
     let passToSave = smtp_pass;
     if (!smtp_pass || smtp_pass === '***') {
         passToSave = existing.smtp_pass;
+    }
+    
+    let imapPassToSave = imap_pass;
+    if (!imap_pass || imap_pass === '***') {
+        imapPassToSave = existing.imap_pass;
     }
     
     // Si es default, quitar default de otros
@@ -101,7 +131,10 @@ router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
         UPDATE email_accounts SET 
             name = ?, smtp_host = ?, smtp_port = ?, smtp_user = ?, smtp_pass = ?, 
             smtp_secure = ?, from_name = ?, from_email = ?, is_default = ?, 
-            is_active = ?, daily_limit = ?, updated_at = ?
+            is_active = ?, daily_limit = ?, updated_at = ?,
+            provider = ?, send_speed = ?, track_opens = ?, track_clicks = ?, notes = ?,
+            imap_host = ?, imap_port = ?, imap_user = ?, imap_pass = ?, 
+            imap_tls = ?, imap_ssl = ?, imap_folder = ?
         WHERE id = ?
     `).run(
         name || existing.name,
@@ -109,13 +142,25 @@ router.put('/accounts/:id', authMiddleware(['ADMIN']), (req, res) => {
         smtp_port || existing.smtp_port,
         smtp_user || existing.smtp_user,
         passToSave,
-        smtp_secure ? 1 : (existing.smtp_secure || 0),
+        smtp_secure !== undefined ? (smtp_secure ? 1 : 0) : existing.smtp_secure,
         from_name || existing.from_name,
         from_email || existing.from_email,
-        is_default ? 1 : (existing.is_default || 0),
+        is_default !== undefined ? (is_default ? 1 : 0) : existing.is_default,
         is_active !== undefined ? (is_active ? 1 : 0) : existing.is_active,
         daily_limit || existing.daily_limit,
         new Date().toISOString(),
+        provider || existing.provider || 'custom',
+        send_speed || existing.send_speed || 'normal',
+        track_opens !== undefined ? (track_opens ? 1 : 0) : existing.track_opens,
+        track_clicks !== undefined ? (track_clicks ? 1 : 0) : existing.track_clicks,
+        notes !== undefined ? notes : existing.notes,
+        imap_host !== undefined ? imap_host : existing.imap_host,
+        imap_port || existing.imap_port,
+        imap_user !== undefined ? imap_user : existing.imap_user,
+        imapPassToSave,
+        imap_tls !== undefined ? (imap_tls ? 1 : 0) : existing.imap_tls,
+        imap_ssl !== undefined ? (imap_ssl ? 1 : 0) : existing.imap_ssl,
+        imap_folder || existing.imap_folder || 'INBOX',
         req.params.id
     );
     
@@ -1207,6 +1252,219 @@ router.post('/contacts/import', authMiddleware(['ADMIN']), (req, res) => {
     }
     
     res.json({ success: true, imported });
+});
+
+// ═══ IMPORTACIÓN DESDE FUENTES DEL SISTEMA ═══
+
+// Importar invitados de eventos
+router.post('/import/events', authMiddleware(['ADMIN']), (req, res) => {
+    const { event_ids, include_checked_in } = req.body;
+    
+    if (!Array.isArray(event_ids) || event_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere al menos un evento' });
+    }
+    
+    const placeholders = event_ids.map(() => '?').join(',');
+    let query = `
+        SELECT DISTINCT 
+            g.name, 
+            g.email, 
+            g.organization, 
+            g.phone,
+            e.name as event_name
+        FROM guests g
+        JOIN events e ON g.event_id = e.id
+        WHERE g.event_id IN (${placeholders})
+    `;
+    
+    if (include_checked_in === false) {
+        query += " AND g.checked_in = 0";
+    }
+    
+    const guests = db.prepare(query).all(...event_ids);
+    
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO system_contacts (id, name, email, organization, phone, tags, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const g of guests) {
+        if (g.name && g.email) {
+            const tags = g.event_name ? `event:${g.event_name}` : 'event';
+            insert.run(getValidId('ctc'), g.name, g.email, g.organization || null, g.phone || null, tags, now, now);
+            imported++;
+        }
+    }
+    
+    res.json({ success: true, imported, total: guests.length });
+});
+
+// Importar respuestas de encuestas
+router.post('/import/surveys', authMiddleware(['ADMIN']), (req, res) => {
+    const { event_ids } = req.body;
+    
+    if (!Array.isArray(event_ids) || event_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere al menos un evento' });
+    }
+    
+    const placeholders = event_ids.map(() => '?').join(',');
+    const query = `
+        SELECT DISTINCT 
+            g.name, 
+            g.email, 
+            g.organization, 
+            g.phone,
+            e.name as event_name
+        FROM survey_responses sr
+        JOIN guests g ON sr.guest_id = g.id
+        JOIN events e ON sr.event_id = e.id
+        WHERE sr.event_id IN (${placeholders})
+        AND g.email IS NOT NULL AND g.email != ''
+    `;
+    
+    const respondents = db.prepare(query).all(...event_ids);
+    
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO system_contacts (id, name, email, organization, phone, tags, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const r of respondents) {
+        if (r.name && r.email) {
+            const tags = r.event_name ? `survey:${r.event_name}` : 'survey';
+            insert.run(getValidId('ctc'), r.name, r.email, r.organization || null, r.phone || null, tags, now, now);
+            imported++;
+        }
+    }
+    
+    res.json({ success: true, imported, total: respondents.length });
+});
+
+// Importar participantes de ruletas
+router.post('/import/raffles', authMiddleware(['ADMIN']), (req, res) => {
+    const { wheel_ids } = req.body;
+    
+    if (!Array.isArray(wheel_ids) || wheel_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere al menos una ruleta' });
+    }
+    
+    const placeholders = wheel_ids.map(() => '?').join(',');
+    const query = `
+        SELECT DISTINCT 
+            wp.name, 
+            wp.email, 
+            wp.phone,
+            ew.name as wheel_name
+        FROM wheel_participants wp
+        JOIN event_wheels ew ON wp.wheel_id = ew.id
+        WHERE wp.wheel_id IN (${placeholders})
+        AND wp.email IS NOT NULL AND wp.email != ''
+    `;
+    
+    const participants = db.prepare(query).all(...wheel_ids);
+    
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO system_contacts (id, name, email, organization, phone, tags, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const p of participants) {
+        if (p.name && p.email) {
+            const tags = p.wheel_name ? `raffle:${p.wheel_name}` : 'raffle';
+            insert.run(getValidId('ctc'), p.name, p.email, null, p.phone || null, tags, now, now);
+            imported++;
+        }
+    }
+    
+    res.json({ success: true, imported, total: participants.length });
+});
+
+// Importar todos los invitados del sistema
+router.post('/import/guests', authMiddleware(['ADMIN']), (req, res) => {
+    const { include_checked_in } = req.body;
+    
+    let query = `
+        SELECT DISTINCT 
+            g.name, 
+            g.email, 
+            g.organization, 
+            g.phone,
+            e.name as event_name
+        FROM guests g
+        JOIN events e ON g.event_id = e.id
+        WHERE g.email IS NOT NULL AND g.email != ''
+    `;
+    
+    if (include_checked_in === false) {
+        query += " AND g.checked_in = 0";
+    }
+    
+    const guests = db.prepare(query).all();
+    
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO system_contacts (id, name, email, organization, phone, tags, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const g of guests) {
+        if (g.name && g.email) {
+            const tags = g.event_name ? `guest:${g.event_name}` : 'guest';
+            insert.run(getValidId('ctc'), g.name, g.email, g.organization || null, g.phone || null, tags, now, now);
+            imported++;
+        }
+    }
+    
+    res.json({ success: true, imported, total: guests.length });
+});
+
+// Importar organizaciones únicas
+router.post('/import/companies', authMiddleware(['ADMIN']), (req, res) => {
+    const query = `
+        SELECT DISTINCT 
+            organization as name,
+            '' as email,
+            organization,
+            '' as phone,
+            COUNT(*) as guest_count
+        FROM guests 
+        WHERE organization IS NOT NULL 
+        AND organization != ''
+        GROUP BY organization
+        ORDER BY guest_count DESC
+    `;
+    
+    const companies = db.prepare(query).all();
+    
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO system_contacts (id, name, email, organization, phone, tags, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    let imported = 0;
+    
+    for (const c of companies) {
+        if (c.name) {
+            // Crear email ficticio basado en el nombre de la organización
+            const email = `${c.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@company.local`;
+            insert.run(getValidId('ctc'), c.name, email, c.organization, null, 'company', now, now);
+            imported++;
+        }
+    }
+    
+    res.json({ success: true, imported, total: companies.length });
 });
 
 // Grupos de contactos
