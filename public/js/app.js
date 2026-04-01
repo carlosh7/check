@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.23';
+const VERSION = '12.37.24';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -11257,6 +11257,303 @@ const App = window.App = {
             this.loadUsersTable();
             this.loadEvents();
         } catch(e) { console.error(e); }
+    },
+
+    // ─── GESTIÓN DE CUENTAS SMTP (HUB SISTEMA) ───
+    async loadAccounts() {
+        try {
+            const accounts = await this.fetchAPI('/email-accounts');
+            const list = document.getElementById('accounts-list');
+            if (!list) return;
+            
+            if (!accounts || accounts.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full py-20 bg-white/[0.02] rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center">
+                        <span class="material-symbols-outlined text-5xl text-slate-700 mb-4">dns</span>
+                        <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay cuentas configuradas</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = accounts.map(acc => `
+                <div class="card p-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl ${acc.active ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'} flex items-center justify-center border border-white/5">
+                                <span class="material-symbols-outlined">${acc.provider === 'gmail' ? 'mail' : 'dns'}</span>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-white uppercase tracking-widest">${acc.name}</h4>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase">${acc.from_email} • ${acc.smtp_host}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${acc.is_default ? '<span class="text-[9px] font-black bg-violet-500/20 text-violet-400 px-2 py-1 rounded-lg border border-violet-500/30">DEFAULT</span>' : ''}
+                            <button onclick="App.openAccountEditor('${acc.id}')" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-blue-500/20 hover:text-blue-400 transition-all border border-white/5">
+                                <span class="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button onclick="App.deleteAccount('${acc.id}')" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all border border-white/5">
+                                <span class="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('[ACCOUNTS] Error loading:', e);
+        }
+    },
+
+    async openAccountEditor(id = null) {
+        console.log('[ACCOUNTS] openAccountEditor ID:', id);
+        const modal = document.getElementById('modal-account-editor');
+        const form = document.getElementById('account-editor-form');
+        const title = document.getElementById('account-editor-title');
+        
+        if (!modal || !form) return console.error('Modal de cuentas no encontrado');
+        
+        form.reset();
+        document.getElementById('account-id').value = id || '';
+        title.textContent = id ? 'Editar Cuenta' : 'Nueva Cuenta';
+
+        const setValue = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+        if (id && id !== 'undefined' && id !== 'null') {
+            try {
+                const acc = await this.fetchAPI(`/email-accounts/${id}`);
+                console.log('[ACCOUNTS] Fetiched account data:', acc);
+                if (acc) {
+                    setValue('account-name', acc.name);
+                    setValue('account-provider', acc.provider);
+                    setValue('account-from-name', acc.from_name);
+                    setValue('account-from-email', acc.from_email);
+                    setValue('account-smtp-host', acc.smtp_host);
+                    setValue('account-smtp-port', acc.smtp_port);
+                    setValue('account-smtp-user', acc.smtp_user);
+                    setValue('account-smtp-pass', acc.smtp_pass);
+                    setValue('account-imap-host', acc.imap_host);
+                    setValue('account-imap-port', acc.imap_port);
+                    setValue('account-imap-user', acc.imap_user);
+                    setValue('account-imap-pass', acc.imap_pass);
+                    setValue('account-daily-limit', acc.daily_limit || 500);
+                    setValue('account-send-speed', acc.send_speed || 'medium');
+                    setValue('account-notes', acc.notes);
+                    
+                    if (document.getElementById('account-active')) document.getElementById('account-active').checked = !!acc.active;
+                    if (document.getElementById('account-default')) document.getElementById('account-default').checked = !!acc.is_default;
+                    if (document.getElementById('account-smtp-secure')) document.getElementById('account-smtp-secure').checked = !!acc.smtp_secure;
+                    if (document.getElementById('account-imap-secure')) document.getElementById('account-imap-secure').checked = !!acc.imap_secure;
+                }
+            } catch (e) {
+                console.error('[ACCOUNTS] Error fetching details:', e);
+                Swal.fire('Error', 'No se pudo cargar la información de la cuenta.', 'error');
+                return;
+            }
+        } else {
+            setValue('account-daily-limit', 500);
+            setValue('account-send-speed', 'medium');
+            if (document.getElementById('account-active')) document.getElementById('account-active').checked = true;
+            if (document.getElementById('account-smtp-secure')) document.getElementById('account-smtp-secure').checked = true;
+        }
+
+        modal.classList.remove('hidden');
+    },
+
+    closeAccountEditor() {
+        document.getElementById('modal-account-editor')?.classList.add('hidden');
+    },
+
+    async saveAccount() {
+        const id = document.getElementById('account-id').value;
+        const getValue = (id) => document.getElementById(id)?.value || '';
+        
+        const data = {
+            name: getValue('account-name'),
+            provider: getValue('account-provider'),
+            from_name: getValue('account-from-name'),
+            from_email: getValue('account-from-email'),
+            smtp_host: getValue('account-smtp-host'),
+            smtp_port: parseInt(getValue('account-smtp-port')),
+            smtp_user: getValue('account-smtp-user'),
+            smtp_pass: getValue('account-smtp-pass'),
+            smtp_secure: document.getElementById('account-smtp-secure')?.checked ? 1 : 0,
+            imap_host: getValue('account-imap-host'),
+            imap_port: parseInt(getValue('account-imap-port')) || null,
+            imap_user: getValue('account-imap-user'),
+            imap_pass: getValue('account-imap-pass'),
+            imap_secure: document.getElementById('account-imap-secure')?.checked ? 1 : 0,
+            active: document.getElementById('account-active')?.checked ? 1 : 0,
+            is_default: document.getElementById('account-default')?.checked ? 1 : 0,
+            daily_limit: parseInt(getValue('account-daily-limit')) || 500,
+            send_speed: getValue('account-send-speed') || 'medium',
+            notes: getValue('account-notes')
+        };
+
+        if (!data.name || !data.from_email || !data.smtp_host) {
+            return Swal.fire('Campos requeridos', 'Por favor completa los campos marcados con *', 'warning');
+        }
+
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email-accounts/${id}` : '/email-accounts';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+
+            if (res.success || res.id) {
+                this._notifyAction('Éxito', 'Cuenta guardada correctamente.', 'success');
+                this.closeAccountEditor();
+                this.loadAccounts();
+            } else {
+                Swal.fire('Error', res.error || 'No se pudo guardar la cuenta.', 'error');
+            }
+        } catch (e) {
+            console.error('[ACCOUNTS] Error saving:', e);
+            Swal.fire('Error', 'Error de conexión con el servidor.', 'error');
+        }
+    },
+
+    async deleteAccount(id) {
+        if (!(await this._confirmAction('¿Eliminar esta cuenta?', 'Esta acción no se puede deshacer.'))) return;
+        try {
+            const res = await this.fetchAPI(`/email-accounts/${id}`, { method: 'DELETE' });
+            if (res.success) {
+                this._notifyAction('Eliminado', 'La cuenta ha sido eliminada.', 'success');
+                this.loadAccounts();
+            }
+        } catch (e) {
+            console.error('[ACCOUNTS] Error deleting:', e);
+        }
+    },
+
+    // ─── GESTIÓN DE PLANTILLAS (HUB SISTEMA) ───
+    async loadEmailTemplates() {
+        try {
+            const templates = await this.fetchAPI('/email-templates');
+            const grid = document.getElementById('templates-grid');
+            if (!grid) return;
+
+            if (!templates || templates.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-20 bg-white/[0.02] rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center text-slate-600">
+                        <span class="material-symbols-outlined text-5xl mb-4">dashboard_customize</span>
+                        <p class="font-bold uppercase tracking-widest text-xs">Sin plantillas disponibles</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = templates.map(t => `
+                <div class="card p-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[9px] font-black px-2 py-1 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-widest">${t.category || 'GENERAL'}</span>
+                            <div class="flex gap-2">
+                                <button onclick="App.openTemplateEditor('${t.id}')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-blue-500/20 hover:text-blue-400 border border-white/5">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                </button>
+                                <button onclick="App.deleteEmailTemplate('${t.id}')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 border border-white/5">
+                                    <span class="material-symbols-outlined text-base">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                        <h4 class="text-sm font-black text-white uppercase tracking-widest mb-1 truncate">${t.name}</h4>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase truncate">${t.subject}</p>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('[TEMPLATES] Error loading:', e);
+        }
+    },
+
+    async openTemplateEditor(id = null) {
+        const modal = document.getElementById('modal-template-editor');
+        const title = document.getElementById('template-editor-title');
+        if (!modal) return;
+
+        title.textContent = id ? 'Editar Plantilla' : 'Nueva Plantilla';
+        document.getElementById('template-id').value = id || '';
+        document.getElementById('template-name').value = '';
+        document.getElementById('template-subject').value = '';
+        document.getElementById('template-body').value = '';
+        document.getElementById('template-active').checked = true;
+
+        if (typeof window.Quill === 'undefined') {
+            try { await window.lazyLoad?.loadQuill(); } catch(e) { console.error(e); }
+        }
+        
+        if (!this.templateQuill) {
+            this.templateQuill = new Quill('#template-quill-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'header': [1, 2, 3, false] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        ['link', 'image', 'clean']
+                    ]
+                }
+            });
+        }
+        
+        this.templateQuill.setContents([]);
+
+        if (id && id !== 'undefined' && id !== 'null') {
+            try {
+                const t = await this.fetchAPI(`/email-templates/${id}`);
+                if (t) {
+                    document.getElementById('template-name').value = t.name;
+                    document.getElementById('template-subject').value = t.subject;
+                    document.getElementById('template-body').value = t.body_html || t.body_text || '';
+                    document.getElementById('template-active').checked = !!t.active;
+                    this.templateQuill.clipboard.dangerouslyPasteHTML(t.body_html || t.body_text || '');
+                }
+            } catch (e) {
+                console.error('[TEMPLATES] Error fetching:', e);
+            }
+        }
+
+        modal.classList.remove('hidden');
+    },
+
+    closeTemplateEditor() {
+        document.getElementById('modal-template-editor')?.classList.add('hidden');
+    },
+
+    async saveEmailTemplate() {
+        const id = document.getElementById('template-id').value;
+        const bodyContent = this.templateQuill ? this.templateQuill.root.innerHTML : document.getElementById('template-body').value;
+        
+        const data = {
+            name: document.getElementById('template-name').value,
+            subject: document.getElementById('template-subject').value,
+            body_html: bodyContent,
+            active: document.getElementById('template-active').checked ? 1 : 0,
+            category: 'system'
+        };
+
+        if (!data.name || !data.subject) return Swal.fire('Error', 'Nombre y Asunto son obligatorios', 'warning');
+
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/email-templates/${id}` : '/email-templates';
+            const res = await this.fetchAPI(url, { method, body: JSON.stringify(data) });
+            if (res.success || res.id) {
+                this._notifyAction('Guardado', 'Plantilla actualizada exitosamente.', 'success');
+                this.closeTemplateEditor();
+                this.loadEmailTemplates();
+            }
+        } catch (e) { console.error(e); }
+    },
+
+    async deleteEmailTemplate(id) {
+        if (!(await this._confirmAction('¿Eliminar esta plantilla?', 'Esta acción no se puede deshacer.'))) return;
+        try {
+            const res = await this.fetchAPI(`/email-templates/${id}`, { method: 'DELETE' });
+            if (res.success) {
+                this._notifyAction('Eliminado', 'La plantilla ha sido eliminada.', 'success');
+                this.loadEmailTemplates();
+            }
+        } catch (e) { console.error(e); }
     },
 
     // ─── LEGAL Y QUILL (v12.31.22) ───
