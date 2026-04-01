@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.37.1",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.1 - Fix: Rutas API email accounts y campaigns",
+  "version": "12.37.2",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.2 - Fix: Superposición de modales en plantillas de email",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -783,8 +783,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 /* Asegurar que ninguna secciÃ³n de email recorte el dropdown */
 .email-content {
     overflow: visible !important;
-    z-index: 1 !important;
-    position: relative !important;
+    /* z-index y position removidos para evitar problemas de stacking context */
     clip: auto !important;
     clip-path: none !important;
 }

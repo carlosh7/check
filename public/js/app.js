@@ -735,9 +735,9 @@ const App = window.App = {
 
     // Abrir modal para nueva plantilla
     openTemplateEditor: function() {
-        // Ocultar grid de plantillas
-        const grid = document.getElementById('templates-grid');
-        if (grid) grid.classList.add('hidden');
+        // Ocultar el contenedor completo de plantillas
+        const templatesContainer = document.getElementById('email-content-templates');
+        if (templatesContainer) templatesContainer.classList.add('hidden');
         
         document.getElementById('template-editor-title').textContent = 'Nueva Plantilla';
         document.getElementById('template-id').value = '';
@@ -751,9 +751,10 @@ const App = window.App = {
     // Cerrar modal del editor
     closeTemplateEditor: function() {
         document.getElementById('modal-template-editor').classList.add('hidden');
-        // Mostrar grid de plantillas
-        const grid = document.getElementById('templates-grid');
-        if (grid) {
+        // Mostrar el contenedor completo de plantillas
+        const templatesContainer = document.getElementById('email-content-templates');
+        if (templatesContainer) {
+            templatesContainer.classList.remove('hidden');
             this.loadEmailTemplates();
         }
     },
@@ -771,9 +772,9 @@ const App = window.App = {
 
     // Editar plantilla existente
     editEmailTemplate: function(id) {
-        // Ocultar grid de plantillas
-        const grid = document.getElementById('templates-grid');
-        if (grid) grid.classList.add('hidden');
+        // Ocultar el contenedor completo de plantillas
+        const templatesContainer = document.getElementById('email-content-templates');
+        if (templatesContainer) templatesContainer.classList.add('hidden');
         
         const templates = this.state.globalEmailTemplates || [];
         const template = templates.find(t => String(t.id) === String(id));
@@ -865,6 +866,10 @@ const App = window.App = {
         const template = templates.find(t => String(t.id) === String(id));
         if (!template) return;
         
+        // Ocultar el contenedor completo de plantillas
+        const templatesContainer = document.getElementById('email-content-templates');
+        if (templatesContainer) templatesContainer.classList.add('hidden');
+        
         // Reemplazar variables con valores de ejemplo
         let body = template.body || '';
         body = body.replace(/{{user_name}}/g, 'Juan Pérez');
@@ -879,6 +884,16 @@ const App = window.App = {
         
         document.getElementById('template-preview-content').innerHTML = body;
         document.getElementById('modal-template-preview').classList.remove('hidden');
+    },
+
+    // Cerrar modal de vista previa de plantilla
+    closeTemplatePreview: function() {
+        document.getElementById('modal-template-preview').classList.add('hidden');
+        // Mostrar el contenedor completo de plantillas
+        const templatesContainer = document.getElementById('email-content-templates');
+        if (templatesContainer) {
+            templatesContainer.classList.remove('hidden');
+        }
     },
 
     // Función interna para mostrar sección de email (para compatibilidad)
