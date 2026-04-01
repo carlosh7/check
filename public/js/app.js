@@ -11937,7 +11937,7 @@ App.replyToMail = function(mailId) {
     hideModal('mail-detail-modal');
 };
 
-// Cargar librería Quill dinámicamente (usa misma versión que index.html: 1.3.6)
+// Cargar librería Quill dinámicamente (usa Quill 2.0.2 - misma que lazyLoad)
 App.loadQuillLibrary = function() {
     return new Promise((resolve, reject) => {
         if (typeof Quill !== 'undefined') {
@@ -11946,33 +11946,34 @@ App.loadQuillLibrary = function() {
             return;
         }
         
-        console.log('[QUILL] Loading Quill 1.3.6 library dynamically...');
+        console.log('[QUILL] Loading Quill 2.0.2 library dynamically...');
         
-        // Cargar CSS si no está cargado (misma URL que index.html)
+        // Usar lazyLoad si está disponible (ya tiene la lógica para Quill 2.0.2)
+        if (window.lazyLoad && window.lazyLoad.loadQuill) {
+            console.log('[QUILL] Using lazyLoad.loadQuill()...');
+            window.lazyLoad.loadQuill().then(resolve).catch(reject);
+            return;
+        }
+        
+        // Cargar CSS si no está cargado
         if (!document.querySelector('link[href*="quill.snow.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+            link.href = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css';
             document.head.appendChild(link);
             console.log('[QUILL] CSS loaded');
         }
         
-        // Cargar script (misma URL que index.html)
+        // Cargar script (Quill 2.0.2)
         const script = document.createElement('script');
-        script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+        script.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js';
         script.onload = () => {
             console.log('[QUILL] Library loaded successfully');
             resolve();
         };
         script.onerror = (error) => {
             console.error('[QUILL] Failed to load library:', error);
-            // Intentar usar lazyLoad si está disponible
-            if (window.lazyLoad && window.lazyLoad.loadQuill) {
-                console.log('[QUILL] Trying lazyLoad.loadQuill() as fallback...');
-                window.lazyLoad.loadQuill().then(resolve).catch(reject);
-            } else {
-                reject(new Error('Failed to load Quill library'));
-            }
+            reject(new Error('Failed to load Quill library'));
         };
         document.head.appendChild(script);
     });
