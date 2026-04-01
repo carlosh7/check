@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.34.96';
+const VERSION = '12.37.18';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4188,9 +4188,9 @@ const App = window.App = {
                     </div>
                     
                     <div class="flex gap-2 pt-4 border-t border-white/10">
-                        <button onclick="App.testAccountSMTP()" class="flex-1 px-3 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-xs font-bold transition-colors" title="Probar SMTP">🧪 Probar</button>
-                        <button onclick="App.openAccountEditor('${a.id}')" class="flex-1 px-3 py-2 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-lg text-xs font-bold transition-colors" title="Editar">✏️ Editar</button>
-                        <button onclick="App.deleteAccount('${a.id}')" class="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition-colors" title="Eliminar">🗑️</button>
+                        <button data-action="testAccountSMTP" data-account-id="${a.id}" class="flex-1 px-3 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-xs font-bold transition-colors" title="Probar SMTP">🧪 Probar</button>
+                        <button data-action="editAccount" data-account-id="${a.id}" class="flex-1 px-3 py-2 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-lg text-xs font-bold transition-colors" title="Editar">✏️ Editar</button>
+                        <button data-action="deleteAccount" data-account-id="${a.id}" data-account-name="${a.name}" class="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition-colors" title="Eliminar">🗑️</button>
                     </div>
                 </div>
             `).join('');
@@ -5836,8 +5836,8 @@ const App = window.App = {
         
         const activeTab = document.getElementById('btn-' + (tab === 'code' ? 'html' : tab) + '-editor');
         if (activeTab) {
-            activeTab.classList.remove('bg-white/5', 'text-slate-400');
-            activeTab.classList.add('bg-primary', 'text-white', 'shadow');
+            activeTab.classList.remove('bg-slate-500/20', 'text-slate-400');
+            activeTab.classList.add('bg-violet-500/20', 'text-violet-400', 'border', 'border-violet-500/30');
         }
         
         const prevTab = this.state.templateActiveTab || 'visual';
@@ -7101,6 +7101,9 @@ const App = window.App = {
                         _App.showEventSelector(p.userId, evs); 
                         break;
                     case 'assignUserGroupFromSelector': _App.assignUserGroupFromSelector(p.userId); break;
+                    case 'editAccount': _App.openAccountEditor(p.accountId); break;
+                    case 'deleteAccount': _App.deleteAccount(p.accountId, p.accountName); break;
+                    case 'testAccountSMTP': _App.testAccountSMTP(p.accountId); break;
                     case 'navigateToCreateGroup': _App.navigateToCreateGroup(); break;
                     case 'closeGroupSelector': _App.closeGroupSelector(); break;
                     case 'navigateToCreateEvent': _App.navigateToCreateEvent(p.userId); break;
