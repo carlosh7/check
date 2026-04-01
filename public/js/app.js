@@ -897,12 +897,20 @@ const App = window.App = {
             // Ahora cargar contenido si existe
             if (this.quillTemplate && textarea) {
                 if (textarea.value && textarea.value.trim() !== '') {
-                    console.log('[TEMPLATE EDITOR] Loading content from textarea');
+                    console.log('[TEMPLATE EDITOR] Loading content from textarea, length:', textarea.value.length);
+                    console.log('[TEMPLATE EDITOR] Textarea value preview:', textarea.value.substring(0, 100));
                     this.quillTemplate.root.innerHTML = textarea.value;
+                    console.log('[TEMPLATE EDITOR] Quill content after loading from textarea:', this.quillTemplate.root.innerHTML?.substring(0, 100));
                 } else {
-                    console.log('[TEMPLATE EDITOR] Setting default content');
+                    console.log('[TEMPLATE EDITOR] Setting default content (textarea empty)');
                     this.quillTemplate.root.innerHTML = '<p>Escribe el contenido del email aquí...</p>';
                 }
+            } else {
+                console.log('[TEMPLATE EDITOR] Cannot load content:', {
+                    hasQuill: !!this.quillTemplate,
+                    hasTextarea: !!textarea,
+                    quillTemplate: this.quillTemplate
+                });
             }
         } else {
             // Mostrar editor HTML, ocultar visual
@@ -926,20 +934,34 @@ const App = window.App = {
     },
 
     // Inicializar editor de plantillas
-    initTemplateEditor: function() {
+    initTemplateEditor: async function() {
+        console.log('[TEMPLATE EDITOR] initTemplateEditor called');
         // Por defecto, modo visual
-        this.switchTemplateEditorMode('visual');
+        await this.switchTemplateEditorMode('visual');
+        console.log('[TEMPLATE EDITOR] initTemplateEditor completed');
     },
 
     // Editar plantilla existente
-    editEmailTemplate: function(id) {
+    editEmailTemplate: async function(id) {
+        console.log('[TEMPLATE EDITOR] editEmailTemplate called for id:', id);
+        
         // Ocultar el contenedor completo de plantillas
         const templatesContainer = document.getElementById('email-content-templates');
         if (templatesContainer) templatesContainer.classList.add('hidden');
         
         const templates = this.state.globalEmailTemplates || [];
         const template = templates.find(t => String(t.id) === String(id));
-        if (!template) return;
+        if (!template) {
+            console.error('[TEMPLATE EDITOR] Template not found for id:', id);
+            return;
+        }
+        
+        console.log('[TEMPLATE EDITOR] Template found:', {
+            id: template.id,
+            name: template.name,
+            body_length: template.body?.length || 0,
+            body_preview: template.body?.substring(0, 100) || 'empty'
+        });
         
         document.getElementById('template-editor-title').textContent = 'Editar Plantilla';
         document.getElementById('template-id').value = template.id;
@@ -949,13 +971,25 @@ const App = window.App = {
         document.getElementById('template-active').checked = template.is_active === 1;
         document.getElementById('modal-template-editor').classList.remove('hidden');
         
-        // Inicializar editor con contenido de la plantilla
-        this.initTemplateEditor();
+        // Verificar que el textarea tiene el contenido
+        const textarea = document.getElementById('template-body');
+        console.log('[TEMPLATE EDITOR] Textarea value after setting:', {
+            length: textarea?.value?.length || 0,
+            preview: textarea?.value?.substring(0, 100) || 'empty',
+            element: !!textarea
+        });
         
-        // Si hay contenido, cargarlo en Quill
-        if (template.body && this.quillTemplate) {
-            this.quillTemplate.root.innerHTML = template.body;
-        }
+        // Inicializar editor con contenido de la plantilla
+        console.log('[TEMPLATE EDITOR] Calling initTemplateEditor...');
+        await this.initTemplateEditor();
+        
+        console.log('[TEMPLATE EDITOR] After initTemplateEditor, quillTemplate:', !!this.quillTemplate);
+        
+        // Verificar contenido del textarea después de la inicialización
+        console.log('[TEMPLATE EDITOR] Textarea value after init:', {
+            length: textarea?.value?.length || 0,
+            preview: textarea?.value?.substring(0, 100) || 'empty'
+        });
     },
 
     // Guardar plantilla (crear o actualizar)
@@ -1055,9 +1089,21 @@ const App = window.App = {
 
     // Vista previa de plantilla
     previewEmailTemplate: function(id) {
+        console.log('[TEMPLATE PREVIEW] previewEmailTemplate called for id:', id);
+        
         const templates = this.state.globalEmailTemplates || [];
         const template = templates.find(t => String(t.id) === String(id));
-        if (!template) return;
+        if (!template) {
+            console.error('[TEMPLATE PREVIEW] Template not found for id:', id);
+            return;
+        }
+        
+        console.log('[TEMPLATE PREVIEW] Template found:', {
+            id: template.id,
+            name: template.name,
+            body_length: template.body?.length || 0,
+            body_preview: template.body?.substring(0, 100) || 'empty'
+        });
         
         // Ocultar el contenedor completo de plantillas
         const templatesContainer = document.getElementById('email-content-templates');
@@ -1065,6 +1111,8 @@ const App = window.App = {
         
         // Reemplazar variables con valores de ejemplo
         let body = template.body || '';
+        console.log('[TEMPLATE PREVIEW] Original body length:', body.length);
+        
         body = body.replace(/{{user_name}}/g, 'Juan Pérez');
         body = body.replace(/{{user_email}}/g, 'juan@ejemplo.com');
         body = body.replace(/{{app_name}}/g, 'Check Pro');
@@ -1075,8 +1123,20 @@ const App = window.App = {
         body = body.replace(/{{event_date}}/g, '31 de Marzo, 2026');
         body = body.replace(/{{event_location}}/g, 'Centro de Convenciones');
         
-        document.getElementById('template-preview-content').innerHTML = body;
+        console.log('[TEMPLATE PREVIEW] Body after variable replacement, length:', body.length);
+        console.log('[TEMPLATE PREVIEW] Body preview:', body.substring(0, 100));
+        
+        const previewElement = document.getElementById('template-preview-content');
+        if (!previewElement) {
+            console.error('[TEMPLATE PREVIEW] Preview element not found!');
+            return;
+        }
+        
+        previewElement.innerHTML = body;
+        console.log('[TEMPLATE PREVIEW] Preview element innerHTML length:', previewElement.innerHTML?.length || 0);
+        
         document.getElementById('modal-template-preview').classList.remove('hidden');
+        console.log('[TEMPLATE PREVIEW] Modal shown');
     },
 
     // Cerrar modal de vista previa de plantilla

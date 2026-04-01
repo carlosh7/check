@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.37.8",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.8 - Migración completa a Quill 2.0.2, fix error scroll.js:158, editor templates funcional",
+  "version": "12.37.9",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.9 - Fix carga contenido plantillas, logs depuración, sincronización async editor",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
