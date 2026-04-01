@@ -75,7 +75,7 @@ router.post('/accounts', authMiddleware(['ADMIN']), (req, res) => {
         return res.status(400).json({ success: false, error: 'Todos los campos básicos son requeridos' });
     }
     
-    const accountId = getValidId('ema');
+    const accountId = uuidv4(); // V12.37.20: Bypass getValidId for reliability
     const now = new Date().toISOString();
     
     // Si es default, quitar default de otros
@@ -623,7 +623,7 @@ router.post('/events/:eventId/email/accounts', authMiddleware(['ADMIN', 'PRODUCT
         return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
     
-    const accountId = getValidId('acc');
+    const accountId = uuidv4(); // V12.37.20: Bypass getValidId for reliability
     const now = new Date().toISOString();
     
     // Si es default, quitar default de otras cuentas del evento

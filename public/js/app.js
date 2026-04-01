@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.19';
+const VERSION = '12.37.20';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -5772,7 +5772,13 @@ const App = window.App = {
         });
 
         if (initialHtml) {
-            this.state.quillEditor.clipboard.dangerouslyPasteHTML(this._cleanHtmlForEditor(initialHtml));
+            console.log('[QUILL] Pasting HTML, length:', initialHtml.length);
+            const cleaned = this._cleanHtmlForEditor(initialHtml);
+            this.state.quillEditor.clipboard.dangerouslyPasteHTML(cleaned);
+            // Asegurar que el editor se actualice
+            setTimeout(() => {
+                if (this.state.quillEditor) this.state.quillEditor.update();
+            }, 100);
         }
         
         this._loadVariablesPalette();

@@ -1150,6 +1150,40 @@ for (const sql of additionalIndices) {
     try { db.exec(sql); } catch (_) {}
 }
 
+// ═══ SISTEMA DE AUTO-REPARACIÓN (V12.37.20) ═══
+// Detectar y reparar registros con ID nulo que bloquean la UI
+(function repairNullIds() {
+    try {
+        console.log("🔍 Iniciando auto-reparación de base de datos (v12.37.20)...");
+        
+        // 1. Cuentas de Email
+        const nullAccounts = db.prepare("SELECT ROWID FROM email_accounts WHERE id IS NULL").all();
+        if (nullAccounts.length > 0) {
+            console.warn(`[REPAIR] Encontradas ${nullAccounts.length} cuentas con ID nulo. Reparando...`);
+            const updateStmt = db.prepare("UPDATE email_accounts SET id = ? WHERE ROWID = ?");
+            nullAccounts.forEach(row => {
+                updateStmt.run(uuidv4(), row.rowid);
+            });
+            console.log("✓ Cuentas reparadas exitosamente.");
+        }
+
+        // 2. Plantillas de Email
+        const nullTemplates = db.prepare("SELECT ROWID FROM email_templates WHERE id IS NULL").all();
+        if (nullTemplates.length > 0) {
+            console.warn(`[REPAIR] Encontradas ${nullTemplates.length} plantillas con ID nulo. Reparando...`);
+            const updateStmt = db.prepare("UPDATE email_templates SET id = ? WHERE ROWID = ?");
+            nullTemplates.forEach(row => {
+                updateStmt.run(uuidv4(), row.rowid);
+            });
+            console.log("✓ Plantillas reparadas exitosamente.");
+        }
+        
+        console.log("✨ Auto-reparación completada.");
+    } catch (e) {
+        console.error("❌ Error en auto-reparación:", e.message);
+    }
+})();
+
 // Importar Database Manager para bases de datos por evento
 const { 
     getEventConnection, 
