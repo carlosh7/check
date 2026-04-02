@@ -59,7 +59,7 @@ router.post('/purge', authMiddleware(['ADMIN']), (req, res) => {
         db.prepare("PRAGMA foreign_keys = OFF").run();
 
         // Delete in correct order to avoid FK violations
-        const tables = ['email_logs', 'email_queue', 'campaigns', 'survey_responses', 'survey_questions',
+        const tables = ['survey_responses', 'survey_questions',
                        'agenda_items', 'guests', 'pre_registrations', 'user_events', 'group_users',
                        'events', 'groups', 'users', 'audit_logs', 'settings'];
 

@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.41.0",
+  "version": "12.42.0",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.37.11 - Fix CSP, regreso a CDNs permitidos (jsdelivr), Quill funcional",
   "main": "script.js",
   "scripts": {
