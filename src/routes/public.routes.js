@@ -144,60 +144,7 @@ router.get('/audit-logs', (req, res) => {
     const total = db.prepare(`SELECT COUNT(*) as count FROM audit_logs WHERE ${where}`).get(...params).count;
     const logs = db.prepare(`SELECT * FROM audit_logs WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, Math.min(200, parseInt(limit)), offset);
 
-    res.json({ data: logs, pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / Math.min(200, parseInt(limit))) } });
-});
-
-// ═══ EMAIL TRACKING ROUTES (Públicas) ═══
-
-// Tracking de apertura (pixel 1x1 transparente)
-router.get('/track/open/:messageId', (req, res) => {
-    const { messageId } = req.params;
-    const ipAddress = req.ip || req.connection?.remoteAddress;
-    const userAgent = req.headers['user-agent'] || '';
-    
-    console.log('[TRACK] Open tracked:', messageId);
-    
-    // Registrar apertura
-    try {
-        const { registerOpen } = require('../utils/emailTracker');
-        registerOpen(messageId, ipAddress, userAgent);
-    } catch (e) {
-        console.error('[TRACK] Error registering open:', e.message);
-    }
-    
-    // Devolver pixel transparente GIF
-    const pixel = Buffer.from(
-        'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-        'base64'
-    );
-    
-    res.set('Content-Type', 'image/gif');
-    res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    res.send(pixel);
-});
-
-// Tracking de clicks
-router.get('/track/click', (req, res) => {
-    const { url, campaign, email, msg } = req.query;
-    const ipAddress = req.ip || req.connection?.remoteAddress;
-    const userAgent = req.headers['user-agent'] || '';
-    
-    if (!url) {
-        return res.status(400).send('URL requerida');
-    }
-    
-    console.log('[TRACK] Click tracked:', { url, campaign, email });
-    
-    // Registrar click
-    try {
-        const { registerClick } = require('../utils/emailTracker');
-        registerClick(url, campaign, email, msg, ipAddress, userAgent);
-    } catch (e) {
-        console.error('[TRACK] Error registering click:', e.message);
-    }
-    
-    // Redireccionar a la URL original
-    res.redirect(url);
+    res.json({ data: logs, pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) } });
 });
 
 module.exports = router;
