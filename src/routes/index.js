@@ -9,7 +9,7 @@ const authRoutes = require('./auth.routes');
 const usersRoutes = require('./users.routes');
 const eventsRoutes = require('./events.routes');
 const guestsRoutes = require('./guests.routes');
-const emailRoutes = require('./email.routes');
+// const emailRoutes = require('./email.routes'); // ELIMINADO - Fase 1
 const groupsRoutes = require('./groups.routes');
 const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
@@ -105,8 +105,8 @@ function registerRoutes(app, rootDir) {
     // Guests
     app.use('/api/guests', guestsRoutes);
     
-    // Email (SMTP, IMAP, templates, queue) - montado en /api/email
-    app.use('/api/email', emailRoutes);
+    // Email (temporalmente deshabilitado - Fase 1)
+    // app.use('/api/email', emailRoutes);
     
     // Settings
     app.use('/api/settings', settingsRoutes);

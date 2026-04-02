@@ -198,9 +198,7 @@
                     <button id="config-nav-staff" class="sub-nav-btn active !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('staff')">
                         <span class="material-symbols-outlined text-sm">person</span> Personal
                     </button>
-                    <button id="config-nav-email" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('email')">
-                        <span class="material-symbols-outlined text-sm">mail</span> Comunicación
-                    </button>
+                    <!-- Email movido a módulo nuevo -Fase 2 -->
                     <button id="config-nav-agenda" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('agenda')">
                         <span class="material-symbols-outlined text-sm">schedule</span> Agenda
                     </button>
@@ -275,8 +273,8 @@
                         </div>
                     </div>
 
-                    <!-- CONTENIDO: COMUNICACIÓN DEL EVENTO (MAILING v2.0) -->
-                    <div id="config-content-email" class="config-tab-content hidden space-y-6">
+                    <!-- CONTENIDO: COMUNICACIÓN DEL EVENTO (MAILING v2.0) - DESHABILITADO FASE 2 -->
+                    <!-- <div id="config-content-email" class="config-tab-content hidden space-y-6"> -->
                         <!-- Sidebar Interno de Comunicación del Evento -->
                         <div class="inner-layout">
                             <aside class="inner-sidebar bg-white/[0.01] p-2 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl">
@@ -522,7 +520,7 @@
                                 </div>
                             </main>
                         </div>
-                    </div>
+                    <!-- </div> Fin config-content-email DESHABILITADO FASE 2 -->
 
                     <!-- CONTENIDO: AGENDA DEL EVENTO -->
                     <div id="config-content-agenda" class="config-tab-content hidden space-y-6">
@@ -885,7 +883,7 @@
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('users')">Equipo</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('groups')">Empresas</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('legal')">Legales</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.navigate('system', {tab: 'email'}, true)">Mailing</button>
+                    <!-- Mailing DESHABILITADO FASE 2 - <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.navigate('system', {tab: 'email'}, true)">Mailing</button> -->
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('account')">Perfil</button>
                 </div>
 
@@ -1037,8 +1035,8 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN: EMAIL (SIDEBAR INTEGRADO) - MAILING v2.0 -->
-                <div id="sys-content-email" class="hidden space-y-8 animate-fade-in">
+                <!-- SECCIÓN: EMAIL (SIDEBAR INTEGRADO) - MAILING v2.0 - DESHABILITADO FASE 2 -->
+                <!-- <div id="sys-content-email" class="hidden space-y-8 animate-fade-in"> -->
                     <div class="inner-layout">
                         <!-- Sidebar Interna Premium -->
                         <aside class="inner-sidebar bg-white/[0.01] p-2 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl">
@@ -1464,6 +1462,7 @@
                             </div>                        </main>
                     </div>
                 </div>
+                <!-- </div> Fin sys-content-email DESHABILITADO FASE 2 -->
 
                 <!-- SECCIÓN: PERFIL -->
                 <div id="sys-content-account" class="hidden space-y-6">
