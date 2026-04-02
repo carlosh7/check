@@ -17,12 +17,40 @@ html.dark {
     --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
     --primary-hover: #a78bfa;
     --primary-light: rgba(139, 92, 246, 0.15);
+    --primary-rgb: 139, 92, 246;
     --text-main: #f4f4f5;
     --text-secondary: #a1a1aa;
     --text-muted: #71717a;
+    --text-inverse: #ffffff;
     --border: rgba(39, 39, 42, 0.8);
     --border-light: rgba(39, 39, 42, 0.4);
     --border-focus: rgba(139, 92, 246, 0.6);
+    
+    /* Glassmorphism Tokens */
+    --glass-bg: rgba(24, 24, 27, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(16px);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    
+    /* Typography */
+    --font-base: 15px;
+    --font-sm: 13px;
+    --font-xl: 20px;
+    --font-3xl: 28px;
+    
+    /* Shadows */
+    --shadow-xs: 0 2px 4px rgba(0,0,0,0.3);
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.35);
+    --shadow-md: 0 12px 24px rgba(0,0,0,0.4);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.45);
+    --shadow-primary: 0 8px 20px rgba(139, 92, 246, 0.3);
+    
+    /* Layout */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+    --content-padding: 40px;
+    --transition-speed: 0.3s;
+    --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root {
@@ -91,26 +119,49 @@ html.dark {
     --bg-input: rgba(30, 41, 59, 0.4);
     --bg-hover: rgba(139, 92, 246, 0.1);
     --bg-active: rgba(139, 92, 246, 0.15);
+    --bg-card-rgb: 15, 23, 42;
     
     --primary: #8b5cf6; /* Cyber Violet */
     --primary-vibrant: #3b82f6; /* Electric Blue */
     --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
     --primary-hover: #7c3aed;
     --primary-light: rgba(139, 92, 246, 0.15);
+    --primary-rgb: 139, 92, 246;
     
     /* Glassmorphism Tokens - Deep Refraction */
     --glass-bg: rgba(15, 23, 42, 0.65);
     --glass-border: rgba(255, 255, 255, 0.05);
     --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
+    --glass-blur: blur(16px);
     
     --text-main: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
+    --text-inverse: #ffffff;
     
     --border: rgba(255, 255, 255, 0.08);
     --border-light: rgba(255, 255, 255, 0.04);
     --border-focus: rgba(139, 92, 246, 0.4);
-    --bg-card-rgb: 15, 23, 42;
+    
+    /* Typography */
+    --font-base: 15px;
+    --font-sm: 13px;
+    --font-xl: 20px;
+    --font-3xl: 28px;
+    
+    /* Shadows */
+    --shadow-xs: 0 2px 4px rgba(0,0,0,0.4);
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.45);
+    --shadow-md: 0 12px 24px rgba(0,0,0,0.5);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.55);
+    --shadow-primary: 0 8px 20px rgba(139, 92, 246, 0.35);
+    
+    /* Layout */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+    --content-padding: 40px;
+    --transition-speed: 0.3s;
+    --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Efectos Premium v12.34.0 */
