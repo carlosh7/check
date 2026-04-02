@@ -1,5 +1,5 @@
 /**
- * inspect.js - Check Pro v12.37.23 (Auditoría)
+ * inspect.js - Check Pro v12.44.0 (Auditoría)
  * Uso: node inspect.js "ruta/de/la/base.db"
  */
 const Database = require('better-sqlite3');
@@ -11,33 +11,18 @@ console.log(`\n🔍 AUDITANDO BASE DE DATOS EN: ${targetDb}`);
 try {
     const db = new Database(targetDb);
     
-    // 1. Auditoría Email Accounts
-    console.log(`\n--- [EMAIL ACCOUNTS] ---`);
-    const accounts = db.prepare("SELECT id, name, user_email FROM email_accounts").all();
-    if (accounts.length === 0) {
-        console.log("⚠️ No hay cuentas registradas.");
-    } else {
-        accounts.forEach(acc => {
-            const status = (acc.id && acc.id !== 'null' && acc.id !== '') ? '✅ OK' : '❌ DAÑADO (NULL)';
-            console.log(`${status} | ID: ${acc.id} | Nombre: ${acc.name} | Email: ${acc.user_email}`);
-        });
-    }
-
-    // 2. Auditoría Templates
-    console.log(`\n--- [EMAIL TEMPLATES] ---`);
-    const templates = db.prepare("SELECT id, name, subject FROM email_templates").all();
-    if (templates.length === 0) {
-        console.log("⚠️ No hay plantillas registradas.");
-    } else {
-        templates.forEach(tpl => {
-            const status = (tpl.id && tpl.id !== 'null' && tpl.id !== '') ? '✅ OK' : '❌ DAÑADO (NULL)';
-            console.log(`${status} | ID: ${tpl.id} | Nombre: ${tpl.name} | Asunto: ${tpl.subject}`);
-        });
-    }
+    // 1. Auditoría de Usuarios
+    console.log(`\n--- [USUARIOS] ---`);
+    const users = db.prepare("SELECT id, username, role, status FROM users").all();
+    console.log(`Total: ${users.length} usuario(s)`);
+    
+    // 2. Auditoría de Eventos
+    console.log(`\n--- [EVENTOS] ---`);
+    const events = db.prepare("SELECT id, name, status FROM events").all();
+    console.log(`Total: ${events.length} evento(s)`);
 
     db.close();
     console.log("\n✨ AUDITORIA FINALIZADA.\n");
 } catch (e) {
-    console.error("❌ ERROR EN AUDITORIA:", e.message);
-    process.exit(1);
+    console.error("❌ Error:", e.message);
 }

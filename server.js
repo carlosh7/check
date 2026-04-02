@@ -5,14 +5,13 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const path = require('path');
-const { db, createEventEmailTemplates } = require('./database');
+const { db } = require('./database');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
-const { simpleParser } = require('mailparser');
 
 // Middleware de seguridad
 const { csrfMiddleware, securityHeaders } = require('./src/middleware/csrf');
@@ -44,13 +43,9 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,h
 const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
 const port = process.env.PORT || 3000;
 
-// --- EMAIL SERVICE V10.6 ---
+// --- EMAIL SERVICE (Simplificado) ---
 async function getSMTPConfig() {
     return db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
-}
-
-async function getEmailTemplate(templateId) {
-    return db.prepare("SELECT * FROM email_templates WHERE id = ?").get(templateId);
 }
 
 function replaceTemplateVariables(template, data) {
@@ -61,28 +56,14 @@ function replaceTemplateVariables(template, data) {
     return result;
 }
 
+// Envío básico de emails transaccionales
 async function sendEmail(to, subject, html, options = {}) {
     try {
         const config = await getSMTPConfig();
-        
-        // Registrar en logs (independientemente de si es simulado o real)
-        const logId = uuidv4();
-        db.prepare(`INSERT INTO email_logs (id, event_id, type, subject, from_email, to_email, body_html, message_id, created_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-            logId, 
-            options.eventId || null, 
-            'SENT', 
-            subject, 
-            config ? (config.from_email || config.smtp_user) : 'system@check.com', 
-            to, 
-            html,
-            null, // El message_id real vendrá del transportista si es exitoso
-            new Date().toISOString()
-        );
 
         if (!config || !config.smtp_host || !config.smtp_user) {
             console.log('📧 Email simulation (no SMTP configured):', { to, subject });
-            return { success: true, simulated: true, logId };
+            return { success: true, simulated: true };
         }
         
         const transporter = nodemailer.createTransport({
@@ -104,302 +85,12 @@ async function sendEmail(to, subject, html, options = {}) {
         
         const result = await transporter.sendMail(mailOptions);
         console.log('📧 Email sent:', { to, subject, messageId: result.messageId });
-        
-        // Actualizar message_id en el log
-        if (result.messageId) {
-            db.prepare("UPDATE email_logs SET message_id = ? WHERE id = ?").run(result.messageId, logId);
-        }
-
-        return { success: true, messageId: result.messageId, logId };
+        return { success: true, messageId: result.messageId };
     } catch (error) {
         console.error('📧 Email error:', error.message);
         return { success: false, error: error.message };
     }
 }
-
-// ═══ MOTOR DE COLAS (QUEUE ENGINE) V11.0 ═══
-async function processEmailQueue() {
-    // Buscar el siguiente correo pendiente
-    const nextMail = db.prepare(`SELECT * FROM email_queue WHERE status = 'PENDING' ORDER BY scheduled_at ASC LIMIT 1`).get();
-
-    if (!nextMail) return;
-
-    // Cambiar estado a SENDING para evitar duplicados
-    db.prepare("UPDATE email_queue SET status = 'SENDING' WHERE id = ?").run(nextMail.id);
-
-    // Verificar si el invitado se ha desuscrito
-    if (nextMail.guest_id) {
-        const guest = db.prepare("SELECT unsubscribed FROM guests WHERE id = ?").get(nextMail.guest_id);
-        if (guest && guest.unsubscribed === 1) {
-            db.prepare("UPDATE email_queue SET status = 'CANCELLED', last_error = 'User unsubscribed' WHERE id = ?").run(nextMail.id);
-            return;
-        }
-    }
-
-    // Enviar el email
-    const result = await sendEmail(nextMail.to_email, nextMail.subject, nextMail.body_html, { eventId: nextMail.event_id });
-
-    if (result.success) {
-        db.prepare("UPDATE email_queue SET status = 'SENT', processed_at = ? WHERE id = ?").run(new Date().toISOString(), nextMail.id);
-        // Notificar por socket el progreso
-        (socketGetIO() || io).emit('email_queue_progress', { eventId: nextMail.event_id });
-    } else {
-        const attempts = (nextMail.attempts || 0) + 1;
-        const newStatus = attempts >= 3 ? 'ERROR' : 'PENDING';
-        db.prepare("UPDATE email_queue SET status = ?, attempts = ?, last_error = ? WHERE id = ?").run(newStatus, attempts, result.error, nextMail.id);
-    }
-}
-
-// Procesar cola cada 5 segundos para no saturar el SMTP
-setInterval(processEmailQueue, 5000);
-
-// ═══ SINCRONIZACIÓN IMAP V12.0 ═══
-async function syncEmails() {
-    console.log('[IMAP] Iniciando sincronización...');
-    const config = db.prepare("SELECT * FROM imap_config WHERE id = 1").get();
-    if (!config || !config.imap_host || !config.imap_user) {
-        return { success: false, error: 'IMAP no configurado' };
-    }
-
-    return new Promise((resolve, reject) => {
-        const imapConn = new imap({
-            user: config.imap_user,
-            password: config.imap_pass,
-            host: config.imap_host,
-            port: config.imap_port || 993,
-            tls: config.imap_tls === 1,
-            tlsOptions: { rejectUnauthorized: true }
-        });
-
-        let newEmailsCount = 0;
-
-        imapConn.once('ready', () => {
-            imapConn.openBox('INBOX', true, (err, box) => {
-                if (err) { imapConn.end(); return reject(err); }
-                
-                if (box.messages.total === 0) {
-                    imapConn.end();
-                    return resolve({ success: true, newEmails: 0 });
-                }
-
-                // Buscar los últimos 15 mensajes
-                const start = Math.max(1, box.messages.total - 14);
-                const f = imapConn.seq.fetch(`${start}:*`, { bodies: '' });
-                
-                f.on('message', (msg, seqno) => {
-                    let buffer = '';
-                    msg.on('body', (stream) => {
-                        stream.on('data', (chunk) => buffer += chunk.toString('utf8'));
-                    });
-                    msg.once('end', async () => {
-                        try {
-                            const parsed = await simpleParser(buffer);
-                            const mId = parsed.messageId || `imap-${seqno}-${Date.now()}`;
-                            
-                            // Verificar duplicados contra message_id
-                            const exists = db.prepare("SELECT id FROM email_logs WHERE message_id = ?").get(mId);
-                            if (!exists) {
-                                db.prepare(`INSERT INTO email_logs (id, type, subject, from_email, to_email, body_html, message_id, created_at, is_read) 
-                                            VALUES (?, 'INBOX', ?, ?, ?, ?, ?, ?, 0)`).run(
-                                    uuidv4(),
-                                    parsed.subject || '(Sin Asunto)',
-                                    parsed.from?.text || '',
-                                    config.imap_user,
-                                    parsed.html || parsed.textAsHtml || parsed.text || '',
-                                    mId,
-                                    parsed.date ? parsed.date.toISOString() : new Date().toISOString()
-                                );
-                                newEmailsCount++;
-                            }
-                        } catch (e) { console.error('[IMAP] Error parsing email:', e.message); }
-                    });
-                });
-
-                f.once('error', (err) => { imapConn.end(); reject(err); });
-                f.once('end', () => {
-                    imapConn.end();
-                    console.log(`[IMAP] Sincronización finalizada. Nuevos: ${newEmailsCount}`);
-                    resolve({ success: true, newEmails: newEmailsCount });
-                });
-            });
-        });
-
-        imapConn.once('error', (err) => { 
-            console.error('[IMAP] Connection Error:', err.message);
-            reject(err); 
-        });
-        imapConn.connect();
-    });
-}
-
-async function sendUserApprovedEmail(user, options = {}) {
-    const template = await getEmailTemplate('user_approved');
-    if (!template) return { success: false, error: 'Template not found' };
-    
-    const subject = replaceTemplateVariables(template.subject, {
-        user_name: user.display_name || user.username
-    });
-    
-    const html = replaceTemplateVariables(template.body, {
-        user_name: user.display_name || user.username,
-        email: user.username,
-        role: user.role,
-        login_url: `http://localhost:3000/`
-    });
-    
-    return sendEmail(user.username, subject, html);
-}
-
-async function sendUserInvitedEmail(user, companyName = '') {
-    const template = await getEmailTemplate('user_invited');
-    if (!template) return { success: false, error: 'Template not found' };
-    
-    const subject = replaceTemplateVariables(template.subject, {
-        user_name: user.display_name || user.username,
-        company_name: companyName
-    });
-    
-    const html = replaceTemplateVariables(template.body, {
-        user_name: user.display_name || user.username,
-        company_name: companyName,
-        role: user.role,
-        login_url: `http://localhost:3000/`
-    });
-    
-    return sendEmail(user.username, subject, html);
-}
-
-async function sendPasswordResetEmail(user, resetCode) {
-    const template = await getEmailTemplate('password_reset');
-    if (!template) return { success: false, error: 'Template not found' };
-    
-    const subject = replaceTemplateVariables(template.subject, {
-        user_name: user.display_name || user.username
-    });
-    
-    const html = replaceTemplateVariables(template.body, {
-        user_name: user.display_name || user.username,
-        reset_code: resetCode,
-        reset_url: `http://localhost:3000/?reset=${resetCode}`
-    });
-    
-    return sendEmail(user.username, subject, html);
-}
-
-// --- EMAIL POR EVENTO ---
-async function getEventEmailConfig(eventId) {
-    return db.prepare("SELECT * FROM event_email_config WHERE event_id = ? AND enabled = 1").get(eventId);
-}
-
-async function getEventEmailTemplate(eventId, templateType) {
-    return db.prepare("SELECT * FROM event_email_templates WHERE event_id = ? AND template_type = ? AND is_active = 1").get(eventId, templateType);
-}
-
-async function getEventAgenda(eventId) {
-    const agenda = db.prepare("SELECT * FROM event_agenda WHERE event_id = ? ORDER BY sort_order, start_time").all(eventId);
-    return agenda.map(item => {
-        let time = '';
-        if (item.start_time) {
-            time = item.start_time;
-            if (item.end_time) time += ` - ${item.end_time}`;
-        }
-        return `<p><strong>${time} ${item.title}</strong>${item.speaker ? ` - ${item.speaker}` : ''}${item.location ? ` @ ${item.location}` : ''}</p>`;
-    }).join('');
-}
-
-async function sendEventEmail(eventId, to, templateType, data = {}) {
-    try {
-        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
-        if (!event) return { success: false, error: 'Evento no encontrado' };
-        
-        const config = await getEventEmailConfig(eventId);
-        
-        // Si no hay config de evento, usar SMTP global
-        let transporter, fromConfig;
-        if (config && config.smtp_host) {
-            transporter = nodemailer.createTransport({
-                host: config.smtp_host,
-                port: config.smtp_port || 587,
-                secure: config.smtp_secure === 1,
-                auth: {
-                    user: config.smtp_user,
-                    pass: config.smtp_pass
-                }
-            });
-            fromConfig = {
-                name: config.from_name || event.name,
-                email: config.from_email || config.smtp_user
-            };
-        } else {
-            // Fallback a SMTP global
-            const globalConfig = await getSMTPConfig();
-            if (!globalConfig || !globalConfig.smtp_host) {
-                console.log('📧 Event email simulation (no SMTP):', { eventId, to, templateType });
-                return { success: true, simulated: true };
-            }
-            transporter = nodemailer.createTransport({
-                host: globalConfig.smtp_host,
-                port: globalConfig.smtp_port || 587,
-                secure: globalConfig.smtp_secure === 1,
-                auth: {
-                    user: globalConfig.smtp_user,
-                    pass: globalConfig.smtp_pass
-                }
-            });
-            fromConfig = {
-                name: globalConfig.from_name || 'Check',
-                email: globalConfig.from_email || globalConfig.smtp_user
-            };
-        }
-        
-        // Obtener plantilla
-        const template = await getEventEmailTemplate(eventId, templateType);
-        if (!template) {
-            console.log('📧 Event email skipped (no template):', { eventId, to, templateType });
-            return { success: false, error: 'Plantilla no encontrada o inactiva' };
-        }
-        
-        // Preparar variables
-        const variables = {
-            guest_name: data.guest_name || '',
-            guest_email: data.email || to,
-            event_name: event.name,
-            event_date: event.date ? new Date(event.date).toLocaleString('es-ES') : '',
-            event_location: event.location || '',
-            organization: data.organization || '',
-            checkin_time: data.checkin_time || new Date().toLocaleString('es-ES'),
-            agenda: data.agenda || await getEventAgenda(eventId),
-            suggestion_url: `${data.origin || 'http://localhost:3000'}/suggest.html?event=${eventId}${data.guest_id ? '&guest=' + data.guest_id : ''}`
-        };
-        
-        // Reemplazar variables
-        let subject = template.subject;
-        let html = template.body;
-        for (const [key, value] of Object.entries(variables)) {
-            subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
-            html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
-        }
-        
-        const mailOptions = {
-            from: `"${fromConfig.name}" <${fromConfig.email}>`,
-            to,
-            subject,
-            html
-        };
-        
-        const result = await transporter.sendMail(mailOptions);
-        console.log('📧 Event email sent:', { eventId, to, templateType, messageId: result.messageId });
-        return { success: true, messageId: result.messageId };
-    } catch (error) {
-        console.error('📧 Event email error:', error.message);
-        return { success: false, error: error.message };
-    }
-}
-
-// Función wrapper para enviar emails automáticos (sin access a req)
-global.sendEventEmailAuto = async function(eventId, to, templateType, data = {}) {
-    return sendEventEmail(eventId, to, templateType, data);
-};
 
 // SERVER V12.2.1 - ARQUITECTURA DISTRIBUIDA Y SEGURA 🛡️🚀
 app.use(compression({
@@ -511,14 +202,6 @@ const guestLimiter = rateLimit({
     message: { error: 'Demasiadas consultas. Espera unos segundos.' } 
 });
 
-// Rate limit para email: 50 pet/15min (aumentado)
-const emailLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 50, 
-    skip: skipLocal, 
-    message: { error: 'Demasiados emails. Espera unos segundos.' } 
-});
-
 // Rate limit para uploads: 30 pet/15min (aumentado)
 const uploadLimiter = rateLimit({ 
     windowMs: 15*60*1000, 
@@ -533,7 +216,6 @@ app.use('/api/signup', authLimiter);  // Prevenir creación masiva de cuentas
 app.use('/api/password-reset', authLimiter);  // Prevenir abuso de reset
 app.use('/api/guests', guestLimiter);
 app.use('/api/events', guestLimiter);
-app.use('/api/email', emailLimiter);
 
 // --- SEGURIDAD: Headers y CSRF ---
 app.use(securityHeaders); // Headers de seguridad

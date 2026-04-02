@@ -1,6 +1,7 @@
 /**
- * fix_db.js - Check Pro v12.37.22
+ * fix_db.js - Check Pro v12.44.0
  * Uso: node fix_db.js "ruta/de/la/base.db"
+ * Nota: El módulo de mailing fue eliminado, este script ahora solo repara tablas principales
  */
 const Database = require('better-sqlite3');
 const path = require('path');
@@ -12,33 +13,20 @@ console.log(`🔍 Iniciando REPARACION en: ${targetDb}`);
 try {
     const db = new Database(targetDb);
     
-    // 1. Reparar Email Accounts
-    const nullAccounts = db.prepare("SELECT ROWID, name FROM email_accounts WHERE id IS NULL OR id = 'null' OR id = ''").all();
-    if (nullAccounts.length > 0) {
-        console.log(`[REPAIR] Encontradas ${nullAccounts.length} cuentas dañadas.`);
-        const updateStmt = db.prepare("UPDATE email_accounts SET id = ? WHERE ROWID = ?");
-        nullAccounts.forEach(row => {
+    // Reparar Usuarios con ID nulo
+    const nullUsers = db.prepare("SELECT ROWID, username FROM users WHERE id IS NULL OR id = 'null' OR id = ''").all();
+    if (nullUsers.length > 0) {
+        console.log(`[REPAIR] Encontrados ${nullUsers.length} usuarios dañados.`);
+        const updateStmt = db.prepare("UPDATE users SET id = ? WHERE ROWID = ?");
+        nullUsers.forEach(row => {
             const newId = uuidv4();
             updateStmt.run(newId, row.rowid);
-            console.log(`✓ Reparada cuenta '${row.name}' -> Nuevo ID: ${newId}`);
-        });
-    }
-
-    // 2. Reparar Templates
-    const nullTemplates = db.prepare("SELECT ROWID, name FROM email_templates WHERE id IS NULL OR id = 'null' OR id = ''").all();
-    if (nullTemplates.length > 0) {
-        console.log(`[REPAIR] Encontradas ${nullTemplates.length} plantillas dañadas.`);
-        const updateStmt = db.prepare("UPDATE email_templates SET id = ? WHERE ROWID = ?");
-        nullTemplates.forEach(row => {
-            const newId = uuidv4();
-            updateStmt.run(newId, row.rowid);
-            console.log(`✓ Reparada plantilla '${row.name}' -> Nuevo ID: ${newId}`);
+            console.log(`✓ Reparado usuario '${row.username}' -> Nuevo ID: ${newId}`);
         });
     }
 
     db.close();
     console.log("✨ REPARACION COMPLETADA.");
 } catch (e) {
-    console.error("❌ ERROR EN REPARACION:", e.message);
-    process.exit(1);
+    console.error("❌ Error:", e.message);
 }

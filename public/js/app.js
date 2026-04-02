@@ -8894,7 +8894,6 @@ async function initApp() {
         window.App.state.socket = io();
         window.App.state.socket.on('update_stats', (id) => { if (App.state.event?.id === id) App.updateStats(); });
         window.App.state.socket.on('checkin_update', () => App.loadGuests());
-        window.App.state.socket.on('email_queue_progress', () => App.updateMailingStats());
     }
 
     // Listeners System (Se maneja en attachAppListeners para evitar duplicación)

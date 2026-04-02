@@ -135,13 +135,6 @@ const migrations = [
         down: null
     },
     {
-        version: '014',
-        name: 'add_event_id_to_email_templates',
-        description: 'Agregar event_id a email_templates',
-        up: `ALTER TABLE email_templates ADD COLUMN event_id TEXT`,
-        down: null
-    },
-    {
         version: '015',
         name: 'create_database_indexes',
         description: 'Crear índices de rendimiento',
@@ -155,8 +148,6 @@ const migrations = [
             CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id);
             CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
             CREATE INDEX IF NOT EXISTS idx_pre_reg_event_status ON pre_registrations(event_id, status);
-            CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(event_id, status);
-            CREATE INDEX IF NOT EXISTS idx_email_logs_event ON email_logs(event_id, created_at);
             CREATE INDEX IF NOT EXISTS idx_user_events_user ON user_events(user_id);
             CREATE INDEX IF NOT EXISTS idx_user_events_event ON user_events(event_id);
             CREATE INDEX IF NOT EXISTS idx_group_users_group ON group_users(group_id);

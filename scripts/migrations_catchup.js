@@ -31,7 +31,6 @@ const migrationsToMark = [
     { version: '011', name: 'add_reg_fields_to_events' },
     { version: '012', name: 'add_qr_customization_to_events' },
     { version: '013', name: 'add_email_fields_to_groups' },
-    { version: '014', name: 'add_event_id_to_email_templates' },
     { version: '015', name: 'create_database_indexes' }
 ];
 

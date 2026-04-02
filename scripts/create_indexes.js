@@ -64,20 +64,6 @@ const indexes = [
         description: 'Pre-inscripciones pendientes por evento'
     },
 
-    // Email queue
-    {
-        name: 'idx_email_queue_status',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(event_id, status)',
-        description: 'Cola de emails por estado'
-    },
-
-    // Email logs
-    {
-        name: 'idx_email_logs_event',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_email_logs_event ON email_logs(event_id, created_at)',
-        description: 'Logs de email por evento'
-    },
-
     // User events (relación)
     {
         name: 'idx_user_events_user',
