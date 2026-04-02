@@ -77,27 +77,12 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
             GROUP BY diet_type
         `).all(eId);
         
-        // --- MÉTRICAS DE MAILING ---
-        const mailingStats = db.prepare(`
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) as sent,
-                SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as errors
-            FROM email_queue WHERE event_id = ?
-        `).get(eId);
-
         res.json({ 
-            ...gen, 
             healthAlerts: health.count || 0, 
             flowData,
             orgDistribution,
             genderDistribution,
-            dietaryDistribution,
-            mailingStats: {
-                total: mailingStats.total || 0,
-                sent: mailingStats.sent || 0,
-                errors: mailingStats.errors || 0
-            }
+            dietaryDistribution
         });
     } catch (err) {
         console.error('[STATS] Error:', err.message);

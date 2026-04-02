@@ -86,17 +86,6 @@ router.get('/health/full', async (req, res) => {
         allHealthy = false;
     }
     
-    // Check SMTP (sin enviar email)
-    try {
-        const smtp = db.prepare('SELECT smtp_host FROM smtp_config WHERE id = 1').get();
-        checks.smtp = {
-            status: smtp && smtp.smtp_host ? 'configured' : 'not_configured',
-            host: smtp?.smtp_host || null
-        };
-    } catch (err) {
-        checks.smtp = { status: 'error', message: err.message };
-    }
-    
     // Determinar status general
     if (!allHealthy) {
         checks.status = 'degraded';
