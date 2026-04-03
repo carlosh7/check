@@ -403,9 +403,9 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.xlsx`);
             res.send(buffer);
         } else {
-            // PDF - Crear manualmente con jsPDF
+            // PDF - Crear manualmente con jsPDF v4
             try {
-                const jsPDF = require('jspdf');
+                const { jsPDF } = require('jspdf');
                 const autoTable = require('jspdf-autotable').default;
                 
                 const doc = new jsPDF();
