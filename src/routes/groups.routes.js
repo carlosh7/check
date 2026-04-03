@@ -56,6 +56,25 @@ router.put('/:id', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// Eliminar grupo
+router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
+    const groupId = castId('groups', req.params.id);
+    
+    // Primero desvincular usuarios del grupo
+    db.prepare("UPDATE users SET group_id = NULL WHERE group_id = ?").run(groupId);
+    
+    // Desvincular eventos del grupo
+    db.prepare("UPDATE events SET group_id = NULL WHERE group_id = ?").run(groupId);
+    
+    // Eliminar relaciones en group_users
+    db.prepare("DELETE FROM group_users WHERE group_id = ?").run(groupId);
+    
+    // Eliminar el grupo
+    db.prepare("DELETE FROM groups WHERE id = ?").run(groupId);
+    
+    res.json({ success: true });
+});
+
 // Obtener usuarios de grupo
 router.get('/:groupId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const groupId = castId('groups', req.params.groupId);
