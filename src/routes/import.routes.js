@@ -241,29 +241,35 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         const { type, data } = req.body;
+        console.log('[IMPORT EXECUTE] data received:', JSON.stringify(data).substring(0, 500));
         let imported = 0;
         let updated = 0;
 
         // Importar grupos
         if (data.groups && data.groups.length > 0) {
-            const insertGroup = db.prepare(`
-                INSERT INTO groups (id, name, email, phone, status, description, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            `);
-            const updateGroup = db.prepare(`
-                UPDATE groups SET email = ?, phone = ?, status = ?, description = ?
-                WHERE id = ?
-            `);
-
+            console.log('[IMPORT] Processing groups:', data.groups.length);
+            
             for (const g of data.groups) {
-                // Siempre verificar si existe por nombre o email
-                const existing = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?) OR (email IS NOT NULL AND LOWER(email) = LOWER(?))").get(g.name, g.email || '');
+                console.log('[IMPORT] Group:', g.name, 'email:', g.email);
+                
+                // Buscar por nombre O email
+                let existing = null;
+                if (g.name) {
+                    existing = db.prepare("SELECT id, name FROM groups WHERE LOWER(name) = LOWER(?)").get(g.name);
+                }
+                if (!existing && g.email) {
+                    existing = db.prepare("SELECT id, name FROM groups WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(g.email);
+                }
                 
                 if (existing) {
-                    updateGroup.run(g.email, g.phone, g.status, g.description, existing.id);
+                    console.log('[IMPORT] Updating group:', existing.name, 'id:', existing.id);
+                    db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
+                        .run(g.email, g.phone, g.status, g.description, existing.id);
                     updated++;
                 } else {
-                    insertGroup.run(getValidId('groups'), g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
+                    console.log('[IMPORT] Creating new group:', g.name);
+                    db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+                        .run(getValidId('groups'), g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
                     imported++;
                 }
             }
@@ -271,63 +277,61 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 
         // Importar eventos
         if (data.events && data.events.length > 0) {
-            const insertEvent = db.prepare(`
-                INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
-            `);
-            const updateEvent = db.prepare(`
-                UPDATE events SET location = ?, description = ?, group_id = ?
-                WHERE id = ?
-            `);
-
+            console.log('[IMPORT] Processing events:', data.events.length);
+            
             for (const e of data.events) {
-                const existing = db.prepare("SELECT id FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date || '');
+                console.log('[IMPORT] Event:', e.name, 'date:', e.date);
+                
+                // Buscar por nombre Y fecha
+                let existing = null;
+                if (e.name && e.date) {
+                    existing = db.prepare("SELECT id, name FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date);
+                }
                 
                 if (existing) {
-                    updateEvent.run(e.location, e.description, e.group_id || null, existing.id);
+                    console.log('[IMPORT] Updating event:', existing.name);
+                    db.prepare("UPDATE events SET location = ?, description = ?, group_id = ? WHERE id = ?")
+                        .run(e.location, e.description, e.group_id || null, existing.id);
                     updated++;
                 } else {
-                    insertEvent.run(getValidId('events'), req.userId, e.name, e.date, e.location, e.description, e.group_id || null, new Date().toISOString());
+                    console.log('[IMPORT] Creating new event:', e.name);
+                    db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                        .run(getValidId('events'), req.userId, e.name, e.date, e.location, e.description, e.group_id || null, new Date().toISOString());
                     imported++;
                 }
             }
         }
 
-        // Importar usuarios
+        // Importar usuarios (Staff)
         if (data.users && data.users.length > 0) {
+            console.log('[IMPORT] Processing users:', data.users.length);
             const bcrypt = require('bcryptjs');
-            const insertUser = db.prepare(`
-                INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
-            `);
-            const updateUser = db.prepare(`
-                UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ?
-                WHERE username = ?
-            `);
-
+            
             for (const u of data.users) {
-                const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name);
+                
+                // Buscar por username (email)
+                let existing = null;
+                if (u.username) {
+                    existing = db.prepare("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                }
                 
                 if (existing) {
-                    updateUser.run(u.display_name, u.phone, u.role, u.group_id || null, u.username);
+                    console.log('[IMPORT] Updating user:', existing.username);
+                    db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
+                        .run(u.display_name, u.phone, u.role, u.group_id || null, existing.id);
                     updated++;
                 } else {
+                    console.log('[IMPORT] Creating new user:', u.username);
                     const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
-                    insertUser.run(
-                        getValidId('users'),
-                        u.username,
-                        hashedPassword,
-                        u.role,
-                        u.display_name,
-                        u.phone,
-                        u.group_id || null,
-                        new Date().toISOString()
-                    );
+                    db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                        .run(getValidId('users'), u.username, hashedPassword, u.role, u.display_name, u.phone, u.group_id || null, new Date().toISOString());
                     imported++;
                 }
             }
         }
 
+        console.log('[IMPORT] Result - imported:', imported, 'updated:', updated);
         res.json({ success: true, imported, updated });
     } catch(e) {
         console.error('Error ejecutando importación:', e);
