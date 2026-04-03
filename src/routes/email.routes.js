@@ -1287,27 +1287,39 @@ router.get('/mailbox/message/:uid', async (req, res) => {
                         return resolve();
                     }
                     
-                    // Fetch solo headers + texto plano (no HTML completo para evitar problemas de memoria)
+                    // Fetch headers completos + body completo
                     const fetch = imap.fetch(uid, { 
-                        bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+                        bodies: ['HEADER', ''],
                         markSeen: false 
                     });
                     
-                    let headersParsed = false;
-                    let bodyParsed = false;
                     const msgData = {
                         id: uid,
                         from: '', from_name: '', to: '', subject: '', date: '',
                         html: '', text: '', attachments: []
                     };
+                    let headersParsed = false;
+                    let bodyParsed = false;
                     
                     fetch.on('message', (msg) => {
                         msg.on('body', (stream, info) => {
-                            let buffer = '';
-                            stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
+                            const chunks = [];
+                            let totalSize = 0;
+                            const maxSize = 200 * 1024; // 200KB
+                            
+                            stream.on('data', chunk => {
+                                if (totalSize < maxSize) {
+                                    chunks.push(chunk);
+                                    totalSize += chunk.length;
+                                }
+                            });
+                            
                             stream.on('end', () => {
-                                if (info.which.includes('HEADER')) {
-                                    const lines = buffer.split(/\r?\n/);
+                                const data = Buffer.concat(chunks).toString('utf8');
+                                
+                                if (info.which === 'HEADER') {
+                                    // Parsear headers
+                                    const lines = data.split(/\r?\n/);
                                     for (const line of lines) {
                                         if (/^From:/i.test(line) && !msgData.from) {
                                             const clean = line.replace(/^From:\s*/i, '').trim();
@@ -1331,11 +1343,34 @@ router.get('/mailbox/message/:uid', async (req, res) => {
                                     headersParsed = true;
                                     tryFinish();
                                 } else {
-                                    // Limitar el body a 50KB para evitar problemas de memoria
-                                    const maxLen = 50000;
-                                    const bodyText = buffer.length > maxLen ? buffer.substring(0, maxLen) + '\n\n[...contenido truncado...]' : buffer;
-                                    msgData.text = bodyText;
-                                    msgData.html = `<pre style="white-space:pre-wrap;word-wrap:break-word;font-family:inherit;">${bodyText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                                    // Parsear body
+                                    const bodyPart = data;
+                                    
+                                    // Si es multipart, intentar extraer HTML y texto plano
+                                    const htmlMatch = bodyPart.match(/Content-Type:\s*text\/html[^]*?(\r\n\r\n|\n\n)([\s\S]*?)(\r\n--|\n--|$)/i);
+                                    const textMatch = bodyPart.match(/Content-Type:\s*text\/plain[^]*?(\r\n\r\n|\n\n)([\s\S]*?)(\r\n--|\n--|$)/i);
+                                    
+                                    if (htmlMatch) {
+                                        msgData.html = htmlMatch[2].trim();
+                                    }
+                                    if (textMatch) {
+                                        msgData.text = textMatch[2].trim();
+                                    }
+                                    
+                                    // Si no se encontró HTML ni texto plano, usar el body raw como fallback
+                                    if (!msgData.html && !msgData.text) {
+                                        let cleanBody = bodyPart;
+                                        cleanBody = cleanBody.replace(/^Content-Transfer-Encoding:.*$/gm, '');
+                                        cleanBody = cleanBody.replace(/^Content-Type:.*$/gm, '');
+                                        cleanBody = cleanBody.replace(/^\r?\n/gm, '');
+                                        msgData.text = cleanBody.trim().substring(0, 10000);
+                                    }
+                                    
+                                    // Si no hay HTML pero hay texto, convertir a HTML
+                                    if (!msgData.html && msgData.text) {
+                                        msgData.html = `<pre style="white-space:pre-wrap;word-wrap:break-word;font-family:inherit;">${msgData.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                                    }
+                                    
                                     bodyParsed = true;
                                     tryFinish();
                                 }
@@ -1343,7 +1378,6 @@ router.get('/mailbox/message/:uid', async (req, res) => {
                         });
                         
                         msg.once('end', () => {
-                            // Si no se recibió body, marcar como parseado
                             if (!bodyParsed) {
                                 bodyParsed = true;
                                 tryFinish();
@@ -1360,7 +1394,6 @@ router.get('/mailbox/message/:uid', async (req, res) => {
                     }
                     
                     fetch.once('end', () => {
-                        // Timeout de seguridad
                         setTimeout(() => {
                             if (!headersParsed || !bodyParsed) {
                                 imap.end();
