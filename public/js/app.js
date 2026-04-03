@@ -9462,13 +9462,6 @@ async function initApp() {
     // 2. Init router AFTER session restoration (no synthetic popstate)
     App.initRouter();
 
-    // 2.5. Global click handler to close dropdowns
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#email-admin-dropdown')) {
-            App.closeEmailAdminMenu();
-        }
-    });
-
     // Handler de Escape para cerrar modales
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
