@@ -125,6 +125,9 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
         const data = { groups: [], events: [], users: [] };
+        
+        // Headers that indicate a header row (case insensitive)
+        const headerValues = ['nombre', 'name', 'email', 'telefono', 'phone', 'estado', 'status', 'descripcion', 'description', 'ubicacion', 'location', 'fecha', 'date', 'display', 'username', 'rol', 'role', 'empresa', 'company'];
 
         // ─── PROCESAR EMPRESAS ───
         if (workbook.getWorksheet('Empresas')) {
@@ -135,6 +138,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 try {
                     const name = row.getCell(1).text?.trim();
                     if (!name) return;
+
+                    // Skip header rows
+                    const nameLower = (name || '').toLowerCase();
+                    if (headerValues.includes(nameLower)) return;
 
                     const email = row.getCell(2).text?.trim() || '';
                     const phone = row.getCell(3).text?.trim() || '';
@@ -170,6 +177,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 try {
                     const name = row.getCell(1).text?.trim();
                     if (!name) return;
+
+                    // Skip header rows
+                    const nameLower = (name || '').toLowerCase();
+                    if (headerValues.includes(nameLower)) return;
 
                     const date = row.getCell(2).text?.trim() || '';
                     const location = row.getCell(3).text?.trim() || '';
@@ -209,6 +220,13 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     const group_id = row.getCell(6).text?.trim() || '';
 
                     if (!username) return;
+                    
+                    // Skip header rows (check if any cell value looks like a header)
+                    const firstCell = (display_name || '').toLowerCase();
+                    const secondCell = (username || '').toLowerCase();
+                    if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
+                        return; // Skip this row
+                    }
 
                     const exists = existingUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
 
@@ -352,58 +370,54 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
         workbook.created = new Date();
 
         if (type === 'groups' || type === 'staff') {
-            // ─── EXPORTAR GRUPOS/EMPRESAS ───
+            // ─── EXPORTAR GRUPOS/EMPRESAS (matching import template) ───
             const groupsSheet = workbook.addWorksheet('Empresas');
             groupsSheet.columns = [
-                { header: 'ID', key: 'id', width: 25 },
                 { header: 'Nombre', key: 'name', width: 30 },
                 { header: 'Email', key: 'email', width: 30 },
                 { header: 'Teléfono', key: 'phone', width: 20 },
                 { header: 'Estado', key: 'status', width: 15 },
-                { header: 'Descripción', key: 'description', width: 40 },
-                { header: 'Fecha Creación', key: 'created_at', width: 20 }
+                { header: 'Descripción', key: 'description', width: 40 }
             ];
 
-            const groups = db.prepare("SELECT * FROM groups ORDER BY created_at DESC").all();
+            const groups = db.prepare("SELECT name, email, phone, status, description FROM groups ORDER BY created_at DESC").all();
             groupsSheet.addRows(groups);
 
             groupsSheet.getRow(1).font = { bold: true };
             groupsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7c3aed' } };
             groupsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-            // ─── EXPORTAR EVENTOS ───
+            // ─── EXPORTAR EVENTOS (matching import template) ───
             const eventsSheet = workbook.addWorksheet('Eventos');
             eventsSheet.columns = [
-                { header: 'ID', key: 'id', width: 25 },
                 { header: 'Nombre', key: 'name', width: 30 },
                 { header: 'Fecha', key: 'date', width: 20 },
                 { header: 'Ubicación', key: 'location', width: 30 },
-                { header: 'Empresa ID', key: 'group_id', width: 20 },
-                { header: 'Estado', key: 'status', width: 15 },
-                { header: 'Fecha Creación', key: 'created_at', width: 20 }
+                { header: 'Descripción', key: 'description', width: 40 },
+                { header: 'Empresa_ID', key: 'group_id', width: 20 }
             ];
 
-            const events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+            const events = db.prepare("SELECT name, date, location, description, group_id FROM events ORDER BY created_at DESC").all();
             eventsSheet.addRows(events);
 
             eventsSheet.getRow(1).font = { bold: true };
             eventsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3b82f6' } };
             eventsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-            // ─── EXPORTAR USUARIOS ───
+            // ─── EXPORTAR USUARIOS (matching import template) ───
             const usersSheet = workbook.addWorksheet('Staff');
             usersSheet.columns = [
-                { header: 'ID', key: 'id', width: 25 },
                 { header: 'Nombre', key: 'display_name', width: 25 },
                 { header: 'Email', key: 'username', width: 35 },
+                { header: 'Password', key: 'password', width: 15 },
                 { header: 'Rol', key: 'role', width: 15 },
-                { header: 'Empresa ID', key: 'group_id', width: 20 },
-                { header: 'Estado', key: 'status', width: 15 },
-                { header: 'Fecha Creación', key: 'created_at', width: 20 }
+                { header: 'Telefono', key: 'phone', width: 20 },
+                { header: 'Empresa ID', key: 'group_id', width: 25 }
             ];
 
-            const users = db.prepare("SELECT id, username, display_name, role, group_id, status, created_at FROM users ORDER BY created_at DESC").all();
-            usersSheet.addRows(users);
+            const users = db.prepare("SELECT display_name, username, role, phone, group_id FROM users ORDER BY created_at DESC").all();
+            // Add password column as empty (security - don't export passwords)
+            usersSheet.addRows(users.map(u => ({ ...u, password: '' })));
 
             usersSheet.getRow(1).font = { bold: true };
             usersSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8b5cf6' } };
