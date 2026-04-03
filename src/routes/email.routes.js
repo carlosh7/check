@@ -1273,89 +1273,82 @@ router.get('/mailbox/message/:uid', async (req, res) => {
         
         const imap = new Imap(getImapConfig(account));
         
-        return new Promise((resolve) => {
-            imap.once('ready', () => {
-                let folderName = folder;
-                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
-                    folderName = `INBOX.${folder}`;
-                }
-                
-                imap.openBox(folderName, false, (err, box) => {
-                    if (err) {
-                        imap.end();
-                        res.json({ success: false, error: err.message });
-                        return resolve();
+        try {
+            // Obtener el email raw via IMAP
+            const rawEmail = await new Promise((resolve, reject) => {
+                imap.once('ready', () => {
+                    let folderName = folder;
+                    if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
+                        folderName = `INBOX.${folder}`;
                     }
                     
-                    // Fetch el email completo como raw
-                    const fetch = imap.fetch(uid, { 
-                        bodies: '',
-                        markSeen: false 
-                    });
-                    
-                    const chunks = [];
-                    let totalSize = 0;
-                    const maxSize = 10 * 1024 * 1024; // 10MB max
-                    
-                    fetch.on('message', (msg) => {
-                        msg.on('body', (stream) => {
-                            stream.on('data', chunk => {
-                                if (totalSize < maxSize) {
-                                    chunks.push(chunk);
-                                    totalSize += chunk.length;
-                                }
+                    imap.openBox(folderName, false, (err, box) => {
+                        if (err) {
+                            imap.end();
+                            return reject(err);
+                        }
+                        
+                        const fetch = imap.fetch(uid, { 
+                            bodies: '',
+                            markSeen: false 
+                        });
+                        
+                        const chunks = [];
+                        let totalSize = 0;
+                        const maxSize = 10 * 1024 * 1024; // 10MB max
+                        
+                        fetch.on('message', (msg) => {
+                            msg.on('body', (stream) => {
+                                stream.on('data', chunk => {
+                                    if (totalSize < maxSize) {
+                                        chunks.push(chunk);
+                                        totalSize += chunk.length;
+                                    }
+                                });
                             });
                         });
-                    });
-                    
-                    fetch.once('end', () => {
-                        const rawEmail = Buffer.concat(chunks);
                         
-                        // Usar mailparser.simpleParser para parsear correctamente MIME
-                        mailparser.simpleParser(rawEmail, (err, parsed) => {
+                        fetch.once('end', () => {
                             imap.end();
-                            if (err) {
-                                console.error('[MAILBOX] Mailparser error:', err.message);
-                                res.json({ success: false, error: 'Error parseando email: ' + err.message });
-                                return resolve();
-                            }
-                            
-                            const msgData = {
-                                id: uid,
-                                from: parsed.from?.value?.[0]?.address || '',
-                                from_name: parsed.from?.text || '',
-                                to: parsed.to?.text || '',
-                                subject: parsed.subject || '(Sin asunto)',
-                                date: parsed.date?.toISOString() || '',
-                                html: parsed.html || '',
-                                text: parsed.text || '',
-                                attachments: (parsed.attachments || []).map(a => ({
-                                    filename: a.filename || 'attachment',
-                                    contentType: a.contentType,
-                                    size: a.size
-                                }))
-                            };
-                            
-                            res.json({ success: true, message: msgData });
-                            resolve();
+                            resolve(Buffer.concat(chunks));
+                        });
+                        
+                        fetch.once('error', (err) => {
+                            imap.end();
+                            reject(err);
                         });
                     });
-                    
-                    fetch.once('error', (err) => {
-                        imap.end();
-                        res.json({ success: false, error: err.message });
-                        resolve();
-                    });
                 });
+                
+                imap.once('error', (err) => reject(err));
+                
+                imap.connect();
             });
             
-            imap.once('error', (err) => {
-                res.json({ success: false, error: err.message });
-                resolve();
-            });
+            // Parsear con mailparser usando async/await
+            const parsed = await mailparser.simpleParser(rawEmail);
             
-            imap.connect();
-        });
+            const msgData = {
+                id: uid,
+                from: parsed.from?.value?.[0]?.address || '',
+                from_name: parsed.from?.text || '',
+                to: parsed.to?.text || '',
+                subject: parsed.subject || '(Sin asunto)',
+                date: parsed.date?.toISOString() || '',
+                html: parsed.html || '',
+                text: parsed.text || '',
+                attachments: (parsed.attachments || []).map(a => ({
+                    filename: a.filename || 'attachment',
+                    contentType: a.contentType,
+                    size: a.size
+                }))
+            };
+            
+            res.json({ success: true, message: msgData });
+        } catch (err) {
+            console.error('[MAILBOX] Error:', err.message);
+            res.json({ success: false, error: err.message });
+        }
     } catch (error) {
         console.error('Error getting mailbox message:', error);
         res.status(500).json({ error: error.message });
