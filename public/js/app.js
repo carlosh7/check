@@ -1310,8 +1310,35 @@ const App = window.App = {
     // Acciones masivas para empresas
     handleBulkGroupAction: async function() {
         const action = document.getElementById('bulk-group-action')?.value;
-        if (!action || !this.state.selectedGroups || this.state.selectedGroups.length === 0) {
+        if (!action) return;
+        
+        if (action === 'assign-event') {
+            // Asignar evento a empresas seleccionadas
+            if (!this.state.selectedGroups || this.state.selectedGroups.length === 0) {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                document.getElementById('bulk-group-action').value = '';
+                return;
+            }
+            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
+            document.getElementById('bulk-group-action').value = '';
+            return;
+        }
+        
+        if (action === 'assign-staff') {
+            // Asignar staff a empresas seleccionadas
+            if (!this.state.selectedGroups || this.state.selectedGroups.length === 0) {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                document.getElementById('bulk-group-action').value = '';
+                return;
+            }
+            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
+            document.getElementById('bulk-group-action').value = '';
+            return;
+        }
+        
+        if (!this.state.selectedGroups || this.state.selectedGroups.length === 0) {
             alert('Selecciona al menos una empresa.');
+            document.getElementById('bulk-group-action').value = '';
             return;
         }
         
@@ -1351,6 +1378,178 @@ const App = window.App = {
         } catch(e) {
             console.error('Error en acción masiva:', e);
             alert('Error al realizar la acción.');
+        }
+    },
+    
+    // Mostrar selector de evento para empresas seleccionadas
+    showEventSelectorForBulkGroups: function(groupIds) {
+        const events = this.state.allEvents || [];
+        
+        if (events.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Evento a Empresas</span>
+                        <span class="text-xs text-slate-400">Selecciona evento para ${groupIds.length} empresa(s)</span>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
+    
+    assignEventToGroupsFromModal: async function(groupIdsStr, eventId) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            for (const groupId of groupIds) {
+                await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupId })
+                });
+            }
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Evento asignado a ${groupIds.length} empresa(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedGroups = [];
+            this.loadGroups();
+            this.loadEvents();
+            Swal.close();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+    
+    // Mostrar selector de staff para empresas seleccionadas
+    showUserSelectorForBulkGroups: function(groupIds) {
+        const users = this.state.allUsers || [];
+        
+        if (users.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Staff a Empresas</span>
+                        <span class="text-xs text-slate-400">Selecciona staff para ${groupIds.length} empresa(s)</span>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${users.map(u => `
+                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${u.display_name || u.username}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${u.role || 'STAFF'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
+    
+    assignUserToGroupsFromModal: async function(groupIdsStr, userId) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            for (const groupId of groupIds) {
+                await this.fetchAPI(`/groups/${groupId}/users`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Staff asignado a ${groupIds.length} empresa(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedGroups = [];
+            this.loadGroups();
+            this.loadUsersTable();
+            Swal.close();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
 
