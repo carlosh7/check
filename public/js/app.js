@@ -511,6 +511,14 @@ const App = window.App = {
     },
 
     processImportFile: async function(file) {
+        // Obtener token igual que API.fetchAPI
+        let token = window.App?.state?.user?.token;
+        if (!token) {
+            const userStr = LS.get('user');
+            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+            token = user.token || LS.get('token');
+        }
+        
         const formData = new FormData();
         formData.append('file', file);
         formData.append('type', this._importType);
@@ -518,7 +526,7 @@ const App = window.App = {
         try {
             const response = await fetch('/api/import/validate', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${LS.get('token')}` },
+                headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
             });
             const data = await response.json();
@@ -561,6 +569,14 @@ const App = window.App = {
     executeImport: async function() {
         if (!this._importData) return;
         
+        // Obtener token igual que API.fetchAPI
+        let token = window.App?.state?.user?.token;
+        if (!token) {
+            const userStr = LS.get('user');
+            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+            token = user.token || LS.get('token');
+        }
+        
         const btn = document.getElementById('btn-confirm-import');
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
@@ -569,7 +585,7 @@ const App = window.App = {
             const response = await fetch('/api/import/execute', {
                 method: 'POST',
                 headers: { 
-                    'Authorization': `Bearer ${LS.get('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ type: this._importType, data: this._importData })
