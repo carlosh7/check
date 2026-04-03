@@ -108,17 +108,17 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 // VALIDAR ARCHIVO DE IMPORTACIÓN
 // ══════════════════════════════════════════════════════════════
 router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    // Manejar multipart form data
-    if (!req.file) {
+    // Manejar archivo como base64
+    const { file, filename, type } = req.body;
+    if (!file) {
         return res.status(400).json({ success: false, message: 'No se envió archivo' });
     }
 
     try {
-        const file = req.file;
-        const type = req.body.type || 'groups';
         const workbook = new ExcelJS.Workbook();
-        // memoryStorage: archivo está en buffer directamente
-        await workbook.xlsx.load(file.buffer);
+        // Decodificar base64 a buffer
+        const buffer = Buffer.from(file, 'base64');
+        await workbook.xlsx.load(buffer);
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];

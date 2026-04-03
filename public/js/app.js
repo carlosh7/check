@@ -519,17 +519,25 @@ const App = window.App = {
             token = user.token || LS.get('token');
         }
         
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', this._importType);
-
-        try {
-            const response = await fetch('/api/import/validate', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            const data = await response.json();
+        // Convertir archivo a base64
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1]; // Remover data:...base64,
+            
+            try {
+                const response = await fetch('/api/import/validate', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        file: base64,
+                        filename: file.name,
+                        type: this._importType 
+                    })
+                });
+                const data = await response.json();
             
             if (data.success) {
                 this._importData = data.data;
@@ -558,12 +566,19 @@ const App = window.App = {
                     Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
                 }
             }
-        } catch(e) {
-            console.error('Error procesando archivo:', e);
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el archivo' });
+            } catch(e) {
+                console.error('Error procesando archivo:', e);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el archivo' });
+                }
             }
-        }
+        };
+        reader.onerror = () => {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error leyendo archivo' });
+            }
+        };
+        reader.readAsDataURL(file);
     },
 
     executeImport: async function() {
