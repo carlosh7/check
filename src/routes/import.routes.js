@@ -403,72 +403,94 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.xlsx`);
             res.send(buffer);
         } else {
-            // PDF
-            const doc = new jsPDF();
-            const groups = db.prepare("SELECT * FROM groups ORDER BY created_at DESC").all();
-            const events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
-            const users = db.prepare("SELECT id, username, display_name, role, group_id, status, created_at FROM users ORDER BY created_at DESC").all();
+            // PDF - Crear manualmente con jsPDF
+            try {
+                // Importar jsPDF correctamente para Node.js
+                const { jsPDF } = require('jspdf');
+                require('jspdf-autotable');
+                
+                const doc = new jsPDF();
+                const groups = db.prepare("SELECT * FROM groups ORDER BY created_at DESC").all();
+                const events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+                const users = db.prepare("SELECT id, username, display_name, role, group_id, status, created_at FROM users ORDER BY created_at DESC").all();
 
-            // Título
-            doc.setFontSize(20);
-            doc.setTextColor(124, 58, 237);
-            doc.text('Reporte de Exportación', 14, 20);
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
+                // Título
+                doc.setFontSize(20);
+                doc.setTextColor(124, 58, 237);
+                doc.text('Reporte de Exportación', 14, 20);
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
 
-            // Empresas
-            doc.setFontSize(14);
-            doc.setTextColor(0);
-            doc.text('Empresas', 14, 40);
-            
-            if (groups.length > 0) {
-                doc.autoTable({
-                    startY: 45,
-                    head: [['Nombre', 'Email', 'Teléfono', 'Estado']],
-                    body: groups.map(g => [g.name, g.email || '-', g.phone || '-', g.status]),
-                    theme: 'grid',
-                    headStyles: { fillColor: [124, 58, 237] }
-                });
-            }
+                // Empresas
+                let currentY = 40;
+                doc.setFontSize(14);
+                doc.setTextColor(0);
+                doc.text('Empresas', 14, currentY);
+                currentY += 10;
+                
+                if (groups.length > 0) {
+                    doc.autoTable({
+                        startY: currentY,
+                        head: [['Nombre', 'Email', 'Teléfono', 'Estado']],
+                        body: groups.map(g => [g.name || '-', g.email || '-', g.phone || '-', g.status || '-']),
+                        theme: 'grid',
+                        headStyles: { fillColor: [124, 58, 237] }
+                    });
+                    currentY = doc.lastAutoTable.finalY + 15;
+                } else {
+                    doc.setFontSize(10);
+                    doc.text('No hay empresas registradas', 14, currentY);
+                    currentY += 15;
+                }
 
-            // Eventos
-            if (doc.lastAutoTable) {
-                doc.addPage();
-            }
-            doc.setFontSize(14);
-            doc.text('Eventos', 14, 20);
-            
-            if (events.length > 0) {
-                doc.autoTable({
-                    startY: 25,
-                    head: [['Nombre', 'Fecha', 'Ubicación', 'Estado']],
-                    body: events.map(e => [e.name, e.date, e.location || '-', e.status]),
-                    theme: 'grid',
-                    headStyles: { fillColor: [59, 130, 246] }
-                });
-            }
+                // Eventos - nueva página si es necesario
+                if (currentY > 200) { doc.addPage(); currentY = 20; }
+                doc.setFontSize(14);
+                doc.text('Eventos', 14, currentY);
+                currentY += 10;
+                
+                if (events.length > 0) {
+                    doc.autoTable({
+                        startY: currentY,
+                        head: [['Nombre', 'Fecha', 'Ubicación', 'Estado']],
+                        body: events.map(e => [e.name || '-', e.date || '-', e.location || '-', e.status || '-']),
+                        theme: 'grid',
+                        headStyles: { fillColor: [59, 130, 246] }
+                    });
+                    currentY = doc.lastAutoTable.finalY + 15;
+                } else {
+                    doc.setFontSize(10);
+                    doc.text('No hay eventos registrados', 14, currentY);
+                    currentY += 15;
+                }
 
-            // Staff
-            if (doc.lastAutoTable?.finalY) {
-                doc.addPage();
-            }
-            doc.setFontSize(14);
-            doc.text('Staff', 14, 20);
-            
-            if (users.length > 0) {
-                doc.autoTable({
-                    startY: 25,
-                    head: [['Nombre', 'Email', 'Rol', 'Estado']],
-                    body: users.map(u => [u.display_name || '-', u.username, u.role, u.status]),
-                    theme: 'grid',
-                    headStyles: { fillColor: [139, 92, 246] }
-                });
-            }
+                // Staff - nueva página si es necesario
+                if (currentY > 200) { doc.addPage(); currentY = 20; }
+                doc.setFontSize(14);
+                doc.text('Staff', 14, currentY);
+                currentY += 10;
+                
+                if (users.length > 0) {
+                    doc.autoTable({
+                        startY: currentY,
+                        head: [['Nombre', 'Email', 'Rol', 'Estado']],
+                        body: users.map(u => [u.display_name || '-', u.username || '-', u.role || '-', u.status || '-']),
+                        theme: 'grid',
+                        headStyles: { fillColor: [139, 92, 246] }
+                    });
+                } else {
+                    doc.setFontSize(10);
+                    doc.text('No hay staff registrado', 14, currentY);
+                }
 
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
-            res.send(doc.output('arraybuffer'));
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
+                res.send(doc.output('arraybuffer'));
+            } catch(pdfError) {
+                console.error('Error generando PDF:', pdfError);
+                res.status(500).json({ success: false, message: 'Error generando PDF: ' + pdfError.message });
+            }
         }
     } catch(e) {
         console.error('Error exportando:', e);
