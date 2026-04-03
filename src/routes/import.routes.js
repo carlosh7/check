@@ -403,16 +403,6 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     }
                 }
                 
-                // Resolver event_name a event_id (usar mapa local primero, luego BD)
-                let resolvedEventId = null;
-                if (u.event_name) {
-                    const eventLower = u.event_name.toLowerCase();
-                    if (createdEventsMap[eventLower]) {
-                        resolvedEventId = createdEventsMap[eventLower];
-                        console.log('[IMPORT] Resolved event from map:', u.event_name, '->', resolvedEventId);
-                    }
-                }
-                
                 // Buscar por username (email)
                 let existingUser = null;
                 if (u.username) {
@@ -436,17 +426,30 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     imported++;
                 }
                 
-                // Vincular al evento si se especificó y se resolvió
-                if (resolvedEventId && userId) {
-                    console.log('[IMPORT] Linking user to event:', userId, '->', resolvedEventId);
-                    try {
-                        db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
-                            .run(getValidId('user_events'), userId, resolvedEventId, new Date().toISOString());
-                    } catch(linkErr) {
-                        console.log('[IMPORT] Warning: Could not link user to event:', linkErr.message);
+                // Vincular a eventos (soporta múltiples eventos separados por coma)
+                if (u.event_name && userId) {
+                    const eventNames = u.event_name.split(',').map(e => e.trim()).filter(e => e);
+                    let linkedCount = 0;
+                    for (const eventName of eventNames) {
+                        const eventLower = eventName.toLowerCase();
+                        const eventId = createdEventsMap[eventLower];
+                        
+                        if (eventId) {
+                            console.log('[IMPORT] Linking user to event:', u.username, '->', eventName, '(', eventId, ')');
+                            try {
+                                db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+                                    .run(getValidId('user_events'), userId, eventId, new Date().toISOString());
+                                linkedCount++;
+                            } catch(linkErr) {
+                                console.log('[IMPORT] Warning: Could not link user to event:', linkErr.message);
+                            }
+                        } else {
+                            console.log('[IMPORT] Warning: Event not found:', eventName);
+                        }
                     }
-                } else if (u.event_name && !resolvedEventId) {
-                    console.log('[IMPORT] Warning: Event not found for user:', u.event_name);
+                    if (linkedCount > 0) {
+                        console.log('[IMPORT] User', u.username, 'linked to', linkedCount, 'events');
+                    }
                 }
             }
         }
