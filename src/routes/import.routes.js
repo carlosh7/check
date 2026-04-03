@@ -110,6 +110,7 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     // Manejar archivo como base64
     const { file, filename, type } = req.body;
+    console.log('[IMPORT] file received, length:', file?.length, 'filename:', filename);
     if (!file) {
         return res.status(400).json({ success: false, message: 'No se envió archivo' });
     }
@@ -118,6 +119,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const workbook = new ExcelJS.Workbook();
         // Decodificar base64 a buffer
         const buffer = Buffer.from(file, 'base64');
+        console.log('[IMPORT] buffer created, size:', buffer.length);
         await workbook.xlsx.load(buffer);
 
         const stats = { new: 0, update: 0, errors: 0 };
