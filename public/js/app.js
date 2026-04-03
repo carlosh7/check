@@ -614,10 +614,10 @@ const App = window.App = {
                 }
                 
                 // Recargar datos
-                if (this._importType === 'groups') this.loadGroups();
-                else this.loadUsers();
+                if (this._importType === 'groups') window.App.loadGroups();
+                else window.App.loadUsersTable();
                 
-                setTimeout(() => document.getElementById('modal-import').classList.add('hidden'), 1500);
+                setTimeout(() => document.getElementById('modal-import')?.classList.add('hidden'), 1500);
             }
         } catch(e) {
             console.error('Error en importación:', e);
@@ -5642,7 +5642,7 @@ const App = window.App = {
         cl('btn-cancel-template', () => this.closeTemplateEditor());
         cl('btn-close-survey-editor', () => this.closeSurveyEditor());
         cl('btn-cancel-survey', () => this.closeSurveyEditor());
-        cl('btn-confirm-import', () => this.confirmImport());
+        cl('btn-confirm-import', () => this.executeImport());
         cl('btn-cancel-event', () => hideModal('modal-event'));
         cl('btn-close-event-full-modal', () => hideModal('modal-event-full'));
         cl('btn-cancel-event-full', () => hideModal('modal-event-full'));
