@@ -897,6 +897,12 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     background-color: transparent !important;
 }
 
+/* Forzar TODOS los elementos hijos a heredar colores correctos */
+#modal-legal-content * {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+}
+
 #modal-legal-content h1,
 #modal-legal-content h2,
 #modal-legal-content h3,
@@ -904,13 +910,19 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 #modal-legal-content h5,
 #modal-legal-content h6 {
     color: var(--text-main) !important;
+    background-color: transparent !important;
 }
 
 #modal-legal-content p,
 #modal-legal-content li,
 #modal-legal-content span,
-#modal-legal-content div {
+#modal-legal-content div,
+#modal-legal-content td,
+#modal-legal-content th,
+#modal-legal-content tr,
+#modal-legal-content table {
     color: var(--text-main) !important;
+    background-color: transparent !important;
 }
 
 #modal-legal-content a {

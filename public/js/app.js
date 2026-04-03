@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.14';
+const VERSION = '12.44.15';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -9450,12 +9450,15 @@ async function initApp() {
             document.getElementById('modal-legal-title').textContent = title;
             let content = settings[key] || '<p>Contenido no disponible.</p>';
             
-            // LIMPIAR estilos inline que causan texto blanco sobre fondo blanco
-            content = content.replace(/color\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
-            content = content.replace(/background-color\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
-            content = content.replace(/background\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
-            content = content.replace(/color\s*:\s*#000(?:\s*[;}]|\s*$)/gi, '');
-            content = content.replace(/background-color\s*:\s*#000(?:\s*[;}]|\s*$)/gi, '');
+            // LIMPIAR TODOS los estilos inline de color y background que causan texto blanco sobre fondo blanco
+            // Eliminar style="color: ..." completo
+            content = content.replace(/style\s*=\s*["'][^"']*?color\s*:\s*[^"']*?["']/gi, 'style=""');
+            // Eliminar style="background-color: ..." completo
+            content = content.replace(/style\s*=\s*["'][^"']*?background-color\s*:\s*[^"']*?["']/gi, 'style=""');
+            // Eliminar style="background: ..." completo (si contiene color)
+            content = content.replace(/style\s*=\s*["'][^"']*?background\s*:\s*[^"']*?["']/gi, 'style=""');
+            // Eliminar atributos style vacíos
+            content = content.replace(/style\s*=\s*["']\s*["']/gi, '');
             
             document.getElementById('modal-legal-content').innerHTML = content;
             modal?.classList.remove('hidden');

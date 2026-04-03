@@ -434,6 +434,20 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
     FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
 
+// Migración: Agregar columnas faltantes a email_accounts (tablas existentes de versiones anteriores)
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN smtp_password TEXT"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_password TEXT"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN smtp_ssl INTEGER DEFAULT 0"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_ssl INTEGER DEFAULT 1"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_folder TEXT DEFAULT 'INBOX'"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN sender_name TEXT"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN sender_email TEXT"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN is_default INTEGER DEFAULT 0"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN is_active INTEGER DEFAULT 1"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN daily_limit INTEGER DEFAULT 500"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN emails_sent_today INTEGER DEFAULT 0"); } catch(_) {}
+try { db.exec("ALTER TABLE email_accounts ADD COLUMN last_sent_date TEXT"); } catch(_) {}
+
 // Email Templates (Plantillas de email)
 db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     id TEXT PRIMARY KEY,
