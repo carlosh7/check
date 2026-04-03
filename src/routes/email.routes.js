@@ -1169,94 +1169,178 @@ router.get('/mailbox/messages', async (req, res) => {
                         return resolve();
                     }
                     
+                    // Usar envelope: true para obtener headers parseados directamente
                     const fetch = imap.fetch(`${start}:${end}`, {
-                        bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
+                        envelope: true,
                         markSeen: false
                     });
                     
                     const messages = [];
-                    let msgsReceived = 0;
-                    let msgsProcessed = 0;
-                    let fetchEnded = false;
-                    let finished = false;
-                    
-                    function tryFinish() {
-                        if (finished) return;
-                        if (fetchEnded && msgsProcessed >= msgsReceived && msgsReceived > 0) {
-                            finished = true;
-                            imap.end();
-                            res.json({ success: true, messages, total });
-                            resolve();
-                        }
-                    }
                     
                     fetch.on('message', (msg) => {
-                        msgsReceived++;
                         const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
-                        let bodyDone = false;
                         
                         msg.on('attributes', (attrs) => {
                             msgData.seen = attrs.flags.includes('\\Seen');
                         });
                         
-                        msg.on('body', (stream, info) => {
-                            let buffer = '';
-                            stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
-                            stream.on('end', () => {
-                                bodyDone = true;
-                                const lines = buffer.split(/\r?\n/);
-                                for (const line of lines) {
-                                    if (/^From:/i.test(line) && !msgData.from) {
-                                        const clean = line.replace(/^From:\s*/i, '').trim();
-                                        const match = clean.match(/^(.*?)\s*<(.+?)>/);
-                                        if (match) {
-                                            msgData.from_name = match[1].replace(/"/g, '').trim();
-                                            msgData.from = match[2].trim();
-                                        } else {
-                                            msgData.from = clean;
-                                        }
-                                    } else if (/^To:/i.test(line) && !msgData.to) {
-                                        const clean = line.replace(/^To:\s*/i, '').trim();
-                                        const match = clean.match(/<(.+?)>/);
-                                        msgData.to = match ? match[1] : clean;
-                                    } else if (/^Subject:/i.test(line) && !msgData.subject) {
-                                        msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
-                                    } else if (/^Date:/i.test(line) && !msgData.date) {
-                                        msgData.date = line.replace(/^Date:\s*/i, '').trim();
-                                    }
-                                }
-                                // Usar setImmediate para asegurar que msg.end ya se disparó
-                                setImmediate(() => {
-                                    messages.push(msgData);
-                                    msgsProcessed++;
-                                    tryFinish();
-                                });
-                            });
+                        msg.on('envelope', (env) => {
+                            // Parsear envelope del IMAP
+                            if (env.from && env.from[0]) {
+                                const fromAddr = env.from[0];
+                                msgData.from_name = fromAddr.name || '';
+                                msgData.from = fromAddr.mailbox + '@' + fromAddr.host;
+                            }
+                            if (env.to && env.to[0]) {
+                                const toAddr = env.to[0];
+                                msgData.to = toAddr.mailbox + '@' + toAddr.host;
+                            }
+                            if (env.subject) {
+                                msgData.subject = env.subject;
+                            }
+                            if (env.date) {
+                                msgData.date = env.date.toISOString();
+                            }
                         });
                         
                         msg.once('end', () => {
-                            if (!bodyDone) {
-                                // Body stream didn't fire for this message
-                                setImmediate(() => {
-                                    msgsProcessed++;
-                                    tryFinish();
-                                });
-                            }
+                            messages.push(msgData);
                         });
                     });
                     
                     fetch.once('end', () => {
-                        fetchEnded = true;
-                        tryFinish();
-                        // Fallback timeout: si después de 5s no terminó, enviar lo que hay
+                        // Dar tiempo para que los envelopes se procesen
                         setTimeout(() => {
-                            if (!finished) {
-                                finished = true;
-                                imap.end();
-                                res.json({ success: true, messages, total });
-                                resolve();
+                            imap.end();
+                            res.json({ success: true, messages, total });
+                            resolve();
+                        }, 500);
+                    });
+                    
+                    fetch.once('error', (err) => {
+                        imap.end();
+                        res.json({ success: false, error: err.message });
+                        resolve();
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => {
+                res.json({ success: false, error: err.message });
+                resolve();
+            });
+            
+            imap.connect();
+        });
+    } catch (error) {
+        console.error('Error getting mailbox messages:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+                    
+                    const messages = [];
+                    
+                    fetch.on('message', (msg) => {
+                        const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
+                        
+                        msg.on('attributes', (attrs) => {
+                            msgData.seen = attrs.flags.includes('\\Seen');
+                        });
+                        
+                        msg.on('envelope', (env) => {
+                            // Parsear envelope del IMAP
+                            if (env.from && env.from[0]) {
+                                const fromAddr = env.from[0];
+                                msgData.from_name = fromAddr.name || '';
+                                msgData.from = fromAddr.mailbox + '@' + fromAddr.host;
                             }
-                        }, 5000);
+                            if (env.to && env.to[0]) {
+                                const toAddr = env.to[0];
+                                msgData.to = toAddr.mailbox + '@' + toAddr.host;
+                            }
+                            if (env.subject) {
+                                msgData.subject = env.subject;
+                            }
+                            if (env.date) {
+                                msgData.date = env.date.toISOString();
+                            }
+                        });
+                        
+                        msg.once('end', () => {
+                            messages.push(msgData);
+                        });
+                    });
+                    
+                    fetch.once('end', () => {
+                        // Dar tiempo para que los envelopes se procesen
+                        setTimeout(() => {
+                            imap.end();
+                            res.json({ success: true, messages, total });
+                            resolve();
+                        }, 500);
+                    });
+                    
+                    fetch.once('error', (err) => {
+                        imap.end();
+                        res.json({ success: false, error: err.message });
+                        resolve();
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => {
+                res.json({ success: false, error: err.message });
+                resolve();
+            });
+            
+            imap.connect();
+        });
+    } catch (error) {
+        console.error('Error getting mailbox messages:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+                    
+                    const messages = [];
+                    
+                    fetch.on('message', (msg) => {
+                        const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
+                        
+                        msg.on('attributes', (attrs) => {
+                            msgData.seen = attrs.flags.includes('\\Seen');
+                        });
+                        
+                        msg.on('envelope', (env) => {
+                            // Parsear envelope del IMAP
+                            if (env.from && env.from[0]) {
+                                const fromAddr = env.from[0];
+                                msgData.from_name = fromAddr.name || '';
+                                msgData.from = fromAddr.mailbox + '@' + fromAddr.host;
+                            }
+                            if (env.to && env.to[0]) {
+                                const toAddr = env.to[0];
+                                msgData.to = toAddr.mailbox + '@' + toAddr.host;
+                            }
+                            if (env.subject) {
+                                msgData.subject = env.subject;
+                            }
+                            if (env.date) {
+                                msgData.date = env.date.toISOString();
+                            }
+                        });
+                        
+                        msg.once('end', () => {
+                            messages.push(msgData);
+                        });
+                    });
+                    
+                    fetch.once('end', () => {
+                        // Dar tiempo para que los envelopes se procesen
+                        setTimeout(() => {
+                            imap.end();
+                            res.json({ success: true, messages, total });
+                            resolve();
+                        }, 500);
                     });
                     
                     fetch.once('error', (err) => {
