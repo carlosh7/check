@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.19';
+const VERSION = '12.44.20';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2524,26 +2524,42 @@ const App = window.App = {
     },
 
     loadMailboxFolders: async function() {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        if (!accountId) return;
+        const selectEl = document.getElementById('mailbox-account-select');
+        const accountId = selectEl?.value;
+        console.log('[MAILBOX] loadMailboxFolders called');
+        console.log('[MAILBOX] select element:', selectEl);
+        console.log('[MAILBOX] accountId:', accountId);
+        
+        if (!accountId) {
+            console.warn('[MAILBOX] No account selected');
+            const container = document.getElementById('mailbox-folders');
+            if (container) container.innerHTML = `<p class="text-xs text-slate-500 p-2">Selecciona una cuenta primero</p>`;
+            return;
+        }
         
         const container = document.getElementById('mailbox-folders');
+        console.log('[MAILBOX] folders container found:', !!container);
         if (!container) return;
         
+        container.innerHTML = `<div class="p-4 text-center animate-pulse text-xs text-slate-500">Cargando carpetas...</div>`;
+        
         try {
+            console.log('[MAILBOX] Fetching folders for account:', accountId);
             const result = await this.fetchAPI(`/email/mailbox/folders?account_id=${accountId}`);
+            console.log('[MAILBOX] Folders result:', JSON.stringify(result));
             
             if (!result.success) {
-                container.innerHTML = `<p class="text-xs text-red-400">${result.error || 'Error al cargar carpetas'}</p>`;
+                container.innerHTML = `<p class="text-xs text-red-400 p-2">${result.error || 'Error al cargar carpetas'}</p>`;
                 return;
             }
             
-            // Mostrar carpetas básicas
-            const folders = ['INBOX', 'SENT', 'DRAFT', 'TRASH', 'SPAM'];
+            const folders = result.folders || ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam'];
+            console.log('[MAILBOX] Folders to display:', folders);
+            
             container.innerHTML = folders.map(f => `
                 <button onclick="App.loadMailboxMessages('${f}')" 
                         class="w-full text-left px-3 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm text-slate-500">${f === 'INBOX' ? 'inbox' : 'mail'}</span>
+                    <span class="material-symbols-outlined text-sm text-slate-500">${f === 'INBOX' || f === 'inbox' ? 'inbox' : 'mail'}</span>
                     ${f}
                 </button>
             `).join('');
@@ -2552,7 +2568,8 @@ const App = window.App = {
             this.loadMailboxMessages('INBOX');
             
         } catch (e) {
-            console.error('[MAILBOX] Error:', e);
+            console.error('[MAILBOX] Error loading folders:', e);
+            container.innerHTML = `<p class="text-xs text-red-400 p-2">Error: ${e.message}</p>`;
         }
     },
 
