@@ -199,6 +199,9 @@
                         <span class="material-symbols-outlined text-sm">person</span> Personal
                     </button>
                     <!-- Email movido a módulo nuevo -Fase 2 -->
+                    <button id="config-nav-email" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('email')">
+                        <span class="material-symbols-outlined text-sm">mail</span> Mailing
+                    </button>
                     <button id="config-nav-agenda" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchConfigTab('agenda')">
                         <span class="material-symbols-outlined text-sm">schedule</span> Agenda
                     </button>
@@ -444,6 +447,123 @@
                         </div>
                     </div>
 
+                    <!-- CONTENIDO: MAILING -->
+                    <div id="config-content-email" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text-[var(--primary)]">Mailing</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Gestiona el envío de emails a los invitados de este evento.</p>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tabs para Mailing -->
+                        <div class="flex gap-2 mb-6">
+                            <button id="mailing-tab-composer" class="px-4 py-2 rounded-xl bg-violet-500/20 text-violet-300 text-xs font-bold uppercase tracking-wider" onclick="App.switchMailingSubTab('composer')">Compositor</button>
+                            <button id="mailing-tab-campaigns" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchMailingSubTab('campaigns')">Campañas</button>
+                            <button id="mailing-tab-templates" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchMailingSubTab('templates')">Plantillas</button>
+                        </div>
+
+                        <!-- SUBTAB: COMPOSITOR -->
+                        <div id="mailing-subtab-composer" class="space-y-4">
+                            <div class="grid grid-cols-12 gap-4">
+                                <!-- Panel izquierdo: Formulario -->
+                                <div class="col-span-5 space-y-4">
+                                    <div class="card p-4 space-y-4">
+                                        <h4 class="text-sm font-bold text-white">Nueva Comunicación</h4>
+                                        
+                                        <!-- Selector de cuenta -->
+                                        <div>
+                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Cuenta de Email</label>
+                                            <select id="mailing-account-select" class="input-field w-full !py-2">
+                                                <option value="">-- Seleccionar Cuenta --</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Destinatarios -->
+                                        <div>
+                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Destinatarios</label>
+                                            <div class="space-y-2">
+                                                <label class="flex items-center gap-2 text-sm text-slate-300">
+                                                    <input type="radio" name="mailing-recipient-type" value="all" checked class="accent-violet-500"> Todos los invitados
+                                                </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300">
+                                                    <input type="radio" name="mailing-recipient-type" value="confirmed" class="accent-violet-500"> Solo confirmados
+                                                </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300">
+                                                    <input type="radio" name="mailing-recipient-type" value="pending" class="accent-violet-500"> Solo pendientes
+                                                </label>
+                                            </div>
+                                            <p id="mailing-recipient-count" class="text-xs text-slate-500 mt-2">0 invitados</p>
+                                        </div>
+
+                                        <!-- Asunto -->
+                                        <div>
+                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Asunto</label>
+                                            <input type="text" id="mailing-subject" class="input-field w-full" placeholder="Asunto del email">
+                                        </div>
+
+                                        <!-- Plantilla -->
+                                        <div>
+                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Plantilla</label>
+                                            <select id="mailing-template-select" class="input-field w-full !py-2" onchange="App.onMailingTemplateChange()">
+                                                <option value="">-- Sin plantilla --</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Contenido -->
+                                        <div>
+                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Mensaje</label>
+                                            <textarea id="mailing-body" rows="6" class="input-field w-full" placeholder="Escribe tu mensaje aquí..."></textarea>
+                                        </div>
+
+                                        <!-- Acciones -->
+                                        <div class="flex gap-2">
+                                            <button onclick="App.sendTestEmail()" class="btn-secondary flex-1 !py-2 text-xs">Enviar Prueba</button>
+                                            <button onclick="App.sendMailing()" class="btn-primary flex-1 !py-2 text-xs">Enviar Ahora</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Panel derecho: Preview -->
+                                <div class="col-span-7">
+                                    <div class="card p-4 h-full">
+                                        <h4 class="text-sm font-bold text-white mb-3">Vista Previa</h4>
+                                        <div id="mailing-preview" class="bg-white rounded-lg p-4 text-slate-800 text-sm min-h-[400px] overflow-y-auto">
+                                            <p class="text-slate-400 text-center py-8">Selecciona una plantilla para previsualizar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB: CAMPAÑAS -->
+                        <div id="mailing-subtab-campaigns" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Campañas de este Evento</h3>
+                                    <p class="text-xs text-slate-500">Historial de campañas enviadas</p>
+                                </div>
+                                <button onclick="App.openCampaignWizard()" class="btn-primary !px-4 !py-2 text-xs">+ Nueva Campaña</button>
+                            </div>
+                            <div id="mailing-campaigns-list" class="space-y-2">
+                                <!-- Lista de campañas se carga dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB: PLANTILLAS -->
+                        <div id="mailing-subtab-templates" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Plantillas del Evento</h3>
+                                    <p class="text-xs text-slate-500">Plantillas específicas para este evento</p>
+                                </div>
+                            </div>
+                            <div id="mailing-templates-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Plantillas se cargan dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- CONTENIDO: ENCUESTAS -->
                     <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center">
@@ -633,6 +753,7 @@
                 <div class="sub-nav-container p-1.5 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-2 mb-8">
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('users')">Equipo</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('groups')">Empresas</button>
+                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('email')">Email</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('legal')">Legales</button>
                     <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('account')">Perfil</button>
                 </div>
@@ -708,6 +829,97 @@
                                 </thead>
                                 <tbody id="groups-tbody" class="divide-y divide-white/[0.03]"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: EMAIL (SISTEMA) -->
+                <div id="sys-content-email" class="hidden space-y-6">
+                    <!-- Sub-tabs para Email -->
+                    <div class="flex gap-2 mb-6">
+                        <button id="email-tab-accounts" class="px-4 py-2 rounded-xl bg-violet-500/20 text-violet-300 text-xs font-bold uppercase tracking-wider" onclick="App.switchEmailSubTab('accounts')">Cuentas</button>
+                        <button id="email-tab-mailbox" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('mailbox')">Buzón</button>
+                        <button id="email-tab-campaigns" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('campaigns')">Campañas</button>
+                        <button id="email-tab-templates" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('templates')">Plantillas</button>
+                    </div>
+
+                    <!-- SUBTAB: CUENTAS SMTP/IMAP -->
+                    <div id="email-subtab-accounts" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Cuentas de <span class="text-[var(--primary)]">Email</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
+                            </div>
+                            <button onclick="App.openEmailAccountModal()" class="btn-primary !px-5 !py-2.5">+ Nueva Cuenta</button>
+                        </div>
+                        <div id="email-accounts-list" class="grid gap-4">
+                            <!-- Lista de cuentas se carga dinámicamente -->
+                            <div class="text-center py-8 text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">loading</span>
+                                <p>Cargando cuentas...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB: MAILBOX -->
+                    <div id="email-subtab-mailbox" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Buzón de <span class="text-[var(--primary)]">Email</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Consulta tus emails recibidos y enviados.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="mailbox-account-select" onchange="App.loadMailboxFolders()" class="input-field !py-2 !px-4 text-sm">
+                                    <option value="">-- Seleccionar Cuenta --</option>
+                                </select>
+                                <button onclick="App.refreshMailbox()" class="btn-secondary !px-4 !py-2">Actualizar</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-12 gap-4">
+                            <!-- Carpetas -->
+                            <div class="col-span-2 card p-4">
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-3">Carpetas</h4>
+                                <div id="mailbox-folders" class="space-y-1">
+                                    <!-- Carpetas se cargan dinámicamente -->
+                                </div>
+                            </div>
+                            <!-- Lista de mensajes -->
+                            <div class="col-span-10 card p-0">
+                                <div id="mailbox-messages" class="max-h-[500px] overflow-y-auto">
+                                    <div class="text-center py-12 text-slate-500">
+                                        <span class="material-symbols-outlined text-4xl mb-2">mail</span>
+                                        <p>Selecciona una cuenta y carpeta</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB: CAMPAÑAS -->
+                    <div id="email-subtab-campaigns" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Campañas de <span class="text-[var(--primary)]">Email</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Crea y gestiona campañas de email marketing.</p>
+                            </div>
+                            <button onclick="App.openCampaignWizard()" class="btn-primary !px-5 !py-2.5">+ Nueva Campaña</button>
+                        </div>
+                        <div id="email-campaigns-list" class="space-y-3">
+                            <!-- Lista de campañas se carga dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB: PLANTILLAS -->
+                    <div id="email-subtab-templates" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Biblioteca de <span class="text-[var(--primary)]">Plantillas</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Plantillas predefinidas para tus comunicaciones.</p>
+                            </div>
+                            <button onclick="App.createDefaultTemplates()" class="btn-secondary !px-4 !py-2">Crear Plantillas Base</button>
+                        </div>
+                        <div id="email-templates-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Plantillas se cargan dinámicamente -->
                         </div>
                     </div>
                 </div>

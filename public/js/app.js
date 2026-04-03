@@ -2155,6 +2155,865 @@ const App = window.App = {
             if (tt) tt.value = s.terms_conditions?.replace(/<[^>]*>/g,'') || '';
         } catch {}
     },
+
+    // ==================== MÓDULO DE EMAIL (V12.45) ====================
+    
+    loadEmailModuleData: async function() {
+        console.log('[EMAIL] Loading email module data...');
+        await Promise.all([
+            this.loadEmailAccounts(),
+            this.loadEmailTemplates(),
+            this.loadEmailCampaigns()
+        ]);
+    },
+
+    switchEmailSubTab: function(subTab) {
+        const subTabs = ['accounts', 'mailbox', 'campaigns', 'templates'];
+        subTabs.forEach(tab => {
+            const el = document.getElementById(`email-subtab-${tab}`);
+            const btn = document.getElementById(`email-tab-${tab}`);
+            if (el) el.classList.add('hidden');
+            if (btn) {
+                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
+                btn.classList.add('bg-white/5', 'text-slate-400');
+            }
+        });
+        
+        const activeEl = document.getElementById(`email-subtab-${subTab}`);
+        const activeBtn = document.getElementById(`email-tab-${subTab}`);
+        if (activeEl) activeEl.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.add('bg-violet-500/20', 'text-violet-300');
+            activeBtn.classList.remove('bg-white/5', 'text-slate-400');
+        }
+    },
+
+    loadEmailAccounts: async function() {
+        const container = document.getElementById('email-accounts-list');
+        if (!container) return;
+        
+        try {
+            const accounts = await this.fetchAPI('/email/accounts');
+            
+            if (!accounts || accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500">
+                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">mail</span>
+                        <p class="text-sm">No hay cuentas configuradas</p>
+                        <p class="text-xs mt-1">Crea una cuenta SMTP/IMAP para comenzar</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = accounts.map(acc => `
+                <div class="card p-4 flex items-center justify-between" data-account-id="${acc.id}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${acc.is_active ? 'from-violet-500/20 to-blue-500/20' : 'from-slate-500/20 to-slate-500/20'} flex items-center justify-center">
+                            <span class="material-symbols-outlined text-xl ${acc.is_active ? 'text-violet-400' : 'text-slate-500'}">mail</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white">${acc.name}</h4>
+                            <p class="text-xs text-slate-500">${acc.smtp_host || 'Sin SMTP'} ${acc.is_default ? '<span class="text-violet-400 ml-1">[Default]</span>' : ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs px-2 py-1 rounded-full ${acc.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                            ${acc.is_active ? 'Activa' : 'Inactiva'}
+                        </span>
+                        <button onclick="App.openEmailAccountModal('${acc.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Editar">
+                            <span class="material-symbols-outlined text-slate-400">edit</span>
+                        </button>
+                        <button onclick="App.testEmailAccount('${acc.id}', 'smtp')" class="p-2 hover:bg-white/10 rounded-lg" title="Probar SMTP">
+                            <span class="material-symbols-outlined text-slate-400">send</span>
+                        </button>
+                        <button onclick="App.deleteEmailAccount('${acc.id}')" class="p-2 hover:bg-red-500/10 rounded-lg" title="Eliminar">
+                            <span class="material-symbols-outlined text-red-400">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // También cargar en selects
+            this.updateEmailAccountSelects(accounts);
+            
+        } catch (e) {
+            console.error('[EMAIL] Error loading accounts:', e);
+            container.innerHTML = `<div class="text-center py-8 text-red-400">Error al cargar cuentas</div>`;
+        }
+    },
+
+    updateEmailAccountSelects: function(accounts) {
+        const selects = ['mailbox-account-select', 'mailing-account-select'];
+        selects.forEach(selId => {
+            const sel = document.getElementById(selId);
+            if (!sel) return;
+            
+            const currentVal = sel.value;
+            sel.innerHTML = '<option value="">-- Seleccionar Cuenta --</option>' + 
+                accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+            if (currentVal && accounts.find(a => a.id === currentVal)) {
+                sel.value = currentVal;
+            }
+        });
+    },
+
+    openEmailAccountModal: async function(accountId = null) {
+        let account = { is_active: true, is_default: false, smtp_port: 587, imap_port: 993, daily_limit: 500 };
+        
+        if (accountId) {
+            account = await this.fetchAPI(`/email/accounts/${accountId}`);
+        }
+        
+        const modalContent = `
+        <div class="fixed inset-0 bg-black/70 z-[999999] flex items-center justify-center p-4">
+            <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">${accountId ? 'Editar' : 'Nueva'} Cuenta de Email</h3>
+                    <button onclick="hideModal('modal-email-account')" class="p-2 hover:bg-white/10 rounded-lg">
+                        <span class="material-symbols-outlined text-slate-400">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+                    <input type="hidden" id="email-account-id" value="${accountId || ''}">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Nombre de la Cuenta</label>
+                            <input type="text" id="email-account-name" value="${account.name || ''}" class="input-field w-full" placeholder="Mi Gmail, Outlook, etc.">
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/5 pt-4">
+                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-violet-400">send</span> Configuración SMTP (Enviar)
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Servidor SMTP</label>
+                                <input type="text" id="email-smtp-host" value="${account.smtp_host || ''}" class="input-field w-full" placeholder="smtp.gmail.com">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Puerto SMTP</label>
+                                <input type="number" id="email-smtp-port" value="${account.smtp_port || 587}" class="input-field w-full" placeholder="587">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Usuario SMTP</label>
+                                <input type="text" id="email-smtp-user" value="${account.smtp_user || ''}" class="input-field w-full" placeholder="tu@email.com">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Contraseña SMTP</label>
+                                <input type="password" id="email-smtp-pass" value="${account.smtp_password === '***' ? '' : account.smtp_password || ''}" class="input-field w-full" placeholder="${account.smtp_password === '***' ? '••••••••' : 'Contraseña o app password'}">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                                <input type="checkbox" id="email-smtp-ssl" ${account.smtp_ssl ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/5 pt-4">
+                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-blue-400">inbox</span> Configuración IMAP (Recibir)
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Servidor IMAP</label>
+                                <input type="text" id="email-imap-host" value="${account.imap_host || ''}" class="input-field w-full" placeholder="imap.gmail.com">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Puerto IMAP</label>
+                                <input type="number" id="email-imap-port" value="${account.imap_port || 993}" class="input-field w-full" placeholder="993">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Usuario IMAP</label>
+                                <input type="text" id="email-imap-user" value="${account.imap_user || ''}" class="input-field w-full" placeholder="tu@email.com">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Contraseña IMAP</label>
+                                <input type="password" id="email-imap-pass" value="${account.imap_password === '***' ? '' : account.imap_password || ''}" class="input-field w-full" placeholder="${account.imap_password === '***' ? '••••••••' : 'Contraseña'}">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                                <input type="checkbox" id="email-imap-ssl" ${account.imap_ssl !== 0 ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/5 pt-4">
+                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-green-400">person</span> Remitente
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Nombre Remitente</label>
+                                <input type="text" id="email-sender-name" value="${account.sender_name || ''}" class="input-field w-full" placeholder="Mi Empresa">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Email Remitente</label>
+                                <input type="email" id="email-sender-email" value="${account.sender_email || ''}" class="input-field w-full" placeholder="noreply@empresa.com">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/5 pt-4">
+                        <h4 class="text-sm font-bold text-white mb-3">Opciones</h4>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                                <input type="checkbox" id="email-is-default" ${account.is_default ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta por defecto
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                                <input type="checkbox" id="email-is-active" ${account.is_active ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta activa
+                            </label>
+                        </div>
+                        <div class="mt-3">
+                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Límite diario de emails</label>
+                            <input type="number" id="email-daily-limit" value="${account.daily_limit || 500}" class="input-field w-full max-w-[200px]" min="1" max="10000">
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/5 pt-4">
+                        <button onclick="App.showEmailSetupHelp()" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">help</span> Necesito ayuda para configurar mi cuenta
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-white/10 flex justify-end gap-3">
+                    <button onclick="hideModal('modal-email-account')" class="px-4 py-2 rounded-xl bg-white/5 text-slate-300 font-bold">Cancelar</button>
+                    <button onclick="App.saveEmailAccount()" class="btn-primary !px-6 !py-2">Guardar</button>
+                </div>
+            </div>
+        </div>`;
+        
+        document.getElementById('modal-container-portal').innerHTML = modalContent;
+        document.getElementById('modal-email-account').classList.remove('hidden');
+    },
+
+    showEmailSetupHelp: function() {
+        Swal.fire({
+            title: 'Instructivo de Configuración',
+            html: `
+            <div class="text-left space-y-4 max-h-[60vh] overflow-y-auto">
+                <div class="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                    <h4 class="font-bold text-blue-400 mb-2">📧 GMAIL</h4>
+                    <ol class="text-xs text-slate-300 space-y-1 list-decimal list-inside">
+                        <li>Ve a tu cuenta de Google → Seguridad</li>
+                        <li>Habilita "Verificación en dos pasos"</li>
+                        <li>Ve a "Contraseñas de aplicaciones"</li>
+                        <li>Genera una nueva contraseña de 16 caracteres</li>
+                        <li>Usa esa contraseña en "Contraseña SMTP"</li>
+                        <li>Para IMAP usa tu contraseña normal de Google</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                    <h4 class="font-bold text-orange-400 mb-2">📧 OUTLOOK / HOTMAIL</h4>
+                    <ol class="text-xs text-slate-300 space-y-1 list-decimal list-inside">
+                        <li>Ve a account.microsoft.com</li>
+                        <li>Seguridad avanzada</li>
+                        <li>Habilita autenticación MFA</li>
+                        <li>Contraseñas de aplicación → Nueva</li>
+                        <li>Usa esa contraseña</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+                    <h4 class="font-bold text-green-400 mb-2">📧 OTROS PROVEEDORES</h4>
+                    <p class="text-xs text-slate-300">Busca en la ayuda de tu proveedor: "configuración SMTP/IMAP"</p>
+                    <p class="text-xs text-slate-400 mt-2">Ejemplo genérico:</p>
+                    <ul class="text-xs text-slate-400 space-y-1 list-disc list-inside">
+                        <li>SMTP: smtp.tudominio.com, Puerto: 587 (TLS) o 465 (SSL)</li>
+                        <li>IMAP: imap.tudominio.com, Puerto: 993 (SSL)</li>
+                    </ul>
+                </div>
+            </div>`,
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            confirmButtonText: 'Entendido'
+        });
+    },
+
+    saveEmailAccount: async function() {
+        const id = document.getElementById('email-account-id').value;
+        const data = {
+            name: document.getElementById('email-account-name').value,
+            smtp_host: document.getElementById('email-smtp-host').value,
+            smtp_port: parseInt(document.getElementById('email-smtp-port').value) || 587,
+            smtp_user: document.getElementById('email-smtp-user').value,
+            smtp_password: document.getElementById('email-smtp-pass').value || undefined,
+            smtp_ssl: document.getElementById('email-smtp-ssl').checked,
+            imap_host: document.getElementById('email-imap-host').value,
+            imap_port: parseInt(document.getElementById('email-imap-port').value) || 993,
+            imap_user: document.getElementById('email-imap-user').value,
+            imap_password: document.getElementById('email-imap-pass').value || undefined,
+            imap_ssl: document.getElementById('email-imap-ssl').checked,
+            sender_name: document.getElementById('email-sender-name').value,
+            sender_email: document.getElementById('email-sender-email').value,
+            is_default: document.getElementById('email-is-default').checked,
+            is_active: document.getElementById('email-is-active').checked,
+            daily_limit: parseInt(document.getElementById('email-daily-limit').value) || 500
+        };
+        
+        if (!data.name) {
+            return Swal.fire('Error', 'El nombre de la cuenta es requerido', 'error');
+        }
+        
+        try {
+            if (id) {
+                await this.fetchAPI(`/email/accounts/${id}`, { method: 'PUT', body: data });
+            } else {
+                await this.fetchAPI('/email/accounts', { method: 'POST', body: data });
+            }
+            
+            hideModal('modal-email-account');
+            this.loadEmailAccounts();
+            Swal.fire('✓ Éxito', 'Cuenta guardada correctamente', 'success');
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo guardar la cuenta', 'error');
+        }
+    },
+
+    testEmailAccount: async function(accountId, type) {
+        Swal.fire({ title: 'Probando conexión...', text: 'Por favor espera', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        try {
+            const endpoint = type === 'smtp' ? `/email/accounts/${accountId}/test-smtp` : `/email/accounts/${accountId}/test-imap`;
+            const result = await this.fetchAPI(endpoint, { method: 'POST' });
+            
+            if (result.success) {
+                Swal.fire('✓ Éxito', result.message || 'Conexión exitosa', 'success');
+            } else {
+                Swal.fire('✗ Error', result.error || 'Error en la conexión', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo probar la conexión', 'error');
+        }
+    },
+
+    deleteEmailAccount: async function(accountId) {
+        const result = await Swal.fire({
+            title: '¿Eliminar cuenta?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                await this.fetchAPI(`/email/accounts/${accountId}`, { method: 'DELETE' });
+                this.loadEmailAccounts();
+                Swal.fire('✓ Eliminado', 'Cuenta eliminada', 'success');
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo eliminar', 'error');
+            }
+        }
+    },
+
+    loadMailboxFolders: async function() {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!accountId) return;
+        
+        const container = document.getElementById('mailbox-folders');
+        if (!container) return;
+        
+        try {
+            const result = await this.fetchAPI(`/email/mailbox/folders?account_id=${accountId}`);
+            
+            if (!result.success) {
+                container.innerHTML = `<p class="text-xs text-red-400">${result.error || 'Error al cargar carpetas'}</p>`;
+                return;
+            }
+            
+            // Mostrar carpetas básicas
+            const folders = ['INBOX', 'SENT', 'DRAFT', 'TRASH', 'SPAM'];
+            container.innerHTML = folders.map(f => `
+                <button onclick="App.loadMailboxMessages('${f}')" 
+                        class="w-full text-left px-3 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-slate-500">${f === 'INBOX' ? 'inbox' : 'mail'}</span>
+                    ${f}
+                </button>
+            `).join('');
+            
+            // Cargar INBOX por defecto
+            this.loadMailboxMessages('INBOX');
+            
+        } catch (e) {
+            console.error('[MAILBOX] Error:', e);
+        }
+    },
+
+    loadMailboxMessages: async function(folder = 'INBOX') {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        const container = document.getElementById('mailbox-messages');
+        if (!container) return;
+        
+        container.innerHTML = `<div class="p-12 text-center animate-pulse">
+            <span class="material-symbols-outlined text-4xl text-violet-400 block mb-2">sync</span>
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Cargando mensajes...</p>
+        </div>`;
+        
+        if (!accountId) {
+            container.innerHTML = `<div class="text-center py-12 text-slate-500">
+                <span class="material-symbols-outlined text-4xl mb-2 text-slate-600">mail</span>
+                <p>Selecciona una cuenta</p>
+            </div>`;
+            return;
+        }
+        
+        try {
+            const result = await this.fetchAPI(`/email/mailbox/messages?account_id=${accountId}&folder=${folder}`);
+            
+            if (!result.success) {
+                container.innerHTML = `<div class="text-center py-12 text-red-400">
+                    <span class="material-symbols-outlined text-4xl mb-2">error</span>
+                    <p>${result.error || 'Error al cargar'}</p>
+                </div>`;
+                return;
+            }
+            
+            if (!result.messages || result.messages.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-500">
+                    <span class="material-symbols-outlined text-4xl mb-2 text-slate-600">${folder === 'INBOX' ? 'inbox' : 'send'}</span>
+                    <p>No hay mensajes en ${folder}</p>
+                </div>`;
+                return;
+            }
+            
+            container.innerHTML = result.messages.map(msg => `
+                <div onclick="App.viewMailMessage('${msg.uid}', '${folder}')" 
+                     class="p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs shrink-0">
+                        ${(msg.from || 'S').charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <h5 class="text-sm font-bold text-slate-200 truncate pr-4">${msg.subject || '(Sin asunto)'}</h5>
+                            <span class="text-[9px] text-slate-500 shrink-0">${msg.date ? new Date(msg.date).toLocaleDateString() : ''}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 truncate">De: ${msg.from}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            console.error('[MAILBOX] Error:', e);
+            container.innerHTML = `<div class="text-center py-12 text-red-400">Error al cargar mensajes</div>`;
+        }
+    },
+
+    viewMailMessage: async function(uid, folder) {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!accountId) return;
+        
+        try {
+            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
+            
+            if (!result.success) {
+                Swal.fire('Error', result.error || 'No se pudo cargar el mensaje', 'error');
+                return;
+            }
+            
+            const msg = result.message;
+            
+            const modalContent = `
+            <div class="fixed inset-0 bg-black/70 z-[999999] flex items-center justify-center p-4">
+                <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
+                        <h3 class="text-lg font-bold text-white truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
+                        <button onclick="hideModal('modal-mail-view')" class="p-2 hover:bg-white/10 rounded-lg shrink-0">
+                            <span class="material-symbols-outlined text-slate-400">close</span>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1">
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                            <div>
+                                <p class="text-xs font-black text-slate-500 uppercase mb-1">De</p>
+                                <p class="text-slate-300">${msg.from_name || ''} ${msg.from ? `<${msg.from}>` : ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-500 uppercase mb-1">Para</p>
+                                <p class="text-slate-300">${msg.to || ''}</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-white/5 pt-4">
+                            <div class="prose prose-invert max-w-none">
+                                ${msg.html || `<pre class="text-sm text-slate-300 whitespace-pre-wrap">${msg.text || 'Sin contenido'}</pre>`}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            
+            document.getElementById('modal-container-portal').innerHTML = modalContent;
+            document.getElementById('modal-mail-view')?.classList.remove('hidden') || document.getElementById('modal-container-portal').querySelector('.fixed')?.classList.remove('hidden');
+            
+        } catch (e) {
+            console.error('[MAILBOX] Error viewing message:', e);
+            Swal.fire('Error', 'No se pudo cargar el mensaje', 'error');
+        }
+    },
+
+    refreshMailbox: function() {
+        this.loadMailboxFolders();
+    },
+
+    loadEmailTemplates: async function() {
+        const container = document.getElementById('email-templates-grid');
+        if (!container) return;
+        
+        try {
+            const templates = await this.fetchAPI('/email/templates');
+            
+            if (!templates || templates.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-3 text-center py-12 text-slate-500">
+                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span>
+                        <p class="text-sm">No hay plantillas</p>
+                        <p class="text-xs mt-1">Crea plantillas para tus comunicaciones</p>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = templates.map(t => `
+                <div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate('${t.id}')">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">${t.category || 'general'}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 truncate">${t.subject || 'Sin asunto'}</p>
+                    ${t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : ''}
+                </div>
+            `).join('');
+            
+            // También cargar en selects de mailing
+            this.updateEmailTemplateSelects(templates);
+            
+        } catch (e) {
+            console.error('[EMAIL] Error loading templates:', e);
+        }
+    },
+
+    updateEmailTemplateSelects: function(templates) {
+        const sel = document.getElementById('mailing-template-select');
+        if (!sel) return;
+        
+        sel.innerHTML = '<option value="">-- Sin plantilla --</option>' + 
+            templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    },
+
+    viewEmailTemplate: async function(templateId) {
+        try {
+            const t = await this.fetchAPI(`/email/templates/${templateId}`);
+            
+            Swal.fire({
+                title: t.name,
+                html: `<div class="text-left">
+                    <p class="text-xs text-slate-500 mb-2">Asunto: ${t.subject || 'N/A'}</p>
+                    <div class="bg-white rounded-lg p-4 max-h-[400px] overflow-y-auto">
+                        ${t.body_html || '<pre class="text-sm">' + (t.body_text || 'Sin contenido') + '</pre>'}
+                    </div>
+                </div>`,
+                width: '800px',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
+        }
+    },
+
+    loadEmailCampaigns: async function() {
+        const container = document.getElementById('email-campaigns-list');
+        if (!container) return;
+        
+        try {
+            const campaigns = await this.fetchAPI('/email/campaigns');
+            
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500">
+                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">campaign</span>
+                        <p class="text-sm">No hay campañas</p>
+                    </div>`;
+                return;
+            }
+            
+            const statusColors = {
+                'DRAFT': 'bg-slate-500/20 text-slate-400',
+                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
+                'SENDING': 'bg-blue-500/20 text-blue-400',
+                'SENT': 'bg-green-500/20 text-green-400',
+                'PAUSED': 'bg-orange-500/20 text-orange-400',
+                'CANCELLED': 'bg-red-500/20 text-red-400'
+            };
+            
+            container.innerHTML = campaigns.map(c => `
+                <div class="card p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-xl text-violet-400">campaign</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white">${c.name}</h4>
+                            <p class="text-xs text-slate-500">${c.subject || 'Sin asunto'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">
+                            ${c.status}
+                        </span>
+                        <span class="text-xs text-slate-500">${c.sent_count || 0}/${c.total_recipients || 0}</span>
+                        ${c.status === 'DRAFT' ? `<button onclick="App.sendCampaign('${c.id}')" class="btn-primary !px-3 !py-1 text-xs">Enviar</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            console.error('[EMAIL] Error loading campaigns:', e);
+        }
+    },
+
+    sendCampaign: async function(campaignId) {
+        const result = await Swal.fire({
+            title: '¿Iniciar envío?',
+            text: 'La campaña se enviará a todos los destinatarios',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, enviar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                await this.fetchAPI(`/email/campaigns/${campaignId}/send`, { method: 'POST' });
+                Swal.fire('✓ Éxito', 'Envío iniciado', 'success');
+                this.loadEmailCampaigns();
+            } catch (e) {
+                Swal.fire('Error', e.message || 'No se pudo iniciar el envío', 'error');
+            }
+        }
+    },
+
+    createDefaultTemplates: async function() {
+        try {
+            await this.fetchAPI('/email/templates/seed', { method: 'POST' });
+            this.loadEmailTemplates();
+            Swal.fire('✓ Éxito', 'Plantillas base creadas', 'success');
+        } catch (e) {
+            Swal.fire('Info', e.message || 'Las plantillas ya existen', 'info');
+        }
+    },
+
+    // ==================== MAILING (CONFIG EVENTO) ====================
+    
+    switchMailingSubTab: function(subTab) {
+        const subTabs = ['composer', 'campaigns', 'templates'];
+        subTabs.forEach(tab => {
+            const el = document.getElementById(`mailing-subtab-${tab}`);
+            const btn = document.getElementById(`mailing-tab-${tab}`);
+            if (el) el.classList.add('hidden');
+            if (btn) {
+                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
+                btn.classList.add('bg-white/5', 'text-slate-400');
+            }
+        });
+        
+        const activeEl = document.getElementById(`mailing-subtab-${subTab}`);
+        const activeBtn = document.getElementById(`mailing-tab-${subTab}`);
+        if (activeEl) activeEl.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.add('bg-violet-500/20', 'text-violet-300');
+            activeBtn.classList.remove('bg-white/5', 'text-slate-400');
+        }
+        
+        // Cargar datos según subtab
+        if (subTab === 'campaigns') this.loadMailingCampaigns();
+        if (subTab === 'templates') this.loadMailingTemplates();
+    },
+
+    loadMailingData: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        try {
+            // Cargar cuentas del evento
+            const accounts = await this.fetchAPI(`/email/accounts?event_id=${eventId}`);
+            this.updateEmailAccountSelects(accounts);
+            
+            // Cargar plantillas
+            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
+            this.updateEmailTemplateSelects(templates);
+            
+            // Cargar guests para conteo
+            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
+            const total = guests?.length || 0;
+            const confirmed = guests?.filter(g => g.checked_in)?.length || 0;
+            const pending = total - confirmed;
+            
+            const countEl = document.getElementById('mailing-recipient-count');
+            if (countEl) countEl.textContent = `${total} invitados (${confirmed} confirmados, ${pending} pendientes)`;
+            
+            // Guardar guests en estado
+            this.state.mailingGuests = guests || [];
+            
+        } catch (e) {
+            console.error('[MAILING] Error loading data:', e);
+        }
+    },
+
+    onMailingTemplateChange: function() {
+        const templateId = document.getElementById('mailing-template-select')?.value;
+        if (!templateId) return;
+        
+        const template = this.state.emailTemplates?.find(t => t.id === templateId);
+        if (template) {
+            const bodyEl = document.getElementById('mailing-body');
+            const subjectEl = document.getElementById('mailing-subject');
+            const previewEl = document.getElementById('mailing-preview');
+            
+            if (bodyEl && !bodyEl.value) bodyEl.value = template.body_text || '';
+            if (subjectEl && !subjectEl.value) subjectEl.value = template.subject || '';
+            if (previewEl) previewEl.innerHTML = template.body_html || `<p class="text-slate-400">${template.body_text || 'Vista previa no disponible'}</p>`;
+        }
+    },
+
+    sendTestEmail: async function() {
+        const accountId = document.getElementById('mailing-account-select')?.value;
+        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
+        
+        const { value: email } = await Swal.fire({
+            title: 'Enviar email de prueba',
+            input: 'email',
+            inputPlaceholder: 'tu@email.com',
+            showCancelButton: true
+        });
+        
+        if (email) {
+            try {
+                await this.fetchAPI('/email/send', {
+                    method: 'POST',
+                    body: {
+                        account_id: accountId,
+                        to: email,
+                        subject: document.getElementById('mailing-subject')?.value || 'Test',
+                        body_html: document.getElementById('mailing-body')?.value || '',
+                        variables: { guest_name: 'Test User' }
+                    }
+                });
+                Swal.fire('✓ Éxito', 'Email de prueba enviado', 'success');
+            } catch (e) {
+                Swal.fire('Error', e.message || 'No se pudo enviar', 'error');
+            }
+        }
+    },
+
+    sendMailing: async function() {
+        const accountId = document.getElementById('mailing-account-select')?.value;
+        const subject = document.getElementById('mailing-subject')?.value;
+        const body = document.getElementById('mailing-body')?.value;
+        
+        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
+        if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
+        
+        const recipientType = document.querySelector('input[name="mailing-recipient-type"]:checked')?.value || 'all';
+        const eventId = this.state.event?.id;
+        
+        if (!eventId) return Swal.fire('Error', 'No hay evento seleccionado', 'error');
+        
+        try {
+            // Crear campaña
+            const campaign = await this.fetchAPI('/email/campaigns', {
+                method: 'POST',
+                body: {
+                    event_id: eventId,
+                    account_id: accountId,
+                    name: subject.substring(0, 50),
+                    subject,
+                    body_html: body,
+                    recipient_type: recipientType
+                }
+            });
+            
+            // Iniciar envío
+            await this.fetchAPI(`/email/campaigns/${campaign.id}/send`, { method: 'POST' });
+            
+            Swal.fire('✓ Éxito', 'Mailing en progreso', 'success');
+            this.loadMailingCampaigns();
+            
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo iniciar el mailing', 'error');
+        }
+    },
+
+    loadMailingCampaigns: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        
+        const container = document.getElementById('mailing-campaigns-list');
+        if (!container) return;
+        
+        try {
+            const campaigns = await this.fetchAPI(`/email/campaigns?event_id=${eventId}`);
+            
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `<p class="text-center py-8 text-slate-500 text-sm">No hay campañas para este evento</p>`;
+                return;
+            }
+            
+            container.innerHTML = campaigns.map(c => `
+                <div class="card p-3 flex items-center justify-between text-sm">
+                    <div>
+                        <span class="font-bold text-white">${c.name}</span>
+                        <span class="text-xs text-slate-500 ml-2">${c.sent_count}/${c.total_recipients} enviados</span>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded-full ${c.status === 'SENT' ? 'bg-green-500/20 text-green-400' : c.status === 'SENDING' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-500/20 text-slate-400'}">${c.status}</span>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            console.error('[MAILING] Error loading campaigns:', e);
+        }
+    },
+
+    loadMailingTemplates: async function() {
+        const eventId = this.state.event?.id;
+        const container = document.getElementById('mailing-templates-grid');
+        if (!container || !eventId) return;
+        
+        try {
+            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
+            
+            if (!templates || templates.length === 0) {
+                container.innerHTML = `<p class="col-span-3 text-center py-8 text-slate-500 text-sm">No hay plantillas para este evento</p>`;
+                return;
+            }
+            
+            container.innerHTML = templates.map(t => `
+                <div class="card p-4 cursor-pointer hover:border-violet-500/30" onclick="App.selectMailingTemplate('${t.id}')">
+                    <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                    <p class="text-xs text-slate-500 truncate">${t.subject || 'Sin asunto'}</p>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            console.error('[MAILING] Error loading templates:', e);
+        }
+    },
+
+    selectMailingTemplate: function(templateId) {
+        document.getElementById('mailing-template-select').value = templateId;
+        this.onMailingTemplateChange();
+        this.switchMailingSubTab('composer');
+    },
+
+    openCampaignWizard: function() {
+        Swal.fire('Info', 'El wizard de campañas estará disponible pronto', 'info');
+    },
     
     // --- NUEVO EVENTO V10 ---
     async createEvent(formData) {
@@ -5716,6 +6575,7 @@ const App = window.App = {
         if (tabName === 'users') this.loadUsersTable();
         if (tabName === 'groups') this.loadGroups();
         if (tabName === 'legal') this.loadLegalTexts();
+        if (tabName === 'email') this.loadEmailModuleData();
 
         if (tabName === 'account') this.loadUserProfile();
     },
@@ -5828,7 +6688,7 @@ const App = window.App = {
         
         // Load specific data
         if (tabName === 'staff') this.loadConfigStaff();
-        if (tabName === 'email') this.loadConfigEmail();
+        if (tabName === 'email') this.loadMailingData();
         if (tabName === 'agenda') this.loadConfigAgenda();
         if (tabName === 'wheel') this.loadWheels();
         if (tabName === 'pre-registrations') this.loadPreRegistrations();
