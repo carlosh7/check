@@ -1155,7 +1155,8 @@ router.get('/mailbox/messages', async (req, res) => {
                 imap.openBox(folderName, true, (err, box) => {
                     if (err) {
                         imap.end();
-                        return res.json({ success: false, error: err.message, resolve: resolve() });
+                        res.json({ success: false, error: err.message });
+                        return resolve();
                     }
                     
                     const total = box.messages.total;
@@ -1165,7 +1166,8 @@ router.get('/mailbox/messages', async (req, res) => {
                     
                     if (total === 0) {
                         imap.end();
-                        return res.json({ success: true, messages: [], total: 0, resolve: resolve() });
+                        res.json({ success: true, messages: [], total: 0 });
+                        return resolve();
                     }
                     
                     const fetch = imap.fetch(`${start}:${end}`, {
@@ -1174,6 +1176,8 @@ router.get('/mailbox/messages', async (req, res) => {
                     });
                     
                     const messages = [];
+                    let msgCount = 0;
+                    const expectedCount = end - start + 1;
                     
                     fetch.on('message', (msg) => {
                         const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
@@ -1212,13 +1216,24 @@ router.get('/mailbox/messages', async (req, res) => {
                         
                         msg.once('end', () => {
                             messages.push(msgData);
+                            msgCount++;
+                            if (msgCount >= expectedCount) {
+                                imap.end();
+                                res.json({ success: true, messages, total });
+                                resolve();
+                            }
                         });
                     });
                     
                     fetch.once('end', () => {
-                        imap.end();
-                        res.json({ success: true, messages, total });
-                        resolve();
+                        // Si fetch end pero no todos los mensajes se procesaron (timeout de seguridad)
+                        setTimeout(() => {
+                            if (messages.length > 0) {
+                                imap.end();
+                                res.json({ success: true, messages, total });
+                                resolve();
+                            }
+                        }, 2000);
                     });
                     
                     fetch.once('error', (err) => {
