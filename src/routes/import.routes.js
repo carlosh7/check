@@ -53,7 +53,7 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             { header: 'Fecha', key: 'date', width: 20 },
             { header: 'Ubicación', key: 'location', width: 30 },
             { header: 'Descripción', key: 'description', width: 40 },
-            { header: 'Empresa_ID', key: 'group_id', width: 20 }
+            { header: 'Empresa', key: 'company_name', width: 25 }
         ];
         
         eventsSheet.addRow({
@@ -61,7 +61,7 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             date: '2024-12-31',
             location: 'Bogotá, Colombia',
             description: 'Evento de example',
-            group_id: ''
+            company_name: 'Mi Empresa S.A.S'
         });
 
         eventsSheet.getRow(1).font = { bold: true };
@@ -76,7 +76,8 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             { header: 'Contraseña', key: 'password', width: 20 },
             { header: 'Rol', key: 'role', width: 15 },
             { header: 'Teléfono', key: 'phone', width: 20 },
-            { header: 'Empresa_ID', key: 'group_id', width: 20 }
+            { header: 'Empresa', key: 'company_name', width: 25 },
+            { header: 'Evento', key: 'event_name', width: 25 }
         ];
         
         staffSheet.addRow({
@@ -85,7 +86,8 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             password: 'clave123',
             role: 'STAFF',
             phone: '+57 300 987 6543',
-            group_id: ''
+            company_name: 'Mi Empresa S.A.S',
+            event_name: 'Mi Evento 2024'
         });
 
         staffSheet.getRow(1).font = { bold: true };
@@ -185,7 +187,16 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     const date = row.getCell(2).text?.trim() || '';
                     const location = row.getCell(3).text?.trim() || '';
                     const description = row.getCell(4).text?.trim() || '';
-                    const group_id = row.getCell(5).text?.trim() || '';
+                    const company_name = row.getCell(5).text?.trim() || '';
+
+                    // Resolver company_name a group_id
+                    let resolved_group_id = null;
+                    if (company_name) {
+                        const foundGroup = existingGroups.find(g => g.name.toLowerCase() === company_name.toLowerCase());
+                        if (foundGroup) {
+                            resolved_group_id = foundGroup.id;
+                        }
+                    }
 
                     const exists = existingEvents.find(e => 
                         e.name.toLowerCase() === name.toLowerCase() && e.date === date
@@ -193,10 +204,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
                     if (exists) {
                         stats.update++;
-                        data.events.push({ name, date, location, description, group_id, action: 'update', existing: exists });
+                        data.events.push({ name, date, location, description, group_id: resolved_group_id, action: 'update', existing: exists });
                     } else {
                         stats.new++;
-                        data.events.push({ name, date, location, description, group_id, action: 'create' });
+                        data.events.push({ name, date, location, description, group_id: resolved_group_id, action: 'create' });
                     }
                 } catch(e) {
                     stats.errors++;
@@ -209,6 +220,8 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         if (workbook.getWorksheet('Staff')) {
             const sheet = workbook.getWorksheet('Staff');
             const existingUsers = db.prepare("SELECT username FROM users").all();
+            const existingGroups = db.prepare("SELECT id, name FROM groups").all();
+            const existingEvents = db.prepare("SELECT id, name, date FROM events").all();
             
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                 try {
@@ -217,25 +230,44 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     const password = row.getCell(3).text?.trim() || '';
                     const role = row.getCell(4).text?.trim() || 'STAFF';
                     const phone = row.getCell(5).text?.trim() || '';
-                    const group_id = row.getCell(6).text?.trim() || '';
+                    const company_name = row.getCell(6).text?.trim() || '';
+                    const event_name = row.getCell(7).text?.trim() || '';
 
                     if (!username) return;
                     
-                    // Skip header rows (check if any cell value looks like a header)
+                    // Skip header rows
                     const firstCell = (display_name || '').toLowerCase();
                     const secondCell = (username || '').toLowerCase();
                     if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
-                        return; // Skip this row
+                        return;
+                    }
+
+                    // Resolver company_name a group_id
+                    let resolved_group_id = null;
+                    if (company_name) {
+                        const foundGroup = existingGroups.find(g => g.name.toLowerCase() === company_name.toLowerCase());
+                        if (foundGroup) {
+                            resolved_group_id = foundGroup.id;
+                        }
+                    }
+
+                    // Resolver event_name a event_id
+                    let resolved_event_id = null;
+                    if (event_name) {
+                        const foundEvent = existingEvents.find(e => e.name.toLowerCase() === event_name.toLowerCase());
+                        if (foundEvent) {
+                            resolved_event_id = foundEvent.id;
+                        }
                     }
 
                     const exists = existingUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
 
                     if (exists) {
                         stats.update++;
-                        data.users.push({ display_name, username, password, role, phone, group_id, action: 'update', existing: exists });
+                        data.users.push({ display_name, username, password, role, phone, group_id: resolved_group_id, event_id: resolved_event_id, action: 'update', existing: exists });
                     } else {
                         stats.new++;
-                        data.users.push({ display_name, username, password, role, phone, group_id, action: 'create' });
+                        data.users.push({ display_name, username, password, role, phone, group_id: resolved_group_id, event_id: resolved_event_id, action: 'create' });
                     }
                 } catch(e) {
                     stats.errors++;
@@ -326,25 +358,40 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             const bcrypt = require('bcryptjs');
             
             for (const u of data.users) {
-                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name);
+                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'event_id:', u.event_id);
                 
                 // Buscar por username (email)
-                let existing = null;
+                let existingUser = null;
                 if (u.username) {
-                    existing = db.prepare("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                    existingUser = db.prepare("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
                 }
                 
-                if (existing) {
-                    console.log('[IMPORT] Updating user:', existing.username);
+                let userId;
+                
+                if (existingUser) {
+                    console.log('[IMPORT] Updating user:', existingUser.username);
                     db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
-                        .run(u.display_name, u.phone, u.role, u.group_id || null, existing.id);
+                        .run(u.display_name, u.phone, u.role, u.group_id || null, existingUser.id);
+                    userId = existingUser.id;
                     updated++;
                 } else {
-                    console.log('[IMPORT] Creating new user:', u.username);
+                    console.log('[IMPORT] Creating new user (APPROVED):', u.username);
                     const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
-                    db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
-                        .run(getValidId('users'), u.username, hashedPassword, u.role, u.display_name, u.phone, u.group_id || null, new Date().toISOString());
+                    userId = getValidId('users');
+                    db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
+                        .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, u.group_id || null, new Date().toISOString());
                     imported++;
+                }
+                
+                // Vincular al evento si se especificó
+                if (u.event_id && userId) {
+                    console.log('[IMPORT] Linking user to event:', userId, '->', u.event_id);
+                    try {
+                        db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+                            .run(getValidId('user_events'), userId, u.event_id, new Date().toISOString());
+                    } catch(linkErr) {
+                        console.log('[IMPORT] Warning: Could not link user to event:', linkErr.message);
+                    }
                 }
             }
         }
@@ -394,10 +441,16 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                 { header: 'Fecha', key: 'date', width: 20 },
                 { header: 'Ubicación', key: 'location', width: 30 },
                 { header: 'Descripción', key: 'description', width: 40 },
-                { header: 'Empresa_ID', key: 'group_id', width: 20 }
+                { header: 'Empresa', key: 'company_name', width: 25 }
             ];
 
-            const events = db.prepare("SELECT name, date, location, description, group_id FROM events ORDER BY created_at DESC").all();
+            // Obtener eventos con nombre de empresa
+            const events = db.prepare(`
+                SELECT e.name, e.date, e.location, e.description, g.name as company_name 
+                FROM events e 
+                LEFT JOIN groups g ON e.group_id = g.id 
+                ORDER BY e.created_at DESC
+            `).all();
             eventsSheet.addRows(events);
 
             eventsSheet.getRow(1).font = { bold: true };
@@ -412,10 +465,22 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                 { header: 'Password', key: 'password', width: 15 },
                 { header: 'Rol', key: 'role', width: 15 },
                 { header: 'Telefono', key: 'phone', width: 20 },
-                { header: 'Empresa ID', key: 'group_id', width: 25 }
+                { header: 'Empresa', key: 'company_name', width: 25 },
+                { header: 'Evento', key: 'event_name', width: 25 }
             ];
 
-            const users = db.prepare("SELECT display_name, username, role, phone, group_id FROM users ORDER BY created_at DESC").all();
+            // Obtener usuarios con nombre de empresa y eventos asociados
+            const users = db.prepare(`
+                SELECT u.display_name, u.username, u.role, u.phone, 
+                       g.name as company_name,
+                       GROUP_CONCAT(e.name, ', ') as event_name
+                FROM users u 
+                LEFT JOIN groups g ON u.group_id = g.id 
+                LEFT JOIN user_events ue ON u.id = ue.user_id
+                LEFT JOIN events e ON ue.event_id = e.id
+                GROUP BY u.id
+                ORDER BY u.created_at DESC
+            `).all();
             // Add password column as empty (security - don't export passwords)
             usersSheet.addRows(users.map(u => ({ ...u, password: '' })));
 
