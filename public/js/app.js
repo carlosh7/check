@@ -397,10 +397,7 @@ const App = window.App = {
         // Cargar datos según el tab seleccionado
         const eventId = this.state.event?.id || this.currentEventId;
         if (eventId) {
-            if (tabId === 'email') {
-                this.loadEventEmailConfig(eventId);
-                this.loadEventEmailTemplates(eventId);
-            } else if (tabId === 'agenda') {
+            if (tabId === 'agenda') {
                 this.loadEventAgenda(eventId);
             }
         }
@@ -3740,10 +3737,7 @@ const App = window.App = {
         // Encuestas
         cl('btn-create-survey', () => this.openSurveyEditor());
 
-        // Nuevos botones de Email y Agenda
-        cl('btn-save-event-email-config', () => this.saveEventEmailConfig());
-        cl('btn-add-email-template', () => this.openEmailTemplateEditor());
-        cl('btn-send-test-email', () => this.sendEventTestEmail());
+        // Agenda
         cl('btn-add-agenda-item', () => this.addAgendaItem());
         
         // Event Config botones (Staff)
@@ -3763,13 +3757,6 @@ const App = window.App = {
             }
         });
 
-        // Email section tabs
-        // Los listeners de email-nav-* ya no son necesarios porque usamos dropdown
-        // Se manejan a través de los botones del dropdown
-        cl('btn-sync-emails', () => this.syncEmails());
-        cl('mail-folder-inbox', () => this.switchMailboxFolder('INBOX'));
-        cl('mail-folder-sent', () => this.switchMailboxFolder('SENT'));
-        
         // Legal modal
         cl('btn-open-policy', () => this.showLegalModal('policy'));
         cl('btn-open-terms', () => this.showLegalModal('terms'));
@@ -3791,12 +3778,9 @@ const App = window.App = {
         cl('btn-manual-checkin', () => this.manualCheckin());
         cl('btn-close-template-editor', () => this.closeTemplateEditor());
         cl('btn-cancel-template', () => this.closeTemplateEditor());
-        cl('btn-close-event-email', () => this.closeEventEmailConfig());
-        cl('btn-cancel-event-email', () => this.closeEventEmailConfig());
         cl('btn-close-survey-editor', () => this.closeSurveyEditor());
         cl('btn-cancel-survey', () => this.closeSurveyEditor());
         cl('btn-confirm-import', () => this.confirmImport());
-        cl('btn-save-event-email', () => this.saveEventEmailConfig());
         cl('btn-cancel-event', () => hideModal('modal-event'));
         cl('btn-close-event-full-modal', () => hideModal('modal-event-full'));
         cl('btn-cancel-event-full', () => hideModal('modal-event-full'));
@@ -3846,8 +3830,6 @@ const App = window.App = {
                     case 'viewMailDetail': _App.viewMailDetail(p.mailId); break;
                     case 'insertVariable': _App.insertVariable(p.varName); break;
                     case 'showTemplateEditor': _App.showTemplateEditor(p.templateId, p.templateName); break;
-                    case 'deleteEmailTemplate': _App.deleteEmailTemplate(p.templateId); break;
-                    case 'saveEventEmailTemplate': _App.saveEventEmailTemplate(p.templateType); break;
                     case 'removeParent': e.target.closest('[data-index]')?.remove() || e.target.closest('.account-item')?.remove(); break;
                     
                     // Pre-reg

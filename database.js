@@ -402,7 +402,121 @@ db.exec(`CREATE TABLE IF NOT EXISTS wheel_results (
 
 // Índices para wheel_results
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_wheel ON wheel_results(wheel_id)"); } catch (_) {}
-try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_created ON wheel_results(created_at DESC)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_created ON wheel_results(wheel_id DESC)"); } catch (_) {}
+
+// ═══ MÓDULO DE MAILING (V12.45 - Nuevo) ═══
+
+// Email Accounts (Cuentas SMTP/IMAP)
+db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    smtp_host TEXT,
+    smtp_port INTEGER DEFAULT 587,
+    smtp_user TEXT,
+    smtp_password TEXT,
+    smtp_ssl INTEGER DEFAULT 0,
+    imap_host TEXT,
+    imap_port INTEGER DEFAULT 993,
+    imap_user TEXT,
+    imap_password TEXT,
+    imap_ssl INTEGER DEFAULT 1,
+    imap_folder TEXT DEFAULT 'INBOX',
+    sender_name TEXT,
+    sender_email TEXT,
+    is_default INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    daily_limit INTEGER DEFAULT 500,
+    emails_sent_today INTEGER DEFAULT 0,
+    last_sent_date TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+
+// Email Templates (Plantillas de email)
+db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    subject TEXT,
+    body_html TEXT,
+    body_text TEXT,
+    category TEXT DEFAULT 'general',
+    is_system INTEGER DEFAULT 0,
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+
+// Email Campaigns (Campañas)
+db.exec(`CREATE TABLE IF NOT EXISTS email_campaigns (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    account_id TEXT,
+    name TEXT NOT NULL,
+    subject TEXT,
+    body_html TEXT,
+    status TEXT DEFAULT 'DRAFT',
+    recipient_type TEXT DEFAULT 'all',
+    recipient_group_id TEXT,
+    scheduled_at TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    total_recipients INTEGER DEFAULT 0,
+    sent_count INTEGER DEFAULT 0,
+    failed_count INTEGER DEFAULT 0,
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    FOREIGN KEY (account_id) REFERENCES email_accounts(id)
+)`);
+
+// Email Logs (Logs de emails enviados)
+db.exec(`CREATE TABLE IF NOT EXISTS email_logs (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT,
+    account_id TEXT,
+    recipient_email TEXT,
+    recipient_name TEXT,
+    subject TEXT,
+    status TEXT DEFAULT 'PENDING',
+    error_message TEXT,
+    sent_at TEXT,
+    created_at TEXT,
+    FOREIGN KEY (campaign_id) REFERENCES email_campaigns(id)
+)`);
+
+// Email Queue (Cola de emails para procesamiento async)
+db.exec(`CREATE TABLE IF NOT EXISTS email_queue (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT,
+    account_id TEXT,
+    recipient_email TEXT,
+    recipient_data TEXT,
+    subject TEXT,
+    body_html TEXT,
+    status TEXT DEFAULT 'PENDING',
+    attempts INTEGER DEFAULT 0,
+    max_attempts INTEGER DEFAULT 3,
+    next_retry TEXT,
+    error_message TEXT,
+    created_at TEXT,
+    processed_at TEXT,
+    FOREIGN KEY (campaign_id) REFERENCES email_campaigns(id)
+)`);
+
+// Índices para email
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_accounts_event ON email_accounts(event_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_accounts_default ON email_accounts(event_id, is_default)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_templates_event ON email_templates(event_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_templates_category ON email_templates(category)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_event ON email_campaigns(event_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_logs_campaign ON email_logs(campaign_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(status)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(status)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_email_queue_campaign ON email_queue(campaign_id)"); } catch (_) {}
 
 // ═══ SEMILLA DE ADMIN POR DEFECTO ═══
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();

@@ -166,25 +166,6 @@ try {
         FOREIGN KEY (event_id) REFERENCES events (id)
     )`);
     
-    // Tabla de configuración SMTP
-    db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
-        id INTEGER PRIMARY KEY,
-        smtp_host TEXT,
-        smtp_port INTEGER,
-        smtp_user TEXT,
-        smtp_pass TEXT,
-        smtp_secure INTEGER,
-        from_name TEXT,
-        from_email TEXT
-    )`);
-    
-    // Verificar si hay configuración SMTP
-    const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
-    if (smtpCount.count === 0) {
-        db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 587, '', 0, 'Check Attendance')").run();
-        console.log('✅ Configuración SMTP inicial creada');
-    }
-    
     db.close();
     console.log('✅ Base de datos inicializada correctamente');
     

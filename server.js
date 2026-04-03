@@ -43,9 +43,18 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,h
 const io = initSocket(server, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
 const port = process.env.PORT || 3000;
 
-// --- EMAIL SERVICE (Simplificado) ---
-async function getSMTPConfig() {
-    return db.prepare("SELECT * FROM smtp_config WHERE id = 1").get();
+// --- EMAIL SERVICE (Delegado al módulo email.routes.js) ---
+// Las funciones de email ahora están en src/routes/email.routes.js
+// Esta variable global es usada por el módulo de email
+global.emailService = null;
+
+// Inicializar email service
+try {
+    const emailService = require('./src/utils/email-service');
+    global.emailService = emailService;
+    console.log('✓ Email Service inicializado');
+} catch (e) {
+    console.warn('⚠ Email Service no disponible:', e.message);
 }
 
 function replaceTemplateVariables(template, data) {
@@ -56,40 +65,15 @@ function replaceTemplateVariables(template, data) {
     return result;
 }
 
-// Envío básico de emails transaccionales
+// Envío básico de emails transaccionales (legacy - para compatibilidad)
 async function sendEmail(to, subject, html, options = {}) {
-    try {
-        const config = await getSMTPConfig();
-
-        if (!config || !config.smtp_host || !config.smtp_user) {
-            console.log('📧 Email simulation (no SMTP configured):', { to, subject });
-            return { success: true, simulated: true };
-        }
-        
-        const transporter = nodemailer.createTransport({
-            host: config.smtp_host,
-            port: config.smtp_port || 587,
-            secure: config.smtp_secure === 1,
-            auth: {
-                user: config.smtp_user,
-                pass: config.smtp_pass
-            }
-        });
-        
-        const mailOptions = {
-            from: `"${config.from_name || 'Check'}" <${config.from_email || config.smtp_user}>`,
-            to,
-            subject,
-            html
-        };
-        
-        const result = await transporter.sendMail(mailOptions);
-        console.log('📧 Email sent:', { to, subject, messageId: result.messageId });
-        return { success: true, messageId: result.messageId };
-    } catch (error) {
-        console.error('📧 Email error:', error.message);
-        return { success: false, error: error.message };
+    console.log('📧 sendEmail() legado llamado - migrar a email-service.js');
+    // Si hay un servicio de email configurado, lo usamos
+    if (global.emailService) {
+        return global.emailService.sendEmail({ to, subject, html, ...options });
     }
+    console.log('📧 Email simulation (no email service configured):', { to, subject });
+    return { success: true, simulated: true };
 }
 
 // SERVER V12.2.1 - ARQUITECTURA DISTRIBUIDA Y SEGURA 🛡️🚀
