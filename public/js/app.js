@@ -2651,36 +2651,65 @@ const App = window.App = {
             const msg = result.message;
             
             const modalContent = `
-            <div class="fixed inset-0 bg-black/70 z-[999999] flex items-center justify-center p-4">
-                <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
-                        <h3 class="text-lg font-bold text-white truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
-                        <button onclick="hideModal('modal-mail-view')" class="p-2 hover:bg-white/10 rounded-lg shrink-0">
-                            <span class="material-symbols-outlined text-slate-400">close</span>
+            <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                        <h3 class="text-lg font-bold text-[var(--text-main)] truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
+                        <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
                         </button>
                     </div>
+                    <!-- Meta info -->
+                    <div class="p-4 border-b border-[var(--border)] shrink-0">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">De</p>
+                                <p class="text-[var(--text-main)]">${msg.from_name || ''} ${msg.from ? `<span class="text-[var(--text-secondary)]">&lt;${msg.from}&gt;</span>` : ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Para</p>
+                                <p class="text-[var(--text-main)]">${msg.to || ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Fecha</p>
+                                <p class="text-[var(--text-main)]">${msg.date ? new Date(msg.date).toLocaleString('es-ES') : ''}</p>
+                            </div>
+                            ${msg.attachments && msg.attachments.length > 0 ? `
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Adjuntos (${msg.attachments.length})</p>
+                                <p class="text-[var(--text-main)] text-xs">${msg.attachments.map(a => a.filename).join(', ')}</p>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <!-- Content -->
                     <div class="p-6 overflow-y-auto flex-1">
-                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
-                            <div>
-                                <p class="text-xs font-black text-slate-500 uppercase mb-1">De</p>
-                                <p class="text-slate-300">${msg.from_name || ''} ${msg.from ? `<${msg.from}>` : ''}</p>
+                        ${msg.html ? `
+                            <div class="prose prose-invert max-w-none" style="color: var(--text-main);">
+                                ${msg.html}
                             </div>
-                            <div>
-                                <p class="text-xs font-black text-slate-500 uppercase mb-1">Para</p>
-                                <p class="text-slate-300">${msg.to || ''}</p>
-                            </div>
-                        </div>
-                        <div class="border-t border-white/5 pt-4">
-                            <div class="prose prose-invert max-w-none">
-                                ${msg.html || `<pre class="text-sm text-slate-300 whitespace-pre-wrap">${msg.text || 'Sin contenido'}</pre>`}
-                            </div>
-                        </div>
+                        ` : `
+                            <pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-mono bg-[var(--bg-secondary)] p-4 rounded-lg">${msg.text || 'Sin contenido'}</pre>
+                        `}
+                    </div>
+                    <!-- Footer -->
+                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
+                        <button id="btn-close-mail-view-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
                     </div>
                 </div>
             </div>`;
             
             document.getElementById('modal-container-portal').innerHTML = modalContent;
-            document.getElementById('modal-mail-view')?.classList.remove('hidden') || document.getElementById('modal-container-portal').querySelector('.fixed')?.classList.remove('hidden');
+            
+            // Configurar botones de cerrar
+            document.getElementById('btn-close-mail-view')?.addEventListener('click', () => {
+                document.getElementById('modal-mail-view')?.classList.add('hidden');
+                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            });
+            document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => {
+                document.getElementById('modal-mail-view')?.classList.add('hidden');
+                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            });
             
         } catch (e) {
             console.error('[MAILBOX] Error viewing message:', e);
