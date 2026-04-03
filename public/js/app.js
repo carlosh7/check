@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.37';
+const VERSION = '12.44.38';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -414,6 +414,236 @@ const App = window.App = {
         }
         this._openCompanyModalFromSelector = true;
         this.openCompanyModal();
+    },
+
+    // ─── IMPORTAR / EXPORTAR DATOS V12.44.38 ───
+    openImportModal: function(type) {
+        this._importType = type; // 'groups' o 'staff'
+        this._importData = null;
+        
+        // Resetear UI
+        const progressContainer = document.getElementById('import-progress-container');
+        if (progressContainer) progressContainer.classList.add('hidden');
+        document.getElementById('import-new-count').textContent = '0';
+        document.getElementById('import-update-count').textContent = '0';
+        document.getElementById('import-error-count').textContent = '0';
+        document.getElementById('import-status').textContent = 'Procesando...';
+        document.getElementById('import-progress-fill').style.width = '0%';
+        document.getElementById('btn-confirm-import').disabled = true;
+        
+        const modal = document.getElementById('modal-import');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    openExportModal: function(type) {
+        this._exportType = type; // 'groups' o 'staff'
+        document.getElementById('export-progress-container').classList.add('hidden');
+        const modal = document.getElementById('modal-export');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    downloadImportTemplate: async function() {
+        try {
+            const response = await this.fetchAPI('/import/template');
+            // Crear enlace de descarga
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla_importacion_check.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Descarga iniciada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false });
+            }
+        } catch(e) {
+            console.error('Error descargando plantilla:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar la plantilla' });
+            }
+        }
+    },
+
+    initImportHandlers: function() {
+        const modal = document.getElementById('modal-import');
+        if (!modal) return;
+
+        // Cerrar modal
+        document.getElementById('btn-close-import')?.addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('btn-cancel-import')?.addEventListener('click', () => modal.classList.add('hidden'));
+
+        // Drop zone
+        const dropZone = document.getElementById('import-drop-zone');
+        const fileInput = document.getElementById('import-file-input');
+
+        dropZone?.addEventListener('click', () => fileInput?.click());
+        
+        dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-[var(--primary)]'); });
+        dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('border-[var(--primary)]'));
+        dropZone?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-[var(--primary)]');
+            const file = e.dataTransfer.files[0];
+            if (file) this.processImportFile(file);
+        });
+
+        fileInput?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) this.processImportFile(file);
+        });
+
+        // Confirmar importación
+        document.getElementById('btn-confirm-import')?.addEventListener('click', () => this.executeImport());
+    },
+
+    processImportFile: async function(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', this._importType);
+
+        try {
+            const response = await fetch('/api/import/validate', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${LS.get('token')}` },
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                this._importData = data.data;
+                this._importStats = data.stats;
+                
+                // Mostrar progreso
+                document.getElementById('import-progress-container').classList.remove('hidden');
+                document.getElementById('import-new-count').textContent = data.stats.new || 0;
+                document.getElementById('import-update-count').textContent = data.stats.update || 0;
+                document.getElementById('import-error-count').textContent = data.stats.errors || 0;
+                document.getElementById('import-status').textContent = data.stats.message || 'Datos válidos';
+                document.getElementById('import-progress-fill').style.width = '100%';
+                document.getElementById('btn-confirm-import').disabled = false;
+                
+                // Mostrar detalles si hay errores
+                if (data.errors && data.errors.length > 0) {
+                    const details = document.getElementById('import-details');
+                    details.classList.remove('hidden');
+                    details.innerHTML = data.errors.slice(0, 10).map(e => `<p class="text-red-400">• ${e}</p>`).join('');
+                    if (data.errors.length > 10) {
+                        details.innerHTML += `<p class="text-[var(--text-muted)]">... y ${data.errors.length - 10} más</p>`;
+                    }
+                }
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
+                }
+            }
+        } catch(e) {
+            console.error('Error procesando archivo:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el archivo' });
+            }
+        }
+    },
+
+    executeImport: async function() {
+        if (!this._importData) return;
+        
+        const btn = document.getElementById('btn-confirm-import');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
+
+        try {
+            const response = await fetch('/api/import/execute', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${LS.get('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ type: this._importType, data: this._importData })
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('import-status').textContent = `Importación completada: ${result.imported} registros`;
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'success', title: 'Importación exitosa', text: `${result.imported} registros importados, ${result.updated} actualizados`, timer: 3000 });
+                }
+                
+                // Recargar datos
+                if (this._importType === 'groups') this.loadGroups();
+                else this.loadUsers();
+                
+                setTimeout(() => document.getElementById('modal-import').classList.add('hidden'), 1500);
+            }
+        } catch(e) {
+            console.error('Error en importación:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error durante la importación' });
+            }
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">system_update</span> Importar Datos';
+        }
+    },
+
+    initExportHandlers: function() {
+        const modal = document.getElementById('modal-export');
+        if (!modal) return;
+
+        // Cerrar modal
+        document.getElementById('btn-close-export')?.addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('btn-cancel-export')?.addEventListener('click', () => modal.classList.add('hidden'));
+
+        // Confirmar exportación
+        document.getElementById('btn-confirm-export')?.addEventListener('click', () => this.executeExport());
+    },
+
+    executeExport: async function() {
+        const format = document.querySelector('input[name="export-format"]:checked')?.value || 'excel';
+        
+        const btn = document.getElementById('btn-confirm-export');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Generando...';
+        document.getElementById('export-progress-container').classList.remove('hidden');
+
+        try {
+            const response = await fetch(`/api/export/${this._exportType}?format=${format}`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${LS.get('token')}` }
+            });
+
+            if (format === 'excel') {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `export_${this._exportType}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `export_${this._exportType}_${new Date().toISOString().split('T')[0]}.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Exportación completada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false });
+            }
+            
+            setTimeout(() => document.getElementById('modal-export').classList.add('hidden'), 1000);
+        } catch(e) {
+            console.error('Error en exportación:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error al generar el archivo' });
+            }
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">download</span> Exportar';
+        }
     },
 
     closeGroupSelector: function() {
@@ -5169,6 +5399,10 @@ const App = window.App = {
         
         // Mostrar versión del servidor al cargar (usar función unificada)
         this.loadAppVersion();
+
+        // Inicializar handlers de Importar/Exportar (V12.44.38)
+        this.initImportHandlers();
+        this.initExportHandlers();
 
         // Actualizar tema después de cargar app-shell
         this.initTheme();

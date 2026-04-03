@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.37</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.38</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -814,7 +814,15 @@
                             <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
                             <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
                         </div>
-                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                        <div class="flex gap-2">
+                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('groups')">
+                                <span class="material-symbols-outlined text-sm">upload</span> Importar
+                            </button>
+                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('groups')">
+                                <span class="material-symbols-outlined text-sm">download</span> Exportar
+                            </button>
+                            <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                        </div>
                     </div>
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
@@ -990,7 +998,15 @@
                             <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Equipo</span></h2>
                             <p class="text-[var(--text-secondary)] text-sm">Control de acceso y roles de usuario.</p>
                         </div>
-                        <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">+ Staff</button>
+                        <div class="flex gap-2">
+                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('staff')">
+                                <span class="material-symbols-outlined text-sm">upload</span> Importar
+                            </button>
+                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('staff')">
+                                <span class="material-symbols-outlined text-sm">download</span> Exportar
+                            </button>
+                            <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">+ Staff</button>
+                        </div>
                     </div>
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
@@ -1675,6 +1691,144 @@
         <!-- Footer -->
         <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end">
             <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: IMPORTAR DATOS -->
+<div id="modal-import" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">upload</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Importar Datos</h3>
+            </div>
+            <button id="btn-close-import" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+            <!-- Descarga de plantilla -->
+            <div class="mb-6">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
+                </h4>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                    <p class="text-xs text-[var(--text-secondary)] mb-3">Descarga la plantilla Excel con las 3 secciones a completar:</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-green-400 text-lg">corporate_fare</span>
+                            <span><strong>Empresas:</strong> Nombre, Email, Teléfono, Estado, Descripción</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-blue-400 text-lg">event</span>
+                            <span><strong>Eventos:</strong> Nombre, Fecha, Ubicación, Descripción</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-purple-400 text-lg">person</span>
+                            <span><strong>Staff:</strong> Nombre, Email, Contraseña, Rol</span>
+                        </div>
+                    </div>
+                    <button id="btn-download-template" onclick="App.downloadImportTemplate()" class="btn-primary !px-4 !py-2 mt-4 text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">download</span> Descargar Plantilla Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Subida de archivo -->
+            <div class="mb-6">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">attach_file</span> Subir Archivo
+                </h4>
+                <div id="import-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
+                    <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" class="hidden">
+                    <span class="material-symbols-outlined text-4xl text-[var(--text-muted)] mb-2">upload_file</span>
+                    <p class="text-sm text-[var(--text-secondary)]">Arrastra el archivo aquí o <span class="text-[var(--primary)] font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv</p>
+                </div>
+            </div>
+            
+            <!-- Progreso de validación -->
+            <div id="import-progress-container" class="hidden">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">fact_check</span> Validación de Datos
+                </h4>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                    <div id="import-progress-bar" class="w-full bg-[var(--bg-app)] rounded-full h-2 mb-3 overflow-hidden">
+                        <div id="import-progress-fill" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div id="import-status" class="text-sm text-[var(--text-secondary)] mb-3">Procesando...</div>
+                    <div id="import-stats" class="grid grid-cols-3 gap-3">
+                        <div class="text-center p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                            <p class="text-lg font-bold text-green-400" id="import-new-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-green-400/70">Nuevos</p>
+                        </div>
+                        <div class="text-center p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                            <p class="text-lg font-bold text-blue-400" id="import-update-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-blue-400/70">Actualizar</p>
+                        </div>
+                        <div class="text-center p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                            <p class="text-lg font-bold text-red-400" id="import-error-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-red-400/70">Errores</p>
+                        </div>
+                    </div>
+                    <div id="import-details" class="mt-3 max-h-32 overflow-y-auto text-xs text-[var(--text-muted)] hidden"></div>
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button id="btn-cancel-import" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+            <button id="btn-confirm-import" class="btn-primary !px-5 !py-2" disabled>
+                <span class="material-symbols-outlined text-sm mr-1">system_update</span> Importar Datos
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EXPORTAR DATOS -->
+<div id="modal-export" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">download</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Datos</h3>
+            </div>
+            <button id="btn-close-export" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+            <p class="text-sm text-[var(--text-secondary)] mb-4">Selecciona el formato de exportación:</p>
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] cursor-pointer transition-colors export-format-option" data-format="excel">
+                    <input type="radio" name="export-format" value="excel" checked class="w-5 h-5 accent-[var(--primary)]">
+                    <span class="material-symbols-outlined text-green-400 text-xl">table_chart</span>
+                    <div>
+                        <p class="font-medium text-sm">Archivo Excel (.xlsx)</p>
+                        <p class="text-xs text-[var(--text-muted)]">Ideal para editar y analizar datos</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] cursor-pointer transition-colors export-format-option" data-format="pdf">
+                    <input type="radio" name="export-format" value="pdf" class="w-5 h-5 accent-[var(--primary)]">
+                    <span class="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
+                    <div>
+                        <p class="font-medium text-sm">Archivo PDF (.pdf)</p>
+                        <p class="text-xs text-[var(--text-muted)]">Ideal para imprimir y compartir</p>
+                    </div>
+                </label>
+            </div>
+            <div id="export-progress-container" class="hidden mt-4">
+                <div class="w-full bg-[var(--bg-app)] rounded-full h-2 overflow-hidden">
+                    <div id="export-progress-fill" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full animate-pulse" style="width: 100%"></div>
+                </div>
+                <p class="text-xs text-[var(--text-secondary)] mt-2 text-center">Generando archivo...</p>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button id="btn-cancel-export" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cerrar</button>
+            <button id="btn-confirm-export" class="btn-primary !px-5 !py-2">
+                <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
+            </button>
         </div>
     </div>
 </div>

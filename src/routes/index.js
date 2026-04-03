@@ -18,6 +18,7 @@ const versionRoutes = require('./version.routes');
 const webhooksRoutes = require('./webhooks.routes');
 const pushRoutes = require('./push.routes');
 const statsRoutes = require('./stats.routes');
+const importRoutes = require('./import.routes');
 
 // Configuración segura de multer
 const upload = multer({
@@ -119,6 +120,10 @@ function registerRoutes(app, rootDir) {
     
     // Stats (Dashboard Analítica)
     app.use('/api', statsRoutes);
+    
+    // Import/Export (V12.44.38)
+    app.use('/api/import', upload.single('file'), importRoutes);
+    app.use('/api/export', importRoutes);
     
     // SPA Catch-all: Cualquier ruta que no sea API sirve index.html
     // Esto permite que las rutas como /system/email, /event-config/123 funcionen
