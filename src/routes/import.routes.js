@@ -109,15 +109,15 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 // ══════════════════════════════════════════════════════════════
 router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     // Manejar multipart form data
-    if (!req.files || !req.files.file) {
+    if (!req.file) {
         return res.status(400).json({ success: false, message: 'No se envió archivo' });
     }
 
     try {
-        const file = req.files.file;
+        const file = req.file;
         const type = req.body.type || 'groups';
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(file.data);
+        await workbook.xlsx.load(file.buffer);
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
