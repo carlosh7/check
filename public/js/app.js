@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.13';
+const VERSION = '12.44.14';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2168,7 +2168,7 @@ const App = window.App = {
     },
 
     switchEmailSubTab: function(subTab) {
-        const subTabs = ['accounts', 'mailbox', 'campaigns', 'templates'];
+        const subTabs = ['accounts', 'mailbox', 'campaigns'];
         subTabs.forEach(tab => {
             const el = document.getElementById(`email-subtab-${tab}`);
             const btn = document.getElementById(`email-tab-${tab}`);
@@ -2437,18 +2437,22 @@ const App = window.App = {
 
     saveEmailAccount: async function() {
         const id = document.getElementById('email-account-id').value;
+        const smtpPassVal = document.getElementById('email-smtp-pass').value;
+        const imapPassVal = document.getElementById('email-imap-pass').value;
+        
         const data = {
             name: document.getElementById('email-account-name').value,
             smtp_host: document.getElementById('email-smtp-host').value,
             smtp_port: parseInt(document.getElementById('email-smtp-port').value) || 587,
             smtp_user: document.getElementById('email-smtp-user').value,
-            smtp_password: document.getElementById('email-smtp-pass').value || undefined,
+            smtp_password: smtpPassVal || '',
             smtp_ssl: document.getElementById('email-smtp-ssl').checked,
             imap_host: document.getElementById('email-imap-host').value,
             imap_port: parseInt(document.getElementById('email-imap-port').value) || 993,
             imap_user: document.getElementById('email-imap-user').value,
-            imap_password: document.getElementById('email-imap-pass').value || undefined,
+            imap_password: imapPassVal || '',
             imap_ssl: document.getElementById('email-imap-ssl').checked,
+            imap_folder: 'INBOX',
             sender_name: document.getElementById('email-sender-name').value,
             sender_email: document.getElementById('email-sender-email').value,
             is_default: document.getElementById('email-is-default').checked,
@@ -2462,16 +2466,21 @@ const App = window.App = {
         
         try {
             if (id) {
-                await this.fetchAPI(`/email/accounts/${id}`, { method: 'PUT', body: data });
+                // Al editar, si la password viene vacía y el placeholder era '***', no enviarla
+                if (smtpPassVal === '') delete data.smtp_password;
+                if (imapPassVal === '') delete data.imap_password;
+                await this.fetchAPI(`/email/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) });
             } else {
-                await this.fetchAPI('/email/accounts', { method: 'POST', body: data });
+                await this.fetchAPI('/email/accounts', { method: 'POST', body: JSON.stringify(data) });
             }
             
-            hideModal('modal-email-account');
+            const el = document.getElementById('modal-email-account');
+            if (el) el.classList.add('hidden');
             this.loadEmailAccounts();
             Swal.fire('✓ Éxito', 'Cuenta guardada correctamente', 'success');
         } catch (e) {
-            Swal.fire('Error', 'No se pudo guardar la cuenta', 'error');
+            console.error('[EMAIL] Error guardando cuenta:', e);
+            Swal.fire('Error', e.message || 'No se pudo guardar la cuenta', 'error');
         }
     },
 
@@ -3671,111 +3680,6 @@ const App = window.App = {
             document.getElementById('mailing-body-html').value = html || '';
         }
     },
-
-    // ==================== BIBLIOTECA DE PLANTILLAS ====================
-
-    showTemplateLibrary: async function() {
-        const modal = document.getElementById('modal-template-library');
-        const grid = document.getElementById('template-library-grid');
-        
-        if (!modal || !grid) return;
-        
-        modal.classList.remove('hidden');
-        
-        // Cargar plantillas
-        try {
-            const templates = await this.fetchAPI('/email/templates');
-            this.state.allTemplates = templates || [];
-            this.renderTemplateLibrary(this.state.allTemplates);
-        } catch (e) {
-            console.error('[TEMPLATES] Error loading:', e);
-            grid.innerHTML = `<div class="col-span-3 text-center py-12 text-red-400">Error al cargar plantillas</div>`;
-        }
-    },
-
-    renderTemplateLibrary: function(templates) {
-        const grid = document.getElementById('template-library-grid');
-        if (!grid) return;
-        
-        if (!templates || templates.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-3 text-center py-12 text-slate-500">
-                    <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span>
-                    <p class="text-sm">No hay plantillas disponibles</p>
-                    <button onclick="App.createDefaultTemplates()" class="btn-primary mt-4">Crear Plantillas Base</button>
-                </div>`;
-            return;
-        }
-        
-        grid.innerHTML = templates.map(t => `
-            <div class="card p-4 hover:border-violet-500/50 transition-all cursor-pointer group" onclick="App.selectTemplateFromLibrary('${t.id}')">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-bold text-white text-sm group-hover:text-violet-300 transition-colors">${t.name}</h4>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">${t.category || 'general'}</span>
-                </div>
-                <p class="text-xs text-slate-500 mb-3 truncate">${t.subject || 'Sin asunto'}</p>
-                <div class="bg-slate-800/50 rounded-lg p-3 h-24 overflow-hidden text-xs text-slate-400 relative">
-                    ${t.body_text ? t.body_text.substring(0, 150) + '...' : (t.body_html ? 'Vista previa HTML disponible' : 'Sin contenido')}
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-800/80 to-transparent"></div>
-                </div>
-                ${t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Plantilla del sistema</span>' : ''}
-            </div>
-        `).join('');
-    },
-
-    filterTemplatesByCategory: function(category) {
-        // Actualizar botones
-        document.querySelectorAll('.template-category-btn').forEach(btn => {
-            if (btn.dataset.category === category) {
-                btn.classList.add('bg-violet-500/20', 'text-violet-300');
-                btn.classList.remove('bg-white/5', 'text-slate-400');
-            } else {
-                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
-                btn.classList.add('bg-white/5', 'text-slate-400');
-            }
-        });
-        
-        // Filtrar plantillas
-        const templates = this.state.allTemplates || [];
-        
-        if (category === 'all') {
-            this.renderTemplateLibrary(templates);
-        } else {
-            const filtered = templates.filter(t => t.category === category);
-            this.renderTemplateLibrary(filtered);
-        }
-    },
-
-    selectTemplateFromLibrary: async function(templateId) {
-        try {
-            const template = await this.fetchAPI(`/email/templates/${templateId}`);
-            
-            // Cerrar modal
-            document.getElementById('modal-template-library').classList.add('hidden');
-            
-            // Cargar en compositor
-            document.getElementById('mailing-template-select').value = templateId;
-            document.getElementById('mailing-subject').value = template.subject || '';
-            
-            // Inicializar editor si no existe
-            this.switchMailingEditorMode('visual');
-            this.initMailingQuillEditor();
-            
-            // Cargar contenido
-            if (template.body_html) {
-                this.setMailingContent(template.body_html);
-            } else if (template.body_text) {
-                this.setMailingContent(`<p>${template.body_text}</p>`);
-            }
-            
-            // Actualizar preview
-            this.updateMailingPreview();
-            
-        } catch (e) {
-            console.error('[TEMPLATES] Error selecting:', e);
-            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
-        }
-    },
     
     // --- NUEVO EVENTO V10 ---
     async createEvent(formData) {
@@ -4118,17 +4022,6 @@ const App = window.App = {
                 this.loadProfileData();
             }
         } catch (e) { alert('Error al actualizar perfil'); }
-    },
-    
-    toggleEmailAdminMenu: function() {
-        const menu = document.getElementById('email-admin-menu');
-        const arrow = document.getElementById('email-admin-arrow');
-        if (menu) {
-            menu.classList.toggle('hidden');
-            if (arrow) {
-                arrow.style.transform = menu.classList.contains('hidden') ? '' : 'rotate(180deg)';
-            }
-        }
     },
     
 
