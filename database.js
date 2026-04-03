@@ -434,6 +434,53 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_accounts (
     FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
 
+// Migración agresiva: Si la tabla email_accounts existe con esquema legacy, recrearla
+// Esto es necesario porque ALTER TABLE RENAME COLUMN no funciona bien en todas las versiones de SQLite
+try {
+    const columns = db.prepare("PRAGMA table_info(email_accounts)").all();
+    const colNames = columns.map(c => c.name);
+    // Si tiene columnas legacy (smtp_pass en vez de smtp_password), recrear
+    if (colNames.includes('smtp_pass') && !colNames.includes('smtp_password')) {
+        console.log('[MIGRATION] Recreando email_accounts con esquema correcto...');
+        db.exec(`ALTER TABLE email_accounts RENAME TO email_accounts_old`);
+        db.exec(`CREATE TABLE email_accounts (
+            id TEXT PRIMARY KEY,
+            event_id TEXT,
+            name TEXT NOT NULL,
+            smtp_host TEXT,
+            smtp_port INTEGER DEFAULT 587,
+            smtp_user TEXT,
+            smtp_password TEXT,
+            smtp_ssl INTEGER DEFAULT 0,
+            imap_host TEXT,
+            imap_port INTEGER DEFAULT 993,
+            imap_user TEXT,
+            imap_password TEXT,
+            imap_ssl INTEGER DEFAULT 1,
+            imap_folder TEXT DEFAULT 'INBOX',
+            sender_name TEXT,
+            sender_email TEXT,
+            is_default INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            daily_limit INTEGER DEFAULT 500,
+            emails_sent_today INTEGER DEFAULT 0,
+            last_sent_date TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            FOREIGN KEY (event_id) REFERENCES events(id)
+        )`);
+        // Copiar datos de la tabla vieja si es posible
+        try {
+            db.exec(`INSERT INTO email_accounts (id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_password, smtp_ssl, imap_host, imap_port, imap_user, imap_password, imap_ssl, imap_folder, sender_name, sender_email, is_default, is_active, daily_limit, emails_sent_today, last_sent_date, created_at, updated_at)
+                SELECT id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_pass, COALESCE(smtp_use_ssl, 0), imap_host, imap_port, imap_user, imap_pass, COALESCE(imap_use_ssl, 1), COALESCE(imap_folder, 'INBOX'), COALESCE(sender_name, ''), COALESCE(sender_email, ''), COALESCE(is_default, 0), COALESCE(is_active, 1), COALESCE(daily_limit, 500), COALESCE(emails_sent_today, 0), last_sent_date, created_at, updated_at FROM email_accounts_old`);
+        } catch(e) { console.log('[MIGRATION] No se pudieron copiar datos:', e.message); }
+        db.exec(`DROP TABLE email_accounts_old`);
+        console.log('[MIGRATION] email_accounts recreada exitosamente');
+    }
+} catch(e) {
+    console.log('[MIGRATION email_accounts] Error o tabla no existe:', e.message);
+}
+
 // Migración: Agregar columnas faltantes a email_accounts (tablas existentes de versiones anteriores)
 try { db.exec("ALTER TABLE email_accounts ADD COLUMN smtp_password TEXT"); } catch(_) {}
 try { db.exec("ALTER TABLE email_accounts ADD COLUMN imap_password TEXT"); } catch(_) {}
