@@ -2861,6 +2861,9 @@ const App = window.App = {
             // Guardar guests en estado
             this.state.mailingGuests = guests || [];
             
+            // Inicializar editor Quill
+            setTimeout(() => this.initMailingQuillEditor(), 100);
+            
         } catch (e) {
             console.error('[MAILING] Error loading data:', e);
         }
@@ -2872,13 +2875,23 @@ const App = window.App = {
         
         const template = this.state.emailTemplates?.find(t => t.id === templateId);
         if (template) {
-            const bodyEl = document.getElementById('mailing-body');
             const subjectEl = document.getElementById('mailing-subject');
-            const previewEl = document.getElementById('mailing-preview');
             
-            if (bodyEl && !bodyEl.value) bodyEl.value = template.body_text || '';
             if (subjectEl && !subjectEl.value) subjectEl.value = template.subject || '';
-            if (previewEl) previewEl.innerHTML = template.body_html || `<p class="text-slate-400">${template.body_text || 'Vista previa no disponible'}</p>`;
+            
+            // Inicializar editor visual
+            this.switchMailingEditorMode('visual');
+            this.initMailingQuillEditor();
+            
+            // Cargar contenido de la plantilla
+            if (template.body_html) {
+                this.setMailingContent(template.body_html);
+            } else if (template.body_text) {
+                this.setMailingContent(`<p>${template.body_text}</p>`);
+            }
+            
+            // Actualizar preview
+            this.updateMailingPreview();
         }
     },
 
@@ -2901,7 +2914,7 @@ const App = window.App = {
                         account_id: accountId,
                         to: email,
                         subject: document.getElementById('mailing-subject')?.value || 'Test',
-                        body_html: document.getElementById('mailing-body')?.value || '',
+                        body_html: this.getMailingContent(),
                         variables: { guest_name: 'Test User' }
                     }
                 });
@@ -2915,7 +2928,7 @@ const App = window.App = {
     sendMailing: async function() {
         const accountId = document.getElementById('mailing-account-select')?.value;
         const subject = document.getElementById('mailing-subject')?.value;
-        const body = document.getElementById('mailing-body')?.value;
+        const bodyHtml = this.getMailingContent();
         
         if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
         if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
@@ -2934,7 +2947,7 @@ const App = window.App = {
                     account_id: accountId,
                     name: subject.substring(0, 50),
                     subject,
-                    body_html: body,
+                    body_html: bodyHtml,
                     recipient_type: recipientType
                 }
             });
@@ -3013,6 +3026,274 @@ const App = window.App = {
 
     openCampaignWizard: function() {
         Swal.fire('Info', 'El wizard de campañas estará disponible pronto', 'info');
+    },
+
+    // ==================== EDITOR WYSIWYG (QUILL) ====================
+    
+    mailingQuillEditor: null,
+    mailingEditorMode: 'visual',
+
+    initMailingQuillEditor: function() {
+        if (this.mailingQuillEditor) return;
+        
+        const container = document.getElementById('mailing-quill-editor');
+        if (!container) return;
+        
+        this.mailingQuillEditor = new Quill('#mailing-quill-editor', {
+            theme: 'snow',
+            placeholder: 'Escribe tu mensaje aquí...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+        
+        // Actualizar preview al cambiar contenido
+        this.mailingQuillEditor.on('text-change', () => {
+            if (this.mailingEditorMode === 'visual') {
+                this.updateMailingPreview();
+            }
+        });
+    },
+
+    switchMailingEditorMode: function(mode) {
+        this.mailingEditorMode = mode;
+        
+        const btnVisual = document.getElementById('btn-mode-visual');
+        const btnHtml = document.getElementById('btn-mode-html');
+        const containerVisual = document.getElementById('mailing-editor-container');
+        const containerHtml = document.getElementById('mailing-html-editor');
+        const htmlTextarea = document.getElementById('mailing-body-html');
+        
+        if (mode === 'visual') {
+            // Cambiar a modo visual
+            btnVisual.classList.add('bg-violet-500/20', 'text-violet-300');
+            btnVisual.classList.remove('bg-white/5', 'text-slate-400');
+            btnHtml.classList.remove('bg-violet-500/20', 'text-violet-300');
+            btnHtml.classList.add('bg-white/5', 'text-slate-400');
+            containerVisual.classList.remove('hidden');
+            containerHtml.classList.add('hidden');
+            
+            // Inicializar Quill si no existe
+            this.initMailingQuillEditor();
+            
+            // Copiar HTML del textarea al Quill si hay contenido
+            if (htmlTextarea.value && !this.mailingQuillEditor.getText().trim()) {
+                this.mailingQuillEditor.root.innerHTML = htmlTextarea.value;
+            }
+        } else {
+            // Cambiar a modo HTML
+            btnHtml.classList.add('bg-violet-500/20', 'text-violet-300');
+            btnHtml.classList.remove('bg-white/5', 'text-slate-400');
+            btnVisual.classList.remove('bg-violet-500/20', 'text-violet-300');
+            btnVisual.classList.add('bg-white/5', 'text-slate-400');
+            containerVisual.classList.add('hidden');
+            containerHtml.classList.remove('hidden');
+            
+            // Guardar contenido visual en textarea
+            if (this.mailingQuillEditor) {
+                htmlTextarea.value = this.mailingQuillEditor.root.innerHTML;
+            }
+        }
+    },
+
+    insertMailingVariable: function(varName) {
+        const varText = `{{${varName}}}`;
+        
+        if (this.mailingEditorMode === 'visual') {
+            if (!this.mailingQuillEditor) this.initMailingQuillEditor();
+            
+            const range = this.mailingQuillEditor.getSelection();
+            if (range) {
+                this.mailingQuillEditor.insertText(range.index, varText);
+            } else {
+                this.mailingQuillEditor.setText(this.mailingQuillEditor.getText() + varText);
+            }
+        } else {
+            const textarea = document.getElementById('mailing-body-html');
+            const cursor = textarea.selectionStart;
+            const text = textarea.value;
+            textarea.value = text.slice(0, cursor) + varText + text.slice(cursor);
+            textarea.selectionStart = textarea.selectionEnd = cursor + varText.length;
+            textarea.focus();
+        }
+        
+        this.updateMailingPreview();
+    },
+
+    updateMailingPreview: function() {
+        let htmlContent;
+        
+        if (this.mailingEditorMode === 'visual') {
+            if (!this.mailingQuillEditor) return;
+            htmlContent = this.mailingQuillEditor.root.innerHTML;
+        } else {
+            htmlContent = document.getElementById('mailing-body-html').value;
+        }
+        
+        const subject = document.getElementById('mailing-subject')?.value || 'Sin asunto';
+        const event = this.state.event || {};
+        
+        // Reemplazar variables de ejemplo
+        const previewData = {
+            guest_name: 'Juan Pérez',
+            guest_first_name: 'Juan',
+            event_name: event.name || 'Nombre del Evento',
+            event_date: event.date ? new Date(event.date).toLocaleDateString() : 'Fecha por confirmar',
+            event_location: event.location || 'Ubicación por confirmar',
+            company_name: 'Check Pro',
+            company_address: 'Mi Dirección',
+            current_year: new Date().getFullYear()
+        };
+        
+        let previewHtml = htmlContent;
+        for (const [key, value] of Object.entries(previewData)) {
+            previewHtml = previewHtml.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        }
+        
+        // Renderizar en iframe
+        const frame = document.getElementById('mailing-preview-frame');
+        if (frame && previewHtml) {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            doc.open();
+            doc.write(previewHtml);
+            doc.close();
+        }
+    },
+
+    toggleMailingPreview: function() {
+        const autoPreview = document.getElementById('mailing-preview-toggle')?.checked;
+        if (autoPreview) {
+            this.updateMailingPreview();
+        }
+    },
+
+    getMailingContent: function() {
+        if (this.mailingEditorMode === 'visual') {
+            if (!this.mailingQuillEditor) return '';
+            return this.mailingQuillEditor.root.innerHTML;
+        } else {
+            return document.getElementById('mailing-body-html').value || '';
+        }
+    },
+
+    setMailingContent: function(html) {
+        if (this.mailingEditorMode === 'visual') {
+            if (!this.mailingQuillEditor) this.initMailingQuillEditor();
+            this.mailingQuillEditor.root.innerHTML = html || '';
+        } else {
+            document.getElementById('mailing-body-html').value = html || '';
+        }
+    },
+
+    // ==================== BIBLIOTECA DE PLANTILLAS ====================
+
+    showTemplateLibrary: async function() {
+        const modal = document.getElementById('modal-template-library');
+        const grid = document.getElementById('template-library-grid');
+        
+        if (!modal || !grid) return;
+        
+        modal.classList.remove('hidden');
+        
+        // Cargar plantillas
+        try {
+            const templates = await this.fetchAPI('/email/templates');
+            this.state.allTemplates = templates || [];
+            this.renderTemplateLibrary(this.state.allTemplates);
+        } catch (e) {
+            console.error('[TEMPLATES] Error loading:', e);
+            grid.innerHTML = `<div class="col-span-3 text-center py-12 text-red-400">Error al cargar plantillas</div>`;
+        }
+    },
+
+    renderTemplateLibrary: function(templates) {
+        const grid = document.getElementById('template-library-grid');
+        if (!grid) return;
+        
+        if (!templates || templates.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-3 text-center py-12 text-slate-500">
+                    <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span>
+                    <p class="text-sm">No hay plantillas disponibles</p>
+                    <button onclick="App.createDefaultTemplates()" class="btn-primary mt-4">Crear Plantillas Base</button>
+                </div>`;
+            return;
+        }
+        
+        grid.innerHTML = templates.map(t => `
+            <div class="card p-4 hover:border-violet-500/50 transition-all cursor-pointer group" onclick="App.selectTemplateFromLibrary('${t.id}')">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-bold text-white text-sm group-hover:text-violet-300 transition-colors">${t.name}</h4>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">${t.category || 'general'}</span>
+                </div>
+                <p class="text-xs text-slate-500 mb-3 truncate">${t.subject || 'Sin asunto'}</p>
+                <div class="bg-slate-800/50 rounded-lg p-3 h-24 overflow-hidden text-xs text-slate-400 relative">
+                    ${t.body_text ? t.body_text.substring(0, 150) + '...' : (t.body_html ? 'Vista previa HTML disponible' : 'Sin contenido')}
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-800/80 to-transparent"></div>
+                </div>
+                ${t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Plantilla del sistema</span>' : ''}
+            </div>
+        `).join('');
+    },
+
+    filterTemplatesByCategory: function(category) {
+        // Actualizar botones
+        document.querySelectorAll('.template-category-btn').forEach(btn => {
+            if (btn.dataset.category === category) {
+                btn.classList.add('bg-violet-500/20', 'text-violet-300');
+                btn.classList.remove('bg-white/5', 'text-slate-400');
+            } else {
+                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
+                btn.classList.add('bg-white/5', 'text-slate-400');
+            }
+        });
+        
+        // Filtrar plantillas
+        const templates = this.state.allTemplates || [];
+        
+        if (category === 'all') {
+            this.renderTemplateLibrary(templates);
+        } else {
+            const filtered = templates.filter(t => t.category === category);
+            this.renderTemplateLibrary(filtered);
+        }
+    },
+
+    selectTemplateFromLibrary: async function(templateId) {
+        try {
+            const template = await this.fetchAPI(`/email/templates/${templateId}`);
+            
+            // Cerrar modal
+            document.getElementById('modal-template-library').classList.add('hidden');
+            
+            // Cargar en compositor
+            document.getElementById('mailing-template-select').value = templateId;
+            document.getElementById('mailing-subject').value = template.subject || '';
+            
+            // Inicializar editor si no existe
+            this.switchMailingEditorMode('visual');
+            this.initMailingQuillEditor();
+            
+            // Cargar contenido
+            if (template.body_html) {
+                this.setMailingContent(template.body_html);
+            } else if (template.body_text) {
+                this.setMailingContent(`<p>${template.body_text}</p>`);
+            }
+            
+            // Actualizar preview
+            this.updateMailingPreview();
+            
+        } catch (e) {
+            console.error('[TEMPLATES] Error selecting:', e);
+            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
+        }
     },
     
     // --- NUEVO EVENTO V10 ---
