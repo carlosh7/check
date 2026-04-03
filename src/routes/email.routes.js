@@ -152,14 +152,14 @@ router.post('/accounts', (req, res) => {
         
         getEmailDb().prepare(`
             INSERT INTO email_accounts (
-                id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_password, smtp_ssl,
-                imap_host, imap_port, imap_user, imap_password, imap_ssl, imap_folder,
-                sender_name, sender_email, is_default, is_active, daily_limit, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_password, smtp_pass, smtp_ssl, smtp_secure,
+                imap_host, imap_port, imap_user, imap_password, imap_pass, imap_ssl, imap_tls, imap_folder,
+                sender_name, from_name, sender_email, from_email, is_default, is_active, daily_limit, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
-            id, event_id, name, smtp_host, smtp_port, smtp_user, smtp_password, smtp_ssl ? 1 : 0,
-            imap_host, imap_port, imap_user, imap_password, imap_ssl ? 1 : 0, imap_folder,
-            sender_name, sender_email, is_default ? 1 : 0, is_active ? 1 : 0, daily_limit, now, now
+            id, event_id, name, smtp_host || '', smtp_port, smtp_user || '', smtp_password || '', smtp_password || '', smtp_ssl ? 1 : 0, smtp_ssl ? 1 : 0,
+            imap_host || '', imap_port, imap_user || '', imap_password || '', imap_password || '', imap_ssl ? 1 : 0, imap_ssl ? 1 : 0, imap_folder || 'INBOX',
+            sender_name || '', sender_name || '', sender_email || '', sender_email || '', is_default ? 1 : 0, is_active ? 1 : 0, daily_limit, now, now
         );
         
         const account = getEmailDb().prepare('SELECT * FROM email_accounts WHERE id = ?').get(id);
