@@ -9,7 +9,7 @@ const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
 const jsPDF = require('jspdf');
-require('jspdf-autotable');
+require('jspdf-autotable').default;
 
 const router = express.Router();
 
@@ -405,9 +405,8 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
         } else {
             // PDF - Crear manualmente con jsPDF
             try {
-                // Importar jsPDF correctamente para Node.js
-                const { jsPDF } = require('jspdf');
-                require('jspdf-autotable');
+                const jsPDF = require('jspdf');
+                const autoTable = require('jspdf-autotable').default;
                 
                 const doc = new jsPDF();
                 const groups = db.prepare("SELECT * FROM groups ORDER BY created_at DESC").all();
@@ -417,7 +416,7 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                 // Título
                 doc.setFontSize(20);
                 doc.setTextColor(124, 58, 237);
-                doc.text('Reporte de Exportación', 14, 20);
+                doc.text('Reporte de Exportacion', 14, 20);
                 doc.setFontSize(10);
                 doc.setTextColor(100);
                 doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
@@ -430,9 +429,9 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                 currentY += 10;
                 
                 if (groups.length > 0) {
-                    doc.autoTable({
+                    autoTable(doc, {
                         startY: currentY,
-                        head: [['Nombre', 'Email', 'Teléfono', 'Estado']],
+                        head: [['Nombre', 'Email', 'Telefono', 'Estado']],
                         body: groups.map(g => [g.name || '-', g.email || '-', g.phone || '-', g.status || '-']),
                         theme: 'grid',
                         headStyles: { fillColor: [124, 58, 237] }
@@ -444,16 +443,16 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                     currentY += 15;
                 }
 
-                // Eventos - nueva página si es necesario
+                // Eventos - nueva pagina si es necesario
                 if (currentY > 200) { doc.addPage(); currentY = 20; }
                 doc.setFontSize(14);
                 doc.text('Eventos', 14, currentY);
                 currentY += 10;
                 
                 if (events.length > 0) {
-                    doc.autoTable({
+                    autoTable(doc, {
                         startY: currentY,
-                        head: [['Nombre', 'Fecha', 'Ubicación', 'Estado']],
+                        head: [['Nombre', 'Fecha', 'Ubicacion', 'Estado']],
                         body: events.map(e => [e.name || '-', e.date || '-', e.location || '-', e.status || '-']),
                         theme: 'grid',
                         headStyles: { fillColor: [59, 130, 246] }
@@ -465,14 +464,14 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                     currentY += 15;
                 }
 
-                // Staff - nueva página si es necesario
+                // Staff - nueva pagina si es necesario
                 if (currentY > 200) { doc.addPage(); currentY = 20; }
                 doc.setFontSize(14);
                 doc.text('Staff', 14, currentY);
                 currentY += 10;
                 
                 if (users.length > 0) {
-                    doc.autoTable({
+                    autoTable(doc, {
                         startY: currentY,
                         head: [['Nombre', 'Email', 'Rol', 'Estado']],
                         body: users.map(u => [u.display_name || '-', u.username || '-', u.role || '-', u.status || '-']),
