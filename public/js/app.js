@@ -444,18 +444,23 @@ const App = window.App = {
 
     downloadImportTemplate: async function() {
         try {
-            const response = await this.fetchAPI('/import/template');
-            // Crear enlace de descarga
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const response = await fetch('/api/import/template', {
+                headers: { 'Authorization': `Bearer ${LS.get('token')}` }
+            });
+            if (!response.ok) throw new Error('Error en respuesta');
+            
+            const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'plantilla_importacion_check.xlsx';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
             
             if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'success', title: 'Descarga iniciada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Descarga iniciada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
             }
         } catch(e) {
             console.error('Error descargando plantilla:', e);
@@ -566,7 +571,7 @@ const App = window.App = {
             if (result.success) {
                 document.getElementById('import-status').textContent = `Importación completada: ${result.imported} registros`;
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'success', title: 'Importación exitosa', text: `${result.imported} registros importados, ${result.updated} actualizados`, timer: 3000 });
+                    Swal.fire({ icon: 'success', title: 'Importación exitosa', text: `${result.imported} registros importados, ${result.updated} actualizados`, timer: 3000, toast: true, position: 'top-end' });
                 }
                 
                 // Recargar datos
@@ -631,7 +636,7 @@ const App = window.App = {
             }
 
             if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'success', title: 'Exportación completada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Exportación completada', text: 'Revisa tu carpeta de descargas', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
             }
             
             setTimeout(() => document.getElementById('modal-export').classList.add('hidden'), 1000);
