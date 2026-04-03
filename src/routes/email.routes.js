@@ -8,7 +8,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const Imap = require('imap');
-const { mailparser } = require('mailparser');
+const { simpleParser } = require('mailparser');
 const { db } = require('../../database');
 
 // ============================================================
@@ -1326,7 +1326,7 @@ router.get('/mailbox/message/:uid', async (req, res) => {
             });
             
             // Parsear con mailparser usando async/await
-            const parsed = await mailparser.simpleParser(rawEmail);
+            const parsed = await simpleParser(rawEmail);
             
             const msgData = {
                 id: uid,
