@@ -485,7 +485,7 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
 
                 res.setHeader('Content-Type', 'application/pdf');
                 res.setHeader('Content-Disposition', `attachment; filename=export_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
-                res.send(doc.output('arraybuffer'));
+                res.send(Buffer.from(doc.output('arraybuffer')));
             } catch(pdfError) {
                 console.error('Error generando PDF:', pdfError);
                 res.status(500).json({ success: false, message: 'Error generando PDF: ' + pdfError.message });
