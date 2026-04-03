@@ -9,7 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const Imap = require('imap');
 const { mailparser } = require('mailparser');
-const db = require('../../database');
+const { db } = require('../../database');
 
 // ============================================================
 // HELPERS
