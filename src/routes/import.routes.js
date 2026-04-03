@@ -328,7 +328,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 // ══════════════════════════════════════════════════════════════
 // EXPORTAR DATOS
 // ══════════════════════════════════════════════════════════════
-router.get('/export/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const { type } = req.params;
     const format = req.query.format || 'excel';
 
