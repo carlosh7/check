@@ -1146,7 +1146,13 @@ router.get('/mailbox/messages', async (req, res) => {
         
         return new Promise((resolve) => {
             imap.once('ready', () => {
-                imap.openBox(folder, true, (err, box) => {
+                // Auto-prefijar carpetas con INBOX. si es necesario
+                let folderName = folder;
+                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
+                    folderName = `INBOX.${folder}`;
+                }
+                
+                imap.openBox(folderName, true, (err, box) => {
                     if (err) {
                         imap.end();
                         res.json({ success: false, error: err.message });
@@ -1155,44 +1161,112 @@ router.get('/mailbox/messages', async (req, res) => {
                     
                     const total = box.messages.total;
                     const start = Math.max(1, total - offset - limit + 1);
-                    const end = total - offset;
+                    const end = Math.min(total, total - offset);
                     
                     if (start > end || total === 0) {
                         imap.end();
-                        res.json({ success: true, messages: [], total: 0 });
+                        res.json({ success: true, messages: [], total });
                         return resolve();
                     }
                     
                     const fetch = imap.fetch(`${start}:${end}`, {
-                        bodies: 'HEADER.FIELDS (FROM TO SUBJECT DATE)',
-                        struct: true
+                        bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+                        markSeen: false
                     });
                     
                     const messages = [];
+                    let completed = 0;
+                    const expected = end - start + 1;
                     
                     fetch.on('message', (msg) => {
-                        msg.on('body', (stream) => {
-                            const headers = {};
-                            stream.pipe(
-                                mailparser.simpleParser((err, parsed) => {
-                                    if (!err && parsed) {
-                                        messages.push({
-                                            id: msg.uid,
-                                            uid: msg.uid,
-                                            from: parsed.from?.value?.[0]?.address || 'Unknown',
-                                            from_name: parsed.from?.value?.[0]?.name || '',
-                                            to: parsed.to?.value?.[0]?.address || '',
-                                            subject: parsed.subject || '(Sin asunto)',
-                                            date: parsed.date,
-                                            read: !parsed.headers.get('x-ms-has-attach')
-                                        });
+                        const msgData = {
+                            uid: msg.uid,
+                            from: '',
+                            from_name: '',
+                            to: '',
+                            subject: '',
+                            date: '',
+                            seen: false
+                        };
+                        
+                        msg.on('body', (stream, info) => {
+                            if (info.which.includes('HEADER')) {
+                                let buffer = '';
+                                stream.on('data', chunk => { buffer += chunk.toString(); });
+                                stream.on('end', () => {
+                                    // Parsear headers manualmente
+                                    const lines = buffer.split('\r\n');
+                                    for (const line of lines) {
+                                        if (line.startsWith('From:') && !msgData.from) {
+                                            const match = line.match(/^(.*?)\s*<(.+?)>/);
+                                            if (match) {
+                                                msgData.from_name = match[1].replace(/"/g, '').trim();
+                                                msgData.from = match[2].trim();
+                                            } else {
+                                                msgData.from = line.replace('From:', '').trim();
+                                            }
+                                        } else if (line.startsWith('To:') && !msgData.to) {
+                                            const match = line.match(/<(.+?)>/);
+                                            msgData.to = match ? match[1] : line.replace('To:', '').trim();
+                                        } else if (line.startsWith('Subject:') && !msgData.subject) {
+                                            msgData.subject = line.replace('Subject:', '').trim();
+                                        } else if (line.startsWith('Date:') && !msgData.date) {
+                                            msgData.date = line.replace('Date:', '').trim();
+                                        }
                                     }
-                                })
-                            );
+                                });
+                            }
                         });
+                        
+                        msg.on('attributes', (attrs) => {
+                            msgData.seen = attrs.flags.includes('\\Seen');
+                        });
+                        
+                        msg.once('end', () => {
+                            completed++;
+                            if (completed >= expected) {
+                                imap.end();
+                                res.json({ success: true, messages, total });
+                                resolve();
+                            }
+                        });
+                        
+                        fetch.on('message', () => {}); // trigger
+                    });
+                    
+                    // Fallback: si no hay bodies, usar attributes
+                    fetch.on('attributes', (attrs, seqno) => {
+                        // Ya se maneja arriba
+                    });
+                    
+                    fetch.once('end', () => {
+                        if (completed < expected) {
+                            imap.end();
+                            res.json({ success: true, messages, total });
+                            resolve();
+                        }
                     });
                     
                     fetch.once('error', (err) => {
+                        imap.end();
+                        res.json({ success: false, error: err.message });
+                        resolve();
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => {
+                res.json({ success: false, error: err.message });
+                resolve();
+            });
+            
+            imap.connect();
+        });
+    } catch (error) {
+        console.error('Error getting mailbox messages:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
                         imap.end();
                         res.json({ success: false, error: err.message });
                         resolve();
