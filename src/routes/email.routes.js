@@ -1080,15 +1080,38 @@ router.get('/mailbox/folders', async (req, res) => {
         return new Promise((resolve) => {
             imap.once('ready', () => {
                 imap.getBoxes((err, boxes) => {
+                    imap.end();
                     if (err) {
-                        imap.end();
                         res.json({ success: false, error: err.message });
                         resolve();
-                    } else {
-                        imap.end();
-                        res.json({ success: true, folders: boxes });
-                        resolve();
+                        return;
                     }
+                    
+                    // Extraer solo nombres de carpetas (evitar referencias circulares)
+                    const folderNames = [];
+                    function extractFolders(boxObj, prefix = '') {
+                        if (!boxObj) return;
+                        for (const [name, box] of Object.entries(boxObj)) {
+                            if (box && typeof box === 'object' && box.name) {
+                                folderNames.push(prefix ? `${prefix}/${box.name}` : box.name);
+                                if (box.children) {
+                                    extractFolders(box.children, prefix ? `${prefix}/${box.name}` : box.name);
+                                }
+                            }
+                        }
+                    }
+                    extractFolders(boxes);
+                    
+                    // Asegurar carpetas estándar
+                    const standardFolders = ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam', 'Junk'];
+                    for (const sf of standardFolders) {
+                        if (!folderNames.includes(sf) && !folderNames.some(f => f.toLowerCase() === sf.toLowerCase())) {
+                            folderNames.push(sf);
+                        }
+                    }
+                    
+                    res.json({ success: true, folders: folderNames.sort() });
+                    resolve();
                 });
             });
             
