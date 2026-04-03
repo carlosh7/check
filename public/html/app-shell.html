@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.11</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.12</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -1652,6 +1652,30 @@
         
         <div class="p-6 border-t border-white/10 shrink-0">
             <button onclick="App.closeCampaignMonitor()" class="btn-secondary w-full !py-2">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: TEXTOS LEGALES (Política de Privacidad, Términos y Condiciones) -->
+<div id="modal-legal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col m-4">
+        <!-- Header -->
+        <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-violet-400 text-xl">gavel</span>
+                <h3 id="modal-legal-title" class="text-lg font-bold text-[var(--text-main)]">Documento Legal</h3>
+            </div>
+            <button id="btn-close-legal" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <!-- Content -->
+        <div id="modal-legal-content" class="p-6 overflow-y-auto flex-1 text-[var(--text-main)] prose prose-invert max-w-none">
+            <p class="text-[var(--text-secondary)]">Cargando documento...</p>
+        </div>
+        <!-- Footer -->
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end">
+            <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
         </div>
     </div>
 </div>

@@ -449,6 +449,11 @@ db.exec(`CREATE TABLE IF NOT EXISTS email_templates (
     FOREIGN KEY (event_id) REFERENCES events(id)
 )`);
 
+// Migración: Agregar columnas faltantes a email_templates (tablas existentes de versiones anteriores)
+try { db.exec("ALTER TABLE email_templates ADD COLUMN is_system INTEGER DEFAULT 0"); } catch(_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN body_html TEXT"); } catch(_) {}
+try { db.exec("ALTER TABLE email_templates ADD COLUMN category TEXT DEFAULT 'general'"); } catch(_) {}
+
 // Email Campaigns (Campañas)
 db.exec(`CREATE TABLE IF NOT EXISTS email_campaigns (
     id TEXT PRIMARY KEY,

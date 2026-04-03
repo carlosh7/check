@@ -797,6 +797,7 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 /* No redefinir clases de utilidad de Tailwind */
 
 /* ===== SIDEBAR RESPONSIVE ===== */
+@media (max-width: 768px) {
     #global-sidebar {
         width: 64px !important;
         overflow: hidden;
@@ -855,6 +856,48 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
     position: relative;
     border: 1px solid var(--border);
     contain: layout; /* Prevenir reflow que causa desplazamiento */
+}
+
+/* ===== ESTILOS PARA MODAL LEGAL (Modo Oscuro) ===== */
+#modal-legal-content {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+}
+
+#modal-legal-content h1,
+#modal-legal-content h2,
+#modal-legal-content h3,
+#modal-legal-content h4,
+#modal-legal-content h5,
+#modal-legal-content h6 {
+    color: var(--text-main) !important;
+}
+
+#modal-legal-content p,
+#modal-legal-content li,
+#modal-legal-content span,
+#modal-legal-content div {
+    color: var(--text-main) !important;
+}
+
+#modal-legal-content a {
+    color: var(--primary) !important;
+}
+
+#modal-legal-content strong,
+#modal-legal-content b {
+    color: var(--text-main) !important;
+}
+
+#modal-legal-content ul,
+#modal-legal-content ol {
+    color: var(--text-main) !important;
+    padding-left: 1.5rem;
+}
+
+#modal-legal-content blockquote {
+    border-left-color: var(--primary) !important;
+    color: var(--text-secondary) !important;
 }
 
 #editor-policy .ql-editor, #editor-terms .ql-editor {

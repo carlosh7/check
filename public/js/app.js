@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.11';
+const VERSION = '12.44.12';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -9562,6 +9562,7 @@ async function initApp() {
     cl('btn-open-policy', () => openLegalModal('policy_data', 'Política de Tratamiento de Datos'));
     cl('btn-open-terms', () => openLegalModal('terms_conditions', 'Términos y Condiciones'));
     cl('btn-close-legal', () => document.getElementById('modal-legal')?.classList.add('hidden'));
+    cl('btn-close-legal-footer', () => document.getElementById('modal-legal')?.classList.add('hidden'));
 
     // Logout
     cl('btn-logout', () => App.logout());
