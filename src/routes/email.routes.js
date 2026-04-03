@@ -1194,7 +1194,7 @@ router.get('/mailbox/messages', async (req, res) => {
                             });
                             
                             fetch.on('message', (msg) => {
-                                const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
+                                const msgData = { uid: uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
                                 
                                 msg.on('attributes', (attrs) => {
                                     msgData.seen = attrs.flags.includes('\\Seen');
