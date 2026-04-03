@@ -252,16 +252,19 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             `);
             const updateGroup = db.prepare(`
                 UPDATE groups SET email = ?, phone = ?, status = ?, description = ?
-                WHERE name = ? OR email = ?
+                WHERE id = ?
             `);
 
             for (const g of data.groups) {
-                if (g.action === 'create') {
+                // Siempre verificar si existe por nombre o email
+                const existing = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?) OR (email IS NOT NULL AND LOWER(email) = LOWER(?))").get(g.name, g.email || '');
+                
+                if (existing) {
+                    updateGroup.run(g.email, g.phone, g.status, g.description, existing.id);
+                    updated++;
+                } else {
                     insertGroup.run(getValidId('groups'), g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
                     imported++;
-                } else if (g.action === 'update') {
-                    updateGroup.run(g.email, g.phone, g.status, g.description, g.name, g.existing?.email || g.name);
-                    updated++;
                 }
             }
         }
@@ -274,16 +277,18 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             `);
             const updateEvent = db.prepare(`
                 UPDATE events SET location = ?, description = ?, group_id = ?
-                WHERE name = ? AND date = ?
+                WHERE id = ?
             `);
 
             for (const e of data.events) {
-                if (e.action === 'create') {
+                const existing = db.prepare("SELECT id FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date || '');
+                
+                if (existing) {
+                    updateEvent.run(e.location, e.description, e.group_id || null, existing.id);
+                    updated++;
+                } else {
                     insertEvent.run(getValidId('events'), req.userId, e.name, e.date, e.location, e.description, e.group_id || null, new Date().toISOString());
                     imported++;
-                } else if (e.action === 'update') {
-                    updateEvent.run(e.location, e.description, e.group_id || null, e.name, e.date);
-                    updated++;
                 }
             }
         }
@@ -301,7 +306,12 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             `);
 
             for (const u of data.users) {
-                if (u.action === 'create') {
+                const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                
+                if (existing) {
+                    updateUser.run(u.display_name, u.phone, u.role, u.group_id || null, u.username);
+                    updated++;
+                } else {
                     const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
                     insertUser.run(
                         getValidId('users'),
@@ -314,9 +324,6 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         new Date().toISOString()
                     );
                     imported++;
-                } else if (u.action === 'update') {
-                    updateUser.run(u.display_name, u.phone, u.role, u.group_id || null, u.username);
-                    updated++;
                 }
             }
         }
