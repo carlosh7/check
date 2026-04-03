@@ -116,8 +116,11 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
     try {
         const file = req.file;
         const type = req.body.type || 'groups';
+        const fs = require('fs');
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(file.buffer);
+        // Leer archivo desde disco (diskStorage)
+        const fileBuffer = fs.readFileSync(file.path);
+        await workbook.xlsx.load(fileBuffer);
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
