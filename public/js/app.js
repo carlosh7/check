@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.37.26';
+const VERSION = '12.44.11';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -9490,14 +9490,41 @@ async function initApp() {
 
     // Login Form
     console.log('[DOM DEBUG] Configurando event listener para form-login');
-    sf('form-login', async (e) => {
+    
+    // Función centralizada de login
+    async function handleLoginSubmit(e) {
+        if (e) e.preventDefault();
         console.log('[DOM DEBUG] Formulario login enviado, previniendo default');
-        e.preventDefault();
-        const u = document.getElementById('login-email').value; 
-        const p = document.getElementById('login-password').value;
+        const u = document.getElementById('login-email')?.value; 
+        const p = document.getElementById('login-password')?.value;
         console.log('[DOM DEBUG] Valores obtenidos:', { u, p });
+        if (!u || !p) {
+            console.error('[DOM DEBUG] Email o password vacíos');
+            return;
+        }
         await App.login(u, p);
-    });
+    }
+    
+    // Método 1: Submit del formulario
+    sf('form-login', handleLoginSubmit);
+    
+    // Método 2: Click directo en el botón (fallback)
+    const loginBtn = document.querySelector('#form-login button[type="submit"]');
+    if (loginBtn) {
+        console.log('[DOM DEBUG] Configurando click listener en botón de login');
+        loginBtn.addEventListener('click', async (e) => {
+            console.log('[DOM DEBUG] Click en botón de login detectado');
+            await handleLoginSubmit(e);
+        });
+    }
+    
+    // Método 3: Delegación de eventos en document (último recurso)
+    document.addEventListener('submit', async (e) => {
+        if (e.target && e.target.id === 'form-login') {
+            console.log('[DOM DEBUG] Submit capturado por delegación en document');
+            await handleLoginSubmit(e);
+        }
+    }, true); // capture phase
 
     // Signup Form (Solicitar Cuenta)
     cl('go-to-signup', (e) => {
