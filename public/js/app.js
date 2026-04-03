@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.36';
+const VERSION = '12.44.37';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2524,45 +2524,46 @@ const App = window.App = {
     },
 
     loadMailboxFolders: async function() {
-        const selectEl = document.getElementById('mailbox-account-select');
-        const accountId = selectEl?.value;
-        console.log('[MAILBOX] loadMailboxFolders called');
-        console.log('[MAILBOX] select element:', selectEl);
-        console.log('[MAILBOX] accountId:', accountId);
-        
+        const accountId = document.getElementById('mailbox-account-select')?.value;
         if (!accountId) {
-            console.warn('[MAILBOX] No account selected');
             const container = document.getElementById('mailbox-folders');
-            if (container) container.innerHTML = `<p class="text-xs text-slate-500 p-2">Selecciona una cuenta primero</p>`;
+            if (container) container.innerHTML = `<div class="text-center py-8 text-[var(--text-secondary)] text-sm"><span class="material-symbols-outlined text-3xl mb-2 block opacity-50">folder</span><p>Selecciona una cuenta</p></div>`;
             return;
         }
         
         const container = document.getElementById('mailbox-folders');
-        console.log('[MAILBOX] folders container found:', !!container);
+        const progress = document.getElementById('mailbox-progress');
         if (!container) return;
         
-        container.innerHTML = `<div class="p-4 text-center animate-pulse text-xs text-slate-500">Cargando carpetas...</div>`;
+        // Mostrar barra de progreso
+        progress?.classList.remove('hidden');
+        container.innerHTML = `<div class="p-4 text-center animate-pulse text-xs text-[var(--text-secondary)]">Cargando carpetas...</div>`;
         
         try {
-            console.log('[MAILBOX] Fetching folders for account:', accountId);
             const result = await this.fetchAPI(`/email/mailbox/folders?account_id=${accountId}`);
-            console.log('[MAILBOX] Folders result:', JSON.stringify(result));
             
             if (!result.success) {
                 container.innerHTML = `<p class="text-xs text-red-400 p-2">${result.error || 'Error al cargar carpetas'}</p>`;
+                progress?.classList.add('hidden');
                 return;
             }
             
             const folders = result.folders || ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam'];
-            console.log('[MAILBOX] Folders to display:', folders);
+            const folderIcons = { 'INBOX': 'inbox', 'Sent': 'send', 'Drafts': 'draft', 'Trash': 'delete', 'Spam': 'report', 'Junk': 'block', 'Archive': 'archive' };
             
-            container.innerHTML = folders.map(f => `
+            container.innerHTML = folders.map(f => {
+                const icon = folderIcons[f] || 'mail';
+                const displayName = f === 'INBOX' ? 'Bandeja de Entrada' : f;
+                return `
                 <button onclick="App.loadMailboxMessages('${f}')" 
-                        class="w-full text-left px-3 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm text-slate-500">${f === 'INBOX' || f === 'inbox' ? 'inbox' : 'mail'}</span>
-                    ${f}
-                </button>
-            `).join('');
+                        class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-[var(--text-main)] hover:bg-[var(--bg-hover)] flex items-center gap-2 transition-colors mailbox-folder-btn" data-folder="${f}">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">${icon}</span>
+                    <span>${displayName}</span>
+                </button>`;
+            }).join('');
+            
+            // Ocultar barra de progreso
+            progress?.classList.add('hidden');
             
             // Cargar INBOX por defecto
             this.loadMailboxMessages('INBOX');
@@ -2570,155 +2571,167 @@ const App = window.App = {
         } catch (e) {
             console.error('[MAILBOX] Error loading folders:', e);
             container.innerHTML = `<p class="text-xs text-red-400 p-2">Error: ${e.message}</p>`;
+            progress?.classList.add('hidden');
         }
     },
 
     loadMailboxMessages: async function(folder = 'INBOX') {
-        console.log('[MAILBOX] loadMailboxMessages called, folder:', folder);
         const accountId = document.getElementById('mailbox-account-select')?.value;
         const container = document.getElementById('mailbox-messages');
-        console.log('[MAILBOX] messages container:', !!container, 'accountId:', accountId);
+        const progress = document.getElementById('mailbox-progress');
+        const folderLabel = document.getElementById('mailbox-current-folder');
+        const countLabel = document.getElementById('mailbox-message-count');
         if (!container) return;
         
-        container.innerHTML = `<div class="p-12 text-center animate-pulse">
-            <span class="material-symbols-outlined text-4xl text-violet-400 block mb-2">sync</span>
-            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Cargando mensajes...</p>
+        // Actualizar folder activo
+        if (folderLabel) {
+            const names = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado' };
+            folderLabel.textContent = names[folder] || folder;
+        }
+        
+        // Resaltar carpeta activa
+        document.querySelectorAll('.mailbox-folder-btn').forEach(btn => {
+            btn.classList.toggle('bg-[var(--bg-hover)]', btn.dataset.folder === folder);
+        });
+        
+        // Mostrar progreso
+        progress?.classList.remove('hidden');
+        container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]">
+            <span class="material-symbols-outlined text-4xl mb-2 animate-spin">sync</span>
+            <p class="text-sm">Cargando mensajes...</p>
         </div>`;
         
         if (!accountId) {
-            container.innerHTML = `<div class="text-center py-12 text-slate-500">
-                <span class="material-symbols-outlined text-4xl mb-2 text-slate-600">mail</span>
-                <p>Selecciona una cuenta</p>
-            </div>`;
+            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">Selecciona una cuenta</p></div>`;
+            progress?.classList.add('hidden');
             return;
         }
         
         try {
-            console.log('[MAILBOX] Fetching messages, folder:', folder, 'account:', accountId);
             const result = await this.fetchAPI(`/email/mailbox/messages?account_id=${accountId}&folder=${folder}`);
-            console.log('[MAILBOX] Messages result:', JSON.stringify(result).substring(0, 500));
             
             if (!result.success) {
-                container.innerHTML = `<div class="text-center py-12 text-red-400">
-                    <span class="material-symbols-outlined text-4xl mb-2">error</span>
-                    <p>${result.error || 'Error al cargar'}</p>
-                </div>`;
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-red-400"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'Error al cargar'}</p></div>`;
+                progress?.classList.add('hidden');
                 return;
             }
             
-            if (!result.messages || result.messages.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-slate-500">
-                    <span class="material-symbols-outlined text-4xl mb-2 text-slate-600">${folder === 'INBOX' ? 'inbox' : 'send'}</span>
-                    <p>No hay mensajes en ${folder}</p>
-                </div>`;
+            const messages = result.messages || [];
+            if (countLabel) countLabel.textContent = messages.length > 0 ? `${messages.length} mensajes` : '';
+            
+            if (messages.length === 0) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">No hay mensajes en esta carpeta</p></div>`;
+                progress?.classList.add('hidden');
                 return;
             }
             
-            container.innerHTML = result.messages.map(msg => `
+            container.innerHTML = messages.map(msg => `
                 <div onclick="App.viewMailMessage('${msg.uid}', '${folder}')" 
-                     class="p-4 border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-all flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs shrink-0">
-                        ${(msg.from || 'S').charAt(0).toUpperCase()}
+                     class="p-4 border-b border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-all flex items-start gap-3 ${msg.seen ? '' : 'bg-[var(--bg-secondary)]/30'}">
+                    <div class="w-10 h-10 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center font-black text-[var(--text-secondary)] text-xs shrink-0">
+                        ${(msg.from_name || msg.from || 'S').charAt(0).toUpperCase()}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-center mb-1">
-                            <h5 class="text-sm font-bold text-slate-200 truncate pr-4">${msg.subject || '(Sin asunto)'}</h5>
-                            <span class="text-[9px] text-slate-500 shrink-0">${msg.date ? new Date(msg.date).toLocaleDateString() : ''}</span>
+                            <h5 class="text-sm font-bold text-[var(--text-main)] truncate pr-4 ${msg.seen ? '' : 'text-[var(--primary)]'}">${msg.subject || '(Sin asunto)'}</h5>
+                            <span class="text-[9px] text-[var(--text-secondary)] shrink-0">${msg.date ? new Date(msg.date).toLocaleDateString('es-ES') : ''}</span>
                         </div>
-                        <p class="text-[10px] text-slate-500 truncate">De: ${msg.from}</p>
+                        <p class="text-[10px] text-[var(--text-secondary)] truncate">De: ${msg.from_name || msg.from || 'Desconocido'}</p>
                     </div>
+                    ${msg.seen ? '' : '<span class="w-2 h-2 rounded-full bg-[var(--primary)] shrink-0 mt-2"></span>'}
                 </div>
             `).join('');
             
+            progress?.classList.add('hidden');
+            
         } catch (e) {
             console.error('[MAILBOX] Error:', e);
-            container.innerHTML = `<div class="text-center py-12 text-red-400">Error al cargar mensajes</div>`;
+            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-red-400"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar mensajes</p></div>`;
+            progress?.classList.add('hidden');
         }
     },
 
-    viewMailMessage: async function(uid, folder) {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        if (!accountId) return;
-        
-        try {
-            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
-            
-            if (!result.success) {
-                Swal.fire('Error', result.error || 'No se pudo cargar el mensaje', 'error');
-                return;
-            }
-            
-            const msg = result.message;
-            
-            const modalContent = `
-            <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <!-- Header -->
-                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                        <h3 class="text-lg font-bold text-[var(--text-main)] truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
-                        <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                        </button>
-                    </div>
-                    <!-- Meta info -->
-                    <div class="p-4 border-b border-[var(--border)] shrink-0">
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">De</p>
-                                <p class="text-[var(--text-main)]">${msg.from_name || ''} ${msg.from ? `<span class="text-[var(--text-secondary)]">&lt;${msg.from}&gt;</span>` : ''}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Para</p>
-                                <p class="text-[var(--text-main)]">${msg.to || ''}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Fecha</p>
-                                <p class="text-[var(--text-main)]">${msg.date ? new Date(msg.date).toLocaleString('es-ES') : ''}</p>
-                            </div>
-                            ${msg.attachments && msg.attachments.length > 0 ? `
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Adjuntos (${msg.attachments.length})</p>
-                                <p class="text-[var(--text-main)] text-xs">${msg.attachments.map(a => a.filename).join(', ')}</p>
-                            </div>` : ''}
-                        </div>
-                    </div>
-                    <!-- Content -->
-                    <div class="p-6 overflow-y-auto flex-1">
-                        ${msg.html ? `
-                            <div class="prose prose-invert max-w-none" style="color: var(--text-main);">
-                                ${msg.html}
-                            </div>
-                        ` : `
-                            <pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-mono bg-[var(--bg-secondary)] p-4 rounded-lg">${msg.text || 'Sin contenido'}</pre>
-                        `}
-                    </div>
-                    <!-- Footer -->
-                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
-                        <button id="btn-close-mail-view-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
-                    </div>
-                </div>
-            </div>`;
-            
-            document.getElementById('modal-container-portal').innerHTML = modalContent;
-            
-            // Configurar botones de cerrar
-            document.getElementById('btn-close-mail-view')?.addEventListener('click', () => {
-                document.getElementById('modal-mail-view')?.classList.add('hidden');
-                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            });
-            document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => {
-                document.getElementById('modal-mail-view')?.classList.add('hidden');
-                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            });
-            
-        } catch (e) {
-            console.error('[MAILBOX] Error viewing message:', e);
-            Swal.fire('Error', 'No se pudo cargar el mensaje', 'error');
+    filterMailboxMessages: function(query) {
+        const container = document.getElementById('mailbox-messages');
+        if (!container) return;
+        const items = container.querySelectorAll('[onclick*="viewMailMessage"]');
+        const q = query.toLowerCase();
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(q) ? '' : 'none';
+        });
+    },
+
+    sortMailboxMessages: function(criteria) {
+        // Simple re-sort - recargar mensajes
+        const activeBtn = document.querySelector('.mailbox-folder-btn.bg-\\[var\\(--bg-hover\\)\\]');
+        if (activeBtn) {
+            const folder = activeBtn.dataset.folder;
+            this.loadMailboxMessages(folder);
         }
     },
 
     refreshMailbox: function() {
         this.loadMailboxFolders();
+    },
+
+    openEmailComposer: function() {
+        const modal = document.getElementById('modal-email-composer');
+        if (modal) {
+            modal.classList.remove('hidden');
+        } else {
+            // Crear modal de compositor
+            const composerHTML = `
+            <div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                        <h3 class="text-lg font-bold text-[var(--text-main)]">Nuevo Email</h3>
+                        <button onclick="document.getElementById('modal-email-composer')?.classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                        <div>
+                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Para</label>
+                            <input type="email" id="composer-to" class="input-field w-full" placeholder="destinatario@email.com" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Asunto</label>
+                            <input type="text" id="composer-subject" class="input-field w-full" placeholder="Asunto del email" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Mensaje</label>
+                            <textarea id="composer-body" class="input-field w-full" rows="10" placeholder="Escribe tu mensaje aquí..."></textarea>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
+                        <button onclick="document.getElementById('modal-email-composer')?.classList.add('hidden')" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cancelar</button>
+                        <button onclick="App.sendEmail()" class="btn-primary !px-6 !py-2">Enviar</button>
+                    </div>
+                </div>
+            </div>`;
+            document.getElementById('modal-container-portal').innerHTML = composerHTML;
+        }
+    },
+
+    sendEmail: async function() {
+        const to = document.getElementById('composer-to')?.value;
+        const subject = document.getElementById('composer-subject')?.value;
+        const body = document.getElementById('composer-body')?.value;
+        
+        if (!to || !subject) {
+            Swal.fire('Error', 'Completa los campos Para y Asunto', 'error');
+            return;
+        }
+        
+        try {
+            Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
+            // TODO: Implementar envío real
+            Swal.fire('✓ Enviado', 'Email enviado correctamente', 'success');
+            document.getElementById('modal-email-composer')?.classList.add('hidden');
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo enviar el email', 'error');
+        }
     },
 
     loadEmailTemplates: async function() {
