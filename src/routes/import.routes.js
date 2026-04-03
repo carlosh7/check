@@ -187,16 +187,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     const date = row.getCell(2).text?.trim() || '';
                     const location = row.getCell(3).text?.trim() || '';
                     const description = row.getCell(4).text?.trim() || '';
-                    const company_name = row.getCell(5).text?.trim() || '';
-
-                    // Resolver company_name a group_id
-                    let resolved_group_id = null;
-                    if (company_name) {
-                        const foundGroup = existingGroups.find(g => g.name.toLowerCase() === company_name.toLowerCase());
-                        if (foundGroup) {
-                            resolved_group_id = foundGroup.id;
-                        }
-                    }
+                    const group_name = row.getCell(5).text?.trim() || '';
 
                     const exists = existingEvents.find(e => 
                         e.name.toLowerCase() === name.toLowerCase() && e.date === date
@@ -204,10 +195,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
                     if (exists) {
                         stats.update++;
-                        data.events.push({ name, date, location, description, group_id: resolved_group_id, action: 'update', existing: exists });
+                        data.events.push({ name, date, location, description, group_name, action: 'update', existing: exists });
                     } else {
                         stats.new++;
-                        data.events.push({ name, date, location, description, group_id: resolved_group_id, action: 'create' });
+                        data.events.push({ name, date, location, description, group_name, action: 'create' });
                     }
                 } catch(e) {
                     stats.errors++;
@@ -220,8 +211,6 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         if (workbook.getWorksheet('Staff')) {
             const sheet = workbook.getWorksheet('Staff');
             const existingUsers = db.prepare("SELECT username FROM users").all();
-            const existingGroups = db.prepare("SELECT id, name FROM groups").all();
-            const existingEvents = db.prepare("SELECT id, name, date FROM events").all();
             
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                 try {
@@ -242,32 +231,15 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                         return;
                     }
 
-                    // Resolver company_name a group_id
-                    let resolved_group_id = null;
-                    if (company_name) {
-                        const foundGroup = existingGroups.find(g => g.name.toLowerCase() === company_name.toLowerCase());
-                        if (foundGroup) {
-                            resolved_group_id = foundGroup.id;
-                        }
-                    }
-
-                    // Resolver event_name a event_id
-                    let resolved_event_id = null;
-                    if (event_name) {
-                        const foundEvent = existingEvents.find(e => e.name.toLowerCase() === event_name.toLowerCase());
-                        if (foundEvent) {
-                            resolved_event_id = foundEvent.id;
-                        }
-                    }
-
+                    // No resolver nombres aquí - el execute lo hará con los mapas
                     const exists = existingUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
 
                     if (exists) {
                         stats.update++;
-                        data.users.push({ display_name, username, password, role, phone, group_id: resolved_group_id, event_id: resolved_event_id, action: 'update', existing: exists });
+                        data.users.push({ display_name, username, password, role, phone, company_name, event_name, action: 'update', existing: exists });
                     } else {
                         stats.new++;
-                        data.users.push({ display_name, username, password, role, phone, group_id: resolved_group_id, event_id: resolved_event_id, action: 'create' });
+                        data.users.push({ display_name, username, password, role, phone, company_name, event_name, action: 'create' });
                     }
                 } catch(e) {
                     stats.errors++;
@@ -291,13 +263,20 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         const { type, data } = req.body;
-        console.log('[IMPORT EXECUTE] data received:', JSON.stringify(data).substring(0, 500));
+        console.log('[IMPORT EXECUTE] Processing:', data.groups?.length || 0, 'groups,', data.events?.length || 0, 'events,', data.users?.length || 0, 'users');
+        
         let imported = 0;
         let updated = 0;
+        
+        // Mapas para resolver nombres a IDs durante esta importación
+        const createdGroupsMap = {};  // nombre_lowercase -> id
+        const createdEventsMap = {};  // nombre_lowercase -> id
 
-        // Importar grupos
+        // ════════════════════════════════════════════════════════════
+        // PASO 1: Importar/Crear GRUPOS/EMPRESAS primero
+        // ════════════════════════════════════════════════════════════
         if (data.groups && data.groups.length > 0) {
-            console.log('[IMPORT] Processing groups:', data.groups.length);
+            console.log('[IMPORT] Step 1 - Processing groups:', data.groups.length);
             
             for (const g of data.groups) {
                 console.log('[IMPORT] Group:', g.name, 'email:', g.email);
@@ -316,23 +295,55 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     db.prepare("UPDATE groups SET email = ?, phone = ?, status = ?, description = ? WHERE id = ?")
                         .run(g.email, g.phone, g.status, g.description, existing.id);
                     updated++;
+                    // Registrar en mapa para siguientes pasos
+                    createdGroupsMap[g.name.toLowerCase()] = existing.id;
                 } else {
                     console.log('[IMPORT] Creating new group:', g.name);
+                    const newId = getValidId('groups');
                     db.prepare("INSERT INTO groups (id, name, email, phone, status, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-                        .run(getValidId('groups'), g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
+                        .run(newId, g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
                     imported++;
+                    // Registrar en mapa para siguientes pasos
+                    createdGroupsMap[g.name.toLowerCase()] = newId;
                 }
             }
         }
 
-        // Importar eventos
+        // ════════════════════════════════════════════════════════════
+        // PASO 2: Importar/Crear EVENTOS (usando mapa de empresas)
+        // ════════════════════════════════════════════════════════════
         if (data.events && data.events.length > 0) {
-            console.log('[IMPORT] Processing events:', data.events.length);
+            console.log('[IMPORT] Step 2 - Processing events:', data.events.length);
+            
+            // Obtener empresas existentes de BD para complementar el mapa
+            const allGroups = db.prepare("SELECT id, name FROM groups").all();
+            for (const g of allGroups) {
+                if (!createdGroupsMap[g.name.toLowerCase()]) {
+                    createdGroupsMap[g.name.toLowerCase()] = g.id;
+                }
+            }
             
             for (const e of data.events) {
-                console.log('[IMPORT] Event:', e.name, 'date:', e.date);
+                console.log('[IMPORT] Event:', e.name, 'date:', e.date, 'group:', e.group_name);
                 
-                // Buscar por nombre Y fecha
+                // Resolver nombre de empresa a ID (primero mapa local, luego BD)
+                let resolvedGroupId = null;
+                if (e.group_name) {
+                    const groupNameLower = e.group_name.toLowerCase();
+                    if (createdGroupsMap[groupNameLower]) {
+                        resolvedGroupId = createdGroupsMap[groupNameLower];
+                        console.log('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);
+                    } else {
+                        // Buscar en BD
+                        const foundGroup = db.prepare("SELECT id FROM groups WHERE LOWER(name) = LOWER(?)").get(e.group_name);
+                        if (foundGroup) {
+                            resolvedGroupId = foundGroup.id;
+                            console.log('[IMPORT] Resolved group from DB:', e.group_name, '->', resolvedGroupId);
+                        }
+                    }
+                }
+                
+                // Buscar evento existente
                 let existing = null;
                 if (e.name && e.date) {
                     existing = db.prepare("SELECT id, name FROM events WHERE LOWER(name) = LOWER(?) AND date = ?").get(e.name, e.date);
@@ -341,24 +352,66 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 if (existing) {
                     console.log('[IMPORT] Updating event:', existing.name);
                     db.prepare("UPDATE events SET location = ?, description = ?, group_id = ? WHERE id = ?")
-                        .run(e.location, e.description, e.group_id || null, existing.id);
+                        .run(e.location, e.description, resolvedGroupId || null, existing.id);
                     updated++;
+                    // Registrar en mapa
+                    createdEventsMap[e.name.toLowerCase()] = existing.id;
                 } else {
                     console.log('[IMPORT] Creating new event:', e.name);
+                    const newId = getValidId('events');
                     db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
-                        .run(getValidId('events'), req.userId, e.name, e.date, e.location, e.description, e.group_id || null, new Date().toISOString());
+                        .run(newId, req.userId, e.name, e.date, e.location, e.description, resolvedGroupId || null, new Date().toISOString());
                     imported++;
+                    // Registrar en mapa
+                    createdEventsMap[e.name.toLowerCase()] = newId;
                 }
             }
         }
 
-        // Importar usuarios (Staff)
+        // ════════════════════════════════════════════════════════════
+        // PASO 3: Importar/Crear STAFF (usando mapas de empresas y eventos)
+        // ════════════════════════════════════════════════════════════
         if (data.users && data.users.length > 0) {
-            console.log('[IMPORT] Processing users:', data.users.length);
+            console.log('[IMPORT] Step 3 - Processing users:', data.users.length);
             const bcrypt = require('bcryptjs');
             
+            // Complementar mapas con datos de BD
+            const allGroups = db.prepare("SELECT id, name FROM groups").all();
+            for (const g of allGroups) {
+                if (!createdGroupsMap[g.name.toLowerCase()]) {
+                    createdGroupsMap[g.name.toLowerCase()] = g.id;
+                }
+            }
+            
+            const allEvents = db.prepare("SELECT id, name FROM events").all();
+            for (const ev of allEvents) {
+                if (!createdEventsMap[ev.name.toLowerCase()]) {
+                    createdEventsMap[ev.name.toLowerCase()] = ev.id;
+                }
+            }
+            
             for (const u of data.users) {
-                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'event_id:', u.event_id);
+                console.log('[IMPORT] User:', u.username, 'display_name:', u.display_name, 'company:', u.company_name, 'event:', u.event_name);
+                
+                // Resolver company_name a group_id (usar mapa local primero, luego BD)
+                let resolvedGroupId = null;
+                if (u.company_name) {
+                    const companyLower = u.company_name.toLowerCase();
+                    if (createdGroupsMap[companyLower]) {
+                        resolvedGroupId = createdGroupsMap[companyLower];
+                        console.log('[IMPORT] Resolved company from map:', u.company_name, '->', resolvedGroupId);
+                    }
+                }
+                
+                // Resolver event_name a event_id (usar mapa local primero, luego BD)
+                let resolvedEventId = null;
+                if (u.event_name) {
+                    const eventLower = u.event_name.toLowerCase();
+                    if (createdEventsMap[eventLower]) {
+                        resolvedEventId = createdEventsMap[eventLower];
+                        console.log('[IMPORT] Resolved event from map:', u.event_name, '->', resolvedEventId);
+                    }
+                }
                 
                 // Buscar por username (email)
                 let existingUser = null;
@@ -371,7 +424,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 if (existingUser) {
                     console.log('[IMPORT] Updating user:', existingUser.username);
                     db.prepare("UPDATE users SET display_name = ?, phone = ?, role = ?, group_id = ? WHERE id = ?")
-                        .run(u.display_name, u.phone, u.role, u.group_id || null, existingUser.id);
+                        .run(u.display_name, u.phone, u.role, resolvedGroupId || null, existingUser.id);
                     userId = existingUser.id;
                     updated++;
                 } else {
@@ -379,19 +432,21 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
                     userId = getValidId('users');
                     db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
-                        .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, u.group_id || null, new Date().toISOString());
+                        .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
                     imported++;
                 }
                 
-                // Vincular al evento si se especificó
-                if (u.event_id && userId) {
-                    console.log('[IMPORT] Linking user to event:', userId, '->', u.event_id);
+                // Vincular al evento si se especificó y se resolvió
+                if (resolvedEventId && userId) {
+                    console.log('[IMPORT] Linking user to event:', userId, '->', resolvedEventId);
                     try {
                         db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
-                            .run(getValidId('user_events'), userId, u.event_id, new Date().toISOString());
+                            .run(getValidId('user_events'), userId, resolvedEventId, new Date().toISOString());
                     } catch(linkErr) {
                         console.log('[IMPORT] Warning: Could not link user to event:', linkErr.message);
                     }
+                } else if (u.event_name && !resolvedEventId) {
+                    console.log('[IMPORT] Warning: Event not found for user:', u.event_name);
                 }
             }
         }
