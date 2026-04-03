@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.20';
+const VERSION = '12.44.21';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2574,8 +2574,10 @@ const App = window.App = {
     },
 
     loadMailboxMessages: async function(folder = 'INBOX') {
+        console.log('[MAILBOX] loadMailboxMessages called, folder:', folder);
         const accountId = document.getElementById('mailbox-account-select')?.value;
         const container = document.getElementById('mailbox-messages');
+        console.log('[MAILBOX] messages container:', !!container, 'accountId:', accountId);
         if (!container) return;
         
         container.innerHTML = `<div class="p-12 text-center animate-pulse">
@@ -2592,7 +2594,9 @@ const App = window.App = {
         }
         
         try {
+            console.log('[MAILBOX] Fetching messages, folder:', folder, 'account:', accountId);
             const result = await this.fetchAPI(`/email/mailbox/messages?account_id=${accountId}&folder=${folder}`);
+            console.log('[MAILBOX] Messages result:', JSON.stringify(result).substring(0, 500));
             
             if (!result.success) {
                 container.innerHTML = `<div class="text-center py-12 text-red-400">
