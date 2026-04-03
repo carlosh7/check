@@ -2145,11 +2145,21 @@ const App = window.App = {
     // Mostrar selector de empresa para bulk
     showGroupSelectorForBulk: function(userIds) {
         const groups = this.state.allGroups || [];
+        const users = this.state.allUsers || [];
         
         if (groups.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay empresas disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
+        
+        // Calcular cuántos de los usuarios seleccionados tienen cada empresa
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const getAssignedCount = (groupId) => {
+            return selectedUsers.filter(u => {
+                const userGroups = u.groups || [];
+                return userGroups.some(g => String(g.id) === String(groupId));
+            }).length;
+        };
         
         const html = `
             <div class="space-y-6">
@@ -2170,20 +2180,28 @@ const App = window.App = {
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${groups.map(g => `
-                        <div onclick="App.bulkAssignCompanyFromModal('${userIds.join(',')}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm">
+                    ${groups.map(g => {
+                        const assignedCount = getAssignedCount(g.id);
+                        const isAssignedToAll = assignedCount === userIds.length;
+                        const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
+                        const statusClass = isAssignedToAll ? 'ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30' : isAssignedToSome ? 'ring-1 ring-blue-500/30 bg-blue-500/5 border-blue-500/20' : '';
+                        const icon = isAssignedToAll ? 'check' : 'add';
+                        return `
+                        <div onclick="App.bulkToggleCompanyForUsers('${userIds.join(',')}', '${g.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
                             <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">corporate_fare</span>
                             </div>
                             <div class="flex-1">
                                 <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
-                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${g.email || 'Sin email'}</div>
+                                <div class="text-[11px] ${isAssignedToAll ? 'text-blue-400 font-semibold' : 'text-slate-500 uppercase tracking-tighter'}">
+                                    ${isAssignedToAll ? '✓ Asignada a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : g.email || 'Sin email'}
+                                </div>
                             </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            <div class="w-7 h-7 rounded-lg ${isAssignedToAll ? 'bg-blue-500/20 border-2 border-blue-500/50' : 'bg-white/5 border border-white/10'} flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs ${isAssignedToAll ? 'text-blue-400' : 'text-blue-500 opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>`;
 
@@ -2200,6 +2218,40 @@ const App = window.App = {
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
+    },
+    
+    // Toggle empresa para usuarios seleccionados (asignar o desasignar)
+    bulkToggleCompanyForUsers: async function(userIdsStr, groupId, currentlyAssigned) {
+        const userIds = userIdsStr.split(',');
+        try {
+            let promises;
+            if (currentlyAssigned) {
+                // Desasignar empresa (enviar null)
+                promises = userIds.map(userId => 
+                    this.fetchAPI(`/users/${userId}/group`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ group_id: null })
+                    })
+                );
+            } else {
+                // Asignar empresa
+                promises = userIds.map(userId => 
+                    this.fetchAPI(`/users/${userId}/group`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ group_id: groupId })
+                    })
+                );
+            }
+            
+            await Promise.all(promises);
+            
+            // Recargar modal para mostrar nuevo estado
+            this.showGroupSelectorForBulk(userIds);
+            this.loadUsersTable();
+            this.loadGroups();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar empresa', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
     },
     
     bulkAssignCompanyFromModal: async function(userIdsStr, groupId) {
@@ -2236,11 +2288,21 @@ const App = window.App = {
     // Mostrar selector de evento para bulk
     showEventSelectorForBulk: function(userIds) {
         const events = this.state.allEvents || [];
+        const users = this.state.allUsers || [];
         
         if (events.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
+        
+        // Calcular cuántos de los usuarios seleccionados tienen cada evento
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const getAssignedCount = (eventId) => {
+            return selectedUsers.filter(u => {
+                const userEvents = u.events || [];
+                return userEvents.some(ev => String(ev) === String(eventId));
+            }).length;
+        };
         
         const html = `
             <div class="space-y-6">
@@ -2261,20 +2323,28 @@ const App = window.App = {
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${events.map(e => `
-                        <div onclick="App.bulkAssignEventFromModal('${userIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
+                    ${events.map(e => {
+                        const assignedCount = getAssignedCount(e.id);
+                        const isAssignedToAll = assignedCount === userIds.length;
+                        const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
+                        const statusClass = isAssignedToAll ? 'ring-2 ring-purple-500/50 bg-purple-500/10 border-purple-500/30' : isAssignedToSome ? 'ring-1 ring-purple-500/30 bg-purple-500/5 border-purple-500/20' : '';
+                        const icon = isAssignedToAll ? 'check' : 'add';
+                        return `
+                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
                             <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
                                 <div class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</div>
-                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
+                                <div class="text-[11px] ${isAssignedToAll ? 'text-purple-400 font-semibold' : 'text-slate-500 uppercase tracking-tighter'}">
+                                    ${isAssignedToAll ? '✓ Asignado a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : (e.date || 'Sin fecha') + (e.location ? ' • ' + e.location : '')}
+                                </div>
                             </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            <div class="w-7 h-7 rounded-lg ${isAssignedToAll ? 'bg-purple-500/20 border-2 border-purple-500/50' : 'bg-white/5 border border-white/10'} flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs ${isAssignedToAll ? 'text-purple-400' : 'text-purple-500 opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>`;
 
@@ -2293,13 +2363,26 @@ const App = window.App = {
         });
     },
     
-    bulkAssignEventFromModal: async function(userIdsStr, eventId) {
+    // Toggle evento para usuarios seleccionados (asignar o desasignar)
+    bulkToggleEventForUsers: async function(userIdsStr, eventId, currentlyAssigned) {
         const userIds = userIdsStr.split(',');
         try {
             const promises = userIds.map(async (userId) => {
                 const user = this.state.allUsers?.find(u => u.id === userId);
                 const currentEvents = user?.events || [];
-                const newEvents = [...currentEvents, eventId];
+                let newEvents;
+                
+                if (currentlyAssigned) {
+                    // Desasignar: remover el evento
+                    newEvents = currentEvents.filter(ev => String(ev) !== String(eventId));
+                } else {
+                    // Asignar: agregar el evento si no existe
+                    if (!currentEvents.some(ev => String(ev) === String(eventId))) {
+                        newEvents = [...currentEvents, eventId];
+                    } else {
+                        return { success: true }; // Ya está asignado
+                    }
+                }
                 
                 return this.fetchAPI(`/users/${userId}/events`, {
                     method: 'PUT',
@@ -2309,22 +2392,12 @@ const App = window.App = {
             
             await Promise.all(promises);
             
-            Swal.fire({ 
-                title: '✓ Asignado', 
-                text: `Evento asignado a ${userIds.length} usuario(s)`, 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.state.selectedUsers = [];
+            // Recargar modal para mostrar nuevo estado
+            this.showEventSelectorForBulk(userIds);
             this.loadUsersTable();
             this.loadEvents();
-            Swal.close();
         } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
+            Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar evento', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
 
