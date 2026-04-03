@@ -1146,7 +1146,6 @@ router.get('/mailbox/messages', async (req, res) => {
         
         return new Promise((resolve) => {
             imap.once('ready', () => {
-                // Auto-prefijar carpetas con INBOX. si es necesario
                 let folderName = folder;
                 if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
                     folderName = `INBOX.${folder}`;
@@ -1176,11 +1175,25 @@ router.get('/mailbox/messages', async (req, res) => {
                     });
                     
                     const messages = [];
-                    let msgCount = 0;
-                    const expectedCount = end - start + 1;
+                    let msgsReceived = 0;
+                    let msgsProcessed = 0;
+                    let fetchEnded = false;
+                    let finished = false;
+                    
+                    function tryFinish() {
+                        if (finished) return;
+                        if (fetchEnded && msgsProcessed >= msgsReceived && msgsReceived > 0) {
+                            finished = true;
+                            imap.end();
+                            res.json({ success: true, messages, total });
+                            resolve();
+                        }
+                    }
                     
                     fetch.on('message', (msg) => {
+                        msgsReceived++;
                         const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
+                        let bodyDone = false;
                         
                         msg.on('attributes', (attrs) => {
                             msgData.seen = attrs.flags.includes('\\Seen');
@@ -1190,6 +1203,7 @@ router.get('/mailbox/messages', async (req, res) => {
                             let buffer = '';
                             stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
                             stream.on('end', () => {
+                                bodyDone = true;
                                 const lines = buffer.split(/\r?\n/);
                                 for (const line of lines) {
                                     if (/^From:/i.test(line) && !msgData.from) {
@@ -1211,29 +1225,38 @@ router.get('/mailbox/messages', async (req, res) => {
                                         msgData.date = line.replace(/^Date:\s*/i, '').trim();
                                     }
                                 }
+                                // Usar setImmediate para asegurar que msg.end ya se disparó
+                                setImmediate(() => {
+                                    messages.push(msgData);
+                                    msgsProcessed++;
+                                    tryFinish();
+                                });
                             });
                         });
                         
                         msg.once('end', () => {
-                            messages.push(msgData);
-                            msgCount++;
-                            if (msgCount >= expectedCount) {
-                                imap.end();
-                                res.json({ success: true, messages, total });
-                                resolve();
+                            if (!bodyDone) {
+                                // Body stream didn't fire for this message
+                                setImmediate(() => {
+                                    msgsProcessed++;
+                                    tryFinish();
+                                });
                             }
                         });
                     });
                     
                     fetch.once('end', () => {
-                        // Si fetch end pero no todos los mensajes se procesaron (timeout de seguridad)
+                        fetchEnded = true;
+                        tryFinish();
+                        // Fallback timeout: si después de 5s no terminó, enviar lo que hay
                         setTimeout(() => {
-                            if (messages.length > 0) {
+                            if (!finished) {
+                                finished = true;
                                 imap.end();
                                 res.json({ success: true, messages, total });
                                 resolve();
                             }
-                        }, 2000);
+                        }, 5000);
                     });
                     
                     fetch.once('error', (err) => {
