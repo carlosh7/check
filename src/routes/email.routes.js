@@ -1166,106 +1166,79 @@ router.get('/mailbox/messages', async (req, res) => {
                         return resolve();
                     }
                     
-                    // Search para obtener los UIDs de los últimos mensajes
-                    const count = Math.min(limit, total);
+                    // Search para obtener TODOS los UIDs
                     imap.search([['ALL']], (err, results) => {
-                        if (err) {
+                        if (err || !results || results.length === 0) {
                             imap.end();
-                            return res.json({ success: false, error: err.message });
+                            res.json({ success: err ? false : true, messages: [], total });
+                            return resolve();
                         }
                         
                         // Obtener los últimos N UIDs
+                        const count = Math.min(limit, total);
                         const uids = results.slice(-count);
-                        
-                        if (uids.length === 0) {
-                            imap.end();
-                            return res.json({ success: true, messages: [], total });
-                        }
-                        
-                        const fetch = imap.fetch(uids, {
-                            bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
-                            markSeen: false
-                        });
-                        
                         const messages = [];
-                        let completed = 0;
                         
-                        fetch.on('message', (msg) => {
-                            const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
-                            let bodyReceived = false;
+                        // Fetch secuencial: un UID a la vez
+                        function fetchNext(index) {
+                            if (index >= uids.length) {
+                                imap.end();
+                                res.json({ success: true, messages, total });
+                                return resolve();
+                            }
                             
-                            msg.on('attributes', (attrs) => {
-                                msgData.seen = attrs.flags.includes('\\Seen');
+                            const uid = uids[index];
+                            const fetch = imap.fetch([uid], {
+                                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
+                                markSeen: false
                             });
                             
-                            msg.on('body', (stream, info) => {
-                                let buffer = '';
-                                stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
-                                stream.on('end', () => {
-                                    bodyReceived = true;
-                                    const lines = buffer.split(/\r?\n/);
-                                    for (const line of lines) {
-                                        if (/^From:/i.test(line) && !msgData.from) {
-                                            const clean = line.replace(/^From:\s*/i, '').trim();
-                                            const match = clean.match(/^(.*?)\s*<(.+?)>/);
-                                            if (match) {
-                                                msgData.from_name = match[1].replace(/"/g, '').trim();
-                                                msgData.from = match[2].trim();
-                                            } else {
-                                                msgData.from = clean;
+                            fetch.on('message', (msg) => {
+                                const msgData = { uid: msg.uid, from: '', from_name: '', to: '', subject: '', date: '', seen: false };
+                                
+                                msg.on('attributes', (attrs) => {
+                                    msgData.seen = attrs.flags.includes('\\Seen');
+                                });
+                                
+                                msg.on('body', (stream) => {
+                                    let buffer = '';
+                                    stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
+                                    stream.on('end', () => {
+                                        const lines = buffer.split(/\r?\n/);
+                                        for (const line of lines) {
+                                            if (/^From:/i.test(line) && !msgData.from) {
+                                                const clean = line.replace(/^From:\s*/i, '').trim();
+                                                const match = clean.match(/^(.*?)\s*<(.+?)>/);
+                                                if (match) {
+                                                    msgData.from_name = match[1].replace(/"/g, '').trim();
+                                                    msgData.from = match[2].trim();
+                                                } else {
+                                                    msgData.from = clean;
+                                                }
+                                            } else if (/^To:/i.test(line) && !msgData.to) {
+                                                const clean = line.replace(/^To:\s*/i, '').trim();
+                                                const match = clean.match(/<(.+?)>/);
+                                                msgData.to = match ? match[1] : clean;
+                                            } else if (/^Subject:/i.test(line) && !msgData.subject) {
+                                                msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
+                                            } else if (/^Date:/i.test(line) && !msgData.date) {
+                                                msgData.date = line.replace(/^Date:\s*/i, '').trim();
                                             }
-                                        } else if (/^To:/i.test(line) && !msgData.to) {
-                                            const clean = line.replace(/^To:\s*/i, '').trim();
-                                            const match = clean.match(/<(.+?)>/);
-                                            msgData.to = match ? match[1] : clean;
-                                        } else if (/^Subject:/i.test(line) && !msgData.subject) {
-                                            msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
-                                        } else if (/^Date:/i.test(line) && !msgData.date) {
-                                            msgData.date = line.replace(/^Date:\s*/i, '').trim();
                                         }
-                                    }
-                                    // Agregar mensaje después de procesar body
-                                    messages.push(msgData);
-                                    completed++;
-                                    if (completed >= uids.length) {
-                                        finishFetch();
-                                    }
+                                        messages.push(msgData);
+                                        // Siguiente mensaje
+                                        fetchNext(index + 1);
+                                    });
                                 });
                             });
                             
-                            msg.once('end', () => {
-                                // Si no se recibió body, agregar de todas formas
-                                if (!bodyReceived) {
-                                    messages.push(msgData);
-                                    completed++;
-                                    if (completed >= uids.length) {
-                                        finishFetch();
-                                    }
-                                }
+                            fetch.once('error', () => {
+                                // Skip this message and continue
+                                fetchNext(index + 1);
                             });
-                        });
-                        
-                        let finished = false;
-                        function finishFetch() {
-                            if (finished) return;
-                            finished = true;
-                            imap.end();
-                            res.json({ success: true, messages, total });
-                            resolve();
                         }
                         
-                        fetch.once('end', () => {
-                            // Timeout de seguridad
-                            setTimeout(() => {
-                                if (!finished) finishFetch();
-                            }, 3000);
-                        });
-                        
-                        fetch.once('error', (err) => {
-                            imap.end();
-                            res.json({ success: false, error: err.message });
-                            resolve();
-                        });
+                        fetchNext(0);
                     });
                 });
             });
