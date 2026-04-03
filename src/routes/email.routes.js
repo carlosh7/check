@@ -1287,120 +1287,126 @@ router.get('/mailbox/message/:uid', async (req, res) => {
                         return resolve();
                     }
                     
-                    // Fetch headers completos + body completo
+                    // Fetch el email completo como raw
                     const fetch = imap.fetch(uid, { 
-                        bodies: ['HEADER', ''],
+                        bodies: '',
                         markSeen: false 
                     });
                     
-                    const msgData = {
-                        id: uid,
-                        from: '', from_name: '', to: '', subject: '', date: '',
-                        html: '', text: '', attachments: []
-                    };
-                    let headersParsed = false;
-                    let bodyParsed = false;
+                    const chunks = [];
+                    let totalSize = 0;
+                    const maxSize = 10 * 1024 * 1024; // 10MB max
                     
                     fetch.on('message', (msg) => {
-                        msg.on('body', (stream, info) => {
-                            const chunks = [];
-                            let totalSize = 0;
-                            const maxSize = 200 * 1024; // 200KB
-                            
+                        msg.on('body', (stream) => {
                             stream.on('data', chunk => {
                                 if (totalSize < maxSize) {
                                     chunks.push(chunk);
                                     totalSize += chunk.length;
                                 }
                             });
-                            
-                            stream.on('end', () => {
-                                const data = Buffer.concat(chunks).toString('utf8');
-                                
-                                if (info.which === 'HEADER') {
-                                    // Parsear headers
-                                    const lines = data.split(/\r?\n/);
-                                    for (const line of lines) {
-                                        if (/^From:/i.test(line) && !msgData.from) {
-                                            const clean = line.replace(/^From:\s*/i, '').trim();
-                                            const match = clean.match(/^(.*?)\s*<(.+?)>/);
-                                            if (match) {
-                                                msgData.from_name = match[1].replace(/"/g, '').trim();
-                                                msgData.from = match[2].trim();
-                                            } else {
-                                                msgData.from = clean;
-                                            }
-                                        } else if (/^To:/i.test(line) && !msgData.to) {
-                                            const clean = line.replace(/^To:\s*/i, '').trim();
-                                            const match = clean.match(/<(.+?)>/);
-                                            msgData.to = match ? match[1] : clean;
-                                        } else if (/^Subject:/i.test(line) && !msgData.subject) {
-                                            msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
-                                        } else if (/^Date:/i.test(line) && !msgData.date) {
-                                            msgData.date = line.replace(/^Date:\s*/i, '').trim();
-                                        }
-                                    }
-                                    headersParsed = true;
-                                    tryFinish();
-                                } else {
-                                    // Parsear body
-                                    const bodyPart = data;
-                                    
-                                    // Si es multipart, intentar extraer HTML y texto plano
-                                    const htmlMatch = bodyPart.match(/Content-Type:\s*text\/html[^]*?(\r\n\r\n|\n\n)([\s\S]*?)(\r\n--|\n--|$)/i);
-                                    const textMatch = bodyPart.match(/Content-Type:\s*text\/plain[^]*?(\r\n\r\n|\n\n)([\s\S]*?)(\r\n--|\n--|$)/i);
-                                    
-                                    if (htmlMatch) {
-                                        msgData.html = htmlMatch[2].trim();
-                                    }
-                                    if (textMatch) {
-                                        msgData.text = textMatch[2].trim();
-                                    }
-                                    
-                                    // Si no se encontró HTML ni texto plano, usar el body raw como fallback
-                                    if (!msgData.html && !msgData.text) {
-                                        let cleanBody = bodyPart;
-                                        cleanBody = cleanBody.replace(/^Content-Transfer-Encoding:.*$/gm, '');
-                                        cleanBody = cleanBody.replace(/^Content-Type:.*$/gm, '');
-                                        cleanBody = cleanBody.replace(/^\r?\n/gm, '');
-                                        msgData.text = cleanBody.trim().substring(0, 10000);
-                                    }
-                                    
-                                    // Si no hay HTML pero hay texto, convertir a HTML
-                                    if (!msgData.html && msgData.text) {
-                                        msgData.html = `<pre style="white-space:pre-wrap;word-wrap:break-word;font-family:inherit;">${msgData.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
-                                    }
-                                    
-                                    bodyParsed = true;
-                                    tryFinish();
-                                }
-                            });
-                        });
-                        
-                        msg.once('end', () => {
-                            if (!bodyParsed) {
-                                bodyParsed = true;
-                                tryFinish();
-                            }
                         });
                     });
                     
-                    function tryFinish() {
-                        if (headersParsed && bodyParsed) {
+                    fetch.once('end', () => {
+                        const rawEmail = Buffer.concat(chunks);
+                        
+                        // Usar mailparser.simpleParser para parsear correctamente MIME
+                        mailparser.simpleParser(rawEmail, (err, parsed) => {
                             imap.end();
+                            if (err) {
+                                console.error('[MAILBOX] Mailparser error:', err.message);
+                                res.json({ success: false, error: 'Error parseando email: ' + err.message });
+                                return resolve();
+                            }
+                            
+                            const msgData = {
+                                id: uid,
+                                from: parsed.from?.value?.[0]?.address || '',
+                                from_name: parsed.from?.text || '',
+                                to: parsed.to?.text || '',
+                                subject: parsed.subject || '(Sin asunto)',
+                                date: parsed.date?.toISOString() || '',
+                                html: parsed.html || '',
+                                text: parsed.text || '',
+                                attachments: (parsed.attachments || []).map(a => ({
+                                    filename: a.filename || 'attachment',
+                                    contentType: a.contentType,
+                                    size: a.size
+                                }))
+                            };
+                            
                             res.json({ success: true, message: msgData });
                             resolve();
-                        }
-                    }
+                        });
+                    });
+                    
+                    fetch.once('error', (err) => {
+                        imap.end();
+                        res.json({ success: false, error: err.message });
+                        resolve();
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => {
+                res.json({ success: false, error: err.message });
+                resolve();
+            });
+            
+            imap.connect();
+        });
+    } catch (error) {
+        console.error('Error getting mailbox message:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+                    
+                    const chunks = [];
+                    let totalSize = 0;
+                    const maxSize = 5 * 1024 * 1024; // 5MB max
+                    
+                    fetch.on('message', (msg) => {
+                        msg.on('body', (stream) => {
+                            stream.on('data', chunk => {
+                                if (totalSize < maxSize) {
+                                    chunks.push(chunk);
+                                    totalSize += chunk.length;
+                                }
+                            });
+                        });
+                    });
                     
                     fetch.once('end', () => {
-                        setTimeout(() => {
-                            if (!headersParsed || !bodyParsed) {
-                                imap.end();
-                                res.json({ success: true, message: msgData });
-                                resolve();
+                        const rawEmail = Buffer.concat(chunks);
+                        
+                        // Usar mailparser para parsear correctamente
+                        mailparser.simpleParser(rawEmail, (err, parsed) => {
+                            imap.end();
+                            if (err) {
+                                res.json({ success: false, error: err.message });
+                                return resolve();
                             }
-                        }, 5000);
+                            
+                            const msgData = {
+                                id: uid,
+                                from: parsed.from?.value?.[0]?.address || '',
+                                from_name: parsed.from?.value?.[0]?.name || '',
+                                to: parsed.to?.value?.[0]?.address || '',
+                                subject: parsed.subject || '(Sin asunto)',
+                                date: parsed.date?.toISOString() || '',
+                                html: parsed.html || '',
+                                text: parsed.text || '',
+                                attachments: (parsed.attachments || []).map(a => ({
+                                    filename: a.filename || 'attachment',
+                                    contentType: a.contentType,
+                                    size: a.size
+                                }))
+                            };
+                            
+                            res.json({ success: true, message: msgData });
+                            resolve();
+                        });
                     });
                     
                     fetch.once('error', (err) => {
