@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.12';
+const VERSION = '12.44.13';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -2266,122 +2266,122 @@ const App = window.App = {
         }
         
         const modalContent = `
-        <div class="fixed inset-0 bg-black/70 z-[999999] flex items-center justify-center p-4">
-            <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden">
-                <div class="p-6 border-b border-white/10 flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-white">${accountId ? 'Editar' : 'Nueva'} Cuenta de Email</h3>
-                    <button onclick="hideModal('modal-email-account')" class="p-2 hover:bg-white/10 rounded-lg">
-                        <span class="material-symbols-outlined text-slate-400">close</span>
+        <div id="modal-email-account" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+            <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                    <h3 class="text-xl font-bold text-[var(--text-main)]">${accountId ? 'Editar' : 'Nueva'} Cuenta de Email</h3>
+                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
                     </button>
                 </div>
-                <div class="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+                <div class="p-6 overflow-y-auto flex-1 space-y-6">
                     <input type="hidden" id="email-account-id" value="${accountId || ''}">
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div class="col-span-2">
-                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Nombre de la Cuenta</label>
+                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Nombre de la Cuenta</label>
                             <input type="text" id="email-account-name" value="${account.name || ''}" class="input-field w-full" placeholder="Mi Gmail, Outlook, etc.">
                         </div>
                     </div>
                     
-                    <div class="border-t border-white/5 pt-4">
-                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <div class="border-t border-[var(--border)] pt-4">
+                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-violet-400">send</span> Configuración SMTP (Enviar)
                         </h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Servidor SMTP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Servidor SMTP</label>
                                 <input type="text" id="email-smtp-host" value="${account.smtp_host || ''}" class="input-field w-full" placeholder="smtp.gmail.com">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Puerto SMTP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Puerto SMTP</label>
                                 <input type="number" id="email-smtp-port" value="${account.smtp_port || 587}" class="input-field w-full" placeholder="587">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Usuario SMTP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Usuario SMTP</label>
                                 <input type="text" id="email-smtp-user" value="${account.smtp_user || ''}" class="input-field w-full" placeholder="tu@email.com">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Contraseña SMTP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Contraseña SMTP</label>
                                 <input type="password" id="email-smtp-pass" value="${account.smtp_password === '***' ? '' : account.smtp_password || ''}" class="input-field w-full" placeholder="${account.smtp_password === '***' ? '••••••••' : 'Contraseña o app password'}">
                             </div>
                         </div>
                         <div class="mt-3">
-                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
                                 <input type="checkbox" id="email-smtp-ssl" ${account.smtp_ssl ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
                             </label>
                         </div>
                     </div>
                     
-                    <div class="border-t border-white/5 pt-4">
-                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <div class="border-t border-[var(--border)] pt-4">
+                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-blue-400">inbox</span> Configuración IMAP (Recibir)
                         </h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Servidor IMAP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Servidor IMAP</label>
                                 <input type="text" id="email-imap-host" value="${account.imap_host || ''}" class="input-field w-full" placeholder="imap.gmail.com">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Puerto IMAP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Puerto IMAP</label>
                                 <input type="number" id="email-imap-port" value="${account.imap_port || 993}" class="input-field w-full" placeholder="993">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Usuario IMAP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Usuario IMAP</label>
                                 <input type="text" id="email-imap-user" value="${account.imap_user || ''}" class="input-field w-full" placeholder="tu@email.com">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Contraseña IMAP</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Contraseña IMAP</label>
                                 <input type="password" id="email-imap-pass" value="${account.imap_password === '***' ? '' : account.imap_password || ''}" class="input-field w-full" placeholder="${account.imap_password === '***' ? '••••••••' : 'Contraseña'}">
                             </div>
                         </div>
                         <div class="mt-3">
-                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
                                 <input type="checkbox" id="email-imap-ssl" ${account.imap_ssl !== 0 ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
                             </label>
                         </div>
                     </div>
                     
-                    <div class="border-t border-white/5 pt-4">
-                        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <div class="border-t border-[var(--border)] pt-4">
+                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-green-400">person</span> Remitente
                         </h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Nombre Remitente</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Nombre Remitente</label>
                                 <input type="text" id="email-sender-name" value="${account.sender_name || ''}" class="input-field w-full" placeholder="Mi Empresa">
                             </div>
                             <div>
-                                <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Email Remitente</label>
+                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Email Remitente</label>
                                 <input type="email" id="email-sender-email" value="${account.sender_email || ''}" class="input-field w-full" placeholder="noreply@empresa.com">
                             </div>
                         </div>
                     </div>
                     
-                    <div class="border-t border-white/5 pt-4">
-                        <h4 class="text-sm font-bold text-white mb-3">Opciones</h4>
+                    <div class="border-t border-[var(--border)] pt-4">
+                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3">Opciones</h4>
                         <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
                                 <input type="checkbox" id="email-is-default" ${account.is_default ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta por defecto
                             </label>
-                            <label class="flex items-center gap-2 text-sm text-slate-300">
+                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
                                 <input type="checkbox" id="email-is-active" ${account.is_active ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta activa
                             </label>
                         </div>
                         <div class="mt-3">
-                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Límite diario de emails</label>
+                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Límite diario de emails</label>
                             <input type="number" id="email-daily-limit" value="${account.daily_limit || 500}" class="input-field w-full max-w-[200px]" min="1" max="10000">
                         </div>
                     </div>
                     
-                    <div class="border-t border-white/5 pt-4">
+                    <div class="border-t border-[var(--border)] pt-4">
                         <button onclick="App.showEmailSetupHelp()" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">help</span> Necesito ayuda para configurar mi cuenta
                         </button>
                     </div>
                 </div>
-                <div class="p-6 border-t border-white/10 flex justify-end gap-3">
-                    <button onclick="hideModal('modal-email-account')" class="px-4 py-2 rounded-xl bg-white/5 text-slate-300 font-bold">Cancelar</button>
+                <div class="p-6 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
+                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold hover:bg-white/10 transition-colors">Cancelar</button>
                     <button onclick="App.saveEmailAccount()" class="btn-primary !px-6 !py-2">Guardar</button>
                 </div>
             </div>
@@ -9555,7 +9555,16 @@ async function initApp() {
             const settings = await fetch('/api/settings').then(r => r.json());
             const modal = document.getElementById('modal-legal');
             document.getElementById('modal-legal-title').textContent = title;
-            document.getElementById('modal-legal-content').innerHTML = settings[key] || '<p>Contenido no disponible.</p>';
+            let content = settings[key] || '<p>Contenido no disponible.</p>';
+            
+            // LIMPIAR estilos inline que causan texto blanco sobre fondo blanco
+            content = content.replace(/color\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
+            content = content.replace(/background-color\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
+            content = content.replace(/background\s*:\s*#[fF]{3,6}(?:\s*[;}]|\s*$)/gi, '');
+            content = content.replace(/color\s*:\s*#000(?:\s*[;}]|\s*$)/gi, '');
+            content = content.replace(/background-color\s*:\s*#000(?:\s*[;}]|\s*$)/gi, '');
+            
+            document.getElementById('modal-legal-content').innerHTML = content;
             modal?.classList.remove('hidden');
         } catch(e) { alert('No se pudo cargar el texto legal.'); }
     }

@@ -796,6 +796,39 @@ html:not(.dark) .tpl-preview-bg .ql-toolbar {
 /* NOTA: .hidden ya estÃ¡ definido en Tailwind CSS */
 /* No redefinir clases de utilidad de Tailwind */
 
+/* ===== SIDEBAR COLLAPSED STATE ===== */
+#global-sidebar.collapsed {
+    width: 64px !important;
+    overflow: hidden;
+}
+
+#global-sidebar.collapsed .logo-text,
+#global-sidebar.collapsed .sidebar-text,
+#global-sidebar.collapsed #sidebar-username,
+#global-sidebar.collapsed #sidebar-role,
+#global-sidebar.collapsed .text-xs {
+    display: none !important;
+}
+
+#global-sidebar.collapsed .logo-container {
+    padding: 16px !important;
+    justify-content: center !important;
+}
+
+#global-sidebar.collapsed nav {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
+#global-sidebar.collapsed .nav-item {
+    padding: 12px !important;
+    justify-content: center !important;
+}
+
+#global-sidebar.collapsed .nav-item .material-symbols-outlined {
+    margin: 0 !important;
+}
+
 /* ===== SIDEBAR RESPONSIVE ===== */
 @media (max-width: 768px) {
     #global-sidebar {
