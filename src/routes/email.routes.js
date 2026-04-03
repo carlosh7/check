@@ -35,6 +35,7 @@ function replaceTemplateVariables(template, data) {
 
 /**
  * Obtiene los headers SMTP de una cuenta
+ * Compatible con esquema legacy (smtp_pass) y nuevo (smtp_password)
  */
 function getSmtpConfig(account) {
     return {
@@ -43,18 +44,19 @@ function getSmtpConfig(account) {
         secure: account.smtp_ssl === 1,
         auth: {
             user: account.smtp_user,
-            pass: account.smtp_password
+            pass: account.smtp_password || account.smtp_pass
         }
     };
 }
 
 /**
  * Obtiene la configuración IMAP de una cuenta
+ * Compatible con esquema legacy (imap_pass) y nuevo (imap_password)
  */
 function getImapConfig(account) {
     return {
         user: account.imap_user,
-        password: account.imap_password,
+        password: account.imap_password || account.imap_pass,
         host: account.imap_host,
         port: account.imap_port || 993,
         tls: account.imap_ssl === 1,
