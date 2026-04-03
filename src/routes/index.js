@@ -20,9 +20,9 @@ const pushRoutes = require('./push.routes');
 const statsRoutes = require('./stats.routes');
 const importRoutes = require('./import.routes');
 
-// Configuración segura de multer
+// Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
-    dest: 'uploads/',
+    storage: multer.memoryStorage(),
     limits: {
         fileSize: 5 * 1024 * 1024, // 5MB máximo
         files: 1 // Solo 1 archivo a la vez
