@@ -1406,3 +1406,252 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL: WIZARD DE CAMPAÑAS -->
+<div id="modal-campaign-wizard" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-violet-400 text-xl">campaign</span>
+                <h3 class="text-lg font-bold text-white">Nueva Campaña de Email</h3>
+            </div>
+            <button onclick="App.closeCampaignWizard()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-slate-400">close</span>
+            </button>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="px-6 py-4 border-b border-white/5 bg-slate-800/30">
+            <div class="flex items-center justify-between mb-2">
+                <span id="wizard-step-label" class="text-xs font-bold text-violet-400 uppercase">Paso 1 de 3</span>
+                <span class="text-xs text-slate-500">Destinatarios</span>
+            </div>
+            <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div id="wizard-progress-bar" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500" style="width: 33%"></div>
+            </div>
+        </div>
+        
+        <!-- Step Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <!-- STEP 1: Destinatarios -->
+            <div id="wizard-step-1" class="wizard-step space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Selecciona los Destinatarios</h4>
+                        <p class="text-sm text-slate-400">Elige qué invitados recibirán esta campaña</p>
+                    </div>
+                </div>
+                
+                <div class="card p-4 space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Cuenta de Email</label>
+                        <select id="wizard-account-select" class="input-field w-full">
+                            <option value="">-- Seleccionar Cuenta --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Tipo de Destinatarios</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-recipient-type" value="all" checked class="accent-violet-500">
+                                <div>
+                                    <span class="text-sm font-bold text-white">Todos</span>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-all">0 invitados</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-recipient-type" value="confirmed" class="accent-violet-500">
+                                <div>
+                                    <span class="text-sm font-bold text-white">Confirmados</span>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-confirmed">0 confirmados</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-recipient-type" value="pending" class="accent-violet-500">
+                                <div>
+                                    <span class="text-sm font-bold text-white">Pendientes</span>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-pending">0 pendientes</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Nombre de la Campaña</label>
+                        <input type="text" id="wizard-campaign-name" class="input-field w-full" placeholder="Ej: Recordatorio evento anual">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- STEP 2: Contenido -->
+            <div id="wizard-step-2" class="wizard-step hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Crea el Contenido</h4>
+                        <p class="text-sm text-slate-400">Redacta el asunto y cuerpo del email</p>
+                    </div>
+                </div>
+                
+                <div class="card p-4 space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Asunto del Email *</label>
+                        <input type="text" id="wizard-email-subject" class="input-field w-full" placeholder="Ej: Recordatorio: Evento Anual 2024">
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Plantilla</label>
+                        <select id="wizard-template-select" class="input-field w-full" onchange="App.onWizardTemplateChange()">
+                            <option value="">-- Sin plantilla (en blanco) --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Contenido del Email</label>
+                        <div id="wizard-editor-container" class="bg-white rounded-lg overflow-hidden mb-2">
+                            <div id="wizard-quill-editor" style="min-height: 200px;"></div>
+                        </div>
+                        
+                        <!-- Variables rápidas -->
+                        <div class="flex flex-wrap gap-1">
+                            <button onclick="App.insertWizardVariable('guest_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{guest_name}}</button>
+                            <button onclick="App.insertWizardVariable('guest_first_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{guest_first_name}}</button>
+                            <button onclick="App.insertWizardVariable('event_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_name}}</button>
+                            <button onclick="App.insertWizardVariable('event_date')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_date}}</button>
+                            <button onclick="App.insertWizardVariable('event_location')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_location}}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- STEP 3: Programación -->
+            <div id="wizard-step-3" class="wizard-step hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Programar Envío</h4>
+                        <p class="text-sm text-slate-400">Elige cuándo enviar la campaña</p>
+                    </div>
+                </div>
+                
+                <div class="card p-4 space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-3 block">Tipo de Envío</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2 p-4 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-send-type" value="now" checked class="accent-violet-500">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-violet-400">send_now</span>
+                                    <span class="text-sm font-bold text-white">Enviar Ahora</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-4 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-send-type" value="scheduled" class="accent-violet-500">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-violet-400">schedule</span>
+                                    <span class="text-sm font-bold text-white">Programar</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="wizard-schedule-container" class="hidden">
+                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Fecha y Hora de Envío</label>
+                        <input type="datetime-local" id="wizard-scheduled-date" class="input-field w-full">
+                        <p class="text-xs text-slate-500 mt-2">La campaña se enviará a la hora especificada</p>
+                    </div>
+                    
+                    <!-- Resumen -->
+                    <div class="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 space-y-2">
+                        <h5 class="text-sm font-bold text-violet-300">Resumen de la Campaña</h5>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="text-slate-400">Campaña:</div>
+                            <div class="text-white font-medium" id="wizard-summary-name">-</div>
+                            <div class="text-slate-400">Destinatarios:</div>
+                            <div class="text-white font-medium" id="wizard-summary-recipients">-</div>
+                            <div class="text-slate-400">Asunto:</div>
+                            <div class="text-white font-medium" id="wizard-summary-subject">-</div>
+                            <div class="text-slate-400">Envío:</div>
+                            <div class="text-white font-medium" id="wizard-summary-send-type">Ahora</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-white/10 flex justify-between shrink-0">
+            <button id="wizard-btn-back" onclick="App.wizardPrevStep()" class="px-6 py-2 rounded-xl bg-white/5 text-slate-300 font-bold hover:bg-white/10 hidden">← Anterior</button>
+            <div class="flex gap-3">
+                <button onclick="App.closeCampaignWizard()" class="px-6 py-2 rounded-xl bg-white/5 text-slate-300 font-bold hover:bg-white/10">Cancelar</button>
+                <button id="wizard-btn-next" onclick="App.wizardNextStep()" class="btn-primary !px-6 !py-2">Siguiente →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MONITOR DE CAMPAÑA -->
+<div id="modal-campaign-monitor" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-violet-400 text-xl">monitoring</span>
+                <h3 class="text-lg font-bold text-white">Monitorear Campaña</h3>
+            </div>
+            <button onclick="App.closeCampaignMonitor()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-slate-400">close</span>
+            </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+            <!-- Campaign Info -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <h4 id="monitor-campaign-name" class="text-lg font-bold text-white">-</h4>
+                    <p id="monitor-campaign-status" class="text-sm text-slate-400">-</p>
+                </div>
+                <div id="monitor-status-badge" class="px-3 py-1 rounded-full text-xs font-bold"></div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-400">Progreso</span>
+                    <span id="monitor-progress-text" class="text-white font-bold">0 / 0</span>
+                </div>
+                <div class="h-3 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="monitor-progress-bar" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                    <span>Enviados: <span id="monitor-sent">0</span></span>
+                    <span>Fallidos: <span id="monitor-failed">0</span></span>
+                    <span>Pendientes: <span id="monitor-pending">0</span></span>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex gap-2">
+                <button id="monitor-btn-pause" onclick="App.pauseCampaign()" class="btn-secondary flex-1 !py-2">
+                    <span class="material-symbols-outlined text-sm mr-1">pause</span> Pausar
+                </button>
+                <button id="monitor-btn-resume" onclick="App.resumeCampaign()" class="btn-primary flex-1 !py-2 hidden">
+                    <span class="material-symbols-outlined text-sm mr-1">play_arrow</span> Reanudar
+                </button>
+                <button id="monitor-btn-cancel" onclick="App.cancelCampaign()" class="btn-secondary flex-1 !py-2 !border-red-500/50 !text-red-400 hover:!bg-red-500/10">
+                    <span class="material-symbols-outlined text-sm mr-1">stop</span> Cancelar
+                </button>
+            </div>
+            
+            <!-- Logs -->
+            <div>
+                <h5 class="text-sm font-bold text-white mb-3">Últimos Envíos</h5>
+                <div id="monitor-logs" class="space-y-2 max-h-[200px] overflow-y-auto">
+                    <p class="text-xs text-slate-500 text-center py-4">Cargando logs...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-white/10 shrink-0">
+            <button onclick="App.closeCampaignMonitor()" class="btn-secondary w-full !py-2">Cerrar</button>
+        </div>
+    </div>
+</div>

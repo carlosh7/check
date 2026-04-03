@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.5",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.5 - Editor WYSIWYG Quill para Mailing y Biblioteca de Plantillas",
+  "version": "12.44.6",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.6 - Wizard de campañas y monitor de envío",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

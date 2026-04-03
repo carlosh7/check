@@ -2978,13 +2978,40 @@ const App = window.App = {
                 return;
             }
             
+            const statusColors = {
+                'DRAFT': 'bg-slate-500/20 text-slate-400',
+                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
+                'SENDING': 'bg-blue-500/20 text-blue-400 animate-pulse',
+                'SENT': 'bg-green-500/20 text-green-400',
+                'PAUSED': 'bg-orange-500/20 text-orange-400',
+                'CANCELLED': 'bg-red-500/20 text-red-400'
+            };
+            
             container.innerHTML = campaigns.map(c => `
-                <div class="card p-3 flex items-center justify-between text-sm">
-                    <div>
-                        <span class="font-bold text-white">${c.name}</span>
-                        <span class="text-xs text-slate-500 ml-2">${c.sent_count}/${c.total_recipients} enviados</span>
+                <div class="card p-4 flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl ${c.status === 'SENDING' ? 'bg-blue-500/20' : 'bg-violet-500/20'} flex items-center justify-center">
+                            <span class="material-symbols-outlined text-lg ${c.status === 'SENDING' ? 'text-blue-400' : 'text-violet-400'}">campaign</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white">${c.name}</h4>
+                            <p class="text-xs text-slate-500 truncate max-w-[200px]">${c.subject || 'Sin asunto'}</p>
+                        </div>
                     </div>
-                    <span class="text-xs px-2 py-1 rounded-full ${c.status === 'SENT' ? 'bg-green-500/20 text-green-400' : c.status === 'SENDING' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-500/20 text-slate-400'}">${c.status}</span>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <p class="text-xs text-slate-400">${c.sent_count || 0}/${c.total_recipients || 0}</p>
+                            <div class="w-20 h-1.5 bg-slate-700 rounded-full mt-1 overflow-hidden">
+                                <div class="h-full bg-violet-500" style="width: ${c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0}%"></div>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">${c.status}</span>
+                        ${c.status === 'SENDING' || c.status === 'PAUSED' || c.status === 'SENT' ? `
+                            <button onclick="App.openCampaignMonitor('${c.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Monitorear">
+                                <span class="material-symbols-outlined text-slate-400">monitoring</span>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `).join('');
             
@@ -3024,8 +3051,462 @@ const App = window.App = {
         this.switchMailingSubTab('composer');
     },
 
+    // ==================== WIZARD DE CAMPAÑAS (V12.45) ====================
+    
+    wizardCurrentStep: 1,
+    wizardQuillEditor: null,
+    wizardCampaignId: null,
+    wizardSelectedRecipients: 0,
+
     openCampaignWizard: function() {
-        Swal.fire('Info', 'El wizard de campañas estará disponible pronto', 'info');
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            return Swal.fire('Error', 'Selecciona un evento primero', 'error');
+        }
+        
+        this.wizardCurrentStep = 1;
+        this.wizardCampaignId = null;
+        this.wizardQuillEditor = null;
+        
+        // Cargar datos
+        this.loadWizardData();
+        
+        // Mostrar modal
+        document.getElementById('modal-campaign-wizard').classList.remove('hidden');
+        
+        // Mostrar primer paso
+        this.showWizardStep(1);
+    },
+
+    loadWizardData: async function() {
+        const eventId = this.state.event?.id;
+        
+        // Cargar cuentas
+        try {
+            const accounts = await this.fetchAPI(`/email/accounts?event_id=${eventId}`);
+            const sel = document.getElementById('wizard-account-select');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Seleccionar Cuenta --</option>' +
+                    (accounts || []).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+            }
+        } catch (e) {}
+        
+        // Cargar plantillas
+        try {
+            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
+            const sel = document.getElementById('wizard-template-select');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Sin plantilla (en blanco) --</option>' +
+                    (templates || []).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+        } catch (e) {}
+        
+        // Cargar conteo de guests
+        try {
+            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
+            const total = guests?.length || 0;
+            const confirmed = guests?.filter(g => g.checked_in)?.length || 0;
+            const pending = total - confirmed;
+            
+            const elAll = document.getElementById('wizard-count-all');
+            const elConf = document.getElementById('wizard-count-confirmed');
+            const elPend = document.getElementById('wizard-count-pending');
+            
+            if (elAll) elAll.textContent = `${total} invitados`;
+            if (elConf) elConf.textContent = `${confirmed} confirmados`;
+            if (elPend) elPend.textContent = `${pending} pendientes`;
+        } catch (e) {}
+    },
+
+    showWizardStep: function(step) {
+        // Ocultar todos los pasos
+        for (let i = 1; i <= 3; i++) {
+            const stepEl = document.getElementById(`wizard-step-${i}`);
+            if (stepEl) stepEl.classList.add('hidden');
+        }
+        
+        // Mostrar paso actual
+        const currentStepEl = document.getElementById(`wizard-step-${step}`);
+        if (currentStepEl) currentStepEl.classList.remove('hidden');
+        
+        // Actualizar progress bar
+        const progressBar = document.getElementById('wizard-progress-bar');
+        if (progressBar) progressBar.style.width = `${(step / 3) * 100}%`;
+        
+        // Actualizar label
+        const stepLabels = ['Destinatarios', 'Contenido', 'Programación'];
+        const labelEl = document.getElementById('wizard-step-label');
+        if (labelEl) labelEl.textContent = `Paso ${step} de 3`;
+        
+        // Mostrar/ocultar botón atrás
+        const backBtn = document.getElementById('wizard-btn-back');
+        if (backBtn) {
+            if (step > 1) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+        }
+        
+        // Cambiar texto del botón siguiente
+        const nextBtn = document.getElementById('wizard-btn-next');
+        if (nextBtn) {
+            if (step === 3) {
+                nextBtn.textContent = '🚀 Iniciar Envío';
+            } else {
+                nextBtn.textContent = 'Siguiente →';
+            }
+        }
+        
+        // Inicializar Quill en paso 2
+        if (step === 2) {
+            setTimeout(() => this.initWizardQuillEditor(), 100);
+        }
+        
+        // Actualizar resumen en paso 3
+        if (step === 3) {
+            this.updateWizardSummary();
+        }
+    },
+
+    wizardNextStep: function() {
+        if (this.wizardCurrentStep === 1) {
+            // Validar paso 1
+            const accountId = document.getElementById('wizard-account-select')?.value;
+            const campaignName = document.getElementById('wizard-campaign-name')?.value;
+            
+            if (!accountId) {
+                return Swal.fire('Error', 'Selecciona una cuenta de email', 'error');
+            }
+            if (!campaignName) {
+                return Swal.fire('Error', 'Ingresa un nombre para la campaña', 'error');
+            }
+            
+            // Calcular destinatarios
+            const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
+            const guests = this.state.mailingGuests || [];
+            
+            if (recipientType === 'confirmed') {
+                this.wizardSelectedRecipients = guests.filter(g => g.checked_in).length;
+            } else if (recipientType === 'pending') {
+                this.wizardSelectedRecipients = guests.filter(g => !g.checked_in).length;
+            } else {
+                this.wizardSelectedRecipients = guests.length;
+            }
+        }
+        
+        if (this.wizardCurrentStep === 2) {
+            // Validar paso 2
+            const subject = document.getElementById('wizard-email-subject')?.value;
+            
+            if (!subject) {
+                return Swal.fire('Error', 'Ingresa el asunto del email', 'error');
+            }
+        }
+        
+        if (this.wizardCurrentStep < 3) {
+            this.wizardCurrentStep++;
+            this.showWizardStep(this.wizardCurrentStep);
+        } else {
+            // Iniciar envío
+            this.startWizardCampaign();
+        }
+    },
+
+    wizardPrevStep: function() {
+        if (this.wizardCurrentStep > 1) {
+            this.wizardCurrentStep--;
+            this.showWizardStep(this.wizardCurrentStep);
+        }
+    },
+
+    initWizardQuillEditor: function() {
+        if (this.wizardQuillEditor) return;
+        
+        const container = document.getElementById('wizard-quill-editor');
+        if (!container) return;
+        
+        this.wizardQuillEditor = new Quill('#wizard-quill-editor', {
+            theme: 'snow',
+            placeholder: 'Escribe el contenido de tu email aquí...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+        });
+    },
+
+    onWizardTemplateChange: function() {
+        const templateId = document.getElementById('wizard-template-select')?.value;
+        if (!templateId) return;
+        
+        const template = this.state.emailTemplates?.find(t => t.id === templateId);
+        if (template) {
+            if (!this.wizardQuillEditor) this.initWizardQuillEditor();
+            
+            document.getElementById('wizard-email-subject').value = template.subject || '';
+            
+            if (template.body_html) {
+                this.wizardQuillEditor.root.innerHTML = template.body_html;
+            } else if (template.body_text) {
+                this.wizardQuillEditor.root.innerHTML = `<p>${template.body_text}</p>`;
+            }
+        }
+    },
+
+    insertWizardVariable: function(varName) {
+        if (!this.wizardQuillEditor) this.initWizardQuillEditor();
+        
+        const varText = `{{${varName}}}`;
+        const range = this.wizardQuillEditor.getSelection();
+        if (range) {
+            this.wizardQuillEditor.insertText(range.index, varText);
+        } else {
+            this.wizardQuillEditor.setText(this.wizardQuillEditor.getText() + varText);
+        }
+    },
+
+    updateWizardSummary: function() {
+        const name = document.getElementById('wizard-campaign-name')?.value || '-';
+        const subject = document.getElementById('wizard-email-subject')?.value || '-';
+        const sendType = document.querySelector('input[name="wizard-send-type"]:checked')?.value || 'now';
+        
+        document.getElementById('wizard-summary-name').textContent = name;
+        document.getElementById('wizard-summary-subject').textContent = subject;
+        document.getElementById('wizard-summary-recipients').textContent = `${this.wizardSelectedRecipients} invitados`;
+        document.getElementById('wizard-summary-send-type').textContent = sendType === 'now' ? 'Inmediato' : 'Programado';
+    },
+
+    startWizardCampaign: async function() {
+        const eventId = this.state.event?.id;
+        const accountId = document.getElementById('wizard-account-select')?.value;
+        const campaignName = document.getElementById('wizard-campaign-name')?.value;
+        const subject = document.getElementById('wizard-email-subject')?.value;
+        const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
+        const sendType = document.querySelector('input[name="wizard-send-type"]:checked')?.value || 'now';
+        const scheduledDate = document.getElementById('wizard-scheduled-date')?.value;
+        
+        let bodyHtml = '';
+        if (this.wizardQuillEditor) {
+            bodyHtml = this.wizardQuillEditor.root.innerHTML;
+        }
+        
+        try {
+            // Crear campaña
+            const campaign = await this.fetchAPI('/email/campaigns', {
+                method: 'POST',
+                body: {
+                    event_id: eventId,
+                    account_id: accountId,
+                    name: campaignName,
+                    subject,
+                    body_html: bodyHtml,
+                    recipient_type: recipientType,
+                    scheduled_at: sendType === 'scheduled' ? scheduledDate : null
+                }
+            });
+            
+            this.wizardCampaignId = campaign.id;
+            
+            // Cerrar wizard
+            this.closeCampaignWizard();
+            
+            // Iniciar envío
+            if (sendType === 'now') {
+                await this.fetchAPI(`/email/campaigns/${campaign.id}/send`, { method: 'POST' });
+                Swal.fire('✓ Éxito', 'Campaña iniciada', 'success');
+            } else {
+                Swal.fire('✓ Programado', 'Campaña programada para ' + new Date(scheduledDate).toLocaleString(), 'success');
+            }
+            
+            // Abrir monitor
+            this.openCampaignMonitor(campaign.id);
+            
+            // Recargar listas
+            this.loadEmailCampaigns();
+            this.loadMailingCampaigns();
+            
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo crear la campaña', 'error');
+        }
+    },
+
+    closeCampaignWizard: function() {
+        document.getElementById('modal-campaign-wizard').classList.add('hidden');
+        this.wizardQuillEditor = null;
+    },
+
+    // ==================== MONITOR DE CAMPAÑAS ====================
+    
+    monitorCampaignId: null,
+    monitorInterval: null,
+
+    openCampaignMonitor: function(campaignId) {
+        this.monitorCampaignId = campaignId;
+        
+        document.getElementById('modal-campaign-monitor').classList.remove('hidden');
+        
+        this.refreshCampaignMonitor();
+        
+        // Auto-refresh cada 3 segundos
+        if (this.monitorInterval) clearInterval(this.monitorInterval);
+        this.monitorInterval = setInterval(() => this.refreshCampaignMonitor(), 3000);
+    },
+
+    refreshCampaignMonitor: async function() {
+        if (!this.monitorCampaignId) return;
+        
+        try {
+            const campaign = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}`);
+            const stats = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/stats`);
+            
+            // Actualizar info
+            document.getElementById('monitor-campaign-name').textContent = campaign.name || '-';
+            document.getElementById('monitor-campaign-status').textContent = `Asunto: ${campaign.subject || '-'}`;
+            
+            // Badge de estado
+            const badge = document.getElementById('monitor-status-badge');
+            const statusColors = {
+                'DRAFT': 'bg-slate-500/20 text-slate-400',
+                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
+                'SENDING': 'bg-blue-500/20 text-blue-400',
+                'SENT': 'bg-green-500/20 text-green-400',
+                'PAUSED': 'bg-orange-500/20 text-orange-400',
+                'CANCELLED': 'bg-red-500/20 text-red-400'
+            };
+            badge.className = `px-3 py-1 rounded-full text-xs font-bold ${statusColors[campaign.status] || 'bg-slate-500/20 text-slate-400'}`;
+            badge.textContent = campaign.status;
+            
+            // Progress
+            const total = campaign.total_recipients || 0;
+            const sent = campaign.sent_count || 0;
+            const failed = campaign.failed_count || 0;
+            const pending = stats.pending || 0;
+            const percent = total > 0 ? Math.round((sent / total) * 100) : 0;
+            
+            document.getElementById('monitor-progress-text').textContent = `${sent} / ${total}`;
+            document.getElementById('monitor-progress-bar').style.width = `${percent}%`;
+            document.getElementById('monitor-sent').textContent = sent;
+            document.getElementById('monitor-failed').textContent = failed;
+            document.getElementById('monitor-pending').textContent = pending;
+            
+            // Botones según estado
+            const btnPause = document.getElementById('monitor-btn-pause');
+            const btnResume = document.getElementById('monitor-btn-resume');
+            const btnCancel = document.getElementById('monitor-btn-cancel');
+            
+            if (campaign.status === 'SENDING') {
+                btnPause.classList.remove('hidden');
+                btnResume.classList.add('hidden');
+            } else if (campaign.status === 'PAUSED') {
+                btnPause.classList.add('hidden');
+                btnResume.classList.remove('hidden');
+            } else {
+                btnPause.classList.add('hidden');
+                btnResume.classList.add('hidden');
+            }
+            
+            if (campaign.status === 'SENT' || campaign.status === 'CANCELLED') {
+                btnCancel.classList.add('hidden');
+            } else {
+                btnCancel.classList.remove('hidden');
+            }
+            
+            // Si terminó, dejar de hacer refresh
+            if (campaign.status === 'SENT' || campaign.status === 'CANCELLED') {
+                if (this.monitorInterval) {
+                    clearInterval(this.monitorInterval);
+                    this.monitorInterval = null;
+                }
+            }
+            
+            // Cargar logs
+            const logs = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/logs?limit=10`);
+            const logsContainer = document.getElementById('monitor-logs');
+            
+            if (logs && logs.length > 0) {
+                logsContainer.innerHTML = logs.slice(0, 10).map(log => `
+                    <div class="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm ${log.status === 'SENT' ? 'text-green-400' : log.status === 'FAILED' ? 'text-red-400' : 'text-slate-500'}">
+                                ${log.status === 'SENT' ? 'check_circle' : log.status === 'FAILED' ? 'error' : 'schedule'}
+                            </span>
+                            <span class="text-slate-300">${log.recipient_email}</span>
+                        </div>
+                        <span class="text-slate-500">${log.status === 'SENT' ? 'Enviado' : log.error_message || 'Error'}</span>
+                    </div>
+                `).join('');
+            } else {
+                logsContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Sin envíos aún</p>`;
+            }
+            
+        } catch (e) {
+            console.error('[MONITOR] Error:', e);
+        }
+    },
+
+    pauseCampaign: async function() {
+        if (!this.monitorCampaignId) return;
+        
+        try {
+            await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/pause`, { method: 'POST' });
+            Swal.fire('✓', 'Campaña pausada', 'success');
+            this.refreshCampaignMonitor();
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo pausar', 'error');
+        }
+    },
+
+    resumeCampaign: async function() {
+        if (!this.monitorCampaignId) return;
+        
+        try {
+            await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/resume`, { method: 'POST' });
+            Swal.fire('✓', 'Campaña reanudada', 'success');
+            this.refreshCampaignMonitor();
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo reanudar', 'error');
+        }
+    },
+
+    cancelCampaign: async function() {
+        if (!this.monitorCampaignId) return;
+        
+        const result = await Swal.fire({
+            title: '¿Cancelar campaña?',
+            text: 'Los emails pendientes no se enviarán',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sí, cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/cancel`, { method: 'POST' });
+                Swal.fire('✓', 'Campaña cancelada', 'success');
+                this.refreshCampaignMonitor();
+                this.loadEmailCampaigns();
+            } catch (e) {
+                Swal.fire('Error', e.message || 'No se pudo cancelar', 'error');
+            }
+        }
+    },
+
+    closeCampaignMonitor: function() {
+        document.getElementById('modal-campaign-monitor').classList.add('hidden');
+        
+        if (this.monitorInterval) {
+            clearInterval(this.monitorInterval);
+            this.monitorInterval = null;
+        }
+        
+        this.monitorCampaignId = null;
     },
 
     // ==================== EDITOR WYSIWYG (QUILL) ====================
@@ -4843,6 +5324,28 @@ const App = window.App = {
         cl('config-nav-surveys', () => this.switchConfigTab('surveys'));
         cl('config-nav-settings', () => this.switchConfigTab('settings'));
         cl('btn-config-save-settings', () => this.saveConfigSettings());
+        
+        // Wizard de campañas - eventos
+        document.querySelectorAll('input[name="wizard-send-type"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const scheduleContainer = document.getElementById('wizard-schedule-container');
+                if (scheduleContainer) {
+                    if (e.target.value === 'scheduled') {
+                        scheduleContainer.classList.remove('hidden');
+                    } else {
+                        scheduleContainer.classList.add('hidden');
+                    }
+                }
+                this.updateWizardSummary();
+            });
+        });
+        
+        document.querySelectorAll('input[name="wizard-recipient-type"]').forEach(radio => {
+            radio.addEventListener('change', () => this.updateWizardSummary());
+        });
+        
+        document.getElementById('wizard-campaign-name')?.addEventListener('input', () => this.updateWizardSummary());
+        document.getElementById('wizard-email-subject')?.addEventListener('input', () => this.updateWizardSummary());
         
         // Ruleta de Sorteos - botones
         cl('btn-new-wheel', () => this.createNewWheel()); // Unificado (antes btn-create-wheel)
