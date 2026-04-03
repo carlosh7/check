@@ -2151,43 +2151,64 @@ const App = window.App = {
             return;
         }
         
-        const options = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
+                        <span class="text-xs text-slate-400">Selecciona empresa para ${userIds.length} usuario(s)</span>
+                    </div>
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                        <span class="material-symbols-outlined text-xs">add_business</span> NUEVA
+                    </button>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${groups.map(g => `
+                        <div onclick="App.bulkAssignCompanyFromModal('${userIds.join(',')}', '${g.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">corporate_fare</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${g.email || 'Sin email'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
         Swal.fire({
-            title: 'Asignar Empresa',
-            html: `
-                <select id="bulk-company-select" class="swal2-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569;">
-                    <option value="">Seleccionar empresa...</option>
-                    ${options}
-                </select>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Asignar',
-            cancelButtonText: 'Cancelar',
-            background: '#0f172a',
-            color: '#fff',
-            preConfirm: () => {
-                const companyId = document.getElementById('bulk-company-select').value;
-                if (!companyId) {
-                    Swal.showValidationMessage('Selecciona una empresa');
-                    return false;
-                }
-                return companyId;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.bulkAssignCompany(userIds, result.value);
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
             }
         });
     },
-
-    // Asignar empresa a múltiples usuarios
-    bulkAssignCompany: async function(userIds, companyId) {
+    
+    bulkAssignCompanyFromModal: async function(userIdsStr, groupId) {
+        const userIds = userIdsStr.split(',');
         try {
             const promises = userIds.map(userId => 
                 this.fetchAPI(`/users/${userId}/group`, {
                     method: 'PUT',
-                    body: JSON.stringify({ group_id: companyId })
+                    body: JSON.stringify({ group_id: groupId })
                 })
             );
             
@@ -2198,13 +2219,15 @@ const App = window.App = {
                 text: `Empresa asignada a ${userIds.length} usuario(s)`, 
                 icon: 'success', 
                 background: '#0f172a', 
-                color: '#fff', 
+                color: '#fff',
                 timer: 1500, 
                 showConfirmButton: false 
             });
             
             this.state.selectedUsers = [];
             this.loadUsersTable();
+            this.loadGroups();
+            Swal.close();
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' });
         }
@@ -2219,40 +2242,60 @@ const App = window.App = {
             return;
         }
         
-        const options = events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-        
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Evento</span>
+                        <span class="text-xs text-slate-400">Selecciona evento para ${userIds.length} usuario(s)</span>
+                    </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                        <span class="material-symbols-outlined text-xs">event</span> NUEVO
+                    </button>
+                </div>
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.bulkAssignEventFromModal('${userIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
         Swal.fire({
-            title: 'Asignar Evento',
-            html: `
-                <select id="bulk-event-select" class="swal2-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #475569;">
-                    <option value="">Seleccionar evento...</option>
-                    ${options}
-                </select>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Asignar',
-            cancelButtonText: 'Cancelar',
-            background: '#0f172a',
-            color: '#fff',
-            preConfirm: () => {
-                const eventId = document.getElementById('bulk-event-select').value;
-                if (!eventId) {
-                    Swal.showValidationMessage('Selecciona un evento');
-                    return false;
-                }
-                return eventId;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.bulkAssignEvent(userIds, result.value);
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
             }
         });
     },
-
-    // Asignar evento a múltiples usuarios
-    bulkAssignEvent: async function(userIds, eventId) {
+    
+    bulkAssignEventFromModal: async function(userIdsStr, eventId) {
+        const userIds = userIdsStr.split(',');
         try {
-            // Para cada usuario, agregar el evento a su lista actual
             const promises = userIds.map(async (userId) => {
                 const user = this.state.allUsers?.find(u => u.id === userId);
                 const currentEvents = user?.events || [];
@@ -2271,13 +2314,15 @@ const App = window.App = {
                 text: `Evento asignado a ${userIds.length} usuario(s)`, 
                 icon: 'success', 
                 background: '#0f172a', 
-                color: '#fff', 
+                color: '#fff',
                 timer: 1500, 
                 showConfirmButton: false 
             });
             
             this.state.selectedUsers = [];
             this.loadUsersTable();
+            this.loadEvents();
+            Swal.close();
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
         }
