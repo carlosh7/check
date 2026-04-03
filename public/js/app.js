@@ -4120,29 +4120,6 @@ const App = window.App = {
         } catch (e) { alert('Error al actualizar perfil'); }
     },
     
-
-            const config = await this.fetchAPI('/email/smtp-config');
-            if (config) {
-                const h = document.getElementById('smtp-host');
-                const p = document.getElementById('smtp-port');
-                const u = document.getElementById('smtp-user');
-                const ps = document.getElementById('smtp-pass');
-                const s = document.getElementById('smtp-secure');
-                const fn = document.getElementById('smtp-from-name');
-                const fe = document.getElementById('smtp-from-email');
-
-                if (h) h.value = config.smtp_host || '';
-                if (p) p.value = config.smtp_port || 587;
-                if (u) u.value = config.smtp_user || '';
-                if (ps) ps.value = config.smtp_pass ? '***' : '';
-                if (s) s.checked = config.smtp_secure == 1;
-                if (fn) fn.value = config.from_name || 'Check';
-                if (fe) fe.value = config.from_email || '';
-            }
-        } catch (e) { console.error('[SMTP] Error loading config:', e); }
-    },
-
-    
     toggleEmailAdminMenu: function() {
         const menu = document.getElementById('email-admin-menu');
         const arrow = document.getElementById('email-admin-arrow');
