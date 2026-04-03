@@ -1267,31 +1267,6 @@ router.get('/mailbox/messages', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-                        imap.end();
-                        res.json({ success: false, error: err.message });
-                        resolve();
-                    });
-                    
-                    fetch.once('end', () => {
-                        imap.end();
-                        res.json({ success: true, messages: messages.reverse(), total });
-                        resolve();
-                    });
-                });
-            });
-            
-            imap.once('error', (err) => {
-                res.json({ success: false, error: err.message });
-                resolve();
-            });
-            
-            imap.connect();
-        });
-    } catch (error) {
-        console.error('Error getting mailbox messages:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // GET /api/email/mailbox/message/:uid - Obtener mensaje completo
 router.get('/mailbox/message/:uid', async (req, res) => {
