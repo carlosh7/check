@@ -444,8 +444,16 @@ const App = window.App = {
 
     downloadImportTemplate: async function() {
         try {
+            // Obtener token igual que API.fetchAPI
+            let token = window.App?.state?.user?.token;
+            if (!token) {
+                const userStr = LS.get('user');
+                const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+                token = user.token || LS.get('token');
+            }
+            
             const response = await fetch('/api/import/template', {
-                headers: { 'Authorization': `Bearer ${LS.get('token')}` }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Error en respuesta');
             
@@ -612,9 +620,17 @@ const App = window.App = {
         document.getElementById('export-progress-container').classList.remove('hidden');
 
         try {
+            // Obtener token igual que API.fetchAPI
+            let token = window.App?.state?.user?.token;
+            if (!token) {
+                const userStr = LS.get('user');
+                const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+                token = user.token || LS.get('token');
+            }
+            
             const response = await fetch(`/api/export/${this._exportType}?format=${format}`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${LS.get('token')}` }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (format === 'excel') {
