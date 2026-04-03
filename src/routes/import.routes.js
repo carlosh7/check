@@ -9,7 +9,7 @@ const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
 const jsPDF = require('jspdf');
-const 'jspdf-autotable';
+require('jspdf-autotable');
 
 const router = express.Router();
 
