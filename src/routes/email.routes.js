@@ -1275,46 +1275,99 @@ router.get('/mailbox/message/:uid', async (req, res) => {
         
         return new Promise((resolve) => {
             imap.once('ready', () => {
-                imap.openBox(folder, false, (err, box) => {
+                let folderName = folder;
+                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) {
+                    folderName = `INBOX.${folder}`;
+                }
+                
+                imap.openBox(folderName, false, (err, box) => {
                     if (err) {
                         imap.end();
                         res.json({ success: false, error: err.message });
                         return resolve();
                     }
                     
-                    const fetch = imap.fetch(uid, { bodies: '' });
+                    // Fetch solo headers + texto plano (no HTML completo para evitar problemas de memoria)
+                    const fetch = imap.fetch(uid, { 
+                        bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+                        markSeen: false 
+                    });
+                    
+                    let headersParsed = false;
+                    let bodyParsed = false;
+                    const msgData = {
+                        id: uid,
+                        from: '', from_name: '', to: '', subject: '', date: '',
+                        html: '', text: '', attachments: []
+                    };
                     
                     fetch.on('message', (msg) => {
-                        msg.on('body', (stream) => {
-                            mailparser.simpleParser(stream, (err, parsed) => {
-                                if (err) {
-                                    imap.end();
-                                    res.json({ success: false, error: err.message });
-                                    return resolve();
-                                }
-                                
-                                res.json({
-                                    success: true,
-                                    message: {
-                                        id: uid,
-                                        from: parsed.from?.value?.[0]?.address || 'Unknown',
-                                        from_name: parsed.from?.value?.[0]?.name || '',
-                                        to: parsed.to?.value?.[0]?.address || '',
-                                        subject: parsed.subject || '(Sin asunto)',
-                                        date: parsed.date,
-                                        html: parsed.html || parsed.textAsHtml || `<pre>${parsed.text}</pre>`,
-                                        text: parsed.text,
-                                        attachments: parsed.attachments?.map(a => ({
-                                            filename: a.filename,
-                                            contentType: a.contentType,
-                                            size: a.size
-                                        })) || []
+                        msg.on('body', (stream, info) => {
+                            let buffer = '';
+                            stream.on('data', chunk => { buffer += chunk.toString('utf8'); });
+                            stream.on('end', () => {
+                                if (info.which.includes('HEADER')) {
+                                    const lines = buffer.split(/\r?\n/);
+                                    for (const line of lines) {
+                                        if (/^From:/i.test(line) && !msgData.from) {
+                                            const clean = line.replace(/^From:\s*/i, '').trim();
+                                            const match = clean.match(/^(.*?)\s*<(.+?)>/);
+                                            if (match) {
+                                                msgData.from_name = match[1].replace(/"/g, '').trim();
+                                                msgData.from = match[2].trim();
+                                            } else {
+                                                msgData.from = clean;
+                                            }
+                                        } else if (/^To:/i.test(line) && !msgData.to) {
+                                            const clean = line.replace(/^To:\s*/i, '').trim();
+                                            const match = clean.match(/<(.+?)>/);
+                                            msgData.to = match ? match[1] : clean;
+                                        } else if (/^Subject:/i.test(line) && !msgData.subject) {
+                                            msgData.subject = line.replace(/^Subject:\s*/i, '').trim();
+                                        } else if (/^Date:/i.test(line) && !msgData.date) {
+                                            msgData.date = line.replace(/^Date:\s*/i, '').trim();
+                                        }
                                     }
-                                });
-                                imap.end();
-                                resolve();
+                                    headersParsed = true;
+                                    tryFinish();
+                                } else {
+                                    // Limitar el body a 50KB para evitar problemas de memoria
+                                    const maxLen = 50000;
+                                    const bodyText = buffer.length > maxLen ? buffer.substring(0, maxLen) + '\n\n[...contenido truncado...]' : buffer;
+                                    msgData.text = bodyText;
+                                    msgData.html = `<pre style="white-space:pre-wrap;word-wrap:break-word;font-family:inherit;">${bodyText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                                    bodyParsed = true;
+                                    tryFinish();
+                                }
                             });
                         });
+                        
+                        msg.once('end', () => {
+                            // Si no se recibió body, marcar como parseado
+                            if (!bodyParsed) {
+                                bodyParsed = true;
+                                tryFinish();
+                            }
+                        });
+                    });
+                    
+                    function tryFinish() {
+                        if (headersParsed && bodyParsed) {
+                            imap.end();
+                            res.json({ success: true, message: msgData });
+                            resolve();
+                        }
+                    }
+                    
+                    fetch.once('end', () => {
+                        // Timeout de seguridad
+                        setTimeout(() => {
+                            if (!headersParsed || !bodyParsed) {
+                                imap.end();
+                                res.json({ success: true, message: msgData });
+                                resolve();
+                            }
+                        }, 5000);
                     });
                     
                     fetch.once('error', (err) => {
