@@ -180,4 +180,46 @@ router.get('/me', authMiddleware(), (req, res) => {
     }
 });
 
+// PUT /api/me/email - Cambiar email del usuario logueado
+router.put('/me/email', authMiddleware(), (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email requerido' });
+        
+        // Verificar que no exista
+        const existing = db.prepare("SELECT id FROM users WHERE username = ? AND id != ?").get(email.toLowerCase(), req.userId);
+        if (existing) return res.status(400).json({ error: 'Este email ya está registrado' });
+        
+        db.prepare("UPDATE users SET username = ? WHERE id = ?").run(email.toLowerCase(), req.userId);
+        logAction(req, AUDIT_ACTIONS.USER_PROFILE_UPDATED, { userId: req.userId, email });
+        
+        res.json({ success: true, message: 'Email actualizado' });
+    } catch (e) {
+        res.status(500).json({ error: 'Error al actualizar email' });
+    }
+});
+
+// PUT /api/me/password - Cambiar contraseña del usuario logueado
+router.put('/me/password', authMiddleware(), (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Campos requeridos' });
+        
+        const user = db.prepare("SELECT password FROM users WHERE id = ?").get(req.userId);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        if (!bcrypt.compareSync(currentPassword, user.password)) {
+            return res.status(400).json({ error: 'Contraseña actual incorrecta' });
+        }
+        
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, req.userId);
+        logAction(req, AUDIT_ACTIONS.USER_PASSWORD_CHANGED, { userId: req.userId });
+        
+        res.json({ success: true, message: 'Contraseña actualizada' });
+    } catch (e) {
+        res.status(500).json({ error: 'Error al actualizar contraseña' });
+    }
+});
+
 module.exports = router;

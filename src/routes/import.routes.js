@@ -474,7 +474,7 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
         workbook.creator = 'Check Pro';
         workbook.created = new Date();
 
-        if (type === 'groups' || type === 'staff') {
+        if (type === 'groups' || type === 'all') {
             // ─── EXPORTAR GRUPOS/EMPRESAS (matching import template) ───
             const groupsSheet = workbook.addWorksheet('Empresas');
             groupsSheet.columns = [
@@ -491,7 +491,9 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             groupsSheet.getRow(1).font = { bold: true };
             groupsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7c3aed' } };
             groupsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-
+        }
+        
+        if (type === 'events' || type === 'all') {
             // ─── EXPORTAR EVENTOS (matching import template) ───
             const eventsSheet = workbook.addWorksheet('Eventos');
             eventsSheet.columns = [
@@ -514,7 +516,9 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             eventsSheet.getRow(1).font = { bold: true };
             eventsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3b82f6' } };
             eventsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-
+        }
+        
+        if (type === 'staff' || type === 'users' || type === 'all') {
             // ─── EXPORTAR USUARIOS (matching import template) ───
             const usersSheet = workbook.addWorksheet('Staff');
             usersSheet.columns = [
@@ -545,6 +549,10 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             usersSheet.getRow(1).font = { bold: true };
             usersSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8b5cf6' } };
             usersSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        }
+        
+        if (workbook.worksheets.length === 0) {
+            return res.status(400).json({ error: 'Tipo de exportación no válido. Use: groups, events, staff, users, o all' });
         }
 
         // Generar archivo según formato

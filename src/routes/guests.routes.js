@@ -281,6 +281,29 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
     res.json({ success: true, action: 'checkin' });
 });
 
+// Alias: POST /api/checkin/:gId (para compatibilidad con frontend)
+router.post('/checkin/:gId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+    // Reutilizar la lógica de checkin
+    req.params.guestId = req.params.gId;
+    const gId = castId('guests', req.params.gId);
+    const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
+    if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+    
+    const targetDb = getEventDb(guest.event_id);
+    const io = socketGetIO();
+    const status = guest.checked_in;
+    
+    if (status) {
+        targetDb.prepare("UPDATE guests SET checked_in = 0, checkin_time = NULL WHERE id = ?").run(gId);
+        if (io) io.to(`event:${guest.event_id}`).emit('guest-update', { id: gId, checked_in: false, checkin_time: null });
+        return res.json({ success: true, action: 'uncheckin' });
+    }
+    
+    targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), gId);
+    if (io) io.to(`event:${guest.event_id}`).emit('guest-update', { id: gId, checked_in: true, checkin_time: new Date().toISOString() });
+    res.json({ success: true, action: 'checkin' });
+});
+
 // Limpiar base de datos de evento
 router.post('/clear/:eventId', authMiddleware(['ADMIN']), (req, res) => {
     const eId = castId('events', req.params.eventId);

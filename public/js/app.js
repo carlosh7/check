@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.51';
+const VERSION = '12.44.52';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3621,6 +3621,88 @@ const App = window.App = {
         } catch (e) {
             Swal.fire('Error', 'No se pudieron reintentar los emails', 'error');
         }
+    },
+
+    saveContact: async function() {
+        const id = document.getElementById('contact-id')?.value;
+        const name = document.getElementById('contact-name')?.value?.trim();
+        const email = document.getElementById('contact-email')?.value?.trim();
+        const organization = document.getElementById('contact-organization')?.value?.trim();
+        const phone = document.getElementById('contact-phone')?.value?.trim();
+        const tags = document.getElementById('contact-tags')?.value?.trim();
+        const notes = document.getElementById('contact-notes')?.value?.trim();
+        const isActive = document.getElementById('contact-active')?.checked;
+        
+        if (!name || !email) {
+            return Swal.fire('Error', 'Nombre y Email son requeridos', 'error');
+        }
+        
+        try {
+            if (id) {
+                await this.fetchAPI(`/contacts/${id}`, { method: 'PUT', body: JSON.stringify({ name, email, organization, phone, tags, notes, is_active: isActive }) });
+            } else {
+                await this.fetchAPI('/contacts', { method: 'POST', body: JSON.stringify({ name, email, organization, phone, tags, notes, is_active: isActive }) });
+            }
+            Swal.fire('✓ Éxito', 'Contacto guardado', 'success');
+            document.getElementById('modal-contact-editor')?.classList.add('hidden');
+            this.loadContacts?.();
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo guardar el contacto', 'error');
+        }
+    },
+
+    saveContactGroup: async function() {
+        const id = document.getElementById('group-id')?.value;
+        const name = document.getElementById('group-name')?.value?.trim();
+        const description = document.getElementById('group-description')?.value?.trim();
+        
+        if (!name) {
+            return Swal.fire('Error', 'Nombre del grupo es requerido', 'error');
+        }
+        
+        try {
+            if (id) {
+                await this.fetchAPI(`/contact-groups/${id}`, { method: 'PUT', body: JSON.stringify({ name, description }) });
+            } else {
+                await this.fetchAPI('/contact-groups', { method: 'POST', body: JSON.stringify({ name, description }) });
+            }
+            Swal.fire('✓ Éxito', 'Grupo guardado', 'success');
+            document.getElementById('modal-group-editor')?.classList.add('hidden');
+            this.loadContactGroups?.();
+        } catch (e) {
+            Swal.fire('Error', e.message || 'No se pudo guardar el grupo', 'error');
+        }
+    },
+
+    importContacts: async function() {
+        const fileInput = document.getElementById('import-file');
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            return Swal.fire('Error', 'Selecciona un archivo', 'error');
+        }
+        
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            Swal.fire({ title: 'Importando...', didOpen: () => Swal.showLoading() });
+            const result = await fetch('/api/import/validate', { method: 'POST', body: formData });
+            const data = await result.json();
+            
+            if (data.success) {
+                Swal.fire('✓ Éxito', `${data.count || 'Contactos'} importados correctamente`, 'success');
+                document.getElementById('modal-import')?.classList.add('hidden');
+                this.loadContacts?.();
+            } else {
+                Swal.fire('Error', data.error || 'Error al importar', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo importar el archivo', 'error');
+        }
+    },
+
+    editMailingTemplate: async function(templateId) {
+        this.editEmailTemplate(templateId);
     },
 
     replyToEmail: async function(uid, folder) {

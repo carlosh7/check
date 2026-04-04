@@ -84,6 +84,34 @@ router.get('/:eventId/surveys/responses', authMiddleware(['ADMIN', 'PRODUCTOR'])
     res.json(responses);
 });
 
+// PUT /api/surveys/:id - Actualizar pregunta individual
+router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const surveyId = castId('surveys', req.params.id);
+    const { question, type, options } = req.body;
+    
+    const survey = db.prepare("SELECT * FROM surveys WHERE id = ?").get(surveyId);
+    if (!survey) return res.status(404).json({ error: 'Pregunta no encontrada' });
+    
+    const targetDb = getEventDb(survey.event_id);
+    targetDb.prepare("UPDATE surveys SET question = ?, type = ?, options = ? WHERE id = ?")
+        .run(question || survey.question, type || survey.type, options || survey.options, surveyId);
+    
+    res.json({ success: true });
+});
+
+// DELETE /api/surveys/:id - Eliminar pregunta individual
+router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    const surveyId = castId('surveys', req.params.id);
+    
+    const survey = db.prepare("SELECT * FROM surveys WHERE id = ?").get(surveyId);
+    if (!survey) return res.status(404).json({ error: 'Pregunta no encontrada' });
+    
+    const targetDb = getEventDb(survey.event_id);
+    targetDb.prepare("DELETE FROM surveys WHERE id = ?").run(surveyId);
+    
+    res.json({ success: true });
+});
+
 // Sugerencias
 router.get('/:eventId/suggestions', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const eventId = castId('events', req.params.eventId);
