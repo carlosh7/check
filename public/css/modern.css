@@ -873,6 +873,27 @@ html:not(.dark) #btn-logout .text-slate-400 {
     color: #475569 !important;
 }
 
+/* Light theme: system tab buttons */
+html:not(.dark) #view-system .btn-secondary {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #334155 !important;
+}
+
+html:not(.dark) #view-system .btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border-color: rgba(139, 92, 246, 0.3) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #view-system .btn-secondary .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) #view-system .btn-secondary:hover .material-symbols-outlined {
+    color: #7c3aed !important;
+}
+
 /* ===== TEMAS: TABLAS DE DATOS ===== */
 /* Light theme: table headers */
 html:not(.dark) .data-table thead th {

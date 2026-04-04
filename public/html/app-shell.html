@@ -790,13 +790,23 @@
             </section>
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
-            <section id="view-system" class="hidden space-y-10 animate-fade-in">
-                <div class="sub-nav-container p-1.5 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-2 mb-8">
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('users')">Equipo</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('groups')">Empresas</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('email')">Email</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('legal')">Legales</button>
-                    <button class="sub-nav-btn flex-1 !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" onclick="App.switchSystemTab('account')">Perfil</button>
+            <section id="view-system" class="hidden space-y-6 animate-fade-in">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('users')">
+                        <span class="material-symbols-outlined text-base">group</span> Equipo
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('groups')">
+                        <span class="material-symbols-outlined text-base">business</span> Empresas
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('email')">
+                        <span class="material-symbols-outlined text-base">mail</span> Email
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('legal')">
+                        <span class="material-symbols-outlined text-base">description</span> Legales
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('account')">
+                        <span class="material-symbols-outlined text-base">person</span> Perfil
+                    </button>
                 </div>
 
                 <!-- SECCIÓN: LEGALES -->
