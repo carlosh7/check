@@ -1066,22 +1066,17 @@ const App = window.App = {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                     const userChips = groupUsers.map(u => `
-                        <div class="inline-flex items-center gap-1 mt-1">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-semibold rounded-md border border-[var(--border)] shadow-sm">
-                                <span class="w-4 h-4 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</span>
-                                ${u.display_name || u.username}
-                            </span>
-                            <button data-action="removeUserFromGroup" data-user-id="${u.id}" data-group-id="${g.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Usuario"><span class="material-symbols-outlined text-[14px]">close</span></button>
-                        </div>`).join('');
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${u.display_name || u.username}
+                        </span>
+                    `).join('');
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                     const eventChips = groupEvents.map(e => `
-                        <div class="inline-flex items-center gap-1 mt-1">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-hover)] border border-[var(--border)] text-xs font-semibold rounded-md text-[var(--text-main)] shadow-sm">
-                                ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                            </span>
-                            <button data-action="removeEventFromCompany" data-event-id="${e.id}" data-group-id="${g.id}" class="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-colors shadow-sm" title="Desvincular Evento"><span class="material-symbols-outlined text-[14px]">close</span></button>
-                        </div>`).join('');
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        </span>
+                    `).join('');
                     
                     return `
                     <tr class="user-row-premium">
@@ -1093,11 +1088,11 @@ const App = window.App = {
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                             <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                             <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Staff</button>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
@@ -1775,7 +1770,7 @@ const App = window.App = {
                 // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="block px-2 py-0.5 rounded-lg bg-violet-500/20 text-[var(--primary)] text-xs font-medium mb-1">
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
                         ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
                     </span>
                 `).join('');
