@@ -1173,7 +1173,6 @@ const App = window.App = {
     // Poblar filtros de clientes
     populateClientFilters: function() {
         const companySelect = document.getElementById('filter-client-company');
-        const staffSelect = document.getElementById('filter-client-staff');
         
         if (companySelect && this.state.groups) {
             const currentVal = companySelect.value;
@@ -1183,15 +1182,6 @@ const App = window.App = {
             });
             companySelect.value = currentVal;
         }
-        
-        if (staffSelect && this.state.allUsers) {
-            const currentVal = staffSelect.value;
-            staffSelect.innerHTML = '<option value="">Staff</option>';
-            this.state.allUsers.forEach(u => {
-                staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
-            });
-            staffSelect.value = currentVal;
-        }
     },
 
     // Filtrar clientes
@@ -1199,7 +1189,6 @@ const App = window.App = {
         if (!this.state.clients) return;
         const searchTerm = document.getElementById('client-search')?.value.toLowerCase() || '';
         const companyFilter = document.getElementById('filter-client-company')?.value || '';
-        const staffFilter = document.getElementById('filter-client-staff')?.value || '';
         const statusFilter = document.getElementById('filter-client-status')?.value || '';
         
         let filtered = this.state.clients;
@@ -1448,6 +1437,120 @@ const App = window.App = {
                     return true;
                 } catch (e) {
                     Swal.showValidationMessage(e.message || 'Error al actualizar cliente');
+                    return false;
+                }
+            }
+        });
+    },
+
+    // Modal asignar eventos a cliente
+    openAssignEventToClientModal: function() {
+        if (!this.state.selectedClients?.length) {
+            Swal.fire('Selecciona clientes', 'Selecciona al menos un cliente para asignar eventos', 'warning');
+            return;
+        }
+        
+        const events = this.state.allEvents || [];
+        const eventOptions = events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        
+        Swal.fire({
+            title: 'Asignar Eventos a Clientes',
+            html: `
+                <div class="space-y-4 text-left">
+                    <p class="text-sm text-[var(--text-secondary)]">Clientes seleccionados: ${this.state.selectedClients.length}</p>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Eventos *</label>
+                        <select id="assign-events-select" class="swal2-input" multiple size="6" style="height: auto;">
+                            ${eventOptions}
+                        </select>
+                        <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const select = document.getElementById('assign-events-select');
+                const selectedEvents = Array.from(select.selectedOptions).map(o => o.value);
+                
+                if (selectedEvents.length === 0) {
+                    Swal.showValidationMessage('Selecciona al menos un evento');
+                    return false;
+                }
+                
+                try {
+                    for (const clientId of this.state.selectedClients) {
+                        await this.fetchAPI(`/clients/${clientId}/events`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ events: selectedEvents })
+                        });
+                    }
+                    this.loadClients();
+                    Swal.fire('Éxito', 'Eventos asignados correctamente', 'success');
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al asignar eventos');
+                    return false;
+                }
+            }
+        });
+    },
+
+    // Modal asignar staff a cliente
+    openAssignStaffToClientModal: function() {
+        if (!this.state.selectedClients?.length) {
+            Swal.fire('Selecciona clientes', 'Selecciona al menos un cliente para asignar staff', 'warning');
+            return;
+        }
+        
+        const users = this.state.allUsers || [];
+        const userOptions = users.map(u => `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`).join('');
+        
+        Swal.fire({
+            title: 'Asignar Staff a Clientes',
+            html: `
+                <div class="space-y-4 text-left">
+                    <p class="text-sm text-[var(--text-secondary)]">Clientes seleccionados: ${this.state.selectedClients.length}</p>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Staff *</label>
+                        <select id="assign-staff-select" class="swal2-input" multiple size="6" style="height: auto;">
+                            ${userOptions}
+                        </select>
+                        <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const select = document.getElementById('assign-staff-select');
+                const selectedUsers = Array.from(select.selectedOptions).map(o => o.value);
+                
+                if (selectedUsers.length === 0) {
+                    Swal.showValidationMessage('Selecciona al menos un miembro de staff');
+                    return false;
+                }
+                
+                try {
+                    for (const clientId of this.state.selectedClients) {
+                        await this.fetchAPI(`/clients/${clientId}/staff`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ users: selectedUsers })
+                        });
+                    }
+                    this.loadClients();
+                    Swal.fire('Éxito', 'Staff asignado correctamente', 'success');
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al asignar staff');
                     return false;
                 }
             }
