@@ -2944,7 +2944,18 @@ const App = window.App = {
     },
 
     // Mostrar selector de cliente para bulk de usuarios (Asignar Cliente en Equipo)
-    showClientSelectorForBulkUsers: function(userIds) {
+    showClientSelectorForBulkUsers: async function(userIds) {
+        // Cargar clientes si no están cargados
+        if (!this.state.clients || this.state.clients.length === 0) {
+            try {
+                const clients = await this.fetchAPI('/clients');
+                this.state.clients = clients;
+            } catch (e) {
+                Swal.fire({ title: '⚠️ Error', text: 'No se pudieron cargar los clientes', icon: 'error', background: '#0f172a', color: '#fff' });
+                return;
+            }
+        }
+        
         const clients = this.state.clients || [];
         const users = this.state.allUsers || [];
         
