@@ -2592,6 +2592,10 @@ const App = window.App = {
                 // Mostrar selector de empresa
                 this.showGroupSelectorForBulk(selectedIds);
                 break;
+            case 'assign-client':
+                // Mostrar selector de cliente
+                this.showClientSelectorForBulkUsers(selectedIds);
+                break;
             case 'assign-event':
                 // Mostrar selector de evento
                 this.showEventSelectorForBulk(selectedIds);
