@@ -614,33 +614,37 @@ body.app-loaded > *:not(style):not(script):not(link) {
 }
 
 /* ===== FILTER SELECTS: Estilo consistente para filtros de Equipo y Empresas ===== */
+/* Filtros normales (Empresas, Eventos, Rol, Staff, Estado) - estilo slate */
 .filter-select {
     padding: 6px 10px;
     font-size: 11px;
     min-width: 100px;
     border-radius: 8px;
-    border: 1px solid var(--border, rgba(255,255,255,0.05));
-    color: var(--text-secondary, #94a3b8);
-    background: var(--bg-input, rgba(0,0,0,0.4));
+    border: 1px solid rgba(100, 116, 139, 0.4);
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.6);
+    font-weight: 600;
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
     outline: none;
 }
 
 .filter-select:hover {
-    border-color: var(--border-focus, rgba(139,92,246,0.4));
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(30, 41, 59, 0.8);
 }
 
 .filter-select:focus {
-    border-color: var(--primary, #8b5cf6);
-    box-shadow: 0 0 0 2px rgba(139,92,246,0.1);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
 }
 
 .filter-select option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
+    background: #1e293b;
+    color: #e2e8f0;
 }
 
+/* Acciones - estilo violeta */
 .filter-select-action {
     padding: 6px 10px;
     font-size: 11px;
@@ -661,10 +665,11 @@ body.app-loaded > *:not(style):not(script):not(link) {
 }
 
 .filter-select-action option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
+    background: #1e293b;
+    color: #e2e8f0;
 }
 
+/* Cambiar Rol - estilo azul */
 .filter-select-role {
     padding: 6px 10px;
     font-size: 11px;
@@ -685,14 +690,14 @@ body.app-loaded > *:not(style):not(script):not(link) {
 }
 
 .filter-select-role option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
+    background: #1e293b;
+    color: #e2e8f0;
 }
 
 /* TEMA CLARO */
 html:not(.dark) .filter-select {
-    background: rgba(255,255,255,0.8);
-    border-color: rgba(0,0,0,0.1);
+    background: rgba(241, 245, 249, 0.9);
+    border-color: rgba(100, 116, 139, 0.3);
     color: #334155;
 }
 
@@ -723,117 +728,3 @@ html:not(.dark) .filter-select-role option {
     color: #334155;
 }
 
-body.app-loaded > *:not(style):not(script):not(link) {
-    opacity: 1 !important;
-    transition: opacity 0.15s ease;
-}
-
-/* ===== FILTER SELECTS: Estilo consistente para filtros de Equipo y Empresas ===== */
-.filter-select {
-    padding: 6px 10px;
-    font-size: 11px;
-    min-width: 100px;
-    border-radius: 8px;
-    border: 1px solid var(--border, rgba(255,255,255,0.05));
-    color: var(--text-secondary, #94a3b8);
-    background: var(--bg-input, rgba(0,0,0,0.4));
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    outline: none;
-}
-
-.filter-select:hover {
-    border-color: var(--border-focus, rgba(139,92,246,0.4));
-}
-
-.filter-select:focus {
-    border-color: var(--primary, #8b5cf6);
-    box-shadow: 0 0 0 2px rgba(139,92,246,0.1);
-}
-
-.filter-select option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
-}
-
-.filter-select-action {
-    padding: 6px 10px;
-    font-size: 11px;
-    min-width: 110px;
-    border-radius: 8px;
-    border: 1px solid rgba(124, 58, 237, 0.5);
-    background: rgba(124, 58, 237, 0.15);
-    color: #a78bfa;
-    font-weight: bold;
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    outline: none;
-}
-
-.filter-select-action:hover {
-    border-color: rgba(124, 58, 237, 0.8);
-    background: rgba(124, 58, 237, 0.25);
-}
-
-.filter-select-action option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
-}
-
-.filter-select-role {
-    padding: 6px 10px;
-    font-size: 11px;
-    min-width: 100px;
-    border-radius: 8px;
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-    font-weight: bold;
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    outline: none;
-}
-
-.filter-select-role:hover {
-    border-color: rgba(59, 130, 246, 0.8);
-    background: rgba(59, 130, 246, 0.25);
-}
-
-.filter-select-role option {
-    background: var(--bg-card, #1e1e1e);
-    color: var(--text-main, #f8fafc);
-}
-
-/* TEMA CLARO */
-html:not(.dark) .filter-select {
-    background: rgba(255,255,255,0.8);
-    border-color: rgba(0,0,0,0.1);
-    color: #334155;
-}
-
-html:not(.dark) .filter-select option {
-    background: #ffffff;
-    color: #334155;
-}
-
-html:not(.dark) .filter-select-action {
-    background: rgba(124, 58, 237, 0.08);
-    border-color: rgba(124, 58, 237, 0.3);
-    color: #7c3aed;
-}
-
-html:not(.dark) .filter-select-action option {
-    background: #ffffff;
-    color: #334155;
-}
-
-html:not(.dark) .filter-select-role {
-    background: rgba(59, 130, 246, 0.08);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: #3b82f6;
-}
-
-html:not(.dark) .filter-select-role option {
-    background: #ffffff;
-    color: #334155;
-}
