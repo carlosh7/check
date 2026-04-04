@@ -1547,7 +1547,7 @@ const App = window.App = {
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${clientNames || `${this.state.selectedClients.length} cliente(s) seleccionado(s)`}</span>
+                        <span class="text-xs" style="color: ${textMain};">${clientNames || this.state.selectedClients.length + ' cliente(s) seleccionado(s)'}</span>
                     </div>
                 </div>
 
