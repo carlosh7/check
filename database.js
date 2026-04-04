@@ -600,6 +600,16 @@ if (smtpCount.count === 0) {
     db.prepare("INSERT INTO smtp_config (id, smtp_host, smtp_port, smtp_user, smtp_secure, from_name) VALUES (1, '', 465, '', 0, 'Check Attendance')").run();
 }
 
+// Crear tabla imap_config si no existe
+db.exec(`CREATE TABLE IF NOT EXISTS imap_config (
+    id INTEGER PRIMARY KEY,
+    imap_host TEXT DEFAULT '',
+    imap_port INTEGER DEFAULT 993,
+    imap_user TEXT DEFAULT '',
+    imap_password TEXT DEFAULT '',
+    imap_tls INTEGER DEFAULT 1
+)`);
+
 // Semilla de IMAP config si no existe
 const imapCount = db.prepare("SELECT COUNT(*) as count FROM imap_config").get();
 if (imapCount.count === 0) {
