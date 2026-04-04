@@ -2974,6 +2974,16 @@ const App = window.App = {
                     </div>
                     
                     <div class="border-t border-[var(--border)] pt-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <button onclick="App.testSmtpConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">send</span>
+                                Probar SMTP
+                            </button>
+                            <button onclick="App.testImapConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">inbox</span>
+                                Probar IMAP
+                            </button>
+                        </div>
                         <button onclick="App.showEmailSetupHelp()" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">help</span> Necesito ayuda para configurar mi cuenta
                         </button>
@@ -3032,6 +3042,60 @@ const App = window.App = {
             color: 'var(--text-primary)',
             confirmButtonText: 'Entendido'
         });
+    },
+
+    testSmtpConnection: async function() {
+        const data = {
+            smtp_host: document.getElementById('email-smtp-host')?.value,
+            smtp_port: parseInt(document.getElementById('email-smtp-port')?.value) || 587,
+            smtp_user: document.getElementById('email-smtp-user')?.value,
+            smtp_password: document.getElementById('email-smtp-pass')?.value,
+            smtp_ssl: document.getElementById('email-smtp-ssl')?.checked
+        };
+        
+        if (!data.smtp_host || !data.smtp_user || !data.smtp_password) {
+            return Swal.fire('Error', 'Completa los campos SMTP', 'error');
+        }
+        
+        Swal.fire({ title: 'Probando SMTP...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        
+        try {
+            const result = await this.fetchAPI('/email/test-smtp', { method: 'POST', body: JSON.stringify(data) });
+            if (result.success) {
+                Swal.fire('✓ Éxito', 'Conexión SMTP exitosa', 'success');
+            } else {
+                Swal.fire('Error', result.error || 'Error de conexión SMTP', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
+        }
+    },
+
+    testImapConnection: async function() {
+        const data = {
+            imap_host: document.getElementById('email-imap-host')?.value,
+            imap_port: parseInt(document.getElementById('email-imap-port')?.value) || 993,
+            imap_user: document.getElementById('email-imap-user')?.value,
+            imap_password: document.getElementById('email-imap-pass')?.value,
+            imap_ssl: document.getElementById('email-imap-ssl')?.checked
+        };
+        
+        if (!data.imap_host || !data.imap_user || !data.imap_password) {
+            return Swal.fire('Error', 'Completa los campos IMAP', 'error');
+        }
+        
+        Swal.fire({ title: 'Probando IMAP...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        
+        try {
+            const result = await this.fetchAPI('/email/test-imap', { method: 'POST', body: JSON.stringify(data) });
+            if (result.success) {
+                Swal.fire('✓ Éxito', 'Conexión IMAP exitosa', 'success');
+            } else {
+                Swal.fire('Error', result.error || 'Error de conexión IMAP', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
+        }
     },
 
     saveEmailAccount: async function() {
