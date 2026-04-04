@@ -17,10 +17,16 @@ COPY package*.json ./
 COPY .env.example ./
 
 # Instalar todas las dependencias (incluye devDependencies para build tools)
-RUN npm install
+RUN npm install || echo "⚠️ Some optional deps may have failed"
 
-# Forzar instalación de sharp con compilación desde fuente
-RUN npm install sharp --ignore-scripts=false && npm rebuild sharp --build-from-source || echo "Sharp install failed"
+# Verificar que las dependencias críticas estén instaladas
+RUN node -e "try { require('better-sqlite3'); console.log('✅ better-sqlite3 OK'); } catch(e) { console.error('❌ better-sqlite3 MISSING'); process.exit(1); }"
+RUN node -e "try { require('express'); console.log('✅ express OK'); } catch(e) { console.error('❌ express MISSING'); process.exit(1); }"
+
+# Verificar dependencias opcionales (warning pero no bloquea)
+RUN node -e "try { require('sharp'); console.log('✅ sharp OK'); } catch(e) { console.warn('⚠️ sharp no disponible'); }" || true
+RUN node -e "try { require('web-push'); console.log('✅ web-push OK'); } catch(e) { console.warn('⚠️ web-push no disponible'); }" || true
+RUN node -e "try { require('jspdf'); console.log('✅ jspdf OK'); } catch(e) { console.warn('⚠️ jspdf no disponible'); }" || true
 
 # Crear carpeta data automáticamente
 RUN if [ ! -d "data" ]; then mkdir data; fi
