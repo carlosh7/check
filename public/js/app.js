@@ -3112,12 +3112,23 @@ const App = window.App = {
             }).length;
         };
         
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedUsers.length === 1) {
+            const user = selectedUsers[0];
+            const userName = user.name || user.email || 'Usuario';
+            const eventCount = (user.events || []).length;
+            subtitleText = `Asignar Evento a ${userName} - ${eventCount} Eventos`;
+        } else {
+            subtitleText = `Asignar Evento a ${selectedUsers.length} usuarios`;
+        }
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
-                        <span class="text-xs" style="color: ${textMain};">Selecciona evento para ${userIds.length} usuario(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
                     <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
