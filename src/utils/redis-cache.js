@@ -3,7 +3,13 @@
  * Redis client wrapper with same interface as node-cache
  */
 
-const { createClient } = require('redis');
+let createClient;
+try {
+    createClient = require('redis').createClient;
+} catch (e) {
+    // Redis no disponible, usar node-cache como fallback
+    createClient = null;
+}
 
 let redisClient = null;
 let isConnected = false;
