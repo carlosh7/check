@@ -855,14 +855,14 @@ const App = window.App = {
         const btnAdmin = document.getElementById('nav-btn-admin');
         if (btnAdmin) {
             const shouldShow = isAdmin && hasSelectedEvent;
-            // Usar style.display directamente para mayor compatibilidad
+            btnAdmin.classList.toggle('hidden', !shouldShow);
             btnAdmin.style.display = shouldShow ? '' : 'none';
         }
         
         // Config. Evento - solo visible si hay evento seleccionado
         const btnEventConfig = document.getElementById('nav-btn-event-config');
         if (btnEventConfig) {
-            // Usar style.display directamente para mayor compatibilidad
+            btnEventConfig.classList.toggle('hidden', !hasSelectedEvent);
             btnEventConfig.style.display = hasSelectedEvent ? '' : 'none';
         }
     },
