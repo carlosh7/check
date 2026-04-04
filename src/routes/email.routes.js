@@ -1468,4 +1468,187 @@ async function processEmailQueue(campaignId, account) {
     processNext();
 }
 
+// ============================================================
+// ENDPOINTS ADICIONALES (v12.44.49)
+// ============================================================
+
+// GET /email/mailbox/attachment/:uid - Descargar adjunto de mensaje
+router.get('/mailbox/attachment/:uid', async (req, res) => {
+    try {
+        const { account_id, folder = 'INBOX', attachmentIndex } = req.query;
+        const { uid } = req.params;
+        
+        if (!account_id) return res.status(400).json({ error: 'account_id requerido' });
+        
+        const account = getEmailDb().prepare('SELECT * FROM email_accounts WHERE id = ? AND is_active = 1').get(account_id);
+        if (!account) return res.status(400).json({ error: 'Cuenta no disponible' });
+        
+        const imap = new Imap(getImapConfig(account));
+        
+        return new Promise((resolve) => {
+            imap.once('ready', () => {
+                let folderName = folder;
+                if (folder !== 'INBOX' && !folder.startsWith('INBOX.')) folderName = `INBOX.${folder}`;
+                
+                imap.openBox(folderName, false, (err) => {
+                    if (err) { imap.end(); res.json({ success: false, error: err.message }); return resolve(); }
+                    
+                    const fetch = imap.fetch(uid, { bodies: '', markSeen: false });
+                    const chunks = [];
+                    let totalSize = 0;
+                    const maxSize = 20 * 1024 * 1024; // 20MB
+                    
+                    fetch.on('message', (msg) => {
+                        msg.on('body', (stream) => {
+                            stream.on('data', chunk => { if (totalSize < maxSize) { chunks.push(chunk); totalSize += chunk.length; } });
+                        });
+                    });
+                    
+                    fetch.once('end', () => {
+                        const rawEmail = Buffer.concat(chunks);
+                        simpleParser(rawEmail, (err, parsed) => {
+                            imap.end();
+                            if (err) { res.json({ success: false, error: err.message }); return resolve(); }
+                            
+                            const attachments = parsed.attachments || [];
+                            const idx = parseInt(attachmentIndex) || 0;
+                            if (idx >= attachments.length) { res.json({ success: false, error: 'Adjunto no encontrado' }); return resolve(); }
+                            
+                            const att = attachments[idx];
+                            res.setHeader('Content-Disposition', `attachment; filename="${att.filename}"`);
+                            res.setHeader('Content-Type', att.contentType || 'application/octet-stream');
+                            res.send(att.content);
+                            resolve();
+                        });
+                    });
+                    
+                    fetch.once('error', (err) => { imap.end(); res.json({ success: false, error: err.message }); resolve(); });
+                });
+            });
+            imap.once('error', (err) => { res.json({ success: false, error: err.message }); resolve(); });
+            imap.connect();
+        });
+    } catch (error) {
+        console.error('Error downloading attachment:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /email/campaigns/:id/duplicate - Duplicar campaña
+router.post('/campaigns/:id/duplicate', (req, res) => {
+    try {
+        const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+        if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+        
+        const now = new Date().toISOString();
+        const newId = uuidv4();
+        const newName = `${campaign.name} (copia)`;
+        
+        getEmailDb().prepare(`
+            INSERT INTO email_campaigns (id, event_id, account_id, name, subject, body_html, recipient_type, group_id, 
+                status, send_type, scheduled_at, total_count, sent_count, failed_count, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, 0, 0, 0, ?, ?)
+        `).run(newId, campaign.event_id, campaign.account_id, newName, campaign.subject, campaign.body_html, 
+            campaign.recipient_type, campaign.group_id, campaign.send_type, campaign.scheduled_at, now, now);
+        
+        res.json({ success: true, id: newId, name: newName });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /email/campaigns/:id/retry-failed - Reintentar emails fallidos
+router.post('/campaigns/:id/retry-failed', (req, res) => {
+    try {
+        const campaign = getEmailDb().prepare('SELECT * FROM email_campaigns WHERE id = ?').get(req.params.id);
+        if (!campaign) return res.status(404).json({ error: 'Campaña no encontrada' });
+        
+        const result = getEmailDb().prepare(`
+            UPDATE email_queue SET status = 'PENDING', attempts = 0, error_message = NULL, next_retry = NULL 
+            WHERE campaign_id = ? AND status = 'FAILED'
+        `).run(req.params.id);
+        
+        if (result.changes > 0) {
+            getEmailDb().prepare('UPDATE email_campaigns SET failed_count = failed_count - ? WHERE id = ?').run(result.changes, req.params.id);
+        }
+        
+        res.json({ success: true, retried: result.changes });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /email/campaigns/:id/export-logs - Exportar logs a CSV
+router.get('/campaigns/:id/export-logs', (req, res) => {
+    try {
+        const logs = getEmailDb().prepare('SELECT * FROM email_logs WHERE campaign_id = ? ORDER BY created_at DESC').all(req.params.id);
+        
+        let csv = 'Email,Nombre,Asunto,Estado,Fecha,Error\n';
+        logs.forEach(log => {
+            csv += `"${log.recipient_email}","${log.recipient_name || ''}","${(log.subject || '').replace(/"/g, '""')}","${log.status}","${log.created_at}","${(log.error_message || '').replace(/"/g, '""')}"\n`;
+        });
+        
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="campaign-${req.params.id}-logs.csv"`);
+        res.send('\ufeff' + csv); // BOM for Excel
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /email/templates/seed-all - Crear las 12 plantillas de la guía
+router.post('/templates/seed-all', (req, res) => {
+    try {
+        const templates = [
+            { id: uuidv4(), name: 'Invitación', subject: 'Estás invitado a {{event_name}}', category: 'invitacion', is_system: 1 },
+            { id: uuidv4(), name: 'Recordatorio 7 días', subject: 'Recordatorio: {{event_name}} es en 7 días', category: 'recordatorio', is_system: 1 },
+            { id: uuidv4(), name: 'Recordatorio 3 días', subject: '{{event_name}} - Recordatorio en 3 días', category: 'recordatorio', is_system: 1 },
+            { id: uuidv4(), name: 'Recordatorio 1 día', subject: 'Mañana es {{event_name}} - No olvides confirmar', category: 'recordatorio', is_system: 1 },
+            { id: uuidv4(), name: 'Recordatorio Horas', subject: '{{event_name}} - Hoy a las {{event_time}}', category: 'recordatorio', is_system: 1 },
+            { id: uuidv4(), name: 'Confirmación Asistencia', subject: 'Confirmación - {{event_name}}', category: 'confirmacion', is_system: 1 },
+            { id: uuidv4(), name: 'Rechazo Asistencia', subject: 'Entendido - {{event_name}}', category: 'general', is_system: 1 },
+            { id: uuidv4(), name: 'Cambio de Fecha', subject: 'Actualización: {{event_name}} ha cambiado de fecha', category: 'general', is_system: 1 },
+            { id: uuidv4(), name: 'Cambio de Ubicación', subject: 'Actualización: {{event_name}} - Nuevo lugar', category: 'general', is_system: 1 },
+            { id: uuidv4(), name: 'Cancelación Evento', subject: 'Cancelación: {{event_name}}', category: 'general', is_system: 1 },
+            { id: uuidv4(), name: 'Agradecimiento Post-Evento', subject: 'Gracias por asistir a {{event_name}}', category: 'general', is_system: 1 },
+            { id: uuidv4(), name: 'Encuesta Post-Evento', subject: 'Cuéntanos tu experiencia - {{event_name}}', category: 'general', is_system: 1 }
+        ];
+        
+        let created = 0;
+        const now = new Date().toISOString();
+        const baseHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>{{event_name}}</title></head><body style="margin:0;padding:0;font-family:'DM Sans',Arial,sans-serif;background-color:#f5f5f5;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;margin:20px auto;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);"><tr><td style="background:linear-gradient(135deg,#8b5cf6 0%,#7c4dff 100%);padding:30px;text-align:center;"><h1 style="color:#ffffff;margin:0;font-size:24px;">{{event_name}}</h1></td></tr><tr><td style="padding:40px 30px;color:#333333;"><p>{{content}}</p></td></tr><tr><td style="background-color:#f8f9fa;padding:25px;text-align:center;border-top:1px solid #e0e0e0;"><p style="margin:0 0 10px;color:#666666;font-size:13px;">{{event_name}}</p><p style="margin:0;color:#999999;font-size:12px;">© {{current_year}} Todos los derechos reservados</p></td></tr></table></td></tr></table></body></html>`;
+        
+        const contents = [
+            '¡Hola {{guest_first_name}}!<br><br>Te encantará este evento.<br><br>📅 {{event_date}}<br>🕐 {{event_time}}<br>📍 {{event_location}}<br><br>{{event_description}}<br><br>¡Te esperamos!',
+            '¡Hola {{guest_first_name}}!<br><br>Solo faltan 7 días para {{event_name}}!<br><br>📅 {{event_date}}<br>🕐 {{event_time}}<br>📍 {{event_location}}<br><br>¡Te esperamos con gusto!',
+            '¡Hola {{guest_first_name}}!<br><br>Faltan solo 3 días para {{event_name}} 🎉<br><br>📅 {{event_date}}<br>🕐 {{event_time}}<br>📍 {{event_location}}<br><br>¡Nos vemos pronto!',
+            '¡Hola {{guest_first_name}}!<br><br>¡Mañana es el gran día! {{event_name}}<br><br>📅 {{event_date}}<br>🕐 {{event_time}}<br>📍 {{event_location}}<br><br>¡Te esperamos mañana!',
+            '¡Hola {{guest_first_name}}!<br><br>¡Hoy te vemos en {{event_name}}!<br><br>📍 {{event_location}}<br>🕐 {{event_time}}<br><br>Tu código QR de acceso: {{qr_code}}<br><br>¡Te esperamos!',
+            '¡Hola {{guest_first_name}}!<br><br>¡Gracias por confirmar tu asistencia a {{event_name}}!<br><br>📅 {{event_date}}<br>🕐 {{event_time}}<br>📍 {{event_location}}<br><br>Tu código QR: {{qr_code}}<br><br>¡Hasta luego!',
+            'Hola {{guest_first_name}},<br><br>Lamentamos que no puedas asistir a {{event_name}}.<br><br>Te informaremos sobre futuros eventos.<br><br>¡Gracias por tu respuesta!',
+            'Hola {{guest_first_name}},<br><br>{{event_name}} ha cambiado de fecha.<br><br>📅 Nueva fecha: {{event_date}}<br>🕐 Nueva hora: {{event_time}}<br>📍 {{event_location}}<br><br>Por favor confirma con la nueva fecha.',
+            'Hola {{guest_first_name}},<br><br>La ubicación de {{event_name}} ha cambiado.<br><br>📍 Nuevo lugar: {{event_location}}<br><br>Mantenemos la hora: {{event_time}}',
+            'Hola {{guest_first_name}},<br><br>Lamentamos informarte que {{event_name}} ha sido cancelado.<br><br>Te reembolsaremos según las políticas del evento.<br><br>Disculpa las inconveniencias.',
+            '¡Hola {{guest_first_name}}!<br><br>Gracias por acompañarnos en {{event_name}}.<br><br>Fue un placer compartir este momento contigo.<br><br>¡Nos vemos en el próximo evento!',
+            '¡Hola {{guest_first_name}}!<br><br>Gracias por asistir a {{event_name}}.<br><br>Tu opinión es muy importante. Ayúdanos con tu retroalimentación.<br><br>{{botón_encuesta}}<br><br>¡Gracias por tu tiempo!'
+        ];
+        
+        templates.forEach((t, i) => {
+            const existing = getEmailDb().prepare('SELECT id FROM email_templates WHERE name = ?').get(t.name);
+            if (!existing) {
+                const html = baseHtml.replace('{{content}}', contents[i]);
+                getEmailDb().prepare(`
+                    INSERT INTO email_templates (id, name, subject, body_html, body_text, category, is_system, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+                `).run(t.id, t.name, t.subject, html, contents[i].replace(/<br>/g, '\n').replace(/<[^>]*>/g, ''), t.category, now, now);
+                created++;
+            }
+        });
+        
+        res.json({ success: true, created, message: `${created} plantillas creadas` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

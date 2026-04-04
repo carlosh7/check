@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.48';
+const VERSION = '12.44.49';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3488,7 +3488,7 @@ const App = window.App = {
             if (msg.attachments && msg.attachments.length > 0) {
                 attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, i) => `
                     <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
-                            onclick="App.downloadAttachment('${a.id || i}', '${accountId}', '${folder}', '${uid}')"
+                            onclick="App.downloadAttachment(${i}, '${accountId}', '${folder}', '${uid}')"
                             title="${this._escapeHtml(a.filename)} (${this._formatFileSize(a.size || 0)})">
                         <span class="material-symbols-outlined text-sm">attach_file</span>
                         ${this._escapeHtml(a.filename)}
@@ -3531,10 +3531,10 @@ const App = window.App = {
         }
     },
 
-    downloadAttachment: async function(attId, accountId, folder, uid) {
+    downloadAttachment: async function(attIndex, accountId, folder, uid) {
         try {
             const token = window.App?.state?.user?.token || LS.get('token');
-            const response = await fetch(`/email/mailbox/attachment/${attId}?account_id=${accountId}&folder=${folder}&uid=${uid}`, {
+            const response = await fetch(`/api/email/mailbox/attachment/${uid}?account_id=${accountId}&folder=${folder}&attachmentIndex=${attIndex}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Error al descargar');
@@ -3558,6 +3558,64 @@ const App = window.App = {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar el adjunto', timer: 2000, toast: true, position: 'top-end' });
             }
+        }
+    },
+
+    seedAllTemplates: async function() {
+        try {
+            const result = await this.fetchAPI('/email/templates/seed-all', { method: 'POST' });
+            if (result.success) {
+                Swal.fire('✓ Éxito', `${result.created} plantillas creadas`, 'success');
+                this.loadEmailTemplates();
+                this.loadComposerTemplates();
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudieron crear las plantillas', 'error');
+        }
+    },
+
+    exportCampaignLogs: async function(campaignId) {
+        try {
+            const token = window.App?.state?.user?.token || LS.get('token');
+            const response = await fetch(`/api/email/campaigns/${campaignId}/export-logs`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Error al exportar');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `campaign-${campaignId}-logs.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            Swal.fire('Error', 'No se pudieron exportar los logs', 'error');
+        }
+    },
+
+    duplicateCampaign: async function(campaignId) {
+        try {
+            const result = await this.fetchAPI(`/email/campaigns/${campaignId}/duplicate`, { method: 'POST' });
+            if (result.success) {
+                Swal.fire('✓ Éxito', `Campaña duplicada: ${result.name}`, 'success');
+                this.loadEmailCampaigns();
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo duplicar la campaña', 'error');
+        }
+    },
+
+    retryFailedCampaign: async function(campaignId) {
+        try {
+            const result = await this.fetchAPI(`/email/campaigns/${campaignId}/retry-failed`, { method: 'POST' });
+            if (result.success) {
+                Swal.fire('✓ Éxito', `${result.retried} emails reintentados`, 'success');
+                this.loadEmailCampaigns();
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudieron reintentar los emails', 'error');
         }
     },
 
@@ -3750,7 +3808,17 @@ const App = window.App = {
     sendEmail: async function() {
         const to = document.getElementById('composer-to')?.value?.trim();
         const subject = document.getElementById('composer-subject')?.value?.trim();
-        const body = document.getElementById('composer-body')?.value?.trim();
+        
+        // Get content from Quill or HTML source
+        let body = '';
+        const htmlSource = document.getElementById('composer-html-source');
+        if (htmlSource) {
+            body = htmlSource.value;
+        } else if (this.composerQuill) {
+            body = this.composerQuill.root.innerHTML;
+        } else {
+            body = document.getElementById('composer-body')?.value?.trim() || '';
+        }
         
         if (!to || !subject) {
             if (typeof Swal !== 'undefined') {
