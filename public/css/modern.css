@@ -680,7 +680,412 @@ body:not(.app-loaded) > *:not(style):not(script):not(link) {
     opacity: 0 !important;
 }
 
+body.app-loaded {
+    opacity: 1 !important;
+}
+
 body.app-loaded > *:not(style):not(script):not(link) {
     opacity: 1 !important;
     transition: opacity 0.15s ease;
 }
+
+/* ===== FILTER SELECTS: Estilo consistente para filtros de Equipo y Empresas ===== */
+/* Base para todos los filtros - mismo tamaño */
+.filter-select-empresa,
+.filter-select-evento,
+.filter-select,
+.filter-select-role,
+.filter-select-action {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 110px;
+    height: 40px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Empresas - estilo esmeralda */
+.filter-select-empresa {
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.filter-select-empresa:hover {
+    border-color: rgba(16, 185, 129, 0.8);
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.filter-select-empresa option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Eventos - estilo ámbar */
+.filter-select-evento {
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.filter-select-evento:hover {
+    border-color: rgba(245, 158, 11, 0.8);
+    background: rgba(245, 158, 11, 0.25);
+}
+
+.filter-select-evento option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Rol / Staff / Estado - estilo slate moderno */
+.filter-select {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
+}
+
+.filter-select:hover {
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(71, 85, 105, 0.7);
+}
+
+.filter-select:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+}
+
+.filter-select option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Acciones - estilo violeta */
+.filter-select-action {
+    border: 1px solid rgba(124, 58, 237, 0.5);
+    background: rgba(124, 58, 237, 0.15);
+    color: #a78bfa;
+}
+
+.filter-select-action:hover {
+    border-color: rgba(124, 58, 237, 0.8);
+    background: rgba(124, 58, 237, 0.25);
+}
+
+.filter-select-action option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Cambiar Rol - estilo azul */
+.filter-select-role {
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+.filter-select-role:hover {
+    border-color: rgba(59, 130, 246, 0.8);
+    background: rgba(59, 130, 246, 0.25);
+}
+
+.filter-select-role option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* TEMA CLARO */
+html:not(.dark) .filter-select-empresa,
+html:not(.dark) .filter-select-evento,
+html:not(.dark) .filter-select,
+html:not(.dark) .filter-select-role,
+html:not(.dark) .filter-select-action {
+    height: 40px;
+}
+
+html:not(.dark) .filter-select {
+    background: rgba(241, 245, 249, 0.9);
+    border-color: rgba(100, 116, 139, 0.3);
+    color: #334155;
+}
+
+html:not(.dark) .filter-select option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-action {
+    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(124, 58, 237, 0.3);
+    color: #7c3aed;
+}
+
+html:not(.dark) .filter-select-action option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-role {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+html:not(.dark) .filter-select-role option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-empresa {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+html:not(.dark) .filter-select-empresa option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-evento {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #d97706;
+}
+
+html:not(.dark) .filter-select-evento option {
+    background: #ffffff;
+    color: #334155;
+}
+
+/* ===== TEMAS: SIDEBAR Y NAVEGACIÓN ===== */
+/* Light theme: sidebar nav items */
+html:not(.dark) #global-sidebar {
+    background: rgba(248, 250, 255, 0.95) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html:not(.dark) #global-sidebar .nav-item {
+    color: #334155 !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item:hover {
+    background: rgba(139, 92, 246, 0.08) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item:hover .material-symbols-outlined {
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #global-sidebar .sidebar-text {
+    color: #334155 !important;
+}
+
+html:not(.dark) #global-sidebar .border-white\/5 {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/5 {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/\[0\.03\] {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/\[0\.01\] {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+html:not(.dark) #global-sidebar .text-white {
+    color: #1e293b !important;
+}
+
+html:not(.dark) #global-sidebar .text-slate-300 {
+    color: #475569 !important;
+}
+
+html:not(.dark) #global-sidebar .text-slate-400 {
+    color: #64748b !important;
+}
+
+html:not(.dark) #global-sidebar .text-violet-400 {
+    color: #7c3aed !important;
+}
+
+/* Light theme: sidebar user info */
+html:not(.dark) #sidebar-username {
+    color: #1e293b !important;
+}
+
+html:not(.dark) #sidebar-role {
+    color: #7c3aed !important;
+}
+
+/* Light theme: theme toggle and logout buttons */
+html:not(.dark) #btn-toggle-theme,
+html:not(.dark) #btn-logout {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) #btn-toggle-theme:hover,
+html:not(.dark) #btn-logout:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) #btn-toggle-theme .text-slate-400,
+html:not(.dark) #btn-logout .text-slate-400 {
+    color: #475569 !important;
+}
+
+/* Light theme: system tab buttons */
+html:not(.dark) #view-system .btn-secondary {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: #334155 !important;
+}
+
+html:not(.dark) #view-system .btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #view-system .btn-secondary .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) #view-system .btn-secondary:hover .material-symbols-outlined {
+    color: #7c3aed !important;
+}
+
+/* ===== TEMAS: TABLAS DE DATOS ===== */
+/* Light theme: table headers */
+html:not(.dark) .data-table thead th {
+    background: rgba(241, 245, 249, 0.8) !important;
+    color: #475569 !important;
+    border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .data-table td {
+    color: #1e293b !important;
+    border-bottom-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .user-row-premium {
+    background: transparent !important;
+    border-bottom-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .user-row-premium:hover {
+    background: rgba(139, 92, 246, 0.04) !important;
+}
+
+html:not(.dark) .data-table .bg-white\/\[0\.01\] {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not(.dark) .data-table .bg-white\/\[0\.02\] {
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+html:not(.dark) .data-table .divide-white\/\[0\.03\] {
+    border-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ===== TEMAS: SUB-NAVIGATION TABS ===== */
+html:not(.dark) .sub-nav-container {
+    background: rgba(241, 245, 249, 0.6) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .sub-nav-btn {
+    color: #64748b !important;
+}
+
+html:not(.dark) .sub-nav-btn:hover {
+    background: rgba(139, 92, 246, 0.08) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) .sub-nav-btn.active {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+}
+
+/* ===== TEMAS: CARDS Y GLASS ===== */
+html:not(.dark) .glass-card,
+html:not(.dark) .card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ===== TEMAS: STATUS BADGES ===== */
+html:not(.dark) .status-active {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #059669 !important;
+}
+
+html:not(.dark) .status-pending {
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #d97706 !important;
+}
+
+html:not(.dark) .status-error {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #dc2626 !important;
+}
+
+html:not(.dark) .status-inactive {
+    background: rgba(100, 116, 139, 0.12) !important;
+    color: #475569 !important;
+}
+
+/* ===== TEMAS: BOTONES BASE ===== */
+html:not(.dark) .btn-primary {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+    border-color: #6d28d9 !important;
+}
+
+html:not(.dark) .btn-primary:hover {
+    background: #6d28d9 !important;
+    border-color: #5b21b6 !important;
+}
+
+html:not(.dark) .btn-secondary {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #334155 !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+html:not(.dark) .btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) .btn-secondary .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) .btn-secondary:hover .material-symbols-outlined {
+    color: #7c3aed !important;
+}
+

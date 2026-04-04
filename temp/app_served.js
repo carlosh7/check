@@ -1,4 +1,4 @@
-import { LS, lazyLoad } from './src/frontend/utils.js';
+﻿import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 /**
@@ -855,14 +855,14 @@ const App = window.App = {
         const btnAdmin = document.getElementById('nav-btn-admin');
         if (btnAdmin) {
             const shouldShow = isAdmin && hasSelectedEvent;
-            btnAdmin.classList.toggle('hidden', !shouldShow);
+            // Usar style.display directamente para mayor compatibilidad
             btnAdmin.style.display = shouldShow ? '' : 'none';
         }
         
         // Config. Evento - solo visible si hay evento seleccionado
         const btnEventConfig = document.getElementById('nav-btn-event-config');
         if (btnEventConfig) {
-            btnEventConfig.classList.toggle('hidden', !hasSelectedEvent);
+            // Usar style.display directamente para mayor compatibilidad
             btnEventConfig.style.display = hasSelectedEvent ? '' : 'none';
         }
     },
@@ -3882,15 +3882,7 @@ const App = window.App = {
             // Re-init quill
             this.composerQuill = new Quill('#composer-quill-inner', {
                 theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image'],
-                        ['clean']
-                    ]
-                }
+                modules: { toolbar: [[{ 'header': [1, 2, 3, false] }, ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] }
             });
             btnVisual.classList.add('bg-[var(--primary)]', 'text-white');
             btnVisual.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
@@ -5704,7 +5696,7 @@ const App = window.App = {
                     events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
             }
 
-            const templatesRes = await this.fetchAPI('/email/templates');
+            const templatesRes = await this.fetchAPI('/email/email-templates');
             const templates = Array.isArray(templatesRes) ? templatesRes : (templatesRes.data || []);
             this.state.emailTemplates = templates;
             const tempSelector = document.getElementById('mailing-template-selector');
@@ -11282,4 +11274,5 @@ window.copyTemplateVar = (varName) => {
 
 // Función global hideModal expuesta para onclick en HTML
 window.hideModal = function(id) { App.hideModal(id); };
+
 
