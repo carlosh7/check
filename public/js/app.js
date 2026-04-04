@@ -2975,18 +2975,34 @@ const App = window.App = {
         const primaryColor = '#10b981';
         const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
         
-        // Calcular usuarios seleccionados
+        // Calcular usuarios seleccionados y sus clientes
         const selectedUsers = users.filter(u => userIds.includes(u.id));
+        
+        // Para cada usuario, saber cuántos clientes tiene asignados
+        const getUserClientCount = (userId) => {
+            const user = users.find(u => u.id === userId);
+            if (!user || !user.clients) return 0;
+            return user.clients.length || 0;
+        };
         
         // Construir texto del título
         let subtitleText = '';
         if (selectedUsers.length === 1) {
             const user = selectedUsers[0];
             const userName = user.display_name || user.username || 'Usuario';
-            subtitleText = userName;
+            const clientCount = getUserClientCount(user.id);
+            subtitleText = `${userName} - ${clientCount} Clientes`;
         } else {
-            subtitleText = selectedUsers.length + ' usuarios seleccionados';
+            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
         }
+        
+        // Verificar si un cliente está asignado a TODOS los usuarios seleccionados
+        const isClientAssignedToAll = (clientId) => {
+            return selectedUsers.every(user => {
+                if (!user.clients) return false;
+                return user.clients.some(c => String(c.id) === String(clientId));
+            });
+        };
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
@@ -3008,8 +3024,11 @@ const App = window.App = {
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${clients.map(c => {
+                        const isAssigned = isClientAssignedToAll(c.id);
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
+                        <div onclick="App.toggleClientForUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -3017,8 +3036,8 @@ const App = window.App = {
                                 <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
                                 <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -3063,6 +3082,57 @@ const App = window.App = {
             this.loadUsersTable();
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+    
+    // Toggle cliente para usuarios (asignar/desasignar)
+    toggleClientForUsersFromModal: async function(userIdsStr, clientId, currentlyAssigned) {
+        const userIds = userIdsStr.split(',');
+        try {
+            if (currentlyAssigned) {
+                // Desasignar: DELETE
+                for (const userId of userIds) {
+                    await this.fetchAPI(`/clients/${clientId}/staff/${userId}`, {
+                        method: 'DELETE'
+                    });
+                }
+                Swal.fire({ 
+                    toast: true,
+                    title: '✓ Desasignado', 
+                    icon: 'success',
+                    background: '#0f172a', 
+                    color: '#fff',
+                    timer: 1500, 
+                    showConfirmButton: false 
+                });
+            } else {
+                // Asignar: POST
+                for (const userId of userIds) {
+                    await this.fetchAPI(`/clients/${clientId}/staff`, {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId })
+                    });
+                }
+                Swal.fire({ 
+                    toast: true,
+                    title: '✓ Asignado', 
+                    icon: 'success',
+                    background: '#0f172a', 
+                    color: '#fff',
+                    timer: 1500, 
+                    showConfirmButton: false 
+                });
+            }
+            
+            // Recargar datos y volver a mostrar el modal
+            const clients = await this.fetchAPI('/clients');
+            this.state.clients = clients;
+            this.loadUsersTable();
+            
+            // Volver a mostrar el modal con datos actualizados
+            this.showClientSelectorForBulkUsers(userIds);
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al ' + (currentlyAssigned ? 'desasignar' : 'asignar') + ' cliente', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
 
