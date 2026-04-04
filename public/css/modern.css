@@ -614,15 +614,65 @@ body.app-loaded > *:not(style):not(script):not(link) {
 }
 
 /* ===== FILTER SELECTS: Estilo consistente para filtros de Equipo y Empresas ===== */
-/* Filtros normales (Empresas, Eventos, Rol, Staff, Estado) - estilo slate */
+/* Empresas - estilo esmeralda */
+.filter-select-empresa {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 100px;
+    border-radius: 8px;
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    outline: none;
+}
+
+.filter-select-empresa:hover {
+    border-color: rgba(16, 185, 129, 0.8);
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.filter-select-empresa option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Eventos - estilo ámbar */
+.filter-select-evento {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 100px;
+    border-radius: 8px;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    outline: none;
+}
+
+.filter-select-evento:hover {
+    border-color: rgba(245, 158, 11, 0.8);
+    background: rgba(245, 158, 11, 0.25);
+}
+
+.filter-select-evento option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Rol / Staff / Estado - estilo slate moderno */
 .filter-select {
     padding: 6px 10px;
     font-size: 11px;
     min-width: 100px;
     border-radius: 8px;
-    border: 1px solid rgba(100, 116, 139, 0.4);
-    color: #cbd5e1;
-    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
     font-weight: 600;
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
@@ -631,7 +681,7 @@ body.app-loaded > *:not(style):not(script):not(link) {
 
 .filter-select:hover {
     border-color: rgba(139, 92, 246, 0.6);
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(71, 85, 105, 0.7);
 }
 
 .filter-select:focus {
@@ -724,6 +774,28 @@ html:not(.dark) .filter-select-role {
 }
 
 html:not(.dark) .filter-select-role option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-empresa {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+html:not(.dark) .filter-select-empresa option {
+    background: #ffffff;
+    color: #334155;
+}
+
+html:not(.dark) .filter-select-evento {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #d97706;
+}
+
+html:not(.dark) .filter-select-evento option {
     background: #ffffff;
     color: #334155;
 }
