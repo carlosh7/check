@@ -1613,16 +1613,27 @@ const App = window.App = {
             return;
         }
         
+        // Detectar tema actual
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        
         // Obtener nombres de empresas seleccionadas
         const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
         const groupNames = selectedGroups.map(g => g.name).join(', ');
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: #94a3b8;">Asignar Cliente a Empresas</span>
-                        <span class="text-xs" style="color: #cbd5e1;">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
+                        <span class="text-xs" style="color: ${textMain};">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
                     </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
@@ -1630,9 +1641,9 @@ const App = window.App = {
                 </div>
 
                 <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: #64748b;">search</span>
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 14px 16px 14px 44px; border-radius: 12px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: #fff; outline: none;">
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
@@ -1640,19 +1651,19 @@ const App = window.App = {
                         const clientCompanyId = c.company_id || '';
                         const isAssigned = groupIds.some(gid => clientCompanyId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
-                        const borderColor = isAssigned ? '#10b981' : 'rgba(255,255,255,0.1)';
-                        const bgColor = isAssigned ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${bgColor}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(16,185,129,0.2); color: #10b981;">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: #fff;">${c.name}</div>
-                                <div class="text-[11px] uppercase tracking-tighter" style="color: #64748b;">${c.email || 'Sin email'}</div>
+                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="border: 2px solid ${isAssigned ? '#10b981' : 'rgba(255,255,255,0.2)'};">
-                                <span class="material-symbols-outlined text-sm" style="color: #10b981;">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -1663,8 +1674,8 @@ const App = window.App = {
             title: '',
             html,
             width: '460px',
-            background: '#0f172a',
-            color: '#fff',
+            background: bgMain,
+            color: textMain,
             showConfirmButton: false,
             showCloseButton: false,
             customClass: { 
@@ -3081,6 +3092,17 @@ const App = window.App = {
             return;
         }
         
+        // Detectar tema actual
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#8b5cf6';
+        const primaryLight = isDark ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.15)';
+        
         // Calcular cuántos de los usuarios seleccionados tienen cada evento
         const selectedUsers = users.filter(u => userIds.includes(u.id));
         const getAssignedCount = (eventId) => {
@@ -3092,10 +3114,10 @@ const App = window.App = {
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: #94a3b8;">Asignar Evento</span>
-                        <span class="text-xs" style="color: #cbd5e1;">Selecciona evento para ${userIds.length} usuario(s)</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
+                        <span class="text-xs" style="color: ${textMain};">Selecciona evento para ${userIds.length} usuario(s)</span>
                     </div>
                     <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
@@ -3103,9 +3125,9 @@ const App = window.App = {
                 </div>
 
                 <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: #64748b;">search</span>
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: #fff; outline: none;">
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
@@ -3113,22 +3135,22 @@ const App = window.App = {
                         const assignedCount = getAssignedCount(e.id);
                         const isAssignedToAll = assignedCount === userIds.length;
                         const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
-                        const borderColor = isAssignedToAll ? '#8b5cf6' : isAssignedToSome ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.1)';
-                        const bgColor = isAssignedToAll ? 'rgba(139,92,246,0.1)' : isAssignedToSome ? 'rgba(139,92,246,0.05)' : 'rgba(255,255,255,0.05)';
+                        const itemBorder = isAssignedToAll ? primaryColor : isAssignedToSome ? 'rgba(139,92,246,0.3)' : borderColor;
+                        const itemBg = isAssignedToAll ? primaryLight : isAssignedToSome ? (isDark ? 'rgba(139,92,246,0.05)' : 'rgba(139,92,246,0.08)') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         const icon = isAssignedToAll ? 'check' : 'add';
                         return `
-                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${bgColor}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(139,92,246,0.2); color: #8b5cf6;">
+                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: #fff;">${e.name}</div>
-                                <div class="text-[11px] ${isAssignedToAll ? '' : 'uppercase tracking-tighter'}" style="color: ${isAssignedToAll ? '#a78bfa' : '#64748b'};">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
+                                <div class="text-[11px]" style="color: ${isAssignedToAll ? primaryColor : textSecondary};">
                                     ${isAssignedToAll ? '✓ Asignado a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : (e.date || 'Sin fecha') + (e.location ? ' • ' + e.location : '')}
                                 </div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssignedToAll ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)'}; border: 2px solid ${isAssignedToAll ? '#8b5cf6' : 'rgba(255,255,255,0.2)'};">
-                                <span class="material-symbols-outlined text-sm" style="color: #8b5cf6;">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssignedToAll ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssignedToAll ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -3139,12 +3161,12 @@ const App = window.App = {
             title: '',
             html,
             width: '460px',
-            background: '#0f172a',
-            color: '#fff',
+            background: bgMain,
+            color: textMain,
             showConfirmButton: false,
             showCloseButton: false,
             customClass: { 
-                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                popup: 'rounded-[1.5rem] shadow-2xl',
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
