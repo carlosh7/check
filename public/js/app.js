@@ -1084,23 +1084,23 @@ const App = window.App = {
                         </div>`).join('');
                     
                     return `
-                    <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
-                        <td class="px-3 py-4" style="width: 40px;">
+                    <tr class="user-row-premium">
+                        <td class="px-2 py-3 align-middle" style="width: 40px;">
                             <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                         </td>
-                        <td class="px-3 py-4">
+                        <td class="px-2 py-3 align-middle">
                             <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
-                        <td class="px-3 py-4">
-                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                             <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
                         </td>
-                        <td class="px-3 py-4">
-                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin staff</span>'}</div>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-wrap gap-1.5 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                             <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Staff</button>
                         </td>
-                        <td class="px-3 py-4 text-left">
+                        <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                                 ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                             </span>

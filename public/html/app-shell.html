@@ -826,35 +826,27 @@
                 </div>
 
                 <!-- SECCIÓN: EMPRESAS -->
-                <div id="sys-content-groups" class="hidden space-y-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
-                        </div>
+                <div id="sys-content-groups" class="hidden space-y-4">
+                    <!-- Fila 1: Botones + Filtros -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Botones de acción -->
                         <div class="flex gap-2">
-                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('groups')">
-                                <span class="material-symbols-outlined text-sm">upload</span> Importar
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('groups')">
+                                <span class="material-symbols-outlined text-base">upload</span> Importar
                             </button>
-                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('groups')">
-                                <span class="material-symbols-outlined text-sm">download</span> Exportar
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('groups')">
+                                <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
-                            <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                            <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
+                                <span class="material-symbols-outlined text-base">add_business</span> + Empresa
+                            </button>
                         </div>
-                    </div>
-                    <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
-                        <div style="flex: 1 1 auto; min-width: 0; position: relative;">
-                            <input id="group-search" type="text" placeholder="Buscar..." 
-                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
-                                   oninput="App.filterGroups()">
-                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
-                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select-evento">
+                        <!-- Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
                                 <option value="">Eventos</option>
                             </select>
-                            <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select">
+                            <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-empresa">
                                 <option value="">Staff</option>
                             </select>
                             <select id="filter-group-status" onchange="App.filterGroups()" class="filter-select">
@@ -862,7 +854,7 @@
                                 <option value="ACTIVE">Activo</option>
                                 <option value="INACTIVE">Inactivo</option>
                             </select>
-                            <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" class="filter-select-action">
+                            <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" class="filter-select filter-select-action">
                                 <option value="">Acciones</option>
                                 <option value="edit">Editar</option>
                                 <option value="activate">Activar</option>
@@ -872,6 +864,14 @@
                                 <option value="delete">Eliminar</option>
                             </select>
                         </div>
+                    </div>
+                    <!-- Fila 2: Buscador -->
+                    <div style="position: relative;">
+                        <input id="group-search" type="text" placeholder="Buscar..." 
+                               style="width: 100%; padding-right: 60px; padding-left: 40px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px;"
+                               oninput="App.filterGroups()">
+                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -1063,12 +1063,12 @@
                         </div>
                     </div>
                     <!-- Fila 2: Buscador -->
-                    <div class="relative">
+                    <div style="position: relative;">
                         <input id="user-search" type="text" placeholder="Buscar..." 
-                               class="w-full pr-[60px] pl-[40px] py-3 rounded-xl bg-[var(--bg-input)] border border-white/5 text-sm focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 outline-none transition-all"
+                               style="width: 100%; padding-right: 60px; padding-left: 40px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px;"
                                oninput="App.filterUsers()">
-                        <span class="material-symbols-outlined absolute left-[12px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg">search</span>
-                        <span class="material-symbols-outlined absolute right-[12px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] cursor-pointer text-base hover:text-white transition-colors" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
+                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
