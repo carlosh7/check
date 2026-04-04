@@ -374,6 +374,27 @@ db.exec(`CREATE TABLE IF NOT EXISTS clients (
     FOREIGN KEY (company_id) REFERENCES groups(id)
 )`);
 
+// Migración V12.44.65+: asegurar que company_id permite valores vacíos
+try {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS clients_new (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            company_id TEXT,
+            status TEXT DEFAULT 'ACTIVE',
+            created_at TEXT,
+            created_by TEXT
+        )
+    `);
+    db.exec(`
+        INSERT INTO clients_new SELECT * FROM clients
+    `);
+    db.exec('DROP TABLE clients');
+    db.exec('ALTER TABLE clients_new RENAME TO clients');
+} catch (e) {}
+
 // Relación Cliente-Evento (muchos a muchos)
 db.exec(`CREATE TABLE IF NOT EXISTS client_events (
     id TEXT PRIMARY KEY,

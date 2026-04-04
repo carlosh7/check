@@ -1618,39 +1618,41 @@ const App = window.App = {
         const groupNames = selectedGroups.map(g => g.name).join(', ');
         
         const html = `
-            <div class="space-y-6">
-                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
-                    <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Cliente a Empresas</span>
-                        <span class="text-xs text-slate-400">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: #94a3b8;">Asignar Cliente a Empresas</span>
+                        <span class="text-xs" style="color: #cbd5e1;">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
                     </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
                     </button>
                 </div>
 
-                <div class="relative group">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
+                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: #64748b;">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-5 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                        style="width: 100%; padding: 14px 16px 14px 44px; border-radius: 12px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: #fff; outline: none;">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${clients.map(c => {
                         const clientCompanyId = c.company_id || '';
                         const isAssigned = groupIds.some(gid => clientCompanyId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
+                        const borderColor = isAssigned ? '#10b981' : 'rgba(255,255,255,0.1)';
+                        const bgColor = isAssigned ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)';
                         return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${bgColor}; border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(16,185,129,0.2); color: #10b981;">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${c.name}</div>
-                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${c.email || 'Sin email'}</div>
+                                <div class="text-sm font-bold" style="color: #fff;">${c.name}</div>
+                                <div class="text-[11px] uppercase tracking-tighter" style="color: #64748b;">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-emerald-500 ${isAssigned ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="border: 2px solid ${isAssigned ? '#10b981' : 'rgba(255,255,255,0.2)'};">
+                                <span class="material-symbols-outlined text-sm" style="color: #10b981;">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -1660,14 +1662,13 @@ const App = window.App = {
         Swal.fire({
             title: '',
             html,
-            width: '450px',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
+            width: '460px',
+            background: '#0f172a',
+            color: '#fff',
             showConfirmButton: false,
-            showCloseButton: true,
+            showCloseButton: false,
             customClass: { 
-                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
-                closeButton: 'hover:text-red-500 transition-colors'
+                popup: 'rounded-[1.5rem] shadow-2xl'
             }
         });
     },
@@ -1676,47 +1677,57 @@ const App = window.App = {
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
-                // Desasignar
-                await this.fetchAPI('/clients/unassign-from-company', {
+                // Desasignar - pasar company_id vacío
+                const response = await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
                 });
+                // Forzar recarga de grupos y clientes
+                this.state.clients = null;
+                this.loadGroups();
+                // Mostrar notificación y reabrir modal
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Desasignado', 
                     icon: 'success',
                     background: '#0f172a', 
                     color: '#fff',
-                    timer: 1200,
+                    timer: 1000,
                     showConfirmButton: false,
                     position: 'top-end'
                 });
+                setTimeout(() => {
+                    if (Swal.isVisible()) {
+                        this.openAssignClientToGroupModal(groupIds);
+                    }
+                }, 200);
             } else {
                 // Asignar
                 await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
                 });
+                // Forzar recarga de grupos y clientes
+                this.state.clients = null;
+                this.loadGroups();
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Asignado', 
                     icon: 'success', 
                     background: '#0f172a', 
                     color: '#fff',
-                    timer: 1200,
+                    timer: 1000,
                     showConfirmButton: false,
                     position: 'top-end'
                 });
+                setTimeout(() => {
+                    if (Swal.isVisible()) {
+                        this.openAssignClientToGroupModal(groupIds);
+                    }
+                }, 200);
             }
-            
-            // Recargar datos sin cerrar modal
-            this.loadGroups();
-            
-            // Actualizar el modal con los nuevos datos
-            setTimeout(() => {
-                this.openAssignClientToGroupModal(groupIds);
-            }, 100);
         } catch (e) {
+            console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
                 toast: true,
                 title: '✗ Error', 
