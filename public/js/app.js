@@ -1613,33 +1613,37 @@ const App = window.App = {
             return;
         }
         
+        // Obtener nombres de empresas seleccionadas
+        const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
+        const groupNames = selectedGroups.map(g => g.name).join(', ');
+        
         const html = `
             <div class="space-y-6">
-                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                <div class="flex items-center justify-between p-3 rounded-xl border" style="background: var(--bg-hover); border-color: var(--border);">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Cliente a Empresas</span>
-                        <span class="text-xs text-slate-400">Selecciona cliente para ${groupIds.length} empresa(s)</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: var(--text-muted);">Asignar Cliente a Empresas</span>
+                        <span class="text-xs" style="color: var(--text-secondary);">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
                     </div>
                 </div>
 
                 <div class="relative group">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 transition-colors text-sm" style="color: var(--text-muted);">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                        class="w-full rounded-xl pl-10 pr-4 py-3 text-sm outline-none transition-all" style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main);">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${clients.map(c => `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group shadow-sm" style="background: var(--bg-hover); border-color: var(--border);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold group-hover:scale-105 transition-transform" style="background: var(--primary-light); color: var(--primary);">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${c.name}</div>
-                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${c.email || 'Sin email'}</div>
+                                <div class="text-sm font-bold transition-colors" style="color: var(--text-main);">${c.name}</div>
+                                <div class="text-[11px] uppercase tracking-tighter" style="color: var(--text-muted);">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors" style="border-color: var(--border);">
+                                <span class="material-symbols-outlined text-xs transition-opacity" style="color: var(--primary);">add</span>
                             </div>
                         </div>
                     `).join('')}
@@ -1655,7 +1659,7 @@ const App = window.App = {
             showConfirmButton: false,
             showCloseButton: true,
             customClass: { 
-                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                popup: 'rounded-[2rem] shadow-2xl backdrop-blur-xl',
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
