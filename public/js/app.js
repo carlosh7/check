@@ -1633,8 +1633,14 @@ const App = window.App = {
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    ${clients.map(c => `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group shadow-sm" style="background: var(--bg-hover); border-color: var(--border);">
+                    ${clients.map(c => {
+                        // Verificar si el cliente ya está asignado a alguna de las empresas seleccionadas
+                        const isAssigned = groupIds.some(gid => String(c.company_id) === String(gid));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const assignedClass = isAssigned ? 'border-emerald-500/50 bg-emerald-500/10' : '';
+                        
+                        return `
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group shadow-sm ${assignedClass}" style="background: var(--bg-hover); border-color: var(--border);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold group-hover:scale-105 transition-transform" style="background: var(--primary-light); color: var(--primary);">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -1643,10 +1649,10 @@ const App = window.App = {
                                 <div class="text-[11px] uppercase tracking-tighter" style="color: var(--text-muted);">${c.email || 'Sin email'}</div>
                             </div>
                             <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors" style="border-color: var(--border);">
-                                <span class="material-symbols-outlined text-xs transition-opacity" style="color: var(--primary);">add</span>
+                                <span class="material-symbols-outlined text-xs transition-opacity" style="color: var(--primary);">${icon}</span>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>`;
 
