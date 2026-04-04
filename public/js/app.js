@@ -2978,34 +2978,23 @@ const App = window.App = {
         // Calcular usuarios seleccionados
         const selectedUsers = users.filter(u => userIds.includes(u.id));
         
-// Construir texto del título
+        // Construir texto del título
         let subtitleText = '';
         if (selectedUsers.length === 1) {
             const user = selectedUsers[0];
             const userName = user.display_name || user.username || 'Usuario';
-            const eventCount = (user.events || []).length;
-            subtitleText = `${userName} - ${eventCount} Eventos`;
+            subtitleText = userName;
         } else {
-            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
+            subtitleText = selectedUsers.length + ' usuarios seleccionados';
         }
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
                         <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
-                        <span class="material-symbols-outlined text-xs">event</span> NUEVO
-                    </button>
-                </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">person_add</span> CREAR
                     </button>
@@ -3250,19 +3239,30 @@ const App = window.App = {
             }).length;
         };
         
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedUsers.length === 1) {
+            const user = selectedUsers[0];
+            const userName = user.display_name || user.username || 'Usuario';
+            const eventCount = (user.events || []).length;
+            subtitleText = `${userName} - ${eventCount} Eventos`;
+        } else {
+            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
+        }
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
-                        <span class="text-xs" style="color: ${textMain};">Selecciona evento para ${userIds.length} usuario(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
                     <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
                     </button>
                 </div>
 
-                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
+                <div class="relative group mt-6 mb-6">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
