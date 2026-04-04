@@ -5,7 +5,14 @@
 
 const express = require('express');
 const multer = require('multer');
-const { imageUploadMiddleware } = require('../middleware/imageOptimizer');
+let imageUploadMiddleware;
+try {
+    const imgOpt = require('../middleware/imageOptimizer');
+    imageUploadMiddleware = imgOpt.imageUploadMiddleware;
+} catch (e) {
+    console.warn('⚠️ Optimización de imágenes no disponible (sharp no instalado)');
+    imageUploadMiddleware = (req, res, next) => next();
+}
 const authRoutes = require('./auth.routes');
 const usersRoutes = require('./users.routes');
 const eventsRoutes = require('./events.routes');

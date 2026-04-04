@@ -2,11 +2,12 @@ FROM node:20-slim
 
 WORKDIR /usr/src/app
 
-# Instalar dependencias del sistema necesarias para better-sqlite3
+# Instalar dependencias del sistema necesarias para better-sqlite3 y sharp
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    libvips-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar package.json y package-lock.jsonpar
