@@ -813,18 +813,20 @@ router.post('/campaigns/:id/send', async (req, res) => {
         let recipients = [];
         
         if (campaign.event_id) {
-            const guests = getEmailDb().prepare(`
-                SELECT name, email FROM guests 
-                WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''
-            `).all(campaign.event_id);
+            let query = `SELECT name, email, group_name, checked_in FROM guests WHERE event_id = ? AND unsubscribed = 0 AND email IS NOT NULL AND email != ''`;
+            let params = [campaign.event_id];
             
             if (campaign.recipient_type === 'confirmed') {
-                recipients = guests.filter(g => g.checked_in === 1);
+                query += ' AND checked_in = 1';
             } else if (campaign.recipient_type === 'pending') {
-                recipients = guests.filter(g => g.checked_in === 0);
-            } else {
-                recipients = guests;
+                query += ' AND checked_in = 0';
+            } else if (campaign.recipient_type === 'group' && campaign.recipient_group_id) {
+                query += ' AND group_name = ?';
+                params.push(campaign.recipient_group_id);
             }
+            
+            const guests = getEmailDb().prepare(query).all(...params);
+            recipients = guests;
         }
         
         if (recipients.length === 0) {
@@ -998,6 +1000,38 @@ router.get('/campaigns/:id/stats', (req, res) => {
 // ENVÍO DE EMAIL INDIVIDUAL
 // ============================================================
 
+// ============================================================
+// SCHEDULER AUTOMÁTICO - Ejecuta campañas programadas
+// ============================================================
+
+let schedulerInterval = null;
+
+function startCampaignScheduler() {
+    if (schedulerInterval) return; // Ya está corriendo
+    
+    console.log('[SCHEDULER] Campaign scheduler started (checking every 30s)');
+    
+    schedulerInterval = setInterval(async () => {
+        try {
+            const now = new Date().toISOString();
+            const scheduledCampaigns = getEmailDb().prepare(
+                "SELECT c.*, a.* FROM email_campaigns c JOIN email_accounts a ON c.account_id = a.id WHERE c.status = 'SCHEDULED' AND c.scheduled_at <= ?"
+            ).all(now);
+            
+            for (const campaign of scheduledCampaigns) {
+                console.log(`[SCHEDULER] Auto-starting campaign: ${campaign.name} (${campaign.id})`);
+                getEmailDb().prepare("UPDATE email_campaigns SET status = 'SENDING', updated_at = ? WHERE id = ?").run(now, campaign.id);
+                processEmailQueue(campaign.id, campaign);
+            }
+        } catch (err) {
+            console.error('[SCHEDULER] Error:', err.message);
+        }
+    }, 30000); // Cada 30 segundos
+}
+
+// Iniciar scheduler al cargar el módulo
+startCampaignScheduler();
+
 // POST /api/email/send - Enviar email individual
 router.post('/send', async (req, res) => {
     try {
@@ -1038,6 +1072,15 @@ router.post('/send', async (req, res) => {
             html: processedHtml,
             text: processedText
         };
+        
+        // Handle attachments if provided
+        if (req.body.attachments && Array.isArray(req.body.attachments)) {
+            mailOptions.attachments = req.body.attachments.map(att => ({
+                filename: att.filename,
+                content: att.content,
+                encoding: 'base64'
+            }));
+        }
         
         const result = await transporter.sendMail(mailOptions);
         

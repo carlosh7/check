@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.49';
+const VERSION = '12.44.50';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3446,6 +3446,10 @@ const App = window.App = {
                 <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0" id="mail-view-footer">
                     <div id="mail-view-attachments" class="flex items-center gap-2 flex-wrap"></div>
                     <div class="flex gap-2">
+                        <button onclick="App.replyToEmail('${uid}', '${folder}')" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1" style="background: var(--bg-hover); color: var(--text-main);">
+                            <span class="material-symbols-outlined text-sm">reply</span>
+                            Responder
+                        </button>
                         <button id="btn-close-mail-view-footer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cerrar</button>
                     </div>
                 </div>
@@ -3619,6 +3623,93 @@ const App = window.App = {
         }
     },
 
+    replyToEmail: async function(uid, folder) {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!accountId) return;
+        
+        try {
+            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
+            if (!result.success) return;
+            
+            const msg = result.message;
+            const replyTo = msg.from || '';
+            const replySubject = msg.subject ? (msg.subject.startsWith('Re:') ? msg.subject : `Re: ${msg.subject}`) : 'Re:';
+            
+            // Close mail view modal
+            document.getElementById('modal-mail-view')?.classList.add('hidden');
+            setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            
+            // Open composer with pre-filled data
+            this.openEmailComposer(replyTo, replySubject);
+        } catch (e) {
+            console.error('[MAILBOX] Error replying:', e);
+        }
+    },
+
+    sortMailboxMessages: function(criteria) {
+        const container = document.getElementById('mailbox-messages');
+        if (!container) return;
+        const items = Array.from(container.querySelectorAll('[onclick*="viewMailMessage"]'));
+        
+        items.sort((a, b) => {
+            const getSubject = el => el.querySelector('h5')?.textContent?.trim() || '';
+            const getFrom = el => el.querySelector('p')?.textContent?.replace('De: ', '') || '';
+            const getDate = el => {
+                const span = el.querySelector('span.text-\\[9px\\]');
+                return span ? span.textContent.trim() : '';
+            };
+            
+            switch (criteria) {
+                case 'date-desc': return getDate(b).localeCompare(getDate(a));
+                case 'date-asc': return getDate(a).localeCompare(getDate(b));
+                case 'sender': return getFrom(a).localeCompare(getFrom(b));
+                case 'subject': return getSubject(a).localeCompare(getSubject(b));
+                default: return 0;
+            }
+        });
+        
+        items.forEach(item => container.appendChild(item));
+    },
+
+    previewComposer: function() {
+        const htmlSource = document.getElementById('composer-html-source');
+        let content = '';
+        if (htmlSource) {
+            content = htmlSource.value;
+        } else if (this.composerQuill) {
+            content = this.composerQuill.root.innerHTML;
+        }
+        
+        if (!content) {
+            Swal.fire('Vista previa', 'No hay contenido para previsualizar', 'info');
+            return;
+        }
+        
+        Swal.fire({
+            title: 'Vista Previa',
+            html: `<div style="text-align:left;max-height:60vh;overflow-y:auto;">${content}</div>`,
+            width: '800px',
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar'
+        });
+    },
+
+    insertComposerVariable: function(variable) {
+        const textarea = document.getElementById('composer-html-source');
+        if (textarea) {
+            // HTML mode
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + variable + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+            textarea.focus();
+        } else if (this.composerQuill) {
+            // Visual mode
+            const range = this.composerQuill.getSelection();
+            this.composerQuill.insertText(range ? range.index : 0, variable);
+        }
+    },
+
     _formatFileSize: function(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -3667,11 +3758,26 @@ const App = window.App = {
                         <div class="flex items-center gap-2 mt-2">
                             <button onclick="App.toggleComposerMode('visual')" id="btn-mode-visual" class="px-3 py-1 rounded text-xs font-medium bg-[var(--primary)] text-white">Visual</button>
                             <button onclick="App.toggleComposerMode('html')" id="btn-mode-html" class="px-3 py-1 rounded text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-main)]">HTML</button>
+                            <button onclick="App.previewComposer()" class="px-3 py-1 rounded text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-main)] flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">visibility</span>
+                                Preview
+                            </button>
                             <label class="ml-auto flex items-center gap-1 text-xs text-[var(--text-secondary)] cursor-pointer">
                                 <span class="material-symbols-outlined text-sm">attach_file</span>
                                 Adjunto
                                 <input type="file" id="composer-attachment" class="hidden" onchange="App.handleComposerAttachment(this)" />
                             </label>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-[10px] text-[var(--text-muted)] mb-1">Variables:</p>
+                            <div class="flex flex-wrap gap-1">
+                                <button onclick="App.insertComposerVariable('{{guest_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{guest_name}}</button>
+                                <button onclick="App.insertComposerVariable('{{guest_first_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{guest_first_name}}</button>
+                                <button onclick="App.insertComposerVariable('{{event_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_name}}</button>
+                                <button onclick="App.insertComposerVariable('{{event_date}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_date}}</button>
+                                <button onclick="App.insertComposerVariable('{{event_location}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_location}}</button>
+                                <button onclick="App.insertComposerVariable('{{qr_code}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{qr_code}}</button>
+                            </div>
                         </div>
                         <div id="composer-attachment-list" class="mt-2 space-y-1"></div>
                     </div>
@@ -3680,6 +3786,7 @@ const App = window.App = {
                     <p class="text-[10px] text-[var(--text-muted)]">Para y Asunto obligatorios</p>
                     <div class="flex gap-2">
                         <button id="btn-cancel-composer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cancelar</button>
+                        <button id="btn-draft-composer" onclick="App.saveDraftEmail()" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-secondary); color: var(--text-main);">Borrador</button>
                         <button id="btn-send-composer" class="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-200 flex items-center gap-2" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">
                             <span class="material-symbols-outlined text-sm">send</span>
                             Enviar
@@ -3857,6 +3964,28 @@ const App = window.App = {
                 btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Enviar';
             }
         }
+    },
+
+    saveDraftEmail: function() {
+        const to = document.getElementById('composer-to')?.value?.trim();
+        const subject = document.getElementById('composer-subject')?.value?.trim();
+        
+        let body = '';
+        const htmlSource = document.getElementById('composer-html-source');
+        if (htmlSource) {
+            body = htmlSource.value;
+        } else if (this.composerQuill) {
+            body = this.composerQuill.root.innerHTML;
+        } else {
+            body = document.getElementById('composer-body')?.value?.trim() || '';
+        }
+        
+        // Save to localStorage as draft
+        const draft = { to, subject, body, savedAt: new Date().toISOString() };
+        localStorage.setItem('email_draft', JSON.stringify(draft));
+        
+        Swal.fire({ icon: 'success', title: 'Borrador guardado', text: 'Se guardó como borrador local', timer: 2000, toast: true, position: 'top-end' });
+        this._closeComposerModal();
     },
 
     loadEmailTemplates: async function() {
@@ -4314,7 +4443,39 @@ const App = window.App = {
             if (elAll) elAll.textContent = `${total} invitados`;
             if (elConf) elConf.textContent = `${confirmed} confirmados`;
             if (elPend) elPend.textContent = `${pending} pendientes`;
+            
+            // Cargar grupos
+            const groups = [...new Set(guests?.filter(g => g.group_name).map(g => g.group_name))];
+            const groupSel = document.getElementById('wizard-recipient-group');
+            if (groupSel) {
+                groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
+                    groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            }
         } catch (e) {}
+        
+        // Handler para mostrar/ocultar selector de grupo
+        document.querySelectorAll('input[name="wizard-recipient-type"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const groupSelector = document.getElementById('wizard-group-selector');
+                if (groupSelector) {
+                    groupSelector.classList.toggle('hidden', e.target.value !== 'group');
+                }
+                if (e.target.value === 'group') {
+                    this.updateWizardRecipientCount();
+                }
+            });
+        });
+    },
+
+    updateWizardRecipientCount: function() {
+        const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
+        const groupId = document.getElementById('wizard-recipient-group')?.value || '';
+        
+        if (recipientType === 'group' && groupId) {
+            const guests = this.state.guests || [];
+            const count = guests.filter(g => g.group_name === groupId).length;
+            this.wizardSelectedRecipients = count;
+        }
     },
 
     showWizardStep: function(step) {
@@ -4470,6 +4631,38 @@ const App = window.App = {
         }
     },
 
+    toggleWizardMode: function(mode) {
+        const editor = document.getElementById('wizard-quill-editor');
+        const btnVisual = document.getElementById('btn-wizard-visual');
+        const btnHtml = document.getElementById('btn-wizard-html');
+        
+        if (mode === 'html') {
+            const html = this.wizardQuillEditor ? this.wizardQuillEditor.root.innerHTML : '';
+            editor.innerHTML = `<textarea id="wizard-html-source" class="w-full h-48 p-3 text-xs font-mono bg-slate-800 text-slate-200 border border-slate-600 rounded resize-y" style="min-height:200px;">${this._escapeHtml(html)}</textarea>`;
+            btnHtml.classList.add('bg-violet-500', 'text-white');
+            btnHtml.classList.remove('bg-slate-700', 'text-slate-300');
+            btnVisual.classList.remove('bg-violet-500', 'text-white');
+            btnVisual.classList.add('bg-slate-700', 'text-slate-300');
+        } else {
+            const source = document.getElementById('wizard-html-source');
+            if (source) {
+                if (this.wizardQuillEditor) {
+                    this.wizardQuillEditor.root.innerHTML = source.value;
+                }
+            }
+            editor.innerHTML = '<div id="wizard-quill-editor-inner" style="min-height: 200px;"></div>';
+            if (!this.wizardQuillEditor) {
+                this.wizardQuillEditor = new Quill('#wizard-quill-editor-inner', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } });
+            } else {
+                this.wizardQuillEditor = new Quill('#wizard-quill-editor-inner', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } });
+            }
+            btnVisual.classList.add('bg-violet-500', 'text-white');
+            btnVisual.classList.remove('bg-slate-700', 'text-slate-300');
+            btnHtml.classList.remove('bg-violet-500', 'text-white');
+            btnHtml.classList.add('bg-slate-700', 'text-slate-300');
+        }
+    },
+
     updateWizardSummary: function() {
         const name = document.getElementById('wizard-campaign-name')?.value || '-';
         const subject = document.getElementById('wizard-email-subject')?.value || '-';
@@ -4487,11 +4680,15 @@ const App = window.App = {
         const campaignName = document.getElementById('wizard-campaign-name')?.value;
         const subject = document.getElementById('wizard-email-subject')?.value;
         const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
+        const groupId = recipientType === 'group' ? (document.getElementById('wizard-recipient-group')?.value || '') : '';
         const sendType = document.querySelector('input[name="wizard-send-type"]:checked')?.value || 'now';
         const scheduledDate = document.getElementById('wizard-scheduled-date')?.value;
         
         let bodyHtml = '';
-        if (this.wizardQuillEditor) {
+        const htmlSource = document.getElementById('wizard-html-source');
+        if (htmlSource) {
+            bodyHtml = htmlSource.value;
+        } else if (this.wizardQuillEditor) {
             bodyHtml = this.wizardQuillEditor.root.innerHTML;
         }
         
@@ -4505,7 +4702,8 @@ const App = window.App = {
                     name: campaignName,
                     subject,
                     body_html: bodyHtml,
-                    recipient_type: recipientType,
+                    recipient_type: recipientType === 'group' ? 'group' : recipientType,
+                    recipient_group_id: groupId || null,
                     scheduled_at: sendType === 'scheduled' ? scheduledDate : null
                 }
             });

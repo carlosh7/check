@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.49",
+  "version": "12.44.50",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.6 - Wizard de campañas y monitor de envío",
   "main": "script.js",
   "scripts": {

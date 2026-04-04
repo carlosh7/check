@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.49</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.50</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -1469,7 +1469,7 @@
                     
                     <div>
                         <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Tipo de Destinatarios</label>
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid grid-cols-4 gap-3">
                             <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
                                 <input type="radio" name="wizard-recipient-type" value="all" checked class="accent-violet-500">
                                 <div>
@@ -1491,6 +1491,19 @@
                                     <p class="text-[10px] text-slate-500" id="wizard-count-pending">0 pendientes</p>
                                 </div>
                             </label>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent has-[:checked]:border-violet-500/50">
+                                <input type="radio" name="wizard-recipient-type" value="group" class="accent-violet-500">
+                                <div>
+                                    <span class="text-sm font-bold text-white">Por Grupo</span>
+                                    <p class="text-[10px] text-slate-500">Seleccionar</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="wizard-group-selector" class="hidden mt-3">
+                            <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Seleccionar Grupo</label>
+                            <select id="wizard-recipient-group" class="input-field w-full">
+                                <option value="">-- Todos los grupos --</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -1527,6 +1540,10 @@
                         <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Contenido del Email</label>
                         <div id="wizard-editor-container" class="bg-white rounded-lg overflow-hidden mb-2">
                             <div id="wizard-quill-editor" style="min-height: 200px;"></div>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <button onclick="App.toggleWizardMode('visual')" id="btn-wizard-visual" class="px-3 py-1 rounded text-xs font-medium bg-violet-500 text-white">Visual</button>
+                            <button onclick="App.toggleWizardMode('html')" id="btn-wizard-html" class="px-3 py-1 rounded text-xs font-medium bg-slate-700 text-slate-300">HTML</button>
                         </div>
                         
                         <!-- Variables rápidas -->
