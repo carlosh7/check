@@ -8,8 +8,16 @@ const { db } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
-const jsPDF = require('jspdf');
-require('jspdf-autotable').default;
+
+// Importación condicional de jspdf (puede no estar disponible)
+let jsPDF = null;
+let autoTable = null;
+try {
+    jsPDF = require('jspdf');
+    autoTable = require('jspdf-autotable').default;
+} catch (e) {
+    console.warn('⚠️ jspdf/jspdf-autotable no disponible. Export PDF deshabilitado.');
+}
 
 const router = express.Router();
 

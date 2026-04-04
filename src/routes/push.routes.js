@@ -7,7 +7,14 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
-const webpush = require('web-push');
+
+// Importación condicional de web-push (puede no estar disponible)
+let webpush = null;
+try {
+    webpush = require('web-push');
+} catch (e) {
+    console.warn('⚠️ web-push no disponible. Notificaciones push deshabilitadas.');
+}
 
 const router = express.Router();
 

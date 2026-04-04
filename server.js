@@ -244,14 +244,19 @@ app.use(express.static(path.join(__dirname, '/'), {
 
 // Uploads y middleware de validación se manejan en registerRoutes
 
-// --- SWAGGER UI ---
-// ⚠️ SECURITY: Proteger Swagger en producción
-const swaggerUi = require('swagger-ui-express');
-const { swaggerSpec } = require('./src/docs/swagger');
+// --- SWAGGER UI (importación condicional) ---
+let swaggerUi = null;
+let swaggerSpec = null;
+try {
+    swaggerUi = require('swagger-ui-express');
+    swaggerSpec = require('./src/docs/swagger').swaggerSpec;
+} catch (e) {
+    // swagger-ui-express no disponible
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
-if (isProduction) {
-    // En producción, devolver 404 para evitar exponer la API
+if (!swaggerUi || isProduction) {
+    // En producción o sin swagger, devolver 404 para evitar exponer la API
     app.use('/api-docs', (req, res) => {
         res.status(404).json({ error: 'API Docs no disponible en producción' });
     });
