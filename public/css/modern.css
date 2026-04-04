@@ -875,14 +875,14 @@ html:not(.dark) #btn-logout .text-slate-400 {
 
 /* Light theme: system tab buttons */
 html:not(.dark) #view-system .btn-secondary {
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-color: rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
     color: #334155 !important;
 }
 
 html:not(.dark) #view-system .btn-secondary:hover {
     background: rgba(139, 92, 246, 0.1) !important;
-    border-color: rgba(139, 92, 246, 0.3) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
     color: #7c3aed !important;
 }
 
@@ -979,5 +979,37 @@ html:not(.dark) .status-error {
 html:not(.dark) .status-inactive {
     background: rgba(100, 116, 139, 0.12) !important;
     color: #475569 !important;
+}
+
+/* ===== TEMAS: BOTONES BASE ===== */
+html:not(.dark) .btn-primary {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+    border-color: #6d28d9 !important;
+}
+
+html:not(.dark) .btn-primary:hover {
+    background: #6d28d9 !important;
+    border-color: #5b21b6 !important;
+}
+
+html:not(.dark) .btn-secondary {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #334155 !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+html:not(.dark) .btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) .btn-secondary .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) .btn-secondary:hover .material-symbols-outlined {
+    color: #7c3aed !important;
 }
 
