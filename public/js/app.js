@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.54';
+const VERSION = '12.44.55';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -56,7 +56,6 @@ if ('caches' in window) {
     }
 }
 
-console.log('[INIT] Script loaded as ESM, LS available');
 
 const App = window.App = {
     state: {
@@ -128,7 +127,6 @@ const App = window.App = {
     // Guardar estado de navegación en sessionStorage
     saveViewState(view, params = {}, role = null) {
         try {
-            console.log('[PERSISTENCE DEBUG] saveViewState called with - view:', view, 'params:', JSON.stringify(params), 'role:', role);
             
             // DEBUG: Registrar si params no tiene 'tab' pero estamos en vista 'system'
             if (view === 'system' && (!params || !params.tab)) {
@@ -184,7 +182,6 @@ const App = window.App = {
             
             const state = JSON.parse(sessionData);
             console.log('[PERSISTENCE] Loaded view state:', state);
-            console.log('[PERSISTENCE DEBUG] Raw sessionStorage data:', sessionData);
             
             // DEBUG: Registrar si el estado cargado no tiene 'tab' pero es vista 'system'
             if (state.view === 'system' && (!state.params || !state.params.tab)) {
@@ -859,15 +856,12 @@ const App = window.App = {
 
     // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
     toggleSidebar() {
-        console.log('[SIDEBAR] toggleSidebar llamado');
         const sidebar = document.getElementById('global-sidebar');
-        console.log('[SIDEBAR] sidebar element:', sidebar);
         if (!sidebar) {
             console.warn('[SIDEBAR] sidebar no encontrado!');
             return;
         }
         const isCollapsed = sidebar.classList.toggle('collapsed');
-        console.log('[SIDEBAR] isCollapsed después de toggle:', isCollapsed);
         LS.set('sidebarCollapsed', isCollapsed);
         
         // Cambiar icono del botón
@@ -876,7 +870,6 @@ const App = window.App = {
             const icon = btn.querySelector('.material-symbols-outlined');
             if (icon) {
                 icon.textContent = isCollapsed ? 'menu' : 'menu_open';
-                console.log('[SIDEBAR] icono actualizado a:', icon.textContent);
             }
         }
     },
@@ -892,7 +885,6 @@ const App = window.App = {
             const shouldShow = isAdmin && hasSelectedEvent;
             // Usar style.display directamente para mayor compatibilidad
             btnAdmin.style.display = shouldShow ? '' : 'none';
-            console.log('[SIDEBAR] Panel Admin - visible:', shouldShow, '(isAdmin:', isAdmin, 'hasEvent:', hasSelectedEvent, ')');
         }
         
         // Config. Evento - solo visible si hay evento seleccionado
@@ -900,39 +892,31 @@ const App = window.App = {
         if (btnEventConfig) {
             // Usar style.display directamente para mayor compatibilidad
             btnEventConfig.style.display = hasSelectedEvent ? '' : 'none';
-            console.log('[SIDEBAR] Config Evento - visible:', hasSelectedEvent);
         }
     },
 
     initSidebar() {
-        console.log('[SIDEBAR] Inicializando sidebar...');
         
         // FORZAR sidebar expandido al inicio (temporalmente para debugging)
         // const isCollapsed = LS.get('sidebarCollapsed') === true;
         const isCollapsed = false; // Forzar expandido
-        console.log('[SIDEBAR] isCollapsed (forzado expandido):', isCollapsed);
         
         if (isCollapsed) {
             const sidebar = document.getElementById('global-sidebar');
-            console.log('[SIDEBAR] sidebar element:', sidebar);
             if (sidebar) {
                 sidebar.classList.add('collapsed');
-                console.log('[SIDEBAR] sidebar colapsado');
             }
             
             const btn = document.getElementById('btn-toggle-sidebar');
             if (btn) {
                 const icon = btn.querySelector('.material-symbols-outlined');
                 if (icon) icon.textContent = 'menu';
-                console.log('[SIDEBAR] botón actualizado a icono "menu"');
             }
         } else {
-            console.log('[SIDEBAR] sidebar NO colapsado (expandido)');
             // Asegurarse de que NO tenga clase collapsed
             const sidebar = document.getElementById('global-sidebar');
             if (sidebar) {
                 sidebar.classList.remove('collapsed');
-                console.log('[SIDEBAR] sidebar expandido (clase collapsed removida)');
             }
         }
     },
@@ -2755,7 +2739,6 @@ const App = window.App = {
     // ==================== MÓDULO DE EMAIL (V12.45) ====================
     
     loadEmailModuleData: async function() {
-        console.log('[EMAIL] Loading email module data...');
         await Promise.all([
             this.loadEmailAccounts(),
             this.loadEmailTemplates(),
@@ -3976,6 +3959,12 @@ const App = window.App = {
         const list = document.getElementById('composer-attachment-list');
         if (input.files && input.files[0]) {
             const file = input.files[0];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                Swal.fire('Error', `El archivo "${file.name}" excede el tamaño máximo de 10MB`, 'error');
+                input.value = '';
+                return;
+            }
             list.innerHTML += `<div class="flex items-center gap-2 text-xs text-[var(--text-main)] bg-[var(--bg-secondary)] px-2 py-1 rounded"><span class="material-symbols-outlined text-sm">attach_file</span>${this._escapeHtml(file.name)} (${this._formatFileSize(file.size)})</div>`;
         }
     },
@@ -4049,8 +4038,14 @@ const App = window.App = {
             }
         } catch (e) {
             console.error('[MAILBOX] Error sending email:', e);
+            let errorMsg = 'No se pudo enviar el email';
+            if (e.message?.includes('SMTP')) errorMsg = 'Error de conexión SMTP. Verifica la configuración de la cuenta.';
+            else if (e.message?.includes('límite')) errorMsg = 'Se alcanzó el límite diario de emails.';
+            else if (e.message?.includes('requerido')) errorMsg = e.message;
+            else if (e.message) errorMsg = e.message;
+            
             if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'No se pudo enviar el email', timer: 3000, toast: false });
+                Swal.fire({ icon: 'error', title: 'Error al enviar', text: errorMsg, confirmButtonText: 'Entendido' });
             }
             if (btn) {
                 btn.disabled = false;
@@ -6135,11 +6130,9 @@ const App = window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
-        console.log('[VIEW] Mostrando:', viewName);
         
         // PREVENIR ejecuciones múltiples
         if (this._showingView === viewName) {
-            console.log('[VIEW] Ya en proceso de mostrar:', viewName);
             return;
         }
         this._showingView = viewName;
@@ -6151,13 +6144,11 @@ const App = window.App = {
         // Si la vista objetivo ya está visible, no hacer nada
         const target = document.getElementById(targetId);
         if (target && !target.classList.contains('hidden')) {
-            console.log('[VIEW] Ya visible:', viewName);
             this._showingView = null;
             return;
         }
         
         if (viewName === 'login') {
-            console.log('[VIEW] Mostrando login, ocultando app-container');
             const loginEl = document.getElementById('view-login');
             if (loginEl) {
                 loginEl.classList.remove('hidden');
@@ -6171,23 +6162,18 @@ const App = window.App = {
             if (clearSession) { window.LS.remove('user'); this.state.user = null; }
             return;
         } else {
-            console.log('[VIEW] Mostrando vista no-login, mostrando app-container');
             const loginEl = document.getElementById('view-login');
             const appContainer = document.getElementById('app-container');
             
-            console.log('[VIEW] loginEl:', loginEl);
-            console.log('[VIEW] appContainer:', appContainer);
             
             if (loginEl) {
                 loginEl.classList.add('hidden');
                 loginEl.style.display = 'none';
-                console.log('[VIEW] Login ocultado');
             }
             
             if (appContainer) {
                 appContainer.classList.remove('hidden');
                 appContainer.style.display = 'flex';
-                console.log('[VIEW] app-container mostrado (clase hidden removida)');
             } else {
                 console.error('[VIEW] ERROR: app-container no encontrado!');
             }
@@ -6241,11 +6227,9 @@ const App = window.App = {
     },
 
     navigate(viewName, params = {}, push = true) {
-        console.log('[NAV DEBUG] Navegando a:', viewName, params, 'push:', push, 'from:', new Error().stack.split('\n')[2]);
         
         // Prevenir navegación múltiple simultánea
         if (this._navigating) {
-            console.log('[NAV DEBUG] Ya navegando, ignorando solicitud adicional');
             return;
         }
         
@@ -6368,10 +6352,6 @@ const App = window.App = {
         
         // Event Config View - Similar to admin but focused on settings
         if (viewName === 'event-config') {
-            console.log('[NAV DEBUG] Entering event-config view logic');
-            console.log('[NAV DEBUG] params.id:', params.id);
-            console.log('[NAV DEBUG] this.state.event?.id:', this.state.event?.id);
-            console.log('[NAV DEBUG] this.state.events count:', this.state.events?.length || 0);
             
             const id = params.id || (this.state.event ? this.state.event.id : null);
             if (id) {
@@ -6451,7 +6431,6 @@ const App = window.App = {
         } finally {
             // Resetear bandera de navegación SIEMPRE
             this._navigating = false;
-            console.log('[NAV DEBUG] Bandera de navegación reseteada (finally)');
         }
     },
 
@@ -6501,8 +6480,6 @@ const App = window.App = {
         }
         
         console.log('[ROUTER] handleInitialNavigation called');
-        console.log('[ROUTER DEBUG] Current URL:', window.location.href);
-        console.log('[ROUTER DEBUG] Current path:', window.location.pathname);
         
         const path = window.location.pathname;
         
@@ -6516,7 +6493,6 @@ const App = window.App = {
         
         const userRole = user.role;
         console.log('[ROUTER] User role:', userRole);
-        console.log('[ROUTER DEBUG] User object:', JSON.stringify(user));
         
         // Cargar eventos si no están cargados (necesario para restaurar vistas de evento)
         if (!this.state.events || this.state.events.length === 0) {
@@ -6548,12 +6524,9 @@ const App = window.App = {
         let useDefaultView = false;
         
         // 1. Intentar desde sessionStorage (nuevo sistema con validación de rol)
-        console.log('[ROUTER DEBUG] Checking sessionStorage for saved state...');
         const savedState = this.loadViewState();
         if (savedState) {
             console.log('[ROUTER] Found saved state:', savedState);
-            console.log('[ROUTER DEBUG] Saved state role:', savedState.role, 'Current role:', userRole);
-            console.log('[ROUTER DEBUG] Saved state view:', savedState.view);
             
             // Validar que el rol guardado coincida con el rol actual
             if (savedState.role && savedState.role !== userRole) {
@@ -6563,7 +6536,6 @@ const App = window.App = {
             }
             // Validar permisos para la vista guardada
             const hasPermission = this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab);
-            console.log('[ROUTER DEBUG] Permission check for view', savedState.view, ':', hasPermission);
             if (!hasPermission) {
                 console.log('[ROUTER] No permission for saved view:', savedState.view);
                 useDefaultView = true;
@@ -6634,8 +6606,6 @@ const App = window.App = {
         // Si estamos restaurando una vista de evento, necesitamos cargar el evento primero
         if ((targetView === 'admin' || targetView === 'event-config') && savedState?.eventId) {
             console.log('[ROUTER] Preparing to restore event view with eventId:', savedState.eventId);
-            console.log('[ROUTER DEBUG] Available events count:', this.state.events?.length || 0);
-            console.log('[ROUTER DEBUG] Available events IDs:', this.state.events?.map(e => e.id).join(', ') || 'none');
             
             // Buscar el evento en la lista de eventos del usuario
             const eventId = savedState.eventId;
@@ -7275,7 +7245,6 @@ const App = window.App = {
         
         // Si hay datos en caché y no se fuerza recarga, usarlos
         if (!force && this._eventsCache && (now - this._lastEventsLoad) < CACHE_DURATION) {
-            console.log('[EVENTS] Usando cache de eventos, tiempo restante:', Math.round((CACHE_DURATION - (now - this._lastEventsLoad)) / 1000), 's');
             this.state.events = this._eventsCache;
             this.renderEventsGrid();
             this.updateSidebarVisibility();
@@ -7290,7 +7259,6 @@ const App = window.App = {
                 this.state.events = response;
                 this._eventsCache = response;
                 this._lastEventsLoad = now;
-                console.log('[EVENTS] Eventos cargados y guardados en cache');
             } else if (response && response.success === false) {
                 // Si hay error (rate limit, etc), mantener eventos anteriores si existen
                 console.warn('[EVENTS] Error del servidor:', response.error);
@@ -8840,20 +8808,17 @@ const App = window.App = {
     },
 
     switchSystemTab(tabName) {
-        console.log('[SYS] Switching to tab:', tabName, 'current URL:', window.location.href);
         
         // Obtener rol del usuario
         const userRole = this.state.user?.role || 'PRODUCTOR';
         const isAdmin = userRole === 'ADMIN';
         
-        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin, 'current state tab:', this.state.activeSystemTab);
         
         // Pestañas que solo ADMIN puede ver
         const adminOnlyTabs = ['groups', 'legal', 'email'];
         
         // Verificar acceso - si no es ADMIN y la pestaña es restringida, redirigir
         if (!isAdmin && adminOnlyTabs.includes(tabName)) {
-            console.log('[SYS] Tab restringida, redirigiendo a users');
             this.switchSystemTab('users');
             return;
         }
@@ -8873,7 +8838,6 @@ const App = window.App = {
                 // Actualizar solo el parámetro 'tab' manteniendo el resto del estado
                 const updatedParams = { ...(currentState.params || {}), tab: tabName };
                 this.saveViewState('system', updatedParams);
-                console.log('[SYS] Updated saved state with tab:', tabName);
             }
         } catch (e) {
             console.warn('[SYS] Error updating saved state:', e);
@@ -8913,14 +8877,11 @@ const App = window.App = {
 
     // Ocultar pestañas restringidas según el rol del usuario
     hideRestrictedSystemTabs: function() {
-        console.log('[SYS] hideRestrictedSystemTabs llamado');
         const userRole = this.state.user?.role;
         const isAdmin = userRole === 'ADMIN';
-        console.log('[SYS] userRole:', userRole, 'isAdmin:', isAdmin);
         
         // Si es ADMIN, mostrar todo
         if (isAdmin) {
-            console.log('[SYS] Es ADMIN, no se ocultan pestañas');
             return;
         }
         
@@ -8928,16 +8889,13 @@ const App = window.App = {
         const tabsToHide = ['groups', 'legal', 'email'];
         
         const subNavContainer = document.querySelector('#view-system .sub-nav-container');
-        console.log('[SYS] subNavContainer encontrado:', !!subNavContainer);
         
         if (subNavContainer) {
             const btns = subNavContainer.querySelectorAll('.sub-nav-btn');
-            console.log('[SYS] Botones encontrados:', btns.length);
             
             btns.forEach(btn => {
                 const onclick = btn.getAttribute('onclick') || '';
                 const btnText = btn.textContent.trim().toLowerCase();
-                console.log('[SYS] Botón onclick:', onclick, 'texto:', btnText);
                 
                 // Verificar por onclick o por texto del botón
                 const shouldHide = tabsToHide.some(tab => {
@@ -8949,7 +8907,6 @@ const App = window.App = {
                 });
                 
                 if (shouldHide) {
-                    console.log('[SYS] Ocultando botón:', btnText);
                     // Usar clase hidden de Tailwind + style en línea para asegurar
                     btn.classList.add('hidden');
                     btn.style.display = 'none';
@@ -8961,13 +8918,11 @@ const App = window.App = {
         tabsToHide.forEach(tab => {
             const contentEl = document.getElementById(`sys-content-${tab}`);
             if (contentEl) {
-                console.log('[SYS] Ocultando contenido:', `sys-content-${tab}`);
                 contentEl.classList.add('hidden');
                 contentEl.style.display = 'none';
             }
         });
         
-        console.log('[SYS] hideRestrictedSystemTabs completado');
     },
 
     // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
@@ -10912,7 +10867,6 @@ console.log('[DEBUG] Antes de DOMContentLoaded listener, readyState:', document.
 async function initApp() {
     // Guardia de Página Pública (Fase 11) - Detener SPA en registro.html
     if (window.location.pathname.includes('registro.html') || window.location.search.includes('event=')) {
-        console.log('[INIT] Página pública detectada, omitiendo flujo de SPA');
         return;
     }
     try {
@@ -10927,7 +10881,6 @@ async function initApp() {
     console.log('[DOM] Inicializando aplicación, readyState:', document.readyState);
     
     // 0.1. ASEGURAR QUE TODOS LOS MODALES ESTÉN OCULTOS AL INICIAR
-    console.log('[INIT] Asegurando que todos los modales estén ocultos...');
     document.querySelectorAll('[id^="modal-"]').forEach(modal => {
         if (!modal.classList.contains('hidden')) {
             console.log(`[INIT] Modal ${modal.id} estaba visible, ocultándolo`);
@@ -10949,7 +10902,6 @@ async function initApp() {
 
     // 0.7. ESCUCHAR EVENTOS DE AUTENTICACIÓN
     window.addEventListener('auth:unauthorized', () => {
-        console.log('[AUTH] Evento auth:unauthorized recibido, haciendo logout...');
         App.logout();
     });
 
@@ -10963,14 +10915,11 @@ async function initApp() {
     } catch(e) {
         console.warn("[AUTH] localStorage no disponible:", e);
     }
-    console.log('[AUTH] savedUser:', savedUser ? 'EXISTS' : 'NULL', savedUser);
     
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         try {
             const user = JSON.parse(savedUser);
-            console.log('[AUTH] parsed user:', user);
             if (user && (user.userId || user.token)) {
-                console.log('[AUTH] Valid session, loading app-shell for role:', user.role);
                 window.App.state.user = user;
                 // Notificaciones push deshabilitadas - solo se activan manualmente
                 // window.App.initPushNotifications().catch(err => console.error('Error inicializando push:', err));
@@ -10980,7 +10929,6 @@ async function initApp() {
                 if (loginEl) { 
                     loginEl.classList.add('hidden'); 
                     loginEl.style.display = 'none'; 
-                    console.log('[AUTH] Login oculto inmediatamente');
                 }
                 
                 // CARGAR APP-SHELL
@@ -11014,10 +10962,8 @@ async function initApp() {
                 await App.loadEvents();
                 
                 // Restaurar vista guardada o navegar según URL
-                console.log('[INIT] Restaurando vista guardada o navegación desde URL');
                 await App.handleInitialNavigation();
             } else {
-                console.log('[AUTH] No valid userId/token, showing login');
                 App.showView('login');
             }
         } catch(e){ 
@@ -11025,7 +10971,6 @@ async function initApp() {
             App.showView('login'); 
         }
     } else {
-        console.log('[AUTH] No savedUser, showing login');
         App.showView('login');
     }
 
@@ -11062,15 +11007,12 @@ async function initApp() {
     document.body.classList.add('app-loaded');
 
     // Login Form
-    console.log('[DOM DEBUG] Configurando event listener para form-login');
     
     // Función centralizada de login
     async function handleLoginSubmit(e) {
         if (e) e.preventDefault();
-        console.log('[DOM DEBUG] Formulario login enviado, previniendo default');
         const u = document.getElementById('login-email')?.value; 
         const p = document.getElementById('login-password')?.value;
-        console.log('[DOM DEBUG] Valores obtenidos:', { u, p });
         if (!u || !p) {
             console.error('[DOM DEBUG] Email o password vacíos');
             return;
@@ -11084,9 +11026,7 @@ async function initApp() {
     // Método 2: Click directo en el botón (fallback)
     const loginBtn = document.querySelector('#form-login button[type="submit"]');
     if (loginBtn) {
-        console.log('[DOM DEBUG] Configurando click listener en botón de login');
         loginBtn.addEventListener('click', async (e) => {
-            console.log('[DOM DEBUG] Click en botón de login detectado');
             await handleLoginSubmit(e);
         });
     }
@@ -11094,7 +11034,6 @@ async function initApp() {
     // Método 3: Delegación de eventos en document (último recurso)
     document.addEventListener('submit', async (e) => {
         if (e.target && e.target.id === 'form-login') {
-            console.log('[DOM DEBUG] Submit capturado por delegación en document');
             await handleLoginSubmit(e);
         }
     }, true); // capture phase
