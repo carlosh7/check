@@ -1830,6 +1830,18 @@ const App = window.App = {
             return;
         }
         
+        if (action === 'assign-client') {
+            // Asignar cliente a empresas seleccionadas
+            if (!this.state.selectedGroups || this.state.selectedGroups.length === 0) {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                document.getElementById('bulk-group-action').value = '';
+                return;
+            }
+            this.openAssignClientToGroupModal();
+            document.getElementById('bulk-group-action').value = '';
+            return;
+        }
+        
         if (!this.state.selectedGroups || this.state.selectedGroups.length === 0) {
             alert('Selecciona al menos una empresa.');
             document.getElementById('bulk-group-action').value = '';
