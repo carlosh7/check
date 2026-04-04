@@ -1,51 +1,82 @@
-# Windows
-[Dd]esktop.ini
-Thumbs.db
-$RECYCLE.BIN/
-*.lnk
+# ============================================
+# Check Pro - .gitignore
+# ============================================
 
-# VS Code
-.vscode/
-*.code-workspace
-.history/
-
-# Docker
-docker-compose.override.yml
-
-# Node
+# --- Node ---
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+coverage/
 
-# Archivos de datos y configuración
-*.xlsx
-*.xls
-*.csv
-uploads/
-
-# SQLite (INCLUYENDO WAL y SHM)
+# --- Base de datos SQLite ---
 check_app.db
 check_app.db-journal
 check_app.db-shm
 check_app.db-wal
+data/*.db
+data/*.db-*
 
-# Variables de entorno (CRÍTICO)
+# --- Variables de entorno ---
 .env
 .env.local
 .env.*.local
 
-# Logs
+# --- Uploads y archivos generados ---
+uploads/
+*.xlsx
+*.xls
+*.csv
+
+# --- Logs ---
 *.log
 logs/
+server.log
 
-# OS
+# --- IDEs y editores ---
+.vscode/
+*.code-workspace
+.history/
+.idea/
+
+# --- OS ---
 .DS_Store
 Thumbs.db
+$RECYCLE.BIN/
+*.lnk
+[Dd]esktop.ini
 
-# Configuración local de opencode
-.opencode-config.md
-
-# Skills y configs locales
-.opencode-skill.md
+# --- Windows reserved names ---
 nul
+con
+prn
+aux
+
+# --- Backups ---
+*.backup
+*.bak
+*-backup.*
+*.old
+*.tmp
+*.temp
+
+# --- Capturas de pantalla ---
+.Capturas/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+!public/assets/
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- OpenCode/Agent ---
+.opencode-config.md
+.opencode-skill.md
+.agent/
+
+# --- Build output ---
+dist/
+build/

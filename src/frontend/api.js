@@ -46,7 +46,10 @@ export const API = {
             if (!response.ok) {
                 if (response.status === 401) {
                     console.warn('[API] Sesión expirada o no autorizada');
-                    // Opcional: Trigger logout o redirección
+                    // Disparar evento para logout automático
+                    window.dispatchEvent(new CustomEvent('auth:unauthorized', {
+                        detail: { status: 401, message: 'Sesión expirada' }
+                    }));
                 }
                 const errorData = await response.json().catch(() => ({}));
                 return { success: false, error: errorData.message || errorData.error || `HTTP ${response.status}` };
