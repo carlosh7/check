@@ -8,6 +8,32 @@
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../../database');
 
+// ═══ CACHE DE TIPOS DE ID (evita PRAGMA table_info en cada request) ═══
+// Se llena automáticamente la primera vez que se consulta una tabla
+const ID_TYPE_CACHE = new Map();
+
+/**
+ * Obtiene el tipo de ID de una tabla (con cache)
+ * @param {string} tableName - Nombre de la tabla
+ * @returns {string} 'TEXT' o 'INTEGER'
+ */
+function getIdType(tableName) {
+    if (ID_TYPE_CACHE.has(tableName)) {
+        return ID_TYPE_CACHE.get(tableName);
+    }
+    
+    try {
+        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
+        const idCol = info.find(c => c.name === 'id');
+        const type = (idCol && idCol.type === 'INTEGER') ? 'INTEGER' : 'TEXT';
+        ID_TYPE_CACHE.set(tableName, type);
+        return type;
+    } catch(e) {
+        ID_TYPE_CACHE.set(tableName, 'TEXT'); // Fallback seguro
+        return 'TEXT';
+    }
+}
+
 // Tablas permitidas para castId - previene SQL injection en tableName
 const ALLOWED_TABLES = new Set([
     'users', 'events', 'guests', 'groups', 'surveys', 'settings',
@@ -29,11 +55,9 @@ function getValidId(tableName) {
         console.warn(`[SECURITY] Intento de usar tabla no permitida: ${tableName}`);
         return null;
     }
-    try {
-        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const idCol = info.find(c => c.name === 'id');
-        return (idCol && idCol.type === 'INTEGER') ? null : uuidv4();
-    } catch(e) { return uuidv4(); }
+    
+    const type = getIdType(tableName);
+    return type === 'INTEGER' ? null : uuidv4();
 }
 
 /**
@@ -67,10 +91,9 @@ function castId(tableName, id) {
     }
     
     try {
-        const info = db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const idCol = info.find(c => c.name === 'id');
+        const type = getIdType(tableName);
         
-        if (idCol && idCol.type === 'INTEGER') {
+        if (type === 'INTEGER') {
             // Tabla con ID numérico
             if (!numRegex.test(idStr)) {
                 console.warn(`[SECURITY] castId: ID no válido para tabla numérica: ${idStr}`);

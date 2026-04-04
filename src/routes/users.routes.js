@@ -52,7 +52,6 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
             rows = [];
         } else {
             const placeholders = groupIds.map(() => '?').join(',');
-            // Buscar usuarios que estén asignados a los grupos del PRODUCTOR
             const validUsers = db.prepare(`SELECT DISTINCT user_id FROM group_users WHERE group_id IN (${placeholders})`).all(...groupIds).map(u => u.user_id);
             if (validUsers.length === 0) {
                 rows = [];
@@ -63,17 +62,48 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
 
-    const usersWithDetails = rows.map(u => {
-        // Obtenemos tooooodos los grupos a los que pertenece el usuario desde la tabla pivot
-        const userGroups = db.prepare("SELECT g.id, g.name FROM group_users gu JOIN groups g ON gu.group_id = g.id WHERE gu.user_id = ?").all(u.id);
-        const events = db.prepare("SELECT event_id FROM user_events WHERE user_id = ?").all(u.id);
+    // FIX N+1: Obtener grupos y eventos de TODOS los usuarios en 2 consultas (en lugar de 2 por usuario)
+    const userIds = rows.map(u => u.id);
+    
+    let userGroups = [];
+    let userEvents = [];
+    
+    if (userIds.length > 0) {
+        const idPlaceholders = userIds.map(() => '?').join(',');
         
-        return {
-            ...u,
-            groups: userGroups, // Ahora es un Array de objetos {id, name}
-            events: events.map(e => e.event_id)
-        };
+        // 1 consulta para TODOS los grupos de TODOS los usuarios
+        userGroups = db.prepare(`
+            SELECT gu.user_id, g.id as group_id, g.name as group_name 
+            FROM group_users gu 
+            JOIN groups g ON gu.group_id = g.id 
+            WHERE gu.user_id IN (${idPlaceholders})
+        `).all(...userIds);
+        
+        // 1 consulta para TODOS los eventos de TODOS los usuarios
+        userEvents = db.prepare(`
+            SELECT user_id, event_id FROM user_events WHERE user_id IN (${idPlaceholders})
+        `).all(...userIds);
+    }
+    
+    // Agrupar resultados por user_id
+    const groupsByUser = {};
+    userGroups.forEach(g => {
+        if (!groupsByUser[g.user_id]) groupsByUser[g.user_id] = [];
+        groupsByUser[g.user_id].push({ id: g.group_id, name: g.group_name });
     });
+    
+    const eventsByUser = {};
+    userEvents.forEach(e => {
+        if (!eventsByUser[e.user_id]) eventsByUser[e.user_id] = [];
+        eventsByUser[e.user_id].push(e.event_id);
+    });
+    
+    // Construir respuesta
+    const usersWithDetails = rows.map(u => ({
+        ...u,
+        groups: groupsByUser[u.id] || [],
+        events: eventsByUser[u.id] || []
+    }));
 
     res.json(usersWithDetails);
 });

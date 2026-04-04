@@ -238,17 +238,25 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =
     }
 });
 
-// Obtener invitados de evento
+// Obtener invitados de evento (con paginación)
 router.get('/:id/guests', authMiddleware(), (req, res) => {
     const eId = castId('events', req.params.id);
-    const rows = db.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
-    res.json(rows);
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500); // Máximo 500 por página
+    const offset = parseInt(req.query.offset) || 0;
+    
+    // Total para paginación
+    const { total } = db.prepare("SELECT COUNT(*) as total FROM guests WHERE event_id = ?").get(eId);
+    
+    // Datos paginados
+    const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, checked_in, checkin_time, qr_token, dietary_notes, created_at FROM guests WHERE event_id = ? ORDER BY name ASC LIMIT ? OFFSET ?").all(eId, limit, offset);
+    
+    res.json({ guests: rows, total, limit, offset });
 });
 
 // Obtener pre-registros de evento
 router.get('/:id/pre-registrations', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const eId = castId('events', req.params.id);
-    const rows = db.prepare("SELECT * FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
+    const rows = db.prepare("SELECT id, name, email, phone, organization, position, gender, status, registered_at FROM pre_registrations WHERE event_id = ? AND status = 'PENDING' ORDER BY registered_at DESC").all(eId);
     res.json(rows);
 });
 

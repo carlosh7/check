@@ -19,6 +19,9 @@ COPY .env.example ./
 # Instalar todas las dependencias (incluye devDependencies para build tools)
 RUN npm install
 
+# Forzar compilación de sharp (requiere libvips-dev ya instalado)
+RUN npm rebuild sharp --build-from-source || echo "Sharp rebuild failed, using prebuilt"
+
 # Crear carpeta data automáticamente
 RUN if [ ! -d "data" ]; then mkdir data; fi
 
