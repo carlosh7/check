@@ -1053,10 +1053,12 @@ const App = window.App = {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
+            const clients = await this.fetchAPI('/clients');
             if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
             this.state.allEvents = events;
+            this.state.clients = clients;
             
             // Poblar filtros
             this.populateGroupFilters();
@@ -1078,6 +1080,13 @@ const App = window.App = {
                         </span>
                     `).join('');
                     
+                    const groupClients = clients.filter(c => String(c.company_id) === String(g.id));
+                    const clientChips = groupClients.map(c => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
+                        </span>
+                    `).join('');
+                    
                     return `
                     <tr class="user-row-premium">
                         <td class="px-2 py-3 align-middle" style="width: 40px;">
@@ -1088,10 +1097,13 @@ const App = window.App = {
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1561,6 +1573,7 @@ const App = window.App = {
     populateGroupFilters: function() {
         const eventSelect = document.getElementById('filter-group-event');
         const userSelect = document.getElementById('filter-group-user');
+        const clientSelect = document.getElementById('filter-group-client');
         
         if (eventSelect && this.state.allEvents) {
             const currentVal = eventSelect.value;
@@ -1579,6 +1592,73 @@ const App = window.App = {
             });
             userSelect.value = currentVal;
         }
+        
+        if (clientSelect && this.state.clients) {
+            const currentVal = clientSelect.value;
+            clientSelect.innerHTML = '<option value="">Clientes</option>';
+            this.state.clients.forEach(c => {
+                clientSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+            clientSelect.value = currentVal;
+        }
+    },
+
+    // Modal asignar cliente a empresa
+    openAssignClientToGroupModal: function() {
+        if (!this.state.selectedGroups?.length) {
+            Swal.fire('Selecciona empresas', 'Selecciona al menos una empresa para asignar clientes', 'warning');
+            return;
+        }
+        
+        const clients = this.state.clients || [];
+        const clientOptions = clients.map(c => `<option value="${c.id}">${c.name} (${c.email || 'sin email'})</option>`).join('');
+        
+        Swal.fire({
+            title: 'Asignar Clientes a Empresas',
+            html: `
+                <div class="space-y-4 text-left">
+                    <p class="text-sm text-[var(--text-secondary)]">Empresas seleccionadas: ${this.state.selectedGroups.length}</p>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Clientes *</label>
+                        <select id="assign-clients-select" class="swal2-input" multiple size="8" style="height: auto;">
+                            ${clientOptions}
+                        </select>
+                        <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const select = document.getElementById('assign-clients-select');
+                const selectedClients = Array.from(select.selectedOptions).map(o => o.value);
+                
+                if (selectedClients.length === 0) {
+                    Swal.showValidationMessage('Selecciona al menos un cliente');
+                    return false;
+                }
+                
+                try {
+                    // Por cada empresa seleccionada, asignar los clientes
+                    for (const groupId of this.state.selectedGroups) {
+                        await this.fetchAPI('/clients/assign-to-company', {
+                            method: 'PUT',
+                            body: JSON.stringify({ client_ids: selectedClients, company_id: groupId })
+                        });
+                    }
+                    this.loadGroups();
+                    Swal.fire('Éxito', 'Clientes asignados correctamente', 'success');
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al asignar clientes');
+                    return false;
+                }
+            }
+        });
     },
 
     // Filtrar empresas
@@ -1586,8 +1666,9 @@ const App = window.App = {
         if (!this.state.groups) return;
         
         const searchTerm = document.getElementById('group-search')?.value.toLowerCase() || '';
-        const eventFilter = document.getElementById('filter-group-event')?.value || '';
+        const clientFilter = document.getElementById('filter-group-client')?.value || '';
         const userFilter = document.getElementById('filter-group-user')?.value || '';
+        const eventFilter = document.getElementById('filter-group-event')?.value || '';
         const statusFilter = document.getElementById('filter-group-status')?.value || '';
         
         const filtered = this.state.groups.filter(g => {
@@ -1613,7 +1694,14 @@ const App = window.App = {
             // Filtro por estado
             const matchesStatus = !statusFilter || g.status === statusFilter;
             
-            return matchesSearch && matchesEvent && matchesUser && matchesStatus;
+            // Filtro por cliente
+            let matchesClient = true;
+            if (clientFilter && this.state.clients) {
+                const groupClients = this.state.clients.filter(c => String(c.company_id) === String(g.id));
+                matchesClient = groupClients.some(c => String(c.id) === clientFilter);
+            }
+            
+            return matchesSearch && matchesEvent && matchesUser && matchesStatus && matchesClient;
         });
         
         this.renderFilteredGroups(filtered);
@@ -1626,47 +1714,54 @@ const App = window.App = {
         
         const users = this.state.allUsers || [];
         const events = this.state.allEvents || [];
+        const clients = this.state.clients || [];
         
         if (!groups || groups.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-[var(--text-muted)] italic">No hay empresas que coincidan con los filtros.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)] italic">No hay empresas que coincidan con los filtros.</td></tr>`;
             return;
         }
         
         tbody.innerHTML = groups.map(g => {
             const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
             const userChips = groupUsers.map(u => `
-                <div class="inline-flex items-center gap-1">
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-medium rounded">
-                        ${u.display_name || u.username}
-                    </span>
-                </div>`).join('');
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${u.display_name || u.username}
+                </span>
+            `).join('');
             
             const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
             const eventChips = groupEvents.map(e => `
-                <div class="inline-flex items-center gap-1">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-hover)] text-[var(--text-main)] text-xs font-medium rounded">
-                        ${e.name.length > 12 ? e.name.substring(0, 12) + '...' : e.name}
-                    </span>
-                </div>`).join('');
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                </span>
+            `).join('');
+            
+            const groupClients = clients.filter(c => String(c.company_id) === String(g.id));
+            const clientChips = groupClients.map(c => `
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
+                </span>
+            `).join('');
             
             return `
-            <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
-                <td class="px-3 py-4" style="width: 40px;">
+            <tr class="user-row-premium">
+                <td class="px-2 py-3 align-middle" style="width: 40px;">
                     <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" ${this.state.selectedGroups?.includes(g.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                 </td>
-                <td class="px-3 py-4">
+                <td class="px-2 py-3 align-middle">
                     <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                 </td>
-                <td class="px-3 py-4">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin eventos</span>'}</div>
-                    <button data-action="showEventSelectorForCompany" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Evento</button>
+                <td class="px-2 py-3 align-middle">
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
                 </td>
-                <td class="px-3 py-4">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-secondary)] italic">Sin staff</span>'}</div>
-                    <button data-action="showUserSelectorForGroup" data-group-id="${g.id}" class="mt-2 text-xs font-medium text-[var(--text-main)] hover:text-[var(--primary)] transition-colors whitespace-nowrap">+ Staff</button>
+                <td class="px-2 py-3 align-middle">
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                 </td>
-                <td class="px-3 py-4 text-left">
+                <td class="px-2 py-3 align-middle">
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                </td>
+                <td class="px-2 py-3 align-middle text-left">
                     <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                         ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                     </span>

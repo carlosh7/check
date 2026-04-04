@@ -202,4 +202,24 @@ router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOG
     res.json({ success: true });
 });
 
+// Asignar clientes a una empresa (cambiar company_id)
+router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
+    const { client_ids, company_id } = req.body;
+    
+    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+    }
+    
+    if (!company_id) {
+        return res.status(400).json({ error: 'Se requiere company_id' });
+    }
+    
+    const stmt = db.prepare("UPDATE clients SET company_id = ? WHERE id = ?");
+    for (const clientId of client_ids) {
+        stmt.run(company_id, castId('clients', clientId));
+    }
+    
+    res.json({ success: true });
+});
+
 module.exports = router;

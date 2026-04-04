@@ -843,14 +843,20 @@
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
                                 <span class="material-symbols-outlined text-base">add_business</span> + Empresa
                             </button>
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openAssignClientToGroupModal()">
+                                <span class="material-symbols-outlined text-base">person_add</span> Asignar Cliente
+                            </button>
                         </div>
                         <!-- Filtros -->
                         <div class="flex gap-2 flex-wrap items-center">
-                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
-                                <option value="">Eventos</option>
+                            <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select">
+                                <option value="">Clientes</option>
                             </select>
                             <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-empresa">
                                 <option value="">Staff</option>
+                            </select>
+                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
+                                <option value="">Eventos</option>
                             </select>
                             <select id="filter-group-status" onchange="App.filterGroups()" class="filter-select">
                                 <option value="">Estado</option>
@@ -862,8 +868,9 @@
                                 <option value="edit">Editar</option>
                                 <option value="activate">Activar</option>
                                 <option value="deactivate">Desactivar</option>
-                                <option value="assign-event">Asignar Evento</option>
+                                <option value="assign-client">Asignar Cliente</option>
                                 <option value="assign-staff">Asignar Staff</option>
+                                <option value="assign-event">Asignar Evento</option>
                                 <option value="delete">Eliminar</option>
                             </select>
                         </div>
@@ -874,7 +881,7 @@
                                style="width: 100%; padding-right: 60px; padding-left: 40px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px;"
                                oninput="App.filterGroups()">
                         <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -886,8 +893,9 @@
                                             <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" style="width: 16px; height: 16px; cursor: pointer;">
                                         </th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Clientes</th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
                                     </tr>
                                 </thead>
