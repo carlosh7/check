@@ -1632,7 +1632,7 @@ const App = window.App = {
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-4 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -1640,7 +1640,7 @@ const App = window.App = {
                         const isAssigned = groupIds.some(gid => String(c.company_id) === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -1671,29 +1671,59 @@ const App = window.App = {
         });
     },
     
-    assignClientToGroupsFromModal: async function(groupIdsStr, clientId) {
+    assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
         const groupIds = groupIdsStr.split(',');
         try {
-            for (const groupId of groupIds) {
+            if (isAssigned) {
+                // Desasignar
+                await this.fetchAPI('/clients/unassign-from-company', {
+                    method: 'PUT',
+                    body: JSON.stringify({ client_ids: [clientId] })
+                });
+                Swal.showToast({ 
+                    title: '✓ Desasignado', 
+                    icon: 'success',
+                    background: '#0f172a', 
+                    color: '#fff',
+                    timer: 1200,
+                    showConfirmButton: false,
+                    position: 'top-end'
+                });
+            } else {
+                // Asignar
                 await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
-                    body: JSON.stringify({ client_ids: [clientId], company_id: groupId })
+                    body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
+                });
+                Swal.showToast({ 
+                    title: '✓ Asignado', 
+                    icon: 'success', 
+                    background: '#0f172a', 
+                    color: '#fff',
+                    timer: 1200,
+                    showConfirmButton: false,
+                    position: 'top-end'
                 });
             }
             
-            Swal.fire({ 
-                title: '✓ Asignado', 
-                text: `Cliente asignado a ${groupIds.length} empresa(s)`, 
-                icon: 'success', 
+            // Recargar datos sin cerrar modal
+            this.loadGroups();
+            
+            // Actualizar el modal con los nuevos datos
+            setTimeout(() => {
+                this.openAssignClientToGroupModal(groupIds);
+            }, 100);
+        } catch (e) {
+            Swal.showToast({ 
+                title: '✗ Error', 
+                text: e.message || 'No se pudo actualizar', 
+                icon: 'error', 
                 background: '#0f172a', 
                 color: '#fff',
-                timer: 1500,
-                showConfirmButton: false
+                timer: 2000,
+                showConfirmButton: false,
+                position: 'top-end'
             });
-            
-            this.loadGroups();
-        } catch (e) {
-            Swal.fire({ title: '✗ Error', text: e.message || 'No se pudo asignar el cliente', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
 

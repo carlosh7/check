@@ -222,4 +222,20 @@ router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
+// Desasignar cliente de empresa (company_id = null)
+router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
+    const { client_ids } = req.body;
+    
+    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+    }
+    
+    const stmt = db.prepare("UPDATE clients SET company_id = NULL WHERE id = ?");
+    for (const clientId of client_ids) {
+        stmt.run(castId('clients', clientId));
+    }
+    
+    res.json({ success: true });
+});
+
 module.exports = router;
