@@ -1640,7 +1640,7 @@ const App = window.App = {
                     </button>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
+                <div class="relative group mt-6 mb-6">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
@@ -3000,7 +3000,7 @@ const App = window.App = {
                     </button>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
+                <div class="relative group mt-6 mb-6">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
