@@ -1606,7 +1606,7 @@ const App = window.App = {
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
-        const groupIds = groupIds || this.state.selectedGroups || [];
+        groupIds = groupIds || this.state.selectedGroups || [];
         
         if (clients.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
