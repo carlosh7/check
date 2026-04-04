@@ -2939,6 +2939,118 @@ const App = window.App = {
         });
     },
 
+    // Mostrar selector de cliente para bulk de usuarios (Asignar Cliente en Equipo)
+    showClientSelectorForBulkUsers: function(userIds) {
+        const clients = this.state.clients || [];
+        const users = this.state.allUsers || [];
+        
+        if (clients.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Detectar tema actual
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        
+        // Calcular usuarios seleccionados
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedUsers.length === 1) {
+            const user = selectedUsers[0];
+            const userName = user.display_name || user.username || 'Usuario';
+            subtitleText = userName;
+        } else {
+            subtitleText = selectedUsers.length + ' usuarios seleccionados';
+        }
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                    <button onclick="App.openCreateClientModal()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                        <span class="material-symbols-outlined text-xs">person_add</span> CREAR
+                    </button>
+                </div>
+
+                <div class="relative group mt-4 mb-4">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${clients.map(c => {
+                        return `
+                        <div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '460px',
+            background: bgMain,
+            color: textMain,
+            showConfirmButton: false,
+            showCloseButton: false,
+            customClass: { 
+                popup: 'rounded-[1.5rem] shadow-2xl'
+            }
+        });
+    },
+    
+    // Asignar cliente a usuarios desde modal
+    assignClientToUsersFromModal: async function(userIdsStr, clientId) {
+        const userIds = userIdsStr.split(',');
+        try {
+            for (const userId of userIds) {
+                await this.fetchAPI(`/clients/${clientId}/staff`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+            
+            Swal.fire({ 
+                toast: true,
+                title: '✓ Asignado', 
+                icon: 'success',
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
     // Mostrar selector de empresa para bulk
     showGroupSelectorForBulk: function(userIds) {
         const groups = this.state.allGroups || [];
