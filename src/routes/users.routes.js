@@ -62,11 +62,12 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         }
     }
 
-    // FIX N+1: Obtener grupos y eventos de TODOS los usuarios en 2 consultas (en lugar de 2 por usuario)
+    // FIX N+1: Obtener grupos, eventos y clientes de TODOS los usuarios en 3 consultas (en lugar de 3 por usuario)
     const userIds = rows.map(u => u.id);
     
     let userGroups = [];
     let userEvents = [];
+    let userClients = [];
     
     if (userIds.length > 0) {
         const idPlaceholders = userIds.map(() => '?').join(',');
@@ -83,6 +84,14 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         userEvents = db.prepare(`
             SELECT user_id, event_id FROM user_events WHERE user_id IN (${idPlaceholders})
         `).all(...userIds);
+        
+        // 1 consulta para TODOS los clientes de TODOS los usuarios
+        userClients = db.prepare(`
+            SELECT cu.user_id, c.id as client_id, c.name as client_name 
+            FROM client_users cu 
+            JOIN clients c ON cu.client_id = c.id 
+            WHERE cu.user_id IN (${idPlaceholders})
+        `).all(...userIds);
     }
     
     // Agrupar resultados por user_id
@@ -98,11 +107,18 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         eventsByUser[e.user_id].push(e.event_id);
     });
     
+    const clientsByUser = {};
+    userClients.forEach(c => {
+        if (!clientsByUser[c.user_id]) clientsByUser[c.user_id] = [];
+        clientsByUser[c.user_id].push({ id: c.client_id, name: c.client_name });
+    });
+    
     // Construir respuesta
     const usersWithDetails = rows.map(u => ({
         ...u,
         groups: groupsByUser[u.id] || [],
-        events: eventsByUser[u.id] || []
+        events: eventsByUser[u.id] || [],
+        clients: clientsByUser[u.id] || []
     }));
 
     res.json(usersWithDetails);

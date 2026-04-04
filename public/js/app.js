@@ -2471,7 +2471,7 @@ const App = window.App = {
         
         if (tbody) {
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
                 return;
             }
 
@@ -2492,7 +2492,26 @@ const App = window.App = {
                     </div>
                 `;
 
-                // --- COLUMNA 2: EVENTOS ---
+                // --- COLUMNA 2: EMPRESA ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
+                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
+                    </span>
+                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
+                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+
+                // --- COLUMNA 3: CLIENTES ---
+                const userClients = u.clients || [];
+                const clientChips = userClients.map(c => `
+                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
+                        ${(c.name || 'Sin nombre').length > 12 ? c.name.substring(0, 12) + '...' : (c.name || 'Sin nombre')}
+                    </span>
+                `).join('');
+                const colClientes = userClients.length > 0 ? 
+                    `<div class="flex flex-col">${clientChips}</div>` : 
+                    `<span class="text-xs text-slate-500 italic">Sin clientes</span>`;
+
+                // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
                     <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
@@ -2503,30 +2522,23 @@ const App = window.App = {
                     `<div class="flex flex-col">${eventChips}</div>` : 
                     `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
 
-                // --- COLUMNA 3: EMPRESA ---
-                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+                // --- COLUMNA 5: ROL ---
+                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
-                // --- COLUMNA 4: ESTADO ---
+                // --- COLUMNA 6: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
                 const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
-
-                // --- COLUMNA 5: ROL ---
-                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
                 return `
                 <tr class="user-row-premium">
                     <td class="px-2 py-3 align-middle">${checkbox}</td>
                     <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle">${colClientes}</td>
+                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
                 </tr>`;
             }).join('');
         }
@@ -2666,6 +2678,10 @@ const App = window.App = {
             case 'assign-company':
                 // Mostrar selector de empresa
                 this.showGroupSelectorForBulk(selectedIds);
+                break;
+            case 'assign-client':
+                // Mostrar selector de cliente
+                this.showClientSelectorForBulkUsers(selectedIds);
                 break;
             case 'assign-event':
                 // Mostrar selector de evento
@@ -3113,6 +3129,120 @@ const App = window.App = {
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
+    },
+    
+    // Mostrar selector de cliente para bulk de usuarios
+    showClientSelectorForBulkUsers: function(userIds) {
+        const clients = this.state.clients || [];
+        const users = this.state.allUsers || [];
+        
+        if (clients.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Detectar tema actual
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        
+        // Calcular usuarios seleccionados
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedUsers.length === 1) {
+            const user = selectedUsers[0];
+            const userName = user.display_name || user.username || 'Usuario';
+            subtitleText = `${userName}`;
+        } else {
+            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
+        }
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                    <button onclick="App.openCreateClientModal()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                        <span class="material-symbols-outlined text-xs">person_add</span> CREAR
+                    </button>
+                </div>
+
+                <div class="relative group mt-4 mb-4">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${clients.map(c => {
+                        const icon = 'add';
+                        return `
+                        <div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '460px',
+            background: bgMain,
+            color: textMain,
+            showConfirmButton: false,
+            showCloseButton: false,
+            customClass: { 
+                popup: 'rounded-[1.5rem] shadow-2xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
+    
+    // Asignar cliente a usuarios desde modal
+    assignClientToUsersFromModal: async function(userIdsStr, clientId) {
+        const userIds = userIdsStr.split(',');
+        try {
+            for (const userId of userIds) {
+                await this.fetchAPI(`/clients/${clientId}/staff`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+            
+            Swal.fire({ 
+                toast: true,
+                title: '✓ Asignado', 
+                icon: 'success',
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
     },
     
     // Toggle empresa para usuarios seleccionados (asignar o desasignar)
