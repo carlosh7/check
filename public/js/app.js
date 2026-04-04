@@ -3091,43 +3091,44 @@ const App = window.App = {
         };
         
         const html = `
-            <div class="space-y-6">
-                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Evento</span>
-                        <span class="text-xs text-slate-400">Selecciona evento para ${userIds.length} usuario(s)</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: #94a3b8;">Asignar Evento</span>
+                        <span class="text-xs" style="color: #cbd5e1;">Selecciona evento para ${userIds.length} usuario(s)</span>
                     </div>
                     <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
                     </button>
                 </div>
 
-                <div class="relative group">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
+                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: #64748b;">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-slate-600">
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: #fff; outline: none;">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${events.map(e => {
                         const assignedCount = getAssignedCount(e.id);
                         const isAssignedToAll = assignedCount === userIds.length;
                         const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
-                        const statusClass = isAssignedToAll ? 'ring-2 ring-purple-500/50 bg-purple-500/10 border-purple-500/30' : isAssignedToSome ? 'ring-1 ring-purple-500/30 bg-purple-500/5 border-purple-500/20' : '';
+                        const borderColor = isAssignedToAll ? '#8b5cf6' : isAssignedToSome ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.1)';
+                        const bgColor = isAssignedToAll ? 'rgba(139,92,246,0.1)' : isAssignedToSome ? 'rgba(139,92,246,0.05)' : 'rgba(255,255,255,0.05)';
                         const icon = isAssignedToAll ? 'check' : 'add';
                         return `
-                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
-                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                        <div onclick="App.bulkToggleEventForUsers('${userIds.join(',')}', '${e.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${bgColor}; border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(139,92,246,0.2); color: #8b5cf6;">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</div>
-                                <div class="text-[11px] ${isAssignedToAll ? 'text-purple-400 font-semibold' : 'text-slate-500 uppercase tracking-tighter'}">
+                                <div class="text-sm font-bold" style="color: #fff;">${e.name}</div>
+                                <div class="text-[11px] ${isAssignedToAll ? '' : 'uppercase tracking-tighter'}" style="color: ${isAssignedToAll ? '#a78bfa' : '#64748b'};">
                                     ${isAssignedToAll ? '✓ Asignado a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : (e.date || 'Sin fecha') + (e.location ? ' • ' + e.location : '')}
                                 </div>
                             </div>
-                            <div class="w-7 h-7 rounded-lg ${isAssignedToAll ? 'bg-purple-500/20 border-2 border-purple-500/50' : 'bg-white/5 border border-white/10'} flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
-                                <span class="material-symbols-outlined text-xs ${isAssignedToAll ? 'text-purple-400' : 'text-purple-500 opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssignedToAll ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)'}; border: 2px solid ${isAssignedToAll ? '#8b5cf6' : 'rgba(255,255,255,0.2)'};">
+                                <span class="material-symbols-outlined text-sm" style="color: #8b5cf6;">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -3137,11 +3138,11 @@ const App = window.App = {
         Swal.fire({
             title: '',
             html,
-            width: '450px',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
+            width: '460px',
+            background: '#0f172a',
+            color: '#fff',
             showConfirmButton: false,
-            showCloseButton: true,
+            showCloseButton: false,
             customClass: { 
                 popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
                 closeButton: 'hover:text-red-500 transition-colors'
@@ -3178,11 +3179,32 @@ const App = window.App = {
             
             await Promise.all(promises);
             
-            // Recargar modal para mostrar nuevo estado
-            this.showEventSelectorForBulk(userIds);
+            // Limpiar cache y recargar datos
+            this.state.users = null;
+            this.state.allEvents = null;
             this.loadUsersTable();
             this.loadEvents();
+            
+            // Mostrar notificación
+            Swal.fire({ 
+                toast: true,
+                title: currentlyAssigned ? '✓ Desasignado' : '✓ Asignado', 
+                icon: 'success',
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1000,
+                showConfirmButton: false,
+                position: 'top-end'
+            });
+            
+            // Reabrir modal después de un brevedelay
+            setTimeout(() => {
+                if (Swal.isVisible()) {
+                    this.showEventSelectorForBulk(userIds);
+                }
+            }, 200);
         } catch (e) {
+            console.error('Error bulkToggleEventForUsers:', e);
             Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar evento', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
