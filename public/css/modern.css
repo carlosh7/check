@@ -604,6 +604,19 @@ body:not(.app-loaded) > *:not(style):not(script):not(link) {
     opacity: 0 !important;
 }
 
+body.app-loaded {
+    opacity: 1 !important;
+}
+
+body.app-loaded > *:not(style):not(script):not(link) {
+    opacity: 1 !important;
+    transition: opacity 0.15s ease;
+}
+
+body.app-loaded {
+    opacity: 1 !important;
+}
+
 body.app-loaded > *:not(style):not(script):not(link) {
     opacity: 1 !important;
     transition: opacity 0.15s ease;
