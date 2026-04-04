@@ -367,7 +367,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS clients (
     name TEXT NOT NULL,
     email TEXT,
     phone TEXT,
-    company_id TEXT NOT NULL,
+    company_id TEXT,
     status TEXT DEFAULT 'ACTIVE',
     created_at TEXT,
     created_by TEXT,

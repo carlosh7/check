@@ -1637,7 +1637,8 @@ const App = window.App = {
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${clients.map(c => {
-                        const isAssigned = groupIds.some(gid => String(c.company_id) === String(gid));
+                        const clientCompanyId = c.company_id || '';
+                        const isAssigned = groupIds.some(gid => clientCompanyId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         return `
                         <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
