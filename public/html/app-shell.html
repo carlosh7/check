@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.50</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.51</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -492,6 +492,14 @@
                                                 <label class="flex items-center gap-2 text-sm text-slate-300">
                                                     <input type="radio" name="mailing-recipient-type" value="pending" class="accent-violet-500"> Solo pendientes
                                                 </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300">
+                                                    <input type="radio" name="mailing-recipient-type" value="group" class="accent-violet-500"> Por grupo específico
+                                                </label>
+                                            </div>
+                                            <div id="mailing-group-selector" class="hidden mt-2">
+                                                <select id="mailing-recipient-group" class="input-field w-full text-sm" onchange="App.updateMailingRecipientCount()">
+                                                    <option value="">-- Seleccionar grupo --</option>
+                                                </select>
                                             </div>
                                             <p id="mailing-recipient-count" class="text-xs text-slate-500 mt-2">0 invitados</p>
                                         </div>

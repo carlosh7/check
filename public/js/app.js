@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.50';
+const VERSION = '12.44.51';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3916,7 +3916,6 @@ const App = window.App = {
         const to = document.getElementById('composer-to')?.value?.trim();
         const subject = document.getElementById('composer-subject')?.value?.trim();
         
-        // Get content from Quill or HTML source
         let body = '';
         const htmlSource = document.getElementById('composer-html-source');
         if (htmlSource) {
@@ -3941,9 +3940,24 @@ const App = window.App = {
         }
         
         try {
+            // Read attachments as base64
+            const attachments = [];
+            const fileInput = document.getElementById('composer-attachment');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                for (const file of fileInput.files) {
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    attachments.push({ filename: file.name, content: base64 });
+                }
+            }
+            
             const result = await this.fetchAPI('/email/send', {
                 method: 'POST',
-                body: JSON.stringify({ to, subject, body })
+                body: JSON.stringify({ to, subject, body_html: body, attachments })
             });
             
             if (result.success) {
@@ -4047,6 +4061,94 @@ const App = window.App = {
                 width: '800px',
                 background: 'var(--bg-card)',
                 color: 'var(--text-primary)'
+            });
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
+        }
+    },
+
+    showTemplateLibrary: async function() {
+        try {
+            const templates = await this.fetchAPI('/email/templates');
+            
+            const templateCards = (templates || []).map(t => `
+                <div class="border border-[var(--border)] rounded-lg p-4 hover:border-[var(--primary)] transition-colors cursor-pointer" onclick="App.editEmailTemplate('${t.id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-sm font-bold text-[var(--text-main)]">${t.name}</h4>
+                        ${t.is_system ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">Sistema</span>' : ''}
+                    </div>
+                    <p class="text-xs text-[var(--text-secondary)] mb-2">${t.subject || 'Sin asunto'}</p>
+                    <p class="text-[10px] text-[var(--text-muted)]">${t.category || 'general'}</p>
+                </div>
+            `).join('');
+            
+            Swal.fire({
+                title: 'Biblioteca de Plantillas',
+                html: `
+                    <div class="text-left">
+                        <div class="mb-4 flex justify-between items-center">
+                            <p class="text-xs text-[var(--text-secondary)]">${(templates || []).length} plantillas disponibles</p>
+                            <button onclick="App.seedAllTemplates()" class="text-xs text-violet-400 hover:text-violet-300">+ Crear 12 Plantillas Base</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+                            ${templateCards || '<p class="col-span-2 text-center text-sm text-[var(--text-secondary)] py-8">No hay plantillas. Crea las 12 plantillas base.</p>'}
+                        </div>
+                    </div>`,
+                width: '800px',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                showConfirmButton: true,
+                confirmButtonText: 'Cerrar'
+            });
+        } catch (e) {
+            Swal.fire('Error', 'No se pudieron cargar las plantillas', 'error');
+        }
+    },
+
+    editEmailTemplate: async function(templateId) {
+        try {
+            const t = await this.fetchAPI(`/email/templates/${templateId}`);
+            
+            Swal.fire({
+                title: `Editar Plantilla: ${t.name}`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-[var(--text-secondary)] mb-1 block">Asunto</label>
+                            <input type="text" id="edit-template-subject" class="w-full px-3 py-2 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" value="${this._escapeHtml(t.subject || '')}" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-[var(--text-secondary)] mb-1 block">Contenido HTML</label>
+                            <textarea id="edit-template-html" class="w-full px-3 py-2 rounded-lg text-xs font-mono border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" rows="15">${this._escapeHtml(t.body_html || t.body_text || '')}</textarea>
+                        </div>
+                        <p class="text-[10px] text-[var(--text-muted)]">Variables disponibles: {{guest_name}}, {{guest_first_name}}, {{event_name}}, {{event_date}}, {{event_location}}, {{event_time}}, {{qr_code}}, {{event_description}}, {{company_name}}, {{company_address}}, {{current_year}}</p>
+                    </div>`,
+                width: '800px',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: async () => {
+                    const subject = document.getElementById('edit-template-subject').value;
+                    const bodyHtml = document.getElementById('edit-template-html').value;
+                    
+                    try {
+                        await this.fetchAPI(`/email/templates/${templateId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ subject, body_html: bodyHtml })
+                        });
+                        return true;
+                    } catch (e) {
+                        Swal.showValidationMessage('Error al guardar: ' + e.message);
+                        return false;
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('✓ Guardado', 'Plantilla actualizada', 'success');
+                    this.showTemplateLibrary();
+                }
             });
         } catch (e) {
             Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
@@ -4187,12 +4289,51 @@ const App = window.App = {
             // Guardar guests en estado
             this.state.mailingGuests = guests || [];
             
+            // Cargar grupos
+            const groups = [...new Set((guests || []).filter(g => g.group_name).map(g => g.group_name))];
+            const groupSel = document.getElementById('mailing-recipient-group');
+            if (groupSel) {
+                groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
+                    groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            }
+            
+            // Handler para mostrar/ocultar selector de grupo
+            document.querySelectorAll('input[name="mailing-recipient-type"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const groupSelector = document.getElementById('mailing-group-selector');
+                    if (groupSelector) {
+                        groupSelector.classList.toggle('hidden', e.target.value !== 'group');
+                    }
+                    this.updateMailingRecipientCount();
+                });
+            });
+            
             // Inicializar editor Quill
             setTimeout(() => this.initMailingQuillEditor(), 100);
             
         } catch (e) {
             console.error('[MAILING] Error loading data:', e);
         }
+    },
+
+    updateMailingRecipientCount: function() {
+        const guests = this.state.mailingGuests || [];
+        const recipientType = document.querySelector('input[name="mailing-recipient-type"]:checked')?.value || 'all';
+        const groupId = document.getElementById('mailing-recipient-group')?.value || '';
+        
+        let count = 0;
+        if (recipientType === 'all') {
+            count = guests.length;
+        } else if (recipientType === 'confirmed') {
+            count = guests.filter(g => g.checked_in).length;
+        } else if (recipientType === 'pending') {
+            count = guests.filter(g => !g.checked_in).length;
+        } else if (recipientType === 'group' && groupId) {
+            count = guests.filter(g => g.group_name === groupId).length;
+        }
+        
+        const countEl = document.getElementById('mailing-recipient-count');
+        if (countEl) countEl.textContent = `${count} destinatarios`;
     },
 
     onMailingTemplateChange: function() {
@@ -4260,6 +4401,7 @@ const App = window.App = {
         if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
         
         const recipientType = document.querySelector('input[name="mailing-recipient-type"]:checked')?.value || 'all';
+        const groupId = recipientType === 'group' ? (document.getElementById('mailing-recipient-group')?.value || '') : '';
         const eventId = this.state.event?.id;
         
         if (!eventId) return Swal.fire('Error', 'No hay evento seleccionado', 'error');
@@ -4274,7 +4416,8 @@ const App = window.App = {
                     name: subject.substring(0, 50),
                     subject,
                     body_html: bodyHtml,
-                    recipient_type: recipientType
+                    recipient_type: recipientType === 'group' ? 'group' : recipientType,
+                    recipient_group_id: groupId || null
                 }
             });
             
