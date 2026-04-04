@@ -1005,18 +1005,20 @@
                 <div id="sys-content-users" class="hidden space-y-4">
                     <!-- Fila 1: Botones + Filtros -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <!-- Botones de acción -->
+                        <!-- Botones de acción - todos mismo tamaño -->
                         <div class="flex gap-2">
-                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('staff')">
-                                <span class="material-symbols-outlined text-sm">upload</span> Importar
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('staff')">
+                                <span class="material-symbols-outlined text-base">upload</span> Importar
                             </button>
-                            <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('staff')">
-                                <span class="material-symbols-outlined text-sm">download</span> Exportar
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('staff')">
+                                <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
-                            <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateUser()">+ Staff</button>
+                            <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateUser()">
+                                <span class="material-symbols-outlined text-base">person_add</span> + Staff
+                            </button>
                         </div>
-                        <!-- Filtros -->
-                        <div class="flex gap-2 flex-wrap">
+                        <!-- Filtros - todos mismo tamaño -->
+                        <div class="flex gap-2 flex-wrap items-center">
                             <select id="filter-group" onchange="App.filterUsers()" class="filter-select-empresa">
                                 <option value="">Empresas</option>
                             </select>
