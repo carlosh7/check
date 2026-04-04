@@ -3116,7 +3116,7 @@ const App = window.App = {
         let subtitleText = '';
         if (selectedUsers.length === 1) {
             const user = selectedUsers[0];
-            const userName = user.name || user.email || 'Usuario';
+            const userName = user.display_name || user.username || user.email || 'Usuario';
             const eventCount = (user.events || []).length;
             subtitleText = `${userName} - ${eventCount} Eventos`;
         } else {
@@ -3135,7 +3135,7 @@ const App = window.App = {
                     </button>
                 </div>
 
-                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
+                <div class="relative group mt-4 mb-4">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
