@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.38';
+const VERSION = '12.44.47';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3274,6 +3274,76 @@ const App = window.App = {
         this.loadMailboxFolders();
     },
 
+    viewMailMessage: async function(uid, folder) {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!accountId) return;
+        
+        try {
+            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
+            
+            if (!result.success) {
+                Swal.fire('Error', result.error || 'No se pudo cargar el mensaje', 'error');
+                return;
+            }
+            
+            const msg = result.message;
+            
+            const modalContent = `
+            <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                        <h3 class="text-lg font-bold text-[var(--text-main)] truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
+                        <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                        </button>
+                    </div>
+                    <div class="p-4 border-b border-[var(--border)] shrink-0">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">De</p>
+                                <p class="text-[var(--text-main)]">${msg.from_name || ''} ${msg.from ? `<span class="text-[var(--text-secondary)]">&lt;${msg.from}&gt;</span>` : ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Para</p>
+                                <p class="text-[var(--text-main)]">${msg.to || ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Fecha</p>
+                                <p class="text-[var(--text-main)]">${msg.date ? new Date(msg.date).toLocaleString('es-ES') : ''}</p>
+                            </div>
+                            ${msg.attachments && msg.attachments.length > 0 ? `
+                            <div>
+                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Adjuntos (${msg.attachments.length})</p>
+                                <p class="text-[var(--text-main)] text-xs">${msg.attachments.map(a => a.filename).join(', ')}</p>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1">
+                        ${msg.html ? `<div class="prose prose-invert max-w-none" style="color: var(--text-main);">${msg.html}</div>` : `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-mono bg-[var(--bg-secondary)] p-4 rounded-lg">${msg.text || 'Sin contenido'}</pre>`}
+                    </div>
+                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
+                        <button id="btn-close-mail-view-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
+                    </div>
+                </div>
+            </div>`;
+            
+            document.getElementById('modal-container-portal').innerHTML = modalContent;
+            
+            document.getElementById('btn-close-mail-view')?.addEventListener('click', () => {
+                document.getElementById('modal-mail-view')?.classList.add('hidden');
+                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            });
+            document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => {
+                document.getElementById('modal-mail-view')?.classList.add('hidden');
+                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            });
+            
+        } catch (e) {
+            console.error('[MAILBOX] Error viewing message:', e);
+            Swal.fire('Error', 'No se pudo cargar el mensaje', 'error');
+        }
+    },
+
     openEmailComposer: function() {
         const modal = document.getElementById('modal-email-composer');
         if (modal) {
@@ -3731,7 +3801,9 @@ const App = window.App = {
 
     openCampaignWizard: function() {
         const eventId = this.state.event?.id;
-        if (!eventId) {
+        // Admin en sistema puede crear campañas sin evento
+        const isAdmin = this.state.user?.role === 'ADMIN';
+        if (!eventId && !isAdmin) {
             return Swal.fire('Error', 'Selecciona un evento primero', 'error');
         }
         
