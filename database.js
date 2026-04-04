@@ -594,6 +594,17 @@ if (userCount.count === 0) {
     console.log("✓ Admin por defecto creado: admin@check.com / admin123");
 }
 
+// Crear tabla smtp_config si no existe
+db.exec(`CREATE TABLE IF NOT EXISTS smtp_config (
+    id INTEGER PRIMARY KEY,
+    smtp_host TEXT DEFAULT '',
+    smtp_port INTEGER DEFAULT 465,
+    smtp_user TEXT DEFAULT '',
+    smtp_password TEXT DEFAULT '',
+    smtp_secure INTEGER DEFAULT 0,
+    from_name TEXT DEFAULT 'Check Attendance'
+)`);
+
 // Semilla de SMTP config si no existe
 const smtpCount = db.prepare("SELECT COUNT(*) as count FROM smtp_config").get();
 if (smtpCount.count === 0) {

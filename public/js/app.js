@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.55';
+const VERSION = '12.44.57';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -286,34 +286,6 @@ const App = window.App = {
                 osc.stop(now + 0.4);
             }
         } catch (e) { console.warn('Audio not supported or blocked'); }
-    },
-
-    // Smart Sidebar Toggle
-    toggleSidebar() {
-        const sidebar = document.getElementById('global-sidebar');
-        if (!sidebar) return;
-        
-        const isCollapsed = sidebar.classList.toggle('collapsed');
-        LS.set('sidebar_collapsed', isCollapsed);
-        
-        // Actualizar icono del botón si existe
-        const btnIcon = document.querySelector('#btn-toggle-sidebar .material-symbols-outlined');
-        if (btnIcon) {
-            btnIcon.textContent = isCollapsed ? 'menu' : 'menu_open';
-        }
-    },
-
-    // Iniciar estado del sidebar
-    initSidebar() {
-        const sidebar = document.getElementById('global-sidebar');
-        if (!sidebar) return;
-        
-        const wasCollapsed = LS.get('sidebar_collapsed') === true;
-        if (wasCollapsed) {
-            sidebar.classList.add('collapsed');
-            const btnIcon = document.querySelector('#btn-toggle-sidebar .material-symbols-outlined');
-            if (btnIcon) btnIcon.textContent = 'menu';
-        }
     },
 
     // Reemplazo de la función antigua de notificación
@@ -3376,15 +3348,6 @@ const App = window.App = {
             const text = item.textContent.toLowerCase();
             item.style.display = text.includes(q) ? '' : 'none';
         });
-    },
-
-    sortMailboxMessages: function(criteria) {
-        // Simple re-sort - recargar mensajes
-        const activeBtn = document.querySelector('.mailbox-folder-btn.bg-\\[var\\(--bg-hover\\)\\]');
-        if (activeBtn) {
-            const folder = activeBtn.dataset.folder;
-            this.loadMailboxMessages(folder);
-        }
     },
 
     refreshMailbox: function() {
@@ -7791,7 +7754,7 @@ const App = window.App = {
         }).join('');
     },
     async toggleCheckin(gId, status) {
-        await this.fetchAPI(`/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
+        await this.fetchAPI(`/guests/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
         this.loadGuests();
     },
     async updateStats() {
