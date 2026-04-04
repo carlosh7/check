@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.65';
+const VERSION = '12.44.64';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1520,98 +1520,53 @@ const App = window.App = {
         }
         
         const users = this.state.allUsers || [];
-        const clients = this.state.clients || [];
+        const userOptions = users.map(u => `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`).join('');
         
-        if (users.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        // Detectar tema actual
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#f59e0b';
-        const primaryLight = isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.15)';
-        
-        // Obtener nombres de clientes seleccionados
-        const selectedClientsList = clients.filter(c => this.state.selectedClients.includes(c.id)) || [];
-        const clientNames = selectedClientsList.map(c => c.name).join(', ');
-        
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${clientNames || this.state.selectedClients.length + ' cliente(s) seleccionado(s)'}</span>
+        Swal.fire({
+            title: 'Asignar Staff a Clientes',
+            html: `
+                <div class="space-y-4 text-left">
+                    <p class="text-sm text-[var(--text-secondary)]">Clientes seleccionados: ${this.state.selectedClients.length}</p>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Staff *</label>
+                        <select id="assign-staff-select" class="swal2-input" multiple size="6" style="height: auto;">
+                            ${userOptions}
+                        </select>
+                        <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
                     </div>
                 </div>
-
-                <div class="relative group mt-4 mb-4">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${users.map(u => `
-                        <div onclick="App.assignStaffToClientsFromModal('${u.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
-                            </div>
-                        </div>
-                    `}).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            title: '',
-            html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
-            showConfirmButton: false,
-            showCloseButton: false,
-            customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl'
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Asignar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const select = document.getElementById('assign-staff-select');
+                const selectedUsers = Array.from(select.selectedOptions).map(o => o.value);
+                
+                if (selectedUsers.length === 0) {
+                    Swal.showValidationMessage('Selecciona al menos un miembro de staff');
+                    return false;
+                }
+                
+                try {
+                    for (const clientId of this.state.selectedClients) {
+                        await this.fetchAPI(`/clients/${clientId}/staff`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ users: selectedUsers })
+                        });
+                    }
+                    this.loadClients();
+                    Swal.fire('Éxito', 'Staff asignado correctamente', 'success');
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al asignar staff');
+                    return false;
+                }
             }
         });
-    },
-    
-    assignStaffToClientsFromModal: async function(userId) {
-        try {
-            for (const clientId of this.state.selectedClients) {
-                await this.fetchAPI(`/clients/${clientId}/staff`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ users: [userId] })
-                });
-            }
-            
-            Swal.fire({ 
-                toast: true,
-                title: '✓ Asignado', 
-                icon: 'success',
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.loadClients();
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
     },
 
     // Poblar filtros de empresas
@@ -1677,7 +1632,7 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
                         <span class="text-xs" style="color: ${textMain};">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
                     </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
@@ -1685,7 +1640,7 @@ const App = window.App = {
                     </button>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
+                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
@@ -2033,48 +1988,33 @@ const App = window.App = {
             return;
         }
         
-        // Detectar tema actual
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#8b5cf6';
-        const primaryLight = isDark ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.15)';
-        
-        // Obtener nombres de empresas seleccionadas
-        const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
-        const groupNames = selectedGroups.map(g => g.name).join(', ');
-        
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Evento a Empresas</span>
+                        <span class="text-xs text-slate-400">Selecciona evento para ${groupIds.length} empresa(s)</span>
                     </div>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-500 transition-colors text-sm">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${events.map(e => `
-                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
+                                <div class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${e.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
                             </div>
                         </div>
                     `).join('')}
@@ -2084,13 +2024,13 @@ const App = window.App = {
         Swal.fire({
             title: '',
             html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
             showConfirmButton: false,
-            showCloseButton: false,
+            showCloseButton: true,
             customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl',
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
@@ -2134,48 +2074,33 @@ const App = window.App = {
             return;
         }
         
-        // Detectar tema actual
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#10b981';
-        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
-        
-        // Obtener nombres de empresas seleccionadas
-        const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
-        const groupNames = selectedGroups.map(g => g.name).join(', ');
-        
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Staff a Empresas</span>
+                        <span class="text-xs text-slate-400">Selecciona staff para ${groupIds.length} empresa(s)</span>
                     </div>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
                     <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${users.map(u => `
-                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div>
+                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${u.display_name || u.username}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${u.role || 'STAFF'}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
                             </div>
                         </div>
                     `).join('')}
@@ -2185,13 +2110,13 @@ const App = window.App = {
         Swal.fire({
             title: '',
             html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
             showConfirmButton: false,
-            showCloseButton: false,
+            showCloseButton: true,
             customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl',
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
@@ -2471,7 +2396,7 @@ const App = window.App = {
         
         if (tbody) {
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
                 return;
             }
 
@@ -2492,26 +2417,7 @@ const App = window.App = {
                     </div>
                 `;
 
-                // --- COLUMNA 2: EMPRESA ---
-                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
-
-                // --- COLUMNA 3: CLIENTES ---
-                const userClients = u.clients || [];
-                const clientChips = userClients.map(c => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${(c.name || 'Sin nombre').length > 12 ? c.name.substring(0, 12) + '...' : (c.name || 'Sin nombre')}
-                    </span>
-                `).join('');
-                const colClientes = userClients.length > 0 ? 
-                    `<div class="flex flex-col">${clientChips}</div>` : 
-                    `<span class="text-xs text-slate-500 italic">Sin clientes</span>`;
-
-                // --- COLUMNA 4: EVENTOS ---
+                // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
                     <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
@@ -2522,23 +2428,30 @@ const App = window.App = {
                     `<div class="flex flex-col">${eventChips}</div>` : 
                     `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
 
-                // --- COLUMNA 5: ROL ---
-                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
+                // --- COLUMNA 3: EMPRESA ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
+                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
+                    </span>
+                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
+                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
 
-                // --- COLUMNA 6: ESTADO ---
+                // --- COLUMNA 4: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
                 const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
+
+                // --- COLUMNA 5: ROL ---
+                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
                 return `
                 <tr class="user-row-premium">
                     <td class="px-2 py-3 align-middle">${checkbox}</td>
                     <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle">${colClientes}</td>
                     <td class="px-2 py-3 align-middle">${colEventos}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
                     <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
                 </tr>`;
             }).join('');
         }
@@ -2678,10 +2591,6 @@ const App = window.App = {
             case 'assign-company':
                 // Mostrar selector de empresa
                 this.showGroupSelectorForBulk(selectedIds);
-                break;
-            case 'assign-client':
-                // Mostrar selector de cliente
-                this.showClientSelectorForBulkUsers(selectedIds);
                 break;
             case 'assign-event':
                 // Mostrar selector de evento
@@ -3040,17 +2949,6 @@ const App = window.App = {
             return;
         }
         
-        // Detectar tema actual
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#3b82f6';
-        const primaryLight = isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)';
-        
         // Calcular cuántos de los usuarios seleccionados tienen cada empresa
         const selectedUsers = users.filter(u => userIds.includes(u.id));
         const getAssignedCount = (groupId) => {
@@ -3060,56 +2958,44 @@ const App = window.App = {
             }).length;
         };
         
-        // Construir texto del título
-        let subtitleText = '';
-        if (selectedUsers.length === 1) {
-            const user = selectedUsers[0];
-            const userName = user.display_name || user.username || 'Usuario';
-            const companyCount = (user.groups || []).length;
-            subtitleText = `${userName} - ${companyCount} Empresas`;
-        } else {
-            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
-        }
-        
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
+                        <span class="text-xs text-slate-400">Selecciona empresa para ${userIds.length} usuario(s)</span>
                     </div>
                     <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">add_business</span> NUEVA
                     </button>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
                     <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     ${groups.map(g => {
                         const assignedCount = getAssignedCount(g.id);
                         const isAssignedToAll = assignedCount === userIds.length;
                         const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
-                        const itemBorder = isAssignedToAll ? primaryColor : isAssignedToSome ? 'rgba(59,130,246,0.3)' : borderColor;
-                        const itemBg = isAssignedToAll ? primaryLight : isAssignedToSome ? (isDark ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.08)') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        const statusClass = isAssignedToAll ? 'ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30' : isAssignedToSome ? 'ring-1 ring-blue-500/30 bg-blue-500/5 border-blue-500/20' : '';
                         const icon = isAssignedToAll ? 'check' : 'add';
                         return `
-                        <div onclick="App.bulkToggleCompanyForUsers('${userIds.join(',')}', '${g.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                        <div onclick="App.bulkToggleCompanyForUsers('${userIds.join(',')}', '${g.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
                                 <span class="material-symbols-outlined">corporate_fare</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div>
-                                <div class="text-[11px]" style="color: ${isAssignedToAll ? primaryColor : textSecondary};">
+                                <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
+                                <div class="text-[11px] ${isAssignedToAll ? 'text-blue-400 font-semibold' : 'text-slate-500 uppercase tracking-tighter'}">
                                     ${isAssignedToAll ? '✓ Asignada a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : g.email || 'Sin email'}
                                 </div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssignedToAll ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssignedToAll ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
+                            <div class="w-7 h-7 rounded-lg ${isAssignedToAll ? 'bg-blue-500/20 border-2 border-blue-500/50' : 'bg-white/5 border border-white/10'} flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs ${isAssignedToAll ? 'text-blue-400' : 'text-blue-500 opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
@@ -3119,130 +3005,16 @@ const App = window.App = {
         Swal.fire({
             title: '',
             html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
             showConfirmButton: false,
-            showCloseButton: false,
+            showCloseButton: true,
             customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl',
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
                 closeButton: 'hover:text-red-500 transition-colors'
             }
         });
-    },
-    
-    // Mostrar selector de cliente para bulk de usuarios
-    showClientSelectorForBulkUsers: function(userIds) {
-        const clients = this.state.clients || [];
-        const users = this.state.allUsers || [];
-        
-        if (clients.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        // Detectar tema actual
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#10b981';
-        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
-        
-        // Calcular usuarios seleccionados
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
-        
-        // Construir texto del título
-        let subtitleText = '';
-        if (selectedUsers.length === 1) {
-            const user = selectedUsers[0];
-            const userName = user.display_name || user.username || 'Usuario';
-            subtitleText = `${userName}`;
-        } else {
-            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
-        }
-        
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
-                    </div>
-                    <button onclick="App.openCreateClientModal()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
-                        <span class="material-symbols-outlined text-xs">person_add</span> CREAR
-                    </button>
-                </div>
-
-                <div class="relative group mt-4 mb-4">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${clients.map(c => {
-                        const icon = 'add';
-                        return `
-                        <div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                <span class="material-symbols-outlined">person</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
-                            </div>
-                        </div>
-                    `}).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            title: '',
-            html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
-            showConfirmButton: false,
-            showCloseButton: false,
-            customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl',
-                closeButton: 'hover:text-red-500 transition-colors'
-            }
-        });
-    },
-    
-    // Asignar cliente a usuarios desde modal
-    assignClientToUsersFromModal: async function(userIdsStr, clientId) {
-        const userIds = userIdsStr.split(',');
-        try {
-            for (const userId of userIds) {
-                await this.fetchAPI(`/clients/${clientId}/staff`, {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: userId })
-                });
-            }
-            
-            Swal.fire({ 
-                toast: true,
-                title: '✓ Asignado', 
-                icon: 'success',
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.loadUsersTable();
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
     },
     
     // Toggle empresa para usuarios seleccionados (asignar o desasignar)
@@ -3340,30 +3112,19 @@ const App = window.App = {
             }).length;
         };
         
-        // Construir texto del título
-        let subtitleText = '';
-        if (selectedUsers.length === 1) {
-            const user = selectedUsers[0];
-            const userName = user.display_name || user.username || user.email || 'Usuario';
-            const eventCount = (user.events || []).length;
-            subtitleText = `${userName} - ${eventCount} Eventos`;
-        } else {
-            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
-        }
-        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-xs" style="color: ${textMain};">Selecciona evento para ${userIds.length} usuario(s)</span>
                     </div>
                     <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
                         <span class="material-symbols-outlined text-xs">event</span> NUEVO
                     </button>
                 </div>
 
-                <div class="relative group mt-4 mb-4">
+                <div class="relative group" style="margin-top: -8px; margin-bottom: -8px;">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
                     <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
