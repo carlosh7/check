@@ -5704,7 +5704,7 @@ const App = window.App = {
                     events.map(ev => `<option value="${ev.id}">${ev.name}</option>`).join('');
             }
 
-            const templatesRes = await this.fetchAPI('/email/email-templates');
+            const templatesRes = await this.fetchAPI('/email/templates');
             const templates = Array.isArray(templatesRes) ? templatesRes : (templatesRes.data || []);
             this.state.emailTemplates = templates;
             const tempSelector = document.getElementById('mailing-template-selector');
