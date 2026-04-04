@@ -42,6 +42,14 @@
             min-height: 100vh;
             background-color: var(--bg-app);
         }
+        
+        /* Anti-FOUC: Ocultar contenido hasta que app cargue */
+        body:not(.app-loaded) #app-container {
+            display: none !important;
+        }
+        body:not(.app-loaded) #view-login {
+            display: flex !important;
+        }
     </style>
     <!-- ANTI-FOUC CRÍTICO: Ejecutar ANTES de renderizar body -->
     <script>

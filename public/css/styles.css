@@ -2367,7 +2367,7 @@
   }
 }
 
-/* ═══ BLINDAJE DE EDITOR QUILL (V12.37.22) ═══ */
+/* ═══ BLINDAJE DE EDITOR QUILL (V12.44.53) ═══ */
 #visual-editor-container {
     display: block !important;
     visibility: visible !important;
@@ -2377,20 +2377,20 @@
 }
 
 #template-quill-editor {
-    background-color: white !important;
-    color: black !important;
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
     border-radius: 8px !important;
 }
 
 .ql-editor {
-    background-color: white !important;
-    color: black !important;
+    background-color: transparent !important;
+    color: var(--text-main) !important;
     min-height: 350px !important;
     text-align: left !important;
 }
 
 .ql-toolbar {
-    background-color: #f8fafc !important;
+    background-color: var(--bg-input) !important;
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
 }

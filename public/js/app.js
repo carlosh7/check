@@ -106,11 +106,8 @@ const App = window.App = {
     
     // Obtener vista por defecto según rol
     getDefaultViewByRole(role) {
-        if (role === 'ADMIN') {
-            return { view: 'system', tab: 'users' };
-        } else {
-            return { view: 'my-events', tab: null };
-        }
+        // Todos los usuarios van a "Mis Eventos" después de login
+        return { view: 'my-events', tab: null };
     },
 
     // Validar permisos para una vista
@@ -10997,6 +10994,9 @@ async function initApp() {
     document.getElementById('nav-tab-dashboard')?.addEventListener('click', () => switchAdminTab(null));
 
     // 5. Listeners generales
+
+    // Marcar app como cargada (anti-FOUC)
+    document.body.classList.add('app-loaded');
 
     // Login Form
     console.log('[DOM DEBUG] Configurando event listener para form-login');
