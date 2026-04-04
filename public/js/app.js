@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.52';
+const VERSION = '12.44.54';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -4188,49 +4188,110 @@ const App = window.App = {
         try {
             const t = await this.fetchAPI(`/email/templates/${templateId}`);
             
-            Swal.fire({
-                title: `Editar Plantilla: ${t.name}`,
-                html: `
-                    <div class="text-left space-y-3">
+            // Crear modal con Quill editor
+            const modalContent = `
+            <div id="modal-template-editor" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+                <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
+                    <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[var(--primary)] text-xl">edit_note</span>
+                            <h3 class="text-base font-bold text-[var(--text-main)]">Editar Plantilla: ${t.name}</h3>
+                        </div>
+                        <button onclick="document.getElementById('modal-template-editor')?.classList.add('hidden'); setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                        </button>
+                    </div>
+                    <div class="p-5 overflow-y-auto flex-1 space-y-4">
                         <div>
-                            <label class="text-xs font-bold text-[var(--text-secondary)] mb-1 block">Asunto</label>
-                            <input type="text" id="edit-template-subject" class="w-full px-3 py-2 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" value="${this._escapeHtml(t.subject || '')}" />
+                            <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Asunto</label>
+                            <input type="text" id="edit-template-subject" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" value="${this._escapeHtml(t.subject || '')}" />
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-[var(--text-secondary)] mb-1 block">Contenido HTML</label>
-                            <textarea id="edit-template-html" class="w-full px-3 py-2 rounded-lg text-xs font-mono border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" rows="15">${this._escapeHtml(t.body_html || t.body_text || '')}</textarea>
+                            <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Contenido</label>
+                            <div id="edit-template-quill" style="min-height: 300px; background: var(--bg-card); color: var(--text-main);"></div>
+                            <input type="hidden" id="edit-template-html" value="${this._escapeHtml(t.body_html || t.body_text || '')}" />
                         </div>
-                        <p class="text-[10px] text-[var(--text-muted)]">Variables disponibles: {{guest_name}}, {{guest_first_name}}, {{event_name}}, {{event_date}}, {{event_location}}, {{event_time}}, {{qr_code}}, {{event_description}}, {{company_name}}, {{company_address}}, {{current_year}}</p>
-                    </div>`,
-                width: '800px',
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)',
-                showCancelButton: true,
-                confirmButtonText: 'Guardar',
-                cancelButtonText: 'Cancelar',
-                preConfirm: async () => {
-                    const subject = document.getElementById('edit-template-subject').value;
-                    const bodyHtml = document.getElementById('edit-template-html').value;
-                    
-                    try {
-                        await this.fetchAPI(`/email/templates/${templateId}`, {
-                            method: 'PUT',
-                            body: JSON.stringify({ subject, body_html: bodyHtml })
-                        });
-                        return true;
-                    } catch (e) {
-                        Swal.showValidationMessage('Error al guardar: ' + e.message);
-                        return false;
+                        <div class="flex flex-wrap gap-1">
+                            <button onclick="App.insertTemplateVariable('{{guest_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{guest_name}}</button>
+                            <button onclick="App.insertTemplateVariable('{{guest_first_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{guest_first_name}}</button>
+                            <button onclick="App.insertTemplateVariable('{{event_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_name}}</button>
+                            <button onclick="App.insertTemplateVariable('{{event_date}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_date}}</button>
+                            <button onclick="App.insertTemplateVariable('{{event_location}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_location}}</button>
+                            <button onclick="App.insertTemplateVariable('{{event_time}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_time}}</button>
+                            <button onclick="App.insertTemplateVariable('{{qr_code}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{qr_code}}</button>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0">
+                        <p class="text-[10px] text-[var(--text-muted)]">Las variables se reemplazan al enviar</p>
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('modal-template-editor')?.classList.add('hidden'); setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cancelar</button>
+                            <button onclick="App.saveEmailTemplate('${templateId}')" class="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-200" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            
+            document.getElementById('modal-container-portal').innerHTML = modalContent;
+            
+            // Inicializar Quill
+            setTimeout(() => {
+                if (window.Quill) {
+                    this.templateEditorQuill = new Quill('#edit-template-quill', {
+                        theme: 'snow',
+                        placeholder: 'Escribe el contenido de la plantilla...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    // Cargar contenido existente
+                    const htmlVal = document.getElementById('edit-template-html')?.value;
+                    if (htmlVal) {
+                        this.templateEditorQuill.root.innerHTML = htmlVal;
                     }
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('✓ Guardado', 'Plantilla actualizada', 'success');
-                    this.showTemplateLibrary();
-                }
-            });
+            }, 100);
         } catch (e) {
             Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
+        }
+    },
+
+    insertTemplateVariable: function(variable) {
+        if (this.templateEditorQuill) {
+            const range = this.templateEditorQuill.getSelection();
+            this.templateEditorQuill.insertText(range ? range.index : 0, variable);
+        }
+    },
+
+    saveEmailTemplate: async function(templateId) {
+        const subject = document.getElementById('edit-template-subject')?.value;
+        let bodyHtml = '';
+        if (this.templateEditorQuill) {
+            bodyHtml = this.templateEditorQuill.root.innerHTML;
+        }
+        
+        if (!subject) {
+            return Swal.fire('Error', 'El asunto es requerido', 'error');
+        }
+        
+        try {
+            await this.fetchAPI(`/email/templates/${templateId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ subject, body_html: bodyHtml })
+            });
+            Swal.fire('✓ Guardado', 'Plantilla actualizada', 'success');
+            document.getElementById('modal-template-editor')?.classList.add('hidden');
+            setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
+            this.templateEditorQuill = null;
+            this.showTemplateLibrary();
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo guardar la plantilla: ' + e.message, 'error');
         }
     },
 
@@ -5967,6 +6028,8 @@ const App = window.App = {
                 
                 // Cargar eventos antes de navegar
                 try {
+                    // Limpiar estado guardado para que todos vayan a "Mis Eventos" después de login
+                    sessionStorage.removeItem('app-view-state');
                     await this.loadEvents();
                     await this.handleInitialNavigation();
                 } catch (err) {
