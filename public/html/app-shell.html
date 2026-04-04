@@ -817,10 +817,92 @@
 
                 <!-- SECCIÓN: EMPRESAS -->
                 <div id="sys-content-groups" class="hidden space-y-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 class="text-2xl font-semibold tracking-tight">Gestión de <span class="text-[var(--primary)]">Empresas</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Administración de organizaciones registradas.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('groups')">
+                                    <span class="material-symbols-outlined text-sm">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('groups')">
+                                    <span class="material-symbols-outlined text-sm">download</span> Exportar
+                                </button>
+                                <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                            </div>
+                        </div>
+                        <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
+                            <div style="flex: 1 1 auto; min-width: 0; position: relative;">
+                                <input id="group-search" type="text" placeholder="Buscar..." 
+                                       class="w-full pr-[60px] pl-[10px] py-2 rounded-lg bg-[var(--bg-input)] border border-white/5 text-xs focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 outline-none transition-all"
+                                       oninput="App.filterGroups()">
+                                <span class="material-symbols-outlined absolute right-[10px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] cursor-pointer text-base" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
+                                <span class="material-symbols-outlined absolute right-[32px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-base">search</span>
+                            </div>
+                            <div class="flex gap-2 flex-shrink-0 items-center">
+                                <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Eventos</option>
+                                </select>
+                                <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Staff</option>
+                                </select>
+                                <select id="filter-group-status" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Estado</option>
+                                    <option value="ACTIVE">Activo</option>
+                                    <option value="INACTIVE">Inactivo</option>
+                                </select>
+                                <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" class="filter-select-action">
+                                    <option value="">Acciones</option>
+                                    <option value="edit">Editar</option>
+                                    <option value="activate">Activar</option>
+                                    <option value="deactivate">Desactivar</option>
+                                    <option value="assign-event">Asignar Evento</option>
+                                    <option value="assign-staff">Asignar Staff</option>
+                                    <option value="delete">Eliminar</option>
+                                </select>
+                            </div>
+                        </div>
+                            <div class="flex gap-2">
+                                <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('groups')">
+                                    <span class="material-symbols-outlined text-sm">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openExportModal('groups')">
+                                    <span class="material-symbols-outlined text-sm">download</span> Exportar
+                                </button>
+                                <button class="btn-primary !px-5 !py-2.5" onclick="App.navigateToCreateGroup()">+ Empresa</button>
+                            </div>
+                        </div>
+                        <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
+                            <div style="flex: 1 1 auto; min-width: 0; position: relative;">
+                                <input id="group-search" type="text" placeholder="Buscar..." 
+                                       class="w-full pr-[60px] pl-[10px] py-2 rounded-lg bg-[var(--bg-input)] border border-white/5 text-xs focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 outline-none transition-all"
+                                       oninput="App.filterGroups()">
+                                <span class="material-symbols-outlined absolute right-[10px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] cursor-pointer text-base" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
+                                <span class="material-symbols-outlined absolute right-[32px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-base">search</span>
+                            </div>
+                            <div class="flex gap-2 flex-shrink-0 items-center">
+                                <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Eventos</option>
+                                </select>
+                                <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Staff</option>
+                                </select>
+                                <select id="filter-group-status" onchange="App.filterGroups()" class="filter-select">
+                                    <option value="">Estado</option>
+                                    <option value="ACTIVE">Activo</option>
+                                    <option value="INACTIVE">Inactivo</option>
+                                </select>
+                                <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" class="filter-select-action">
+                                    <option value="">Acciones</option>
+                                    <option value="edit">Editar</option>
+                                    <option value="activate">Activar</option>
+                                    <option value="deactivate">Desactivar</option>
+                                    <option value="assign-event">Asignar Evento</option>
+                                    <option value="assign-staff">Asignar Staff</option>
+                                    <option value="delete">Eliminar</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex gap-2">
                             <button class="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1" onclick="App.openImportModal('groups')">
@@ -834,12 +916,46 @@
                     </div>
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
-                            <input id="group-search" type="text" placeholder="Buscar..." 
-                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
-                                   oninput="App.filterGroups()">
-                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-event').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-status').value=''; App.filterGroups();">close</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
+                            <input id="user-search" type="text" placeholder="Buscar..." 
+                                   class="w-full pr-[60px] pl-[10px] py-2 rounded-lg bg-[var(--bg-input)] border border-white/5 text-xs focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 outline-none transition-all"
+                                   oninput="App.filterUsers()">
+                            <span class="material-symbols-outlined absolute right-[10px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] cursor-pointer text-base" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
+                            <span class="material-symbols-outlined absolute right-[32px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-base">search</span>
                         </div>
+                        <div class="flex gap-2 flex-shrink-0 items-center">
+                            <select id="filter-group" onchange="App.filterUsers()" class="filter-select">
+                                <option value="">Empresas</option>
+                            </select>
+                            <select id="filter-event" onchange="App.filterUsers()" class="filter-select">
+                                <option value="">Eventos</option>
+                            </select>
+                            <select id="filter-role" onchange="App.filterUsers()" class="filter-select">
+                                <option value="">Rol</option>
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="PRODUCTOR">PRODUCTOR</option>
+                                <option value="LOGISTICO">LOGISTICO</option>
+                                <option value="STAFF">STAFF</option>
+                                <option value="CLIENTE">CLIENTE</option>
+                            </select>
+                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" class="filter-select-role">
+                                <option value="">Cambiar Rol</option>
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="PRODUCTOR">PRODUCTOR</option>
+                                <option value="LOGISTICO">LOGISTICO</option>
+                                <option value="STAFF">STAFF</option>
+                                <option value="CLIENTE">CLIENTE</option>
+                            </select>
+                            <select id="bulk-action" onchange="App.handleBulkAction()" class="filter-select-action">
+                                <option value="">Acciones</option>
+                                <option value="edit">Editar</option>
+                                <option value="assign-company">Asignar Empresa</option>
+                                <option value="assign-event">Asignar Evento</option>
+                                <option value="activate">Activar</option>
+                                <option value="suspend">Suspender</option>
+                                <option value="delete">Eliminar</option>
+                            </select>
+                        </div>
+                    </div>
                         <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
                             <select id="filter-group-event" onchange="App.filterGroups()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
                                 <option value="">Eventos</option>
@@ -1021,19 +1137,19 @@
                     <div class="glass-card p-3 flex items-center gap-3 border-white/5 bg-white/[0.02]">
                         <div style="flex: 1 1 auto; min-width: 0; position: relative;">
                             <input id="user-search" type="text" placeholder="Buscar..." 
-                                   style="width: 100%; padding-right: 60px; padding-left: 10px; padding-top: 8px; padding-bottom: 8px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 12px;"
+                                   class="w-full pr-[60px] pl-[10px] py-2 rounded-lg bg-[var(--bg-input)] border border-white/5 text-xs focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 outline-none transition-all"
                                    oninput="App.filterUsers()">
-                            <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 16px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 32px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 16px;">search</span>
+                            <span class="material-symbols-outlined absolute right-[10px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] cursor-pointer text-base" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-group').value=''; document.getElementById('filter-event').value=''; document.getElementById('filter-role').value=''; App.filterUsers();">close</span>
+                            <span class="material-symbols-outlined absolute right-[32px] top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-base">search</span>
                         </div>
-                        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
-                            <select id="filter-group" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                        <div class="flex gap-2 flex-shrink-0 items-center">
+                            <select id="filter-group" onchange="App.filterUsers()" class="filter-select">
                                 <option value="">Empresas</option>
                             </select>
-                            <select id="filter-event" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                            <select id="filter-event" onchange="App.filterUsers()" class="filter-select">
                                 <option value="">Eventos</option>
                             </select>
-                            <select id="filter-role" onchange="App.filterUsers()" style="padding: 6px 10px; font-size: 11px; min-width: 90px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); color: #94a3b8;">
+                            <select id="filter-role" onchange="App.filterUsers()" class="filter-select">
                                 <option value="">Rol</option>
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="PRODUCTOR">PRODUCTOR</option>
@@ -1041,7 +1157,7 @@
                                 <option value="STAFF">STAFF</option>
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
-                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" style="padding: 6px 10px; font-size: 11px; min-width: 100px; border-radius: 8px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #60a5fa; font-weight: bold;">
+                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" class="filter-select-role">
                                 <option value="">Cambiar Rol</option>
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="PRODUCTOR">PRODUCTOR</option>
@@ -1049,7 +1165,7 @@
                                 <option value="STAFF">STAFF</option>
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
-                            <select id="bulk-action" onchange="App.handleBulkAction()" style="padding: 6px 10px; font-size: 11px; min-width: 110px; border-radius: 8px; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(124, 58, 237, 0.5); color: #a78bfa; font-weight: bold;">
+                            <select id="bulk-action" onchange="App.handleBulkAction()" class="filter-select-action">
                                 <option value="">Acciones</option>
                                 <option value="edit">Editar</option>
                                 <option value="assign-company">Asignar Empresa</option>
