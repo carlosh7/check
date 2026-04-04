@@ -7,8 +7,22 @@ const bcrypt = require('bcryptjs');
 const dbPath = path.resolve(__dirname, 'data/check_app.db');
 const db = new Database(dbPath);
 
-// Activar WAL mode para mejor rendimiento concurrente
+// ═══ OPTIMIZACIONES DE RENDIMIENTO (Enterprise Grade) ═══
+
+// 1. WAL Mode: Permite múltiples lectores y un escritor simultáneo
 db.pragma('journal_mode = WAL');
+
+// 2. Busy Timeout: Si la BD está ocupada, espera hasta 5000ms en lugar de fallar
+// CRÍTICO para eventos con 20+ staff haciendo check-in simultáneo
+db.pragma('busy_timeout = 5000');
+
+// 3. Synchronous NORMAL: Balance perfecto entre seguridad y velocidad
+db.pragma('synchronous = NORMAL');
+
+// 4. Cache Size: 32MB de caché en memoria para consultas frecuentes
+db.pragma('cache_size = -32000');
+
+// 5. Foreign Keys: Integridad referencial
 db.pragma('foreign_keys = ON');
 
 // ═══ CREACIÓN DE TABLAS (Ejecución síncrona directa) ═══

@@ -363,4 +363,15 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Recurso no encontrado' });
 });
 
-server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Smart Import Engine + Column Config): Puerto ${port}\x1b[0m`));
+// ═══ BACKUP AUTOMATIZADO ═══
+// Iniciar scheduler de backups (cada 6 horas)
+try {
+    const { startBackupScheduler } = require('./src/utils/backup');
+    startBackupScheduler();
+    console.log('✓ Backup Scheduler inicializado (cada 6 horas)');
+} catch (e) {
+    console.warn('⚠️ Backup Scheduler no disponible:', e.message);
+}
+
+// ═══ ARRANQUE DEL SERVIDOR ═══
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}\x1b[0m`));

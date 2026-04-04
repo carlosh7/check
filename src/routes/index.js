@@ -5,6 +5,7 @@
 
 const express = require('express');
 const multer = require('multer');
+const { imageUploadMiddleware } = require('../middleware/imageOptimizer');
 const authRoutes = require('./auth.routes');
 const usersRoutes = require('./users.routes');
 const eventsRoutes = require('./events.routes');
@@ -44,6 +45,18 @@ const upload = multer({
         }
     }
 });
+
+// Middleware para optimizar imágenes automáticamente
+function optimizeUploadedImage(req, res, next) {
+    if (!req.file) return next();
+    
+    // Solo optimizar imágenes (no PDFs, Excels, etc.)
+    const imageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!imageTypes.includes(req.file.mimetype)) return next();
+    
+    // Aplicar optimización
+    imageUploadMiddleware(req, res, next);
+}
 
 // Middleware de protección path traversal
 function preventPathTraversal(req, res, next) {
