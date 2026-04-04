@@ -1767,21 +1767,21 @@ const App = window.App = {
                 // --- COLUMNA 1: STAFF (Nombre + Email) ---
                 const colStaff = `
                     <div class="flex flex-col gap-0.5">
-                        <div class="font-bold text-sm text-white">${u.display_name || 'Sin nombre'}</div>
-                        <div class="text-xs text-slate-400 font-mono">${u.username}</div>
+                        <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || 'Sin nombre'}</div>
+                        <div class="text-xs text-[var(--text-secondary)] font-mono">${u.username}</div>
                     </div>
                 `;
 
                 // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
-                    <span class="block px-2 py-0.5 rounded-lg bg-violet-500/20 text-violet-300 text-xs font-medium mb-1">
+                    <span class="block px-2 py-0.5 rounded-lg bg-violet-500/20 text-[var(--primary)] text-xs font-medium mb-1">
                         ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
                     </span>
                 `).join('');
                 const colEventos = userEvents.length > 0 ? 
                     `<div class="flex flex-col">${eventChips}</div>` : 
-                    `<span class="text-xs text-slate-500 italic">Sin eventos</span>`;
+                    `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
 
                 // --- COLUMNA 3: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
@@ -1797,7 +1797,7 @@ const App = window.App = {
                 const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
 
                 // --- COLUMNA 5: ROL ---
-                const colRol = `<span class="text-xs font-bold text-violet-400">${u.role}</span>`;
+                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
                 return `
                 <tr class="user-row-premium">
@@ -5671,8 +5671,8 @@ const App = window.App = {
             const logs = res.data || []; 
             list.innerHTML = logs.map(l => `
                 <tr class="hover:bg-white/5 transition-colors">
-                    <td class="px-4 py-3 text-xs text-white font-medium">${l.sender || 'Sistema'}</td>
-                    <td class="px-4 py-3 text-xs text-slate-300 truncate max-w-xs">${l.subject}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-main)] font-medium">${l.sender || 'Sistema'}</td>
+                    <td class="px-4 py-3 text-xs text-[var(--text-secondary)] truncate max-w-xs">${l.subject}</td>
                     <td class="px-4 py-3 text-[10px] text-slate-500">${new Date(l.created_at).toLocaleString()}</td>
                     <td class="px-4 py-3 text-right">
                         <button class="text-[var(--primary)] hover:underline text-[10px] font-bold">Ver DETALLES</button>
@@ -8091,9 +8091,9 @@ const App = window.App = {
 
             return `
                 <tr class="bg-white/2 rounded-xl group">
-                    <td class="px-4 py-3 font-bold text-white text-xs">${field.label}</td>
+                    <td class="px-4 py-3 font-bold text-[var(--text-main)] text-xs">${field.label}</td>
                     <td class="px-4 py-3">
-                        <select data-field="${field.id}" onchange="App.updateMappingPreview(this)" class="bg-slate-900 text-slate-300 text-[10px] font-bold rounded-lg px-3 py-2 border border-white/5 w-full">
+                        <select data-field="${field.id}" onchange="App.updateMappingPreview(this)" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-bold rounded-lg px-3 py-2 border border-[var(--border)] w-full">
                             <option value="">-- Ignorar campo --</option>
                             ${options}
                         </select>
