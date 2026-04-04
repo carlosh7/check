@@ -800,3 +800,176 @@ html:not(.dark) .filter-select-evento option {
     color: #334155;
 }
 
+/* ===== TEMAS: SIDEBAR Y NAVEGACIÓN ===== */
+/* Light theme: sidebar nav items */
+html:not(.dark) #global-sidebar {
+    background: rgba(248, 250, 255, 0.95) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html:not(.dark) #global-sidebar .nav-item {
+    color: #334155 !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item:hover {
+    background: rgba(139, 92, 246, 0.08) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item .material-symbols-outlined {
+    color: #64748b !important;
+}
+
+html:not(.dark) #global-sidebar .nav-item:hover .material-symbols-outlined {
+    color: #7c3aed !important;
+}
+
+html:not(.dark) #global-sidebar .sidebar-text {
+    color: #334155 !important;
+}
+
+html:not(.dark) #global-sidebar .border-white\/5 {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/5 {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/\[0\.03\] {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not(.dark) #global-sidebar .bg-white\/\[0\.01\] {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+html:not(.dark) #global-sidebar .text-white {
+    color: #1e293b !important;
+}
+
+html:not(.dark) #global-sidebar .text-slate-300 {
+    color: #475569 !important;
+}
+
+html:not(.dark) #global-sidebar .text-slate-400 {
+    color: #64748b !important;
+}
+
+html:not(.dark) #global-sidebar .text-violet-400 {
+    color: #7c3aed !important;
+}
+
+/* Light theme: sidebar user info */
+html:not(.dark) #sidebar-username {
+    color: #1e293b !important;
+}
+
+html:not(.dark) #sidebar-role {
+    color: #7c3aed !important;
+}
+
+/* Light theme: theme toggle and logout buttons */
+html:not(.dark) #btn-toggle-theme,
+html:not(.dark) #btn-logout {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) #btn-toggle-theme:hover,
+html:not(.dark) #btn-logout:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) #btn-toggle-theme .text-slate-400,
+html:not(.dark) #btn-logout .text-slate-400 {
+    color: #475569 !important;
+}
+
+/* ===== TEMAS: TABLAS DE DATOS ===== */
+/* Light theme: table headers */
+html:not(.dark) .data-table thead th {
+    background: rgba(241, 245, 249, 0.8) !important;
+    color: #475569 !important;
+    border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .data-table td {
+    color: #1e293b !important;
+    border-bottom-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .user-row-premium {
+    background: transparent !important;
+    border-bottom-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .user-row-premium:hover {
+    background: rgba(139, 92, 246, 0.04) !important;
+}
+
+html:not(.dark) .data-table .bg-white\/\[0\.01\] {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not(.dark) .data-table .bg-white\/\[0\.02\] {
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+html:not(.dark) .data-table .divide-white\/\[0\.03\] {
+    border-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ===== TEMAS: SUB-NAVIGATION TABS ===== */
+html:not(.dark) .sub-nav-container {
+    background: rgba(241, 245, 249, 0.6) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .sub-nav-btn {
+    color: #64748b !important;
+}
+
+html:not(.dark) .sub-nav-btn:hover {
+    background: rgba(139, 92, 246, 0.08) !important;
+    color: #7c3aed !important;
+}
+
+html:not(.dark) .sub-nav-btn.active {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+}
+
+/* ===== TEMAS: CARDS Y GLASS ===== */
+html:not(.dark) .glass-card,
+html:not(.dark) .card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ===== TEMAS: STATUS BADGES ===== */
+html:not(.dark) .status-active {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #059669 !important;
+}
+
+html:not(.dark) .status-pending {
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #d97706 !important;
+}
+
+html:not(.dark) .status-error {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #dc2626 !important;
+}
+
+html:not(.dark) .status-inactive {
+    background: rgba(100, 116, 139, 0.12) !important;
+    color: #475569 !important;
+}
+
