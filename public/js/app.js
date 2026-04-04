@@ -3118,9 +3118,9 @@ const App = window.App = {
             const user = selectedUsers[0];
             const userName = user.name || user.email || 'Usuario';
             const eventCount = (user.events || []).length;
-            subtitleText = `Asignar Evento a ${userName} - ${eventCount} Eventos`;
+            subtitleText = `${userName} - ${eventCount} Eventos`;
         } else {
-            subtitleText = `Asignar Evento a ${selectedUsers.length} usuarios`;
+            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
         }
         
         const html = `
