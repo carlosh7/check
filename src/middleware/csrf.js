@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,h
 // Endpoints que requieren verificación CSRF (state-changing)
 const CSRF_PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const CSRF_PROTECTED_PATHS = [
-    '/api/users', '/api/events', '/api/guests', '/api/groups',
+    '/api/users', '/api/events', '/api/guests', '/api/groups', '/api/clients',
     '/api/settings', '/api/email', '/api/webhooks'
 ];
 

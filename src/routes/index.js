@@ -19,6 +19,7 @@ const eventsRoutes = require('./events.routes');
 const guestsRoutes = require('./guests.routes');
 const emailRoutes = require('./email.routes'); // MÓDULO DE MAILING (V12.45)
 const groupsRoutes = require('./groups.routes');
+const clientsRoutes = require('./clients.routes'); // NUEVO: Módulo de Clientes
 const surveysRoutes = require('./surveys.routes');
 const settingsRoutes = require('./settings.routes');
 const publicRoutes = require('./public.routes');
@@ -116,6 +117,9 @@ function registerRoutes(app, rootDir) {
     
     // Groups
     app.use('/api/groups', groupsRoutes);
+    
+    // Clients (V12.45)
+    app.use('/api/clients', clientsRoutes);
     
     // Events
     app.use('/api/events', eventsRoutes);

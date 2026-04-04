@@ -792,11 +792,14 @@
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
             <section id="view-system" class="hidden space-y-6 animate-fade-in">
                 <div class="flex flex-wrap items-center gap-2">
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('groups')">
+                        <span class="material-symbols-outlined text-base">business</span> Empresas
+                    </button>
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('users')">
                         <span class="material-symbols-outlined text-base">group</span> Equipo
                     </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('groups')">
-                        <span class="material-symbols-outlined text-base">business</span> Empresas
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('clients')">
+                        <span class="material-symbols-outlined text-base">contacts</span> Clientes
                     </button>
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.switchSystemTab('email')">
                         <span class="material-symbols-outlined text-base">mail</span> Email
@@ -1087,6 +1090,68 @@
                                     </tr>
                                 </thead>
                                 <tbody id="users-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: CLIENTES -->
+                <div id="sys-content-clients" class="hidden space-y-4">
+                    <!-- Fila 1: Botones + Filtros -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Botones de acción -->
+                        <div class="flex gap-2">
+                            <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateClient()">
+                                <span class="material-symbols-outlined text-base">person_add</span> + Cliente
+                            </button>
+                        </div>
+                        <!-- Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                                <option value="">Empresa</option>
+                            </select>
+                            <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-role">
+                                <option value="">Staff</option>
+                            </select>
+                            <select id="filter-client-status" onchange="App.filterClients()" class="filter-select">
+                                <option value="">Estado</option>
+                                <option value="ACTIVE">Activo</option>
+                                <option value="INACTIVE">Inactivo</option>
+                            </select>
+                            <select id="bulk-client-action" onchange="App.handleBulkClientAction()" class="filter-select filter-select-action">
+                                <option value="">Acciones</option>
+                                <option value="edit">Editar</option>
+                                <option value="activate">Activar</option>
+                                <option value="deactivate">Desactivar</option>
+                                <option value="delete">Eliminar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Fila 2: Buscador -->
+                    <div style="position: relative;">
+                        <input id="client-search" type="text" placeholder="Buscar..." 
+                               style="width: 100%; padding-right: 60px; padding-left: 40px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px;"
+                               oninput="App.filterClients()">
+                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('client-search').value=''; document.getElementById('filter-client-company').value=''; document.getElementById('filter-client-staff').value=''; document.getElementById('filter-client-status').value=''; App.filterClients();">close</span>
+                    </div>
+
+                    <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr class="bg-white/[0.01]">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                            <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        </th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Cliente</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Staff Asignado</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-tbody" class="divide-y divide-white/[0.03]"></tbody>
                             </table>
                         </div>
                     </div>

@@ -359,6 +359,43 @@ db.exec(`CREATE TABLE IF NOT EXISTS user_events (
 try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
 
+// ═══ NUEVAS TABLAS V12.45: CLIENTES ═══
+
+// Tabla de clientes (pertenecen a una empresa)
+db.exec(`CREATE TABLE IF NOT EXISTS clients (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    company_id TEXT NOT NULL,
+    status TEXT DEFAULT 'ACTIVE',
+    created_at TEXT,
+    created_by TEXT,
+    FOREIGN KEY (company_id) REFERENCES groups(id)
+)`);
+
+// Relación Cliente-Evento (muchos a muchos)
+db.exec(`CREATE TABLE IF NOT EXISTS client_events (
+    id TEXT PRIMARY KEY,
+    client_id TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    created_at TEXT,
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    UNIQUE(client_id, event_id)
+)`);
+
+// Relación Cliente-Staff (muchos a muchos) - Staff asignado a clientes
+db.exec(`CREATE TABLE IF NOT EXISTS client_users (
+    id TEXT PRIMARY KEY,
+    client_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT,
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(client_id, user_id)
+)`);
+
 // 14. Códigos de recuperación de contraseña
 db.exec(`CREATE TABLE IF NOT EXISTS password_resets (
     id TEXT PRIMARY KEY,

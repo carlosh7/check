@@ -1104,6 +1104,356 @@ const App = window.App = {
         } catch(e) { console.error('Error loading groups:', e); }
     },
 
+    // Cargar clientes con eventos y staff
+    loadClients: async function() {
+        if (!this.state.user) return;
+        try {
+            const clients = await this.fetchAPI('/clients');
+            const events = await this.fetchAPI('/events');
+            const users = await this.fetchAPI('/users');
+            const groups = await this.fetchAPI('/groups');
+            
+            if (!Array.isArray(clients)) return;
+            this.state.clients = clients;
+            this.state.allEvents = events;
+            this.state.allUsers = users;
+            this.state.groups = groups;
+            
+            // Poblar filtros
+            this.populateClientFilters();
+            
+            const tbody = document.getElementById('clients-tbody');
+            if (tbody) {
+                tbody.innerHTML = clients.map(c => {
+                    // Obtener eventos del cliente (viene en la respuesta del API)
+                    const clientEvents = c.events || [];
+                    const eventChips = clientEvents.map(e => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        </span>
+                    `).join('');
+                    
+                    // Staff asignado al cliente
+                    const clientStaff = c.staff || [];
+                    const staffChips = clientStaff.map(u => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${u.display_name || u.username}
+                        </span>
+                    `).join('');
+                    
+                    return `
+                    <tr class="user-row-premium">
+                        <td class="px-2 py-3 align-middle" style="width: 40px;">
+                            <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle text-left">
+                            <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
+                                ${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        } catch(e) { console.error('Error loading clients:', e); }
+    },
+
+    // Poblar filtros de clientes
+    populateClientFilters: function() {
+        const companySelect = document.getElementById('filter-client-company');
+        const staffSelect = document.getElementById('filter-client-staff');
+        
+        if (companySelect && this.state.groups) {
+            const currentVal = companySelect.value;
+            companySelect.innerHTML = '<option value="">Empresa</option>';
+            this.state.groups.forEach(g => {
+                companySelect.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            });
+            companySelect.value = currentVal;
+        }
+        
+        if (staffSelect && this.state.allUsers) {
+            const currentVal = staffSelect.value;
+            staffSelect.innerHTML = '<option value="">Staff</option>';
+            this.state.allUsers.forEach(u => {
+                staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
+            });
+            staffSelect.value = currentVal;
+        }
+    },
+
+    // Filtrar clientes
+    filterClients: function() {
+        if (!this.state.clients) return;
+        const searchTerm = document.getElementById('client-search')?.value.toLowerCase() || '';
+        const companyFilter = document.getElementById('filter-client-company')?.value || '';
+        const staffFilter = document.getElementById('filter-client-staff')?.value || '';
+        const statusFilter = document.getElementById('filter-client-status')?.value || '';
+        
+        let filtered = this.state.clients;
+        
+        if (searchTerm) {
+            filtered = filtered.filter(c => 
+                c.name?.toLowerCase().includes(searchTerm) ||
+                c.email?.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        if (companyFilter) {
+            filtered = filtered.filter(c => c.company_id === companyFilter);
+        }
+        
+        if (statusFilter) {
+            filtered = filtered.filter(c => c.status === statusFilter);
+        }
+        
+        // Re-renderizar tabla con filtered
+        const tbody = document.getElementById('clients-tbody');
+        if (tbody) {
+            tbody.innerHTML = filtered.map(c => {
+                const clientEvents = c.events || [];
+                const eventChips = clientEvents.map(e => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                    </span>
+                `).join('');
+                
+                const clientStaff = c.staff || [];
+                const staffChips = clientStaff.map(u => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${u.display_name || u.username}
+                    </span>
+                `).join('');
+                
+                return `
+                <tr class="user-row-premium">
+                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                        <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
+                        <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle text-left">
+                        <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
+                            ${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+    },
+
+    // Toggle selección de cliente
+    toggleClientSelection: function(clientId) {
+        if (!this.state.selectedClients) this.state.selectedClients = [];
+        const idx = this.state.selectedClients.indexOf(clientId);
+        if (idx > -1) {
+            this.state.selectedClients.splice(idx, 1);
+        } else {
+            this.state.selectedClients.push(clientId);
+        }
+    },
+
+    // Seleccionar todos los clientes
+    toggleSelectAllClients: function() {
+        const selectAll = document.getElementById('select-all-clients');
+        const checkboxes = document.querySelectorAll('.client-checkbox');
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => cb.checked = true);
+            this.state.selectedClients = Array.from(checkboxes).map(cb => cb.dataset.clientId);
+        } else {
+            checkboxes.forEach(cb => cb.checked = false);
+            this.state.selectedClients = [];
+        }
+    },
+
+    // Acciones masivas de clientes
+    handleBulkClientAction: async function() {
+        const action = document.getElementById('bulk-client-action')?.value;
+        if (!action || !this.state.selectedClients?.length) return;
+        
+        if (action === 'delete') {
+            if (!confirm(`¿Eliminar ${this.state.selectedClients.length} cliente(s)?`)) return;
+            for (const id of this.state.selectedClients) {
+                await this.fetchAPI(`/clients/${id}`, { method: 'DELETE' });
+            }
+            this.loadClients();
+        } else if (action === 'activate' || action === 'deactivate') {
+            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
+            for (const id of this.state.selectedClients) {
+                await this.fetchAPI(`/clients/${id}`, { 
+                    method: 'PUT',
+                    body: JSON.stringify({ status })
+                });
+            }
+            this.loadClients();
+        } else if (action === 'edit') {
+            // Por ahora mostrar modal de edición del primero seleccionado
+            const client = this.state.clients.find(c => c.id === this.state.selectedClients[0]);
+            if (client) this.openEditClientModal(client);
+        }
+        
+        document.getElementById('bulk-client-action').value = '';
+    },
+
+    // Abrir modal para crear cliente
+    navigateToCreateClient: function() {
+        this.openCreateClientModal();
+    },
+
+    // Modal crear cliente
+    openCreateClientModal: function() {
+        const groups = this.state.groups || [];
+        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        
+        Swal.fire({
+            title: 'Nuevo Cliente',
+            html: `
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
+                        <input id="client-name" type="text" class="swal2-input" placeholder="Nombre del cliente" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label>
+                        <input id="client-email" type="email" class="swal2-input" placeholder="email@ejemplo.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Teléfono</label>
+                        <input id="client-phone" type="tel" class="swal2-input" placeholder="+52...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa *</label>
+                        <select id="client-company" class="swal2-input" required>
+                            <option value="">Seleccionar empresa</option>
+                            ${groupOptions}
+                        </select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Crear',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const name = document.getElementById('client-name').value.trim();
+                const email = document.getElementById('client-email').value.trim();
+                const phone = document.getElementById('client-phone').value.trim();
+                const company_id = document.getElementById('client-company').value;
+                
+                if (!name || !company_id) {
+                    Swal.showValidationMessage('Nombre y empresa son requeridos');
+                    return false;
+                }
+                
+                try {
+                    await this.fetchAPI('/clients', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, email, phone, company_id })
+                    });
+                    this.loadClients();
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al crear cliente');
+                    return false;
+                }
+            }
+        });
+    },
+
+    // Modal editar cliente
+    openEditClientModal: function(client) {
+        const groups = this.state.groups || [];
+        const groupOptions = groups.map(g => `<option value="${g.id}" ${g.id === client.company_id ? 'selected' : ''}>${g.name}</option>`).join('');
+        
+        Swal.fire({
+            title: 'Editar Cliente',
+            html: `
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
+                        <input id="client-name" type="text" class="swal2-input" value="${client.name || ''}" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label>
+                        <input id="client-email" type="email" class="swal2-input" value="${client.email || ''}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Teléfono</label>
+                        <input id="client-phone" type="tel" class="swal2-input" value="${client.phone || ''}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa *</label>
+                        <select id="client-company" class="swal2-input" required>
+                            ${groupOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Estado</label>
+                        <select id="client-status" class="swal2-input">
+                            <option value="ACTIVE" ${client.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
+                            <option value="INACTIVE" ${client.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const name = document.getElementById('client-name').value.trim();
+                const email = document.getElementById('client-email').value.trim();
+                const phone = document.getElementById('client-phone').value.trim();
+                const company_id = document.getElementById('client-company').value;
+                const status = document.getElementById('client-status').value;
+                
+                if (!name || !company_id) {
+                    Swal.showValidationMessage('Nombre y empresa son requeridos');
+                    return false;
+                }
+                
+                try {
+                    await this.fetchAPI(`/clients/${client.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ name, email, phone, company_id, status })
+                    });
+                    this.loadClients();
+                    return true;
+                } catch (e) {
+                    Swal.showValidationMessage(e.message || 'Error al actualizar cliente');
+                    return false;
+                }
+            }
+        });
+    },
+
     // Poblar filtros de empresas
     populateGroupFilters: function() {
         const eventSelect = document.getElementById('filter-group-event');
@@ -8808,7 +9158,7 @@ const App = window.App = {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -8833,6 +9183,7 @@ const App = window.App = {
         // Carga de datos específicos
         if (tabName === 'users') this.loadUsersTable();
         if (tabName === 'groups') this.loadGroups();
+        if (tabName === 'clients') this.loadClients();
         if (tabName === 'legal') this.loadLegalTexts();
         if (tabName === 'email') this.loadEmailModuleData();
 
