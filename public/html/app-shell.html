@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.46</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.48</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -928,8 +928,8 @@
 
                         <!-- Barra de progreso -->
                         <div id="mailbox-progress" class="hidden">
-                            <div class="w-full bg-[var(--border)] rounded-full h-1 overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full animate-pulse" style="width: 100%"></div>
+                            <div id="mailbox-progress-track" class="w-full bg-[var(--border)] rounded-full h-1 overflow-hidden">
+                                <div id="mailbox-progress-fill" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-light))"></div>
                             </div>
                         </div>
 

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.47';
+const VERSION = '12.44.48';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -3134,44 +3134,90 @@ const App = window.App = {
         const progress = document.getElementById('mailbox-progress');
         if (!container) return;
         
-        // Mostrar barra de progreso
-        progress?.classList.remove('hidden');
+        const progressFill = document.getElementById('mailbox-progress-fill');
+        const progressTrack = document.getElementById('mailbox-progress-track');
+        if (progress) {
+            progress.classList.remove('hidden');
+            if (progressFill) progressFill.style.width = '30%';
+        }
         container.innerHTML = `<div class="p-4 text-center animate-pulse text-xs text-[var(--text-secondary)]">Cargando carpetas...</div>`;
         
         try {
             const result = await this.fetchAPI(`/email/mailbox/folders?account_id=${accountId}`);
             
+            if (progressFill) progressFill.style.width = '70%';
+            
             if (!result.success) {
-                container.innerHTML = `<p class="text-xs text-red-400 p-2">${result.error || 'Error al cargar carpetas'}</p>`;
-                progress?.classList.add('hidden');
+                container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">${result.error || 'Error al cargar carpetas'}</p>`;
+                if (progress) progress.classList.add('hidden');
                 return;
             }
             
             const folders = result.folders || ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam'];
-            const folderIcons = { 'INBOX': 'inbox', 'Sent': 'send', 'Drafts': 'draft', 'Trash': 'delete', 'Spam': 'report', 'Junk': 'block', 'Archive': 'archive' };
             
-            container.innerHTML = folders.map(f => {
-                const icon = folderIcons[f] || 'mail';
-                const displayName = f === 'INBOX' ? 'Bandeja de Entrada' : f;
-                return `
-                <button onclick="App.loadMailboxMessages('${f}')" 
-                        class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-[var(--text-main)] hover:bg-[var(--bg-hover)] flex items-center gap-2 transition-colors mailbox-folder-btn" data-folder="${f}">
-                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">${icon}</span>
-                    <span>${displayName}</span>
-                </button>`;
-            }).join('');
+            if (progressFill) progressFill.style.width = '90%';
             
-            // Ocultar barra de progreso
-            progress?.classList.add('hidden');
+            const folderIcons = { 'INBOX': 'inbox', 'Sent': 'send', 'Drafts': 'draft', 'Trash': 'delete', 'Spam': 'report', 'Junk': 'block', 'Archive': 'archive', 'Junk Email': 'block', 'Deleted Items': 'delete' };
+            const folderNames = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Sent Items': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Deleted Items': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado', 'Junk Email': 'No deseado', 'Archive': 'Archivados' };
             
-            // Cargar INBOX por defecto
-            this.loadMailboxMessages('INBOX');
+            const tree = this._buildFolderTree(folders);
+            
+            container.innerHTML = this._renderFolderTree(tree, '', folderIcons, folderNames);
+            
+            if (progressFill) progressFill.style.width = '100%';
+            setTimeout(() => { if (progress) progress.classList.add('hidden'); }, 400);
+            
+            const hasInbox = folders.includes('INBOX');
+            this.loadMailboxMessages(hasInbox ? 'INBOX' : folders[0]);
             
         } catch (e) {
             console.error('[MAILBOX] Error loading folders:', e);
-            container.innerHTML = `<p class="text-xs text-red-400 p-2">Error: ${e.message}</p>`;
-            progress?.classList.add('hidden');
+            container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">Error: ${e.message}</p>`;
+            if (progress) progress.classList.add('hidden');
         }
+    },
+
+    _buildFolderTree: function(folders) {
+        const tree = {};
+        for (const folder of folders) {
+            const parts = folder.split('.');
+            let current = tree;
+            for (const part of parts) {
+                if (!current[part]) current[part] = {};
+                current = current[part];
+            }
+        }
+        return tree;
+    },
+
+    _renderFolderTree: function(tree, prefix, icons, names, depth = 0) {
+        let html = '';
+        const entries = Object.keys(tree).sort((a, b) => {
+            const order = ['INBOX', 'Sent', 'Sent Items', 'Drafts', 'Archive', 'Spam', 'Junk', 'Junk Email', 'Trash', 'Deleted Items'];
+            return order.indexOf(a) - order.indexOf(b);
+        });
+        
+        for (const name of entries) {
+            const fullPath = prefix ? `${prefix}.${name}` : name;
+            const hasChildren = Object.keys(tree[name]).length > 0;
+            const icon = icons[name] || (hasChildren ? 'folder' : 'mail');
+            const displayName = names[name] || name;
+            const indent = depth * 16;
+            
+            html += `
+            <div class="mailbox-folder-group">
+                <button onclick="App.loadMailboxMessages('${fullPath}')" 
+                        class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-[var(--text-main)] hover:bg-[var(--bg-hover)] flex items-center gap-2 transition-all duration-200 mailbox-folder-btn group" 
+                        data-folder="${fullPath}"
+                        style="padding-left: ${12 + indent}px;">
+                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors">${icon}</span>
+                    <span class="truncate">${displayName}</span>
+                    ${hasChildren ? `<span class="material-symbols-outlined text-xs text-[var(--text-secondary)] ml-auto">expand_more</span>` : ''}
+                </button>
+                ${hasChildren ? this._renderFolderTree(tree[name], fullPath, icons, names, depth + 1) : ''}
+            </div>`;
+        }
+        return html;
     },
 
     loadMailboxMessages: async function(folder = 'INBOX') {
@@ -3182,19 +3228,23 @@ const App = window.App = {
         const countLabel = document.getElementById('mailbox-message-count');
         if (!container) return;
         
-        // Actualizar folder activo
+        const names = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Sent Items': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Deleted Items': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado', 'Junk Email': 'No deseado', 'Archive': 'Archivados' };
         if (folderLabel) {
-            const names = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado' };
-            folderLabel.textContent = names[folder] || folder;
+            const folderBase = folder.split('.').pop();
+            folderLabel.textContent = names[folderBase] || folder;
         }
         
-        // Resaltar carpeta activa
         document.querySelectorAll('.mailbox-folder-btn').forEach(btn => {
-            btn.classList.toggle('bg-[var(--bg-hover)]', btn.dataset.folder === folder);
+            const isActive = btn.dataset.folder === folder;
+            btn.style.background = isActive ? 'var(--bg-hover)' : '';
+            btn.style.borderLeft = isActive ? '3px solid var(--primary)' : '3px solid transparent';
         });
         
-        // Mostrar progreso
-        progress?.classList.remove('hidden');
+        const progressFill = document.getElementById('mailbox-progress-fill');
+        if (progress) {
+            progress.classList.remove('hidden');
+            if (progressFill) progressFill.style.width = '20%';
+        }
         container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]">
             <span class="material-symbols-outlined text-4xl mb-2 animate-spin">sync</span>
             <p class="text-sm">Cargando mensajes...</p>
@@ -3202,16 +3252,19 @@ const App = window.App = {
         
         if (!accountId) {
             container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">Selecciona una cuenta</p></div>`;
-            progress?.classList.add('hidden');
+            if (progress) progress.classList.add('hidden');
             return;
         }
         
         try {
+            if (progressFill) progressFill.style.width = '50%';
             const result = await this.fetchAPI(`/email/mailbox/messages?account_id=${accountId}&folder=${folder}`);
             
+            if (progressFill) progressFill.style.width = '80%';
+            
             if (!result.success) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-red-400"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'Error al cargar'}</p></div>`;
-                progress?.classList.add('hidden');
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'Error al cargar'}</p></div>`;
+                if (progress) progress.classList.add('hidden');
                 return;
             }
             
@@ -3220,34 +3273,54 @@ const App = window.App = {
             
             if (messages.length === 0) {
                 container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">No hay mensajes en esta carpeta</p></div>`;
-                progress?.classList.add('hidden');
+                if (progress) progress.classList.add('hidden');
                 return;
             }
             
-            container.innerHTML = messages.map(msg => `
+            container.innerHTML = `<div class="divide-y divide-[var(--border)]">` + messages.map(msg => {
+                const initial = (msg.from_name || msg.from || 'S').charAt(0).toUpperCase();
+                const subject = msg.subject || '(Sin asunto)';
+                const fromName = msg.from_name || msg.from || 'Desconocido';
+                const dateStr = msg.date ? new Date(msg.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+                const timeStr = msg.date ? new Date(msg.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+                const preview = (msg.text_plain || msg.text || '').substring(0, 100).replace(/<[^>]*>/g, '');
+                
+                return `
                 <div onclick="App.viewMailMessage('${msg.uid}', '${folder}')" 
-                     class="p-4 border-b border-[var(--border)] hover:bg-[var(--bg-hover)] cursor-pointer transition-all flex items-start gap-3 ${msg.seen ? '' : 'bg-[var(--bg-secondary)]/30'}">
-                    <div class="w-10 h-10 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center font-black text-[var(--text-secondary)] text-xs shrink-0">
-                        ${(msg.from_name || msg.from || 'S').charAt(0).toUpperCase()}
+                     class="p-4 hover:bg-[var(--bg-hover)] cursor-pointer transition-all duration-200 flex items-start gap-3 group ${msg.seen ? '' : 'bg-gradient-to-r from-[var(--primary)]/5 to-transparent'}"
+                     role="button" tabindex="0">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-lg ${msg.seen ? 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]' : 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white'}">
+                        ${initial}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-center mb-1">
-                            <h5 class="text-sm font-bold text-[var(--text-main)] truncate pr-4 ${msg.seen ? '' : 'text-[var(--primary)]'}">${msg.subject || '(Sin asunto)'}</h5>
-                            <span class="text-[9px] text-[var(--text-secondary)] shrink-0">${msg.date ? new Date(msg.date).toLocaleDateString('es-ES') : ''}</span>
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h5 class="text-sm font-semibold text-[var(--text-main)] truncate pr-4 ${msg.seen ? 'font-normal' : 'font-bold'}">${this._escapeHtml(subject)}</h5>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-[10px] text-[var(--text-secondary)]">${timeStr}</span>
+                                <span class="text-[10px] text-[var(--text-secondary)]">${dateStr}</span>
+                            </div>
                         </div>
-                        <p class="text-[10px] text-[var(--text-secondary)] truncate">De: ${msg.from_name || msg.from || 'Desconocido'}</p>
+                        <p class="text-[11px] text-[var(--text-secondary)] truncate mb-0.5">${this._escapeHtml(fromName)}</p>
+                        ${preview ? `<p class="text-[10px] text-[var(--text-muted)] truncate">${this._escapeHtml(preview)}</p>` : ''}
                     </div>
-                    ${msg.seen ? '' : '<span class="w-2 h-2 rounded-full bg-[var(--primary)] shrink-0 mt-2"></span>'}
-                </div>
-            `).join('');
+                    ${msg.seen ? '' : '<span class="w-2.5 h-2.5 rounded-full bg-[var(--primary)] shrink-0 mt-2 shadow-lg shadow-[var(--primary)]/30"></span>'}
+                </div>`;
+            }).join('') + `</div>`;
             
-            progress?.classList.add('hidden');
+            if (progressFill) progressFill.style.width = '100%';
+            setTimeout(() => { if (progress) progress.classList.add('hidden'); }, 400);
             
         } catch (e) {
             console.error('[MAILBOX] Error:', e);
-            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-red-400"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar mensajes</p></div>`;
-            progress?.classList.add('hidden');
+            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar mensajes</p></div>`;
+            if (progress) progress.classList.add('hidden');
         }
+    },
+
+    _escapeHtml: function(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     },
 
     filterMailboxMessages: function(query) {
@@ -3278,128 +3351,379 @@ const App = window.App = {
         const accountId = document.getElementById('mailbox-account-select')?.value;
         if (!accountId) return;
         
+        const container = document.getElementById('modal-container-portal');
+        container.innerHTML = `
+        <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+            <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
+                <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
+                        <h3 class="text-base font-bold text-[var(--text-main)] truncate" id="mail-view-subject">Cargando...</h3>
+                    </div>
+                    <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors shrink-0 ml-3" title="Cerrar">
+                        <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                    </button>
+                </div>
+                <div class="p-4 border-b border-[var(--border)] shrink-0" id="mail-view-headers">
+                    <div class="flex items-center gap-3 animate-pulse">
+                        <div class="w-10 h-10 rounded-full bg-[var(--bg-secondary)]"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-3 bg-[var(--bg-secondary)] rounded w-1/3"></div>
+                            <div class="h-2 bg-[var(--bg-secondary)] rounded w-1/4"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1" id="mail-view-body">
+                    <div class="flex flex-col items-center justify-center py-12 text-[var(--text-secondary)]">
+                        <span class="material-symbols-outlined text-3xl mb-2 animate-spin">sync</span>
+                        <p class="text-sm">Cargando mensaje...</p>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0" id="mail-view-footer">
+                    <div id="mail-view-attachments" class="flex items-center gap-2 flex-wrap"></div>
+                    <div class="flex gap-2">
+                        <button id="btn-close-mail-view-footer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        
         try {
             const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
             
             if (!result.success) {
-                Swal.fire('Error', result.error || 'No se pudo cargar el mensaje', 'error');
+                document.getElementById('mail-view-body').innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'No se pudo cargar el mensaje'}</p></div>`;
                 return;
             }
             
             const msg = result.message;
             
-            const modalContent = `
-            <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                        <h3 class="text-lg font-bold text-[var(--text-main)] truncate pr-4">${msg.subject || 'Sin asunto'}</h3>
-                        <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                        </button>
+            document.getElementById('mail-view-subject').textContent = msg.subject || 'Sin asunto';
+            
+            const initial = (msg.from_name || msg.from || 'S').charAt(0).toUpperCase();
+            const dateStr = msg.date ? new Date(msg.date).toLocaleString('es-ES') : '';
+            
+            document.getElementById('mail-view-headers').innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-lg">
+                        ${initial}
                     </div>
-                    <div class="p-4 border-b border-[var(--border)] shrink-0">
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">De</p>
-                                <p class="text-[var(--text-main)]">${msg.from_name || ''} ${msg.from ? `<span class="text-[var(--text-secondary)]">&lt;${msg.from}&gt;</span>` : ''}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Para</p>
-                                <p class="text-[var(--text-main)]">${msg.to || ''}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Fecha</p>
-                                <p class="text-[var(--text-main)]">${msg.date ? new Date(msg.date).toLocaleString('es-ES') : ''}</p>
-                            </div>
-                            ${msg.attachments && msg.attachments.length > 0 ? `
-                            <div>
-                                <p class="text-xs font-black text-[var(--text-secondary)] uppercase mb-1">Adjuntos (${msg.attachments.length})</p>
-                                <p class="text-[var(--text-main)] text-xs">${msg.attachments.map(a => a.filename).join(', ')}</p>
-                            </div>` : ''}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                            <span class="text-sm font-bold text-[var(--text-main)]">${this._escapeHtml(msg.from_name || msg.from || 'Desconocido')}</span>
+                            ${msg.from ? `<span class="text-xs text-[var(--text-secondary)]">&lt;${this._escapeHtml(msg.from)}&gt;</span>` : ''}
+                        </div>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-[var(--text-secondary)]">
+                            <span>Para: ${this._escapeHtml(msg.to || '')}</span>
+                            <span>${dateStr}</span>
                         </div>
                     </div>
-                    <div class="p-6 overflow-y-auto flex-1">
-                        ${msg.html ? `<div class="prose prose-invert max-w-none" style="color: var(--text-main);">${msg.html}</div>` : `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-mono bg-[var(--bg-secondary)] p-4 rounded-lg">${msg.text || 'Sin contenido'}</pre>`}
-                    </div>
-                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
-                        <button id="btn-close-mail-view-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cerrar</button>
-                    </div>
-                </div>
-            </div>`;
+                </div>`;
             
-            document.getElementById('modal-container-portal').innerHTML = modalContent;
+            const attachmentsContainer = document.getElementById('mail-view-attachments');
+            if (msg.attachments && msg.attachments.length > 0) {
+                attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, i) => `
+                    <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
+                            onclick="App.downloadAttachment('${a.id || i}', '${accountId}', '${folder}', '${uid}')"
+                            title="${this._escapeHtml(a.filename)} (${this._formatFileSize(a.size || 0)})">
+                        <span class="material-symbols-outlined text-sm">attach_file</span>
+                        ${this._escapeHtml(a.filename)}
+                    </button>
+                `).join('');
+            } else {
+                attachmentsContainer.innerHTML = '';
+            }
             
-            document.getElementById('btn-close-mail-view')?.addEventListener('click', () => {
-                document.getElementById('modal-mail-view')?.classList.add('hidden');
-                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            });
-            document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => {
-                document.getElementById('modal-mail-view')?.classList.add('hidden');
-                setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            });
+            const bodyEl = document.getElementById('mail-view-body');
+            if (msg.html) {
+                bodyEl.innerHTML = `<div class="prose prose-sm max-w-none" style="color: var(--text-main);">${msg.html}</div>`;
+            } else if (msg.text) {
+                bodyEl.innerHTML = `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-sans leading-relaxed">${this._escapeHtml(msg.text)}</pre>`;
+            } else {
+                bodyEl.innerHTML = `<p class="text-sm text-[var(--text-secondary)] italic">Sin contenido</p>`;
+            }
             
         } catch (e) {
             console.error('[MAILBOX] Error viewing message:', e);
-            Swal.fire('Error', 'No se pudo cargar el mensaje', 'error');
+            document.getElementById('mail-view-body').innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar el mensaje</p></div>`;
+        }
+        
+        document.getElementById('btn-close-mail-view')?.addEventListener('click', () => this._closeMailModal());
+        document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => this._closeMailModal());
+        
+        document.getElementById('modal-mail-view')?.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-mail-view') this._closeMailModal();
+        });
+    },
+
+    _closeMailModal: function() {
+        const modal = document.getElementById('modal-mail-view');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.2s ease';
+            setTimeout(() => {
+                document.getElementById('modal-container-portal').innerHTML = '';
+            }, 200);
         }
     },
 
-    openEmailComposer: function() {
-        const modal = document.getElementById('modal-email-composer');
-        if (modal) {
-            modal.classList.remove('hidden');
-        } else {
-            // Crear modal de compositor
-            const composerHTML = `
-            <div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                        <h3 class="text-lg font-bold text-[var(--text-main)]">Nuevo Email</h3>
-                        <button onclick="document.getElementById('modal-email-composer')?.classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                        </button>
+    downloadAttachment: async function(attId, accountId, folder, uid) {
+        try {
+            const token = window.App?.state?.user?.token || LS.get('token');
+            const response = await fetch(`/email/mailbox/attachment/${attId}?account_id=${accountId}&folder=${folder}&uid=${uid}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Error al descargar');
+            const blob = await response.blob();
+            const disposition = response.headers.get('content-disposition');
+            let filename = 'archivo';
+            if (disposition) {
+                const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (match) filename = match[1].replace(/['"]/g, '');
+            }
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('[MAILBOX] Error downloading attachment:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar el adjunto', timer: 2000, toast: true, position: 'top-end' });
+            }
+        }
+    },
+
+    _formatFileSize: function(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    },
+
+    openEmailComposer: function(to = '', subject = '') {
+        const existing = document.getElementById('modal-email-composer');
+        if (existing) existing.remove();
+        
+        const composerHTML = `
+        <div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+            <div class="w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
+                <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[var(--primary)] text-xl">edit</span>
+                        <h3 class="text-base font-bold text-[var(--text-main)]">Nuevo Email</h3>
                     </div>
-                    <div class="p-6 overflow-y-auto flex-1 space-y-4">
-                        <div>
-                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Para</label>
-                            <input type="email" id="composer-to" class="input-field w-full" placeholder="destinatario@email.com" />
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Asunto</label>
-                            <input type="text" id="composer-subject" class="input-field w-full" placeholder="Asunto del email" />
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Mensaje</label>
-                            <textarea id="composer-body" class="input-field w-full" rows="10" placeholder="Escribe tu mensaje aquí..."></textarea>
-                        </div>
+                    <button id="btn-close-composer" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors" title="Cerrar">
+                        <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+                    </button>
+                </div>
+                <div class="p-5 overflow-y-auto flex-1 space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Para</label>
+                        <input type="email" id="composer-to" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" placeholder="destinatario@email.com" value="${this._escapeHtml(to)}" />
                     </div>
-                    <div class="p-4 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
-                        <button onclick="document.getElementById('modal-email-composer')?.classList.add('hidden')" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-main)] text-sm font-medium hover:bg-white/10 transition-colors">Cancelar</button>
-                        <button onclick="App.sendEmail()" class="btn-primary !px-6 !py-2">Enviar</button>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Asunto</label>
+                        <input type="text" id="composer-subject" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" placeholder="Asunto del email" value="${this._escapeHtml(subject)}" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Plantilla:</label>
+                        <select id="composer-template" onchange="App.loadTemplateIntoComposer(this.value)" class="px-2 py-1 rounded text-xs border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]">
+                            <option value="">-- Elegir plantilla --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Mensaje</label>
+                        <div id="composer-editor-container" class="border border-[var(--border)] rounded-lg overflow-hidden" style="background: var(--bg-secondary);">
+                            <div id="composer-quill" style="min-height: 250px; color: var(--text-main);"></div>
+                        </div>
+                        <input type="hidden" id="composer-body" />
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="App.toggleComposerMode('visual')" id="btn-mode-visual" class="px-3 py-1 rounded text-xs font-medium bg-[var(--primary)] text-white">Visual</button>
+                            <button onclick="App.toggleComposerMode('html')" id="btn-mode-html" class="px-3 py-1 rounded text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-main)]">HTML</button>
+                            <label class="ml-auto flex items-center gap-1 text-xs text-[var(--text-secondary)] cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">attach_file</span>
+                                Adjunto
+                                <input type="file" id="composer-attachment" class="hidden" onchange="App.handleComposerAttachment(this)" />
+                            </label>
+                        </div>
+                        <div id="composer-attachment-list" class="mt-2 space-y-1"></div>
                     </div>
                 </div>
-            </div>`;
-            document.getElementById('modal-container-portal').innerHTML = composerHTML;
+                <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0">
+                    <p class="text-[10px] text-[var(--text-muted)]">Para y Asunto obligatorios</p>
+                    <div class="flex gap-2">
+                        <button id="btn-cancel-composer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cancelar</button>
+                        <button id="btn-send-composer" class="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-200 flex items-center gap-2" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">
+                            <span class="material-symbols-outlined text-sm">send</span>
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        
+        document.getElementById('modal-container-portal').innerHTML = composerHTML;
+        
+        // Inicializar Quill
+        setTimeout(() => {
+            if (window.Quill) {
+                this.composerQuill = new Quill('#composer-quill', {
+                    theme: 'snow',
+                    placeholder: 'Escribe tu mensaje aquí...',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'image'],
+                            ['clean']
+                        ]
+                    }
+                });
+            }
+            
+            // Cargar plantillas
+            this.loadComposerTemplates();
+        }, 100);
+        
+        document.getElementById('btn-close-composer')?.addEventListener('click', () => this._closeComposerModal());
+        document.getElementById('btn-cancel-composer')?.addEventListener('click', () => this._closeComposerModal());
+        document.getElementById('btn-send-composer')?.addEventListener('click', () => this.sendEmail());
+        
+        document.getElementById('modal-email-composer')?.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-email-composer') this._closeComposerModal();
+        });
+        
+        setTimeout(() => {
+            const toInput = document.getElementById('composer-to');
+            if (toInput && !toInput.value) toInput.focus();
+        }, 100);
+    },
+
+    toggleComposerMode: function(mode) {
+        if (!this.composerQuill) return;
+        const editor = document.getElementById('composer-quill');
+        const btnVisual = document.getElementById('btn-mode-visual');
+        const btnHtml = document.getElementById('btn-mode-html');
+        
+        if (mode === 'html') {
+            const html = this.composerQuill.root.innerHTML;
+            editor.innerHTML = `<textarea id="composer-html-source" class="w-full h-64 p-3 text-xs font-mono bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] rounded resize-y" style="min-height:250px;">${this._escapeHtml(html)}</textarea>`;
+            btnHtml.classList.add('bg-[var(--primary)]', 'text-white');
+            btnHtml.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
+            btnVisual.classList.remove('bg-[var(--primary)]', 'text-white');
+            btnVisual.classList.add('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
+        } else {
+            const source = document.getElementById('composer-html-source');
+            if (source) {
+                this.composerQuill.root.innerHTML = source.value;
+            }
+            editor.innerHTML = '<div id="composer-quill-inner" style="min-height: 250px; color: var(--text-main);"></div>';
+            // Re-init quill
+            this.composerQuill = new Quill('#composer-quill-inner', {
+                theme: 'snow',
+                modules: { toolbar: [[{ 'header': [1, 2, 3, false] }, ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } }
+            });
+            btnVisual.classList.add('bg-[var(--primary)]', 'text-white');
+            btnVisual.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
+            btnHtml.classList.remove('bg-[var(--primary)]', 'text-white');
+            btnHtml.classList.add('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
+        }
+    },
+
+    loadComposerTemplates: async function() {
+        try {
+            const templates = await this.fetchAPI('/email/templates');
+            const sel = document.getElementById('composer-template');
+            if (sel && templates) {
+                sel.innerHTML = '<option value="">-- Elegir plantilla --</option>' + templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+        } catch(e) {}
+    },
+
+    loadTemplateIntoComposer: async function(templateId) {
+        if (!templateId || !this.composerQuill) return;
+        try {
+            const template = await this.fetchAPI(`/email/templates/${templateId}`);
+            if (template) {
+                if (template.body_html) {
+                    this.composerQuill.root.innerHTML = template.body_html;
+                } else if (template.body_text) {
+                    this.composerQuill.setText(template.body_text);
+                }
+                if (template.subject && !document.getElementById('composer-subject')?.value) {
+                    document.getElementById('composer-subject').value = template.subject;
+                }
+            }
+        } catch(e) {}
+    },
+
+    handleComposerAttachment: function(input) {
+        const list = document.getElementById('composer-attachment-list');
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            list.innerHTML += `<div class="flex items-center gap-2 text-xs text-[var(--text-main)] bg-[var(--bg-secondary)] px-2 py-1 rounded"><span class="material-symbols-outlined text-sm">attach_file</span>${this._escapeHtml(file.name)} (${this._formatFileSize(file.size)})</div>`;
+        }
+    },
+
+    _closeComposerModal: function() {
+        const modal = document.getElementById('modal-email-composer');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.2s ease';
+            setTimeout(() => {
+                document.getElementById('modal-container-portal').innerHTML = '';
+            }, 200);
         }
     },
 
     sendEmail: async function() {
-        const to = document.getElementById('composer-to')?.value;
-        const subject = document.getElementById('composer-subject')?.value;
-        const body = document.getElementById('composer-body')?.value;
+        const to = document.getElementById('composer-to')?.value?.trim();
+        const subject = document.getElementById('composer-subject')?.value?.trim();
+        const body = document.getElementById('composer-body')?.value?.trim();
         
         if (!to || !subject) {
-            Swal.fire('Error', 'Completa los campos Para y Asunto', 'error');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'warning', title: 'Campos requeridos', text: 'Completa los campos Para y Asunto', timer: 2500, toast: true, position: 'top-end' });
+            }
             return;
         }
         
+        const btn = document.getElementById('btn-send-composer');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Enviando...';
+        }
+        
         try {
-            Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
-            // TODO: Implementar envío real
-            Swal.fire('✓ Enviado', 'Email enviado correctamente', 'success');
-            document.getElementById('modal-email-composer')?.classList.add('hidden');
+            const result = await this.fetchAPI('/email/send', {
+                method: 'POST',
+                body: JSON.stringify({ to, subject, body })
+            });
+            
+            if (result.success) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'success', title: 'Enviado', text: 'Email enviado correctamente', timer: 2000, toast: true, position: 'top-end' });
+                }
+                this._closeComposerModal();
+            } else {
+                throw new Error(result.error || 'Error al enviar');
+            }
         } catch (e) {
-            Swal.fire('Error', 'No se pudo enviar el email', 'error');
+            console.error('[MAILBOX] Error sending email:', e);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'No se pudo enviar el email', timer: 3000, toast: false });
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Enviar';
+            }
         }
     },
 
