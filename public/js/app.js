@@ -1632,7 +1632,7 @@ const App = window.App = {
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
                     <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-4 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-5 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -1680,7 +1680,8 @@ const App = window.App = {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
                 });
-                Swal.showToast({ 
+                Swal.fire({ 
+                    toast: true,
                     title: '✓ Desasignado', 
                     icon: 'success',
                     background: '#0f172a', 
@@ -1695,7 +1696,8 @@ const App = window.App = {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
                 });
-                Swal.showToast({ 
+                Swal.fire({ 
+                    toast: true,
                     title: '✓ Asignado', 
                     icon: 'success', 
                     background: '#0f172a', 
@@ -1714,7 +1716,8 @@ const App = window.App = {
                 this.openAssignClientToGroupModal(groupIds);
             }, 100);
         } catch (e) {
-            Swal.showToast({ 
+            Swal.fire({ 
+                toast: true,
                 title: '✗ Error', 
                 text: e.message || 'No se pudo actualizar', 
                 icon: 'error', 
