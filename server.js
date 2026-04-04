@@ -205,56 +205,39 @@ app.use('/api/events', guestLimiter);
 app.use(securityHeaders); // Headers de seguridad
 app.use(csrfMiddleware); // Protección CSRF para state-changing requests
 
-// --- ANTI-CACHÉ PARA INDEX.HTML ---
+// --- ANTI-CACHÉ SOLO PARA INDEX.HTML (siempre debe ser fresco) ---
 app.get('/', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, private');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
     next();
 });
 
-// --- STATIC FILES ---
-// Primero servir archivos CSS, JS específicos de la nueva estructura
+// --- STATIC FILES CON CACHE AGRESIVO (versionados con ?v=X.Y.Z) ---
+// CSS y JS tienen query string de versión, así que podemos cachear por 1 año
 app.use('/css', express.static(path.join(__dirname, 'public/css'), {
-    maxAge: 0,
-    setHeaders: (res, reqPath) => {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('Surrogate-Control', 'no-store');
-    }
+    maxAge: '1y',
+    immutable: true
 }));
 
 app.use('/js', express.static(path.join(__dirname, 'public/js'), {
-    maxAge: 0,
-    setHeaders: (res, reqPath) => {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('Surrogate-Control', 'no-store');
-    }
+    maxAge: '1y',
+    immutable: true
 }));
 
 app.use('/html', express.static(path.join(__dirname, 'public/html'), {
-    maxAge: 0,
-    setHeaders: (res, reqPath) => {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('Surrogate-Control', 'no-store');
-    }
+    maxAge: '1y',
+    immutable: true
 }));
 
-// Luego servir archivos desde raíz para compatibilidad (rutas antiguas)
+// Archivos estáticos raíz (imágenes, favicon, etc.)
 app.use(express.static(path.join(__dirname, '/'), {
-    maxAge: 0,
+    maxAge: '1y',
+    immutable: true,
     setHeaders: (res, reqPath) => {
-        if (reqPath.endsWith('.html') || reqPath.endsWith('.js') || reqPath.endsWith('.css')) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-            res.setHeader('Surrogate-Control', 'no-store');
+        // HTML nunca se cachea
+        if (reqPath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
         }
     }
 }));
