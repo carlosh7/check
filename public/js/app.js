@@ -3882,7 +3882,7 @@ const App = window.App = {
             // Re-init quill
             this.composerQuill = new Quill('#composer-quill-inner', {
                 theme: 'snow',
-                modules: { toolbar: [[{ 'header': [1, 2, 3, false] }, ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } }
+                modules: { toolbar: [[{ 'header': [1, 2, 3, false] }, ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] }
             });
             btnVisual.classList.add('bg-[var(--primary)]', 'text-white');
             btnVisual.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
