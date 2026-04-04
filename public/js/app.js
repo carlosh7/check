@@ -1604,61 +1604,87 @@ const App = window.App = {
     },
 
     // Modal asignar cliente a empresa
-    openAssignClientToGroupModal: function() {
-        if (!this.state.selectedGroups?.length) {
-            Swal.fire('Selecciona empresas', 'Selecciona al menos una empresa para asignar clientes', 'warning');
+    openAssignClientToGroupModal: function(groupIds) {
+        const clients = this.state.clients || [];
+        const groupIds = groupIds || this.state.selectedGroups || [];
+        
+        if (clients.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
         
-        const clients = this.state.clients || [];
-        const clientOptions = clients.map(c => `<option value="${c.id}">${c.name} (${c.email || 'sin email'})</option>`).join('');
-        
-        Swal.fire({
-            title: 'Asignar Clientes a Empresas',
-            html: `
-                <div class="space-y-4 text-left">
-                    <p class="text-sm text-[var(--text-secondary)]">Empresas seleccionadas: ${this.state.selectedGroups.length}</p>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Clientes *</label>
-                        <select id="assign-clients-select" class="swal2-input" multiple size="8" style="height: auto;">
-                            ${clientOptions}
-                        </select>
-                        <small class="text-[var(--text-muted)]">Mantén Ctrl/Cmd presionado para seleccionar varios</small>
+        const html = `
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Cliente a Empresas</span>
+                        <span class="text-xs text-slate-400">Selecciona cliente para ${groupIds.length} empresa(s)</span>
                     </div>
                 </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Asignar',
-            cancelButtonText: 'Cancelar',
+
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${clients.map(c => `
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}')" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer group shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">${c.name}</div>
+                                <div class="text-[11px] text-slate-500 uppercase tracking-tighter">${c.email || 'Sin email'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">add</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
             background: 'var(--bg-card)',
             color: 'var(--text-main)',
-            customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const select = document.getElementById('assign-clients-select');
-                const selectedClients = Array.from(select.selectedOptions).map(o => o.value);
-                
-                if (selectedClients.length === 0) {
-                    Swal.showValidationMessage('Selecciona al menos un cliente');
-                    return false;
-                }
-                
-                try {
-                    // Por cada empresa seleccionada, asignar los clientes
-                    for (const groupId of this.state.selectedGroups) {
-                        await this.fetchAPI('/clients/assign-to-company', {
-                            method: 'PUT',
-                            body: JSON.stringify({ client_ids: selectedClients, company_id: groupId })
-                        });
-                    }
-                    this.loadGroups();
-                    Swal.fire('Éxito', 'Clientes asignados correctamente', 'success');
-                    return true;
-                } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al asignar clientes');
-                    return false;
-                }
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
             }
         });
+    },
+    
+    assignClientToGroupsFromModal: async function(groupIdsStr, clientId) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            for (const groupId of groupIds) {
+                await this.fetchAPI('/clients/assign-to-company', {
+                    method: 'PUT',
+                    body: JSON.stringify({ client_ids: [clientId], company_id: groupId })
+                });
+            }
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Cliente asignado a ${groupIds.length} empresa(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            this.loadGroups();
+        } catch (e) {
+            Swal.fire({ title: '✗ Error', text: e.message || 'No se pudo asignar el cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
     },
 
     // Filtrar empresas
@@ -1837,7 +1863,7 @@ const App = window.App = {
                 document.getElementById('bulk-group-action').value = '';
                 return;
             }
-            this.openAssignClientToGroupModal();
+            this.openAssignClientToGroupModal(this.state.selectedGroups);
             document.getElementById('bulk-group-action').value = '';
             return;
         }
