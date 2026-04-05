@@ -2482,7 +2482,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 // --- COLUMNA 6: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
-                const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
+                const colEstado = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
 
                 return `
                 <tr class="user-row-premium">
