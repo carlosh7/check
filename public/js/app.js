@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.110';
+const VERSION = '12.44.111';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1684,6 +1684,28 @@ const App = window.App = {
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
         }
+    },
+
+    // Abrir carrusel de edición de empresas (botón directo "Edición")
+    openGroupEditCarousel: function() {
+        const selectedGroups = this.state.selectedGroups || [];
+        if (selectedGroups.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        // Abrir el carrusel de edición directamente
+        this.editSelectedGroups(selectedGroups);
+    },
+
+    // Abrir carrusel de edición de empresas (botón directo "Edición")
+    openGroupEditCarousel: function() {
+        const selectedGroups = this.state.selectedGroups || [];
+        if (selectedGroups.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        // Abrir el carrusel de edición directamente
+        this.editSelectedGroups(selectedGroups);
     },
 
     // Modal editar empresa (con campos inline, sin segundo modal)

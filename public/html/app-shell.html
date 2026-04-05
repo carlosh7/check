@@ -843,6 +843,12 @@
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
                                 <span class="material-symbols-outlined text-base">add_business</span> + Empresa
                             </button>
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openGroupEditCarousel()">
+                                <span class="material-symbols-outlined text-base">edit</span> Edición
+                            </button>
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openGroupEditCarousel()">
+                                <span class="material-symbols-outlined text-base">edit</span> Edición
+                            </button>
                         </div>
                         <!-- Filtros -->
                         <div class="flex gap-2 flex-wrap items-center">
@@ -859,16 +865,6 @@
                                 <option value="">Estado</option>
                                 <option value="ACTIVE">Activo</option>
                                 <option value="INACTIVE">Inactivo</option>
-                            </select>
-                            <select id="bulk-group-action" onchange="App.handleBulkGroupAction()" class="filter-select filter-select-action">
-                                <option value="">Acciones</option>
-                                <option value="edit">Editar</option>
-                                <option value="activate">Activar</option>
-                                <option value="deactivate">Desactivar</option>
-                                <option value="assign-client">Asignar Cliente</option>
-                                <option value="assign-staff">Asignar Staff</option>
-                                <option value="assign-event">Asignar Evento</option>
-                                <option value="delete">Eliminar</option>
                             </select>
                         </div>
                     </div>
