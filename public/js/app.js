@@ -1702,23 +1702,10 @@ const App = window.App = {
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
-                // Desasignar - pasar company_id vacío
+                // Desasignar
                 await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
-                });
-                // Actualizar estado local inmediatamente
-                const client = this.state.clients?.find(c => String(c.id) === String(clientId));
-                if (client) client.company_id = '';
-                Swal.fire({ 
-                    toast: true,
-                    title: '✓ Desasignado', 
-                    icon: 'success',
-                    background: '#0f172a', 
-                    color: '#fff',
-                    timer: 1000,
-                    showConfirmButton: false,
-                    position: 'top-end'
                 });
             } else {
                 // Asignar
@@ -1726,22 +1713,27 @@ const App = window.App = {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
                 });
-                // Actualizar estado local inmediatamente
-                const client = this.state.clients?.find(c => String(c.id) === String(clientId));
-                if (client) client.company_id = groupIds[0];
-                Swal.fire({ 
-                    toast: true,
-                    title: '✓ Asignado', 
-                    icon: 'success', 
-                    background: '#0f172a', 
-                    color: '#fff',
-                    timer: 1000,
-                    showConfirmButton: false,
-                    position: 'top-end'
-                });
             }
             
-            // Volver a mostrar el modal con datos actualizados
+            // Limpiar cache y recargar datos (igual que bulkToggleEventForUsers)
+            this.state.clients = null;
+            this.state.groups = null;
+            this.loadGroups();
+            this.loadClients();
+            
+            // Mostrar notificación
+            Swal.fire({ 
+                toast: true,
+                title: isAssigned ? '✓ Desasignado' : '✓ Asignado', 
+                icon: 'success',
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1000,
+                showConfirmButton: false,
+                position: 'top-end'
+            });
+            
+            // Reabrir modal después de un breve delay
             setTimeout(() => {
                 if (Swal.isVisible()) {
                     this.openAssignClientToGroupModal(groupIds);
