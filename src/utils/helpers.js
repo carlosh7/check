@@ -37,7 +37,7 @@ function getIdType(tableName) {
 // Tablas permitidas para castId - previene SQL injection en tableName
 const ALLOWED_TABLES = new Set([
     'users', 'events', 'guests', 'groups', 'surveys', 'settings',
-    'webhooks',
+    'webhooks', 'clients', 'client_events', 'client_users',
     'user_events', 'group_users', 'pre_registrations', 'password_resets',
     'event_agenda', 'audit_logs',
     'event_wheels', 'wheel_participants', 'wheel_spins', 'wheel_leads', 'wheel_results',
