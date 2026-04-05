@@ -1631,6 +1631,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     },
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        console.log('===== assignClientToGroupsFromModal INICIO =====');
+        console.log('groupIdsStr:', groupIdsStr);
+        console.log('clientId:', clientId);
+        console.log('isAssigned:', isAssigned);
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
