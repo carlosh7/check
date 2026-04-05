@@ -1537,8 +1537,11 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
-        // Siempre usar selectedGroups actual, no el parámetro (que puede estar obsoleto)
-        groupIds = this.state.selectedGroups || [];
+        
+        // Leer checkboxes actuales directamente del DOM (más confiable que el estado)
+        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
+        const currentSelectedIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-group-id'));
+        groupIds = currentSelectedIds;
         
         if (clients.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
