@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.68",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.68 - Estandarizar company_id a group_id en clientes",
+  "version": "12.44.69",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.69 - Modal asignar cliente a empresa se mantiene abierto",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

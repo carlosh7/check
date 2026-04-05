@@ -1657,10 +1657,15 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 icon: 'success',
                 background: '#0f172a', 
                 color: '#fff',
-                timer: 1500,
+                timer: 1000,
                 showConfirmButton: false,
                 position: 'top-end'
             });
+            
+            // Reabrir modal después de la notificación para seguir seleccionando
+            setTimeout(() => {
+                this.openAssignClientToGroupModal(groupIds);
+            }, 300);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
