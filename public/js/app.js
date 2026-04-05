@@ -2695,29 +2695,6 @@ const App = window.App = {
             </div>`;
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
-    
-    // Modal editar empresa (estilo selector con barra de navegación)
-            return;
-        }
-        
-        if (isProductor) {
-            // PRODUCTOR solo puede editar su propia empresa
-            const userGroupId = currentUser.group_id;
-            if (!userGroupId || String(userGroupId) !== String(groupId)) {
-                Swal.fire({ 
-                    title: '⚠️ Permiso denegado', 
-                    text: 'Solo puedes editar tu propia empresa', 
-                    icon: 'error', 
-                    background: '#0f172a', 
-                    color: '#fff' 
-                });
-                return;
-            }
-        }
-        
-        // Llamar a la función para editar grupo
-        this.editGroup(groupId);
-    },
 
     // Editar empresa (grupo)
     editGroup: async function(groupId) {
