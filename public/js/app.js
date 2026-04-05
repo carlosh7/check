@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.109';
+const VERSION = '12.44.110';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1292,8 +1292,19 @@ const App = window.App = {
         if (idx > -1) {
             this.state.selectedGroups.splice(idx, 1);
         } else {
-            this.state.selectedGroups.push(groupId);
+            // Selección única: limpiar anteriores y seleccionar solo esta
+            this.state.selectedGroups = [groupId];
         }
+        // Sincronizar checkboxes visuales
+        document.querySelectorAll('.group-checkbox').forEach(cb => {
+            cb.checked = this.state.selectedGroups.includes(cb.dataset.groupId);
+        });
+    },
+
+    // Limpiar selección de grupos
+    clearGroupSelection: function() {
+        this.state.selectedGroups = [];
+        document.querySelectorAll('.group-checkbox').forEach(cb => cb.checked = false);
     },
 
     // Seleccionar todos los clientes
@@ -1646,7 +1657,9 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didClose: () => { this.clearGroupSelection(); }
+        });
     },
 
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
@@ -1742,27 +1755,9 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-
-    // Guardar edición de empresa inline (sin cerrar modal)
-    saveGroupEditInline: async function() {
-        const inputs = document.querySelectorAll('[id^="edit-group-name-"]');
-        if (!inputs.length) return;
-        try {
-            for (const input of inputs) {
-                const id = input.id.replace('edit-group-name-', '');
-                const name = input.value.trim();
-                const email = document.getElementById(`edit-group-email-${id}`)?.value.trim() || '';
-                const description = document.getElementById(`edit-group-desc-${id}`)?.value.trim() || '';
-                if (!name) { Swal.fire({ title: '⚠️ Error', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff', timer: 2000, showConfirmButton: false }); return; }
-                await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
-            }
-            await this.loadGroups();
-            Swal.fire({ title: '✓ Guardado', text: 'Empresa(s) actualizada(s)', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al guardar: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' });
-        }
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didClose: () => { this.clearGroupSelection(); }
+        });
     },
 
     // Guardar edición de empresa inline (sin cerrar modal)
@@ -1861,7 +1856,9 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didClose: () => { this.clearGroupSelection(); }
+        });
     },
 
     handleBulkGroupActionDirect: async function(action) {
@@ -1938,7 +1935,9 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didClose: () => { this.clearGroupSelection(); }
+        });
     },
 
     assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
@@ -2031,7 +2030,9 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didClose: () => { this.clearGroupSelection(); }
+        });
     },
 
     assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
