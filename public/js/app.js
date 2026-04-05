@@ -1638,6 +1638,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             console.log('ENTRO al try, isAssigned=', isAssigned);
             if (isAssigned) {
                 console.log('Va a desasignar, clientId:', clientId);
+                console.log('Llamando a /clients/unassign-from-company');
                 // Desasignar
                 const response = await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
@@ -1646,6 +1647,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 console.log('Response desasignar:', response);
             } else {
                 console.log('Va a asignar, clientId:', clientId, 'groupId:', groupIds[0]);
+                console.log('Llamando a /clients/assign-to-company');
                 // Asignar
                 const response = await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
