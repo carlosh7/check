@@ -3059,6 +3059,9 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             const clients = await this.fetchAPI('/clients');
             this.state.clients = clients;
             
+            // Actualizar la tabla de usuarios para reflejar cambios
+            this.loadUsersTable();
+            
             // Volver a mostrar el modal con datos actualizados
             this.showClientSelectorForBulkUsers(userIds);
         } catch (e) {
