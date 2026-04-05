@@ -1536,9 +1536,12 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // Usar el parámetro o el estado
-        if (!groupIds || groupIds.length === 0) {
-            groupIds = this.state.selectedGroups || [];
+        // IMPORTANTE: siempre usar this.state.selectedGroups actual, no el parámetro obsoleto
+        // El parámetro solo se usa para mantener compatibilidad
+        if (this.state.selectedGroups && this.state.selectedGroups.length > 0) {
+            groupIds = this.state.selectedGroups;
+        } else if (!groupIds || groupIds.length === 0) {
+            groupIds = [];
         }
         
         if (clients.length === 0) {
