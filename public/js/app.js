@@ -1048,12 +1048,14 @@ const App = window.App = {
     
     // Cargar empresas con usuarios y eventos
     loadGroups: async function() {
+        console.log('===== loadGroups LLAMADA =====');
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
             const clients = await this.fetchAPI('/clients');
+            console.log('loadGroups: groups received:', groups?.length);
             if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
@@ -1063,55 +1065,47 @@ const App = window.App = {
             // Poblar filtros
             this.populateGroupFilters();
             
-            // Preservar selección actual para no perderla al re-renderizar
-            const currentSelected = this.state.selectedGroups || [];
-            
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                    const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
-                        </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                    const userChips = groupUsers.map(u => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${u.display_name || u.username}
+                        </span>
+                    `).join('');
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-                    const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
-                        </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                    const eventChips = groupEvents.map(e => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        </span>
+                    `).join('');
                     
-                    const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-                    const clientRows = groupClients.length > 0 ? groupClients.map(c => `
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
-                        </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
-                    
-                    const isChecked = currentSelected.includes(g.id);
+const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
+                    const clientChips = groupClients.map(c => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
+                        </span>
+                    `).join('');
                     
                     return `
                     <tr class="user-row-premium">
                         <td class="px-2 py-3 align-middle" style="width: 40px;">
-                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')" ${isChecked ? 'checked' : ''}>
+                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${clientRows}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${userRows}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1147,21 +1141,19 @@ const App = window.App = {
                 tbody.innerHTML = clients.map(c => {
                     // Obtener eventos del cliente (viene en la respuesta del API)
                     const clientEvents = c.events || [];
-                    const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
-                        </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                    const eventChips = clientEvents.map(e => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                        </span>
+                    `).join('');
                     
                     // Staff asignado al cliente
                     const clientStaff = c.staff || [];
-                    const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
-                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
-                        </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                    const staffChips = clientStaff.map(u => `
+                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                            ${u.display_name || u.username}
+                        </span>
+                    `).join('');
                     
                     return `
                     <tr class="user-row-premium">
@@ -1173,16 +1165,13 @@ const App = window.App = {
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5">
-                                <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
-                                <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
-                            </div>
+                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${staffRows}</div>
+                            <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1219,29 +1208,10 @@ const App = window.App = {
         let filtered = this.state.clients;
         
         if (searchTerm) {
-            filtered = filtered.filter(c => {
-                const term = searchTerm.toLowerCase();
-                
-                // Buscar en nombre y email del cliente
-                const clientMatch = (c.name && c.name.toLowerCase().includes(term)) ||
-                    (c.email && c.email.toLowerCase().includes(term));
-                
-                // Buscar en empresa asignada
-                const companyMatch = c.company_name && c.company_name.toLowerCase().includes(term);
-                
-                // Buscar en eventos del cliente
-                const eventsMatch = c.events && c.events.some && c.events.some(e => 
-                    e.name && e.name.toLowerCase().includes(term)
-                );
-                
-                // Buscar en staff asignado al cliente
-                const staffMatch = c.staff && c.staff.some && c.staff.some(u => 
-                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
-                    (u.username && u.username.toLowerCase().includes(term))
-                );
-                
-                return clientMatch || companyMatch || eventsMatch || staffMatch;
-            });
+            filtered = filtered.filter(c => 
+                c.name?.toLowerCase().includes(searchTerm) ||
+                c.email?.toLowerCase().includes(searchTerm)
+            );
         }
         
         if (companyFilter) {
@@ -1257,20 +1227,18 @@ const App = window.App = {
         if (tbody) {
             tbody.innerHTML = filtered.map(c => {
                 const clientEvents = c.events || [];
-                const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
-                    </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                const eventChips = clientEvents.map(e => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                    </span>
+                `).join('');
                 
                 const clientStaff = c.staff || [];
-                const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
-                    </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                const staffChips = clientStaff.map(u => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${u.display_name || u.username}
+                    </span>
+                `).join('');
                 
                 return `
                 <tr class="user-row-premium">
@@ -1282,16 +1250,13 @@ const App = window.App = {
                         <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5">
-                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
-                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
-                        </div>
+                        <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-col max-w-[200px]">${staffRows}</div>
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1573,19 +1538,9 @@ const App = window.App = {
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // Sincronizar selectedGroups con los checkboxes marcados en el DOM
-        // Esto evita acumulación y asegura que siempre refleje la selección actual
-        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
-        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
-        
-        if (checkedGroupIds.length > 0) {
-            this.state.selectedGroups = checkedGroupIds;
-            groupIds = checkedGroupIds;
-        } else if (groupIds && groupIds.length > 0) {
-            this.state.selectedGroups = [...groupIds];
-        } else {
-            this.state.selectedGroups = [];
-            groupIds = [];
+        // Usar el parámetro groupIds si viene, si no usar selectedGroups
+        if (!groupIds || groupIds.length === 0) {
+            groupIds = this.state.selectedGroups || [];
         }
         
         if (clients.length === 0) {
@@ -1699,6 +1654,8 @@ const App = window.App = {
     },
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        console.log('===== assignClientToGroupsFromModal LLAMADA =====');
+        console.log('groupIdsStr:', groupIdsStr);
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
@@ -1747,36 +1704,10 @@ const App = window.App = {
         const statusFilter = document.getElementById('filter-group-status')?.value || '';
         
         const filtered = this.state.groups.filter(g => {
-            // Filtro por búsqueda - buscar en TODAS las variables: Empresa, Clientes, Staff, Eventos
-            let matchesSearch = !searchTerm;
-            if (searchTerm) {
-                // Buscar en nombre y email de la empresa
-                const companyMatch = (g.name && g.name.toLowerCase().includes(searchTerm)) ||
-                    (g.email && g.email.toLowerCase().includes(searchTerm));
-                
-                // Buscar en clientes de la empresa
-                const clientsMatch = this.state.clients && this.state.clients.some(c => 
-                    String(c.group_id) === String(g.id) && c.name && c.name.toLowerCase().includes(searchTerm)
-                );
-                
-                // Buscar en staff de la empresa
-                const users = this.state.allUsers || [];
-                const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                const staffMatch = groupUsers.some(u => 
-                    (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
-                    (u.username && u.username.toLowerCase().includes(searchTerm))
-                );
-                
-                // Buscar en eventos de la empresa
-                const events = this.state.allEvents || [];
-                const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-                const eventsMatch = groupEvents.some(e => 
-                    (e.name && e.name.toLowerCase().includes(searchTerm)) ||
-                    (e.location && e.location.toLowerCase().includes(searchTerm))
-                );
-                
-                matchesSearch = companyMatch || clientsMatch || staffMatch || eventsMatch;
-            }
+            // Filtro por búsqueda (nombre o email)
+            const matchesSearch = !searchTerm || 
+                (g.name && g.name.toLowerCase().includes(searchTerm)) ||
+                (g.email && g.email.toLowerCase().includes(searchTerm));
             
             // Filtro por evento
             let matchesEvent = true;
@@ -1824,28 +1755,25 @@ const App = window.App = {
         
         tbody.innerHTML = groups.map(g => {
             const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-            const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
-                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                    <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
-                    <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
-                </div>
-            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+            const userChips = groupUsers.map(u => `
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${u.display_name || u.username}
+                </span>
+            `).join('');
             
             const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-            const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
-                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                    <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
-                    <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
-                </div>
-            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+            const eventChips = groupEvents.map(e => `
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
+                </span>
+            `).join('');
             
             const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-            const clientRows = groupClients.length > 0 ? groupClients.map(c => `
-                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                    <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
-                    <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
-                </div>
-            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+            const clientChips = groupClients.map(c => `
+                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                    ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
+                </span>
+            `).join('');
             
             return `
             <tr class="user-row-premium">
@@ -1857,13 +1785,13 @@ const App = window.App = {
                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-col max-w-[200px]">${clientRows}</div>
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-col max-w-[200px]">${userRows}</div>
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                 </td>
                 <td class="px-2 py-3 align-middle text-left">
                     <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1925,190 +1853,17 @@ const App = window.App = {
                 const password = document.getElementById('user-password').value.trim();
                 const role = document.getElementById('user-role').value;
                 const company_id = document.getElementById('user-company').value;
-                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña son requeridos'); return false; }
+                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña requeridos'); return false; }
                 try {
                     await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
                     this.loadUsersTable(); this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
+                    Swal.fire('✓ Creado', 'Staff creado', 'success');
                     return true;
-                } catch (e) { Swal.showValidationMessage(e.message || 'Error al crear staff'); return false; }
+                } catch (e) { Swal.showValidationMessage(e.message); return false; }
             }
         });
-    },
-    
-    // Modal editar empresa
-    editSelectedGroups: function(groupIds) {
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
-                        <span class="material-symbols-outlined text-sm">settings</span>
-                    </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
-                        <span class="material-symbols-outlined text-sm">badge</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
-                        <span class="material-symbols-outlined text-sm">person</span>
-                    </button>
-                </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
-                    </div>
-                </div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${selectedGroups.map(g => `
-                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    openEditSingleGroupModal: function(groupId) {
-        const group = this.state.groups?.find(g => g.id === groupId);
-        if (!group) return;
-        Swal.fire({
-            title: 'Editar Empresa',
-            html: `<div class="space-y-4 text-left">
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="edit-group-name" type="text" class="swal2-input" value="${group.name}" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label><input id="edit-group-email" type="email" class="swal2-input" value="${group.email || ''}"></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Descripción</label><textarea id="edit-group-desc" class="swal2-input" rows="3">${group.description || ''}</textarea></div>
-            </div>`,
-            showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const name = document.getElementById('edit-group-name').value.trim();
-                const email = document.getElementById('edit-group-email').value.trim();
-                const description = document.getElementById('edit-group-desc').value.trim();
-                if (!name) { Swal.showValidationMessage('Nombre requerido'); return false; }
-                try {
-                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
-                    this.loadGroups();
-                    Swal.fire('✓ Guardado', 'Empresa actualizada', 'success');
-                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); }
-            }
-        });
-    },
-    
-    // Modal gestionar empresa (activar/desactivar/eliminar)
-    showManageGroupAction: function(groupIds) {
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
-                        <span class="material-symbols-outlined text-sm">badge</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
-                        <span class="material-symbols-outlined text-sm">person</span>
-                    </button>
-                </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Empresa(s)</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
-                    </div>
-                </div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    <div onclick="App.handleBulkGroupActionDirect('activate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
-                    <div onclick="App.handleBulkGroupActionDirect('deactivate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
-                    <div onclick="App.handleBulkGroupActionDirect('delete')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
-                </div>
-            </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    // Acciones directas desde barra de navegación de modales
-    handleBulkGroupActionDirect: async function(action) {
-        const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
-        if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
-        if (action === 'delete') {
-            if (!confirm(`¿Eliminar ${groupIds.length} empresa(s)?`)) return;
-            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'DELETE' }); }
-            this.loadGroups();
-        } else if (action === 'activate' || action === 'deactivate') {
-            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
-            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }); }
-            this.loadGroups();
-        }
-        Swal.close();
     },
 
-    // Modal crear staff
-    openCreateUserModal: function() {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        Swal.fire({
-            title: 'Nuevo Staff',
-            html: `<div class="space-y-4 text-left">
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
-            </div>`,
-            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const display_name = document.getElementById('user-display-name').value.trim();
-                const username = document.getElementById('user-username').value.trim();
-                const password = document.getElementById('user-password').value.trim();
-                const role = document.getElementById('user-role').value;
-                const company_id = document.getElementById('user-company').value;
-                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña son requeridos'); return false; }
-                try {
-                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
-                    this.loadUsersTable(); this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
-                    return true;
-                } catch (e) { Swal.showValidationMessage(e.message || 'Error al crear staff'); return false; }
-            }
-        });
-    },
-    
     // Modal editar empresa
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];
@@ -2158,7 +1913,7 @@ const App = window.App = {
             </div>`;
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
-    
+
     openEditSingleGroupModal: function(groupId) {
         const group = this.state.groups?.find(g => g.id === groupId);
         if (!group) return;
@@ -2183,8 +1938,8 @@ const App = window.App = {
             }
         });
     },
-    
-    // Modal gestionar empresa (activar/desactivar/eliminar)
+
+    // Modal gestionar empresa
     showManageGroupAction: function(groupIds) {
         const groups = this.state.groups || [];
         const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
@@ -2234,8 +1989,7 @@ const App = window.App = {
             </div>`;
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
-    
-    // Acciones directas desde barra de navegación de modales
+
     handleBulkGroupActionDirect: async function(action) {
         const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
         if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
@@ -2255,12 +2009,6 @@ const App = window.App = {
     handleBulkGroupAction: async function() {
         const action = document.getElementById('bulk-group-action')?.value;
         if (!action) return;
-        
-        // Sincronizar selectedGroups con los checkboxes marcados en el DOM
-        // Esto evita desincronización entre el estado y la UI
-        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
-        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
-        this.state.selectedGroups = checkedGroupIds;
         
         if (action === 'assign-event') {
             // Asignar evento a empresas seleccionadas
@@ -2438,20 +2186,8 @@ const App = window.App = {
                     body: JSON.stringify({ group_id: groupId })
                 });
             }
-            
-            Swal.fire({ 
-                title: '✓ Asignado', 
-                text: `Evento asignado a ${groupIds.length} empresa(s)`, 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.state.selectedGroups = [];
             await this.refreshAllTables();
-            Swal.close();
+            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
         }
@@ -2742,6 +2478,7 @@ const App = window.App = {
 
     // Actualizar TODAS las tablas después de cualquier cambio en modales
     refreshAllTables: async function() {
+        console.log('===== refreshAllTables LLAMADA =====');
         try {
             // Cargar todos los datos en paralelo
             const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
@@ -2762,16 +2499,20 @@ const App = window.App = {
             this.state.allEvents = events;
             this.state.clients = clients;
             
-            // Siempre actualizar todas las tablas relevantes
+            // Siempre actualizar todas las tablas relevantes (sin verificar si están visibles)
             const currentView = this.state.currentView;
+            console.log('[REFRESH] currentView:', currentView);
             
             if (currentView === 'system') {
+                // Siempre actualizar todas las tablas
                 this.loadUsersTable();
                 this.loadGroups();
                 this.loadClients();
             } else if (currentView === 'my-events' || currentView === 'event-config') {
                 this.loadEvents();
             }
+            
+            console.log('[REFRESH] Tablas actualizadas');
         } catch (error) {
             console.error('Error refreshAllTables:', error);
         }
@@ -2875,51 +2616,41 @@ const App = window.App = {
                     </div>
                 `;
 
-                // --- COLUMNA 2: EMPRESA ---
-                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
-                    </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
-                const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
-
-                // --- COLUMNA 3: CLIENTES ---
-                const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
-                    </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
-                const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
-
-                // --- COLUMNA 4: EVENTOS ---
+                // --- COLUMNA 2: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
-                const eventRows = userEvents.length > 0 ? userEvents.map(e => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
-                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
-                    </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
-                const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
+                const eventChips = userEvents.map(e => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
+                    </span>
+                `).join('');
+                const colEventos = userEvents.length > 0 ? 
+                    `<div class="flex flex-col">${eventChips}</div>` : 
+                    `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
+
+                // --- COLUMNA 3: EMPRESA ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
+                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
+                    </span>
+                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
+                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+
+                // --- COLUMNA 4: ESTADO ---
+                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
+                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
+                const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
 
                 // --- COLUMNA 5: ROL ---
                 const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
-
-                // --- COLUMNA 6: ESTADO ---
-                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
-                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
-                const colEstado = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
 
                 return `
                 <tr class="user-row-premium">
                     <td class="px-2 py-3 align-middle">${checkbox}</td>
                     <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle">${colClientes}</td>
                     <td class="px-2 py-3 align-middle">${colEventos}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
                     <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
                 </tr>`;
             }).join('');
         }
@@ -2936,31 +2667,32 @@ const App = window.App = {
         
         let filtered = this.state.allUsers || [];
         
-        // Filtro de búsqueda - buscar por TODAS las variables: Staff, Empresa, Clientes, Eventos, Rol
+        // Filtro de búsqueda - buscar por todos los campos
         if (searchTerm) {
             filtered = filtered.filter(u => {
                 const term = searchTerm.toLowerCase();
                 
-                // Campos básicos (Staff + Rol)
+                // Campos básicos
                 const basicMatch = 
                     (u.display_name && u.display_name.toLowerCase().includes(term)) ||
                     u.username.toLowerCase().includes(term) ||
-                    (u.role && u.role.toLowerCase().includes(term));
+                    (u.role && u.role.toLowerCase().includes(term)) ||
+                    (u.group_name && u.group_name.toLowerCase().includes(term));
                 
                 // Buscar en empresas/grupos (array)
                 const groupMatch = u.groups && Array.isArray(u.groups) && 
                     u.groups.some(g => g.name && g.name.toLowerCase().includes(term));
                 
-                // Buscar en eventos por nombre
+                // Buscar en eventos
+                const eventMatch = u.events && Array.isArray(u.events) && 
+                    u.events.some(e => String(e).includes(term));
+                
+                // Buscar en nombres de eventos (si están en el objeto del usuario)
                 const eventNameMatch = u.events && Array.isArray(u.events) && 
                     this.state.allEvents && this.state.allEvents.some(e => 
                         u.events.includes(e.id) && e.name && e.name.toLowerCase().includes(term));
                 
-                // Buscar en clientes asignados
-                const clientMatch = u.clients && Array.isArray(u.clients) && 
-                    u.clients.some(c => c.name && c.name.toLowerCase().includes(term));
-                
-                return basicMatch || groupMatch || eventNameMatch || clientMatch;
+                return basicMatch || groupMatch || eventMatch || eventNameMatch;
             });
         }
         
