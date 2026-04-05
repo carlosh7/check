@@ -1635,6 +1635,24 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         const groupIds = groupIdsStr.split(',');
         console.log('groupIds después de split:', groupIds);
         try {
+            console.log('ENTRO al try, isAssigned=', isAssigned);
+            if (isAssigned) {
+                console.log('Va a desasignar, clientId:', clientId);
+                // Desasignar
+                const response = await this.fetchAPI('/clients/unassign-from-company', {
+                    method: 'PUT',
+                    body: JSON.stringify({ client_ids: [clientId] })
+                });
+                console.log('Response desasignar:', response);
+            } else {
+                console.log('Va a asignar, clientId:', clientId, 'groupId:', groupIds[0]);
+                // Asignar
+                const response = await this.fetchAPI('/clients/assign-to-company', {
+                    method: 'PUT',
+                    body: JSON.stringify({ client_ids: [clientId], group_id: groupIds[0] })
+                });
+                console.log('Response asignar:', response);
+            }
             if (isAssigned) {
                 // Desasignar
                 await this.fetchAPI('/clients/unassign-from-company', {
@@ -1650,10 +1668,12 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             }
             
             // Limpiar cache y recargar datos (mismo patron que bulkToggleEventForUsers)
+            console.log('Antes de limpiar cache');
             this.state.clients = null;
             this.state.groups = null;
             await this.loadClients();
             await this.loadGroups();
+            console.log('Después de recargar datos');
             
             // Mostrar notificación
             Swal.fire({ 
