@@ -1715,11 +1715,11 @@ const App = window.App = {
                 });
             }
             
-            // Limpiar cache y recargar datos (igual que bulkToggleEventForUsers)
+            // Limpiar cache y recargar datos (mismo patron que bulkToggleEventForUsers)
             this.state.clients = null;
             this.state.groups = null;
-            this.loadGroups();
-            this.loadClients();
+            await this.loadClients();
+            await this.loadGroups();
             
             // Mostrar notificación
             Swal.fire({ 
