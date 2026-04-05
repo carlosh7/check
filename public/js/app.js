@@ -1283,27 +1283,6 @@ const App = window.App = {
         }
     },
 
-    // Selección de empresas
-    toggleGroupSelection: function(groupId) {
-        if (!this.state.selectedGroups) this.state.selectedGroups = [];
-        const idx = this.state.selectedGroups.indexOf(groupId);
-        if (idx > -1) {
-            this.state.selectedGroups.splice(idx, 1);
-        } else {
-            this.state.selectedGroups.push(groupId);
-        }
-    },
-
-    toggleClientSelection: function(clientId) {
-        if (!this.state.selectedClients) this.state.selectedClients = [];
-        const idx = this.state.selectedClients.indexOf(clientId);
-        if (idx > -1) {
-            this.state.selectedClients.splice(idx, 1);
-        } else {
-            this.state.selectedClients.push(clientId);
-        }
-    },
-
     // Seleccionar todos los clientes
     toggleSelectAllClients: function() {
         const selectAll = document.getElementById('select-all-clients');
