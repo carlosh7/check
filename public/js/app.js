@@ -1665,10 +1665,12 @@ const App = window.App = {
                 }
 
                 if (finalTranscript.trim()) {
+                    // Limpiar: quitar punto final y puntuación extra que agrega Chrome
+                    const cleanText = finalTranscript.trim().replace(/[.\s]+$/, '').toLowerCase();
                     const searchInput = document.getElementById(`${section}-search`);
                     if (searchInput) {
-                        searchInput.value = finalTranscript.trim().toLowerCase();
-                        this._showVoiceToast(`✅ "${finalTranscript.trim().toLowerCase()}"`, 'result');
+                        searchInput.value = cleanText;
+                        this._showVoiceToast(`✅ "${cleanText}"`, 'result');
                         if (section === 'group') this.filterGroups();
                     }
                     setTimeout(() => this._hideVoiceToast(), 3000);
