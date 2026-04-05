@@ -1070,25 +1070,28 @@ const App = window.App = {
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                    const userChips = groupUsers.map(u => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${u.display_name || u.username}
-                        </span>
-                    `).join('');
+                    const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-                    const eventChips = groupEvents.map(e => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        </span>
-                    `).join('');
+                    const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
-const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-                    const clientChips = groupClients.map(c => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
-                        </span>
-                    `).join('');
+                    const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
+                    const clientRows = groupClients.length > 0 ? groupClients.map(c => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                     
                     const isChecked = currentSelected.includes(g.id);
                     
@@ -1102,13 +1105,13 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${clientRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${userRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
