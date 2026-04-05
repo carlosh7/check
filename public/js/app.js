@@ -1433,7 +1433,7 @@ const App = window.App = {
     _voiceRecognition: null,
     _voiceActive: false,
 
-    toggleVoiceSearch: function(section) {
+    toggleVoiceSearch: async function(section) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             if (typeof Swal !== 'undefined') {
@@ -1448,12 +1448,26 @@ const App = window.App = {
             return;
         }
 
+        // Pedir permiso de micrófono con getUserMedia (SÍ muestra el popup del navegador)
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Liberar el stream inmediatamente (solo queríamos el permiso)
+            stream.getTracks().forEach(track => track.stop());
+        } catch (e) {
+            if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+                this._showMicPermissionHelp();
+                return;
+            }
+            console.warn('Error al acceder al micrófono:', e);
+            this._showMicPermissionHelp();
+            return;
+        }
+
         const recognition = new SpeechRecognition();
         recognition.lang = 'es-ES';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        // Icono del micrófono
         const micBtn = document.getElementById(`${section}-voice-btn`);
 
         recognition.onstart = () => {
@@ -1502,7 +1516,6 @@ const App = window.App = {
             }
         };
 
-        // recognition.start() dispara automáticamente la solicitud de permiso del navegador
         recognition.start();
     },
 
