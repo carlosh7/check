@@ -13,10 +13,10 @@ const router = express.Router();
 // Obtener todos los clientes (filtrados por empresa para no-admin)
 router.get('/', authMiddleware(), (req, res) => {
     let query = `
-        SELECT c.*, g.name as company_name,
+        SELECT c.*, g.name as group_name,
             (SELECT COUNT(*) FROM client_events WHERE client_id = c.id) as event_count
         FROM clients c
-        LEFT JOIN groups g ON c.company_id = g.id
+        LEFT JOIN groups g ON c.group_id = g.id
     `;
     
     const params = [];
@@ -37,7 +37,6 @@ router.get('/', authMiddleware(), (req, res) => {
     query += " ORDER BY c.created_at DESC";
     
     const clients = db.prepare(query).all(...params);
-    console.log('[DEBUG] Clients from DB:', JSON.stringify(clients.map(c => ({ id: c.id, name: c.name }))));
     res.json(clients);
 });
 
@@ -46,9 +45,9 @@ router.get('/:id', authMiddleware(), (req, res) => {
     const clientId = castId('clients', req.params.id);
     
     const client = db.prepare(`
-        SELECT c.*, g.name as company_name
+        SELECT c.*, g.name as group_name
         FROM clients c
-        LEFT JOIN groups g ON c.company_id = g.id
+        LEFT JOIN groups g ON c.group_id = g.id
         WHERE c.id = ?
     `).get(clientId);
     
@@ -76,17 +75,17 @@ router.get('/:id', authMiddleware(), (req, res) => {
 
 // Crear cliente
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
-    const { name, email, phone, company_id } = req.body;
+    const { name, email, phone, group_id } = req.body;
     
-    if (!name || !company_id) {
+    if (!name || !group_id) {
         return res.status(400).json({ error: 'Nombre y empresa son requeridos' });
     }
     
     const id = getValidId('clients');
     db.prepare(`
-        INSERT INTO clients (id, name, email, phone, company_id, status, created_at, created_by)
+        INSERT INTO clients (id, name, email, phone, group_id, status, created_at, created_by)
         VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?)
-    `).run(id, name, email || '', phone || '', company_id, new Date().toISOString(), req.userId);
+    `).run(id, name, email || '', phone || '', group_id, new Date().toISOString(), req.userId);
     
     res.json({ success: true, clientId: id });
 });
@@ -203,27 +202,27 @@ router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOG
     res.json({ success: true });
 });
 
-// Asignar clientes a una empresa (cambiar company_id)
+// Asignar clientes a una empresa (cambiar group_id)
 router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
-    const { client_ids, company_id } = req.body;
+    const { client_ids, group_id } = req.body;
     
     if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
         return res.status(400).json({ error: 'Se requiere un array de client_ids' });
     }
     
-    if (!company_id) {
-        return res.status(400).json({ error: 'Se requiere company_id' });
+    if (!group_id) {
+        return res.status(400).json({ error: 'Se requiere group_id' });
     }
     
-    const stmt = db.prepare("UPDATE clients SET company_id = ? WHERE id = ?");
+    const stmt = db.prepare("UPDATE clients SET group_id = ? WHERE id = ?");
     for (const clientId of client_ids) {
-        stmt.run(company_id, castId('clients', clientId));
+        stmt.run(group_id, castId('clients', clientId));
     }
     
     res.json({ success: true });
 });
 
-// Desasignar cliente de empresa (company_id = '')
+// Desasignar cliente de empresa (group_id = '')
 router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
     const { client_ids } = req.body;
     
@@ -231,7 +230,7 @@ router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
         return res.status(400).json({ error: 'Se requiere un array de client_ids' });
     }
     
-    const stmt = db.prepare("UPDATE clients SET company_id = '' WHERE id = ? AND company_id IS NOT NULL AND company_id != ''");
+    const stmt = db.prepare("UPDATE clients SET group_id = '' WHERE id = ? AND group_id IS NOT NULL AND group_id != ''");
     for (const clientId of client_ids) {
         stmt.run(castId('clients', clientId));
     }

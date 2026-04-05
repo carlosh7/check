@@ -1080,7 +1080,7 @@ const App = window.App = {
                         </span>
                     `).join('');
                     
-                    const groupClients = clients.filter(c => String(c.company_id) === String(g.id));
+const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     const clientChips = groupClients.map(c => `
                         <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
                             ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
@@ -1213,7 +1213,7 @@ const App = window.App = {
         }
         
         if (companyFilter) {
-            filtered = filtered.filter(c => c.company_id === companyFilter);
+            filtered = filtered.filter(c => c.group_id === companyFilter);
         }
         
         if (statusFilter) {
@@ -1365,85 +1365,13 @@ const App = window.App = {
                 const email = document.getElementById('client-email').value.trim();
                 const phone = document.getElementById('client-phone').value.trim();
                 const company_id = document.getElementById('client-company').value;
-                
                 if (!name || !company_id) {
-                    Swal.showValidationMessage('Nombre y empresa son requeridos');
-                    return false;
+                    Swal.fire({ title: '⚠️ Error', text: 'Nombre y empresa son requeridos', icon: 'error', background: '#0f172a', color: '#fff' });
+                    return;
                 }
-                
-                try {
-                    await this.fetchAPI('/clients', {
-                        method: 'POST',
-                        body: JSON.stringify({ name, email, phone, company_id })
-                    });
-                    this.loadClients();
-                    return true;
-                } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al crear cliente');
-                    return false;
-                }
-            }
-        });
-    },
-
-    // Modal editar cliente
-    openEditClientModal: function(client) {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}" ${g.id === client.company_id ? 'selected' : ''}>${g.name}</option>`).join('');
-        
-        Swal.fire({
-            title: 'Editar Cliente',
-            html: `
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
-                        <input id="client-name" type="text" class="swal2-input" value="${client.name || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label>
-                        <input id="client-email" type="email" class="swal2-input" value="${client.email || ''}">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Teléfono</label>
-                        <input id="client-phone" type="tel" class="swal2-input" value="${client.phone || ''}">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa *</label>
-                        <select id="client-company" class="swal2-input" required>
-                            ${groupOptions}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Estado</label>
-                        <select id="client-status" class="swal2-input">
-                            <option value="ACTIVE" ${client.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
-                            <option value="INACTIVE" ${client.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
-                        </select>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Guardar',
-            cancelButtonText: 'Cancelar',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const name = document.getElementById('client-name').value.trim();
-                const email = document.getElementById('client-email').value.trim();
-                const phone = document.getElementById('client-phone').value.trim();
-                const company_id = document.getElementById('client-company').value;
-                const status = document.getElementById('client-status').value;
-                
-                if (!name || !company_id) {
-                    Swal.showValidationMessage('Nombre y empresa son requeridos');
-                    return false;
-                }
-                
-                try {
-                    await this.fetchAPI(`/clients/${client.id}`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ name, email, phone, company_id, status })
+                const result = await this.fetchAPI('/clients/' + clientId, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, email, phone, group_id: company_id, status })
                     });
                     this.loadClients();
                     return true;
@@ -1606,7 +1534,6 @@ const App = window.App = {
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
-        console.log('openAssignClientToGroupModal clients:', JSON.stringify(clients.map(c => ({ id: c.id, name: c.name }))));
         groupIds = groupIds || this.state.selectedGroups || [];
         
         if (clients.length === 0) {
@@ -1630,7 +1557,7 @@ const App = window.App = {
         
         // Calcular cuántas empresas tienen cada cliente asignado
         const getGroupClientCount = (groupId) => {
-            return clients.filter(c => String(c.company_id) === String(groupId)).length;
+            return clients.filter(c => String(c.group_id) === String(groupId)).length;
         };
         
         // Construir texto del título
@@ -1662,14 +1589,14 @@ const App = window.App = {
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${clients.map(c => {
-                        const clientCompanyId = c.company_id || '';
-                        const isAssigned = groupIds.some(gid => clientCompanyId === String(gid));
+                        ${clients.map(c => {
+                            const clientGroupId = c.group_id || '';
+                            const isAssigned = groupIds.some(gid => clientGroupId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="console.log('CLICK', '${c.id}', ${isAssigned}); App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -1701,7 +1628,6 @@ const App = window.App = {
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
         const groupIds = groupIdsStr.split(',');
-        console.log('assignClientToGroupsFromModal llamado:', { groupIdsStr, clientId, isAssigned });
         try {
             if (isAssigned) {
                 // Desasignar
@@ -1713,7 +1639,7 @@ const App = window.App = {
                 // Asignar
                 await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
-                    body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
+                    body: JSON.stringify({ client_ids: [clientId], group_id: groupIds[0] })
                 });
             }
             
@@ -1793,7 +1719,7 @@ const App = window.App = {
             // Filtro por cliente
             let matchesClient = true;
             if (clientFilter && this.state.clients) {
-                const groupClients = this.state.clients.filter(c => String(c.company_id) === String(g.id));
+                const groupClients = this.state.clients.filter(c => String(c.group_id) === String(g.id));
                 matchesClient = groupClients.some(c => String(c.id) === clientFilter);
             }
             
@@ -1832,7 +1758,7 @@ const App = window.App = {
                 </span>
             `).join('');
             
-            const groupClients = clients.filter(c => String(c.company_id) === String(g.id));
+            const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             const clientChips = groupClients.map(c => `
                 <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
                     ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}

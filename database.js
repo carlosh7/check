@@ -361,39 +361,34 @@ try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
 
 // ═══ NUEVAS TABLAS V12.45: CLIENTES ═══
 
-// Tabla de clientes (pertenecen a una empresa)
+// Tabla de clientes (pertenecen a una empresa/group)
 db.exec(`CREATE TABLE IF NOT EXISTS clients (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT,
     phone TEXT,
-    company_id TEXT,
+    group_id TEXT,
     status TEXT DEFAULT 'ACTIVE',
     created_at TEXT,
     created_by TEXT,
-    FOREIGN KEY (company_id) REFERENCES groups(id)
+    FOREIGN KEY (group_id) REFERENCES groups(id)
 )`);
 
-// Migración V12.44.65+: asegurar que company_id permite valores vacíos
+// Migración V12.44.68+: cambiar company_id a group_id
 try {
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS clients_new (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT,
-            phone TEXT,
-            company_id TEXT,
-            status TEXT DEFAULT 'ACTIVE',
-            created_at TEXT,
-            created_by TEXT
-        )
-    `);
-    db.exec(`
-        INSERT INTO clients_new SELECT * FROM clients
-    `);
-    db.exec('DROP TABLE clients');
-    db.exec('ALTER TABLE clients_new RENAME TO clients');
-} catch (e) {}
+    // Verificar si existe la columna company_id
+    const columns = db.prepare("PRAGMA table_info(clients)").all();
+    const hasCompanyId = columns.some(c => c.name === 'company_id');
+    const hasGroupId = columns.some(c => c.name === 'group_id');
+    
+    if (hasCompanyId && !hasGroupId) {
+        db.exec('ALTER TABLE clients ADD COLUMN group_id TEXT');
+        db.exec('UPDATE clients SET group_id = company_id WHERE company_id IS NOT NULL');
+        console.log('[MIGRATION] Columna company_id migrada a group_id');
+    }
+} catch (e) {
+    console.error('[MIGRATION] Error migrando company_id a group_id:', e.message);
+}
 
 // Migración V12.44.67+: Asignar IDs a clientes que tienen id null
 try {
