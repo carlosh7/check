@@ -1369,9 +1369,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     Swal.fire({ title: '⚠️ Error', text: 'Nombre y empresa son requeridos', icon: 'error', background: '#0f172a', color: '#fff' });
                     return;
                 }
-                const result = await this.fetchAPI('/clients/' + clientId, {
-                    method: 'PUT',
-                    body: JSON.stringify({ name, email, phone, group_id: company_id, status })
+                try {
+                    const result = await this.fetchAPI('/clients/' + clientId, {
+                        method: 'PUT',
+                        body: JSON.stringify({ name, email, phone, group_id: company_id, status })
                     });
                     this.loadClients();
                     return true;
