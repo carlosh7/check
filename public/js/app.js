@@ -1703,11 +1703,13 @@ const App = window.App = {
         try {
             if (isAssigned) {
                 // Desasignar - pasar company_id vacío
-                const response = await this.fetchAPI('/clients/unassign-from-company', {
+                await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
                 });
-                console.log('Desasignar response:', response);
+                // Actualizar estado local inmediatamente
+                const client = this.state.clients?.find(c => String(c.id) === String(clientId));
+                if (client) client.company_id = '';
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Desasignado', 
@@ -1720,11 +1722,13 @@ const App = window.App = {
                 });
             } else {
                 // Asignar
-                const response = await this.fetchAPI('/clients/assign-to-company', {
+                await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
                 });
-                console.log('Asignar response:', response);
+                // Actualizar estado local inmediatamente
+                const client = this.state.clients?.find(c => String(c.id) === String(clientId));
+                if (client) client.company_id = groupIds[0];
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Asignado', 
@@ -1736,15 +1740,6 @@ const App = window.App = {
                     position: 'top-end'
                 });
             }
-            
-            // Esperar un poco para que la DB se actualice
-            await new Promise(r => setTimeout(r, 300));
-            
-            // Recargar clientes y usuarios desde API y volver a mostrar el modal
-            const clients = await this.fetchAPI('/clients?v=' + Date.now());
-            this.state.clients = clients;
-            const users = await this.fetchAPI('/users');
-            this.state.allUsers = users;
             
             // Volver a mostrar el modal con datos actualizados
             setTimeout(() => {
