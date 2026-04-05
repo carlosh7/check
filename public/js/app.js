@@ -1597,7 +1597,7 @@ const App = window.App = {
     _voiceRecognition: null,
     _voiceActive: false,
 
-    toggleVoiceSearch: async function(section) {
+    toggleVoiceSearch: function(section) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             if (typeof Swal !== 'undefined') {
@@ -1612,47 +1612,40 @@ const App = window.App = {
             return;
         }
 
-        // Pedir permiso de micrófono con getUserMedia (SÍ muestra el popup del navegador)
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            // Liberar el stream inmediatamente (solo queríamos el permiso)
-            stream.getTracks().forEach(track => track.stop());
-        } catch (e) {
-            if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-                this._showMicPermissionHelp();
-                return;
-            }
-            console.warn('Error al acceder al micrófono:', e);
-            this._showMicPermissionHelp();
-            return;
-        }
-
         const recognition = new SpeechRecognition();
         recognition.lang = 'es-ES';
-        recognition.interimResults = false;
+        recognition.interimResults = true;
         recognition.maxAlternatives = 1;
+        recognition.continuous = true;
 
         const micBtn = document.getElementById(`${section}-voice-btn`);
+        let finalTranscript = '';
 
         recognition.onstart = () => {
             this._voiceActive = true;
             this._voiceRecognition = recognition;
+            finalTranscript = '';
             if (micBtn) {
                 micBtn.style.color = '#ef4444';
                 micBtn.textContent = 'mic_off';
             }
-            // Mostrar toast de "Escuchando..."
             this._showVoiceToast('🎤 Escuchando... Habla ahora', 'listening');
         };
 
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript.toLowerCase();
-            const searchInput = document.getElementById(`${section}-search`);
-            if (searchInput) {
-                searchInput.value = transcript;
-                // Mostrar toast de resultado
-                this._showVoiceToast(`✅ "${transcript}"`, 'result');
-                if (section === 'group') this.filterGroups();
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            // Actualizar toast con lo que se va detectando
+            const displayText = finalTranscript || interimTranscript;
+            if (displayText) {
+                this._showVoiceToast(`🎤 ${displayText.trim()}`, 'listening');
             }
         };
 
@@ -1663,8 +1656,17 @@ const App = window.App = {
                 micBtn.style.color = '#64748b';
                 micBtn.textContent = 'mic';
             }
-            // Ocultar toast
-            this._hideVoiceToast();
+            // Si hay resultado final, aplicarlo
+            if (finalTranscript.trim()) {
+                const searchInput = document.getElementById(`${section}-search`);
+                if (searchInput) {
+                    searchInput.value = finalTranscript.trim().toLowerCase();
+                    this._showVoiceToast(`✅ "${finalTranscript.trim().toLowerCase()}"`, 'result');
+                    if (section === 'group') this.filterGroups();
+                }
+            } else {
+                this._hideVoiceToast();
+            }
         };
 
         recognition.onerror = (event) => {
@@ -1677,7 +1679,6 @@ const App = window.App = {
             if (event.error === 'not-allowed') {
                 this._showMicPermissionHelp();
             } else if (event.error === 'no-speech') {
-                // No se detectó voz en el tiempo de espera — comportamiento normal
                 this._showVoiceToast('🎤 No se detectó voz. Intenta de nuevo.', 'timeout');
                 setTimeout(() => this._hideVoiceToast(), 2000);
                 return;
