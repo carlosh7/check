@@ -2161,7 +2161,7 @@ const App = window.App = {
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">event</span>
                             </div>
@@ -2180,13 +2180,20 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
     
-    assignEventToGroupsFromModal: async function(groupIdsStr, eventId) {
+    assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
         const groupIds = groupIdsStr.split(',');
         try {
-            for (const groupId of groupIds) {
+            if (isAssigned) {
+                // Desasignar - poner group_id en null
                 await this.fetchAPI(`/events/${eventId}`, {
                     method: 'PUT',
-                    body: JSON.stringify({ group_id: groupId })
+                    body: JSON.stringify({ group_id: null })
+                });
+            } else {
+                // Asignar
+                await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupIds[0] })
                 });
             }
             await this.refreshAllTables();
@@ -2263,7 +2270,7 @@ const App = window.App = {
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
                             </div>
@@ -2282,14 +2289,22 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
     
-    assignUserToGroupsFromModal: async function(groupIdsStr, userId) {
+    assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
         const groupIds = groupIdsStr.split(',');
         try {
-            for (const groupId of groupIds) {
-                await this.fetchAPI(`/groups/${groupId}/users`, {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: userId })
-                });
+            if (isAssigned) {
+                // Desasignar
+                for (const groupId of groupIds) {
+                    await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+                }
+            } else {
+                // Asignar
+                for (const groupId of groupIds) {
+                    await this.fetchAPI(`/groups/${groupId}/users`, {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId })
+                    });
+                }
             }
             await this.refreshAllTables();
             this.showUserSelectorForBulkGroups(this.state.selectedGroups);
