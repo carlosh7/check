@@ -2184,19 +2184,18 @@ const App = window.App = {
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
-                // Desasignar - poner group_id en null
                 await this.fetchAPI(`/events/${eventId}`, {
                     method: 'PUT',
                     body: JSON.stringify({ group_id: null })
                 });
             } else {
-                // Asignar
                 await this.fetchAPI(`/events/${eventId}`, {
                     method: 'PUT',
                     body: JSON.stringify({ group_id: groupIds[0] })
                 });
             }
-            await this.refreshAllTables();
+            await this.loadGroups();
+            await this.loadUsersTable();
             this.showEventSelectorForBulkGroups(this.state.selectedGroups);
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
@@ -2293,12 +2292,10 @@ const App = window.App = {
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
-                // Desasignar
                 for (const groupId of groupIds) {
                     await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
                 }
             } else {
-                // Asignar
                 for (const groupId of groupIds) {
                     await this.fetchAPI(`/groups/${groupId}/users`, {
                         method: 'POST',
@@ -2306,7 +2303,8 @@ const App = window.App = {
                     });
                 }
             }
-            await this.refreshAllTables();
+            await this.loadGroups();
+            await this.loadUsersTable();
             this.showUserSelectorForBulkGroups(this.state.selectedGroups);
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
