@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.107';
+const VERSION = '12.44.108';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1673,7 +1673,7 @@ const App = window.App = {
         }
     },
 
-    // Modal editar empresa
+    // Modal editar empresa (con campos inline, sin segundo modal)
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];
         const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
@@ -1684,6 +1684,7 @@ const App = window.App = {
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
@@ -1710,17 +1711,67 @@ const App = window.App = {
                         <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
                     </div>
                 </div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-96 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedGroups.map(g => `
-                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
+                        <div class="p-4 rounded-2xl mb-3" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div>
+                                    <div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nombre</label>
+                                    <input id="edit-group-name-${g.id}" type="text" value="${g.name}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre de la empresa">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Email</label>
+                                    <input id="edit-group-email-${g.id}" type="email" value="${g.email || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email de contacto">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Descripción</label>
+                                    <textarea id="edit-group-desc-${g.id}" rows="2" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all resize-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Descripción (opcional)">${g.description || ''}</textarea>
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '520px', 
+            background: bgMain, 
+            color: textMain, 
+            showCancelButton: true,
+            confirmButtonText: '💾 Guardar Cambios',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#f59e0b',
+            customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            preConfirm: async () => {
+                const results = [];
+                for (const g of selectedGroups) {
+                    const name = document.getElementById(`edit-group-name-${g.id}`).value.trim();
+                    const email = document.getElementById(`edit-group-email-${g.id}`).value.trim();
+                    const description = document.getElementById(`edit-group-desc-${g.id}`).value.trim();
+                    if (!name) { Swal.showValidationMessage('El nombre es requerido'); return false; }
+                    results.push({ id: g.id, name, email, description });
+                }
+                try {
+                    for (const r of results) {
+                        await this.fetchAPI(`/groups/${r.id}`, { method: 'PUT', body: JSON.stringify({ name: r.name, email: r.email, description: r.description }) });
+                    }
+                    this.loadGroups();
+                    return true;
+                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); return false; }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                Swal.fire({ title: '✓ Guardado', text: 'Empresa(s) actualizada(s)', icon: 'success', background: bgMain, color: textMain, timer: 1500, showConfirmButton: false });
+            }
+        });
     },
 
     openEditSingleGroupModal: function(groupId) {
