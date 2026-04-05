@@ -1327,204 +1327,10 @@ const App = window.App = {
         }
     },
 
-    // Importar clientes desde CSV/Excel
-    importClients: function() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.csv,.xlsx,.xls';
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                try {
-                    let rows = [];
-                    if (file.name.endsWith('.csv')) {
-                        const text = event.target.result;
-                        const lines = text.split('\n').filter(l => l.trim());
-                        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                        for (let i = 1; i < lines.length; i++) {
-                            const values = lines[i].split(',').map(v => v.trim());
-                            const row = {};
-                            headers.forEach((h, idx) => row[h] = values[idx] || '');
-                            rows.push(row);
-                        }
-                    } else {
-                        Swal.fire({ title: '⚠️ Formato', text: 'Solo se soporta CSV por ahora', icon: 'warning', background: '#0f172a', color: '#fff' });
-                        return;
-                    }
-                    
-                    if (rows.length === 0) {
-                        Swal.fire({ title: '⚠️ Atención', text: 'No se encontraron datos en el archivo', icon: 'warning', background: '#0f172a', color: '#fff' });
-                        return;
-                    }
-                    
-                    let imported = 0;
-                    for (const row of rows) {
-                        const name = row.nombre || row.name || row.nombre_cliente || '';
-                        if (!name) continue;
-                        
-                        const email = row.email || row.correo || '';
-                        const phone = row.telefono || row.phone || '';
-                        const company = row.empresa || row.company || row.group_id || '';
-                        
-                        // Buscar empresa por nombre
-                        let groupId = company;
-                        if (company && isNaN(company)) {
-                            const found = this.state.groups?.find(g => g.name.toLowerCase().includes(company.toLowerCase()));
-                            if (found) groupId = found.id;
-                        }
-                        
-                        await this.fetchAPI('/clients', {
-                            method: 'POST',
-                            body: JSON.stringify({ name, email, phone, group_id: groupId || null })
-                        });
-                        imported++;
-                    }
-                    
-                    Swal.fire({ 
-                        title: '✓ Importado', 
-                        text: `${imported} cliente(s) importados correctamente`, 
-                        icon: 'success', 
-                        background: '#0f172a', 
-                        color: '#fff',
-                        timer: 2000, 
-                        showConfirmButton: false 
-                    });
-                    
-                    this.loadClients();
-                } catch (err) {
-                    Swal.fire({ title: '⚠️ Error', text: 'Error al importar: ' + err.message, icon: 'error', background: '#0f172a', color: '#fff' });
-                }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    },
-
-    // Exportar clientes a CSV
-    exportClients: function() {
-        const clients = this.state.clients || [];
-        if (clients.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes para exportar', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const groups = this.state.groups || [];
-        const headers = ['Nombre', 'Email', 'Teléfono', 'Empresa', 'Estado'];
-        const rows = clients.map(c => {
-            const group = groups.find(g => String(g.id) === String(c.group_id));
-            return [
-                c.name || '',
-                c.email || '',
-                c.phone || '',
-                group ? group.name : (c.company_name || ''),
-                c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'
-            ];
-        });
-        
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
-        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `clientes_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    },
-
-    // Acciones masivas directas (desde barra de navegación de modales)
-    handleBulkClientActionDirect: async function(action) {
-        const clientIds = this.state.selectedClients.length > 0 ? 
-            this.state.selectedClients : 
-            Array.from(document.querySelectorAll('.client-checkbox:checked')).map(cb => cb.dataset.clientId);
-        
-        if (!clientIds || clientIds.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        if (action === 'delete') {
-            if (!confirm(`¿Eliminar ${clientIds.length} cliente(s)?`)) return;
-            for (const id of clientIds) {
-                await this.fetchAPI(`/clients/${id}`, { method: 'DELETE' });
-            }
-            this.loadClients();
-        } else if (action === 'activate' || action === 'deactivate') {
-            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
-            for (const id of clientIds) {
-                await this.fetchAPI(`/clients/${id}`, { 
-                    method: 'PUT',
-                    body: JSON.stringify({ status })
-                });
-            }
-            this.loadClients();
-        }
-        
-        Swal.close();
-    },
-
-    // Acciones masivas directas (desde barra de navegación de modales)
-    handleBulkClientActionDirect: async function(action) {
-        const clientIds = this.state.selectedClients.length > 0 ? 
-            this.state.selectedClients : 
-            Array.from(document.querySelectorAll('.client-checkbox:checked')).map(cb => cb.dataset.clientId);
-        
-        if (!clientIds || clientIds.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        if (action === 'delete') {
-            if (!confirm(`¿Eliminar ${clientIds.length} cliente(s)?`)) return;
-            for (const id of clientIds) {
-                await this.fetchAPI(`/clients/${id}`, { method: 'DELETE' });
-            }
-            this.loadClients();
-        } else if (action === 'activate' || action === 'deactivate') {
-            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
-            for (const id of clientIds) {
-                await this.fetchAPI(`/clients/${id}`, { 
-                    method: 'PUT',
-                    body: JSON.stringify({ status })
-                });
-            }
-            this.loadClients();
-        }
-        
-        Swal.close();
-    },
-
     // Acciones masivas de clientes
     handleBulkClientAction: async function() {
         const action = document.getElementById('bulk-client-action')?.value;
-        if (!action) return;
-        
-        // Para assign-event y assign-staff, verificar selección primero
-        if (action === 'assign-event') {
-            if (!this.state.selectedClients?.length) {
-                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
-                document.getElementById('bulk-client-action').value = '';
-                return;
-            }
-            this.showEventSelectorForBulkClients(this.state.selectedClients);
-            document.getElementById('bulk-client-action').value = '';
-            return;
-        }
-        
-        if (action === 'assign-staff') {
-            if (!this.state.selectedClients?.length) {
-                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
-                document.getElementById('bulk-client-action').value = '';
-                return;
-            }
-            this.showStaffSelectorForBulkClients(this.state.selectedClients);
-            document.getElementById('bulk-client-action').value = '';
-            return;
-        }
-        
-        if (!this.state.selectedClients?.length) return;
+        if (!action || !this.state.selectedClients?.length) return;
         
         if (action === 'delete') {
             if (!confirm(`¿Eliminar ${this.state.selectedClients.length} cliente(s)?`)) return;
@@ -1542,130 +1348,12 @@ const App = window.App = {
             }
             this.loadClients();
         } else if (action === 'edit') {
+            // Por ahora mostrar modal de edición del primero seleccionado
             const client = this.state.clients.find(c => c.id === this.state.selectedClients[0]);
             if (client) this.openEditClientModal(client);
         }
         
         document.getElementById('bulk-client-action').value = '';
-    },
-    
-    // Modal asignar evento a clientes seleccionados
-    showEventSelectorForBulkClients: function(clientIds) {
-        const events = this.state.allEvents || [];
-        const clients = this.state.clients || [];
-        const selectedClients = clients.filter(c => clientIds.includes(c.id));
-        
-        if (events.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#a855f7';
-        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
-        
-        const subtitleText = selectedClients.length === 1 ? 
-            `${selectedClients[0].name}` : 
-            `${selectedClients.length} clientes seleccionados`;
-        
-        const getCurrentClientIds = `App.state.selectedClients.length > 0 ? App.state.selectedClients : ${JSON.stringify(clientIds)}`;
-        
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación: TODAS las acciones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.showEventSelectorForBulkClients(${getCurrentClientIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                    <div class="flex items-center gap-1.5 px-2">
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${primaryColor};"></span>
-                    </div>
-                    <button onclick="App.handleBulkClientActionDirect('activate')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #22c55e;" title="Activar">
-                        <span class="material-symbols-outlined text-sm">play_circle</span>
-                    </button>
-                    <button onclick="App.handleBulkClientActionDirect('deactivate')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Desactivar">
-                        <span class="material-symbols-outlined text-sm">pause_circle</span>
-                    </button>
-                    <button onclick="App.handleBulkClientActionDirect('delete')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Eliminar">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                </div>
-
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Clientes</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
-                    </div>
-                </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${users.map(u => `
-                        <div onclick="App.assignStaffToBulkClients('${clientIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">add</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({
-            title: '',
-            html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
-            showConfirmButton: false,
-            showCloseButton: false,
-            customClass: { popup: 'rounded-[1.5rem] shadow-2xl' }
-        });
-    },
-    
-    assignStaffToBulkClients: async function(clientIdsStr, userId) {
-        const clientIds = clientIdsStr.split(',');
-        try {
-            for (const clientId of clientIds) {
-                await this.fetchAPI(`/clients/${clientId}/staff`, {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: userId })
-                });
-            }
-            
-            Swal.fire({ 
-                title: '✓ Asignado', 
-                text: `Staff asignado a ${clientIds.length} cliente(s)`, 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.state.selectedClients = [];
-            this.loadClients();
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
     },
 
     // Abrir modal para crear cliente
@@ -1727,152 +1415,6 @@ const App = window.App = {
                     return true;
                 } catch (e) {
                     Swal.showValidationMessage(e.message || 'Error al actualizar cliente');
-                    return false;
-                }
-            }
-        });
-    },
-
-    // Modal crear staff
-    openCreateUserModal: function() {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        
-        Swal.fire({
-            title: 'Nuevo Staff',
-            html: `
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
-                        <input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label>
-                        <input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label>
-                        <input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label>
-                        <select id="user-role" class="swal2-input">
-                            <option value="STAFF">STAFF</option>
-                            <option value="LOGISTICO">LOGISTICO</option>
-                            <option value="PRODUCTOR">PRODUCTOR</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label>
-                        <select id="user-company" class="swal2-input">
-                            <option value="">Sin empresa</option>
-                            ${groupOptions}
-                        </select>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Crear',
-            cancelButtonText: 'Cancelar',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const display_name = document.getElementById('user-display-name').value.trim();
-                const username = document.getElementById('user-username').value.trim();
-                const password = document.getElementById('user-password').value.trim();
-                const role = document.getElementById('user-role').value;
-                const company_id = document.getElementById('user-company').value;
-                
-                if (!display_name || !username || !password) {
-                    Swal.showValidationMessage('Nombre, email y contraseña son requeridos');
-                    return false;
-                }
-                try {
-                    await this.fetchAPI('/users', {
-                        method: 'POST',
-                        body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null })
-                    });
-                    this.loadUsersTable();
-                    this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
-                    return true;
-                } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al crear staff');
-                    return false;
-                }
-            }
-        });
-    },
-
-    // Modal crear staff
-    openCreateUserModal: function() {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        
-        Swal.fire({
-            title: 'Nuevo Staff',
-            html: `
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
-                        <input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label>
-                        <input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label>
-                        <input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label>
-                        <select id="user-role" class="swal2-input">
-                            <option value="STAFF">STAFF</option>
-                            <option value="LOGISTICO">LOGISTICO</option>
-                            <option value="PRODUCTOR">PRODUCTOR</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label>
-                        <select id="user-company" class="swal2-input">
-                            <option value="">Sin empresa</option>
-                            ${groupOptions}
-                        </select>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Crear',
-            cancelButtonText: 'Cancelar',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const display_name = document.getElementById('user-display-name').value.trim();
-                const username = document.getElementById('user-username').value.trim();
-                const password = document.getElementById('user-password').value.trim();
-                const role = document.getElementById('user-role').value;
-                const company_id = document.getElementById('user-company').value;
-                
-                if (!display_name || !username || !password) {
-                    Swal.showValidationMessage('Nombre, email y contraseña son requeridos');
-                    return false;
-                }
-                try {
-                    await this.fetchAPI('/users', {
-                        method: 'POST',
-                        body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null })
-                    });
-                    this.loadUsersTable();
-                    this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
-                    return true;
-                } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al crear staff');
                     return false;
                 }
             }
@@ -2027,18 +1569,31 @@ const App = window.App = {
         }
     },
 
-    // ============================================
-    // FUNCIÓN GENÉRICA para modales de asignación
-    // ============================================
-    openGroupAssignmentModal: function(config) {
-        // config = { type, items, groupIds, subtitle, createFn, assignFn, assignedCheck, icon, color, lightColor, placeholder, createLabel }
-        const { type, items, groupIds, subtitle, createFn, assignFn, assignedCheck, icon, color, lightColor, placeholder, createLabel } = config;
+    // Modal asignar cliente a empresa
+    openAssignClientToGroupModal: function(groupIds) {
+        const clients = this.state.clients || [];
         
-        if (!items || items.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: `No hay ${type.toLowerCase()}s disponibles`, icon: 'warning', background: '#0f172a', color: '#fff' });
+        // Sincronizar selectedGroups con los checkboxes marcados en el DOM
+        // Esto evita acumulación y asegura que siempre refleje la selección actual
+        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
+        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
+        
+        if (checkedGroupIds.length > 0) {
+            this.state.selectedGroups = checkedGroupIds;
+            groupIds = checkedGroupIds;
+        } else if (groupIds && groupIds.length > 0) {
+            this.state.selectedGroups = [...groupIds];
+        } else {
+            this.state.selectedGroups = [];
+            groupIds = [];
+        }
+        
+        if (clients.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
         
+        // Detectar tema actual
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
@@ -2046,23 +1601,33 @@ const App = window.App = {
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        
+        // Obtener empresas seleccionadas
+        const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
+        
+        // Calcular cuántas empresas tienen cada cliente asignado
+        const getGroupClientCount = (groupId) => {
+            return clients.filter(c => String(c.group_id) === String(groupId)).length;
+        };
+        
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedGroups.length === 1) {
+            const group = selectedGroups[0];
+            const clientCount = getGroupClientCount(group.id);
+            subtitleText = `${group.name} - ${clientCount} Clientes`;
+        } else {
+            subtitleText = `${selectedGroups.length} empresas seleccionadas`;
+        }
         
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         
-        const typeLabels = { client: 'Cliente', staff: 'Staff', event: 'Evento' };
-        const typeIcons = { client: 'person', staff: 'badge', event: 'event' };
-        const typeColors = { client: '#10b981', staff: '#3b82f6', event: '#a855f7' };
-        const typeCreateFns = { client: 'App.openCreateClientModal()', staff: 'App.openCreateUserModal()', event: 'App.navigateToCreateEvent()' };
-        
-        const label = typeLabels[type] || type;
-        const itemIcon = icon || typeIcons[type] || 'person';
-        const itemColor = color || typeColors[type] || '#10b981';
-        const itemLight = lightColor || (isDark ? `${itemColor}33` : `${itemColor}26`);
-        const createFunc = createFn || typeCreateFns[type] || '';
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación FIJA -->
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
@@ -2083,139 +1648,55 @@ const App = window.App = {
 
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar ${label} a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitle}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
-                    ${createFunc ? `<button onclick="${createFunc}" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
+                    <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
-                    </button>` : ''}
+                    </button>
                 </div>
 
                 <div class="relative group mt-6 mb-6">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar ${placeholder}..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
                         style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${items.map(item => {
-                        const isAssigned = assignedCheck(item, groupIds);
-                        const iconState = isAssigned ? 'check' : 'add';
-                        const itemBorder = isAssigned ? itemColor : borderColor;
-                        const itemBg = isAssigned ? itemLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        ${clients.map(c => {
+                            const clientGroupId = c.group_id || '';
+                            const isAssigned = groupIds.some(gid => clientGroupId === String(gid));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="${assignFn(item)}" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${itemLight}; color: ${itemColor};">
-                                <span class="material-symbols-outlined">${itemIcon}</span>
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                                <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${item.name || item.display_name || 'Sin nombre'}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${item.email || item.role || 'Sin info'}</div>
+                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? itemLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? itemColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${itemColor};">${iconState}</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
                     `}).join('')}
                 </div>
             </div>`;
 
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    // Modal asignar cliente a empresa
-    openAssignClientToGroupModal: function(groupIds) {
-        const clients = this.state.clients || [];
-        
-        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
-        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
-        
-        if (checkedGroupIds.length > 0) {
-            this.state.selectedGroups = checkedGroupIds;
-            groupIds = checkedGroupIds;
-        } else if (groupIds && groupIds.length > 0) {
-            this.state.selectedGroups = [...groupIds];
-        } else {
-            this.state.selectedGroups = [];
-            groupIds = [];
-        }
-        
-        if (clients.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
-        const getGroupClientCount = (groupId) => clients.filter(c => String(c.group_id) === String(groupId)).length;
-        let subtitleText = selectedGroups.length === 1 ? 
-            `${selectedGroups[0].name} - ${getGroupClientCount(selectedGroups[0].id)} Clientes` : 
-            `${selectedGroups.length} empresas seleccionadas`;
-        
-        this.openGroupAssignmentModal({
-            type: 'client',
-            items: clients,
-            groupIds: groupIds,
-            subtitle: subtitleText,
-            createFn: 'App.openCreateClientModal()',
-            assignFn: (item) => `App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${item.id}', ${groupIds.some(gid => String(item.group_id) === String(gid))})`,
-            assignedCheck: (item, gIds) => gIds.some(gid => String(item.group_id) === String(gid)),
-            icon: 'person',
-            color: '#10b981',
-            placeholder: 'cliente'
-        });
-    },
-    
-    // Modal asignar staff a empresas
-    showUserSelectorForBulkGroups: function(groupIds) {
-        const users = this.state.allUsers || [];
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        
-        if (users.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        
-        this.openGroupAssignmentModal({
-            type: 'staff',
-            items: users,
-            groupIds: groupIds,
-            subtitle: subtitleText,
-            createFn: 'App.openCreateUserModal()',
-            assignFn: (item) => `App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${item.id}')`,
-            assignedCheck: (item, gIds) => item.groups && item.groups.some(g => gIds.includes(g.id)),
-            icon: 'badge',
-            color: '#3b82f6',
-            placeholder: 'staff'
-        });
-    },
-    
-    // Modal asignar evento a empresas
-    showEventSelectorForBulkGroups: function(groupIds) {
-        const events = this.state.allEvents || [];
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        
-        if (events.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        
-        this.openGroupAssignmentModal({
-            type: 'event',
-            items: events,
-            groupIds: groupIds,
-            subtitle: subtitleText,
-            createFn: 'App.navigateToCreateEvent()',
-            assignFn: (item) => `App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${item.id}')`,
-            assignedCheck: (item, gIds) => gIds.some(gid => String(item.group_id) === String(gid)),
-            icon: 'event',
-            color: '#a855f7',
-            placeholder: 'evento'
+        Swal.fire({
+            title: '',
+            html,
+            width: '460px',
+            background: bgMain,
+            color: textMain,
+            showConfirmButton: false,
+            showCloseButton: false,
+            customClass: { 
+                popup: 'rounded-[1.5rem] shadow-2xl'
+            }
         });
     },
     
@@ -2426,6 +1907,352 @@ const App = window.App = {
         }
     },
 
+    // Modal crear staff
+    openCreateUserModal: function() {
+        const groups = this.state.groups || [];
+        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        Swal.fire({
+            title: 'Nuevo Staff',
+            html: `<div class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
+            </div>`,
+            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const display_name = document.getElementById('user-display-name').value.trim();
+                const username = document.getElementById('user-username').value.trim();
+                const password = document.getElementById('user-password').value.trim();
+                const role = document.getElementById('user-role').value;
+                const company_id = document.getElementById('user-company').value;
+                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña son requeridos'); return false; }
+                try {
+                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
+                    this.loadUsersTable(); this.loadGroups();
+                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
+                    return true;
+                } catch (e) { Swal.showValidationMessage(e.message || 'Error al crear staff'); return false; }
+            }
+        });
+    },
+    
+    // Modal editar empresa
+    editSelectedGroups: function(groupIds) {
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                    </button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                    </button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
+                        <span class="material-symbols-outlined text-sm">event</span>
+                    </button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedGroups.map(g => `
+                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+    
+    openEditSingleGroupModal: function(groupId) {
+        const group = this.state.groups?.find(g => g.id === groupId);
+        if (!group) return;
+        Swal.fire({
+            title: 'Editar Empresa',
+            html: `<div class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="edit-group-name" type="text" class="swal2-input" value="${group.name}" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label><input id="edit-group-email" type="email" class="swal2-input" value="${group.email || ''}"></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Descripción</label><textarea id="edit-group-desc" class="swal2-input" rows="3">${group.description || ''}</textarea></div>
+            </div>`,
+            showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const name = document.getElementById('edit-group-name').value.trim();
+                const email = document.getElementById('edit-group-email').value.trim();
+                const description = document.getElementById('edit-group-desc').value.trim();
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return false; }
+                try {
+                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
+                    this.loadGroups();
+                    Swal.fire('✓ Guardado', 'Empresa actualizada', 'success');
+                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); }
+            }
+        });
+    },
+    
+    // Modal gestionar empresa (activar/desactivar/eliminar)
+    showManageGroupAction: function(groupIds) {
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                    </button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
+                        <span class="material-symbols-outlined text-sm">event</span>
+                    </button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    <div onclick="App.handleBulkGroupActionDirect('activate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                    <div onclick="App.handleBulkGroupActionDirect('deactivate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                    <div onclick="App.handleBulkGroupActionDirect('delete')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+    
+    // Acciones directas desde barra de navegación de modales
+    handleBulkGroupActionDirect: async function(action) {
+        const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
+        if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (action === 'delete') {
+            if (!confirm(`¿Eliminar ${groupIds.length} empresa(s)?`)) return;
+            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'DELETE' }); }
+            this.loadGroups();
+        } else if (action === 'activate' || action === 'deactivate') {
+            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
+            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }); }
+            this.loadGroups();
+        }
+        Swal.close();
+    },
+
+    // Modal crear staff
+    openCreateUserModal: function() {
+        const groups = this.state.groups || [];
+        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        Swal.fire({
+            title: 'Nuevo Staff',
+            html: `<div class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
+            </div>`,
+            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const display_name = document.getElementById('user-display-name').value.trim();
+                const username = document.getElementById('user-username').value.trim();
+                const password = document.getElementById('user-password').value.trim();
+                const role = document.getElementById('user-role').value;
+                const company_id = document.getElementById('user-company').value;
+                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña son requeridos'); return false; }
+                try {
+                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
+                    this.loadUsersTable(); this.loadGroups();
+                    Swal.fire('✓ Creado', 'Staff creado exitosamente', 'success');
+                    return true;
+                } catch (e) { Swal.showValidationMessage(e.message || 'Error al crear staff'); return false; }
+            }
+        });
+    },
+    
+    // Modal editar empresa
+    editSelectedGroups: function(groupIds) {
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                    </button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                    </button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
+                        <span class="material-symbols-outlined text-sm">event</span>
+                    </button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedGroups.map(g => `
+                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+    
+    openEditSingleGroupModal: function(groupId) {
+        const group = this.state.groups?.find(g => g.id === groupId);
+        if (!group) return;
+        Swal.fire({
+            title: 'Editar Empresa',
+            html: `<div class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="edit-group-name" type="text" class="swal2-input" value="${group.name}" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label><input id="edit-group-email" type="email" class="swal2-input" value="${group.email || ''}"></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Descripción</label><textarea id="edit-group-desc" class="swal2-input" rows="3">${group.description || ''}</textarea></div>
+            </div>`,
+            showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const name = document.getElementById('edit-group-name').value.trim();
+                const email = document.getElementById('edit-group-email').value.trim();
+                const description = document.getElementById('edit-group-desc').value.trim();
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return false; }
+                try {
+                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
+                    this.loadGroups();
+                    Swal.fire('✓ Guardado', 'Empresa actualizada', 'success');
+                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); }
+            }
+        });
+    },
+    
+    // Modal gestionar empresa (activar/desactivar/eliminar)
+    showManageGroupAction: function(groupIds) {
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (selectedGroups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                    </button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
+                        <span class="material-symbols-outlined text-sm">event</span>
+                    </button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    <div onclick="App.handleBulkGroupActionDirect('activate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                    <div onclick="App.handleBulkGroupActionDirect('deactivate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                    <div onclick="App.handleBulkGroupActionDirect('delete')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                        <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+    
+    // Acciones directas desde barra de navegación de modales
+    handleBulkGroupActionDirect: async function(action) {
+        const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
+        if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (action === 'delete') {
+            if (!confirm(`¿Eliminar ${groupIds.length} empresa(s)?`)) return;
+            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'DELETE' }); }
+            this.loadGroups();
+        } else if (action === 'activate' || action === 'deactivate') {
+            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
+            for (const id of groupIds) { await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }); }
+            this.loadGroups();
+        }
+        Swal.close();
+    },
+
     // Acciones masivas para empresas
     handleBulkGroupAction: async function() {
         const action = document.getElementById('bulk-group-action')?.value;
@@ -2518,57 +2345,34 @@ const App = window.App = {
         }
     },
     
-    // Acciones directas desde barra de navegación de modales
-    handleBulkGroupActionDirect: async function(action) {
-        const groupIds = this.state.selectedGroups.length > 0 ? 
-            this.state.selectedGroups : 
-            Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
-        
-        if (!groupIds || groupIds.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        if (action === 'delete') {
-            if (!confirm(`¿Eliminar ${groupIds.length} empresa(s)?`)) return;
-            for (const id of groupIds) {
-                await this.fetchAPI(`/groups/${id}`, { method: 'DELETE' });
-            }
-            this.loadGroups();
-        } else if (action === 'activate' || action === 'deactivate') {
-            const status = action === 'activate' ? 'ACTIVE' : 'INACTIVE';
-            for (const id of groupIds) {
-                await this.fetchAPI(`/groups/${id}`, { 
-                    method: 'PUT',
-                    body: JSON.stringify({ status })
-                });
-            }
-            this.loadGroups();
-        }
-        
-        Swal.close();
-    },
-    
-    // Modal editar empresa (estilo selector con barra de navegación)
-    editSelectedGroups: function(groupIds) {
+    // Mostrar selector de evento para empresas seleccionadas
+    showEventSelectorForBulkGroups: function(groupIds) {
+        const events = this.state.allEvents || [];
         const groups = this.state.groups || [];
         const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        if (selectedGroups.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' });
+        
+        if (events.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
+        
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#f59e0b';
+        const primaryColor = '#a855f7';
+        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
+        
+        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
                     <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
@@ -2584,84 +2388,110 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
                 </div>
+
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">add</span> Crear
+                    </button>
                 </div>
+
+                <div class="relative group mt-6 mb-6">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                </div>
+
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${selectedGroups.map(g => `
-                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: ${primaryColor};">
-                                <span class="material-symbols-outlined">corporate_fare</span>
+                    ${events.map(e => {
+                        const isAssigned = groupIds.some(gid => String(e.group_id) === String(gid));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `
+                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                                <span class="material-symbols-outlined">event</span>
                             </div>
                             <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div>
+                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
                             </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">edit</span>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>`;
+
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
     
-    openEditSingleGroupModal: function(groupId) {
-        const group = this.state.groups?.find(g => g.id === groupId);
-        if (!group) return;
-        Swal.fire({
-            title: 'Editar Empresa',
-            html: `<div class="space-y-4 text-left">
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="edit-group-name" type="text" class="swal2-input" value="${group.name}" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label><input id="edit-group-email" type="email" class="swal2-input" value="${group.email || ''}"></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Descripción</label><textarea id="edit-group-desc" class="swal2-input" rows="3">${group.description || ''}</textarea></div>
-            </div>`,
-            showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const name = document.getElementById('edit-group-name').value.trim();
-                const email = document.getElementById('edit-group-email').value.trim();
-                const description = document.getElementById('edit-group-desc').value.trim();
-                if (!name) { Swal.showValidationMessage('Nombre requerido'); return false; }
-                try {
-                    await this.fetchAPI(`/groups/${groupId}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
-                    this.loadGroups();
-                    Swal.fire('✓ Guardado', 'Empresa actualizada', 'success');
-                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); }
+    assignEventToGroupsFromModal: async function(groupIdsStr, eventId) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            for (const groupId of groupIds) {
+                await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupId })
+                });
             }
-        });
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Evento asignado a ${groupIds.length} empresa(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedGroups = [];
+            await this.refreshAllTables();
+            Swal.close();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
     },
     
-    // Modal gestionar empresa (activar/desactivar/eliminar)
-    showManageGroupAction: function(groupIds) {
+    // Mostrar selector de staff para empresas seleccionadas
+    showUserSelectorForBulkGroups: function(groupIds) {
+        const users = this.state.allUsers || [];
         const groups = this.state.groups || [];
         const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        if (selectedGroups.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' });
+        
+        if (users.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
         }
+        
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#3b82f6';
+        const primaryLight = isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)';
+        
+        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <div class="flex items-center gap-1.5 px-2">
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: #ef4444;"></span>
-                    </div>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                    </button>
                     <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
@@ -2672,28 +2502,829 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
                 </div>
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Empresa(s)</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
+                    <button onclick="App.openCreateUserModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">add</span> Crear
+                    </button>
                 </div>
+
+                <div class="relative group mt-6 mb-6">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
+                    <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
+                </div>
+
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    <div onclick="App.handleBulkGroupActionDirect('activate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
-                    <div onclick="App.handleBulkGroupActionDirect('deactivate')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
-                    <div onclick="App.handleBulkGroupActionDirect('delete')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
-                        <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${selectedGroups.length} empresa(s)</div></div>
-                    </div>
+                    ${users.map(u => {
+                        const isAssigned = u.groups && u.groups.some(g => groupIds.includes(g.id));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `
+                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
+                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
+                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
+                            </div>
+                        </div>
+                    `}).join('')}
                 </div>
             </div>`;
+
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+    
+    assignUserToGroupsFromModal: async function(groupIdsStr, userId) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            for (const groupId of groupIds) {
+                await this.fetchAPI(`/groups/${groupId}/users`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Staff asignado a ${groupIds.length} empresa(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedGroups = [];
+            this.loadGroups();
+            this.loadUsersTable();
+            Swal.close();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    async removeUserFromGroup(userId, groupId) {
+        // Solo ADMIN puede desvincular usuarios de empresas
+        if (this.state.user?.role !== 'ADMIN') {
+            alert('Solo el Administrador puede desvincular usuarios de empresas.');
+            return;
+        }
+        
+        if (await this._confirmAction('¿Quitar usuario de empresa?', 'El usuario perderá acceso a los recursos de esta empresa.')) {
+            try {
+                await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+                this.loadGroups();
+                this.loadUsersTable();
+            } catch(e) { console.error('Error removing user from group:', e); }
+        }
+    },
+    
+    async removeEventFromCompany(eventId, groupId) {
+        if(eventId && typeof eventId === 'object') {
+            const btn = eventId.target.closest('[data-action]');
+            eventId = btn.dataset.eventId;
+            groupId = btn.dataset.groupId;
+        }
+        if (await this._confirmAction('¿Desvincular evento?', 'El evento ya no estará asociado a esta empresa.')) {
+            try {
+                const events = (this.state.allEvents || []).filter(e => String(e.group_id) === String(groupId));
+                const newEvents = events.filter(e => String(e.id) !== String(eventId)).map(e => e.id);
+                await this.fetchAPI(`/groups/${groupId}/events`, { 
+                    method: 'PUT', body: JSON.stringify({ events: newEvents })
+                });
+                this.loadGroups();
+            } catch(e) { console.error('Error', e); }
+        }
+    },
+
+    // --- PERFIL Y CONFIGURACIÓN RESTAURADA ---
+
+    async toggleEventToUser(userId, eventId, isSelected) {
+        try {
+            const user = (this.state.allUsers || []).find(u => String(u.id) === String(userId));
+            let currentEvents = user ? (user.events || []) : [];
+            currentEvents = currentEvents.map(String);
+            let newEvents = isSelected ? currentEvents.filter(id => id !== String(eventId)) : [...currentEvents, String(eventId)];
+
+            const res = await this.fetchAPI(`/users/${userId}/events`, {
+                method: 'PUT', body: JSON.stringify({ events: newEvents })
+            });
+
+            if (res.success) {
+                if (user) user.events = newEvents;
+                this.showEventSelector(userId, newEvents);
+                await this.refreshAllTables();
+            }
+        } catch(e) { console.error(e); }
+    },
+
+    async showEventSelector(userId, selectedEventIds = []) {
+        let events = [];
+        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+
+        const html = `
+            <div class="space-y-6 text-left">
+                <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Vincular a Evento</span>
+                        <span class="text-xs text-slate-400">Selecciona el evento para este colaborador</span>
+                    </div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !py-2 !px-4 !text-xs">
+                        + NUEVO EVENTO
+                    </button>
+                </div>
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${events.map(e => `
+                        <div onclick="App.toggleEventToUser('${userId}', '${e.id}', ${selectedEventIds.includes(String(e.id))})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-orange-500/40 hover:bg-orange-500/5 transition-all cursor-pointer group shadow-sm ${selectedEventIds.includes(String(e.id)) ? 'ring-1 ring-orange-500/50 bg-orange-500/10' : ''}">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white transition-colors">${e.name}</div>
+                                <div class="text-[10px] text-slate-500 uppercase tracking-tighter">${e.location || 'Ubicación remota'}</div>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 flex items-center justify-center transition-colors">
+                                <span class="material-symbols-outlined text-xs text-orange-500 ${selectedEventIds.includes(String(e.id)) ? 'opacity-100' : 'opacity-0'}">check</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            html, width: '450px', background: 'var(--bg-card)', color: 'var(--text-main)',
+            showConfirmButton: false, showCloseButton: true,
+            customClass: { popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl' }
+        });
+    },
+
+    // --- PERFIL Y CONFIGURACIÓN RESTAURADA (funciones duplicadas eliminadas - ver línea ~1195) ---
+
+    // --- FUNCIONES DE SELECCIÓN REUBICADAS Y MODERNIZADAS (V12.16.0) ---
+
+    async handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const eventId = this.state.event?.id;
+        if (!eventId) {
+            this._notifyAction('Atención', 'Selecciona un evento para importar.', 'info');
+            return;
+        }
+
+        this._notifyAction('Procesando', 'Analizando archivo...', 'info');
+    },
+
+    async purgeDatabase() {
+        if (await this._confirmAction('¿BORRAR TODO?', 'Esta acción eliminará TODOS los registros del sistema permanentemente.')) {
+            try {
+                await this.fetchAPI('/settings/purge', { method: 'POST' });
+                this._notifyAction('Base de Datos Limpia', 'Se han borrado todos los datos.', 'success');
+                location.reload();
+            } catch (e) {
+                this._notifyAction('Error', 'Falla en la purga: ' + e.message, 'error');
+            }
+        }
+    },
+
+    // --- FUNCIÓN GLOBAL PARA OCULTAR MODALES (Accessibility) ---
+    hideModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+            // Quitar foco de todos los elementos interactivos antes de cerrar
+            const focusableElements = m.querySelectorAll('input, button, select, textarea, a[href]');
+            focusableElements?.forEach(el => {
+                el.blur();
+                el.setAttribute('tabindex', '-1');
+            });
+            // Quitar foco del body
+            document.body.focus();
+            // Ocultar modal - clase hidden Y limpiar style display
+            m.classList.add('hidden');
+            m.style.display = '';
+            m.removeAttribute('aria-hidden');
+        }
+    },
+    
+    // --- FUNCIONES GLOBALES DEFINIDAS AL INICIO ---
+    loadUsersTable: async function() {
+        if (!this.state.user || !['ADMIN', 'PRODUCTOR'].includes(this.state.user.role)) return;
+        try {
+            const [usersRes, groupsRes, eventsRes] = await Promise.all([
+                this.fetchAPI('/users'),
+                this.fetchAPI('/groups'),
+                this.fetchAPI('/events')
+            ]);
+            
+            // Verificar que las respuestas sean arrays válidos
+            const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
+            const groups = Array.isArray(groupsRes) ? groupsRes : (groupsRes.data || []);
+            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
+            
+            // Guardar datos para filtros
+            this.state.allUsers = users;
+            this.state.allEvents = events;
+            this.state.allGroups = groups;
+            this.renderUsersTable(users, groups, events);
+        } catch (error) {
+            console.error('Error loading users table:', error);
+        }
+    },
+
+    // Actualizar TODAS las tablas después de cualquier cambio en modales
+    refreshAllTables: async function() {
+        try {
+            // Cargar todos los datos en paralelo
+            const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
+                this.fetchAPI('/users'),
+                this.fetchAPI('/groups'),
+                this.fetchAPI('/events'),
+                this.fetchAPI('/clients')
+            ]);
+            
+            const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
+            const groups = Array.isArray(groupsRes) ? groupsRes : (groupsRes.data || []);
+            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
+            const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+            
+            // Actualizar estado global
+            this.state.allUsers = users;
+            this.state.allGroups = groups;
+            this.state.allEvents = events;
+            this.state.clients = clients;
+            
+            // Siempre actualizar todas las tablas relevantes
+            const currentView = this.state.currentView;
+            
+            if (currentView === 'system') {
+                this.loadUsersTable();
+                this.loadGroups();
+                this.loadClients();
+            } else if (currentView === 'my-events' || currentView === 'event-config') {
+                this.loadEvents();
+            }
+        } catch (error) {
+            console.error('Error refreshAllTables:', error);
+        }
+    },
+
+    renderUsersTable: function(users, groups, events) {
+        if (!this.state.user) return;
+        
+        const filterGroup = document.getElementById('filter-group');
+        const filterEvent = document.getElementById('filter-event');
+        
+        if (filterGroup && groups.length > 0) {
+            const currentVal = filterGroup.value;
+            filterGroup.innerHTML = '<option value="">Empresas</option>' + 
+                groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            filterGroup.value = currentVal;
+        }
+        
+        if (filterEvent && events.length > 0) {
+            const currentVal = filterEvent.value;
+            filterEvent.innerHTML = '<option value="">Eventos</option>' + 
+                events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            filterEvent.value = currentVal;
+        }
+        
+        // FILTRO: PRODUCTOR no ve usuarios ADMIN
+        const isAdmin = this.state.user.role === 'ADMIN';
+        const isProductor = this.state.user.role === 'PRODUCTOR';
+        
+        if (isProductor) {
+            // PRODUCTOR no ve usuarios ADMIN
+            users = users.filter(u => u.role !== 'ADMIN');
+        }
+        
+        // Obtener eventos y grupos del usuario actual
+        const userGroupId = this.state.user.group_id;
+        const userEvents = this.state.allEvents?.filter(e => e.user_id === this.state.user.userId) || [];
+        const userGroupIds = this.state.allGroups?.filter(g => {
+            // Usuarios pertenece a este grupo
+            return groups.some(ug => ug.user_id === this.state.user.userId && ug.group_id === g.id);
+        })?.map(g => g.id) || [];
+        
+        // PRODUCTOR solo ve usuarios de su empresa
+        if (isProductor && userGroupId) {
+            users = users.filter(u => {
+                const userGroups = u.groups || [];
+                return userGroups.some(ug => ug.id === userGroupId);
+            });
+        }
+        
+        const pending = users.filter(u => u.status === 'PENDING');
+        const badge = document.getElementById('pending-badge');
+        const pendingSection = document.getElementById('pending-requests-section');
+        const pendingList = document.getElementById('pending-users-list');
+        
+        if (badge) badge.classList.toggle('hidden', pending.length === 0);
+        if (pendingSection) pendingSection.classList.toggle('hidden', pending.length === 0);
+        if (pendingList && pending.length > 0) {
+            pendingList.innerHTML = pending.map(u => `
+                <div class="flex items-center justify-between glass-card p-4 mb-3 border-amber-500/20 bg-amber-500/5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
+                            <span class="material-symbols-outlined">person_add</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</p>
+                            <p class="text-[10px] text-[var(--text-secondary)] font-mono">${u.username}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button data-action="approveUser" data-user-id="${u.id}" data-status="APPROVED" class="action-btn-pill btn-success-soft">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            APROBAR ACCESO
+                        </button>
+                    </div>
+                </div>`).join('');
+        }
+        
+        const tbody = document.getElementById('users-tbody');
+        
+        if (tbody) {
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">No se encontraron colaboradores</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map((u) => {
+                const isSelf = u.id === this.state.user?.userId;
+                const canEdit = isAdmin || (isProductor && u.role !== 'ADMIN');
+                const canRemoveGroup = isAdmin;
+                const canRemoveEvent = isAdmin || (isProductor && u.role !== 'ADMIN');
+                
+                // --- CHECKBOX DE SELECCIÓN ---
+                const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
+                
+                // --- COLUMNA 1: STAFF (Nombre + Email) ---
+                const colStaff = `
+                    <div class="flex flex-col gap-0.5">
+                        <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || 'Sin nombre'}</div>
+                        <div class="text-xs text-[var(--text-secondary)] font-mono">${u.username}</div>
+                    </div>
+                `;
+
+                // --- COLUMNA 2: EMPRESA ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
+
+                // --- COLUMNA 3: CLIENTES ---
+                const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
+
+                // --- COLUMNA 4: EVENTOS ---
+                const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
+                const eventRows = userEvents.length > 0 ? userEvents.map(e => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
+
+                // --- COLUMNA 5: ROL ---
+                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
+
+                // --- COLUMNA 6: ESTADO ---
+                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
+                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
+                const colEstado = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
+
+                return `
+                <tr class="user-row-premium">
+                    <td class="px-2 py-3 align-middle">${checkbox}</td>
+                    <td class="px-2 py-3 align-middle">${colStaff}</td>
+                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
+                    <td class="px-2 py-3 align-middle">${colClientes}</td>
+                    <td class="px-2 py-3 align-middle">${colEventos}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                </tr>`;
+            }).join('');
+        }
+    },
+
+    
+    // Filtrar usuarios
+    filterUsers: function() {
+        if (!this.state.user) return; // No filtrar si no hay sesión
+        const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
+        const groupFilter = document.getElementById('filter-group')?.value || '';
+        const eventFilter = document.getElementById('filter-event')?.value || '';
+        const roleFilter = document.getElementById('filter-role')?.value || '';
+        
+        let filtered = this.state.allUsers || [];
+        
+        // Filtro de búsqueda - buscar por TODAS las variables: Staff, Empresa, Clientes, Eventos, Rol
+        if (searchTerm) {
+            filtered = filtered.filter(u => {
+                const term = searchTerm.toLowerCase();
+                
+                // Campos básicos (Staff + Rol)
+                const basicMatch = 
+                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
+                    u.username.toLowerCase().includes(term) ||
+                    (u.role && u.role.toLowerCase().includes(term));
+                
+                // Buscar en empresas/grupos (array)
+                const groupMatch = u.groups && Array.isArray(u.groups) && 
+                    u.groups.some(g => g.name && g.name.toLowerCase().includes(term));
+                
+                // Buscar en eventos por nombre
+                const eventNameMatch = u.events && Array.isArray(u.events) && 
+                    this.state.allEvents && this.state.allEvents.some(e => 
+                        u.events.includes(e.id) && e.name && e.name.toLowerCase().includes(term));
+                
+                // Buscar en clientes asignados
+                const clientMatch = u.clients && Array.isArray(u.clients) && 
+                    u.clients.some(c => c.name && c.name.toLowerCase().includes(term));
+                
+                return basicMatch || groupMatch || eventNameMatch || clientMatch;
+            });
+        }
+        
+        // Filtro por empresa - buscar en el array de grupos del usuario
+        if (groupFilter) {
+            filtered = filtered.filter(u => {
+                // Verificar si el usuario tiene grupos y si alguno coincide con el filtro
+                if (u.groups && Array.isArray(u.groups)) {
+                    return u.groups.some(g => String(g.id) === String(groupFilter));
+                }
+                return false;
+            });
+        }
+        
+        // Filtro por evento
+        if (eventFilter) {
+            filtered = filtered.filter(u => u.events && u.events.includes(eventFilter));
+        }
+        
+        // Filtro por rol
+        if (roleFilter) {
+            filtered = filtered.filter(u => u.role === roleFilter);
+        }
+        
+        this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
+    },
+
+    // Toggle seleccionar todos los usuarios
+    toggleSelectAllUsers: function() {
+        const selectAll = document.getElementById('select-all-users');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        
+        if (selectAll.checked) {
+            // Seleccionar todos los usuarios visibles
+            this.state.selectedUsers = Array.from(checkboxes).map(cb => cb.dataset.userId);
+            checkboxes.forEach(cb => cb.checked = true);
+        } else {
+            // Deseleccionar todos
+            this.state.selectedUsers = [];
+            checkboxes.forEach(cb => cb.checked = false);
+        }
+    },
+
+    // Manejar cambio de checkbox individual
+    toggleUserSelection: function(userId) {
+        if (!this.state.selectedUsers) this.state.selectedUsers = [];
+        
+        const index = this.state.selectedUsers.indexOf(userId);
+        if (index > -1) {
+            this.state.selectedUsers.splice(index, 1);
+        } else {
+            this.state.selectedUsers.push(userId);
+        }
+        
+        // Actualizar estado del checkbox "seleccionar todos"
+        const selectAll = document.getElementById('select-all-users');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        selectAll.checked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+    },
+
+    // Manejar acciones en lote
+    handleBulkAction: async function() {
+        const actionSelect = document.getElementById('bulk-action');
+        const action = actionSelect.value;
+        
+        if (!action) return;
+        
+        // Obtener usuarios seleccionados
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.userId);
+        
+        if (selectedIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            actionSelect.value = '';
+            return;
+        }
+        
+        switch (action) {
+            case 'edit':
+                await this.editSelectedUsers(selectedIds);
+                break;
+            case 'activate':
+                await this.bulkUpdateStatus(selectedIds, 'APPROVED');
+                break;
+            case 'suspend':
+                await this.bulkUpdateStatus(selectedIds, 'SUSPENDED');
+                break;
+            case 'delete':
+                if (!(await this._confirmAction('¿Eliminar usuarios?', `¿Estás seguro de eliminar ${selectedIds.length} usuario(s)? Esta acción no se puede deshacer.`))) {
+                    actionSelect.value = '';
+                    return;
+                }
+                await this.bulkDeleteUsers(selectedIds);
+                break;
+            case 'assign-company':
+                // Mostrar selector de empresa
+                this.showGroupSelectorForBulk(selectedIds);
+                break;
+            case 'assign-client':
+                // Mostrar selector de cliente
+                this.showClientSelectorForBulkUsers(selectedIds);
+                break;
+            case 'assign-event':
+                // Mostrar selector de evento
+                this.showEventSelectorForBulk(selectedIds);
+                break;
+        }
+        
+        actionSelect.value = '';
+    },
+
+    // Cambiar rol de múltiples usuarios
+    handleBulkRoleChange: async function() {
+        const roleSelect = document.getElementById('bulk-role');
+        const newRole = roleSelect.value;
+        
+        if (!newRole) return;
+        
+        // Obtener usuarios seleccionados
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.userId);
+        
+        if (selectedIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            roleSelect.value = '';
+            return;
+        }
+        
+        if (!(await this._confirmAction('¿Cambiar rol?', `¿Cambiar el rol a ${newRole} para ${selectedIds.length} usuario(s)?`))) {
+            roleSelect.value = '';
+            return;
+        }
+        
+        try {
+            const promises = selectedIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/role`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ role: newRole })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Rol actualizado', 
+                text: `Rol cambiado a ${newRole} para ${selectedIds.length} usuario(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al cambiar rol', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+        
+        roleSelect.value = '';
+    },
+
+    // Actualizar estado de múltiples usuarios
+    bulkUpdateStatus: async function(userIds, status) {
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Actualizado', 
+                text: `${userIds.length} usuario(s) ${status === 'APPROVED' ? 'activados' : 'suspendidos'}`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar usuarios', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Eliminar múltiples usuarios
+    bulkDeleteUsers: async function(userIds) {
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}`, { method: 'DELETE' })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Eliminado', 
+                text: `${userIds.length} usuario(s) eliminado(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff', 
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al eliminar usuarios', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Editar usuarios seleccionados
+    editSelectedUsers: async function(userIds) {
+        if (!userIds || userIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar que solo se edite un usuario a la vez
+        if (userIds.length > 1) {
+            Swal.fire({ 
+                title: '⚠️ Atención', 
+                text: 'Solo puedes editar un usuario a la vez. Por favor, selecciona solo un usuario.', 
+                icon: 'warning', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        const userId = userIds[0];
+        const user = this.state.allUsers?.find(u => u.id === userId);
+        
+        if (!user) {
+            Swal.fire({ title: '⚠️ Error', text: 'Usuario no encontrado', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar permisos
+        const currentUser = this.state.user;
+        if (!currentUser) return;
+        
+        const isAdmin = currentUser.role === 'ADMIN';
+        const isProductor = currentUser.role === 'PRODUCTOR';
+        
+        // ADMIN puede editar cualquier usuario
+        // PRODUCTOR solo puede editar usuarios que NO sean ADMIN
+        if (!isAdmin && !isProductor) {
+            Swal.fire({ 
+                title: '⚠️ Permiso denegado', 
+                text: 'No tienes permisos para editar usuarios', 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        if (isProductor) {
+            // PRODUCTOR no puede editar ADMINs
+            if (user.role === 'ADMIN') {
+                Swal.fire({ 
+                    title: '⚠️ Permiso denegado', 
+                    text: 'No puedes editar usuarios ADMIN', 
+                    icon: 'error', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
+                return;
+            }
+            
+            // PRODUCTOR solo puede editar usuarios de su empresa
+            const userGroupId = currentUser.group_id;
+            if (userGroupId) {
+                const userBelongsToGroup = user.groups && user.groups.some(g => String(g.id) === String(userGroupId));
+                if (!userBelongsToGroup) {
+                    Swal.fire({ 
+                        title: '⚠️ Permiso denegado', 
+                        text: 'Solo puedes editar usuarios de tu empresa', 
+                        icon: 'error', 
+                        background: '#0f172a', 
+                        color: '#fff' 
+                    });
+                    return;
+                }
+            }
+        }
+        
+        // Llamar a la función existente editUser
+        this.editUser(userId);
+    },
+
+    // Editar empresas seleccionadas
+    editSelectedGroups: async function(groupIds) {
+        if (!groupIds || groupIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar que solo se edite una empresa a la vez
+        if (groupIds.length > 1) {
+            Swal.fire({ 
+                title: '⚠️ Atención', 
+                text: 'Solo puedes editar una empresa a la vez. Por favor, selecciona solo una empresa.', 
+                icon: 'warning', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        const groupId = groupIds[0];
+        const group = this.state.groups?.find(g => g.id === groupId);
+        
+        if (!group) {
+            Swal.fire({ title: '⚠️ Error', text: 'Empresa no encontrada', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Validar permisos
+        const currentUser = this.state.user;
+        if (!currentUser) return;
+        
+        const isAdmin = currentUser.role === 'ADMIN';
+        const isProductor = currentUser.role === 'PRODUCTOR';
+        
+        // ADMIN puede editar cualquier empresa
+        // PRODUCTOR solo puede editar su propia empresa
+        if (!isAdmin && !isProductor) {
+            Swal.fire({ 
+                title: '⚠️ Permiso denegado', 
+                text: 'No tienes permisos para editar empresas', 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
+            return;
+        }
+        
+        if (isProductor) {
+            // PRODUCTOR solo puede editar su propia empresa
+            const userGroupId = currentUser.group_id;
+            if (!userGroupId || String(userGroupId) !== String(groupId)) {
+                Swal.fire({ 
+                    title: '⚠️ Permiso denegado', 
+                    text: 'Solo puedes editar tu propia empresa', 
+                    icon: 'error', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
+                return;
+            }
+        }
+        
+        // Llamar a la función para editar grupo
+        this.editGroup(groupId);
     },
 
     // Editar empresa (grupo)
@@ -2842,38 +3473,8 @@ const App = window.App = {
             });
         };
         
-        // Función helper para obtener userIds actuales
-        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
-        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación: TODAS las acciones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.bulkUpdateStatus(${getCurrentUserIds}, 'APPROVED')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #22c55e;" title="Activar">
-                        <span class="material-symbols-outlined text-sm">play_circle</span>
-                    </button>
-                    <button onclick="App.bulkUpdateStatus(${getCurrentUserIds}, 'SUSPENDED')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Suspender">
-                        <span class="material-symbols-outlined text-sm">pause_circle</span>
-                    </button>
-                    <div class="flex items-center gap-1.5 px-2">
-                        <span class="w-2 h-2 rounded-full" style="background: ${primaryColor};"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                    </div>
-                    <button onclick="App.showGroupSelectorForBulk(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Empresa">
-                        <span class="material-symbols-outlined text-sm">corporate_fare</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulk(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                    <button onclick="App.bulkDeleteUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Eliminar">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                </div>
-
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente</span>
@@ -3021,38 +3622,173 @@ const App = window.App = {
             }).length;
         };
         
-        // Función helper para obtener userIds actuales
-        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
-        
         const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación: TODAS las acciones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.bulkUpdateStatus(${getCurrentUserIds}, 'APPROVED')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #22c55e;" title="Activar">
-                        <span class="material-symbols-outlined text-sm">play_circle</span>
-                    </button>
-                    <button onclick="App.bulkUpdateStatus(${getCurrentUserIds}, 'SUSPENDED')" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Suspender">
-                        <span class="material-symbols-outlined text-sm">pause_circle</span>
-                    </button>
-                    <div class="flex items-center gap-1.5 px-2">
-                        <span class="w-2 h-2 rounded-full" style="background: ${primaryColor};"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
-                        <span class="w-2 h-2 rounded-full" style="background: ${textSecondary}; opacity: 0.3;"></span>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Asignar Empresa</span>
+                        <span class="text-xs text-slate-400">Selecciona empresa para ${userIds.length} usuario(s)</span>
                     </div>
-                    <button onclick="App.showGroupSelectorForBulk(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Empresa">
-                        <span class="material-symbols-outlined text-sm">corporate_fare</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulk(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                    <button onclick="App.bulkDeleteUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Eliminar">
-                        <span class="material-symbols-outlined text-sm">delete</span>
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !py-2 !px-4 !text-xs shadow-lg">
+                        <span class="material-symbols-outlined text-xs">add_business</span> NUEVA
                     </button>
                 </div>
 
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors text-sm">search</span>
+                    <input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" 
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600">
+                </div>
+
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    ${groups.map(g => {
+                        const assignedCount = getAssignedCount(g.id);
+                        const isAssignedToAll = assignedCount === userIds.length;
+                        const isAssignedToSome = assignedCount > 0 && assignedCount < userIds.length;
+                        const statusClass = isAssignedToAll ? 'ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30' : isAssignedToSome ? 'ring-1 ring-blue-500/30 bg-blue-500/5 border-blue-500/20' : '';
+                        const icon = isAssignedToAll ? 'check' : 'add';
+                        return `
+                        <div onclick="App.bulkToggleCompanyForUsers('${userIds.join(',')}', '${g.id}', ${isAssignedToAll ? 'true' : 'false'})" class="selector-item flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm ${statusClass}">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold group-hover:scale-105 transition-transform">
+                                <span class="material-symbols-outlined">corporate_fare</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${g.name}</div>
+                                <div class="text-[11px] ${isAssignedToAll ? 'text-blue-400 font-semibold' : 'text-slate-500 uppercase tracking-tighter'}">
+                                    ${isAssignedToAll ? '✓ Asignada a todos' : isAssignedToSome ? `${assignedCount} de ${userIds.length} usuarios` : g.email || 'Sin email'}
+                                </div>
+                            </div>
+                            <div class="w-7 h-7 rounded-lg ${isAssignedToAll ? 'bg-blue-500/20 border-2 border-blue-500/50' : 'bg-white/5 border border-white/10'} flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                                <span class="material-symbols-outlined text-xs ${isAssignedToAll ? 'text-blue-400' : 'text-blue-500 opacity-0 group-hover:opacity-100'} transition-opacity">${icon}</span>
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
+            </div>`;
+
+        Swal.fire({
+            title: '',
+            html,
+            width: '450px',
+            background: 'var(--bg-card)',
+            color: 'var(--text-main)',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { 
+                popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl',
+                closeButton: 'hover:text-red-500 transition-colors'
+            }
+        });
+    },
+    
+    // Toggle empresa para usuarios seleccionados (asignar o desasignar)
+    bulkToggleCompanyForUsers: async function(userIdsStr, groupId, currentlyAssigned) {
+        const userIds = userIdsStr.split(',');
+        try {
+            let promises;
+            if (currentlyAssigned) {
+                // Desasignar empresa (enviar null)
+                promises = userIds.map(userId => 
+                    this.fetchAPI(`/users/${userId}/group`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ group_id: null })
+                    })
+                );
+            } else {
+                // Asignar empresa
+                promises = userIds.map(userId => 
+                    this.fetchAPI(`/users/${userId}/group`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ group_id: groupId })
+                    })
+                );
+            }
+            
+            await Promise.all(promises);
+            
+            // Recargar modal para mostrar nuevo estado
+            this.showGroupSelectorForBulk(userIds);
+            this.loadUsersTable();
+            this.loadGroups();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al actualizar empresa', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+    
+    bulkAssignCompanyFromModal: async function(userIdsStr, groupId) {
+        const userIds = userIdsStr.split(',');
+        try {
+            const promises = userIds.map(userId => 
+                this.fetchAPI(`/users/${userId}/group`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupId })
+                })
+            );
+            
+            await Promise.all(promises);
+            
+            Swal.fire({ 
+                title: '✓ Asignado', 
+                text: `Empresa asignada a ${userIds.length} usuario(s)`, 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
+            
+            this.state.selectedUsers = [];
+            this.loadUsersTable();
+            this.loadGroups();
+            Swal.close();
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Mostrar selector de evento para bulk
+    showEventSelectorForBulk: function(userIds) {
+        const events = this.state.allEvents || [];
+        const users = this.state.allUsers || [];
+        
+        if (events.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Detectar tema actual
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#8b5cf6';
+        const primaryLight = isDark ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.15)';
+        
+        // Calcular cuántos de los usuarios seleccionados tienen cada evento
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const getAssignedCount = (eventId) => {
+            return selectedUsers.filter(u => {
+                const userEvents = u.events || [];
+                return userEvents.some(ev => String(ev) === String(eventId));
+            }).length;
+        };
+        
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedUsers.length === 1) {
+            const user = selectedUsers[0];
+            const userName = user.display_name || user.username || 'Usuario';
+            const eventCount = (user.events || []).length;
+            subtitleText = `${userName} - ${eventCount} Eventos`;
+        } else {
+            subtitleText = `${selectedUsers.length} usuarios seleccionados`;
+        }
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
