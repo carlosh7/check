@@ -1272,6 +1272,28 @@ const App = window.App = {
     },
 
     // Toggle selección de cliente
+    // Selección de empresas
+    toggleGroupSelection: function(groupId) {
+        if (!this.state.selectedGroups) this.state.selectedGroups = [];
+        const idx = this.state.selectedGroups.indexOf(groupId);
+        if (idx > -1) {
+            this.state.selectedGroups.splice(idx, 1);
+        } else {
+            this.state.selectedGroups.push(groupId);
+        }
+    },
+
+    // Selección de empresas
+    toggleGroupSelection: function(groupId) {
+        if (!this.state.selectedGroups) this.state.selectedGroups = [];
+        const idx = this.state.selectedGroups.indexOf(groupId);
+        if (idx > -1) {
+            this.state.selectedGroups.splice(idx, 1);
+        } else {
+            this.state.selectedGroups.push(groupId);
+        }
+    },
+
     toggleClientSelection: function(clientId) {
         if (!this.state.selectedClients) this.state.selectedClients = [];
         const idx = this.state.selectedClients.indexOf(clientId);
@@ -1768,6 +1790,7 @@ const App = window.App = {
     handleBulkGroupAction: async function() {
         const action = document.getElementById('bulk-group-action')?.value;
         if (!action) return;
+        if (!this.state.selectedGroups) this.state.selectedGroups = [];
         const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
         if (action === 'edit') { this.editSelectedGroups(groupIds); }
         else if (action === 'assign-client') { if (!groupIds?.length) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); } else { this.openAssignClientToGroupModal(groupIds); } }
