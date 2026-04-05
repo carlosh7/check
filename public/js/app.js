@@ -1655,6 +1655,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 });
                 console.log('Response asignar:', response);
             }
+            
+            console.log('SALI DEL IF, antes de cache');
             if (isAssigned) {
                 // Desasignar
                 await this.fetchAPI('/clients/unassign-from-company', {
@@ -1670,12 +1672,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             }
             
             // Limpiar cache y recargar datos (mismo patron que bulkToggleEventForUsers)
-            console.log('Antes de limpiar cache');
             this.state.clients = null;
             this.state.groups = null;
             await this.loadClients();
             await this.loadGroups();
-            console.log('Después de recargar datos');
             
             // Mostrar notificación
             Swal.fire({ 
