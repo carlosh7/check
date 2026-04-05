@@ -62,9 +62,6 @@ router.get('/', authMiddleware(), (req, res) => {
     
     res.json(clientsWithDetails);
 });
-    
-    res.json(clientsWithDetails);
-});
 
 // Crear cliente
 router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
