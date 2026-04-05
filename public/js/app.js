@@ -1636,6 +1636,56 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
+    assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            if (isAssigned) {
+                // Desasignar cliente de la empresa
+                await this.fetchAPI(`/clients/${clientId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: null })
+                });
+            } else {
+                // Asignar cliente a la empresa
+                await this.fetchAPI(`/clients/${clientId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupIds[0] })
+                });
+            }
+            await this.loadGroups();
+            await this.loadUsersTable();
+            this.loadClients();
+            this.openAssignClientToGroupModal(this.state.selectedGroups);
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            if (isAssigned) {
+                // Desasignar cliente de la empresa
+                await this.fetchAPI(`/clients/${clientId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: null })
+                });
+            } else {
+                // Asignar cliente a la empresa
+                await this.fetchAPI(`/clients/${clientId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ group_id: groupIds[0] })
+                });
+            }
+            await this.loadGroups();
+            await this.loadUsersTable();
+            this.loadClients();
+            this.openAssignClientToGroupModal(this.state.selectedGroups);
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
     // Modal editar empresa
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];
