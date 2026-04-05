@@ -1535,6 +1535,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
+        console.log('openAssignClientToGroupModal - clients con IDs:', JSON.stringify(clients.map(c => ({ id: c.id, name: c.name }))));
         groupIds = groupIds || this.state.selectedGroups || [];
         
         if (clients.length === 0) {
