@@ -1649,22 +1649,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             this.state.groups = null;
             await this.refreshAllTables();
             
-            // Mostrar notificación
-            Swal.fire({ 
-                toast: true,
-                title: isAssigned ? '✓ Desasignado' : '✓ Asignado', 
-                icon: 'success',
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1000,
-                showConfirmButton: false,
-                position: 'top-end'
-            });
-            
-            // Reabrir modal después de la notificación para seguir seleccionando
-            setTimeout(() => {
-                this.openAssignClientToGroupModal(groupIds);
-            }, 300);
+            // Reabrir modal inmediatamente (mismo patrón que toggleEventToUser)
+            this.openAssignClientToGroupModal(groupIds);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
