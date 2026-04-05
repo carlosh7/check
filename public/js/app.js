@@ -1624,16 +1624,30 @@ const App = window.App = {
         const primaryColor = '#10b981';
         const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
         
-        // Obtener nombres de empresas seleccionadas
+        // Obtener empresas seleccionadas
         const selectedGroups = this.state.groups?.filter(g => groupIds.includes(g.id)) || [];
-        const groupNames = selectedGroups.map(g => g.name).join(', ');
+        
+        // Calcular cuántas empresas tienen cada cliente asignado
+        const getGroupClientCount = (groupId) => {
+            return clients.filter(c => String(c.company_id) === String(groupId)).length;
+        };
+        
+        // Construir texto del título
+        let subtitleText = '';
+        if (selectedGroups.length === 1) {
+            const group = selectedGroups[0];
+            const clientCount = getGroupClientCount(group.id);
+            subtitleText = `${group.name} - ${clientCount} Clientes`;
+        } else {
+            subtitleText = `${selectedGroups.length} empresas seleccionadas`;
+        }
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${groupNames || groupIds.length + ' empresa(s) seleccionada(s)'}</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
@@ -1689,14 +1703,10 @@ const App = window.App = {
         try {
             if (isAssigned) {
                 // Desasignar - pasar company_id vacío
-                const response = await this.fetchAPI('/clients/unassign-from-company', {
+                await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
                 });
-                // Forzar recarga de grupos y clientes
-                this.state.clients = null;
-                this.loadGroups();
-                // Mostrar notificación y reabrir modal
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Desasignado', 
@@ -1707,20 +1717,12 @@ const App = window.App = {
                     showConfirmButton: false,
                     position: 'top-end'
                 });
-                setTimeout(() => {
-                    if (Swal.isVisible()) {
-                        this.openAssignClientToGroupModal(groupIds);
-                    }
-                }, 200);
             } else {
                 // Asignar
                 await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], company_id: groupIds[0] })
                 });
-                // Forzar recarga de grupos y clientes
-                this.state.clients = null;
-                this.loadGroups();
                 Swal.fire({ 
                     toast: true,
                     title: '✓ Asignado', 
@@ -1731,12 +1733,20 @@ const App = window.App = {
                     showConfirmButton: false,
                     position: 'top-end'
                 });
-                setTimeout(() => {
-                    if (Swal.isVisible()) {
-                        this.openAssignClientToGroupModal(groupIds);
-                    }
-                }, 200);
             }
+            
+            // Recargar clientes y usuarios desde API y volver a mostrar el modal
+            const clients = await this.fetchAPI('/clients');
+            this.state.clients = clients;
+            const users = await this.fetchAPI('/users');
+            this.state.allUsers = users;
+            
+            // Volver a mostrar el modal con datos actualizados
+            setTimeout(() => {
+                if (Swal.isVisible()) {
+                    this.openAssignClientToGroupModal(groupIds);
+                }
+            }, 200);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
