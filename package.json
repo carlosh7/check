@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.112",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.112 - Orden botones empresas + fix modal no se cierra al guardar (mensaje inline)",
+  "version": "12.44.113",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.113 - Fix: filterGroups() y toggleSelectAllGroups() faltantes en sección empresas",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

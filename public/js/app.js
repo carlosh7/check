@@ -1307,6 +1307,116 @@ const App = window.App = {
         document.querySelectorAll('.group-checkbox').forEach(cb => cb.checked = false);
     },
 
+    // Seleccionar/deseleccionar todas las empresas
+    toggleSelectAllGroups: function() {
+        const selectAll = document.getElementById('select-all-groups');
+        const checkboxes = document.querySelectorAll('.group-checkbox');
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => cb.checked = true);
+            this.state.selectedGroups = Array.from(checkboxes).map(cb => cb.dataset.groupId);
+        } else {
+            checkboxes.forEach(cb => cb.checked = false);
+            this.state.selectedGroups = [];
+        }
+    },
+
+    // Filtrar empresas por búsqueda y filtros
+    filterGroups: function() {
+        if (!this.state.groups) return;
+        const searchTerm = document.getElementById('group-search')?.value.toLowerCase() || '';
+        const clientFilter = document.getElementById('filter-group-client')?.value || '';
+        const userFilter = document.getElementById('filter-group-user')?.value || '';
+        const eventFilter = document.getElementById('filter-group-event')?.value || '';
+        const statusFilter = document.getElementById('filter-group-status')?.value || '';
+
+        let filtered = this.state.groups;
+
+        if (searchTerm) {
+            filtered = filtered.filter(g =>
+                g.name?.toLowerCase().includes(searchTerm) ||
+                g.email?.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (clientFilter) {
+            const clients = this.state.clients || [];
+            filtered = filtered.filter(g => clients.some(c => String(c.group_id) === String(g.id) && String(c.id) === String(clientFilter)));
+        }
+
+        if (userFilter) {
+            const users = this.state.allUsers || [];
+            filtered = filtered.filter(g => users.some(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)) && String(u.id) === String(userFilter)));
+        }
+
+        if (eventFilter) {
+            const events = this.state.allEvents || [];
+            filtered = filtered.filter(g => events.some(e => String(e.group_id) === String(g.id) && String(e.id) === String(eventFilter)));
+        }
+
+        if (statusFilter) {
+            filtered = filtered.filter(g => g.status === statusFilter);
+        }
+
+        // Re-renderizar tabla con filtered
+        const tbody = document.getElementById('groups-tbody');
+        if (tbody) {
+            const users = this.state.allUsers || [];
+            const events = this.state.allEvents || [];
+            const clients = this.state.clients || [];
+
+            tbody.innerHTML = filtered.map(g => {
+                const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
+                const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+
+                const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
+                const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+
+                const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
+                const clientRows = groupClients.length > 0 ? groupClients.map(c => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+
+                return `
+                <tr class="user-row-premium">
+                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                        <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
+                        <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex flex-col max-w-[200px]">${clientRows}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex flex-col max-w-[200px]">${userRows}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                    </td>
+                    <td class="px-2 py-3 align-middle text-left">
+                        <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
+                            ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+    },
+
     // Seleccionar todos los clientes
     toggleSelectAllClients: function() {
         const selectAll = document.getElementById('select-all-clients');
