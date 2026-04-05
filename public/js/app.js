@@ -1700,6 +1700,7 @@ const App = window.App = {
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
         const groupIds = groupIdsStr.split(',');
+        console.log('assignClientToGroupsFromModal llamado:', { groupIdsStr, clientId, isAssigned });
         try {
             if (isAssigned) {
                 // Desasignar
