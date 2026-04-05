@@ -1069,25 +1069,28 @@ const App = window.App = {
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                    const userChips = groupUsers.map(u => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${u.display_name || u.username}
-                        </span>
-                    `).join('');
+                    const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-                    const eventChips = groupEvents.map(e => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        </span>
-                    `).join('');
+                    const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
-const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-                    const clientChips = groupClients.map(c => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
-                        </span>
-                    `).join('');
+                    const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
+                    const clientRows = groupClients.length > 0 ? groupClients.map(c => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
@@ -1099,13 +1102,13 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${clientRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${userRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1784,15 +1787,15 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                 </td>
-                <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
-                </td>
-                <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
-                </td>
-                <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
-                </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-col max-w-[200px]">${clientRows}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-col max-w-[200px]">${userRows}</div>
+                        </td>
+                        <td class="px-2 py-3 align-middle">
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                        </td>
                 <td class="px-2 py-3 align-middle text-left">
                     <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                         ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
@@ -2288,21 +2291,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     body: JSON.stringify({ user_id: userId })
                 });
             }
-            
-            Swal.fire({ 
-                title: '✓ Asignado', 
-                text: `Staff asignado a ${groupIds.length} empresa(s)`, 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.state.selectedGroups = [];
-            this.loadGroups();
-            this.loadUsersTable();
-            Swal.close();
+            await this.refreshAllTables();
+            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
         }
@@ -2608,7 +2598,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 // --- CHECKBOX DE SELECCIÓN ---
                 const checkbox = `<input type="checkbox" class="user-checkbox" data-user-id="${u.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="App.toggleUserSelection('${u.id}')" ${this.state.selectedUsers?.includes(u.id) ? 'checked' : ''}>`;
                 
-                // --- COLUMNA 1: STAFF (Nombre + Email) ---
+                // --- COLUMNA 1: STAFF ---
                 const colStaff = `
                     <div class="flex flex-col gap-0.5">
                         <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || 'Sin nombre'}</div>
@@ -2616,41 +2606,51 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     </div>
                 `;
 
-                // --- COLUMNA 2: EVENTOS ---
-                const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
-                const eventChips = userEvents.map(e => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
-                    </span>
-                `).join('');
-                const colEventos = userEvents.length > 0 ? 
-                    `<div class="flex flex-col">${eventChips}</div>` : 
-                    `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
-
-                // --- COLUMNA 3: EMPRESA ---
+                // --- COLUMNA 2: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
 
-                // --- COLUMNA 4: ESTADO ---
-                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
-                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
-                const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
+                // --- COLUMNA 3: CLIENTES ---
+                const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
+
+                // --- COLUMNA 4: EVENTOS ---
+                const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
+                const eventRows = userEvents.length > 0 ? userEvents.map(e => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
                 const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
+
+                // --- COLUMNA 6: ESTADO ---
+                const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
+                const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
+                const colEstado = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
 
                 return `
                 <tr class="user-row-premium">
                     <td class="px-2 py-3 align-middle">${checkbox}</td>
                     <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle">${colClientes}</td>
+                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
                 </tr>`;
             }).join('');
         }

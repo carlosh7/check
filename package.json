@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.87",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.87 - Modales empresa: barra fija en editar, toggle funcional, evento no se cierra",
+  "version": "12.44.88",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.88 - Fix: tablas con iconos, orden correcto, status-pill, toggles funcionales",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
