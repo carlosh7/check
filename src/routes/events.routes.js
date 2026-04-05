@@ -128,6 +128,10 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const d = v.data;
 
+    // Handle group_id separately since COALESCE doesn't work with null
+    const groupIdSql = 'group_id' in d ? '?' : 'group_id';
+    const groupIdVal = 'group_id' in d ? d.group_id : undefined;
+
     db.prepare(`
         UPDATE events SET 
             name = COALESCE(?, name),
@@ -137,6 +141,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             description = COALESCE(?, description),
             end_date = COALESCE(?, end_date),
             status = COALESCE(?, status),
+            group_id = ${groupIdSql},
             reg_title = COALESCE(?, reg_title),
             reg_welcome_text = COALESCE(?, reg_welcome_text),
             reg_policy = COALESCE(?, reg_policy),
@@ -159,6 +164,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         WHERE id = ?
     `).run(
         d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status, 
+        ...(groupIdVal !== undefined ? [groupIdVal] : []),
         d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, 
         (d.reg_show_phone === true || d.reg_show_phone === 1) ? 1 : 0, 
         (d.reg_show_org === true || d.reg_show_org === 1) ? 1 : 0, 

@@ -92,6 +92,7 @@ const schemas = {
         location: z.string().max(500).optional().or(z.literal('')),
         description: z.string().max(2000).optional().or(z.literal('')),
         status: z.enum(['ACTIVE', 'INACTIVE', 'COMPLETED']).optional(),
+        group_id: z.string().optional().nullable(),
         reg_title: z.string().optional().or(z.literal('')),
         reg_welcome_text: z.string().optional().or(z.literal('')),
         reg_success_message: z.string().optional().or(z.literal('')),
