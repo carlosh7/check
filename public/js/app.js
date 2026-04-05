@@ -1538,11 +1538,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // Leer checkboxes actuales directamente del DOM (más confiable que el estado)
-        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
-        const currentSelectedIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-group-id'));
-        console.log('openAssignClientToGroupModal - checkboxes encontrados:', currentSelectedIds);
-        groupIds = currentSelectedIds;
+        // Usar el parámetro groupIds si viene, si no usar selectedGroups
+        if (!groupIds || groupIds.length === 0) {
+            groupIds = this.state.selectedGroups || [];
+        }
         
         if (clients.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
@@ -1653,11 +1652,11 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 });
             }
             
-            // Recargar directamente loadGroups (sin refreshAllTables)
+            // Recargar directamente loadGroups
             await this.loadGroups();
             
-            // Reabrir modal (sin pasar groupIds, usará selectedGroups actual)
-            this.openAssignClientToGroupModal();
+            // Reabrir modal con las empresas seleccionadas actuales
+            this.openAssignClientToGroupModal(this.state.selectedGroups);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
