@@ -1637,7 +1637,8 @@ const App = window.App = {
     },
 
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
-        const groupIds = groupIdsStr.split(',');
+        const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
             if (isAssigned) {
                 await this.fetchAPI('/clients/unassign-from-company', {
@@ -1866,7 +1867,8 @@ const App = window.App = {
     },
 
     assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
-        const groupIds = groupIdsStr.split(',');
+        const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
             if (isAssigned) {
                 await this.fetchAPI(`/events/${eventId}`, { method: 'PUT', body: JSON.stringify({ group_id: null }) });
@@ -1958,7 +1960,8 @@ const App = window.App = {
     },
 
     assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
-        const groupIds = groupIdsStr.split(',');
+        const groupIds = groupIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         try {
             if (isAssigned) {
                 for (const groupId of groupIds) { await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' }); }
