@@ -1535,7 +1535,6 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
-        console.log('openAssignClientToGroupModal - clients con IDs:', JSON.stringify(clients.map(c => ({ id: c.id, name: c.name }))));
         groupIds = groupIds || this.state.selectedGroups || [];
         
         if (clients.length === 0) {
@@ -1591,16 +1590,14 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                        ${clients.map((c, idx) => {
+                        ${clients.map(c => {
                             const clientGroupId = c.group_id || '';
                             const isAssigned = groupIds.some(gid => clientGroupId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        // Debug: ver qué valores tenemos
-                        console.log('Cliente:', c.id, c.name, 'group_id:', c.group_id, 'isAssigned:', isAssigned, 'groupIds:', groupIds);
                         return `
-                        <div data-client-id="${c.id}" data-is-assigned="${isAssigned}" onclick="console.log('CLICK idx:', ${idx}, 'id:', '${c.id}', 'isAssigned:', ${isAssigned}); App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
@@ -1631,43 +1628,27 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     },
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
-        console.log('INICIO function', groupIdsStr, clientId, isAssigned);
         const groupIds = groupIdsStr.split(',');
-        console.log('groupIds después de split:', groupIds);
         try {
-            console.log('ENTRO al try, isAssigned=', isAssigned);
             if (isAssigned) {
-                console.log('Va a desasignar, clientId:', clientId);
-                console.log('Llamando a /clients/unassign-from-company');
                 // Desasignar
-                const response = await this.fetchAPI('/clients/unassign-from-company', {
+                await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId] })
                 });
-                console.log('Response desasignar:', response);
             } else {
-                console.log('Va a asignar, clientId:', clientId, 'groupId:', groupIds[0]);
-                console.log('Llamando a /clients/assign-to-company');
                 // Asignar
-                const response = await this.fetchAPI('/clients/assign-to-company', {
+                await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
                     body: JSON.stringify({ client_ids: [clientId], group_id: groupIds[0] })
                 });
-                console.log('Response asignar:', response);
             }
             
-            console.log('SALI DEL IF, antes de cache');
-            
             // Limpiar cache y recargar datos (mismo patron que bulkToggleEventForUsers)
-            console.log('1. Limpiando cache');
             this.state.clients = null;
             this.state.groups = null;
-            console.log('2. Llamando loadClients()');
             await this.loadClients();
-            console.log('3. loadClients completado');
-            console.log('4. Llamando loadGroups()');
             await this.loadGroups();
-            console.log('5. loadGroups completado');
             
             // Mostrar notificación
             Swal.fire({ 
@@ -1676,17 +1657,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 icon: 'success',
                 background: '#0f172a', 
                 color: '#fff',
-                timer: 1000,
+                timer: 1500,
                 showConfirmButton: false,
                 position: 'top-end'
             });
-            
-            // Reabrir modal después de un breve delay
-            setTimeout(() => {
-                if (Swal.isVisible()) {
-                    this.openAssignClientToGroupModal(groupIds);
-                }
-            }, 200);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
