@@ -1604,267 +1604,21 @@ const App = window.App = {
 
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
                     </div>
-                    <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">add</span> Crear
-                    </button>
                 </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                        ${clients.map(c => {
-                            const clientGroupId = c.group_id || '';
-                            const isAssigned = groupIds.some(gid => clientGroupId === String(gid));
-                        const icon = isAssigned ? 'check' : 'add';
-                        const itemBorder = isAssigned ? primaryColor : borderColor;
-                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                <span class="material-symbols-outlined">person</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
-                            </div>
+                    ${selectedGroups.map(g => `
+                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
                         </div>
-                    `}).join('')}
+                    `).join('')}
                 </div>
             </div>`;
-
-        Swal.fire({
-            title: '',
-            html,
-            width: '460px',
-            background: bgMain,
-            color: textMain,
-            showConfirmButton: false,
-            showCloseButton: false,
-            customClass: { 
-                popup: 'rounded-[1.5rem] shadow-2xl'
-            }
-        });
-    },
-    
-    assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
-        console.log('===== assignClientToGroupsFromModal LLAMADA =====');
-        console.log('groupIdsStr:', groupIdsStr);
-        const groupIds = groupIdsStr.split(',');
-        try {
-            if (isAssigned) {
-                // Desasignar
-                await this.fetchAPI('/clients/unassign-from-company', {
-                    method: 'PUT',
-                    body: JSON.stringify({ client_ids: [clientId] })
-                });
-            } else {
-                // Asignar
-                await this.fetchAPI('/clients/assign-to-company', {
-                    method: 'PUT',
-                    body: JSON.stringify({ client_ids: [clientId], group_id: groupIds[0] })
-                });
-            }
-            
-            // Recargar directamente loadGroups
-            await this.loadGroups();
-            
-            // Reabrir modal con las empresas seleccionadas actuales
-            this.openAssignClientToGroupModal(this.state.selectedGroups);
-        } catch (e) {
-            console.error('Error assignClientToGroupsFromModal:', e);
-            Swal.fire({ 
-                toast: true,
-                title: '✗ Error', 
-                text: e.message || 'No se pudo actualizar', 
-                icon: 'error', 
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 2000,
-                showConfirmButton: false,
-                position: 'top-end'
-            });
-        }
-    },
-
-    // Filtrar empresas
-    filterGroups: function() {
-        if (!this.state.groups) return;
-        
-        const searchTerm = document.getElementById('group-search')?.value.toLowerCase() || '';
-        const clientFilter = document.getElementById('filter-group-client')?.value || '';
-        const userFilter = document.getElementById('filter-group-user')?.value || '';
-        const eventFilter = document.getElementById('filter-group-event')?.value || '';
-        const statusFilter = document.getElementById('filter-group-status')?.value || '';
-        
-        const filtered = this.state.groups.filter(g => {
-            // Filtro por búsqueda (nombre o email)
-            const matchesSearch = !searchTerm || 
-                (g.name && g.name.toLowerCase().includes(searchTerm)) ||
-                (g.email && g.email.toLowerCase().includes(searchTerm));
-            
-            // Filtro por evento
-            let matchesEvent = true;
-            if (eventFilter && this.state.allEvents) {
-                const groupEvents = this.state.allEvents.filter(e => String(e.group_id) === String(g.id));
-                matchesEvent = groupEvents.some(e => String(e.id) === eventFilter);
-            }
-            
-            // Filtro por usuario
-            let matchesUser = true;
-            if (userFilter && this.state.allUsers) {
-                const groupUsers = this.state.allUsers.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                matchesUser = groupUsers.some(u => String(u.id) === userFilter);
-            }
-            
-            // Filtro por estado
-            const matchesStatus = !statusFilter || g.status === statusFilter;
-            
-            // Filtro por cliente
-            let matchesClient = true;
-            if (clientFilter && this.state.clients) {
-                const groupClients = this.state.clients.filter(c => String(c.group_id) === String(g.id));
-                matchesClient = groupClients.some(c => String(c.id) === clientFilter);
-            }
-            
-            return matchesSearch && matchesEvent && matchesUser && matchesStatus && matchesClient;
-        });
-        
-        this.renderFilteredGroups(filtered);
-    },
-
-    // Renderizar empresas filtradas
-    renderFilteredGroups: function(groups) {
-        const tbody = document.getElementById('groups-tbody');
-        if (!tbody) return;
-        
-        const users = this.state.allUsers || [];
-        const events = this.state.allEvents || [];
-        const clients = this.state.clients || [];
-        
-        if (!groups || groups.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)] italic">No hay empresas que coincidan con los filtros.</td></tr>`;
-            return;
-        }
-        
-        tbody.innerHTML = groups.map(g => {
-            const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-            const userChips = groupUsers.map(u => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${u.display_name || u.username}
-                </span>
-            `).join('');
-            
-            const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-            const eventChips = groupEvents.map(e => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                </span>
-            `).join('');
-            
-            const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-            const clientChips = groupClients.map(c => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
-                </span>
-            `).join('');
-            
-            return `
-            <tr class="user-row-premium">
-                <td class="px-2 py-3 align-middle" style="width: 40px;">
-                    <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" ${this.state.selectedGroups?.includes(g.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
-                </td>
-                <td class="px-2 py-3 align-middle">
-                    <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
-                </td>
-                        <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${clientRows}</div>
-                        </td>
-                        <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${userRows}</div>
-                        </td>
-                        <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
-                        </td>
-                <td class="px-2 py-3 align-middle text-left">
-                    <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
-                        ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
-                    </span>
-                </td>
-            </tr>`;
-        }).join('');
-    },
-
-    // Toggle seleccionar todas las empresas
-    toggleSelectAllGroups: function() {
-        const selectAll = document.getElementById('select-all-groups');
-        if (!selectAll) return;
-        
-        const checkboxes = document.querySelectorAll('.group-checkbox');
-        const isChecked = selectAll.checked;
-        
-        checkboxes.forEach(cb => {
-            cb.checked = isChecked;
-            const groupId = cb.dataset.groupId;
-            this.toggleGroupSelection(groupId, isChecked);
-        });
-    },
-
-    // Toggle selección de una empresa
-    toggleGroupSelection: function(groupId, forceChecked) {
-        if (!this.state.selectedGroups) {
-            this.state.selectedGroups = [];
-        }
-        
-        const idx = this.state.selectedGroups.indexOf(groupId);
-        const isChecked = forceChecked !== undefined ? forceChecked : document.querySelector(`.group-checkbox[data-group-id="${groupId}"]`)?.checked;
-        
-        if (isChecked && idx === -1) {
-            this.state.selectedGroups.push(groupId);
-        } else if (!isChecked && idx > -1) {
-            this.state.selectedGroups.splice(idx, 1);
-        }
-    },
-
-    // Modal crear staff
-    openCreateUserModal: function() {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        Swal.fire({
-            title: 'Nuevo Staff',
-            html: `<div class="space-y-4 text-left">
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
-            </div>`,
-            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const display_name = document.getElementById('user-display-name').value.trim();
-                const username = document.getElementById('user-username').value.trim();
-                const password = document.getElementById('user-password').value.trim();
-                const role = document.getElementById('user-role').value;
-                const company_id = document.getElementById('user-company').value;
-                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña requeridos'); return false; }
-                try {
-                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
-                    this.loadUsersTable(); this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado', 'success');
-                    return true;
-                } catch (e) { Swal.showValidationMessage(e.message); return false; }
-            }
-        });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Modal editar empresa
@@ -1898,267 +1652,23 @@ const App = window.App = {
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
-
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
                     </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">add</span> Crear
-                    </button>
                 </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${events.map(e => {
-                        const isAssigned = groupIds.some(gid => String(e.group_id) === String(gid));
-                        const icon = isAssigned ? 'check' : 'add';
-                        const itemBorder = isAssigned ? primaryColor : borderColor;
-                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `
-                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                <span class="material-symbols-outlined">event</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
-                            </div>
+                    ${selectedGroups.map(g => `
+                        <div onclick="App.openEditSingleGroupModal('${g.id}')" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'} • ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.1); border: 2px solid ${borderColor};"><span class="material-symbols-outlined text-sm" style="color: #f59e0b;">edit</span></div>
                         </div>
-                    `}).join('')}
+                    `).join('')}
                 </div>
             </div>`;
-
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    // Mostrar selector de eventos para empresas
-    showEventSelectorForBulkGroups: function(groupIds) {
-        const events = this.state.allEvents || [];
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        
-        if (events.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#a855f7';
-        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
-        
-        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
-        
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
-                        <span class="material-symbols-outlined text-sm">settings</span>
-                    </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
-                        <span class="material-symbols-outlined text-sm">person</span>
-                    </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
-                        <span class="material-symbols-outlined text-sm">badge</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                </div>
-
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
-                    </div>
-                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">add</span> Crear
-                    </button>
-                </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${events.map(e => {
-                        const isAssigned = groupIds.some(gid => String(e.group_id) === String(gid));
-                        const icon = isAssigned ? 'check' : 'add';
-                        const itemBorder = isAssigned ? primaryColor : borderColor;
-                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `
-                        <div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                <span class="material-symbols-outlined">event</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
-                            </div>
-                        </div>
-                    `}).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
-        const groupIds = groupIdsStr.split(',');
-        try {
-            if (isAssigned) {
-                await this.fetchAPI(`/events/${eventId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ group_id: null })
-                });
-            } else {
-                await this.fetchAPI(`/events/${eventId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ group_id: groupIds[0] })
-                });
-            }
-            await this.loadGroups();
-            await this.loadUsersTable();
-            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
-    },
-    
-    // Mostrar selector de staff para empresas seleccionadas
-    showUserSelectorForBulkGroups: function(groupIds) {
-        const users = this.state.allUsers || [];
-        const groups = this.state.groups || [];
-        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
-        
-        if (users.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        const isDark = document.documentElement.classList.contains('dark');
-        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
-        const bgCard = isDark ? '#1e293b' : '#ffffff';
-        const bgInput = isDark ? '#334155' : '#e2e8f0';
-        const textMain = isDark ? '#f8fafc' : '#1e293b';
-        const textSecondary = isDark ? '#94a3b8' : '#475569';
-        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const primaryColor = '#3b82f6';
-        const primaryLight = isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)';
-        
-        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
-        
-        const html = `
-            <div class="space-y-5" style="padding-right: 8px;">
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
-                        <span class="material-symbols-outlined text-sm">settings</span>
-                    </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
-                        <span class="material-symbols-outlined text-sm">person</span>
-                    </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
-                        <span class="material-symbols-outlined text-sm">person</span>
-                    </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
-                        <span class="material-symbols-outlined text-sm">badge</span>
-                    </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento">
-                        <span class="material-symbols-outlined text-sm">event</span>
-                    </button>
-                </div>
-
-                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
-                    </div>
-                    <button onclick="App.openCreateUserModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">add</span> Crear
-                    </button>
-                </div>
-
-                <div class="relative group mt-6 mb-6">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span>
-                    <input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" 
-                        style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;">
-                </div>
-
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${users.map(u => {
-                        const isAssigned = u.groups && u.groups.some(g => groupIds.includes(g.id));
-                        const icon = isAssigned ? 'check' : 'add';
-                        const itemBorder = isAssigned ? primaryColor : borderColor;
-                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `
-                        <div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
-                                ${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};">
-                                <span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span>
-                            </div>
-                        </div>
-                    `}).join('')}
-                </div>
-            </div>`;
-
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
-    },
-    
-    assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
-        const groupIds = groupIdsStr.split(',');
-        try {
-            if (isAssigned) {
-                for (const groupId of groupIds) {
-                    await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
-                }
-            } else {
-                for (const groupId of groupIds) {
-                    await this.fetchAPI(`/groups/${groupId}/users`, {
-                        method: 'POST',
-                        body: JSON.stringify({ user_id: userId })
-                    });
-                }
-            }
-            await this.loadGroups();
-            await this.loadUsersTable();
-            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
     },
 
     openEditSingleGroupModal: function(groupId) {
@@ -2266,6 +1776,160 @@ const App = window.App = {
         else if (action === 'activate' || action === 'deactivate') { if (groupIds?.length) { this.handleBulkGroupActionDirect(action); } }
         else if (action === 'delete') { if (groupIds?.length) { this.handleBulkGroupActionDirect('delete'); } }
         document.getElementById('bulk-group-action').value = '';
+    },
+
+    // Mostrar selector de eventos para empresas
+    showEventSelectorForBulkGroups: function(groupIds) {
+        const events = this.state.allEvents || [];
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (events.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#a855f7';
+        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
+        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.navigateToCreateEvent()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${events.map(e => {
+                        const isAssigned = groupIds.some(gid => String(e.group_id) === String(gid));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignEventToGroupsFromModal('${groupIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            if (isAssigned) {
+                await this.fetchAPI(`/events/${eventId}`, { method: 'PUT', body: JSON.stringify({ group_id: null }) });
+            } else {
+                await this.fetchAPI(`/events/${eventId}`, { method: 'PUT', body: JSON.stringify({ group_id: groupIds[0] }) });
+            }
+            await this.loadGroups();
+            await this.loadUsersTable();
+            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Modal crear staff
+    openCreateUserModal: function() {
+        const groups = this.state.groups || [];
+        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        Swal.fire({
+            title: 'Nuevo Staff',
+            html: `<div class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
+                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
+            </div>`,
+            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const display_name = document.getElementById('user-display-name').value.trim();
+                const username = document.getElementById('user-username').value.trim();
+                const password = document.getElementById('user-password').value.trim();
+                const role = document.getElementById('user-role').value;
+                const company_id = document.getElementById('user-company').value;
+                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña requeridos'); return false; }
+                try {
+                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
+                    this.loadUsersTable(); this.loadGroups();
+                    Swal.fire('✓ Creado', 'Staff creado', 'success'); return true;
+                } catch (e) { Swal.showValidationMessage(e.message); return false; }
+            }
+        });
+    },
+
+    // Mostrar selector de staff para empresas
+    showUserSelectorForBulkGroups: function(groupIds) {
+        const users = this.state.allUsers || [];
+        const groups = this.state.groups || [];
+        const selectedGroups = groupIds ? groups.filter(g => groupIds.includes(g.id)) : [];
+        if (users.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#3b82f6';
+        const primaryLight = isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)';
+        const subtitleText = selectedGroups.length === 1 ? `${selectedGroups[0].name}` : `${selectedGroups.length} empresas seleccionadas`;
+        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.openCreateUserModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${users.map(u => {
+                        const isAssigned = u.groups && u.groups.some(g => groupIds.includes(g.id));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignUserToGroupsFromModal('${groupIds.join(',')}', '${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'STAFF'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
+        const groupIds = groupIdsStr.split(',');
+        try {
+            if (isAssigned) {
+                for (const groupId of groupIds) { await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' }); }
+            } else {
+                for (const groupId of groupIds) { await this.fetchAPI(`/groups/${groupId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) }); }
+            }
+            await this.loadGroups();
+            await this.loadUsersTable();
+            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
 
     async removeUserFromGroup(userId, groupId) {
