@@ -3124,10 +3124,11 @@ const App = window.App = {
                 });
             }
             
-            // Recargar datos y volver a mostrar el modal
+            // Recargar usuarios con sus clients y volver a mostrar el modal
+            const users = await this.fetchAPI('/users');
+            this.state.allUsers = users;
             const clients = await this.fetchAPI('/clients');
             this.state.clients = clients;
-            this.loadUsersTable();
             
             // Volver a mostrar el modal con datos actualizados
             this.showClientSelectorForBulkUsers(userIds);
