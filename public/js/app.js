@@ -1211,10 +1211,29 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         let filtered = this.state.clients;
         
         if (searchTerm) {
-            filtered = filtered.filter(c => 
-                c.name?.toLowerCase().includes(searchTerm) ||
-                c.email?.toLowerCase().includes(searchTerm)
-            );
+            filtered = filtered.filter(c => {
+                const term = searchTerm.toLowerCase();
+                
+                // Buscar en nombre y email del cliente
+                const clientMatch = (c.name && c.name.toLowerCase().includes(term)) ||
+                    (c.email && c.email.toLowerCase().includes(term));
+                
+                // Buscar en empresa asignada
+                const companyMatch = c.company_name && c.company_name.toLowerCase().includes(term);
+                
+                // Buscar en eventos del cliente
+                const eventsMatch = c.events && c.events.some && c.events.some(e => 
+                    e.name && e.name.toLowerCase().includes(term)
+                );
+                
+                // Buscar en staff asignado al cliente
+                const staffMatch = c.staff && c.staff.some && c.staff.some(u => 
+                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
+                    (u.username && u.username.toLowerCase().includes(term))
+                );
+                
+                return clientMatch || companyMatch || eventsMatch || staffMatch;
+            });
         }
         
         if (companyFilter) {
@@ -1695,10 +1714,33 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         const statusFilter = document.getElementById('filter-group-status')?.value || '';
         
         const filtered = this.state.groups.filter(g => {
-            // Filtro por búsqueda (nombre o email)
-            const matchesSearch = !searchTerm || 
-                (g.name && g.name.toLowerCase().includes(searchTerm)) ||
-                (g.email && g.email.toLowerCase().includes(searchTerm));
+            // Filtro por búsqueda - buscar en TODAS las variables: Empresa, Clientes, Staff, Eventos
+            let matchesSearch = !searchTerm;
+        if (searchTerm) {
+            filtered = filtered.filter(c => {
+                const term = searchTerm.toLowerCase();
+                
+                // Buscar en nombre y email del cliente
+                const clientMatch = (c.name && c.name.toLowerCase().includes(term)) ||
+                    (c.email && c.email.toLowerCase().includes(term));
+                
+                // Buscar en empresa asignada
+                const companyMatch = c.company_name && c.company_name.toLowerCase().includes(term);
+                
+                // Buscar en eventos del cliente
+                const eventsMatch = c.events && c.events.some && c.events.some(e => 
+                    e.name && e.name.toLowerCase().includes(term)
+                );
+                
+                // Buscar en staff asignado al cliente
+                const staffMatch = c.staff && c.staff.some && c.staff.some(u => 
+                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
+                    (u.username && u.username.toLowerCase().includes(term))
+                );
+                
+                return clientMatch || companyMatch || eventsMatch || staffMatch;
+            });
+        }
             
             // Filtro por evento
             let matchesEvent = true;
@@ -2390,7 +2432,23 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     </div>
                 `;
 
-                // --- COLUMNA 2: EVENTOS ---
+                // --- COLUMNA 2: EMPRESA ---
+                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
+                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
+                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
+                    </span>
+                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
+                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+
+                // --- COLUMNA 3: CLIENTES ---
+                const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
+                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
+                        ${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}
+                    </span>
+                `).join('') : `<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>`;
+                const colClientes = `<div class="flex flex-wrap gap-1 max-w-[200px]">${userClients}</div>`;
+
+                // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventChips = userEvents.map(e => `
                     <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
@@ -2401,30 +2459,23 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     `<div class="flex flex-col">${eventChips}</div>` : 
                     `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
 
-                // --- COLUMNA 3: EMPRESA ---
-                const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+                // --- COLUMNA 5: ROL ---
+                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
-                // --- COLUMNA 4: ESTADO ---
+                // --- COLUMNA 6: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
                 const statusClass = u.status === 'APPROVED' ? 'active' : u.status === 'PENDING' ? 'pending' : 'suspended';
                 const colEstado = `<div class="status-indicator-premium ${statusClass}">${statusLabel}</div>`;
-
-                // --- COLUMNA 5: ROL ---
-                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
 
                 return `
                 <tr class="user-row-premium">
                     <td class="px-2 py-3 align-middle">${checkbox}</td>
                     <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-2 py-3 align-middle">${colClientes}</td>
+                    <td class="px-2 py-3 align-middle">${colEventos}</td>
                     <td class="px-2 py-3 align-middle text-left">${colRol}</td>
+                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
                 </tr>`;
             }).join('');
         }
@@ -2441,32 +2492,31 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         
         let filtered = this.state.allUsers || [];
         
-        // Filtro de búsqueda - buscar por todos los campos
+        // Filtro de búsqueda - buscar por TODAS las variables: Staff, Empresa, Clientes, Eventos, Rol
         if (searchTerm) {
             filtered = filtered.filter(u => {
                 const term = searchTerm.toLowerCase();
                 
-                // Campos básicos
+                // Campos básicos (Staff + Rol)
                 const basicMatch = 
                     (u.display_name && u.display_name.toLowerCase().includes(term)) ||
                     u.username.toLowerCase().includes(term) ||
-                    (u.role && u.role.toLowerCase().includes(term)) ||
-                    (u.group_name && u.group_name.toLowerCase().includes(term));
+                    (u.role && u.role.toLowerCase().includes(term));
                 
                 // Buscar en empresas/grupos (array)
                 const groupMatch = u.groups && Array.isArray(u.groups) && 
                     u.groups.some(g => g.name && g.name.toLowerCase().includes(term));
                 
-                // Buscar en eventos
-                const eventMatch = u.events && Array.isArray(u.events) && 
-                    u.events.some(e => String(e).includes(term));
-                
-                // Buscar en nombres de eventos (si están en el objeto del usuario)
+                // Buscar en eventos por nombre
                 const eventNameMatch = u.events && Array.isArray(u.events) && 
                     this.state.allEvents && this.state.allEvents.some(e => 
                         u.events.includes(e.id) && e.name && e.name.toLowerCase().includes(term));
                 
-                return basicMatch || groupMatch || eventMatch || eventNameMatch;
+                // Buscar en clientes asignados
+                const clientMatch = u.clients && Array.isArray(u.clients) && 
+                    u.clients.some(c => c.name && c.name.toLowerCase().includes(term));
+                
+                return basicMatch || groupMatch || eventNameMatch || clientMatch;
             });
         }
         
