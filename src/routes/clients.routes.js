@@ -102,18 +102,23 @@ router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
 
 // Desasignar cliente de empresa (group_id = '') - ruta ESPECÍFICA
 router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
-    const { client_ids } = req.body;
-    
-    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
-        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+    try {
+        const { client_ids } = req.body;
+        
+        if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
+            return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+        }
+        
+        const stmt = db.prepare("UPDATE clients SET group_id = NULL WHERE id = ?");
+        for (const clientId of client_ids) {
+            stmt.run(castId('clients', clientId));
+        }
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ERROR] unassign-from-company:', err.message);
+        res.status(500).json({ error: err.message });
     }
-    
-    const stmt = db.prepare("UPDATE clients SET group_id = '' WHERE id = ? AND group_id IS NOT NULL AND group_id != ''");
-    for (const clientId of client_ids) {
-        stmt.run(castId('clients', clientId));
-    }
-    
-    res.json({ success: true });
 });
 
 // ============================================================================
