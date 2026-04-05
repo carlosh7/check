@@ -1051,17 +1051,10 @@
                                 <option value="STAFF">STAFF</option>
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
-                            <select id="bulk-role" onchange="App.handleBulkRoleChange()" class="filter-select-role">
-                                <option value="">Cambiar Rol</option>
-                                <option value="ADMIN">ADMIN</option>
-                                <option value="PRODUCTOR">PRODUCTOR</option>
-                                <option value="LOGISTICO">LOGISTICO</option>
-                                <option value="STAFF">STAFF</option>
-                                <option value="CLIENTE">CLIENTE</option>
-                            </select>
                             <select id="bulk-action" onchange="App.handleBulkAction()" class="filter-select-action">
                                 <option value="">Acciones</option>
                                 <option value="edit">Editar</option>
+                                <option value="change-role">Cambiar Rol</option>
                                 <option value="assign-company">Asignar Empresa</option>
                                 <option value="assign-client">Asignar Cliente</option>
                                 <option value="assign-event">Asignar Evento</option>
@@ -1111,11 +1104,11 @@
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateClient()">
                                 <span class="material-symbols-outlined text-base">person_add</span> + Cliente
                             </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openAssignEventToClientModal()">
-                                <span class="material-symbols-outlined text-base">event</span> Asignar Evento
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.importClients()">
+                                <span class="material-symbols-outlined text-base">upload_file</span> Importar
                             </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openAssignStaffToClientModal()">
-                                <span class="material-symbols-outlined text-base">person</span> Asignar Staff
+                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportClients()">
+                                <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
                         </div>
                         <!-- Filtros -->
@@ -1131,6 +1124,28 @@
                             <select id="bulk-client-action" onchange="App.handleBulkClientAction()" class="filter-select filter-select-action">
                                 <option value="">Acciones</option>
                                 <option value="edit">Editar</option>
+                                <option value="assign-event">Asignar Evento</option>
+                                <option value="assign-staff">Asignar Staff</option>
+                                <option value="activate">Activar</option>
+                                <option value="deactivate">Desactivar</option>
+                                <option value="delete">Eliminar</option>
+                            </select>
+                        </div>
+                        <!-- Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                                <option value="">Empresa</option>
+                            </select>
+                            <select id="filter-client-status" onchange="App.filterClients()" class="filter-select">
+                                <option value="">Estado</option>
+                                <option value="ACTIVE">Activo</option>
+                                <option value="INACTIVE">Inactivo</option>
+                            </select>
+                            <select id="bulk-client-action" onchange="App.handleBulkClientAction()" class="filter-select filter-select-action">
+                                <option value="">Acciones</option>
+                                <option value="edit">Editar</option>
+                                <option value="assign-event">Asignar Evento</option>
+                                <option value="assign-staff">Asignar Staff</option>
                                 <option value="activate">Activar</option>
                                 <option value="deactivate">Desactivar</option>
                                 <option value="delete">Eliminar</option>
