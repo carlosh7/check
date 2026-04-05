@@ -1640,14 +1640,14 @@ const App = window.App = {
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
-                await this.fetchAPI(`/clients/${clientId}`, {
+                await this.fetchAPI('/clients/unassign-from-company', {
                     method: 'PUT',
-                    body: JSON.stringify({ group_id: null })
+                    body: JSON.stringify({ client_ids: [clientId] })
                 });
             } else {
-                await this.fetchAPI(`/clients/${clientId}`, {
+                await this.fetchAPI('/clients/assign-to-company', {
                     method: 'PUT',
-                    body: JSON.stringify({ group_id: groupIds[0] })
+                    body: JSON.stringify({ client_ids: [clientId], group_id: groupIds[0] })
                 });
             }
             await this.loadGroups();
