@@ -17,7 +17,7 @@ const router = express.Router();
 // Obtener todos los clientes (filtrados por empresa para no-admin)
 router.get('/', authMiddleware(), (req, res) => {
     let query = `
-        SELECT c.*, g.name as group_name,
+        SELECT c.*, g.name as company_name,
             (SELECT COUNT(*) FROM client_events WHERE client_id = c.id) as event_count
         FROM clients c
         LEFT JOIN groups g ON c.group_id = g.id
@@ -41,7 +41,29 @@ router.get('/', authMiddleware(), (req, res) => {
     query += " ORDER BY c.created_at DESC";
     
     const clients = db.prepare(query).all(...params);
-    res.json(clients);
+    
+    // Poblar events y staff para cada cliente
+    const clientsWithDetails = clients.map(c => {
+        const events = db.prepare(`
+            SELECT e.* FROM events e
+            JOIN client_events ce ON e.id = ce.event_id
+            WHERE ce.client_id = ?
+        `).all(c.id);
+        
+        const staff = db.prepare(`
+            SELECT u.id, u.username, u.display_name, u.role, cu.created_at
+            FROM users u
+            JOIN client_users cu ON u.id = cu.user_id
+            WHERE cu.client_id = ?
+        `).all(c.id);
+        
+        return { ...c, events, staff };
+    });
+    
+    res.json(clientsWithDetails);
+});
+    
+    res.json(clientsWithDetails);
 });
 
 // Crear cliente
@@ -137,13 +159,14 @@ router.get('/:id', authMiddleware(), (req, res) => {
 // Actualizar cliente
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
     const clientId = castId('clients', req.params.id);
-    const { name, email, phone, status } = req.body;
+    const { name, email, phone, group_id, status } = req.body;
     
     const updates = [];
     const values = [];
     if (name !== undefined) { updates.push('name = ?'); values.push(name); }
     if (email !== undefined) { updates.push('email = ?'); values.push(email); }
     if (phone !== undefined) { updates.push('phone = ?'); values.push(phone); }
+    if (group_id !== undefined) { updates.push('group_id = ?'); values.push(group_id); }
     if (status !== undefined) { updates.push('status = ?'); values.push(status); }
     
     if (updates.length > 0) {
