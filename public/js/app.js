@@ -1536,11 +1536,12 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // IMPORTANTE: siempre usar this.state.selectedGroups actual, no el parámetro obsoleto
-        // El parámetro solo se usa para mantener compatibilidad
-        if (this.state.selectedGroups && this.state.selectedGroups.length > 0) {
-            groupIds = this.state.selectedGroups;
-        } else if (!groupIds || groupIds.length === 0) {
+        // IMPORTANTE: limpiar selecciones previas y usar solo los groupIds pasados
+        // Esto evita que se acumulen selecciones de sesiones anteriores del modal
+        if (groupIds && groupIds.length > 0) {
+            this.state.selectedGroups = [...groupIds];
+        } else {
+            this.state.selectedGroups = [];
             groupIds = [];
         }
         
@@ -1630,6 +1631,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             showCloseButton: false,
             customClass: { 
                 popup: 'rounded-[1.5rem] shadow-2xl'
+            },
+            willClose: () => {
+                // Limpiar selecciones al cerrar el modal para evitar acumulación
+                this.state.selectedGroups = [];
             }
         });
     },
