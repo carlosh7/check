@@ -1433,27 +1433,13 @@ const App = window.App = {
     _voiceRecognition: null,
     _voiceActive: false,
 
-    toggleVoiceSearch: async function(section) {
+    toggleVoiceSearch: function(section) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ title: '⚠️ No soportado', text: 'Tu navegador no soporta búsqueda por voz. Usa Chrome o Edge.', icon: 'warning', background: '#0f172a', color: '#fff' });
             }
             return;
-        }
-
-        // Verificar permisos del micrófono antes de iniciar
-        if (navigator.permissions && navigator.permissions.query) {
-            try {
-                const result = await navigator.permissions.query({ name: 'microphone' });
-                if (result.state === 'denied') {
-                    this._showMicPermissionHelp();
-                    return;
-                }
-            } catch (e) {
-                // Algunos navegadores no soportan permissions.query para microphone, continuar
-                console.log('No se pudo verificar permisos de micrófono, intentando directamente...');
-            }
         }
 
         // Si ya está activo, detener
@@ -1484,7 +1470,6 @@ const App = window.App = {
             const searchInput = document.getElementById(`${section}-search`);
             if (searchInput) {
                 searchInput.value = transcript;
-                // Disparar el filtro correspondiente
                 if (section === 'group') this.filterGroups();
             }
         };
@@ -1508,9 +1493,16 @@ const App = window.App = {
             }
             if (event.error === 'not-allowed') {
                 this._showMicPermissionHelp();
+            } else if (event.error === 'no-speech') {
+                // No se detectó voz, no es error grave
+            } else if (event.error === 'network') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: '🌐 Error de red', text: 'La búsqueda por voz requiere conexión a internet.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                }
             }
         };
 
+        // recognition.start() dispara automáticamente la solicitud de permiso del navegador
         recognition.start();
     },
 
