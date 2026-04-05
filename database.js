@@ -397,20 +397,28 @@ try {
 
 // Migración V12.44.67+: Asignar IDs a clientes que tienen id null
 try {
-    const clientsWithNullId = db.prepare("SELECT id, name FROM clients WHERE id IS NULL OR id = ''").all();
+    const { v4: uuidv4 } = require('uuid');
+    const clientsWithNullId = db.prepare("SELECT rowid, id, name FROM clients WHERE id IS NULL OR id = ''").all();
     if (clientsWithNullId.length > 0) {
         console.log('[MIGRATION] Corrigiendo ' + clientsWithNullId.length + ' clientes con id null...');
-        const updateStmt = db.prepare("UPDATE clients SET id = ? WHERE id IS NULL OR id = ''");
-        const { v4: uuidv4 } = require('uuid');
         for (const client of clientsWithNullId) {
-            const newId = uuidv4();
-            updateStmt.run(newId);
+            // Generar ID único que no exista
+            let newId;
+            let attempts = 0;
+            do {
+                newId = uuidv4();
+                const existing = db.prepare("SELECT id FROM clients WHERE id = ?").get(newId);
+                if (!existing) break;
+                attempts++;
+            } while (attempts < 10);
+            
+            db.prepare("UPDATE clients SET id = ? WHERE rowid = ?").run(newId, client.rowid);
             console.log('[MIGRATION] Cliente ' + client.name + ' получил новый id: ' + newId);
         }
-        console.log('[MIGRATION] Миграция завершена успешно');
+        console.log('[MIGRATION] Migración de clientes completada');
     }
 } catch (e) {
-    console.error('[MIGRATION] Ошибка миграции клиентов:', e.message);
+    console.error('[MIGRATION] Error en migración de clientes:', e.message);
 }
 
     // Relación Cliente-Evento (muchos a muchos)
