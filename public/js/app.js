@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.106';
+const VERSION = '12.44.107';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1142,21 +1142,23 @@ const App = window.App = {
             const tbody = document.getElementById('clients-tbody');
             if (tbody) {
                 tbody.innerHTML = clients.map(c => {
-                    // Obtener eventos del cliente (viene en la respuesta del API)
+                    // Eventos del cliente con iconos
                     const clientEvents = c.events || [];
-                    const eventChips = clientEvents.map(e => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        </span>
-                    `).join('');
+                    const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
-                    // Staff asignado al cliente
+                    // Staff asignado al cliente con iconos
                     const clientStaff = c.staff || [];
-                    const staffChips = clientStaff.map(u => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${u.display_name || u.username}
-                        </span>
-                    `).join('');
+                    const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
@@ -1164,17 +1166,28 @@ const App = window.App = {
                             <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
-                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
+                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
+                                    ${c.phone ? `<div class="text-[10px] text-[var(--text-muted)]">${c.phone}</div>` : ''}
+                                </div>
+                            </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-xs text-amber-400 flex-shrink-0">domain</span>
+                                <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                            </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${staffRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
