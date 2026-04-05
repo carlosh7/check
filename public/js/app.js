@@ -1320,10 +1320,166 @@ const App = window.App = {
         }
     },
 
+    // Normalizar texto: quita acentos, minúsculas, espacios extra
+    _normalize: function(text) {
+        if (!text) return '';
+        return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+    },
+
+    // Mostrar sugerencias de búsqueda para empresas
+    showGroupSuggestions: function() {
+        const raw = document.getElementById('group-search')?.value || '';
+        const term = this._normalize(raw);
+        const container = document.getElementById('group-suggestions');
+        if (!container) return;
+
+        if (term.length < 2) {
+            this.hideGroupSuggestions();
+            return;
+        }
+
+        const groups = this.state.groups || [];
+        const clients = this.state.clients || [];
+        const users = this.state.allUsers || [];
+        const events = this.state.allEvents || [];
+        const searchWords = term.split(' ').filter(w => w.length > 0);
+
+        // Recolectar sugerencias con puntuación de relevancia
+        const suggestions = [];
+
+        groups.forEach(g => {
+            const gName = this._normalize(g.name);
+            const gEmail = this._normalize(g.email);
+            let score = 0;
+            let matchType = '';
+
+            // Coincidencia exacta al inicio = mayor score
+            if (gName.startsWith(term)) { score = 100; matchType = 'empresa'; }
+            else if (searchWords.every(w => gName.includes(w))) { score = 80; matchType = 'empresa'; }
+            else if (gEmail && searchWords.every(w => gEmail.includes(w))) { score = 60; matchType = 'email'; }
+
+            if (score > 0) {
+                // Resaltar coincidencia
+                const icon = matchType === 'empresa' ? 'corporate_fare' : 'mail';
+                const color = matchType === 'empresa' ? '#7c3aed' : '#64748b';
+                suggestions.push({ score, text: g.name, subtext: g.email || '', icon, color, type: matchType });
+            }
+        });
+
+        // Clientes asignados a empresas
+        clients.forEach(c => {
+            const cName = this._normalize(c.name);
+            if (searchWords.every(w => cName.includes(w))) {
+                const group = groups.find(g => String(g.group_id) === String(c.id));
+                suggestions.push({
+                    score: 70,
+                    text: c.name,
+                    subtext: group ? `Cliente → ${group.name}` : 'Cliente sin empresa',
+                    icon: 'person',
+                    color: '#10b981',
+                    type: 'cliente'
+                });
+            }
+        });
+
+        // Staff
+        users.forEach(u => {
+            const uName = this._normalize(u.display_name || u.username);
+            if (searchWords.every(w => uName.includes(w))) {
+                suggestions.push({
+                    score: 65,
+                    text: u.display_name || u.username,
+                    subtext: u.role || 'Staff',
+                    icon: 'badge',
+                    color: '#3b82f6',
+                    type: 'staff'
+                });
+            }
+        });
+
+        // Eventos
+        events.forEach(e => {
+            const eName = this._normalize(e.name);
+            if (searchWords.every(w => eName.includes(w))) {
+                suggestions.push({
+                    score: 60,
+                    text: e.name,
+                    subtext: e.date || e.location || 'Evento',
+                    icon: 'event',
+                    color: '#a855f7',
+                    type: 'evento'
+                });
+            }
+        });
+
+        // Ordenar por score y limitar a 8
+        suggestions.sort((a, b) => b.score - a.score);
+        const top = suggestions.slice(0, 8);
+
+        if (top.length === 0) {
+            this.hideGroupSuggestions();
+            return;
+        }
+
+        container.innerHTML = top.map((s, i) => `
+            <div onclick="App.selectSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+                 class="group-suggestion-item" 
+                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+                 onmouseover="this.style.background='rgba(124,58,237,0.15)'" 
+                 onmouseout="this.style.background='transparent'">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <div class="flex-1 min-w-0">
+                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                </div>
+                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${s.type}</span>
+            </div>
+        `).join('');
+
+        container.classList.remove('hidden');
+    },
+
+    // Resaltar coincidencia en el texto
+    _highlightMatch: function(text, raw) {
+        if (!raw) return text;
+        const normalized = this._normalize(text);
+        const searchNorm = this._normalize(raw);
+        const words = searchNorm.split(' ').filter(w => w.length > 0);
+        let result = text;
+        words.forEach(word => {
+            const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            // Buscar en texto normalizado
+            const normText = this._normalize(result);
+            const idx = normText.indexOf(word);
+            if (idx >= 0) {
+                const original = result.substring(idx, idx + word.length);
+                result = result.replace(original, `<mark style="background: rgba(124,58,237,0.3); color: #c4b5fd; border-radius: 2px; padding: 0 2px;">${original}</mark>`);
+            }
+        });
+        return result;
+    },
+
+    // Seleccionar sugerencia
+    selectSuggestion: function(text) {
+        const input = document.getElementById('group-search');
+        if (input) {
+            input.value = text;
+            this.filterGroups();
+        }
+        this.hideGroupSuggestions();
+    },
+
+    // Ocultar sugerencias
+    hideGroupSuggestions: function() {
+        const container = document.getElementById('group-suggestions');
+        if (container) container.classList.add('hidden');
+    },
+
     // Filtrar empresas por búsqueda y filtros
     filterGroups: function() {
         if (!this.state.groups) return;
-        const searchTerm = document.getElementById('group-search')?.value.toLowerCase() || '';
+        const searchTermRaw = document.getElementById('group-search')?.value || '';
+        const term = this._normalize(searchTermRaw);
         const clientFilter = document.getElementById('filter-group-client')?.value || '';
         const userFilter = document.getElementById('filter-group-user')?.value || '';
         const eventFilter = document.getElementById('filter-group-event')?.value || '';
@@ -1335,20 +1491,25 @@ const App = window.App = {
 
         let filtered = this.state.groups;
 
-        // Búsqueda global: nombre, email, clientes, staff, eventos
-        if (searchTerm) {
+        // Búsqueda global flexible: normaliza acentos y busca por palabras separadas
+        if (term) {
+            const searchWords = term.split(' ').filter(w => w.length > 0);
             filtered = filtered.filter(g => {
-                // Buscar en nombre y email de la empresa
-                if (g.name?.toLowerCase().includes(searchTerm) || g.email?.toLowerCase().includes(searchTerm)) return true;
+                // Normalizar campos de la empresa
+                const gName = this._normalize(g.name);
+                const gEmail = this._normalize(g.email);
+                // Buscar empresa: TODAS las palabras deben coincidir en algún campo
+                const matchCompany = searchWords.every(w => gName.includes(w) || gEmail.includes(w));
+                if (matchCompany) return true;
                 // Buscar en clientes asignados
                 const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-                if (groupClients.some(c => c.name?.toLowerCase().includes(searchTerm) || c.email?.toLowerCase().includes(searchTerm))) return true;
+                if (groupClients.some(c => searchWords.every(w => this._normalize(c.name).includes(w) || this._normalize(c.email).includes(w)))) return true;
                 // Buscar en staff asignado
                 const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-                if (groupUsers.some(u => (u.display_name || u.username)?.toLowerCase().includes(searchTerm))) return true;
+                if (groupUsers.some(u => searchWords.every(w => this._normalize(u.display_name).includes(w) || this._normalize(u.username).includes(w)))) return true;
                 // Buscar en eventos asignados
                 const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-                if (groupEvents.some(e => e.name?.toLowerCase().includes(searchTerm) || e.location?.toLowerCase().includes(searchTerm))) return true;
+                if (groupEvents.some(e => searchWords.every(w => this._normalize(e.name).includes(w) || this._normalize(e.location).includes(w)))) return true;
                 return false;
             });
         }
@@ -1368,6 +1529,9 @@ const App = window.App = {
         if (statusFilter) {
             filtered = filtered.filter(g => g.status === statusFilter);
         }
+
+        // Ocultar sugerencias después de filtrar
+        this.hideGroupSuggestions();
 
         // Re-renderizar tabla con filtered
         const tbody = document.getElementById('groups-tbody');
@@ -12431,6 +12595,17 @@ async function initApp() {
                 else if (action === 'showEventSelector') App.showEventSelector(userId, JSON.parse(actionEl.dataset.events || '[]'));
                 else if (action === 'approveUser') App.approveUser(userId, status);
                 else if (action === 'openCompanyModal') App.openCompanyModal(groupId);
+            }
+        }
+    });
+
+    // Cerrar sugerencias al hacer click fuera
+    document.addEventListener('click', (e) => {
+        const searchInput = document.getElementById('group-search');
+        const suggestions = document.getElementById('group-suggestions');
+        if (suggestions && !suggestions.classList.contains('hidden')) {
+            if (searchInput && !searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                App.hideGroupSuggestions();
             }
         }
     });

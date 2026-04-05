@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.120",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.120 - Toast animado de búsqueda por voz con ondas de audio pulsantes",
+  "version": "12.44.122",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.122 - Autocomplete con sugerencias en buscador de empresas",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
