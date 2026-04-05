@@ -1329,27 +1329,39 @@ const App = window.App = {
         const eventFilter = document.getElementById('filter-group-event')?.value || '';
         const statusFilter = document.getElementById('filter-group-status')?.value || '';
 
+        const users = this.state.allUsers || [];
+        const events = this.state.allEvents || [];
+        const clients = this.state.clients || [];
+
         let filtered = this.state.groups;
 
+        // Búsqueda global: nombre, email, clientes, staff, eventos
         if (searchTerm) {
-            filtered = filtered.filter(g =>
-                g.name?.toLowerCase().includes(searchTerm) ||
-                g.email?.toLowerCase().includes(searchTerm)
-            );
+            filtered = filtered.filter(g => {
+                // Buscar en nombre y email de la empresa
+                if (g.name?.toLowerCase().includes(searchTerm) || g.email?.toLowerCase().includes(searchTerm)) return true;
+                // Buscar en clientes asignados
+                const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
+                if (groupClients.some(c => c.name?.toLowerCase().includes(searchTerm) || c.email?.toLowerCase().includes(searchTerm))) return true;
+                // Buscar en staff asignado
+                const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
+                if (groupUsers.some(u => (u.display_name || u.username)?.toLowerCase().includes(searchTerm))) return true;
+                // Buscar en eventos asignados
+                const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
+                if (groupEvents.some(e => e.name?.toLowerCase().includes(searchTerm) || e.location?.toLowerCase().includes(searchTerm))) return true;
+                return false;
+            });
         }
 
         if (clientFilter) {
-            const clients = this.state.clients || [];
             filtered = filtered.filter(g => clients.some(c => String(c.group_id) === String(g.id) && String(c.id) === String(clientFilter)));
         }
 
         if (userFilter) {
-            const users = this.state.allUsers || [];
             filtered = filtered.filter(g => users.some(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)) && String(u.id) === String(userFilter)));
         }
 
         if (eventFilter) {
-            const events = this.state.allEvents || [];
             filtered = filtered.filter(g => events.some(e => String(e.group_id) === String(g.id) && String(e.id) === String(eventFilter)));
         }
 
@@ -1415,6 +1427,79 @@ const App = window.App = {
                 </tr>`;
             }).join('');
         }
+    },
+
+    // Búsqueda por voz (Web Speech API)
+    _voiceRecognition: null,
+    _voiceActive: false,
+
+    toggleVoiceSearch: function(section) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: '⚠️ No soportado', text: 'Tu navegador no soporta búsqueda por voz. Usa Chrome o Edge.', icon: 'warning', background: '#0f172a', color: '#fff' });
+            }
+            return;
+        }
+
+        // Si ya está activo, detener
+        if (this._voiceActive && this._voiceRecognition) {
+            this._voiceRecognition.stop();
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Icono del micrófono
+        const micBtn = document.getElementById(`${section}-voice-btn`);
+
+        recognition.onstart = () => {
+            this._voiceActive = true;
+            this._voiceRecognition = recognition;
+            if (micBtn) {
+                micBtn.style.color = '#ef4444';
+                micBtn.textContent = 'mic_off';
+            }
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            const searchInput = document.getElementById(`${section}-search`);
+            if (searchInput) {
+                searchInput.value = transcript;
+                // Disparar el filtro correspondiente
+                if (section === 'group') this.filterGroups();
+            }
+        };
+
+        recognition.onend = () => {
+            this._voiceActive = false;
+            this._voiceRecognition = null;
+            if (micBtn) {
+                micBtn.style.color = '#64748b';
+                micBtn.textContent = 'mic';
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.warn('Error de reconocimiento de voz:', event.error);
+            this._voiceActive = false;
+            this._voiceRecognition = null;
+            if (micBtn) {
+                micBtn.style.color = '#64748b';
+                micBtn.textContent = 'mic';
+            }
+            if (event.error === 'not-allowed') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: '🎤 Permiso denegado', text: 'Permite el acceso al micrófono para usar la búsqueda por voz.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                }
+            }
+        };
+
+        recognition.start();
     },
 
     // Seleccionar todos los clientes
@@ -1902,16 +1987,19 @@ const App = window.App = {
     saveGroupEditInline: async function() {
         const inputs = document.querySelectorAll('[id^="edit-group-name-"]');
         if (!inputs.length) return;
-        
+
+        // Declarar originalHTML fuera del if para que sea accesible en catch
+        let originalHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+
         // Mostrar indicador de carga inline
         const saveBtn = document.querySelector('[onclick="App.saveGroupEditInline()"]');
         if (saveBtn) {
-            const originalHTML = saveBtn.innerHTML;
+            originalHTML = saveBtn.innerHTML;
             saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
             saveBtn.style.opacity = '0.6';
             saveBtn.style.pointerEvents = 'none';
         }
-        
+
         try {
             for (const input of inputs) {
                 const id = input.id.replace('edit-group-name-', '');
@@ -1928,15 +2016,19 @@ const App = window.App = {
                 await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
             }
             await this.loadGroups();
-            
+
             // Mostrar mensaje de éxito inline (sin cerrar modal)
             const msgEl = document.getElementById('group-edit-msg');
             if (msgEl) { msgEl.textContent = '✓ Guardado correctamente'; msgEl.style.color = '#22c55e'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 2000); }
-            
+
             // Restaurar botón
             if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         } catch (e) {
             const msgEl = document.getElementById('group-edit-msg');
+            if (msgEl) { msgEl.textContent = '⚠️ Error: ' + e.message; msgEl.style.color = '#ef4444'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
+            if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
+        }
+    },
             if (msgEl) { msgEl.textContent = '⚠️ Error: ' + e.message; msgEl.style.color = '#ef4444'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
             if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         }
