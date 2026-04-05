@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.115",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.115 - Fix: sintaxis saveGroupEditInline + eliminar openGroupEditCarousel duplicada",
+  "version": "12.44.116",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.116 - Fix: detección previa de permisos de micrófono + instrucciones para habilitarlo",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -1433,13 +1433,27 @@ const App = window.App = {
     _voiceRecognition: null,
     _voiceActive: false,
 
-    toggleVoiceSearch: function(section) {
+    toggleVoiceSearch: async function(section) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ title: '⚠️ No soportado', text: 'Tu navegador no soporta búsqueda por voz. Usa Chrome o Edge.', icon: 'warning', background: '#0f172a', color: '#fff' });
             }
             return;
+        }
+
+        // Verificar permisos del micrófono antes de iniciar
+        if (navigator.permissions && navigator.permissions.query) {
+            try {
+                const result = await navigator.permissions.query({ name: 'microphone' });
+                if (result.state === 'denied') {
+                    this._showMicPermissionHelp();
+                    return;
+                }
+            } catch (e) {
+                // Algunos navegadores no soportan permissions.query para microphone, continuar
+                console.log('No se pudo verificar permisos de micrófono, intentando directamente...');
+            }
         }
 
         // Si ya está activo, detener
@@ -1493,13 +1507,38 @@ const App = window.App = {
                 micBtn.textContent = 'mic';
             }
             if (event.error === 'not-allowed') {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ title: '🎤 Permiso denegado', text: 'Permite el acceso al micrófono para usar la búsqueda por voz.', icon: 'warning', background: '#0f172a', color: '#fff' });
-                }
+                this._showMicPermissionHelp();
             }
         };
 
         recognition.start();
+    },
+
+    // Mostrar ayuda para habilitar micrófono
+    _showMicPermissionHelp: function() {
+        if (typeof Swal === 'undefined') return;
+        Swal.fire({
+            title: '🎤 Permiso de micrófono requerido',
+            html: `
+                <div style="text-align: left; font-size: 13px; color: #94a3b8;">
+                    <p style="margin-bottom: 12px;">El navegador bloqueó el acceso al micrófono. Para habilitarlo:</p>
+                    <ol style="padding-left: 20px; line-height: 1.8;">
+                        <li>Haz clic en el <b style="color: #e2e8f0;">ícono de candado 🔒</b> a la izquierda de la URL</li>
+                        <li>Busca <b style="color: #e2e8f0;">"Micrófono"</b> en la lista</li>
+                        <li>Cambia a <b style="color: #22c55e;">"Permitir"</b></li>
+                        <li><b style="color: #e2e8f0;">Recarga la página</b> (F5)</li>
+                    </ol>
+                    <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                        O ve a <b style="color: #e2e8f0;">chrome://settings/content/microphone</b> y verifica que el sitio no esté bloqueado.
+                    </p>
+                </div>
+            `,
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            background: '#0f172a',
+            color: '#fff',
+            confirmButtonColor: '#10b981'
+        });
     },
 
     // Seleccionar todos los clientes
