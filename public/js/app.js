@@ -2222,6 +2222,35 @@ const App = window.App = {
         this.showManageGroupAction(this.state.selectedGroups);
     },
 
+    // Acciones masivas desde dropdown de empresas
+    handleBulkGroupAction: async function() {
+        const action = document.getElementById('bulk-group-action')?.value;
+        if (!action) return;
+        
+        const groupIds = this.state.selectedGroups.length > 0 ? this.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId);
+        
+        if (action === 'edit') {
+            this.editSelectedGroups(groupIds);
+        } else if (action === 'assign-client') {
+            if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); document.getElementById('bulk-group-action').value = ''; return; }
+            this.openAssignClientToGroupModal(groupIds);
+        } else if (action === 'assign-staff') {
+            if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); document.getElementById('bulk-group-action').value = ''; return; }
+            this.showUserSelectorForBulkGroups(groupIds);
+        } else if (action === 'assign-event') {
+            if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); document.getElementById('bulk-group-action').value = ''; return; }
+            this.showEventSelectorForBulkGroups(groupIds);
+        } else if (action === 'activate' || action === 'deactivate') {
+            if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); document.getElementById('bulk-group-action').value = ''; return; }
+            this.handleBulkGroupActionDirect(action);
+        } else if (action === 'delete') {
+            if (!groupIds || groupIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa', icon: 'warning', background: '#0f172a', color: '#fff' }); document.getElementById('bulk-group-action').value = ''; return; }
+            this.handleBulkGroupActionDirect('delete');
+        }
+        
+        document.getElementById('bulk-group-action').value = '';
+    },
+
     // Modal editar empresa
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];

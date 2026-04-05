@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.93",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.93 - Fix: orden nav bar, gestionar 5 botones, sin auto-cierre",
+  "version": "12.44.94",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.94 - Fix: handleBulkGroupAction agregado",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
