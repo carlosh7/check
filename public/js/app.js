@@ -1048,12 +1048,14 @@ const App = window.App = {
     
     // Cargar empresas con usuarios y eventos
     loadGroups: async function() {
+        console.log('===== loadGroups LLAMADA =====');
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
             const clients = await this.fetchAPI('/clients');
+            console.log('loadGroups: groups received:', groups?.length);
             if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
@@ -1628,6 +1630,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     },
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
+        console.log('===== assignClientToGroupsFromModal LLAMADA =====');
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
@@ -2234,6 +2237,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
 
     // Actualizar TODAS las tablas después de cualquier cambio en modales
     refreshAllTables: async function() {
+        console.log('===== refreshAllTables LLAMADA =====');
         try {
             // Cargar todos los datos en paralelo
             const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
