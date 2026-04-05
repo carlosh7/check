@@ -2270,29 +2270,32 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             
             // Obtener el tab actual para saber qué renderizar
             const currentView = this.state.currentView;
+            console.log('[REFRESH] currentView:', currentView);
             
+            // Siempre actualizar todas las tablas relevantes
             if (currentView === 'system') {
-                // Determinar qué tab está activo
-                const activePanel = document.querySelector('#view-system .sub-nav-btn.active');
-                const activeTab = activePanel?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || 'users';
+                // Verificar qué paneles están visibles
+                const usersPanel = document.getElementById('sys-content-users');
+                const groupsPanel = document.getElementById('sys-content-groups');
+                const clientsPanel = document.getElementById('sys-content-clients');
                 
-                // Cargar según el tab activo (cada función ya renderiza)
-                switch (activeTab) {
-                    case 'users':
-                        this.loadUsersTable();
-                        break;
-                    case 'groups':
-                        this.loadGroups();
-                        break;
-                    case 'clients':
-                        this.loadClients();
-                        break;
+                if (usersPanel && !usersPanel.classList.contains('hidden')) {
+                    console.log('[REFRESH] Updating users table');
+                    this.loadUsersTable();
+                }
+                if (groupsPanel && !groupsPanel.classList.contains('hidden')) {
+                    console.log('[REFRESH] Updating groups table');
+                    this.loadGroups();
+                }
+                if (clientsPanel && !clientsPanel.classList.contains('hidden')) {
+                    console.log('[REFRESH] Updating clients table');
+                    this.loadClients();
                 }
             } else if (currentView === 'my-events' || currentView === 'event-config') {
                 this.loadEvents();
             }
             
-            console.log('[REFRESH] Todas las tablas actualizadas');
+            console.log('[REFRESH] Tablas actualizadas');
         } catch (error) {
             console.error('Error refreshAllTables:', error);
         }
