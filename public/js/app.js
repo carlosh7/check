@@ -2254,29 +2254,15 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             this.state.allEvents = events;
             this.state.clients = clients;
             
-            // Obtener el tab actual para saber qué renderizar
+            // Siempre actualizar todas las tablas relevantes (sin verificar si están visibles)
             const currentView = this.state.currentView;
             console.log('[REFRESH] currentView:', currentView);
             
-            // Siempre actualizar todas las tablas relevantes
             if (currentView === 'system') {
-                // Verificar qué paneles están visibles
-                const usersPanel = document.getElementById('sys-content-users');
-                const groupsPanel = document.getElementById('sys-content-groups');
-                const clientsPanel = document.getElementById('sys-content-clients');
-                
-                if (usersPanel && !usersPanel.classList.contains('hidden')) {
-                    console.log('[REFRESH] Updating users table');
-                    this.loadUsersTable();
-                }
-                if (groupsPanel && !groupsPanel.classList.contains('hidden')) {
-                    console.log('[REFRESH] Updating groups table');
-                    this.loadGroups();
-                }
-                if (clientsPanel && !clientsPanel.classList.contains('hidden')) {
-                    console.log('[REFRESH] Updating clients table');
-                    this.loadClients();
-                }
+                // Siempre actualizar todas las tablas
+                this.loadUsersTable();
+                this.loadGroups();
+                this.loadClients();
             } else if (currentView === 'my-events' || currentView === 'event-config') {
                 this.loadEvents();
             }
