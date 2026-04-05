@@ -1063,6 +1063,9 @@ const App = window.App = {
             // Poblar filtros
             this.populateGroupFilters();
             
+            // Preservar selección actual para no perderla al re-renderizar
+            const currentSelected = this.state.selectedGroups || [];
+            
             const tbody = document.getElementById('groups-tbody');
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
@@ -1087,10 +1090,12 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                         </span>
                     `).join('');
                     
+                    const isChecked = currentSelected.includes(g.id);
+                    
                     return `
                     <tr class="user-row-premium">
                         <td class="px-2 py-3 align-middle" style="width: 40px;">
-                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
+                            <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')" ${isChecked ? 'checked' : ''}>
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
@@ -1536,9 +1541,15 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // IMPORTANTE: limpiar selecciones previas y usar solo los groupIds pasados
-        // Esto evita que se acumulen selecciones de sesiones anteriores del modal
-        if (groupIds && groupIds.length > 0) {
+        // Sincronizar selectedGroups con los checkboxes marcados en el DOM
+        // Esto evita acumulación y asegura que siempre refleje la selección actual
+        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
+        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
+        
+        if (checkedGroupIds.length > 0) {
+            this.state.selectedGroups = checkedGroupIds;
+            groupIds = checkedGroupIds;
+        } else if (groupIds && groupIds.length > 0) {
             this.state.selectedGroups = [...groupIds];
         } else {
             this.state.selectedGroups = [];
@@ -1631,10 +1642,6 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             showCloseButton: false,
             customClass: { 
                 popup: 'rounded-[1.5rem] shadow-2xl'
-            },
-            willClose: () => {
-                // Limpiar selecciones al cerrar el modal para evitar acumulación
-                this.state.selectedGroups = [];
             }
         });
     },
@@ -1821,6 +1828,12 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     handleBulkGroupAction: async function() {
         const action = document.getElementById('bulk-group-action')?.value;
         if (!action) return;
+        
+        // Sincronizar selectedGroups con los checkboxes marcados en el DOM
+        // Esto evita desincronización entre el estado y la UI
+        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
+        const checkedGroupIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
+        this.state.selectedGroups = checkedGroupIds;
         
         if (action === 'assign-event') {
             // Asignar evento a empresas seleccionadas
