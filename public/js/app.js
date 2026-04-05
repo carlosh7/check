@@ -1668,7 +1668,6 @@ const App = window.App = {
         };
 
         recognition.onerror = (event) => {
-            console.warn('Error de reconocimiento de voz:', event.error);
             this._voiceActive = false;
             this._voiceRecognition = null;
             if (micBtn) {
@@ -1678,7 +1677,10 @@ const App = window.App = {
             if (event.error === 'not-allowed') {
                 this._showMicPermissionHelp();
             } else if (event.error === 'no-speech') {
-                // No se detectó voz, no es error grave
+                // No se detectó voz en el tiempo de espera — comportamiento normal
+                this._showVoiceToast('🎤 No se detectó voz. Intenta de nuevo.', 'timeout');
+                setTimeout(() => this._hideVoiceToast(), 2000);
+                return;
             } else if (event.error === 'network') {
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({ title: '🌐 Error de red', text: 'La búsqueda por voz requiere conexión a internet.', icon: 'warning', background: '#0f172a', color: '#fff' });

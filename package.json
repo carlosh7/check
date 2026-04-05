@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.125",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.125 - Fix: colores de iconos en loadGroups() (la función principal de carga)",
+  "version": "12.44.126",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.126 - Fix: no-speech no es error, mensaje amigable en toast",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
