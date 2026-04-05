@@ -10,6 +10,10 @@ const { CACHE_KEYS, del } = require('../utils/cache');
 
 const router = express.Router();
 
+// ============================================================================
+// RUTAS ESPECÍFICAS (sin parámetros dinámicos) - deben ir PRIMERO
+// ============================================================================
+
 // Obtener todos los clientes (filtrados por empresa para no-admin)
 router.get('/', authMiddleware(), (req, res) => {
     let query = `
@@ -39,6 +43,63 @@ router.get('/', authMiddleware(), (req, res) => {
     const clients = db.prepare(query).all(...params);
     res.json(clients);
 });
+
+// Crear cliente
+router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
+    const { name, email, phone, group_id } = req.body;
+    
+    if (!name || !group_id) {
+        return res.status(400).json({ error: 'Nombre y empresa son requeridos' });
+    }
+    
+    const id = getValidId('clients');
+    db.prepare(`
+        INSERT INTO clients (id, name, email, phone, group_id, status, created_at, created_by)
+        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?)
+    `).run(id, name, email || '', phone || '', group_id, new Date().toISOString(), req.userId);
+    
+    res.json({ success: true, clientId: id });
+});
+
+// Asignar clientes a una empresa (cambiar group_id) - ruta ESPECÍFICA
+router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
+    const { client_ids, group_id } = req.body;
+    
+    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+    }
+    
+    if (!group_id) {
+        return res.status(400).json({ error: 'Se requiere group_id' });
+    }
+    
+    const stmt = db.prepare("UPDATE clients SET group_id = ? WHERE id = ?");
+    for (const clientId of client_ids) {
+        stmt.run(group_id, castId('clients', clientId));
+    }
+    
+    res.json({ success: true });
+});
+
+// Desasignar cliente de empresa (group_id = '') - ruta ESPECÍFICA
+router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
+    const { client_ids } = req.body;
+    
+    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
+    }
+    
+    const stmt = db.prepare("UPDATE clients SET group_id = '' WHERE id = ? AND group_id IS NOT NULL AND group_id != ''");
+    for (const clientId of client_ids) {
+        stmt.run(castId('clients', clientId));
+    }
+    
+    res.json({ success: true });
+});
+
+// ============================================================================
+// RUTAS CON PARÁMETROS DINÁMICOS (:id) - van DESPUÉS de las específicas
+// ============================================================================
 
 // Obtener un cliente específico con sus eventos
 router.get('/:id', authMiddleware(), (req, res) => {
@@ -73,23 +134,6 @@ router.get('/:id', authMiddleware(), (req, res) => {
     res.json({ ...client, events, staff });
 });
 
-// Crear cliente
-router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
-    const { name, email, phone, group_id } = req.body;
-    
-    if (!name || !group_id) {
-        return res.status(400).json({ error: 'Nombre y empresa son requeridos' });
-    }
-    
-    const id = getValidId('clients');
-    db.prepare(`
-        INSERT INTO clients (id, name, email, phone, group_id, status, created_at, created_by)
-        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?)
-    `).run(id, name, email || '', phone || '', group_id, new Date().toISOString(), req.userId);
-    
-    res.json({ success: true, clientId: id });
-});
-
 // Actualizar cliente
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF']), (req, res) => {
     const clientId = castId('clients', req.params.id);
@@ -122,7 +166,7 @@ router.delete('/:id', authMiddleware(['ADMIN']), (req, res) => {
     res.json({ success: true });
 });
 
-// Asignar eventos a cliente
+// Asignar eventos a cliente (reemplazar todos)
 router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
     const clientId = castId('clients', req.params.id);
     const { events } = req.body;
@@ -141,7 +185,7 @@ router.put('/:id/events', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (
     res.json({ success: true });
 });
 
-// Asignar staff a cliente
+// Asignar staff a cliente (reemplazar todos)
 router.put('/:id/staff', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     const clientId = castId('clients', req.params.id);
     const { users } = req.body;
@@ -199,42 +243,6 @@ router.delete('/:id/events/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOG
     const eventId = castId('events', req.params.eventId);
     
     db.prepare("DELETE FROM client_events WHERE client_id = ? AND event_id = ?").run(clientId, eventId);
-    res.json({ success: true });
-});
-
-// Asignar clientes a una empresa (cambiar group_id)
-router.put('/assign-to-company', authMiddleware(['ADMIN']), (req, res) => {
-    const { client_ids, group_id } = req.body;
-    
-    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
-        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
-    }
-    
-    if (!group_id) {
-        return res.status(400).json({ error: 'Se requiere group_id' });
-    }
-    
-    const stmt = db.prepare("UPDATE clients SET group_id = ? WHERE id = ?");
-    for (const clientId of client_ids) {
-        stmt.run(group_id, castId('clients', clientId));
-    }
-    
-    res.json({ success: true });
-});
-
-// Desasignar cliente de empresa (group_id = '')
-router.put('/unassign-from-company', authMiddleware(['ADMIN']), (req, res) => {
-    const { client_ids } = req.body;
-    
-    if (!client_ids || !Array.isArray(client_ids) || client_ids.length === 0) {
-        return res.status(400).json({ error: 'Se requiere un array de client_ids' });
-    }
-    
-    const stmt = db.prepare("UPDATE clients SET group_id = '' WHERE id = ? AND group_id IS NOT NULL AND group_id != ''");
-    for (const clientId of client_ids) {
-        stmt.run(castId('clients', clientId));
-    }
-    
     res.json({ success: true });
 });
 
