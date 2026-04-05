@@ -1897,17 +1897,6 @@ const App = window.App = {
         this.editSelectedGroups(selectedGroups);
     },
 
-    // Abrir carrusel de edición de empresas (botón directo "Edición")
-    openGroupEditCarousel: function() {
-        const selectedGroups = this.state.selectedGroups || [];
-        if (selectedGroups.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos una empresa con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        // Abrir el carrusel de edición directamente
-        this.editSelectedGroups(selectedGroups);
-    },
-
     // Modal editar empresa (con campos inline, sin segundo modal)
     editSelectedGroups: function(groupIds) {
         const groups = this.state.groups || [];
@@ -2025,10 +2014,6 @@ const App = window.App = {
             if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         } catch (e) {
             const msgEl = document.getElementById('group-edit-msg');
-            if (msgEl) { msgEl.textContent = '⚠️ Error: ' + e.message; msgEl.style.color = '#ef4444'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
-            if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
-        }
-    },
             if (msgEl) { msgEl.textContent = '⚠️ Error: ' + e.message; msgEl.style.color = '#ef4444'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
             if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         }
