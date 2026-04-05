@@ -1048,14 +1048,12 @@ const App = window.App = {
     
     // Cargar empresas con usuarios y eventos
     loadGroups: async function() {
-        console.log('===== loadGroups LLAMADA =====');
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
             const clients = await this.fetchAPI('/clients');
-            console.log('loadGroups: groups received:', groups?.length);
             if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
@@ -1634,8 +1632,6 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     },
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
-        console.log('===== assignClientToGroupsFromModal LLAMADA =====');
-        console.log('groupIdsStr:', groupIdsStr);
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
@@ -2240,7 +2236,6 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
 
     // Actualizar TODAS las tablas después de cualquier cambio en modales
     refreshAllTables: async function() {
-        console.log('===== refreshAllTables LLAMADA =====');
         try {
             // Cargar todos los datos en paralelo
             const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
@@ -2261,20 +2256,16 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             this.state.allEvents = events;
             this.state.clients = clients;
             
-            // Siempre actualizar todas las tablas relevantes (sin verificar si están visibles)
+            // Siempre actualizar todas las tablas relevantes
             const currentView = this.state.currentView;
-            console.log('[REFRESH] currentView:', currentView);
             
             if (currentView === 'system') {
-                // Siempre actualizar todas las tablas
                 this.loadUsersTable();
                 this.loadGroups();
                 this.loadClients();
             } else if (currentView === 'my-events' || currentView === 'event-config') {
                 this.loadEvents();
             }
-            
-            console.log('[REFRESH] Tablas actualizadas');
         } catch (error) {
             console.error('Error refreshAllTables:', error);
         }
