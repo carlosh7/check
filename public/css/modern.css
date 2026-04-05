@@ -448,6 +448,16 @@ html.dark .status-error { background: rgba(239, 68, 68, 0.15); color: #f87171; }
     animation: fadeIn 0.4s ease-out forwards;
 }
 
+/* ===== BÚSQUEDA POR VOZ - Ondas de audio ===== */
+@keyframes voicePulse {
+    0%, 100% { height: 6px; opacity: 0.5; }
+    50% { height: 24px; opacity: 1; }
+}
+
+.voice-wave-bar {
+    animation-play-state: running;
+}
+
 /* ===== NAVEGACIÓN INTERNA (Mailing/Compositor) ===== */
 .inner-layout {
     display: flex;

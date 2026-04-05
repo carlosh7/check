@@ -1477,6 +1477,8 @@ const App = window.App = {
                 micBtn.style.color = '#ef4444';
                 micBtn.textContent = 'mic_off';
             }
+            // Mostrar toast de "Escuchando..."
+            this._showVoiceToast('🎤 Escuchando... Habla ahora', 'listening');
         };
 
         recognition.onresult = (event) => {
@@ -1484,6 +1486,8 @@ const App = window.App = {
             const searchInput = document.getElementById(`${section}-search`);
             if (searchInput) {
                 searchInput.value = transcript;
+                // Mostrar toast de resultado
+                this._showVoiceToast(`✅ "${transcript}"`, 'result');
                 if (section === 'group') this.filterGroups();
             }
         };
@@ -1495,6 +1499,8 @@ const App = window.App = {
                 micBtn.style.color = '#64748b';
                 micBtn.textContent = 'mic';
             }
+            // Ocultar toast
+            this._hideVoiceToast();
         };
 
         recognition.onerror = (event) => {
@@ -1544,6 +1550,73 @@ const App = window.App = {
             color: '#fff',
             confirmButtonColor: '#10b981'
         });
+    },
+
+    // Toast animado de búsqueda por voz
+    _showVoiceToast: function(message, type) {
+        // Eliminar toast existente si hay
+        this._hideVoiceToast();
+
+        const toast = document.createElement('div');
+        toast.id = 'voice-toast';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 9999999;
+            background: ${type === 'listening' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)'};
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid ${type === 'listening' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'};
+            border-radius: 16px;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 90vw;
+        `;
+
+        // Ondas de audio animadas (solo cuando está escuchando)
+        const wavesHTML = type === 'listening' ? `
+            <div class="voice-waves" style="display: flex; align-items: center; gap: 3px; height: 24px;">
+                <div class="voice-wave-bar" style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out infinite;"></div>
+                <div class="voice-wave-bar" style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.1s infinite;"></div>
+                <div class="voice-wave-bar" style="width: 3px; height: 24px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.2s infinite;"></div>
+                <div class="voice-wave-bar" style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.3s infinite;"></div>
+                <div class="voice-wave-bar" style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.4s infinite;"></div>
+            </div>
+        ` : '';
+
+        toast.innerHTML = `
+            ${wavesHTML}
+            <span style="color: #f1f5f9; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Animación de entrada
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+        });
+
+        // Auto-ocultar si es resultado (después de 3s)
+        if (type === 'result') {
+            setTimeout(() => this._hideVoiceToast(), 3000);
+        }
+    },
+
+    _hideVoiceToast: function() {
+        const existing = document.getElementById('voice-toast');
+        if (existing) {
+            existing.style.opacity = '0';
+            existing.style.transform = 'translateX(-50%) translateY(20px)';
+            setTimeout(() => existing.remove(), 400);
+        }
     },
 
     // Seleccionar todos los clientes
