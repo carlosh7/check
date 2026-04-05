@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.111';
+const VERSION = '12.44.112';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1629,9 +1629,14 @@ const App = window.App = {
 
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresas</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                        <span id="group-edit-msg" class="hidden text-xs font-bold mt-1"></span>
                     </div>
+                    <button onclick="App.saveGroupEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
+                    </button>
+                </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
                     </button>
@@ -1744,6 +1749,7 @@ const App = window.App = {
                     <div class="flex flex-col flex-1">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
                         <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
+                        <span id="group-edit-msg" class="hidden text-xs font-bold mt-1"></span>
                     </div>
                     <button onclick="App.saveGroupEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
@@ -1786,19 +1792,43 @@ const App = window.App = {
     saveGroupEditInline: async function() {
         const inputs = document.querySelectorAll('[id^="edit-group-name-"]');
         if (!inputs.length) return;
+        
+        // Mostrar indicador de carga inline
+        const saveBtn = document.querySelector('[onclick="App.saveGroupEditInline()"]');
+        if (saveBtn) {
+            const originalHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
+            saveBtn.style.opacity = '0.6';
+            saveBtn.style.pointerEvents = 'none';
+        }
+        
         try {
             for (const input of inputs) {
                 const id = input.id.replace('edit-group-name-', '');
                 const name = input.value.trim();
                 const email = document.getElementById(`edit-group-email-${id}`)?.value.trim() || '';
                 const description = document.getElementById(`edit-group-desc-${id}`)?.value.trim() || '';
-                if (!name) { Swal.fire({ title: '⚠️ Error', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff', timer: 2000, showConfirmButton: false }); return; }
+                if (!name) {
+                    // Restaurar botón y mostrar error inline
+                    if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
+                    const msgEl = document.getElementById('group-edit-msg');
+                    if (msgEl) { msgEl.textContent = '⚠️ El nombre es requerido'; msgEl.style.color = '#f59e0b'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
+                    return;
+                }
                 await this.fetchAPI(`/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name, email, description }) });
             }
             await this.loadGroups();
-            Swal.fire({ title: '✓ Guardado', text: 'Empresa(s) actualizada(s)', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+            
+            // Mostrar mensaje de éxito inline (sin cerrar modal)
+            const msgEl = document.getElementById('group-edit-msg');
+            if (msgEl) { msgEl.textContent = '✓ Guardado correctamente'; msgEl.style.color = '#22c55e'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 2000); }
+            
+            // Restaurar botón
+            if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al guardar: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+            const msgEl = document.getElementById('group-edit-msg');
+            if (msgEl) { msgEl.textContent = '⚠️ Error: ' + e.message; msgEl.style.color = '#ef4444'; msgEl.classList.remove('hidden'); setTimeout(() => { msgEl.classList.add('hidden'); }, 3000); }
+            if (saveBtn) { saveBtn.innerHTML = originalHTML; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
         }
     },
 
