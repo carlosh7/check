@@ -1624,8 +1624,6 @@ const App = window.App = {
         
         const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
         
-        const getCurrentGroupIds = `App.state.selectedGroups.length > 0 ? App.state.selectedGroups : Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.dataset.groupId)`;
-        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
