@@ -1144,19 +1144,21 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 tbody.innerHTML = clients.map(c => {
                     // Obtener eventos del cliente (viene en la respuesta del API)
                     const clientEvents = c.events || [];
-                    const eventChips = clientEvents.map(e => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                        </span>
-                    `).join('');
+                    const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
                     // Staff asignado al cliente
                     const clientStaff = c.staff || [];
-                    const staffChips = clientStaff.map(u => `
-                        <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                            ${u.display_name || u.username}
-                        </span>
-                    `).join('');
+                    const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                        </div>
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
@@ -1168,13 +1170,16 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                            <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5">
+                                <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                                <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                            </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                            <div class="flex flex-col max-w-[200px]">${staffRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1249,18 +1254,20 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         if (tbody) {
             tbody.innerHTML = filtered.map(c => {
                 const clientEvents = c.events || [];
-                const eventChips = clientEvents.map(e => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                    </span>
-                `).join('');
+                const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                 
                 const clientStaff = c.staff || [];
-                const staffChips = clientStaff.map(u => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${u.display_name || u.username}
-                    </span>
-                `).join('');
+                const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                 
                 return `
                 <tr class="user-row-premium">
@@ -1272,13 +1279,16 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                         <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5">
+                            <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                            <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                        </div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                        <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                        <div class="flex flex-col max-w-[200px]">${staffRows}</div>
                     </td>
                     <td class="px-2 py-3 align-middle text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1716,31 +1726,34 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         const filtered = this.state.groups.filter(g => {
             // Filtro por búsqueda - buscar en TODAS las variables: Empresa, Clientes, Staff, Eventos
             let matchesSearch = !searchTerm;
-        if (searchTerm) {
-            filtered = filtered.filter(c => {
-                const term = searchTerm.toLowerCase();
+            if (searchTerm) {
+                // Buscar en nombre y email de la empresa
+                const companyMatch = (g.name && g.name.toLowerCase().includes(searchTerm)) ||
+                    (g.email && g.email.toLowerCase().includes(searchTerm));
                 
-                // Buscar en nombre y email del cliente
-                const clientMatch = (c.name && c.name.toLowerCase().includes(term)) ||
-                    (c.email && c.email.toLowerCase().includes(term));
-                
-                // Buscar en empresa asignada
-                const companyMatch = c.company_name && c.company_name.toLowerCase().includes(term);
-                
-                // Buscar en eventos del cliente
-                const eventsMatch = c.events && c.events.some && c.events.some(e => 
-                    e.name && e.name.toLowerCase().includes(term)
+                // Buscar en clientes de la empresa
+                const clientsMatch = this.state.clients && this.state.clients.some(c => 
+                    String(c.group_id) === String(g.id) && c.name && c.name.toLowerCase().includes(searchTerm)
                 );
                 
-                // Buscar en staff asignado al cliente
-                const staffMatch = c.staff && c.staff.some && c.staff.some(u => 
-                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
-                    (u.username && u.username.toLowerCase().includes(term))
+                // Buscar en staff de la empresa
+                const users = this.state.allUsers || [];
+                const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
+                const staffMatch = groupUsers.some(u => 
+                    (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
+                    (u.username && u.username.toLowerCase().includes(searchTerm))
                 );
                 
-                return clientMatch || companyMatch || eventsMatch || staffMatch;
-            });
-        }
+                // Buscar en eventos de la empresa
+                const events = this.state.allEvents || [];
+                const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
+                const eventsMatch = groupEvents.some(e => 
+                    (e.name && e.name.toLowerCase().includes(searchTerm)) ||
+                    (e.location && e.location.toLowerCase().includes(searchTerm))
+                );
+                
+                matchesSearch = companyMatch || clientsMatch || staffMatch || eventsMatch;
+            }
             
             // Filtro por evento
             let matchesEvent = true;
@@ -1788,25 +1801,28 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         
         tbody.innerHTML = groups.map(g => {
             const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
-            const userChips = groupUsers.map(u => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${u.display_name || u.username}
-                </span>
-            `).join('');
+            const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
+                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                    <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">badge</span>
+                    <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
+                </div>
+            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
             
             const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
-            const eventChips = groupEvents.map(e => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${e.name.length > 20 ? e.name.substring(0, 20) + '...' : e.name}
-                </span>
-            `).join('');
+            const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
+                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                    <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                    <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
+                </div>
+            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
             
             const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
-            const clientChips = groupClients.map(c => `
-                <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                    ${c.name.length > 20 ? c.name.substring(0, 20) + '...' : c.name}
-                </span>
-            `).join('');
+            const clientRows = groupClients.length > 0 ? groupClients.map(c => `
+                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                    <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                    <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
+                </div>
+            `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
             
             return `
             <tr class="user-row-premium">
@@ -1818,13 +1834,13 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${clientChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>'}</div>
+                    <div class="flex flex-col max-w-[200px]">${clientRows}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${userChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                    <div class="flex flex-col max-w-[200px]">${userRows}</div>
                 </td>
                 <td class="px-2 py-3 align-middle">
-                    <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                    <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                 </td>
                 <td class="px-2 py-3 align-middle text-left">
                     <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -2434,30 +2450,31 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
 
                 // --- COLUMNA 2: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
-                    <span class="block text-xs font-medium mb-1" style="color: var(--text-main);">
-                        ${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-slate-500 italic">Sin empresa</span>`;
-                const colEmpresa = `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${groupDisplay}</div>`;
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
 
                 // --- COLUMNA 3: CLIENTES ---
                 const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}
-                    </span>
-                `).join('') : `<span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span>`;
-                const colClientes = `<div class="flex flex-wrap gap-1 max-w-[200px]">${userClients}</div>`;
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
 
                 // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
-                const eventChips = userEvents.map(e => `
-                    <span class="block text-xs font-medium mb-1 text-[var(--text-main)]">
-                        ${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}
-                    </span>
-                `).join('');
-                const colEventos = userEvents.length > 0 ? 
-                    `<div class="flex flex-col">${eventChips}</div>` : 
-                    `<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>`;
+                const eventRows = userEvents.length > 0 ? userEvents.map(e => `
+                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
+                    </div>
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
                 const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
