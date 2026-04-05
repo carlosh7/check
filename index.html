@@ -155,8 +155,16 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     
     <script type="module">
-        (function() {
-            const currentVersion = '12.44.127';
+        (async function() {
+            // Leer versión dinámicamente desde package.json vía API
+            let currentVersion = '0.0.0';
+            try {
+                const resp = await fetch('/api/app-version', { cache: 'no-store' });
+                const data = await resp.json();
+                currentVersion = data.version || currentVersion;
+            } catch(e) {
+                console.warn('No se pudo leer la versión de la API, usando fallback');
+            }
             
             // 1. FORZAR recarga si hay cualquier parámetro de cache bust
             const urlParams = new URLSearchParams(window.location.search);
