@@ -37,6 +37,7 @@ router.get('/', authMiddleware(), (req, res) => {
     query += " ORDER BY c.created_at DESC";
     
     const clients = db.prepare(query).all(...params);
+    console.log('[DEBUG] Clients from DB:', JSON.stringify(clients.map(c => ({ id: c.id, name: c.name }))));
     res.json(clients);
 });
 
