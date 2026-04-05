@@ -1536,10 +1536,13 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
         
-        // Usar el parámetro groupIds si viene, si no usar selectedGroups
-        if (!groupIds || groupIds.length === 0) {
-            groupIds = this.state.selectedGroups || [];
-        }
+        // Guardar en una variable temporal las empresas seleccionadas en este momento
+        // (antes de que el usuario interactúe con el modal)
+        const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
+        const currentSelectedIds = Array.from(checkedBoxes).map(cb => cb.dataset.groupId);
+        
+        // Usar estas empresas para el modal (no el estado que puede estar obsoleto)
+        groupIds = currentSelectedIds;
         
         if (clients.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
