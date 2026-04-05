@@ -1606,6 +1606,7 @@ const App = window.App = {
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
+        console.log('openAssignClientToGroupModal clients:', clients.map(c => ({ id: c.id, name: c.name })));
         groupIds = groupIds || this.state.selectedGroups || [];
         
         if (clients.length === 0) {
