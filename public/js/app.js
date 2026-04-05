@@ -1541,6 +1541,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         // Leer checkboxes actuales directamente del DOM (más confiable que el estado)
         const checkedBoxes = document.querySelectorAll('.group-checkbox:checked');
         const currentSelectedIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-group-id'));
+        console.log('openAssignClientToGroupModal - checkboxes encontrados:', currentSelectedIds);
         groupIds = currentSelectedIds;
         
         if (clients.length === 0) {
@@ -1635,6 +1636,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
         console.log('===== assignClientToGroupsFromModal LLAMADA =====');
+        console.log('groupIdsStr:', groupIdsStr);
         const groupIds = groupIdsStr.split(',');
         try {
             if (isAssigned) {
