@@ -1647,12 +1647,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 });
             }
             
-            // Limpiar cache y recargar TODAS las tablas
-            this.state.clients = null;
-            this.state.groups = null;
-            await this.refreshAllTables();
+            // Recargar directamente loadGroups (sin refreshAllTables)
+            await this.loadGroups();
             
-            // Reabrir modal inmediatamente (mismo patrón que toggleEventToUser)
+            // Reabrir modal
             this.openAssignClientToGroupModal(groupIds);
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
