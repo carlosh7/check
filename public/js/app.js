@@ -1608,88 +1608,103 @@ const App = window.App = {
 
         // Si ya está activo, detener
         if (this._voiceActive && this._voiceRecognition) {
-            this._voiceRecognition.stop();
+            this._voiceRecognition.abort();
+            this._voiceRecognition = null;
+            this._voiceActive = false;
+            const micBtn = document.getElementById(`${section}-voice-btn`);
+            if (micBtn) { micBtn.style.color = '#64748b'; micBtn.textContent = 'mic'; }
+            this._hideVoiceToast();
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'es-ES';
-        recognition.interimResults = true;
-        recognition.maxAlternatives = 1;
-        recognition.continuous = true;
-
         const micBtn = document.getElementById(`${section}-voice-btn`);
+        this._voiceActive = true;
         let finalTranscript = '';
+        let restartCount = 0;
+        const maxRestarts = 5;
 
-        recognition.onstart = () => {
-            this._voiceActive = true;
+        const startRecognition = () => {
+            if (!this._voiceActive) return;
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.continuous = false;
+
             this._voiceRecognition = recognition;
-            finalTranscript = '';
-            if (micBtn) {
-                micBtn.style.color = '#ef4444';
-                micBtn.textContent = 'mic_off';
-            }
-            this._showVoiceToast('🎤 Escuchando... Habla ahora', 'listening');
-        };
 
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript;
+            recognition.onstart = () => {
+                restartCount = 0;
+                if (micBtn) {
+                    micBtn.style.color = '#ef4444';
+                    micBtn.textContent = 'mic_off';
+                }
+                this._showVoiceToast('🎤 Escuchando... Habla ahora', 'listening');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                finalTranscript += transcript;
+                this._showVoiceToast(`🎤 "${transcript}"`, 'listening');
+            };
+
+            recognition.onend = () => {
+                // Si no hay resultado y no excedimos reintentos, reiniciar
+                if (!finalTranscript && restartCount < maxRestarts && this._voiceActive) {
+                    restartCount++;
+                    setTimeout(() => startRecognition(), 300);
+                    return;
+                }
+
+                this._voiceActive = false;
+                this._voiceRecognition = null;
+                if (micBtn) {
+                    micBtn.style.color = '#64748b';
+                    micBtn.textContent = 'mic';
+                }
+
+                if (finalTranscript.trim()) {
+                    const searchInput = document.getElementById(`${section}-search`);
+                    if (searchInput) {
+                        searchInput.value = finalTranscript.trim().toLowerCase();
+                        this._showVoiceToast(`✅ "${finalTranscript.trim().toLowerCase()}"`, 'result');
+                        if (section === 'group') this.filterGroups();
+                    }
+                    setTimeout(() => this._hideVoiceToast(), 3000);
                 } else {
-                    interimTranscript += transcript;
+                    this._showVoiceToast('🎤 No se detectó voz. Intenta de nuevo.', 'timeout');
+                    setTimeout(() => this._hideVoiceToast(), 2000);
                 }
-            }
-            // Actualizar toast con lo que se va detectando
-            const displayText = finalTranscript || interimTranscript;
-            if (displayText) {
-                this._showVoiceToast(`🎤 ${displayText.trim()}`, 'listening');
+            };
+
+            recognition.onerror = (event) => {
+                if (event.error === 'not-allowed') {
+                    this._voiceActive = false;
+                    this._voiceRecognition = null;
+                    if (micBtn) { micBtn.style.color = '#64748b'; micBtn.textContent = 'mic'; }
+                    this._showMicPermissionHelp();
+                } else if (event.error === 'no-speech') {
+                    // No hace nada, onend manejará el reintento
+                } else if (event.error === 'network') {
+                    this._voiceActive = false;
+                    this._voiceRecognition = null;
+                    if (micBtn) { micBtn.style.color = '#64748b'; micBtn.textContent = 'mic'; }
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ title: '🌐 Error de red', text: 'La búsqueda por voz requiere conexión a internet.', icon: 'warning', background: '#0f172a', color: '#fff' });
+                    }
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.warn('Error iniciando reconocimiento:', e);
+                this._voiceActive = false;
             }
         };
 
-        recognition.onend = () => {
-            this._voiceActive = false;
-            this._voiceRecognition = null;
-            if (micBtn) {
-                micBtn.style.color = '#64748b';
-                micBtn.textContent = 'mic';
-            }
-            // Si hay resultado final, aplicarlo
-            if (finalTranscript.trim()) {
-                const searchInput = document.getElementById(`${section}-search`);
-                if (searchInput) {
-                    searchInput.value = finalTranscript.trim().toLowerCase();
-                    this._showVoiceToast(`✅ "${finalTranscript.trim().toLowerCase()}"`, 'result');
-                    if (section === 'group') this.filterGroups();
-                }
-            } else {
-                this._hideVoiceToast();
-            }
-        };
-
-        recognition.onerror = (event) => {
-            this._voiceActive = false;
-            this._voiceRecognition = null;
-            if (micBtn) {
-                micBtn.style.color = '#64748b';
-                micBtn.textContent = 'mic';
-            }
-            if (event.error === 'not-allowed') {
-                this._showMicPermissionHelp();
-            } else if (event.error === 'no-speech') {
-                this._showVoiceToast('🎤 No se detectó voz. Intenta de nuevo.', 'timeout');
-                setTimeout(() => this._hideVoiceToast(), 2000);
-                return;
-            } else if (event.error === 'network') {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ title: '🌐 Error de red', text: 'La búsqueda por voz requiere conexión a internet.', icon: 'warning', background: '#0f172a', color: '#fff' });
-                }
-            }
-        };
-
-        recognition.start();
+        startRecognition();
     },
 
     // Mostrar ayuda para habilitar micrófono
