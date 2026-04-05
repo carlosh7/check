@@ -1738,34 +1738,41 @@ const App = window.App = {
 
     // Toast animado de búsqueda por voz
     _showVoiceToast: function(message, type) {
-        // Eliminar toast existente si hay
-        this._hideVoiceToast();
+        let toast = document.getElementById('voice-toast');
+        const isNew = !toast;
 
-        const toast = document.createElement('div');
-        toast.id = 'voice-toast';
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            z-index: 9999999;
-            background: ${type === 'listening' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)'};
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid ${type === 'listening' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'};
-            border-radius: 16px;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-width: 90vw;
-        `;
+        if (isNew) {
+            toast = document.createElement('div');
+            toast.id = 'voice-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                z-index: 9999999;
+                border-radius: 16px;
+                padding: 14px 24px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                max-width: 90vw;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+            `;
+            document.body.appendChild(toast);
+        }
 
-        // Ondas de audio animadas (solo cuando está escuchando)
-        const wavesHTML = type === 'listening' ? `
+        const isListening = type === 'listening';
+        const isResult = type === 'result';
+        const isTimeout = type === 'timeout';
+
+        toast.style.background = isResult ? 'rgba(34, 197, 94, 0.2)' : isTimeout ? 'rgba(251, 191, 36, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        toast.style.border = `1px solid ${isResult ? 'rgba(34, 197, 94, 0.4)' : isTimeout ? 'rgba(251, 191, 36, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`;
+
+        const wavesHTML = isListening ? `
             <div class="voice-waves" style="display: flex; align-items: center; gap: 3px; height: 24px;">
                 <div class="voice-wave-bar" style="width: 3px; height: 8px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out infinite;"></div>
                 <div class="voice-wave-bar" style="width: 3px; height: 16px; background: #ef4444; border-radius: 2px; animation: voicePulse 0.8s ease-in-out 0.1s infinite;"></div>
@@ -1780,17 +1787,18 @@ const App = window.App = {
             <span style="color: #f1f5f9; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${message}</span>
         `;
 
-        document.body.appendChild(toast);
+        if (isNew) {
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+        }
 
-        // Animación de entrada
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateX(-50%) translateY(0)';
-        });
-
-        // Auto-ocultar si es resultado (después de 3s)
-        if (type === 'result') {
-            setTimeout(() => this._hideVoiceToast(), 3000);
+        // Auto-ocultar resultado (2s) y timeout (1.5s)
+        if (isResult) {
+            setTimeout(() => this._hideVoiceToast(), 2000);
+        } else if (isTimeout) {
+            setTimeout(() => this._hideVoiceToast(), 1500);
         }
     },
 
