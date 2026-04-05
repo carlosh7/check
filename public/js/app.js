@@ -1668,7 +1668,7 @@ const App = window.App = {
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
                         return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div onclick="console.log('CLICK', '${c.id}', ${isAssigned}); App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
