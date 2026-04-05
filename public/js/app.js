@@ -1591,14 +1591,16 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 </div>
 
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                        ${clients.map(c => {
+                        ${clients.map((c, idx) => {
                             const clientGroupId = c.group_id || '';
                             const isAssigned = groupIds.some(gid => clientGroupId === String(gid));
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        // Debug: ver qué valores tenemos
+                        console.log('Cliente:', c.id, c.name, 'group_id:', c.group_id, 'isAssigned:', isAssigned, 'groupIds:', groupIds);
                         return `
-                        <div onclick="App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        <div data-client-id="${c.id}" data-is-assigned="${isAssigned}" onclick="console.log('CLICK idx:', ${idx}, 'id:', '${c.id}', 'isAssigned:', ${isAssigned}); App.assignClientToGroupsFromModal('${groupIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
