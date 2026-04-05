@@ -1537,7 +1537,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
     // Modal asignar cliente a empresa
     openAssignClientToGroupModal: function(groupIds) {
         const clients = this.state.clients || [];
-        groupIds = groupIds || this.state.selectedGroups || [];
+        // Siempre usar selectedGroups actual, no el parámetro (que puede estar obsoleto)
+        groupIds = this.state.selectedGroups || [];
         
         if (clients.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' });
@@ -1650,8 +1651,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             // Recargar directamente loadGroups (sin refreshAllTables)
             await this.loadGroups();
             
-            // Reabrir modal
-            this.openAssignClientToGroupModal(groupIds);
+            // Reabrir modal (sin pasar groupIds, usará selectedGroups actual)
+            this.openAssignClientToGroupModal();
         } catch (e) {
             console.error('Error assignClientToGroupsFromModal:', e);
             Swal.fire({ 
