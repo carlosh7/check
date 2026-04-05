@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.118",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.118 - Fix: voz usa getUserMedia para forzar popup de permiso del navegador",
+  "version": "12.44.119",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.119 - Fix: Permissions-Policy permite microphone=(self) para búsqueda por voz",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -85,7 +85,8 @@ function securityHeaders(req, res, next) {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
     // Permissions policy (reducir capacidades del navegador)
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    // microphone=(self) permite que la propia app use el micrófono para búsqueda por voz
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(self), camera=()');
     
     // Deshabilitar caching de respuestas API (para datos sensibles)
     if (req.path.startsWith('/api/')) {
