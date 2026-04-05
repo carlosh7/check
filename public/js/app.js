@@ -1644,11 +1644,10 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 });
             }
             
-            // Limpiar cache y recargar datos (mismo patron que bulkToggleEventForUsers)
+            // Limpiar cache y recargar TODAS las tablas
             this.state.clients = null;
             this.state.groups = null;
-            await this.loadClients();
-            await this.loadGroups();
+            await this.refreshAllTables();
             
             // Mostrar notificación
             Swal.fire({ 
@@ -1986,8 +1985,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             });
             
             this.state.selectedGroups = [];
-            this.loadGroups();
-            this.loadEvents();
+            await this.refreshAllTables();
             Swal.close();
         } catch (e) {
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' });
@@ -2130,7 +2128,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             if (res.success) {
                 if (user) user.events = newEvents;
                 this.showEventSelector(userId, newEvents);
-                this.loadUsersTable();
+                await this.refreshAllTables();
             }
         } catch(e) { console.error(e); }
     },
@@ -2245,6 +2243,58 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             this.renderUsersTable(users, groups, events);
         } catch (error) {
             console.error('Error loading users table:', error);
+        }
+    },
+
+    // Actualizar TODAS las tablas después de cualquier cambio en modales
+    refreshAllTables: async function() {
+        try {
+            // Cargar todos los datos en paralelo
+            const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
+                this.fetchAPI('/users'),
+                this.fetchAPI('/groups'),
+                this.fetchAPI('/events'),
+                this.fetchAPI('/clients')
+            ]);
+            
+            const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
+            const groups = Array.isArray(groupsRes) ? groupsRes : (groupsRes.data || []);
+            const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
+            const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+            
+            // Actualizar estado global
+            this.state.allUsers = users;
+            this.state.allGroups = groups;
+            this.state.allEvents = events;
+            this.state.clients = clients;
+            
+            // Obtener el tab actual para saber qué renderizar
+            const currentView = this.state.currentView;
+            
+            if (currentView === 'system') {
+                // Determinar qué tab está activo
+                const activePanel = document.querySelector('#view-system .sub-nav-btn.active');
+                const activeTab = activePanel?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || 'users';
+                
+                // Cargar según el tab activo (cada función ya renderiza)
+                switch (activeTab) {
+                    case 'users':
+                        this.loadUsersTable();
+                        break;
+                    case 'groups':
+                        this.loadGroups();
+                        break;
+                    case 'clients':
+                        this.loadClients();
+                        break;
+                }
+            } else if (currentView === 'my-events' || currentView === 'event-config') {
+                this.loadEvents();
+            }
+            
+            console.log('[REFRESH] Todas las tablas actualizadas');
+        } catch (error) {
+            console.error('Error refreshAllTables:', error);
         }
     },
 
@@ -3053,14 +3103,8 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 });
             }
             
-            // Recargar usuarios con sus clients y volver a mostrar el modal
-            const users = await this.fetchAPI('/users');
-            this.state.allUsers = users;
-            const clients = await this.fetchAPI('/clients');
-            this.state.clients = clients;
-            
-            // Actualizar la tabla de usuarios para reflejar cambios
-            this.loadUsersTable();
+            // Recargar TODAS las tablas
+            await this.refreshAllTables();
             
             // Volver a mostrar el modal con datos actualizados
             this.showClientSelectorForBulkUsers(userIds);
@@ -11390,8 +11434,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
             });
             if (res.success) {
                 this._notifyAction('Éxito', 'Empresa asignada correctamente.', 'success');
-                this.loadUsersTable();
-                this.loadGroups();
+                await this.refreshAllTables();
                 // Recargar modal con estado actualizado
                 this.showGroupSelector(userId);
             } else {
@@ -11476,7 +11519,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
 
             if (res.success) {
                 this.showEventSelectorForCompany(groupId);
-                this.loadGroups();
+                await this.refreshAllTables();
             }
         } catch(e) { console.error(e); }
     },
@@ -11485,8 +11528,7 @@ const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
         if (!(await this._confirmAction('¿Quitar este usuario del evento?', 'Esta acción desvinculará al usuario del evento seleccionado.'))) return;
         try {
             await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
-            this.loadUsersTable();
-            this.loadEvents();
+            await this.refreshAllTables();
         } catch(e) { console.error(e); }
     },
 
