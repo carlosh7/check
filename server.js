@@ -213,27 +213,31 @@ app.get('/', (req, res, next) => {
     next();
 });
 
-// --- STATIC FILES CON CACHE AGRESIVO (versionados con ?v=X.Y.Z) ---
-// CSS y JS tienen query string de versión, así que podemos cachear por 1 año
+// --- STATIC FILES CON CACHE (versionados con ?v=X.Y.Z) ---
+// CSS y JS tienen query string de versión, cacheamos pero permitimos revalidación
 app.use('/css', express.static(path.join(__dirname, 'public/css'), {
-    maxAge: '1y',
-    immutable: true
+    maxAge: '1h',
+    etag: true,
+    lastModified: true
 }));
 
 app.use('/js', express.static(path.join(__dirname, 'public/js'), {
-    maxAge: '1y',
-    immutable: true
+    maxAge: '1h',
+    etag: true,
+    lastModified: true
 }));
 
 app.use('/html', express.static(path.join(__dirname, 'public/html'), {
-    maxAge: '1y',
-    immutable: true
+    maxAge: '1h',
+    etag: true,
+    lastModified: true
 }));
 
 // Archivos estáticos raíz (imágenes, favicon, etc.)
 app.use(express.static(path.join(__dirname, '/'), {
-    maxAge: '1y',
-    immutable: true,
+    maxAge: '1h',
+    etag: true,
+    lastModified: true,
     setHeaders: (res, reqPath) => {
         // HTML nunca se cachea
         if (reqPath.endsWith('.html')) {
