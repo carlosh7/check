@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.103';
+const VERSION = '12.44.104';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -1376,14 +1376,14 @@ const App = window.App = {
                     return;
                 }
                 try {
-                    const result = await this.fetchAPI('/clients/' + clientId, {
-                        method: 'PUT',
-                        body: JSON.stringify({ name, email, phone, group_id: company_id, status })
+                    const result = await this.fetchAPI('/clients', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, email, phone, group_id: company_id, status: 'ACTIVE' })
                     });
                     this.loadClients();
                     return true;
                 } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al actualizar cliente');
+                    Swal.showValidationMessage(e.message || 'Error al crear cliente');
                     return false;
                 }
             }
