@@ -1692,6 +1692,7 @@ const App = window.App = {
                         this._showVoiceToast(`✅ "${cleanText}"`, 'result');
                         if (section === 'group') this.filterGroups();
                         if (section === 'user') this.filterUsers();
+                        if (section === 'client') this.filterClients();
                     }
                     setTimeout(() => this._hideVoiceToast(), 3000);
                 } else {
@@ -1842,6 +1843,556 @@ const App = window.App = {
             checkboxes.forEach(cb => cb.checked = false);
             this.state.selectedClients = [];
         }
+    },
+
+    // Toggle selección individual de cliente
+    toggleClientSelection: function(clientId) {
+        if (!this.state.selectedClients) this.state.selectedClients = [];
+        const idx = this.state.selectedClients.indexOf(clientId);
+        if (idx > -1) {
+            this.state.selectedClients.splice(idx, 1);
+        } else {
+            // Selección única: limpiar anteriores y seleccionar solo esta
+            this.state.selectedClients = [clientId];
+        }
+        // Sincronizar checkboxes visuales
+        document.querySelectorAll('.client-checkbox').forEach(cb => {
+            cb.checked = this.state.selectedClients.includes(cb.dataset.clientId);
+        });
+    },
+
+    // Limpiar selección de clientes
+    clearClientSelection: function() {
+        this.state.selectedClients = [];
+        document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = false);
+    },
+
+    // Mostrar sugerencias de búsqueda para clientes
+    showClientSuggestions: function() {
+        const raw = document.getElementById('client-search')?.value || '';
+        const term = this._normalize(raw);
+        const container = document.getElementById('client-suggestions');
+        if (!container) return;
+
+        if (term.length < 2) {
+            this.hideClientSuggestions();
+            return;
+        }
+
+        const clients = this.state.clients || [];
+        const groups = this.state.groups || [];
+        const users = this.state.allUsers || [];
+        const events = this.state.allEvents || [];
+        const searchWords = term.split(' ').filter(w => w.length > 0);
+
+        // Recolectar sugerencias con puntuación de relevancia
+        const suggestions = [];
+
+        // Clientes
+        clients.forEach(c => {
+            const cName = this._normalize(c.name);
+            const cEmail = this._normalize(c.email);
+            let score = 0;
+            let matchType = '';
+
+            if (cName.startsWith(term)) { score = 100; matchType = 'cliente'; }
+            else if (searchWords.every(w => cName.includes(w))) { score = 80; matchType = 'cliente'; }
+            else if (cEmail && searchWords.every(w => cEmail.includes(w))) { score = 60; matchType = 'email'; }
+
+            if (score > 0) {
+                const group = groups.find(g => String(g.id) === String(c.group_id));
+                suggestions.push({
+                    score,
+                    text: c.name,
+                    subtext: group ? `Cliente → ${group.name}` : 'Cliente sin empresa',
+                    icon: 'person',
+                    color: '#10b981',
+                    type: matchType
+                });
+            }
+        });
+
+        // Empresas
+        groups.forEach(g => {
+            const gName = this._normalize(g.name);
+            if (searchWords.every(w => gName.includes(w))) {
+                suggestions.push({
+                    score: 70,
+                    text: g.name,
+                    subtext: g.email || 'Empresa',
+                    icon: 'corporate_fare',
+                    color: '#7c3aed',
+                    type: 'empresa'
+                });
+            }
+        });
+
+        // Staff
+        users.forEach(u => {
+            const uName = this._normalize(u.display_name || u.username);
+            if (searchWords.every(w => uName.includes(w))) {
+                suggestions.push({
+                    score: 65,
+                    text: u.display_name || u.username,
+                    subtext: u.role || 'Staff',
+                    icon: 'badge',
+                    color: '#3b82f6',
+                    type: 'staff'
+                });
+            }
+        });
+
+        // Eventos
+        events.forEach(e => {
+            const eName = this._normalize(e.name);
+            if (searchWords.every(w => eName.includes(w))) {
+                suggestions.push({
+                    score: 60,
+                    text: e.name,
+                    subtext: e.date || e.location || 'Evento',
+                    icon: 'event',
+                    color: '#a855f7',
+                    type: 'evento'
+                });
+            }
+        });
+
+        // Ordenar por score y limitar a 8
+        suggestions.sort((a, b) => b.score - a.score);
+        const top = suggestions.slice(0, 8);
+
+        if (top.length === 0) {
+            this.hideClientSuggestions();
+            return;
+        }
+
+        container.innerHTML = top.map((s, i) => `
+            <div onclick="App.selectClientSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+                 class="client-suggestion-item" 
+                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+                 onmouseover="this.style.background='rgba(16,185,129,0.15)'" 
+                 onmouseout="this.style.background='transparent'">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <div class="flex-1 min-w-0">
+                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this._highlightMatch(s.text, raw)}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                </div>
+            </div>
+        `).join('');
+
+        container.classList.remove('hidden');
+    },
+
+    // Ocultar sugerencias de clientes
+    hideClientSuggestions: function() {
+        const container = document.getElementById('client-suggestions');
+        if (container) container.classList.add('hidden');
+    },
+
+    // Seleccionar sugerencia de cliente
+    selectClientSuggestion: function(text) {
+        const searchInput = document.getElementById('client-search');
+        if (searchInput) {
+            searchInput.value = text;
+            this.filterClients();
+        }
+        this.hideClientSuggestions();
+    },
+
+    // Abrir carrusel de edición de clientes (botón directo "Edición")
+    openClientEditCarousel: function() {
+        const selectedClients = this.state.selectedClients || [];
+        if (selectedClients.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        this.editSelectedClients(selectedClients);
+    },
+
+    // Carrusel de edición de clientes (5 botones)
+    editSelectedClients: function(clientIds) {
+        this._lastClientCarouselContext = 'edit';
+        this._savedSelectedClients = [...(clientIds || [])];
+        const clients = this.state.clients || [];
+        const selectedClients = clientIds ? clients.filter(c => clientIds.includes(c.id)) : [];
+        if (selectedClients.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 5 botones -->
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <!-- Título + botón crear -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Cliente</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                    <button onclick="App.navigateToCreateClient()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <!-- Lista de clientes seleccionados -->
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedClients.map(c => {
+                        const statusColor = c.status === 'ACTIVE' ? '#22c55e' : '#94a3b8';
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(16,185,129,0.2); color: #10b981;">${(c.name || 'C').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'} • <span style="color: ${statusColor};">${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</span></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    // Editar un solo cliente
+    editSingleClient: function(clientIds) {
+        const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo cliente para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un cliente a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        this._lastClientCarouselContext = this._lastClientCarouselContext || 'edit';
+        this._savedSelectedClients = [...(this.state.selectedClients || [])];
+        this.openEditClientModal(ids[0]);
+    },
+
+    // Gestionar cliente (Activar/Desactivar/Eliminar)
+    showManageClientAction: function(clientIds) {
+        const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const savedIds = App._savedSelectedClients || [];
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="space-y-3">
+                <div onclick="App.handleBulkClientActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} cliente(s)</div></div>
+                </div>
+                <div onclick="App.handleBulkClientActionDirect('deactivate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Desactivar ${ids.length} cliente(s)</div></div>
+                </div>
+                <div onclick="App.handleBulkClientActionDirect('delete')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} cliente(s)</div></div>
+                </div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    // Acciones masivas directas de clientes
+    handleBulkClientActionDirect: async function(action) {
+        const clientIds = this.state.selectedClients || [];
+        if (clientIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (action === 'activate') {
+            if (await this._confirmAction('¿Activar cliente(s)?', `¿Activar ${clientIds.length} cliente(s)?`, 'Sí, activar')) {
+                await this.bulkUpdateClientStatus(clientIds, 'ACTIVE');
+                this.editSelectedClients(clientIds);
+            }
+        } else if (action === 'deactivate') {
+            if (await this._confirmAction('¿Desactivar cliente(s)?', `¿Desactivar ${clientIds.length} cliente(s)?`, 'Sí, desactivar')) {
+                await this.bulkUpdateClientStatus(clientIds, 'INACTIVE');
+                this.editSelectedClients(clientIds);
+            }
+        } else if (action === 'delete') {
+            if (await this._confirmAction('¿Eliminar cliente(s)?', `¿Eliminar ${clientIds.length} cliente(s)? Esta acción no se puede deshacer.`)) {
+                await this.bulkDeleteClients(clientIds);
+            } else {
+                this.editSelectedClients(clientIds);
+            }
+        }
+    },
+
+    // Actualizar estado de múltiples clientes
+    bulkUpdateClientStatus: async function(clientIds, status) {
+        for (const id of clientIds) {
+            await this.fetchAPI(`/clients/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+        }
+        await this.loadClients();
+    },
+
+    // Eliminar múltiples clientes
+    bulkDeleteClients: async function(clientIds) {
+        for (const id of clientIds) {
+            await this.fetchAPI(`/clients/${id}`, { method: 'DELETE' });
+        }
+        await this.loadClients();
+    },
+
+    // Asignar empresa a clientes
+    showCompanySelectorForClients: function(clientIds) {
+        this._lastClientCarouselContext = 'company';
+        this._savedSelectedClients = [...(clientIds || [])];
+        const groups = this.state.groups || [];
+        const clients = this.state.clients || [];
+        const selectedClients = clientIds ? clients.filter(c => clientIds.includes(c.id)) : [];
+        if (groups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay empresas disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#7c3aed';
+        const primaryLight = isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.15)';
+        const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${groups.map(g => {
+                        const isAssigned = selectedClients.some(c => String(c.group_id) === String(g.id));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignCompanyToClientsFromModal('${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignCompanyToClientsFromModal: async function(groupId, isAssigned) {
+        const clientIds = this.state.selectedClients || [];
+        if (clientIds.length === 0) return;
+        try {
+            for (const clientId of clientIds) {
+                if (isAssigned) {
+                    await this.fetchAPI(`/clients/${clientId}/group`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/clients/${clientId}/group`, { method: 'PUT', body: JSON.stringify({ group_id: groupId }) });
+                }
+            }
+            await this.loadClients();
+            this.showCompanySelectorForClients(clientIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Asignar staff a clientes
+    showStaffSelectorForClients: function(clientIds) {
+        this._lastClientCarouselContext = 'staff';
+        this._savedSelectedClients = [...(clientIds || [])];
+        const users = this.state.allUsers || [];
+        const clients = this.state.clients || [];
+        const selectedClients = clientIds ? clients.filter(c => clientIds.includes(c.id)) : [];
+        if (users.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay staff disponible', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.navigateToCreateClient()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${users.map(u => {
+                        const isAssigned = selectedClients.some(c => c.staff && c.staff.some(s => String(s.id) === String(u.id)));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignStaffToClientsFromModal('${u.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">badge</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div><div class="text-[11px]" style="color: ${textSecondary};">${u.role || 'Staff'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignStaffToClientsFromModal: async function(userId, isAssigned) {
+        const clientIds = this.state.selectedClients || [];
+        if (clientIds.length === 0) return;
+        try {
+            for (const clientId of clientIds) {
+                if (isAssigned) {
+                    await this.fetchAPI(`/clients/${clientId}/staff/${userId}`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/clients/${clientId}/staff`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+                }
+            }
+            await this.loadClients();
+            this.showStaffSelectorForClients(clientIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar staff', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Asignar evento a clientes
+    showEventSelectorForClients: function(clientIds) {
+        this._lastClientCarouselContext = 'event';
+        this._savedSelectedClients = [...(clientIds || [])];
+        const events = this.state.allEvents || [];
+        const clients = this.state.clients || [];
+        const selectedClients = clientIds ? clients.filter(c => clientIds.includes(c.id)) : [];
+        if (events.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#a855f7';
+        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
+        const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${events.map(e => {
+                        const isAssigned = selectedClients.some(c => c.events && c.events.some(ev => String(ev.id) === String(e.id)));
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignEventToClientsFromModal('${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignEventToClientsFromModal: async function(eventId, isAssigned) {
+        const clientIds = this.state.selectedClients || [];
+        if (clientIds.length === 0) return;
+        try {
+            for (const clientId of clientIds) {
+                if (isAssigned) {
+                    await this.fetchAPI(`/clients/${clientId}/events/${eventId}`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/clients/${clientId}/events`, { method: 'POST', body: JSON.stringify({ event_id: eventId }) });
+                }
+            }
+            await this.loadClients();
+            this.showEventSelectorForClients(clientIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Abrir modal para editar cliente (ya existe pero necesitamos referenciarla)
+    openEditClientModal: function(client) {
+        // Esta función ya existe en el código original
+        // Se llama desde handleBulkClientAction cuando action === 'edit'
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
+        
+        Swal.fire({
+            title: 'Editar Cliente',
+            html: `<div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nombre *</label>
+                    <input id="edit-client-name" type="text" value="${client.name || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Email</label>
+                    <input id="edit-client-email" type="email" value="${client.email || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Teléfono</label>
+                    <input id="edit-client-phone" type="text" value="${client.phone || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Estado</label>
+                    <select id="edit-client-status" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                        <option value="ACTIVE" ${client.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
+                        <option value="INACTIVE" ${client.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
+                    </select>
+                </div>
+            </div>`,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            background: bgMain,
+            color: textMain,
+            customClass: { popup: 'rounded-2xl' },
+            preConfirm: async () => {
+                const name = document.getElementById('edit-client-name').value.trim();
+                const email = document.getElementById('edit-client-email').value.trim();
+                const phone = document.getElementById('edit-client-phone').value.trim();
+                const status = document.getElementById('edit-client-status').value;
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return false; }
+                try {
+                    await this.fetchAPI(`/clients/${client.id}`, { method: 'PUT', body: JSON.stringify({ name, email, phone, status }) });
+                    await this.loadClients();
+                    Swal.fire('✓ Guardado', 'Cliente actualizado', 'success');
+                } catch (e) { Swal.showValidationMessage('Error: ' + e.message); }
+            }
+        });
     },
 
     // Acciones masivas de clientes
