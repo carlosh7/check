@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.144",
+  "version": "12.44.145",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.144 - Fix: openUserEditCarousel carga datos antes de abrir + state.groups en loadUsersTable",
   "main": "script.js",
   "scripts": {
