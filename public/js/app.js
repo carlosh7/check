@@ -4567,24 +4567,6 @@ const App = window.App = {
                 </div>
             </div>`;
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
-            didOpen: () => {
-                console.log('[EVENT] didOpen ejecutado');
-                const container = document.getElementById('event-selector-items');
-                console.log('[EVENT] container:', container);
-                if (container) {
-                    container.addEventListener('click', (e) => {
-                        console.log('[EVENT] click en container');
-                        const item = e.target.closest('.event-selector-item');
-                        console.log('[EVENT] item:', item);
-                        if (!item) return;
-                        const eventId = item.dataset.eventId;
-                        const isAssigned = item.dataset.isAssigned === 'true';
-                        console.log('[EVENT] eventId:', eventId, 'isAssigned:', isAssigned);
-                        App.assignEventToUsersFromModal(userIds.join(','), eventId, isAssigned);
-                    });
-                }
-            }
-        });
     },
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
