@@ -13104,9 +13104,6 @@ const App = window.App = {
         // Guardar seleccionados para el carrusel
         this.state.selectedUsers = selectedUserIds;
         
-        // Establecer contexto de configuración de evento para mostrar solo 4 botones
-        this._isConfigEventContext = true;
-        
         // Asegurar que los datos estén cargados
         if (!this.state.allUsers?.length || !this.state.groups?.length) {
             await this.loadUsersTable();
@@ -13118,20 +13115,23 @@ const App = window.App = {
             } catch(e) { this.state.clients = []; }
         }
         
-        // Abrir el carrusel específico de configuración (solo 3 botones)
-        this.editSelectedUsersForConfig(selectedUserIds);
+        // Abrir el carrusel independiente de configuración
+        this.editSelectedUsersConfig(selectedUserIds);
     },
     
-    // Carrusel de edición de staff para configuración del evento (solo 4 botones: editar, gestionar, evento, rol)
-    editSelectedUsersForConfig: function(userIds) {
+    // ==================================================
+    // CARRUSEL INDEPENDIENTE PARA PERSONAL (CONFIGURACIÓN)
+    // ==================================================
+    
+    // Carrusel principal de Personal - 4 botones independientes
+    editSelectedUsersConfig: function(userIds) {
         const ids = Array.isArray(userIds) ? userIds : (userIds ? [userIds] : []);
         if (ids.length === 1) {
-            this.editSingleUser(ids);
+            this.editSingleUserConfig(ids);
             return;
         }
         
-        this._lastUserCarouselContext = 'edit';
-        this._savedSelectedUsers = [...ids];
+        this._savedSelectedUsersConfig = [...ids];
         const users = this.state.allUsers || [];
         const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
@@ -13144,18 +13144,530 @@ const App = window.App = {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
-        // Guardar el eventId actual para usar en las acciones
-        const eventId = this.state.event?.id;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título -->
+                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <!-- Lista de staff seleccionado -->
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedUsers.map(u => {
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColor = roleColors[u.role] || '#64748b';
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
+    },
+    
+    // Edición inline de un solo usuario - INDEPENDIENTE para Personal
+    editSingleUserConfig: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo staff para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un staff a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        const userId = ids[0];
+        const user = this.state.allUsers?.find(u => u.id === userId);
+        if (!user) { Swal.fire({ title: '⚠️ Error', text: 'Staff no encontrado', icon: 'error', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedUsersConfig = [userId];
+        this._editingUserIdConfig = userId;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
+        
+        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'].map(r => 
+            `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`
+        ).join('');
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación 4 botones -->
+                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
+                <!-- Título + Guardar -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${user.display_name || user.username}</span>
+                    </div>
+                    <button onclick="App.saveUserEditInlineConfig()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
+                    </button>
+                </div>
+                <!-- Campos编辑 inline -->
+                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-user-name-config-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
+                            <input id="edit-user-email-config-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
+                            <input id="edit-user-password-config-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Rol</label>
+                            <select id="edit-user-role-config-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                ${roleOptions}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
+    },
+    
+    // Guardar edición inline de staff - INDEPENDIENTE para Personal
+    saveUserEditInlineConfig: async function() {
+        const userId = this._editingUserIdConfig;
+        if (!userId) return;
+        
+        const nameInput = document.getElementById(`edit-user-name-config-${userId}`);
+        const emailInput = document.getElementById(`edit-user-email-config-${userId}`);
+        const passwordInput = document.getElementById(`edit-user-password-config-${userId}`);
+        const roleSelect = document.getElementById(`edit-user-role-config-${userId}`);
+        
+        if (!nameInput || !emailInput || !roleSelect) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput?.value || '';
+        const role = roleSelect.value;
+        
+        if (!name || !email) {
+            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const saveBtn = document.querySelector('[onclick="App.saveUserEditInlineConfig()"]');
+        if (saveBtn) {
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
+            saveBtn.style.opacity = '0.6';
+            saveBtn.style.pointerEvents = 'none';
+        }
+        
+        try {
+            const updateData = { display_name: name, username: email, role };
+            if (password) updateData.password = password;
+            
+            const result = await this.fetchAPI(`/users/${userId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updateData)
+            });
+            
+            if (result?.user || result?.id) {
+                // Actualizar en el estado
+                const userIndex = this.state.allUsers?.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    this.state.allUsers[userIndex] = { ...this.state.allUsers[userIndex], ...updateData };
+                }
+                
+                Swal.fire({ title: '✅ Guardado', text: 'Staff actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // Recargar el carrusel independiente
+                this.editSingleUserConfig([userId]);
+            } else {
+                throw new Error(result?.message || 'Error al guardar');
+            }
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+        }
+    },
+    
+    // Gestionar staff (Activar/Desactivar/Eliminar) - INDEPENDIENTE para Personal
+    showManageUserActionConfig: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedUsersConfig = [...ids];
+        
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título -->
+                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <!-- Opciones de gestión -->
+                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                    <div class="space-y-3">
+                        <button onclick="App.toggleUserStatusConfig('${ids.join(',')}')" class="w-full p-4 rounded-xl text-left font-bold transition-all hover:scale-[1.02]" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2);">
+                            <span class="material-symbols-outlined align-middle mr-2">toggle_on</span> Activar / Desactivar
+                        </button>
+                        <button onclick="App.deleteUserConfig('${ids.join(',')}')" class="w-full p-4 rounded-xl text-left font-bold transition-all hover:scale-[1.02]" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">
+                            <span class="material-symbols-outlined align-middle mr-2">delete</span> Eliminar Staff
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
+    },
+    
+    // Toggle estado de usuario - INDEPENDIENTE para Personal
+    toggleUserStatusConfig: async function(userIdsStr) {
+        const userIds = userIdsStr.split(',');
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        
+        const allActive = selectedUsers.every(u => u.status === 'ACTIVE');
+        const newStatus = allActive ? 'INACTIVE' : 'ACTIVE';
+        const action = allActive ? 'desactivar' : 'activar';
+        
+        const result = await Swal.fire({
+            title: `¿${allActive ? 'Desactivar' : 'Activar'} Staff?`,
+            text: `Se ${action}rán ${selectedUsers.length} staff(s).`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: allActive ? '#ef4444' : '#10b981',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                for (const userId of userIds) {
+                    await this.fetchAPI(`/users/${userId}/status`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                }
+                
+                // Recargar datos
+                await this.loadUsersTable();
+                await this.loadConfigStaff();
+                
+                Swal.fire({ title: '✅ Listo', text: `Staff ${allActive ? 'desactivado' : 'activado'} correctamente`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // Recargar carrusel
+                this.showManageUserActionConfig(userIds);
+            } catch (e) {
+                Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al cambiar estado', icon: 'error', background: '#0f172a', color: '#fff' });
+            }
+        }
+    },
+    
+    // Eliminar usuario - INDEPENDIENTE para Personal
+    deleteUserConfig: async function(userIdsStr) {
+        const userIds = userIdsStr.split(',');
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        
+        const result = await Swal.fire({
+            title: '¿Eliminar Staff?',
+            text: `Se eliminarán ${selectedUsers.length} staff(s) PERMANENTEMENTE.`,
+            icon: 'danger',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                for (const userId of userIds) {
+                    await this.fetchAPI(`/users/${userId}`, { method: 'DELETE' });
+                }
+                
+                // Recargar datos
+                await this.loadUsersTable();
+                await this.loadConfigStaff();
+                
+                Swal.fire({ title: '✅ Eliminado', text: 'Staff eliminado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // Cerrar modal
+                Swal.close();
+            } catch (e) {
+                Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al eliminar', icon: 'error', background: '#0f172a', color: '#fff' });
+            }
+        }
+    },
+    
+    // Asignar Evento a usuarios - INDEPENDIENTE para Personal
+    showEventSelectorForUsersConfig: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedUsersConfig = [...ids];
+        
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        
+        // Obtener eventos disponibles
+        const events = this.state.events || [];
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título -->
+                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <!-- Lista de eventos -->
+                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${events.length === 0 ? `<div class="text-center py-8 text-sm" style="color: ${textSecondary};">No hay eventos disponibles</div>` : events.map(e => `
+                        <div onclick="App.assignEventToUsersConfig('${ids.join(',')}', '${e.id}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(236,72,153,0.2); color: #ec4899;">
+                                <span class="material-symbols-outlined text-lg">event</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${e.location || 'Sin ubicación'}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
+    },
+    
+    // Asignar evento a usuarios - INDEPENDIENTE para Personal
+    assignEventToUsersConfig: async function(userIdsStr, eventId) {
+        const userIds = userIdsStr.split(',');
+        
+        try {
+            // Obtener evento
+            const event = this.state.events?.find(e => e.id === eventId);
+            
+            for (const userId of userIds) {
+                await this.fetchAPI(`/events/${eventId}/users`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+            
+            Swal.fire({ title: '✅ Asignado', text: `Staff asignado al evento "${event?.name || 'Evento'}"`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+            
+            // Recargar carrusel
+            this.showEventSelectorForUsersConfig(userIds);
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al asignar', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+    
+    // Asignar Rol a usuarios - INDEPENDIENTE para Personal
+    showRoleSelectorForUsersConfig: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedUsersConfig = [...ids];
+        
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        
+        const roles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título -->
+                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Rol</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <!-- Lista de roles -->
+                <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${roles.map(role => {
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColor = roleColors[role] || '#64748b';
+                        const roleIcons = { ADMIN: 'admin_panel_settings', PRODUCTOR: 'movie', LOGISTICO: 'inventory', STAFF: 'person', CLIENTE: 'person' };
+                        return `
+                        <div onclick="App.assignRoleToUsersConfig('${ids.join(',')}', '${role}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: ${roleColor}20; color: ${roleColor};">
+                                <span class="material-symbols-outlined text-lg">${roleIcons[role]}</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${role}</div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
+    },
+    
+    // Asignar rol a usuarios - INDEPENDIENTE para Personal
+    assignRoleToUsersConfig: async function(userIdsStr, role) {
+        const userIds = userIdsStr.split(',');
+        
+        try {
+            for (const userId of userIds) {
+                await this.fetchAPI(`/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ role })
+                });
+            }
+            
+            // Recargar datos
+            await this.loadUsersTable();
+            
+            Swal.fire({ title: '✅ Rol Asignado', text: `Nuevo rol: ${role}`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+            
+            // Recargar carrusel
+            this.showRoleSelectorForUsersConfig(userIds);
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al asignar rol', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
                 <!-- Título -->
                 <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
