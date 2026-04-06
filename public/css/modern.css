@@ -1172,6 +1172,85 @@ html:not(.dark) .sub-nav-btn[data-tab="clients"].active {
     border-color: rgba(16, 185, 129, 1) !important;
 }
 
+/* Active states for config tabs (event configuration) */
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="staff"].active {
+    background: rgba(59, 130, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(59, 130, 246, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="email"].active {
+    background: rgba(245, 158, 11, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(245, 158, 11, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="agenda"].active {
+    background: rgba(236, 72, 153, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(236, 72, 153, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="wheel"].active {
+    background: rgba(168, 85, 247, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(168, 85, 247, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="pre-registrations"].active {
+    background: rgba(16, 185, 129, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(16, 185, 129, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="surveys"].active {
+    background: rgba(99, 102, 241, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(99, 102, 241, 1) !important;
+}
+
+html:not(.dark) #view-event-config .sub-nav-btn[data-tab="settings"].active {
+    background: rgba(107, 114, 128, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(107, 114, 128, 1) !important;
+}
+
+/* Dark mode config tabs */
+html.dark #view-event-config .sub-nav-btn[data-tab="staff"].active {
+    background: rgba(59, 130, 246, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="email"].active {
+    background: rgba(245, 158, 11, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="agenda"].active {
+    background: rgba(236, 72, 153, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="wheel"].active {
+    background: rgba(168, 85, 247, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="pre-registrations"].active {
+    background: rgba(16, 185, 129, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="surveys"].active {
+    background: rgba(99, 102, 241, 1) !important;
+    color: #ffffff !important;
+}
+
+html.dark #view-event-config .sub-nav-btn[data-tab="settings"].active {
+    background: rgba(107, 114, 128, 1) !important;
+    color: #ffffff !important;
+}
+
 /* ===== TEMAS: CARDS Y GLASS ===== */
 html:not(.dark) .glass-card,
 html:not(.dark) .card {
