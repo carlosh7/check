@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.215",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.215 - Fix: unificar sidebar con indicadores activos por sección",
+  "version": "12.44.216",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.216 - Fix: sidebar con botones estilo menu (fondo y borde)",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
