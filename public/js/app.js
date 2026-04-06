@@ -1173,7 +1173,7 @@ const App = window.App = {
                             <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
                     
                     // Staff asignado al cliente con iconos
                     const clientStaff = c.staff || [];
@@ -1191,9 +1191,7 @@ const App = window.App = {
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                                    <span class="material-symbols-outlined">person</span>
-                                </div>
+                                <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
                                 <div>
                                     <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
                                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
@@ -1326,7 +1324,7 @@ const App = window.App = {
                     <td class="px-2 py-3 align-middle">
                         ${c.company_name ? `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name}</span>
                         </div>` : `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg">
@@ -1625,8 +1623,8 @@ const App = window.App = {
 
                 const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                 const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
-                    <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #a855f7; background: rgba(168,85,247,0.15); border-radius: 6px; padding: 2px;">event</span>
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
