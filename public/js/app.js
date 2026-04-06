@@ -374,11 +374,21 @@ const App = window.App = {
         this.openInviteModal(); 
     },
     // Abrir carrusel de edición de staff (botón "Edición")
-    openUserEditCarousel: function() {
+    openUserEditCarousel: async function() {
         const selectedUsers = this.state.selectedUsers || [];
         if (selectedUsers.length === 0) {
             Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
             return;
+        }
+        // Asegurar que los datos estén cargados
+        if (!this.state.allUsers?.length || !this.state.groups?.length) {
+            await this.loadUsersTable();
+        }
+        if (!this.state.clients?.length) {
+            try {
+                const clientsRes = await this.fetchAPI('/clients');
+                this.state.clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+            } catch(e) { this.state.clients = []; }
         }
         this.editSelectedUsers(selectedUsers);
     },
@@ -2794,6 +2804,7 @@ const App = window.App = {
             this.state.allUsers = users;
             this.state.allEvents = events;
             this.state.allGroups = groups;
+            this.state.groups = groups;
             this.renderUsersTable(users, groups, events);
         } catch (error) {
             console.error('Error loading users table:', error);
