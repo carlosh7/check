@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.156",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.156 - Fix: user_id vs userId en asignacion evento staff",
+  "version": "12.44.157",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.157 - Fix: carrusel permanece abierto al crear empresa desde selector staff",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

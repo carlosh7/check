@@ -3797,6 +3797,7 @@ const App = window.App = {
     openCreateGroupFromUserCarousel: function() {
         this._lastUserCarouselContext = 'company';
         this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
+        this._openCompanyModalFromSelector = true;
         Swal.close();
         setTimeout(() => this.navigateToCreateGroup(), 200);
     },
@@ -7466,6 +7467,14 @@ const App = window.App = {
                 delete this.state._pendingGroupUserId;
                 await this.loadGroups();
                 this.showGroupSelector(pendingUserId);
+            } else if (this._openCompanyModalFromSelector && this._lastUserCarouselContext === 'company') {
+                // Reabrir el carrusel de asignar empresa a staff
+                this._openCompanyModalFromSelector = false;
+                await this.loadGroups();
+                const savedUsers = this._savedSelectedUsers || [];
+                if (savedUsers.length > 0) {
+                    this.showCompanySelectorForUsers(savedUsers);
+                }
             } else {
                 this.loadGroups();
             }
