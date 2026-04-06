@@ -1206,10 +1206,10 @@ const App = window.App = {
                             </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
+                            <div class="flex flex-col max-w-[200px]">${staffRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex flex-col max-w-[200px]">${staffRows}</div>
+                            <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
                         <td class="px-2 py-3 align-middle text-left">
                             <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">

@@ -1256,3 +1256,40 @@ html.dark .sub-nav-btn[data-tab="clients"].active {
     border-color: rgba(16, 185, 129, 1) !important;
 }
 
+/* Active states for other tabs */
+html:not(.dark) .sub-nav-btn[data-tab="email"].active {
+    background: rgba(245, 158, 11, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(245, 158, 11, 1) !important;
+}
+
+html:not(.dark) .sub-nav-btn[data-tab="legal"].active {
+    background: rgba(107, 114, 128, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(107, 114, 128, 1) !important;
+}
+
+html:not(.dark) .sub-nav-btn[data-tab="account"].active {
+    background: rgba(139, 92, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(139, 92, 246, 1) !important;
+}
+
+html.dark .sub-nav-btn[data-tab="email"].active {
+    background: rgba(245, 158, 11, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(245, 158, 11, 1) !important;
+}
+
+html.dark .sub-nav-btn[data-tab="legal"].active {
+    background: rgba(107, 114, 128, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(107, 114, 128, 1) !important;
+}
+
+html.dark .sub-nav-btn[data-tab="account"].active {
+    background: rgba(139, 92, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(139, 92, 246, 1) !important;
+}
+
