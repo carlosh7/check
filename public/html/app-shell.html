@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.213</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.214</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -192,30 +192,29 @@
             </section>
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
-            <section id="view-event-config" class="hidden space-y-10 animate-fade-in">
-                <!-- Config Navigation -->
-                <div class="sub-nav-container p-1.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-wrap gap-2 mb-8">
-                    <button id="config-nav-staff" class="sub-nav-btn active !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="staff" onclick="App.switchConfigTab('staff')">
-                        <span class="material-symbols-outlined text-sm">person</span> Personal
+            <section id="view-event-config" class="hidden space-y-6 animate-fade-in">
+                <!-- Config Navigation - Mismo estilo que Sistema -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
+                        <span class="material-symbols-outlined text-base">person</span> Personal
                     </button>
-                    <!-- Email movido a módulo nuevo -Fase 2 -->
-                    <button id="config-nav-email" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="email" onclick="App.switchConfigTab('email')">
-                        <span class="material-symbols-outlined text-sm">mail</span> Mailing
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
+                        <span class="material-symbols-outlined text-base">mail</span> Mailing
                     </button>
-                    <button id="config-nav-agenda" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
-                        <span class="material-symbols-outlined text-sm">schedule</span> Agenda
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
+                        <span class="material-symbols-outlined text-base">schedule</span> Agenda
                     </button>
-                    <button id="config-nav-wheel" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
-                        <span class="material-symbols-outlined text-sm">casino</span> Sorteos
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
+                        <span class="material-symbols-outlined text-base">casino</span> Sorteos
                     </button>
-                    <button id="config-nav-pre-registrations" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
-                        <span class="material-symbols-outlined text-sm">how_to_reg</span> Pre-Reg
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
+                        <span class="material-symbols-outlined text-base">how_to_reg</span> Pre-Reg
                     </button>
-                    <button id="config-nav-surveys" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
-                        <span class="material-symbols-outlined text-sm">poll</span> Encuestas
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
+                        <span class="material-symbols-outlined text-base">poll</span> Encuestas
                     </button>
-                    <button id="config-nav-settings" class="sub-nav-btn !rounded-xl !py-3 !px-6 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2" data-tab="settings" onclick="App.switchConfigTab('settings')">
-                        <span class="material-symbols-outlined text-sm">settings</span> Ajustes
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
+                        <span class="material-symbols-outlined text-base">settings</span> Ajustes
                     </button>
                 </div>
 

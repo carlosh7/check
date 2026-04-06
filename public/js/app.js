@@ -11942,15 +11942,15 @@ const App = window.App = {
             if (el) el.classList.add('hidden');
         });
 
-        // Update config navigation buttons (nueva estructura HTML unificada V12.28.13)
-        const configNavContainer = document.querySelector('#view-event-config .sub-nav-container');
+        // Update config navigation buttons - buscar por data-tab
+        const configNavContainer = document.querySelector('#view-event-config');
         if (configNavContainer) {
             configNavContainer.querySelectorAll('.sub-nav-btn').forEach(b => {
                 // Remover todas las clases de estado activo
                 b.classList.remove('active');
                 
-                // Agregar clase de estado activo al botón correspondiente
-                if (b.id === `config-nav-${tabName}`) {
+                // Agregar clase de estado activo al botón correspondiente por data-tab
+                if (b.getAttribute('data-tab') === tabName) {
                     b.classList.add('active');
                 }
             });
