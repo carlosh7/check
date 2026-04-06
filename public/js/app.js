@@ -3644,13 +3644,12 @@ const App = window.App = {
                     <button onclick="App.openCreateEventModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;" id="event-selector-items">
                     ${events.map(e => {
                         const isAssigned = userIds.some(uid => {
                             const user = users.find(u => String(u.id) === String(uid));
                             if (!user || !user.events) return false;
                             return user.events.some(ev => {
-                                // ev puede ser: número, string, objeto con id/event_id
                                 const evId = typeof ev === 'object' ? (ev.id || ev.event_id) : ev;
                                 return String(evId) === String(e.id);
                             });
@@ -3658,7 +3657,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignEventToUsersFromModal('${userIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div data-event-id="${e.id}" data-is-assigned="${isAssigned}" class="event-selector-item selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3666,7 +3665,20 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
+            didOpen: () => {
+                const container = document.getElementById('event-selector-items');
+                if (container) {
+                    container.addEventListener('click', (e) => {
+                        const item = e.target.closest('.event-selector-item');
+                        if (!item) return;
+                        const eventId = item.dataset.eventId;
+                        const isAssigned = item.dataset.isAssigned === 'true';
+                        App.assignEventToUsersFromModal(userIds.join(','), eventId, isAssigned);
+                    });
+                }
+            }
+        });
     },
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
