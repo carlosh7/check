@@ -421,10 +421,15 @@ const App = window.App = {
     },
 
     openExportModal: function(type) {
-        this._exportType = type; // 'groups' o 'staff'
+        this._exportType = type; // 'groups', 'staff', 'clients', 'all'
         document.getElementById('export-progress-container').classList.add('hidden');
         const modal = document.getElementById('modal-export');
         if (modal) modal.classList.remove('hidden');
+    },
+
+    // Abrir modal de exportación para toda la base de datos (DB)
+    openExportDBModal: function() {
+        this.openExportModal('all');
     },
 
     downloadImportTemplate: async function() {

@@ -727,6 +727,31 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
             usersSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
         }
         
+        if (type === 'clients' || type === 'all') {
+            // ─── EXPORTAR CLIENTES (matching import template) ───
+            const clientsSheet = workbook.addWorksheet('Clientes');
+            clientsSheet.columns = [
+                { header: 'Nombre', key: 'name', width: 25 },
+                { header: 'Email', key: 'email', width: 30 },
+                { header: 'Teléfono', key: 'phone', width: 20 },
+                { header: 'Empresa', key: 'company_name', width: 25 },
+                { header: 'Estado', key: 'status', width: 15 }
+            ];
+
+            // Obtener clientes con nombre de empresa
+            const clients = db.prepare(`
+                SELECT c.name, c.email, c.phone, c.status, g.name as company_name 
+                FROM clients c 
+                LEFT JOIN groups g ON c.group_id = g.id 
+                ORDER BY c.created_at DESC
+            `).all();
+            clientsSheet.addRows(clients);
+
+            clientsSheet.getRow(1).font = { bold: true };
+            clientsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10b981' } };
+            clientsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        }
+        
         if (workbook.worksheets.length === 0) {
             return res.status(400).json({ error: 'Tipo de exportación no válido. Use: groups, events, staff, users, o all' });
         }
