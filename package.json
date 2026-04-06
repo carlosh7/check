@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.131",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.131 - Fix: toast de voz se reutiliza (no se duplica) y se oculta en 2s",
+  "version": "12.44.132",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.132 - Modales de crear cliente/staff/evento con mismo diseño que modal empresa",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

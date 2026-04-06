@@ -1859,63 +1859,54 @@ const App = window.App = {
     },
 
     // Modal crear cliente
+    // Abrir modal para crear cliente (diseño igual al de empresa)
     openCreateClientModal: function() {
         const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        
-        Swal.fire({
-            title: 'Nuevo Cliente',
-            html: `
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label>
-                        <input id="client-name" type="text" class="swal2-input" placeholder="Nombre del cliente" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email</label>
-                        <input id="client-email" type="email" class="swal2-input" placeholder="email@ejemplo.com">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Teléfono</label>
-                        <input id="client-phone" type="tel" class="swal2-input" placeholder="+52...">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa *</label>
-                        <select id="client-company" class="swal2-input" required>
-                            <option value="">Seleccionar empresa</option>
-                            ${groupOptions}
-                        </select>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Crear',
-            cancelButtonText: 'Cancelar',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const name = document.getElementById('client-name').value.trim();
-                const email = document.getElementById('client-email').value.trim();
-                const phone = document.getElementById('client-phone').value.trim();
-                const company_id = document.getElementById('client-company').value;
-                if (!name || !company_id) {
-                    Swal.fire({ title: '⚠️ Error', text: 'Nombre y empresa son requeridos', icon: 'error', background: '#0f172a', color: '#fff' });
-                    return;
-                }
-                try {
-                    const result = await this.fetchAPI('/clients', {
-                        method: 'POST',
-                        body: JSON.stringify({ name, email, phone, group_id: company_id, status: 'ACTIVE' })
-                    });
-                    this.loadClients();
-                    return true;
-                } catch (e) {
-                    Swal.showValidationMessage(e.message || 'Error al crear cliente');
-                    return false;
-                }
-            }
-        });
+        const select = document.getElementById('create-client-company');
+        if (select) {
+            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        }
+        document.getElementById('create-client-name').value = '';
+        document.getElementById('create-client-email').value = '';
+        document.getElementById('create-client-phone').value = '';
+        const modal = document.getElementById('modal-create-client');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    // Abrir modal para crear staff (diseño igual al de empresa)
+    openCreateStaffModal: function() {
+        const groups = this.state.groups || [];
+        const select = document.getElementById('create-staff-company');
+        if (select) {
+            select.innerHTML = '<option value="">Sin empresa</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        }
+        document.getElementById('create-staff-name').value = '';
+        document.getElementById('create-staff-email').value = '';
+        document.getElementById('create-staff-password').value = '';
+        document.getElementById('create-staff-role').value = 'STAFF';
+        const modal = document.getElementById('modal-create-staff');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    // Abrir modal para crear evento (diseño igual al de empresa)
+    openCreateEventModal: function() {
+        document.getElementById('create-event-name').value = '';
+        document.getElementById('create-event-date').value = '';
+        document.getElementById('create-event-location').value = '';
+        document.getElementById('create-event-description').value = '';
+        const modal = document.getElementById('modal-create-event');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    // Cerrar modales de creación
+    closeCreateClientModal: function() {
+        document.getElementById('modal-create-client')?.classList.add('hidden');
+    },
+    closeCreateStaffModal: function() {
+        document.getElementById('modal-create-staff')?.classList.add('hidden');
+    },
+    closeCreateEventModal: function() {
+        document.getElementById('modal-create-event')?.classList.add('hidden');
     },
 
     // Modal asignar eventos a cliente
@@ -2505,32 +2496,7 @@ const App = window.App = {
 
     // Modal crear staff
     openCreateUserModal: function() {
-        const groups = this.state.groups || [];
-        const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        Swal.fire({
-            title: 'Nuevo Staff',
-            html: `<div class="space-y-4 text-left">
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Nombre *</label><input id="user-display-name" type="text" class="swal2-input" placeholder="Nombre completo" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Email *</label><input id="user-username" type="email" class="swal2-input" placeholder="email@ejemplo.com" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Contraseña *</label><input id="user-password" type="password" class="swal2-input" placeholder="Contraseña" required></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Rol</label><select id="user-role" class="swal2-input"><option value="STAFF">STAFF</option><option value="LOGISTICO">LOGISTICO</option><option value="PRODUCTOR">PRODUCTOR</option><option value="ADMIN">ADMIN</option></select></div>
-                <div><label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Empresa</label><select id="user-company" class="swal2-input"><option value="">Sin empresa</option>${groupOptions}</select></div>
-            </div>`,
-            showCancelButton: true, confirmButtonText: 'Crear', cancelButtonText: 'Cancelar', background: 'var(--bg-card)', color: 'var(--text-main)', customClass: { popup: 'rounded-2xl' },
-            preConfirm: async () => {
-                const display_name = document.getElementById('user-display-name').value.trim();
-                const username = document.getElementById('user-username').value.trim();
-                const password = document.getElementById('user-password').value.trim();
-                const role = document.getElementById('user-role').value;
-                const company_id = document.getElementById('user-company').value;
-                if (!display_name || !username || !password) { Swal.showValidationMessage('Nombre, email y contraseña requeridos'); return false; }
-                try {
-                    await this.fetchAPI('/users', { method: 'POST', body: JSON.stringify({ display_name, username, password, role, group_id: company_id || null }) });
-                    this.loadUsersTable(); this.loadGroups();
-                    Swal.fire('✓ Creado', 'Staff creado', 'success'); return true;
-                } catch (e) { Swal.showValidationMessage(e.message); return false; }
-            }
-        });
+        this.openCreateStaffModal();
     },
 
     // Mostrar selector de staff para empresas
@@ -8180,6 +8146,19 @@ const App = window.App = {
         sf('invite-user-form', (e) => this.handleInviteSubmit(e));
         sf('company-form', (e) => this.handleCompanySubmit(e));
         
+        // Modales de creación (diseño igual al de empresa)
+        cl('btn-close-create-client', () => this.closeCreateClientModal());
+        cl('btn-cancel-create-client', () => this.closeCreateClientModal());
+        sf('create-client-form', (e) => this.handleCreateClientSubmit(e));
+        
+        cl('btn-close-create-staff', () => this.closeCreateStaffModal());
+        cl('btn-cancel-create-staff', () => this.closeCreateStaffModal());
+        sf('create-staff-form', (e) => this.handleCreateStaffSubmit(e));
+        
+        cl('btn-close-create-event', () => this.closeCreateEventModal());
+        cl('btn-cancel-create-event', () => this.closeCreateEventModal());
+        sf('create-event-form', (e) => this.handleCreateEventSubmit(e));
+        
         // Event Tabs (Panel de Control - solo Invitados)
         cl('ev-nav-guests', () => window.switchEventTab('guests'));
         // Personal, Email y Agenda ahora en Configuración del Evento
@@ -8283,6 +8262,9 @@ const App = window.App = {
         cl('btn-close-event-modal', () => hideModal('modal-event'));
         cl('btn-close-invite', () => hideModal('modal-invite'));
         cl('btn-close-company', () => hideModal('modal-company'));
+        cl('btn-close-create-client', () => this.closeCreateClientModal());
+        cl('btn-close-create-staff', () => this.closeCreateStaffModal());
+        cl('btn-close-create-event', () => this.closeCreateEventModal());
         cl('btn-close-qr', () => hideModal('modal-qr'));
         cl('btn-close-ticket', () => hideModal('modal-ticket'));
         cl('btn-close-import-results', () => hideModal('modal-import-results'));
@@ -11634,6 +11616,92 @@ const App = window.App = {
             this.loadGroups();
         } catch(err) {
             this._notifyAction('Error', err.message || 'Error al guardar empresa', 'error');
+        }
+    },
+
+    // Crear cliente desde modal dedicado
+    async handleCreateClientSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('create-client-name')?.value?.trim();
+        const email = document.getElementById('create-client-email')?.value?.trim();
+        const phone = document.getElementById('create-client-phone')?.value?.trim();
+        const group_id = document.getElementById('create-client-company')?.value || null;
+        
+        if (!name) {
+            this._notifyAction('Error', 'El nombre del cliente es requerido', 'error');
+            return;
+        }
+        
+        try {
+            await this.fetchAPI('/clients', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, phone, group_id, status: 'ACTIVE' })
+            });
+            this._notifyAction('✓ Creado', 'Cliente creado correctamente', 'success');
+            this.closeCreateClientModal();
+            this.loadClients();
+            this.loadGroups();
+        } catch(err) {
+            this._notifyAction('Error', err.message || 'Error al crear cliente', 'error');
+        }
+    },
+
+    // Crear staff desde modal dedicado
+    async handleCreateStaffSubmit(e) {
+        e.preventDefault();
+        const display_name = document.getElementById('create-staff-name')?.value?.trim();
+        const username = document.getElementById('create-staff-email')?.value?.trim();
+        const password = document.getElementById('create-staff-password')?.value?.trim();
+        const role = document.getElementById('create-staff-role')?.value || 'STAFF';
+        const group_id = document.getElementById('create-staff-company')?.value || null;
+        
+        if (!display_name || !username || !password) {
+            this._notifyAction('Error', 'Nombre, email y contraseña son requeridos', 'error');
+            return;
+        }
+        if (password.length < 6) {
+            this._notifyAction('Error', 'La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+        
+        try {
+            await this.fetchAPI('/users', {
+                method: 'POST',
+                body: JSON.stringify({ display_name, username, password, role, group_id })
+            });
+            this._notifyAction('✓ Creado', 'Staff creado correctamente', 'success');
+            this.closeCreateStaffModal();
+            this.loadUsersTable();
+            this.loadGroups();
+        } catch(err) {
+            this._notifyAction('Error', err.message || 'Error al crear staff', 'error');
+        }
+    },
+
+    // Crear evento desde modal dedicado
+    async handleCreateEventSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('create-event-name')?.value?.trim();
+        const date = document.getElementById('create-event-date')?.value || null;
+        const location = document.getElementById('create-event-location')?.value?.trim();
+        const description = document.getElementById('create-event-description')?.value?.trim();
+        
+        if (!name) {
+            this._notifyAction('Error', 'El nombre del evento es requerido', 'error');
+            return;
+        }
+        
+        try {
+            await this.fetchAPI('/events', {
+                method: 'POST',
+                body: JSON.stringify({ name, date, location, description, status: 'ACTIVE' })
+            });
+            this._notifyAction('✓ Creado', 'Evento creado correctamente', 'success');
+            this.closeCreateEventModal();
+            this.loadEvents();
+            this.loadGroups();
+        } catch(err) {
+            this._notifyAction('Error', err.message || 'Error al crear evento', 'error');
         }
     },
 

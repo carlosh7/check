@@ -1319,6 +1319,130 @@
     </div>
 </div>
 
+<!-- MODAL: CREAR CLIENTE -->
+<div id="modal-create-client" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-500 text-xl">person</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Cliente</h3>
+            </div>
+            <button id="btn-close-create-client" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="create-client-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Cliente</label>
+                <input type="text" id="create-client-name" required placeholder="Ej: Juan Pérez" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
+                <input type="email" id="create-client-email" placeholder="cliente@ejemplo.com" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
+                <input type="text" id="create-client-phone" placeholder="+57 300 123 4567" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
+                <select id="create-client-company" class="input-field w-full">
+                    <option value="">Sin empresa</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-create-client" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Crear Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: CREAR STAFF -->
+<div id="modal-create-staff" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-blue-500 text-xl">badge</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Staff</h3>
+            </div>
+            <button id="btn-close-create-staff" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="create-staff-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre Completo</label>
+                <input type="text" id="create-staff-name" required placeholder="Nombre completo" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
+                <input type="email" id="create-staff-email" required placeholder="staff@ejemplo.com" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Contraseña</label>
+                <input type="password" id="create-staff-password" required placeholder="Mínimo 6 caracteres" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Rol</label>
+                <select id="create-staff-role" class="input-field w-full">
+                    <option value="STAFF">STAFF</option>
+                    <option value="LOGISTICO">LOGÍSTICO</option>
+                    <option value="PRODUCTOR">PRODUCTOR</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
+                <select id="create-staff-company" class="input-field w-full">
+                    <option value="">Sin empresa</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-create-staff" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Crear Staff</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: CREAR EVENTO -->
+<div id="modal-create-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
+            </div>
+            <button id="btn-close-create-event" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <form id="create-event-form" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
+                <input type="text" id="create-event-name" required placeholder="Ej: Conferencia Tech 2026" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha</label>
+                <input type="date" id="create-event-date" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
+                <input type="text" id="create-event-location" placeholder="Ej: Centro de Convenciones" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+                <textarea id="create-event-description" rows="3" placeholder="Descripción del evento..." class="input-field w-full"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" id="btn-cancel-create-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button type="submit" class="btn-primary !px-5 !py-2">Crear Evento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- MODAL: INVITAR COLABORADOR -->
 <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
