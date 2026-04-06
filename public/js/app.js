@@ -9189,7 +9189,14 @@ const App = window.App = {
             if (navSectionEvent) navSectionEvent.classList.add('hidden');
         }
 
-        // UI Sidebar
+        // UI Sidebar - actualizar estado activo para sub-nav-btns
+        document.querySelectorAll('#global-sidebar .sub-nav-btn').forEach(b => {
+            b.classList.remove('active');
+            if (b.getAttribute('data-view') === viewName || b.getAttribute('data-tab') === viewName) {
+                b.classList.add('active');
+            }
+        });
+
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active', 'bg-primary/10', 'text-primary'));
         let btnId = 'nav-btn-' + viewName;
         if (viewName === 'system') btnId = 'nav-btn-system';
@@ -9197,6 +9204,7 @@ const App = window.App = {
         if (viewName === 'account') btnId = 'nav-btn-account';
         if (viewName === 'smtp') btnId = 'nav-btn-smtp';
         if (viewName === 'event-config') btnId = 'nav-btn-event-config';
+        if (viewName === 'my-events') btnId = 'nav-btn-my-events';
         
         const activeBtn = document.getElementById(btnId);
         if (activeBtn) activeBtn.classList.add('active', 'bg-primary/10', 'text-primary');

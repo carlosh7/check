@@ -19,28 +19,28 @@
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
             <!-- Mis Eventos -->
-            <button id="nav-btn-my-events" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group">
-                <span class="material-symbols-outlined text-xl group-hover:text-violet-400">event</span>
+            <button id="nav-btn-my-events" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group sub-nav-btn" data-tab="my-events">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">event</span>
                 <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Mis Eventos</span>
             </button>
 
             <!-- Panel Administrativo -->
-            <button id="nav-btn-admin" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group hidden">
-                <span class="material-symbols-outlined text-xl group-hover:text-violet-400">dashboard</span>
+            <button id="nav-btn-admin" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group sub-nav-btn" data-tab="admin" data-view="admin">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">dashboard</span>
                 <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Dashboard</span>
             </button>
 
             <!-- Configuracion del Evento -->
-            <button id="nav-btn-event-config" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group hidden">
-                <span class="material-symbols-outlined text-xl group-hover:text-violet-400">settings</span>
+            <button id="nav-btn-event-config" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group sub-nav-btn" data-tab="event-config" data-view="event-config">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">settings</span>
                 <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Configuración</span>
             </button>
 
             <!-- Sistema -->
-            <button id="nav-btn-system" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group">
-                <span class="material-symbols-outlined text-xl group-hover:text-violet-400">tune</span>
+            <button id="nav-btn-system" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-violet-500/10 hover:text-white transition-all group sub-nav-btn" data-tab="system" data-view="system">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">tune</span>
                 <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Sistema</span>
             </button>
             
@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.214</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.215</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>

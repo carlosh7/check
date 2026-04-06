@@ -1251,6 +1251,37 @@ html.dark #view-event-config .sub-nav-btn[data-tab="settings"].active {
     color: #ffffff !important;
 }
 
+/* ===== SIDEBAR: Estilos activos para navegación ===== */
+html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="my-events"].active {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #8b5cf6 !important;
+    border-left: 3px solid #8b5cf6 !important;
+}
+
+html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="admin"].active {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #3b82f6 !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="event-config"].active {
+    background: rgba(236, 72, 153, 0.2) !important;
+    color: #ec4899 !important;
+    border-left: 3px solid #ec4899 !important;
+}
+
+html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="system"].active {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #10b981 !important;
+    border-left: 3px solid #10b981 !important;
+}
+
+/* Dark mode sidebar active */
+html.dark #global-sidebar .sub-nav-btn.active {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #a78bfa !important;
+}
+
 /* ===== TEMAS: CARDS Y GLASS ===== */
 html:not(.dark) .glass-card,
 html:not(.dark) .card {
