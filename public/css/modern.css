@@ -703,6 +703,17 @@ html.dark .mailbox-message.flagged {
     animation: none !important;
 }
 
+/* Transición suave para el contenido */
+.swal2-html-container {
+    transition: none !important;
+}
+
+/* Evitar que el contenido parpadee */
+.swal2-html-container > * {
+    animation: none !important;
+    transition: none !important;
+}
+
 /* Ancho fijo también para modal de 520px */
 body .swal2-popup[style*="width: 520px"] {
     width: 520px !important;
