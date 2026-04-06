@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.226",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.226 - Fix: carrusel personal con 4 botones (editar, gestionar, evento, rol)",
+  "version": "12.44.227",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.227 - Fix: carrusel sin empresa ni cliente",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

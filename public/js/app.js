@@ -13100,7 +13100,7 @@ const App = window.App = {
         this.editSelectedUsersForConfig(selectedUserIds);
     },
     
-    // Carrusel de edición de staff para configuración del evento (solo 3 botones)
+    // Carrusel de edición de staff para configuración del evento (solo 4 botones: editar, gestionar, evento, rol)
     editSelectedUsersForConfig: function(userIds) {
         const ids = Array.isArray(userIds) ? userIds : (userIds ? [userIds] : []);
         if (ids.length === 1) {
@@ -13113,6 +13113,7 @@ const App = window.App = {
         const users = this.state.allUsers || [];
         const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
@@ -13120,10 +13121,14 @@ const App = window.App = {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        
+        // Guardar el eventId actual para usar en las acciones
+        const eventId = this.state.event?.id;
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones -->
-                <div class="flex items-center justify-center gap-4 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
                     <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
