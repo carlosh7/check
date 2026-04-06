@@ -438,6 +438,56 @@ db.exec(`CREATE TABLE IF NOT EXISTS client_users (
     UNIQUE(client_id, user_id)
 )`);
 
+// 13. Tabla de asistencia al evento (dashboard)
+db.exec(`CREATE TABLE IF NOT EXISTS event_attendance (
+    id TEXT PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    organization TEXT,
+    cargo TEXT,
+    vegano TEXT DEFAULT 'NO',
+    restricciones TEXT,
+    status TEXT DEFAULT 'PENDING',
+    validated INTEGER DEFAULT 0,
+    validated_at TEXT,
+    validated_by TEXT,
+    created_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id),
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    UNIQUE(event_id, client_id)
+)`);
+
+// Migración V12.44.244+: Agregar columnas a event_attendance si no existen
+try {
+    const attColumns = db.prepare("PRAGMA table_info(event_attendance)").all();
+    const columnNames = attColumns.map(c => c.name);
+    
+    if (!columnNames.includes('vegano')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN vegano TEXT DEFAULT "NO"');
+    }
+    if (!columnNames.includes('restricciones')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN restricciones TEXT');
+    }
+    if (!columnNames.includes('organization')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN organization TEXT');
+    }
+    if (!columnNames.includes('cargo')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN cargo TEXT');
+    }
+    if (!columnNames.includes('validated')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN validated INTEGER DEFAULT 0');
+    }
+    if (!columnNames.includes('validated_at')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN validated_at TEXT');
+    }
+    if (!columnNames.includes('validated_by')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN validated_by TEXT');
+    }
+    console.log('[MIGRATION] Tabla event_attendance verificada/actualizada');
+} catch (e) {
+    console.error('[MIGRATION] Error verificando event_attendance:', e.message);
+}
+
 // 14. Códigos de recuperación de contraseña
 db.exec(`CREATE TABLE IF NOT EXISTS password_resets (
     id TEXT PRIMARY KEY,

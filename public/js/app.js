@@ -10691,18 +10691,16 @@ const App = window.App = {
     },
     async loadGuests() {
         if (!this.state.event) return;
-        const res = await this.fetchAPI(`/guests/${this.state.event.id}`);
-        this.state.guests = Array.isArray(res) ? res : (res.data || []);
         
-        const filterOrg = document.getElementById('filter-guest-org');
-        if (filterOrg) {
-            const orgs = [...new Set(this.state.guests.map(g => g.organization).filter(Boolean))];
-            filterOrg.innerHTML = '<option value="">Empresas</option>' + 
-                orgs.map(o => `<option value="${o}">${o}</option>`).join('');
-        }
+        // Usar el nuevo endpoint de attendance
+        const res = await this.fetchAPI(`/events/${this.state.event.id}/attendance`);
+        this.state.guests = Array.isArray(res) ? res : [];
         
-        this.initColumnConfig(); // Asegurar columnas cargadas
         this.renderGuestsTarget(this.state.guests);
+        
+        // Actualizar contador
+        const countEl = document.getElementById('guest-count');
+        if (countEl) countEl.textContent = `${this.state.guests.length} invitados`;
     },
     
     // --- COLUMNAS DINÁMICAS V12.1 ---
@@ -10772,70 +10770,96 @@ const App = window.App = {
     },
     
     renderGuestsTarget(list) {
-        const tb = document.getElementById('guests-tbody-admin') || document.getElementById('guests-tbody');
+        const tb = document.getElementById('guests-tbody');
         if (!tb) return;
         
-        const cfg = this.state.columnConfig;
-        
-        // Actualizar visibilidad de headers
-        const th_name = document.getElementById('th-name');
-        const th_org = document.getElementById('th-org');
-        const th_status = document.getElementById('th-status');
-        
-        if (th_name) th_name.style.display = cfg.name.visible ? '' : 'none';
-        if (th_org) th_org.style.display = cfg.organization.visible ? '' : 'none';
-        if (th_status) th_status.style.display = cfg.status.visible ? '' : 'none';
-
         tb.innerHTML = list.map(g => {
-            const isChecked = g.checked_in;
-            const healthAlert = (g.dietary_notes || '').length > 0;
+            const isValidated = g.validated === 1;
+            const isVegan = (g.vegano || 'NO').toUpperCase() === 'SI' || g.vegano === 'YES';
+            
+            // Estados disponibles: PENDING, CONFIRMED, ATTENDED, CANCELLED
+            const statusColors = {
+                'PENDING': { bg: 'bg-amber-500/20', text: 'text-amber-500', label: 'Pendiente' },
+                'CONFIRMED': { bg: 'bg-blue-500/20', text: 'text-blue-500', label: 'Confirmado' },
+                'ATTENDED': { bg: 'bg-emerald-500/20', text: 'text-emerald-500', label: 'Asistió' },
+                'CANCELLED': { bg: 'bg-red-500/20', text: 'text-red-500', label: 'Cancelado' }
+            };
+            const statusStyle = statusColors[g.status] || statusColors['PENDING'];
             
             return `
             <tr class="hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border)] last:border-none group">
-                <td class="px-6 py-4" style="display: ${cfg.name.visible ? '' : 'none'}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full ${isChecked ? 'bg-[var(--primary)]' : 'bg-[var(--bg-hover)]'} flex items-center justify-center text-white relative shadow-sm">
-                            <span class="material-symbols-outlined text-xl">${isChecked ? 'verified' : 'person'}</span>
-                            ${healthAlert ? '<span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-[var(--bg-card)]"></span>' : ''}
+                <!-- Checkbox -->
+                <td class="!py-3 !px-3">
+                    <input type="checkbox" class="w-4 h-4 rounded border-slate-600 bg-transparent cursor-pointer accent-[var(--primary)]">
+                </td>
+                
+                <!-- Asistente (nombre, email, teléfono) -->
+                <td class="!py-3 !px-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg ${isValidated ? 'bg-emerald-500/20' : 'bg-[var(--bg-hover)]'} flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm ${isValidated ? 'text-emerald-500' : 'text-slate-500'}">${isValidated ? 'check_circle' : 'person'}</span>
                         </div>
                         <div>
-                            <p class="font-bold text-sm text-[var(--text-main)]">${g.name}</p>
-                            <p class="text-[11px] text-[var(--text-secondary)] font-mono flex items-center gap-1">
-                                ${g.email || 'S/E'}
-                                ${cfg.phone.visible && g.phone ? ` <span class="mx-1 opacity-30">|</span> ${g.phone}` : ''}
-                            </p>
-                            ${cfg.position.visible && g.position ? `<p class="text-[10px] text-[var(--primary)] font-bold uppercase mt-1">${g.position}</p>` : ''}
+                            <p class="text-sm font-bold text-[var(--text-main)]">${g.client_name || 'Sin nombre'}</p>
+                            <p class="text-[11px] text-[var(--text-secondary)] font-mono">${g.client_email || 'S/E'}</p>
+                            <p class="text-[10px] text-slate-500">${g.client_phone || 'S/T'}</p>
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4" style="display: ${cfg.organization.visible ? '' : 'none'}">
-                    <div class="text-xs font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-main)] transition-colors">${g.organization || '---'}</div>
+                
+                <!-- Organización -->
+                <td class="!py-3 !px-3">
+                    <span class="text-xs text-[var(--text-secondary)]">${g.group_name || g.organization || '---'}</span>
                 </td>
-                <td class="px-6 py-4 text-center" style="display: ${cfg.status.visible ? '' : 'none'}">
-                    <span class="status-pill ${isChecked ? 'status-active' : 'status-pending'}">
-                        ${isChecked ? 'Acreditado' : 'Pendiente'}
+                
+                <!-- Cargo -->
+                <td class="!py-3 !px-3">
+                    <span class="text-xs text-[var(--text-secondary)]">${g.cargo || '---'}</span>
+                </td>
+                
+                <!-- Vegano -->
+                <td class="!py-3 !px-3 text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold ${isVegan ? 'bg-orange-500/20 text-orange-500' : 'bg-slate-500/20 text-slate-400'}">
+                        ${isVegan ? 'Sí' : 'No'}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-right">
-                    <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        ${isChecked ? `
-                            <button data-action="generateCertificate" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Certificado">
-                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
-                            </button>
-                        ` : ''}
-                        <button data-action="showTicket" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all flex items-center justify-center" title="QR">
-                            <span class="material-symbols-outlined text-sm">qr_code</span>
-                        </button>
-                        <button data-action="editGuest" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-all flex items-center justify-center">
-                            <span class="material-symbols-outlined text-sm">edit</span>
-                        </button>
-                        <button data-action="deleteGuest" data-guest-id="${g.id}" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
-                            <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                    </div>
+                
+                <!-- Restricciones -->
+                <td class="!py-3 !px-3">
+                    <span class="text-xs text-[var(--text-secondary)]">${g.restricciones || '---'}</span>
+                </td>
+                
+                <!-- Estado -->
+                <td class="!py-3 !px-3 text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold ${statusStyle.bg} ${statusStyle.text}">
+                        ${statusStyle.label}
+                    </span>
+                </td>
+                
+                <!-- Validar (botón interruptor) -->
+                <td class="!py-3 !px-3 text-center">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" 
+                            ${isValidated ? 'checked' : ''} 
+                            onchange="App.toggleAttendance('${g.event_id}', '${g.client_id}', this.checked)">
+                        <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
                 </td>
             </tr>`;
         }).join('');
+    },
+    
+    // Toggle asistencia (validar)
+    async toggleAttendance(eventId, clientId, validated) {
+        try {
+            await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ validated: validated ? 1 : 0 })
+            });
+            this.loadGuests();
+        } catch (e) {
+            console.error('[ATTENDANCE] Error toggling:', e);
+        }
     },
     async toggleCheckin(gId, status) {
         await this.fetchAPI(`/guests/checkin/${gId}`, { method: 'POST', body: JSON.stringify({ status: !status }) });
