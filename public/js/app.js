@@ -3975,10 +3975,18 @@ const App = window.App = {
 
     // Carrusel de edición de staff (6 botones)
     editSelectedUsers: function(userIds) {
+        // Si hay solo 1 usuario, ir directo a edición inline
+        const ids = Array.isArray(userIds) ? userIds : (userIds ? [userIds] : []);
+        if (ids.length === 1) {
+            this.editSingleUser(ids);
+            return;
+        }
+        
+        // Si hay múltiples usuarios, mostrar la lista
         this._lastUserCarouselContext = 'edit';
-        this._savedSelectedUsers = [...(userIds || [])];
+        this._savedSelectedUsers = [...ids];
         const users = this.state.allUsers || [];
-        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
