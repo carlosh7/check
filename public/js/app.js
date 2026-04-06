@@ -3649,7 +3649,11 @@ const App = window.App = {
                         const isAssigned = userIds.some(uid => {
                             const user = users.find(u => String(u.id) === String(uid));
                             if (!user || !user.events) return false;
-                            return user.events.some(ev => String(ev) === String(e.id) || String(ev.event_id) === String(e.id));
+                            return user.events.some(ev => {
+                                // ev puede ser: número, string, objeto con id/event_id
+                                const evId = typeof ev === 'object' ? (ev.id || ev.event_id) : ev;
+                                return String(evId) === String(e.id);
+                            });
                         });
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
