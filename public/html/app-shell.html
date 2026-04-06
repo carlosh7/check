@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.205</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.206</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -849,10 +849,10 @@
                     </div>
                     <!-- Fila 2: Filtros -->
                     <div class="flex gap-2 flex-wrap items-center">
-                        <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select">
+                        <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select filter-select-cliente">
                             <option value="">Clientes</option>
                         </select>
-                        <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-empresa">
+                        <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-staff">
                             <option value="">Staff</option>
                         </select>
                         <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
@@ -1030,10 +1030,10 @@
                     </div>
                     <!-- Fila 2: Filtros -->
                     <div class="flex gap-2 flex-wrap items-center">
-                        <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select-empresa">
+                        <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select filter-select-empresa">
                             <option value="">Empresa</option>
                         </select>
-                        <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select-empresa">
+                        <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select filter-select-cliente">
                             <option value="">Clientes</option>
                         </select>
                         <select id="filter-user-event" onchange="App.filterUsers()" class="filter-select-evento">
@@ -1106,7 +1106,7 @@
                         <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
                             <option value="">Empresa</option>
                         </select>
-                        <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                        <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-staff">
                             <option value="">Staff</option>
                         </select>
                         <select id="filter-client-event" onchange="App.filterClients()" class="filter-select filter-select-evento">
