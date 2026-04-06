@@ -3798,8 +3798,8 @@ const App = window.App = {
         this._lastUserCarouselContext = 'company';
         this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
         this._openCompanyModalFromSelector = true;
-        Swal.close();
-        setTimeout(() => this.navigateToCreateGroup(), 200);
+        // NO cerrar SweetAlert - el modal HTML se abre encima y se restaurará al cerrar
+        this.openCompanyModal();
     },
 
     // Editar empresa seleccionada desde dropdown (con validación de permisos)
@@ -7440,6 +7440,9 @@ const App = window.App = {
         
         modal?.classList.add('hidden');
         modal?.setAttribute('aria-hidden', 'true');
+        
+        // Restaurar carrusel de staff si viene del selector
+        this._restoreUserCarouselContext();
     },
     
     saveCompany: async function(data) {
@@ -8784,7 +8787,7 @@ const App = window.App = {
         cl('btn-close-mail-view', () => this.closeMailView());
         cl('btn-close-event-modal', () => hideModal('modal-event'));
         cl('btn-close-invite', () => hideModal('modal-invite'));
-        cl('btn-close-company', () => hideModal('modal-company'));
+        cl('btn-close-company', () => this.closeCompanyModal());
         cl('btn-close-create-client', () => this.closeCreateClientModal());
         cl('btn-close-create-staff', () => this.closeCreateStaffModal());
         cl('btn-close-create-event', () => this.closeCreateEventModal());
@@ -8804,7 +8807,7 @@ const App = window.App = {
         cl('btn-close-event-full-modal', () => hideModal('modal-event-full'));
         cl('btn-cancel-event-full', () => hideModal('modal-event-full'));
         cl('btn-cancel-invite', () => hideModal('modal-invite'));
-        cl('btn-cancel-company', () => hideModal('modal-company'));
+        cl('btn-cancel-company', () => this.closeCompanyModal());
         cl('btn-visual-editor', () => this.switchTemplateEditorTab('visual'));
         cl('btn-html-editor', () => this.switchTemplateEditorTab('code'));
 
