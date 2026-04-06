@@ -627,26 +627,79 @@ html.dark .mailbox-message.flagged {
     transition: none !important;
 }
 
-/* Quitar animación del carrusel */
+/* QUITAR TODAS las animaciones de SweetAlert2 */
+.swal2-container {
+    animation: none !important;
+    transition: none !important;
+}
+
 .swal2-popup {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+}
+
+.swal2-modal {
+    animation: none !important;
     transition: none !important;
 }
 
-.swal2-transition {
+.swal2-overlay {
     animation: none !important;
     transition: none !important;
-}
-
-.swal2-animate {
-    animation: none !important;
-}
-
-.swal2-fade {
-    animation: none !important;
     opacity: 1 !important;
 }
 
 .swal2-show {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+.swal2-hide {
+    animation: none !important;
+    transition: none !important;
+    display: none !important;
+}
+
+.swal2-animate {
+    animation: none !important;
+    transition: none !important;
+}
+
+.swal2-fade {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+}
+
+.swal2-content {
+    animation: none !important;
+    transition: none !important;
+}
+
+.swal2-title {
+    animation: none !important;
+    transition: none !important;
+}
+
+.swal2-icon {
+    animation: none !important;
+    transition: none !important;
+}
+
+.swal2-actions {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Quitar backdrop animations */
+.swal2-backdrop-show {
+    animation: none !important;
+}
+
+.swal2-backdrop-hide {
     animation: none !important;
 }
 
