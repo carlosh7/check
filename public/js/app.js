@@ -1090,15 +1090,15 @@ const App = window.App = {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                     const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #60a5fa; background: rgba(96,165,250,0.15); border-radius: 6px; padding: 2px;">badge</span>
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                     const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #a855f7; background: rgba(168,85,247,0.15); border-radius: 6px; padding: 2px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
@@ -1106,7 +1106,7 @@ const App = window.App = {
                     const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #34d399; background: rgba(52,211,153,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
                         </div>
                     `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
@@ -1117,8 +1117,13 @@ const App = window.App = {
                             <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
-                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">business</span>
+                                <div class="flex flex-col">
+                                    <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
+                                    <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
+                                </div>
+                            </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex flex-col max-w-[200px]">${clientRows}</div>
@@ -1613,15 +1618,15 @@ const App = window.App = {
                 const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                 const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #60a5fa; background: rgba(96,165,250,0.15); border-radius: 6px; padding: 2px;">badge</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">badge</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
 
                 const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                 const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">event</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #a855f7; background: rgba(168,85,247,0.15); border-radius: 6px; padding: 2px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
@@ -1629,7 +1634,7 @@ const App = window.App = {
                 const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #34d399; background: rgba(52,211,153,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
                     </div>
                 `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
