@@ -337,23 +337,27 @@ router.get('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
 
 // Asignar usuario a evento
 router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const { userId } = req.body;
+    const { user_id } = req.body;
     const eventId = castId('events', req.params.eventId);
     
-    console.log('[DEBUG EVENT POST] userId:', userId, 'eventId:', eventId, 'castEventId:', eventId);
+    console.log('[DEBUG EVENT POST] user_id:', user_id, 'eventId:', eventId, 'castEventId:', eventId);
+    
+    if (!user_id) {
+        return res.status(400).json({ error: 'user_id es requerido' });
+    }
     
     if (!hasEventAccess(req.userId, eventId, req.userRole)) {
         return res.status(403).json({ error: 'No tienes acceso a este evento' });
     }
     
     const id = getValidId('user_events');
-    console.log('[DEBUG EVENT POST] Insert id:', id, 'user_id:', userId, 'event_id:', eventId);
+    console.log('[DEBUG EVENT POST] Insert id:', id, 'user_id:', user_id, 'event_id:', eventId);
     const result = db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
-      .run(id, userId, eventId, new Date().toISOString());
+      .run(id, user_id, eventId, new Date().toISOString());
     console.log('[DEBUG EVENT POST] Insert result:', result);
     
     // Verificar inserción
-    const check = db.prepare("SELECT * FROM user_events WHERE event_id = ? AND user_id = ?").get(eventId, userId);
+    const check = db.prepare("SELECT * FROM user_events WHERE event_id = ? AND user_id = ?").get(eventId, user_id);
     console.log('[DEBUG EVENT POST] Check after insert:', check);
     
     res.json({ success: true });
