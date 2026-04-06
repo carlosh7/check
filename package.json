@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.230",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.230 - Fix: corregir código malformado en app.js",
+  "version": "12.44.231",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.231 - Fix: corregir syntax error en app.js",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

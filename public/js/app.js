@@ -13668,8 +13668,6 @@ const App = window.App = {
             Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al asignar rol', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
-        });
-    },
     
     // Registro rápido de staff desde configuración del evento
     quickRegisterStaff: function() {
