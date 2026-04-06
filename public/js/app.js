@@ -1314,7 +1314,15 @@ const App = window.App = {
                         <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
+                        ${c.company_name ? `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name}</span>
+                        </div>` : `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg">
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                            <span class="text-xs text-slate-500 italic">Sin empresa</span>
+                        </div>`}
                     </td>
                     <td class="px-2 py-3 align-middle">
                         <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
