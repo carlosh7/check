@@ -12150,7 +12150,7 @@ const App = window.App = {
         setVal('evs-reg-blacklist', ev.reg_email_blacklist);
         
         // Actualizar vista previa QR
-        this.updateQRPreview();
+        if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
     },
     
     // Guardar configuración del evento desde Ajustes
