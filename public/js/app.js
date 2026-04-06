@@ -3687,19 +3687,25 @@ const App = window.App = {
     },
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
+        console.log('[EVENT ASSIGN] userIdsStr:', userIdsStr, 'eventId:', eventId, 'isAssigned:', isAssigned);
         const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
-        if (userIds.length === 0) return;
+        if (userIds.length === 0) { console.warn('[EVENT ASSIGN] No userIds'); return; }
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
+                    console.log('[EVENT ASSIGN] DELETE /events/', eventId, '/users/', userId);
                     await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
                 } else {
-                    await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+                    console.log('[EVENT ASSIGN] POST /events/', eventId, '/users with user_id:', userId);
+                    const res = await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+                    console.log('[EVENT ASSIGN] POST response:', res);
                 }
             }
+            console.log('[EVENT ASSIGN] Success, reloading...');
             await this.loadUsersTable();
             this.showEventSelectorForUsers(userIds);
         } catch (e) {
+            console.error('[EVENT ASSIGN] Error:', e);
             Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' });
             this.showEventSelectorForUsers(userIds);
         }
