@@ -2198,12 +2198,10 @@ const App = window.App = {
         const clientIds = this.state.selectedClients || [];
         if (clientIds.length === 0) return;
         try {
-            for (const clientId of clientIds) {
-                if (isAssigned) {
-                    await this.fetchAPI(`/clients/${clientId}/group`, { method: 'DELETE' });
-                } else {
-                    await this.fetchAPI(`/clients/${clientId}/group`, { method: 'PUT', body: JSON.stringify({ group_id: groupId }) });
-                }
+            if (isAssigned) {
+                await this.fetchAPI(`/clients/unassign-from-company`, { method: 'PUT', body: JSON.stringify({ client_ids: clientIds }) });
+            } else {
+                await this.fetchAPI(`/clients/assign-to-company`, { method: 'PUT', body: JSON.stringify({ client_ids: clientIds, group_id: groupId }) });
             }
             await this.loadClients();
             this.showCompanySelectorForClients(clientIds);
