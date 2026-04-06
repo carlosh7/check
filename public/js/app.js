@@ -2155,15 +2155,15 @@ const App = window.App = {
                     <div class="space-y-5">
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                            <input id="edit-client-name-${client.id}" type="text" value="${client.name || ''}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del cliente">
+                            <input id="edit-client-name-${client.id}" type="text" value="${client.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del cliente">
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                            <input id="edit-client-email-${client.id}" type="email" value="${client.email || ''}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del cliente">
+                            <input id="edit-client-email-${client.id}" type="email" value="${client.email || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del cliente">
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Teléfono</label>
-                            <input id="edit-client-phone-${client.id}" type="text" value="${client.phone || ''}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Teléfono del cliente">
+                            <input id="edit-client-phone-${client.id}" type="text" value="${client.phone || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Teléfono del cliente">
                         </div>
                     </div>
                 </div>
@@ -4378,19 +4378,19 @@ const App = window.App = {
                     <div class="space-y-5">
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre</label>
-                            <input id="edit-user-name-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
+                            <input id="edit-user-name-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Email</label>
-                            <input id="edit-user-email-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
+                            <input id="edit-user-email-${user.id}" type="email" value="${user.username || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
-                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Rol</label>
-                            <select id="edit-user-role-${user.id}" class="w-full px-4 py-5 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                            <select id="edit-user-role-${user.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
                                 ${roleOptions}
                             </select>
                         </div>
