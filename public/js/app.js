@@ -4105,33 +4105,6 @@ const App = window.App = {
         });
     },
     
-    // Asignar cliente a usuarios desde modal
-    assignClientToUsersFromModal: async function(userIdsStr, clientId) {
-        const userIds = userIdsStr.split(',');
-        try {
-            for (const userId of userIds) {
-                await this.fetchAPI(`/clients/${clientId}/staff`, {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: userId })
-                });
-            }
-            
-            Swal.fire({ 
-                toast: true,
-                title: '✓ Asignado', 
-                icon: 'success',
-                background: '#0f172a', 
-                color: '#fff',
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
-            this.loadUsersTable();
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' });
-        }
-    },
-    
     // Toggle cliente para usuarios (asignar/desasignar)
     toggleClientForUsersFromModal: async function(userIdsStr, clientId, currentlyAssigned) {
         const userIds = userIdsStr.split(',');
