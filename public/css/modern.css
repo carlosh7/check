@@ -622,7 +622,9 @@ html.dark .mailbox-message.flagged {
     max-height: 650px !important;
     min-height: 400px !important;
     height: 650px !important;
+    width: 460px !important;
     overflow: hidden !important;
+    transition: none !important;
 }
 
 /* Quitar animación del carrusel */
@@ -648,6 +650,12 @@ html.dark .mailbox-message.flagged {
     animation: none !important;
 }
 
+/* Ancho fijo también para modal de 520px */
+body .swal2-popup[style*="width: 520px"] {
+    width: 520px !important;
+}
+
+/* Alinear modales junto al sidebar */
 .swal2-popup.swal2-modal-left-aligned,
 div.sweet-alert.swal2-modal-left-aligned {
     position: fixed !important;
@@ -655,13 +663,6 @@ div.sweet-alert.swal2-modal-left-aligned {
     top: 50% !important;
     transform: translateY(-50%) !important;
     margin: 0 !important;
-}
-
-.swal2-container.swal2-center-start .swal2-modal.swal2-modal-left-aligned {
-    position: fixed !important;
-    left: 260px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
 }
 
 .swal2-title {
