@@ -1222,6 +1222,8 @@ const App = window.App = {
     // Poblar filtros de clientes
     populateClientFilters: function() {
         const companySelect = document.getElementById('filter-client-company');
+        const staffSelect = document.getElementById('filter-client-staff');
+        const eventSelect = document.getElementById('filter-client-event');
         
         if (companySelect && this.state.groups) {
             const currentVal = companySelect.value;
@@ -1230,6 +1232,26 @@ const App = window.App = {
                 companySelect.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             });
             companySelect.value = currentVal;
+        }
+        
+        if (staffSelect && this.state.users) {
+            const currentVal = staffSelect.value;
+            staffSelect.innerHTML = '<option value="">Staff</option>';
+            this.state.users.forEach(u => {
+                if (u.role === 'STAFF' || u.role === 'PRODUCTOR' || u.role === 'LOGISTICO') {
+                    staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
+                }
+            });
+            staffSelect.value = currentVal;
+        }
+        
+        if (eventSelect && this.state.events) {
+            const currentVal = eventSelect.value;
+            eventSelect.innerHTML = '<option value="">Evento</option>';
+            this.state.events.forEach(e => {
+                eventSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+            });
+            eventSelect.value = currentVal;
         }
     },
 
