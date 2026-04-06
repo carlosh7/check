@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.150",
+  "version": "12.44.151",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.148 - Fix: cache reducido a 1m + fix asignacion clientes/eventos staff",
   "main": "script.js",
   "scripts": {
