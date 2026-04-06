@@ -9848,6 +9848,7 @@ const App = window.App = {
         cl('sys-nav-legal', () => window.switchSystemTab('legal'));
         cl('sys-nav-email', () => window.switchSystemTab('email'));
         cl('sys-nav-account', () => window.switchSystemTab('account'));
+        cl('sys-nav-db', () => window.switchSystemTab('db'));
         
         cl('btn-open-invite', () => this.openInviteModal());
         
@@ -11861,7 +11862,7 @@ const App = window.App = {
         
         
         // Pestañas que solo ADMIN puede ver
-        const adminOnlyTabs = ['groups', 'legal', 'email'];
+        const adminOnlyTabs = ['groups', 'legal', 'email', 'db'];
         
         // Verificar acceso - si no es ADMIN y la pestaña es restringida, redirigir
         if (!isAdmin && adminOnlyTabs.includes(tabName)) {
@@ -11890,7 +11891,7 @@ const App = window.App = {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
