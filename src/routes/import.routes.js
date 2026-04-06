@@ -427,11 +427,27 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     updated++;
                 } else {
                     console.log('[IMPORT] Creating new user (APPROVED):', u.username);
-                    const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
-                    userId = getValidId('users');
-                    db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
-                        .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
-                    imported++;
+                    try {
+                        const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
+                        userId = getValidId('users');
+                        db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
+                            .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
+                        imported++;
+                    } catch(createErr) {
+                        if (createErr.message.includes('UNIQUE constraint failed')) {
+                            console.log('[IMPORT] User already exists (skipping):', u.username);
+                            // Buscar el usuario existente y usarlo
+                            const existing = db.prepare("SELECT id FROM users WHERE LOWER(username) = LOWER(?)").get(u.username);
+                            if (existing) {
+                                userId = existing.id;
+                                console.log('[IMPORT] Using existing user ID:', userId);
+                            } else {
+                                continue; // Saltar este usuario
+                            }
+                        } else {
+                            throw createErr; // Re-lanzar otros errores
+                        }
+                    }
                 }
                 
                 // Vincular a eventos (soporta múltiples eventos separados por coma)
