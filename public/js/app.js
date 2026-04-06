@@ -2040,10 +2040,17 @@ const App = window.App = {
 
     // Carrusel de edición de clientes (5 botones)
     editSelectedClients: function(clientIds) {
+        // Si hay solo 1 cliente, ir directo a edición inline
+        const ids = Array.isArray(clientIds) ? clientIds : (clientIds ? [clientIds] : []);
+        if (ids.length === 1) {
+            this.editSingleClient(ids);
+            return;
+        }
+        
         this._lastClientCarouselContext = 'edit';
-        this._savedSelectedClients = [...(clientIds || [])];
+        this._savedSelectedClients = [...ids];
         const clients = this.state.clients || [];
-        const selectedClients = clientIds ? clients.filter(c => clientIds.includes(c.id)) : [];
+        const selectedClients = ids ? clients.filter(c => ids.includes(c.id)) : [];
         if (selectedClients.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -2087,27 +2094,144 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    // Editar un solo cliente
+    // Editar un solo cliente - versión inline
     editSingleClient: function(clientIds) {
         const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
         if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo cliente para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un cliente a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
-        this._lastClientCarouselContext = this._lastClientCarouselContext || 'edit';
-        this._savedSelectedClients = [...(this.state.selectedClients || [])];
-        this.openEditClientModal(ids[0]);
-    },
-
-    // Gestionar cliente (Activar/Desactivar/Eliminar)
-    showManageClientAction: function(clientIds) {
-        const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
-        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        const clientId = ids[0];
+        const client = this.state.clients?.find(c => c.id === clientId);
+        if (!client) { Swal.fire({ title: '⚠️ Error', text: 'Cliente no encontrado', icon: 'error', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._lastClientCarouselContext = 'edit';
+        this._savedSelectedClients = [clientId];
+        this._editingClientId = clientId;
+        
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const savedIds = App._savedSelectedClients || [];
+        const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 5 botones -->
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <!-- Título + Guardar -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Cliente</span>
+                        <span class="text-xs" style="color: ${textMain};">${client.name}</span>
+                    </div>
+                    <button onclick="App.saveClientEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
+                    </button>
+                </div>
+                <!-- Campos edit inline -->
+                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-client-name-${client.id}" type="text" value="${client.name || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del cliente">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Email</label>
+                            <input id="edit-client-email-${client.id}" type="email" value="${client.email || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del cliente">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Teléfono</label>
+                            <input id="edit-client-phone-${client.id}" type="text" value="${client.phone || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Teléfono del cliente">
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    // Guardar edición inline de cliente
+    saveClientEditInline: async function() {
+        const clientId = this._editingClientId;
+        if (!clientId) return;
+        
+        const nameInput = document.getElementById(`edit-client-name-${clientId}`);
+        const emailInput = document.getElementById(`edit-client-email-${clientId}`);
+        const phoneInput = document.getElementById(`edit-client-phone-${clientId}`);
+        
+        if (!nameInput || !emailInput) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const phone = phoneInput?.value.trim() || '';
+        
+        if (!name || !email) {
+            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const saveBtn = document.querySelector('[onclick="App.saveClientEditInline()"]');
+        if (saveBtn) {
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
+            saveBtn.style.opacity = '0.6';
+            saveBtn.style.pointerEvents = 'none';
+        }
+        
+        try {
+            const result = await this.fetchAPI(`/clients/${clientId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ name, email, phone })
+            });
+            
+            if (result?.client || result?.id) {
+                const clientIndex = this.state.clients?.findIndex(c => c.id === clientId);
+                if (clientIndex !== -1) {
+                    this.state.clients[clientIndex] = { ...this.state.clients[clientIndex], name, email, phone };
+                }
+                
+                Swal.fire({ title: '✅ Guardado', text: 'Cliente actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                this.editSingleClient([clientId]);
+            } else {
+                throw new Error(result?.message || 'Error al guardar');
+            }
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+        }
+    },
+
+    // Gestionar cliente (Activar/Desactivar/Eliminar)
+    showManageClientAction: function(clientIds) {
+        const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un cliente', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedClients = [...ids];
+        
+        const clients = this.state.clients || [];
+        const selectedClients = clients.filter(c => ids.includes(c.id));
+        const subtitleText = selectedClients.length === 1 ? `${selectedClients[0].name}` : `${selectedClients.length} clientes seleccionados`;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -2116,6 +2240,13 @@ const App = window.App = {
                     <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
                     <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
                     <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <!-- Título debajo de la barra -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Cliente</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
                 </div>
                 <div class="space-y-3">
                 <div onclick="App.handleBulkClientActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
