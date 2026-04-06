@@ -2091,7 +2091,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     // Editar un solo cliente - versión inline
@@ -2263,7 +2263,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     // Acciones masivas directas de clientes
@@ -2351,7 +2351,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignCompanyToClientsFromModal: async function(groupId, isAssigned) {
@@ -2462,7 +2462,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignStaffToClientsFromModal: async function(userId, isAssigned) {
@@ -2527,7 +2527,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignEventToClientsFromModal: async function(eventId, isAssigned) {
@@ -4160,7 +4160,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     // Editar un solo usuario - versión inline en el carrusel
@@ -4352,7 +4352,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     handleBulkUserActionDirect: async function(action) {
@@ -4424,7 +4424,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignCompanyToUsersFromModal: async function(groupId, isAssigned) {
@@ -4490,7 +4490,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
@@ -4673,7 +4673,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '60px'; } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl', htmlContainer: '!ml-4' }, didOpen: (modal) => { modal.style.marginLeft = '20px'; } });
     },
 
     assignRoleToUsersFromModal: async function(newRole) {
