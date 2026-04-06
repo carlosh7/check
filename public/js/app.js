@@ -13668,40 +13668,6 @@ const App = window.App = {
             Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al asignar rol', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
-                <!-- Título -->
-                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
-                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
-                    </div>
-                </div>
-                <!-- Lista de staff seleccionado -->
-                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
-                    ${selectedUsers.map(u => {
-                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
-                        const roleColor = roleColors[u.role] || '#64748b';
-                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
-                            <div class="flex-1">
-                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
-                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
-                            </div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            </div>`;
-        Swal.fire({ 
-            title: '', 
-            html, 
-            width: '460px', 
-            background: bgMain, 
-            color: textMain, 
-            showConfirmButton: false, 
-            showCloseButton: false, 
-            customClass: { popup: 'modal-left-aligned' }, 
-            showClass: { popup: '', container: '', backdrop: '' }, 
-            hideClass: { popup: '', container: '', backdrop: '' },
-            timer: 0
         });
     },
     
