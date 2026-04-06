@@ -2091,7 +2091,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     // Editar un solo cliente - versión inline
@@ -2154,7 +2154,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     // Guardar edición inline de cliente
@@ -2263,7 +2263,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     // Acciones masivas directas de clientes
@@ -2351,7 +2351,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignCompanyToClientsFromModal: async function(groupId, isAssigned) {
@@ -2462,7 +2462,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignStaffToClientsFromModal: async function(userId, isAssigned) {
@@ -2527,7 +2527,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignEventToClientsFromModal: async function(eventId, isAssigned) {
@@ -2993,7 +2993,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didClose: () => { this.clearGroupSelection(); }
         });
     },
@@ -3103,7 +3103,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didClose: () => { this.clearGroupSelection(); }
         });
     },
@@ -3231,7 +3231,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didClose: () => { this.clearGroupSelection(); }
         });
     },
@@ -3310,7 +3310,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didClose: () => { this.clearGroupSelection(); }
         });
     },
@@ -3380,7 +3380,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didClose: () => { this.clearGroupSelection(); }
         });
     },
@@ -4160,7 +4160,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     // Editar un solo usuario - versión inline en el carrusel
@@ -4234,7 +4234,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     // Guardar edición inline de staff
@@ -4352,7 +4352,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     handleBulkUserActionDirect: async function(action) {
@@ -4424,7 +4424,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignCompanyToUsersFromModal: async function(groupId, isAssigned) {
@@ -4490,7 +4490,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
@@ -4576,7 +4576,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned' },
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
             didOpen: () => {
                 console.log('[EVENT] didOpen ejecutado');
                 const container = document.getElementById('event-selector-items');
@@ -4673,7 +4673,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'modal-left-aligned modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
     },
 
     assignRoleToUsersFromModal: async function(newRole) {
