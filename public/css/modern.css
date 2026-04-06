@@ -621,13 +621,20 @@ html.dark .mailbox-message.flagged {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Alinear modales junto al sidebar */
-.swal2-modal-left-aligned {
+.swal2-popup.swal2-modal-left-aligned,
+div.sweet-alert.swal2-modal-left-aligned {
     position: fixed !important;
     left: 260px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     margin: 0 !important;
+}
+
+.swal2-container.swal2-center-start .swal2-modal.swal2-modal-left-aligned {
+    position: fixed !important;
+    left: 260px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
 }
 
 .swal2-title {
