@@ -237,17 +237,18 @@
 
                 <!-- Contenido Dinámico Config -->
                 <div id="config-content-wrapper" class="space-y-8">
+                    <!-- Botones pegados al menú (fuera del tab content para que queden entre menú y header) -->
+                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                        <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">person_add</span> +Staff
+                        </button>
+                        <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">edit</span> Edición
+                        </button>
+                    </div>
+                    
                     <!-- CONTENIDO: PERSONAL ASIGNADO -->
                     <div id="config-content-staff" class="config-tab-content">
-                        <!-- Botones pegados directamente al menú -->
-                        <div class="flex flex-wrap items-center gap-2" style="margin-top: -24px;">
-                            <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-base">person_add</span> +Staff
-                            </button>
-                            <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-base">edit</span> Edición
-                            </button>
-                        </div>
                         <!-- Fila 2: Buscador -->
                         <div class="mt-4 mb-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
                             <input id="config-staff-search" type="text" placeholder="Buscar por nombre, email, rol..."
