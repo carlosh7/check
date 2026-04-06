@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.146",
+  "version": "12.44.147",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.146 - Fix: assignClient/Event usan _savedSelectedUsers",
   "main": "script.js",
   "scripts": {

@@ -3574,7 +3574,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignClientToUsersFromModal('${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3585,21 +3585,24 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignClientToUsersFromModal: async function(clientId, isAssigned) {
-        const userIds = this._savedSelectedUsers || this.state.selectedUsers || [];
+    assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (userIds.length === 0) return;
         try {
-            for (const userId of userIds) {
-                if (isAssigned) {
+            if (isAssigned) {
+                for (const userId of userIds) {
                     await this.fetchAPI(`/clients/${clientId}/staff/${userId}`, { method: 'DELETE' });
-                } else {
-                    await this.fetchAPI(`/clients/${clientId}/staff`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
                 }
+            } else {
+                const clientRes = await this.fetchAPI(`/clients/${clientId}`);
+                const currentStaff = (clientRes.staff || []).map(s => s.id || s.user_id);
+                const newStaff = [...new Set([...currentStaff, ...userIds])];
+                await this.fetchAPI(`/clients/${clientId}/staff`, { method: 'PUT', body: JSON.stringify({ users: newStaff }) });
             }
             await this.loadUsersTable();
             await this.loadClients();
             this.showClientSelectorForUsers(userIds);
-        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' }); }
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
 
     // Asignar evento a staff
@@ -3641,7 +3644,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignEventToUsersFromModal('${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div onclick="App.assignEventToUsersFromModal('${userIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3652,8 +3655,8 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignEventToUsersFromModal: async function(eventId, isAssigned) {
-        const userIds = this._savedSelectedUsers || this.state.selectedUsers || [];
+    assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
@@ -3665,7 +3668,7 @@ const App = window.App = {
             }
             await this.loadUsersTable();
             this.showEventSelectorForUsers(userIds);
-        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' }); }
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
 
     // Asignar rol a staff (NUEVO)
