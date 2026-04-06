@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.163</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.164</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -1017,9 +1017,8 @@
 
                 <!-- SECCIÓN: EQUIPO -->
                 <div id="sys-content-users" class="hidden space-y-4">
-                    <!-- Fila 1: Botones + Filtros -->
+                    <!-- Fila 1: Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <!-- Botones de acción - todos mismo tamaño -->
                         <div class="flex gap-2">
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateUser()">
                                 <span class="material-symbols-outlined text-base">person_add</span> + Staff
@@ -1034,32 +1033,26 @@
                                 <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
                         </div>
-                        <!-- Filtros - todos mismo tamaño -->
-                        <div class="flex gap-2 flex-wrap items-center">
-                            <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select-empresa">
-                                <option value="">Empresas</option>
-                            </select>
-                            <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select-empresa">
-                                <option value="">Clientes</option>
-                            </select>
-                            <select id="filter-user-event" onchange="App.filterUsers()" class="filter-select-evento">
-                                <option value="">Eventos</option>
-                            </select>
-                            <select id="filter-user-role" onchange="App.filterUsers()" class="filter-select">
-                                <option value="">Rol</option>
-                                <option value="ADMIN">ADMIN</option>
-                                <option value="PRODUCTOR">PRODUCTOR</option>
-                                <option value="LOGISTICO">LOGÍSTICO</option>
-                                <option value="STAFF">STAFF</option>
-                                <option value="CLIENTE">CLIENTE</option>
-                            </select>
-                            <select id="filter-user-status" onchange="App.filterUsers()" class="filter-select">
-                                <option value="">Estado</option>
-                                <option value="APPROVED">Activo</option>
-                                <option value="SUSPENDED">Suspendido</option>
-                                <option value="PENDING">Pendiente</option>
-                            </select>
-                        </div>
+                    </div>
+                    <!-- Fila 2: Filtros -->
+                    <div class="flex gap-2 flex-wrap items-center">
+                        <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select-empresa">
+                            <option value="">Empresa</option>
+                        </select>
+                        <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select-empresa">
+                            <option value="">Clientes</option>
+                        </select>
+                        <select id="filter-user-event" onchange="App.filterUsers()" class="filter-select-evento">
+                            <option value="">Eventos</option>
+                        </select>
+                        <select id="filter-user-role" onchange="App.filterUsers()" class="filter-select">
+                            <option value="">Rol</option>
+                            <option value="ADMIN">ADMIN</option>
+                            <option value="PRODUCTOR">PRODUCTOR</option>
+                            <option value="LOGISTICO">LOGÍSTICO</option>
+                            <option value="STAFF">STAFF</option>
+                            <option value="CLIENTE">CLIENTE</option>
+                        </select>
                     </div>
                     <!-- Fila 2: Buscador -->
                     <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
@@ -1097,9 +1090,8 @@
 
                 <!-- SECCIÓN: CLIENTES -->
                 <div id="sys-content-clients" class="hidden space-y-4">
-                    <!-- Fila 1: Botones + Filtros -->
+                    <!-- Fila 1: Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <!-- Botones de acción - todos mismo tamaño -->
                         <div class="flex gap-2">
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateClient()">
                                 <span class="material-symbols-outlined text-base">person_add</span> + Cliente
@@ -1114,23 +1106,18 @@
                                 <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
                         </div>
-                        <!-- Filtros - todos mismo tamaño -->
-                        <div class="flex gap-2 flex-wrap items-center">
-                            <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
-                                <option value="">Empresa</option>
-                            </select>
-                            <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-empresa">
-                                <option value="">Staff</option>
-                            </select>
-                            <select id="filter-client-event" onchange="App.filterClients()" class="filter-select filter-select-evento">
-                                <option value="">Evento</option>
-                            </select>
-                            <select id="filter-client-status" onchange="App.filterClients()" class="filter-select">
-                                <option value="">Estado</option>
-                                <option value="ACTIVE">Activo</option>
-                                <option value="INACTIVE">Inactivo</option>
-                            </select>
-                        </div>
+                    </div>
+                    <!-- Fila 2: Filtros -->
+                    <div class="flex gap-2 flex-wrap items-center">
+                        <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                            <option value="">Empresa</option>
+                        </select>
+                        <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                            <option value="">Staff</option>
+                        </select>
+                        <select id="filter-client-event" onchange="App.filterClients()" class="filter-select filter-select-evento">
+                            <option value="">Evento</option>
+                        </select>
                     </div>
                     <!-- Fila 2: Buscador -->
                     <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
