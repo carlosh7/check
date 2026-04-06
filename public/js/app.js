@@ -1861,8 +1861,8 @@ const App = window.App = {
     // Modal crear cliente
     // Abrir modal para crear cliente (diseño igual al de empresa)
     openCreateClientModal: function() {
-        // Guardar contexto del carrusel actual
         this._lastCarouselContext = 'client';
+        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         const groups = this.state.groups || [];
         const select = document.getElementById('create-client-company');
         if (select) {
@@ -1878,6 +1878,7 @@ const App = window.App = {
     // Abrir modal para crear staff (diseño igual al de empresa)
     openCreateStaffModal: function() {
         this._lastCarouselContext = 'staff';
+        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         const groups = this.state.groups || [];
         const select = document.getElementById('create-staff-company');
         if (select) {
@@ -1893,7 +1894,9 @@ const App = window.App = {
 
     // Abrir modal para crear evento (diseño igual al de empresa)
     openCreateEventModal: function() {
+        // Guardar contexto Y los grupos seleccionados antes de que el SweetAlert se cierre
         this._lastCarouselContext = 'event';
+        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         document.getElementById('create-event-name').value = '';
         document.getElementById('create-event-date').value = '';
         document.getElementById('create-event-location').value = '';
@@ -1921,13 +1924,17 @@ const App = window.App = {
         if (!this._lastCarouselContext) return;
         const ctx = this._lastCarouselContext;
         this._lastCarouselContext = null;
+        const savedGroups = this._savedSelectedGroups || [];
+        this._savedSelectedGroups = null;
 
-        if (ctx === 'client' && this.state.selectedGroups?.length) {
-            this.openAssignClientToGroupModal(this.state.selectedGroups);
-        } else if (ctx === 'staff' && this.state.selectedGroups?.length) {
-            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
-        } else if (ctx === 'event' && this.state.selectedGroups?.length) {
-            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
+        if (savedGroups.length === 0) return;
+
+        if (ctx === 'client') {
+            this.openAssignClientToGroupModal(savedGroups);
+        } else if (ctx === 'staff') {
+            this.showUserSelectorForBulkGroups(savedGroups);
+        } else if (ctx === 'event') {
+            this.showEventSelectorForBulkGroups(savedGroups);
         }
     },
 
