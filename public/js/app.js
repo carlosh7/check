@@ -4024,28 +4024,163 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    // Editar un solo usuario
+    // Editar un solo usuario - versión inline en el carrusel
     editSingleUser: function(userIds) {
         const ids = Array.isArray(userIds) ? userIds : [userIds];
         if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo staff para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un staff a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
-        // Guardar contexto para restaurar después
-        this._lastUserCarouselContext = this._lastUserCarouselContext || 'edit';
-        this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
-        this.editUser(ids[0]);
-    },
-
-    // Gestionar staff (Activar/Desactivar/Eliminar)
-    showManageUserAction: function(userIds) {
-        const ids = Array.isArray(userIds) ? userIds : [userIds];
-        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        const userId = ids[0];
+        const user = this.state.allUsers?.find(u => u.id === userId);
+        if (!user) { Swal.fire({ title: '⚠️ Error', text: 'Staff no encontrado', icon: 'error', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._lastUserCarouselContext = 'edit';
+        this._savedSelectedUsers = [userId];
+        this._editingUserId = userId;
+        
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const savedIds = App._savedSelectedUsers || [];
+        const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
+        
+        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'].map(r => 
+            `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`
+        ).join('');
+        
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 6 botones -->
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título + Guardar -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${user.display_name || user.username}</span>
+                    </div>
+                    <button onclick="App.saveUserEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
+                    </button>
+                </div>
+                <!-- Campos编辑 inline -->
+                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nombre</label>
+                            <input id="edit-user-name-${user.id}" type="text" value="${user.display_name || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del staff">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Email</label>
+                            <input id="edit-user-email-${user.id}" type="email" value="${user.username || ''}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Email del staff">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Nueva Contraseña <span class="normal-case font-normal">(dejar vacío para mantener)</span></label>
+                            <input id="edit-user-password-${user.id}" type="password" value="" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nueva contraseña">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${textSecondary};">Rol</label>
+                            <select id="edit-user-role-${user.id}" class="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                ${roleOptions}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    // Guardar edición inline de staff
+    saveUserEditInline: async function() {
+        const userId = this._editingUserId;
+        if (!userId) return;
+        
+        const nameInput = document.getElementById(`edit-user-name-${userId}`);
+        const emailInput = document.getElementById(`edit-user-email-${userId}`);
+        const passwordInput = document.getElementById(`edit-user-password-${userId}`);
+        const roleSelect = document.getElementById(`edit-user-role-${userId}`);
+        
+        if (!nameInput || !emailInput || !roleSelect) {
+            Swal.fire({ title: '⚠️ Error', text: 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const role = roleSelect.value;
+        
+        if (!name || !email) {
+            Swal.fire({ title: '⚠️ Error', text: 'Nombre y email son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        const saveBtn = document.querySelector('[onclick="App.saveUserEditInline()"]');
+        if (saveBtn) {
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
+            saveBtn.style.opacity = '0.6';
+            saveBtn.style.pointerEvents = 'none';
+        }
+        
+        try {
+            const updateData = { display_name: name, username: email, role };
+            if (password) updateData.password = password;
+            
+            const result = await this.fetchAPI(`/users/${userId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updateData)
+            });
+            
+            if (result?.user || result?.id) {
+                // Actualizar en el estado
+                const userIndex = this.state.allUsers?.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    this.state.allUsers[userIndex] = { ...this.state.allUsers[userIndex], ...updateData };
+                }
+                
+                Swal.fire({ title: '✅ Guardado', text: 'Staff actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // Recargar el carrusel
+                this.editSingleUser([userId]);
+            } else {
+                throw new Error(result?.message || 'Error al guardar');
+            }
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+        }
+    },
+
+    // Gestionar staff (Activar/Desactivar/Eliminar)
+    showManageUserAction: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        this._savedSelectedUsers = [...ids];
+        
+        const users = this.state.allUsers || [];
+        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -4055,6 +4190,13 @@ const App = window.App = {
                     <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
                     <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título debajo de la barra -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
                 </div>
                 <div class="space-y-3">
                 <div onclick="App.handleBulkUserActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
