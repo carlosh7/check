@@ -1919,14 +1919,17 @@ const App = window.App = {
     closeCreateClientModal: function() {
         document.getElementById('modal-create-client')?.classList.add('hidden');
         this._restoreCarouselContext();
+        this._restoreUserCarouselContext();
     },
     closeCreateStaffModal: function() {
         document.getElementById('modal-create-staff')?.classList.add('hidden');
         this._restoreCarouselContext();
+        this._restoreUserCarouselContext();
     },
     closeCreateEventModal: function() {
         document.getElementById('modal-create-event')?.classList.add('hidden');
         this._restoreCarouselContext();
+        this._restoreUserCarouselContext();
     },
 
     // Restaurar el carrusel que estaba abierto antes de crear
@@ -1945,6 +1948,21 @@ const App = window.App = {
             this.showUserSelectorForBulkGroups(savedGroups);
         } else if (ctx === 'event') {
             this.showEventSelectorForBulkGroups(savedGroups);
+        }
+    },
+
+    // Restaurar carrusel de staff al cerrar modal de crear
+    _restoreUserCarouselContext: function() {
+        if (!this._lastUserCarouselContext) return;
+        const ctx = this._lastUserCarouselContext;
+        this._lastUserCarouselContext = null;
+        const savedUsers = this._savedSelectedUsers || [];
+        this._savedSelectedUsers = null;
+
+        if (savedUsers.length === 0) return;
+
+        if (ctx === 'company') {
+            this.showCompanySelectorForUsers(savedUsers);
         }
     },
 
@@ -3301,85 +3319,365 @@ const App = window.App = {
         }
     },
 
-    // Editar usuarios seleccionados
-    editSelectedUsers: async function(userIds) {
-        if (!userIds || userIds.length === 0) {
-            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un usuario', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        // Validar que solo se edite un usuario a la vez
-        if (userIds.length > 1) {
-            Swal.fire({ 
-                title: '⚠️ Atención', 
-                text: 'Solo puedes editar un usuario a la vez. Por favor, selecciona solo un usuario.', 
-                icon: 'warning', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
-            return;
-        }
-        
-        const userId = userIds[0];
-        const user = this.state.allUsers?.find(u => u.id === userId);
-        
-        if (!user) {
-            Swal.fire({ title: '⚠️ Error', text: 'Usuario no encontrado', icon: 'error', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        // Validar permisos
-        const currentUser = this.state.user;
-        if (!currentUser) return;
-        
-        const isAdmin = currentUser.role === 'ADMIN';
-        const isProductor = currentUser.role === 'PRODUCTOR';
-        
-        // ADMIN puede editar cualquier usuario
-        // PRODUCTOR solo puede editar usuarios que NO sean ADMIN
-        if (!isAdmin && !isProductor) {
-            Swal.fire({ 
-                title: '⚠️ Permiso denegado', 
-                text: 'No tienes permisos para editar usuarios', 
-                icon: 'error', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
-            return;
-        }
-        
-        if (isProductor) {
-            // PRODUCTOR no puede editar ADMINs
-            if (user.role === 'ADMIN') {
-                Swal.fire({ 
-                    title: '⚠️ Permiso denegado', 
-                    text: 'No puedes editar usuarios ADMIN', 
-                    icon: 'error', 
-                    background: '#0f172a', 
-                    color: '#fff' 
-                });
-                return;
+    // Carrusel de edición de staff (6 botones)
+    editSelectedUsers: function(userIds) {
+        const users = this.state.allUsers || [];
+        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 6 botones -->
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <!-- Título + botón crear -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                    <button onclick="App.openCreateStaffModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <!-- Lista de staff seleccionado -->
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedUsers.map(u => {
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColor = roleColors[u.role] || '#64748b';
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    // Editar un solo usuario
+    editSingleUser: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo staff para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un staff a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        this.editUser(ids[0]);
+    },
+
+    // Gestionar staff (Activar/Desactivar/Eliminar)
+    showManageUserAction: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : [userIds];
+        if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const html = `
+            <div class="space-y-3">
+                <div onclick="App.handleBulkUserActionDirect('activate', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
+                </div>
+                <div onclick="App.handleBulkUserActionDirect('suspend', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Suspender</div><div class="text-[11px]" style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
+                </div>
+                <div onclick="App.handleBulkUserActionDirect('delete', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '400px', background: bgMain, color: isDark ? '#f8fafc' : '#1e293b', showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    handleBulkUserActionDirect: async function(action, userIds) {
+        if (action === 'activate') {
+            if (await this._confirmAction('¿Activar staff?', `¿Activar ${userIds.length} staff?`)) {
+                await this.bulkUpdateStatus(userIds, 'APPROVED');
+                this.editSelectedUsers(userIds);
             }
-            
-            // PRODUCTOR solo puede editar usuarios de su empresa
-            const userGroupId = currentUser.group_id;
-            if (userGroupId) {
-                const userBelongsToGroup = user.groups && user.groups.some(g => String(g.id) === String(userGroupId));
-                if (!userBelongsToGroup) {
-                    Swal.fire({ 
-                        title: '⚠️ Permiso denegado', 
-                        text: 'Solo puedes editar usuarios de tu empresa', 
-                        icon: 'error', 
-                        background: '#0f172a', 
-                        color: '#fff' 
-                    });
-                    return;
+        } else if (action === 'suspend') {
+            if (await this._confirmAction('¿Suspender staff?', `¿Suspender ${userIds.length} staff?`)) {
+                await this.bulkUpdateStatus(userIds, 'SUSPENDED');
+                this.editSelectedUsers(userIds);
+            }
+        } else if (action === 'delete') {
+            if (await this._confirmAction('¿Eliminar staff?', `¿Eliminar ${userIds.length} staff? Esta acción no se puede deshacer.`)) {
+                await this.bulkDeleteUsers(userIds);
+            } else {
+                this.editSelectedUsers(userIds);
+            }
+        }
+    },
+
+    // Asignar empresa a staff
+    showCompanySelectorForUsers: function(userIds) {
+        const groups = this.state.groups || [];
+        const users = this.state.allUsers || [];
+        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        if (groups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay empresas disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#7c3aed';
+        const primaryLight = isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.15)';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.openCreateGroupFromUserCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${groups.map(g => {
+                        const isAssigned = userIds.some(uid => { const user = users.find(u => u.id === uid); return user && user.groups && user.groups.some(gp => String(gp.id) === String(g.id)); });
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignCompanyToUsersFromModal('${userIds.join(',')}', '${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignCompanyToUsersFromModal: async function(userIdsStr, groupId, isAssigned) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (userIds.length === 0) return;
+        try {
+            for (const userId of userIds) {
+                await this.fetchAPI(`/users/${userId}`, { method: 'PUT', body: JSON.stringify({ group_id: isAssigned ? null : groupId }) });
+            }
+            await this.loadUsersTable();
+            this.showCompanySelectorForUsers(userIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Asignar cliente a staff
+    showClientSelectorForUsers: function(userIds) {
+        const clients = this.state.clients || [];
+        const users = this.state.allUsers || [];
+        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        if (clients.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#10b981';
+        const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar cliente..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${clients.map(c => {
+                        const isAssigned = userIds.some(uid => { const user = users.find(u => u.id === uid); return user && user.clients && user.clients.some(cl => String(cl.id) === String(c.id)); });
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (userIds.length === 0) return;
+        try {
+            for (const userId of userIds) {
+                if (isAssigned) {
+                    await this.fetchAPI(`/users/${userId}/clients/${clientId}`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/users/${userId}/clients`, { method: 'POST', body: JSON.stringify({ client_id: clientId }) });
                 }
             }
-        }
-        
-        // Llamar a la función existente editUser
-        this.editUser(userId);
+            await this.loadUsersTable();
+            this.showClientSelectorForUsers(userIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Asignar evento a staff
+    showEventSelectorForUsers: function(userIds) {
+        const events = this.state.allEvents || [];
+        const users = this.state.allUsers || [];
+        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        if (events.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const bgInput = isDark ? '#334155' : '#e2e8f0';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const primaryColor = '#a855f7';
+        const primaryLight = isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.openCreateEventModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                </div>
+                <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${events.map(e => {
+                        const isAssigned = userIds.some(uid => { const user = users.find(u => u.id === uid); return user && user.events && user.events.includes(e.id); });
+                        const icon = isAssigned ? 'check' : 'add';
+                        const itemBorder = isAssigned ? primaryColor : borderColor;
+                        const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
+                        return `<div onclick="App.assignEventToUsersFromModal('${userIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (userIds.length === 0) return;
+        try {
+            for (const userId of userIds) {
+                if (isAssigned) {
+                    await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/users/${userId}/events`, { method: 'POST', body: JSON.stringify({ event_id: eventId }) });
+                }
+            }
+            await this.loadUsersTable();
+            this.showEventSelectorForUsers(userIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    // Asignar rol a staff (NUEVO)
+    showRoleSelectorForUsers: function(userIds) {
+        const users = this.state.allUsers || [];
+        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const roles = [
+            { value: 'ADMIN', label: 'ADMIN', color: '#ef4444', icon: 'admin_panel_settings' },
+            { value: 'PRODUCTOR', label: 'PRODUCTOR', color: '#f59e0b', icon: 'work' },
+            { value: 'LOGISTICO', label: 'LOGÍSTICO', color: '#3b82f6', icon: 'local_shipping' },
+            { value: 'STAFF', label: 'STAFF', color: '#10b981', icon: 'badge' },
+            { value: 'CLIENTE', label: 'CLIENTE', color: '#8b5cf6', icon: 'person' }
+        ];
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Rol a Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${roles.map(r => `
+                        <div onclick="App.assignRoleToUsersFromModal('${userIds.join(',')}', '${r.value}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${r.color}11; border: 1px solid ${r.color}44;">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${r.color}22; color: ${r.color};"><span class="material-symbols-outlined">${r.icon}</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: ${r.color};">${r.label}</div></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+    },
+
+    assignRoleToUsersFromModal: async function(userIdsStr, newRole) {
+        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+        if (userIds.length === 0) return;
+        const roleNames = { ADMIN: 'ADMIN', PRODUCTOR: 'PRODUCTOR', LOGISTICO: 'LOGÍSTICO', STAFF: 'STAFF', CLIENTE: 'CLIENTE' };
+        if (!await this._confirmAction('¿Cambiar rol?', `¿Cambiar rol a ${roleNames[newRole] || newRole} para ${userIds.length} staff?`)) return;
+        try {
+            for (const userId of userIds) {
+                await this.fetchAPI(`/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
+            }
+            await this.loadUsersTable();
+            this.showRoleSelectorForUsers(userIds);
+        } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al cambiar rol', icon: 'error', background: '#0f172a', color: '#fff' }); }
+    },
+
+    openCreateGroupFromUserCarousel: function() {
+        this._lastUserCarouselContext = 'company';
+        this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
+        this.navigateToCreateGroup();
     },
 
     // Editar empresa seleccionada desde dropdown (con validación de permisos)
