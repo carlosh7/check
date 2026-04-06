@@ -4514,6 +4514,7 @@ const App = window.App = {
         const bgCard = isDark ? '#1e293b' : '#ffffff';
         const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         const savedIds = App._savedSelectedUsers || [];
         const html = `
