@@ -1234,13 +1234,11 @@ const App = window.App = {
             companySelect.value = currentVal;
         }
         
-        if (staffSelect && this.state.users) {
+        if (staffSelect && this.state.allUsers) {
             const currentVal = staffSelect.value;
             staffSelect.innerHTML = '<option value="">Staff</option>';
-            this.state.users.forEach(u => {
-                if (u.role === 'STAFF' || u.role === 'PRODUCTOR' || u.role === 'LOGISTICO') {
-                    staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
-                }
+            this.state.allUsers.forEach(u => {
+                staffSelect.innerHTML += `<option value="${u.id}">${u.display_name || u.username}</option>`;
             });
             staffSelect.value = currentVal;
         }
