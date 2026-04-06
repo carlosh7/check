@@ -13096,8 +13096,73 @@ const App = window.App = {
             } catch(e) { this.state.clients = []; }
         }
         
-        // Abrir el carrusel
-        this.editSelectedUsers(selectedUserIds);
+        // Abrir el carrusel específico de configuración (solo 3 botones)
+        this.editSelectedUsersForConfig(selectedUserIds);
+    },
+    
+    // Carrusel de edición de staff para configuración del evento (solo 3 botones)
+    editSelectedUsersForConfig: function(userIds) {
+        const ids = Array.isArray(userIds) ? userIds : (userIds ? [userIds] : []);
+        if (ids.length === 1) {
+            this.editSingleUser(ids);
+            return;
+        }
+        
+        this._lastUserCarouselContext = 'edit';
+        this._savedSelectedUsers = [...ids];
+        const users = this.state.allUsers || [];
+        const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
+        if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        const isDark = document.documentElement.classList.contains('dark');
+        const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+        const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
+        const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
+        const html = `
+            <div class="space-y-5" style="padding-right: 8px;">
+                <!-- Barra de navegación 3 botones -->
+                <div class="flex items-center justify-center gap-4 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                </div>
+                <!-- Título -->
+                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <div class="flex flex-col flex-1">
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Staff</span>
+                        <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                    </div>
+                </div>
+                <!-- Lista de staff seleccionado -->
+                <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                    ${selectedUsers.map(u => {
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColor = roleColors[u.role] || '#64748b';
+                        return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold" style="color: ${textMain};">${u.display_name || u.username}</div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">${u.username} • <span style="color: ${roleColor};">${u.role}</span></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        Swal.fire({ 
+            title: '', 
+            html, 
+            width: '460px', 
+            background: bgMain, 
+            color: textMain, 
+            showConfirmButton: false, 
+            showCloseButton: false, 
+            customClass: { popup: 'modal-left-aligned' }, 
+            showClass: { popup: '', container: '', backdrop: '' }, 
+            hideClass: { popup: '', container: '', backdrop: '' },
+            timer: 0
+        });
     },
     
     // Registro rápido de staff desde configuración del evento
