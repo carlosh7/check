@@ -1200,7 +1200,7 @@ const App = window.App = {
                             </div>
                         </td>
                         <td class="px-2 py-3 align-middle">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                                 <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">domain</span>
                                 <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                             </div>
