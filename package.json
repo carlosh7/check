@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.217",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.217 - Fix: activos para ambos temas + color titulo evento en tema claro",
+  "version": "12.44.218",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.218 - Fix: cambiar icono de engranaje a evento en personal",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
