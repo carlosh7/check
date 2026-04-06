@@ -1681,6 +1681,7 @@ const App = window.App = {
                         searchInput.value = cleanText;
                         this._showVoiceToast(`✅ "${cleanText}"`, 'result');
                         if (section === 'group') this.filterGroups();
+                        if (section === 'user') this.filterUsers();
                     }
                     setTimeout(() => this._hideVoiceToast(), 3000);
                 } else {
@@ -2917,33 +2918,35 @@ const App = window.App = {
                 // --- COLUMNA 2: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-blue-400 flex-shrink-0">corporate_fare</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
                 const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
 
                 // --- COLUMNA 3: CLIENTES ---
                 const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-emerald-400 flex-shrink-0">person</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #34d399; background: rgba(52,211,153,0.15); border-radius: 6px; padding: 2px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                 const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
 
                 // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventRows = userEvents.length > 0 ? userEvents.map(e => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs text-purple-400 flex-shrink-0">event</span>
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #c084fc; background: rgba(192,132,252,0.15); border-radius: 6px; padding: 2px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs text-slate-600 flex-shrink-0">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                 const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
-                const colRol = `<span class="text-xs font-bold text-[var(--primary)]">${u.role}</span>`;
+                const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                const roleColor = roleColors[u.role] || '#64748b';
+                const colRol = `<span class="text-xs font-bold" style="color: ${roleColor}; background: ${roleColor}22; border-radius: 6px; padding: 2px 8px;">${u.role}</span>`;
 
                 // --- COLUMNA 6: ESTADO ---
                 const statusLabel = u.status === 'APPROVED' ? 'Activo' : u.status === 'PENDING' ? 'Pendiente' : 'Suspendido';
@@ -3034,6 +3037,78 @@ const App = window.App = {
         }
         
         this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
+    },
+
+    // Mostrar sugerencias de búsqueda para staff
+    showUserSuggestions: function() {
+        const raw = document.getElementById('user-search')?.value || '';
+        const term = this._normalize(raw);
+        const container = document.getElementById('user-suggestions');
+        if (!container) return;
+
+        if (term.length < 2) { this.hideUserSuggestions(); return; }
+
+        const users = this.state.allUsers || [];
+        const groups = this.state.groups || [];
+        const events = this.state.allEvents || [];
+        const clients = this.state.clients || [];
+        const searchWords = term.split(' ').filter(w => w.length > 0);
+        const suggestions = [];
+
+        users.forEach(u => {
+            const uName = this._normalize(u.display_name || u.username);
+            if (searchWords.every(w => uName.includes(w))) {
+                suggestions.push({ score: 100, text: u.display_name || u.username, subtext: u.role || 'Staff', icon: 'badge', color: '#3b82f6', type: 'staff' });
+            }
+        });
+        groups.forEach(g => {
+            const gName = this._normalize(g.name);
+            if (searchWords.every(w => gName.includes(w))) {
+                suggestions.push({ score: 90, text: g.name, subtext: g.email || 'Empresa', icon: 'corporate_fare', color: '#7c3aed', type: 'empresa' });
+            }
+        });
+        events.forEach(e => {
+            const eName = this._normalize(e.name);
+            if (searchWords.every(w => eName.includes(w))) {
+                suggestions.push({ score: 80, text: e.name, subtext: e.date || e.location || 'Evento', icon: 'event', color: '#a855f7', type: 'evento' });
+            }
+        });
+        clients.forEach(c => {
+            const cName = this._normalize(c.name);
+            if (searchWords.every(w => cName.includes(w))) {
+                suggestions.push({ score: 70, text: c.name, subtext: c.email || 'Cliente', icon: 'person', color: '#10b981', type: 'cliente' });
+            }
+        });
+
+        suggestions.sort((a, b) => b.score - a.score);
+        const top = suggestions.slice(0, 8);
+        if (top.length === 0) { this.hideUserSuggestions(); return; }
+
+        container.innerHTML = top.map((s, i) => `
+            <div onclick="App.selectUserSuggestion('${s.text.replace(/'/g, "\\'")}')" 
+                 style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.05); ${i === top.length - 1 ? 'border-bottom: none;' : ''}"
+                 onmouseover="this.style.background='rgba(59,130,246,0.15)'" 
+                 onmouseout="this.style.background='transparent'">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: ${s.color}; flex-shrink: 0;">${s.icon}</span>
+                <div class="flex-1 min-w-0">
+                    <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.text}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">${s.subtext}</div>
+                </div>
+                <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${s.type}</span>
+            </div>
+        `).join('');
+        container.classList.remove('hidden');
+    },
+
+    selectUserSuggestion: function(text) {
+        const input = document.getElementById('user-search');
+        if (input) { input.value = text; this.filterUsers(); }
+        this.hideUserSuggestions();
+    },
+
+    hideUserSuggestions: function() {
+        const container = document.getElementById('user-suggestions');
+        if (container) container.classList.add('hidden');
     },
 
     // Toggle seleccionar todos los usuarios
@@ -12744,11 +12819,18 @@ async function initApp() {
 
     // Cerrar sugerencias al hacer click fuera
     document.addEventListener('click', (e) => {
-        const searchInput = document.getElementById('group-search');
-        const suggestions = document.getElementById('group-suggestions');
-        if (suggestions && !suggestions.classList.contains('hidden')) {
-            if (searchInput && !searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+        const groupSearch = document.getElementById('group-search');
+        const groupSuggestions = document.getElementById('group-suggestions');
+        if (groupSuggestions && !groupSuggestions.classList.contains('hidden')) {
+            if (groupSearch && !groupSearch.contains(e.target) && !groupSuggestions.contains(e.target)) {
                 App.hideGroupSuggestions();
+            }
+        }
+        const userSearch = document.getElementById('user-search');
+        const userSuggestions = document.getElementById('user-suggestions');
+        if (userSuggestions && !userSuggestions.classList.contains('hidden')) {
+            if (userSearch && !userSearch.contains(e.target) && !userSuggestions.contains(e.target)) {
+                App.hideUserSuggestions();
             }
         }
     });
