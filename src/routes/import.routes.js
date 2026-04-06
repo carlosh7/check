@@ -838,9 +838,32 @@ router.get('/:type', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) =>
                         theme: 'grid',
                         headStyles: { fillColor: [139, 92, 246] }
                     });
+                    currentY = doc.lastAutoTable.finalY + 15;
                 } else {
                     doc.setFontSize(10);
                     doc.text('No hay staff registrado', 14, currentY);
+                    currentY += 15;
+                }
+                
+                // Clientes - nueva pagina si es necesario
+                if (currentY > 200) { doc.addPage(); currentY = 20; }
+                doc.setFontSize(14);
+                doc.text('Clientes', 14, currentY);
+                currentY += 10;
+                
+                const clients = db.prepare("SELECT c.name, c.email, c.phone, c.status, g.name as company_name FROM clients c LEFT JOIN groups g ON c.group_id = g.id ORDER BY c.created_at DESC").all();
+                
+                if (clients.length > 0) {
+                    autoTable(doc, {
+                        startY: currentY,
+                        head: [['Nombre', 'Email', 'Teléfono', 'Empresa', 'Estado']],
+                        body: clients.map(c => [c.name || '-', c.email || '-', c.phone || '-', c.company_name || '-', c.status || '-']),
+                        theme: 'grid',
+                        headStyles: { fillColor: [16, 185, 129] }
+                    });
+                } else {
+                    doc.setFontSize(10);
+                    doc.text('No hay clientes registrados', 14, currentY);
                 }
 
                 res.setHeader('Content-Type', 'application/pdf');
