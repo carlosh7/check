@@ -3649,11 +3649,14 @@ const App = window.App = {
                         const isAssigned = userIds.some(uid => {
                             const user = users.find(u => String(u.id) === String(uid));
                             if (!user || !user.events) return false;
-                            return user.events.some(ev => {
+                            const result = user.events.some(ev => {
                                 const evId = typeof ev === 'object' ? (ev.id || ev.event_id) : ev;
                                 return String(evId) === String(e.id);
                             });
+                            if (result) console.log('[EVENT CHECK] MATCH! user:', uid, 'event:', e.id, 'user.events:', JSON.stringify(user.events));
+                            return result;
                         });
+                        if (isAssigned) console.log('[EVENT CHECK] isAssigned=true for event:', e.id);
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
@@ -3703,6 +3706,10 @@ const App = window.App = {
             }
             console.log('[EVENT ASSIGN] Success, reloading...');
             await this.loadUsersTable();
+            // Debug: verificar que el usuario tiene el evento después de recargar
+            const reloadedUser = this.state.allUsers?.find(u => String(u.id) === String(userIds[0]));
+            console.log('[EVENT ASSIGN] After reload - user.events:', JSON.stringify(reloadedUser?.events));
+            console.log('[EVENT ASSIGN] After reload - allEvents:', this.state.allEvents?.map(e => e.id));
             this.showEventSelectorForUsers(userIds);
         } catch (e) {
             console.error('[EVENT ASSIGN] Error:', e);

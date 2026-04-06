@@ -340,13 +340,21 @@ router.post('/:eventId/users', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
     const { userId } = req.body;
     const eventId = castId('events', req.params.eventId);
     
+    console.log('[DEBUG EVENT POST] userId:', userId, 'eventId:', eventId, 'castEventId:', eventId);
+    
     if (!hasEventAccess(req.userId, eventId, req.userRole)) {
         return res.status(403).json({ error: 'No tienes acceso a este evento' });
     }
     
     const id = getValidId('user_events');
-    db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+    console.log('[DEBUG EVENT POST] Insert id:', id, 'user_id:', userId, 'event_id:', eventId);
+    const result = db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
       .run(id, userId, eventId, new Date().toISOString());
+    console.log('[DEBUG EVENT POST] Insert result:', result);
+    
+    // Verificar inserción
+    const check = db.prepare("SELECT * FROM user_events WHERE event_id = ? AND user_id = ?").get(eventId, userId);
+    console.log('[DEBUG EVENT POST] Check after insert:', check);
     
     res.json({ success: true });
 });
