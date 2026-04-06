@@ -3420,15 +3420,15 @@ const App = window.App = {
                     <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <div class="space-y-3">
-                <div onclick="App.handleBulkUserActionDirect('activate', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                <div onclick="App.handleBulkUserActionDirect('activate')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
                     <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionDirect('suspend', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                <div onclick="App.handleBulkUserActionDirect('suspend')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
                     <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Suspender</div><div class="text-[11px]" style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
                 </div>
-                <div onclick="App.handleBulkUserActionDirect('delete', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                <div onclick="App.handleBulkUserActionDirect('delete')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
                     <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
                 </div>
@@ -3437,14 +3437,16 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    handleBulkUserActionDirect: async function(action, userIds) {
+    handleBulkUserActionDirect: async function(action) {
+        const userIds = this.state.selectedUsers || [];
+        if (userIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         if (action === 'activate') {
-            if (await this._confirmAction('¿Activar staff?', `¿Activar ${userIds.length} staff?`)) {
+            if (await this._confirmAction('¿Activar staff?', `¿Activar ${userIds.length} staff?`, 'Sí, activar')) {
                 await this.bulkUpdateStatus(userIds, 'APPROVED');
                 this.editSelectedUsers(userIds);
             }
         } else if (action === 'suspend') {
-            if (await this._confirmAction('¿Suspender staff?', `¿Suspender ${userIds.length} staff?`)) {
+            if (await this._confirmAction('¿Suspender staff?', `¿Suspender ${userIds.length} staff?`, 'Sí, suspender')) {
                 await this.bulkUpdateStatus(userIds, 'SUSPENDED');
                 this.editSelectedUsers(userIds);
             }
@@ -3497,7 +3499,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignCompanyToUsersFromModal('${userIds.join(',')}', '${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div onclick="App.assignCompanyToUsersFromModal('${g.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">corporate_fare</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${g.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${g.email || 'Sin email'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3508,8 +3510,8 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignCompanyToUsersFromModal: async function(userIdsStr, groupId, isAssigned) {
-        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+    assignCompanyToUsersFromModal: async function(groupId, isAssigned) {
+        const userIds = this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
@@ -3564,7 +3566,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignClientToUsersFromModal('${userIds.join(',')}', '${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div onclick="App.assignClientToUsersFromModal('${c.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">person</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${c.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${c.email || 'Sin email'}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3575,16 +3577,14 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
-        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+    assignClientToUsersFromModal: async function(clientId, isAssigned) {
+        const userIds = this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
-                    // Desasignar: quitar user_id del cliente
                     await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: null }) });
                 } else {
-                    // Asignar: poner user_id en el cliente
                     await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: userId }) });
                 }
             }
@@ -3634,7 +3634,7 @@ const App = window.App = {
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div onclick="App.assignEventToUsersFromModal('${userIds.join(',')}', '${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        return `<div onclick="App.assignEventToUsersFromModal('${e.id}', ${isAssigned})" class="selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -3645,8 +3645,8 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
-        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+    assignEventToUsersFromModal: async function(eventId, isAssigned) {
+        const userIds = this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
@@ -3699,7 +3699,7 @@ const App = window.App = {
                 </div>
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${roles.map(r => `
-                        <div onclick="App.assignRoleToUsersFromModal('${userIds.join(',')}', '${r.value}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${r.color}11; border: 1px solid ${r.color}44;">
+                        <div onclick="App.assignRoleToUsersFromModal('${r.value}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${r.color}11; border: 1px solid ${r.color}44;">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${r.color}22; color: ${r.color};"><span class="material-symbols-outlined">${r.icon}</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${r.color};">${r.label}</div></div>
                         </div>
@@ -3709,8 +3709,8 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignRoleToUsersFromModal: async function(userIdsStr, newRole) {
-        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
+    assignRoleToUsersFromModal: async function(newRole) {
+        const userIds = this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         const roleNames = { ADMIN: 'ADMIN', PRODUCTOR: 'PRODUCTOR', LOGISTICO: 'LOGÍSTICO', STAFF: 'STAFF', CLIENTE: 'CLIENTE' };
         const roleName = roleNames[newRole] || newRole;
