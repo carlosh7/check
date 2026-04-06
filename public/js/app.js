@@ -2154,7 +2154,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
     },
 
     // Guardar edición inline de cliente
@@ -3101,7 +3101,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     // Guardar edición de empresa inline (sin cerrar modal)
@@ -4224,7 +4224,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didOpen: () => { setTimeout(() => { const p = document.querySelector('.swal2-popup'); if(p) { p.style.position = 'fixed'; p.style.left = '260px'; p.style.top = '50%'; p.style.transform = 'translateY(-50%)'; p.style.margin = '0'; } }, 10); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
     },
 
     // Guardar edición inline de staff
