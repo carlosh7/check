@@ -4360,16 +4360,35 @@ const App = window.App = {
             `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`
         ).join('');
         
+        // Determinar si es contexto de configuración de evento (solo 4 botones)
+        const isConfigContext = this._isConfigEventContext === true;
+        
+        let navButtons;
+        if (isConfigContext) {
+            // Solo 4 botones para configuración del evento
+            navButtons = `
+                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            `;
+        } else {
+            // 6 botones para sistema normal
+            navButtons = `
+                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+            `;
+        }
+        
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación 6 botones -->
-                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <!-- Barra de navegación -->
+                <div class="flex items-center justify-${isConfigContext ? 'center gap-3' : 'between'} p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    ${navButtons}
                 </div>
                 <!-- Título + Guardar -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -13084,6 +13103,9 @@ const App = window.App = {
         
         // Guardar seleccionados para el carrusel
         this.state.selectedUsers = selectedUserIds;
+        
+        // Establecer contexto de configuración de evento para mostrar solo 4 botones
+        this._isConfigEventContext = true;
         
         // Asegurar que los datos estén cargados
         if (!this.state.allUsers?.length || !this.state.groups?.length) {
