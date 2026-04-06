@@ -2124,14 +2124,9 @@ const App = window.App = {
 
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
-                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Empresa(s)</span>
-                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length} seleccionada(s)</span>
-                        <span id="group-edit-msg" class="hidden text-xs font-bold mt-1"></span>
+                        <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Empresa${selectedGroups.length > 1 ? 's' : ''}</span>
+                        <span class="text-xs" style="color: ${textMain};">${selectedGroups.length === 1 ? selectedGroups[0].name : selectedGroups.length + ' empresas seleccionadas'}</span>
                     </div>
-                    <button onclick="App.saveGroupEditInline()" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
-                        <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
-                    </button>
-                </div>
                     <button onclick="App.openCreateClientModal()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">add</span> Crear
                     </button>
