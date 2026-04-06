@@ -13045,25 +13045,22 @@ const App = window.App = {
                 return;
             }
             
-            const isAdmin = this.state.user?.role === 'ADMIN';
-            const canEdit = isAdmin || this.state.user?.role === 'PRODUCTOR';
-            
             tbody.innerHTML = users.map(u => `
-                <tr class="hover:bg-[var(--bg-hover)] transition-colors group">
-                    <td class="px-5 py-4">
-                        <div class="font-bold text-[var(--text-main)] text-sm">${u.display_name || u.username}</div>
-                        <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                <tr class="user-row-premium">
+                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                        <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
-                    <td class="px-5 py-4 text-center">
-                        <span class="px-2.5 py-1 inline-flex text-[11px] font-semibold rounded-md bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-main)] shadow-sm">
-                            ${u.role}
-                        </span>
-                    </td>
-                    <td class="px-5 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            ${canEdit ? `<button data-action="editStaff" data-user-id="${u.id}" data-user-username="${u.username}" data-user-display="${u.display_name || ''}" data-user-role="${u.role}" class="w-8 h-8 inline-flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors shadow-sm" title="Editar"><span class="material-symbols-outlined text-[16px]">edit</span></button>` : ''}
-                            ${canEdit ? `<button data-action="removeEventStaff" data-user-id="${u.id}" class="w-8 h-8 inline-flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors shadow-sm" title="Desvincular del Evento"><span class="material-symbols-outlined text-[16px]">close</span></button>` : ''}
+                    <td class="px-2 py-3 align-middle">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <div class="flex flex-col">
+                                <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
+                                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                            </div>
                         </div>
+                    </td>
+                    <td class="px-2 py-3 align-middle">
+                        <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
                     </td>
                 </tr>
             `).join('');
