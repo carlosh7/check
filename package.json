@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.145",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.144 - Fix: openUserEditCarousel carga datos antes de abrir + state.groups en loadUsersTable",
+  "version": "12.44.146",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.146 - Fix: assignClient/Event usan _savedSelectedUsers",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

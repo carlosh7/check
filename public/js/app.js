@@ -3586,7 +3586,7 @@ const App = window.App = {
     },
 
     assignClientToUsersFromModal: async function(clientId, isAssigned) {
-        const userIds = this.state.selectedUsers || [];
+        const userIds = this._savedSelectedUsers || this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
@@ -3653,7 +3653,7 @@ const App = window.App = {
     },
 
     assignEventToUsersFromModal: async function(eventId, isAssigned) {
-        const userIds = this.state.selectedUsers || [];
+        const userIds = this._savedSelectedUsers || this.state.selectedUsers || [];
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
