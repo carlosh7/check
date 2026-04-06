@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.143",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.140 - Fase 1 Paso 4-5: Carrusel 6 botones staff + modal asignar rol + asignar empresa/cliente/evento",
+  "version": "12.44.144",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.144 - Fix: openUserEditCarousel carga datos antes de abrir + state.groups en loadUsersTable",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

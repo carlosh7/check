@@ -3591,9 +3591,9 @@ const App = window.App = {
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
-                    await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: null }) });
+                    await this.fetchAPI(`/clients/${clientId}/staff/${userId}`, { method: 'DELETE' });
                 } else {
-                    await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: userId }) });
+                    await this.fetchAPI(`/clients/${clientId}/staff`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
                 }
             }
             await this.loadUsersTable();
