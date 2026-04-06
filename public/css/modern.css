@@ -619,6 +619,17 @@ html.dark .mailbox-message.flagged {
     border-radius: 1rem !important;
     backdrop-filter: blur(20px) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+    max-height: 650px !important;
+    height: auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.swal2-popup .swal2-html-container {
+    overflow-y: auto !important;
+    flex: 1 !important;
+    max-height: calc(650px - 150px) !important;
 }
 
 .swal2-popup.swal2-modal-left-aligned,
