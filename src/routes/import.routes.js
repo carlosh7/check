@@ -102,6 +102,28 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         staffSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8b5cf6' } };
         staffSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
+        // ─── HOJA 4: CLIENTES ───
+        const clientsSheet = workbook.addWorksheet('Clientes');
+        clientsSheet.columns = [
+            { header: 'Nombre', key: 'name', width: 25 },
+            { header: 'Email', key: 'email', width: 30 },
+            { header: 'Teléfono', key: 'phone', width: 20 },
+            { header: 'Empresa', key: 'company_name', width: 25 },
+            { header: 'Evento', key: 'event_name', width: 25 }
+        ];
+        
+        clientsSheet.addRow({
+            name: 'Cliente Ejemplo',
+            email: 'cliente@ejemplo.com',
+            phone: '+57 300 111 2222',
+            company_name: 'Mi Empresa S.A.S',
+            event_name: 'Mi Evento 2024'
+        });
+
+        clientsSheet.getRow(1).font = { bold: true };
+        clientsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10b981' } };
+        clientsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
         // Generar buffer
         const buffer = await workbook.xlsx.writeBuffer();
         
@@ -134,7 +156,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
-        const data = { groups: [], events: [], users: [] };
+        const data = { groups: [], events: [], users: [], clients: [] };
         
         // Headers that indicate a header row (case insensitive)
         const headerValues = ['nombre', 'name', 'email', 'telefono', 'phone', 'estado', 'status', 'descripcion', 'description', 'ubicacion', 'location', 'fecha', 'date', 'display', 'username', 'rol', 'role', 'empresa', 'company'];
@@ -252,6 +274,47 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 } catch(e) {
                     stats.errors++;
                     errors.push(`Fila ${rowNumber}: Error procesando staff`);
+                }
+            });
+        }
+
+        // ─── PROCESAR CLIENTES ───
+        if (workbook.getWorksheet('Clientes')) {
+            const sheet = workbook.getWorksheet('Clientes');
+            const existingClients = db.prepare("SELECT name, email FROM clients").all();
+            
+            sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
+                try {
+                    const name = row.getCell(1).text?.trim();
+                    const email = row.getCell(2).text?.trim();
+                    const phone = row.getCell(3).text?.trim() || '';
+                    const company_name = row.getCell(4).text?.trim() || '';
+                    const event_name = row.getCell(5).text?.trim() || '';
+
+                    if (!name && !email) return;
+                    
+                    // Skip header rows
+                    const firstCell = (name || '').toLowerCase();
+                    const secondCell = (email || '').toLowerCase();
+                    if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
+                        return;
+                    }
+
+                    const exists = existingClients.find(c => 
+                        (c.name && c.name.toLowerCase() === name.toLowerCase()) ||
+                        (c.email && c.email.toLowerCase() === email.toLowerCase())
+                    );
+
+                    if (exists) {
+                        stats.update++;
+                        data.clients.push({ name, email, phone, company_name, event_name, action: 'update', existing: exists });
+                    } else {
+                        stats.new++;
+                        data.clients.push({ name, email, phone, company_name, event_name, action: 'create' });
+                    }
+                } catch(e) {
+                    stats.errors++;
+                    errors.push(`Fila ${rowNumber}: Error procesando cliente`);
                 }
             });
         }
@@ -479,6 +542,95 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         }
 
         console.log('[IMPORT] Result - imported:', imported, 'updated:', updated);
+
+        // ════════════════════════════════════════════════════════════
+        // PASO 4: Importar/Crear CLIENTES (usando mapas de empresas y eventos)
+        // ════════════════════════════════════════════════════════════
+        if (data.clients && data.clients.length > 0) {
+            console.log('[IMPORT] Step 4 - Processing clients:', data.clients.length);
+            
+            // Complementar mapas con datos de BD
+            const allGroups = db.prepare("SELECT id, name FROM groups").all();
+            for (const g of allGroups) {
+                if (!createdGroupsMap[g.name.toLowerCase()]) {
+                    createdGroupsMap[g.name.toLowerCase()] = g.id;
+                }
+            }
+            
+            const allEvents = db.prepare("SELECT id, name FROM events").all();
+            for (const ev of allEvents) {
+                if (!createdEventsMap[ev.name.toLowerCase()]) {
+                    createdEventsMap[ev.name.toLowerCase()] = ev.id;
+                }
+            }
+            
+            for (const c of data.clients) {
+                console.log('[IMPORT] Client:', c.name, 'email:', c.email, 'company:', c.company_name, 'event:', c.event_name);
+                
+                // Resolver company_name a group_id
+                let resolvedGroupId = null;
+                if (c.company_name) {
+                    const companyLower = c.company_name.toLowerCase();
+                    if (createdGroupsMap[companyLower]) {
+                        resolvedGroupId = createdGroupsMap[companyLower];
+                        console.log('[IMPORT] Resolved company for client from map:', c.company_name, '->', resolvedGroupId);
+                    }
+                }
+                
+                // Buscar por name o email
+                let existingClient = null;
+                if (c.name) {
+                    existingClient = db.prepare("SELECT id FROM clients WHERE LOWER(name) = LOWER(?)").get(c.name);
+                }
+                if (!existingClient && c.email) {
+                    existingClient = db.prepare("SELECT id FROM clients WHERE email IS NOT NULL AND LOWER(email) = LOWER(?)").get(c.email);
+                }
+                
+                let clientId;
+                
+                if (existingClient) {
+                    console.log('[IMPORT] Updating client:', c.name);
+                    db.prepare("UPDATE clients SET email = ?, phone = ?, group_id = ? WHERE id = ?")
+                        .run(c.email, c.phone, resolvedGroupId || null, existingClient.id);
+                    clientId = existingClient.id;
+                    updated++;
+                } else {
+                    console.log('[IMPORT] Creating new client:', c.name);
+                    clientId = getValidId('clients');
+                    db.prepare("INSERT INTO clients (id, name, email, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                        .run(clientId, c.name, c.email, c.phone, resolvedGroupId || null, new Date().toISOString());
+                    imported++;
+                }
+                
+                // Vincular a eventos (soporta múltiples eventos separados por coma)
+                if (c.event_name && clientId) {
+                    const eventNames = c.event_name.split(',').map(e => e.trim()).filter(e => e);
+                    let linkedCount = 0;
+                    for (const eventName of eventNames) {
+                        const eventLower = eventName.toLowerCase();
+                        const eventId = createdEventsMap[eventLower];
+                        
+                        if (eventId) {
+                            console.log('[IMPORT] Linking client to event:', c.name, '->', eventName, '(', eventId, ')');
+                            try {
+                                db.prepare("INSERT OR IGNORE INTO client_events (id, client_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+                                    .run(getValidId('client_events'), clientId, eventId, new Date().toISOString());
+                                linkedCount++;
+                            } catch(linkErr) {
+                                console.log('[IMPORT] Warning: Could not link client to event:', linkErr.message);
+                            }
+                        } else {
+                            console.log('[IMPORT] Warning: Event not found for client:', eventName);
+                        }
+                    }
+                    if (linkedCount > 0) {
+                        console.log('[IMPORT] Client', c.name, 'linked to', linkedCount, 'events');
+                    }
+                }
+            }
+        }
+
+        console.log('[IMPORT] Final Result - imported:', imported, 'updated:', updated);
         res.json({ success: true, imported, updated });
     } catch(e) {
         console.error('Error ejecutando importación:', e);

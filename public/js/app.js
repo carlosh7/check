@@ -598,9 +598,15 @@ const App = window.App = {
                     Swal.fire({ icon: 'success', title: 'Importación exitosa', text: `${result.imported} registros importados, ${result.updated} actualizados`, timer: 3000, toast: true, position: 'top-end' });
                 }
                 
-                // Recargar datos
+                // Recargar datos según tipo
                 if (this._importType === 'groups') window.App.loadGroups();
-                else window.App.loadUsersTable();
+                else if (this._importType === 'staff') window.App.loadUsersTable();
+                else if (this._importType === 'clients') window.App.loadClients();
+                else {
+                    window.App.loadGroups();
+                    window.App.loadUsersTable();
+                    window.App.loadClients();
+                }
                 
                 setTimeout(() => document.getElementById('modal-import')?.classList.add('hidden'), 1500);
             }
