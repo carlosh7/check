@@ -9377,6 +9377,18 @@ const App = window.App = {
                     const titleEl = document.getElementById('config-event-title');
                     if (titleEl) titleEl.textContent = event.name;
                     
+                    // Actualizar fecha del evento
+                    const dateEl = document.getElementById('config-event-date');
+                    if (dateEl && event.date) {
+                        const eventDate = new Date(event.date);
+                        const formattedDate = eventDate.toLocaleDateString('es-ES', { 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric' 
+                        });
+                        dateEl.textContent = formattedDate;
+                    }
+                    
                     // Actualizar logo
                     const logoImg = document.getElementById('config-event-logo');
                     const logoPlaceholder = document.getElementById('config-event-logo-placeholder');
