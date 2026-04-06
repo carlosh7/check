@@ -13033,6 +13033,9 @@ const App = window.App = {
             const users = await this.fetchAPI(`/events/${eventId}/users`);
             console.log('[LOAD EVENT STAFF] API returned:', users);
             
+            // Guardar usuarios para filtrado
+            this.state.configStaffUsers = users;
+            
             // Buscar el tbody correcto - config-staff-tbody para vista de configuración, ev-staff-tbody para admin
             let tbody = document.getElementById('config-staff-tbody');
             if (!tbody) tbody = document.getElementById('ev-staff-tbody');
@@ -13066,6 +13069,47 @@ const App = window.App = {
             `).join('');
             
         } catch(e) { console.error('Error loading event staff:', e); }
+    },
+    
+    // Filtrar staff del evento
+    filterConfigStaff: function() {
+        const searchTerm = document.getElementById('config-staff-search')?.value.toLowerCase() || '';
+        const users = this.state.configStaffUsers || [];
+        
+        let tbody = document.getElementById('config-staff-tbody');
+        if (!tbody) return;
+        
+        const filtered = users.filter(u => 
+            (u.display_name && u.display_name.toLowerCase().includes(searchTerm)) ||
+            (u.username && u.username.toLowerCase().includes(searchTerm)) ||
+            (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+            (u.role && u.role.toLowerCase().includes(searchTerm))
+        );
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-[var(--text-muted)] italic text-sm">${searchTerm ? 'No se encontraron resultados.' : 'No hay personal asignado a este evento.'}</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = filtered.map(u => `
+            <tr class="user-row-premium">
+                <td class="px-2 py-3 align-middle" style="width: 40px;">
+                    <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
+                </td>
+                <td class="px-2 py-3 align-middle">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <div class="flex flex-col">
+                            <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
+                            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-2 py-3 align-middle">
+                    <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
+                </td>
+            </tr>
+        `).join('');
     },
 
     // Editar staff desde el panel de configuración del evento
