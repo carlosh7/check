@@ -655,9 +655,19 @@ body .swal2-popup[style*="width: 520px"] {
     width: 520px !important;
 }
 
-/* Alinear modales junto al sidebar */
+/* Alinear modales junto al sidebar - FORZAR posición */
 .swal2-popup.swal2-modal-left-aligned,
-div.sweet-alert.swal2-modal-left-aligned {
+div.sweet-alert.swal2-modal-left-aligned,
+.swal2-modal-left-aligned.swal2-popup {
+    position: fixed !important;
+    left: 260px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+}
+
+/* TODOS los swal2-popup alineados a la izquierda */
+.swal2-popup {
     position: fixed !important;
     left: 260px !important;
     top: 50% !important;
