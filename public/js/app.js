@@ -13366,23 +13366,26 @@ const App = window.App = {
                     <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
-                <!-- Título -->
-                <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <!-- Título debajo de la barra -->
+                <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1">
                         <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Gestionar Staff</span>
                         <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
                     </div>
                 </div>
-                <!-- Opciones de gestión -->
-                <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
-                    <div class="space-y-3">
-                        <button onclick="App.toggleUserStatusConfig('${ids.join(',')}')" class="w-full p-4 rounded-xl text-left font-bold transition-all hover:scale-[1.02]" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2);">
-                            <span class="material-symbols-outlined align-middle mr-2">toggle_on</span> Activar / Desactivar
-                        </button>
-                        <button onclick="App.deleteUserConfig('${ids.join(',')}')" class="w-full p-4 rounded-xl text-left font-bold transition-all hover:scale-[1.02]" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">
-                            <span class="material-symbols-outlined align-middle mr-2">delete</span> Eliminar Staff
-                        </button>
-                    </div>
+                <div class="space-y-3">
+                <div onclick="App.handleBulkUserActionConfig('activate', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
+                </div>
+                <div onclick="App.handleBulkUserActionConfig('suspend', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Suspender</div><div class="text-[11px]" style="color: ${textSecondary};">Suspender ${ids.length} staff</div></div>
+                </div>
+                <div onclick="App.handleBulkUserActionConfig('delete', '${ids.join(',')}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
+                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
+                </div>
                 </div>
             </div>`;
         Swal.fire({ 
@@ -13398,6 +13401,50 @@ const App = window.App = {
             hideClass: { popup: '', container: '', backdrop: '' },
             timer: 0
         });
+    },
+
+    handleBulkUserActionConfig: async function(action, userIdsStr) {
+        const userIds = userIdsStr.split(',');
+        if (userIds.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        
+        try {
+            if (action === 'activate') {
+                if (await this._confirmAction('¿Activar staff?', `¿Activar ${userIds.length} staff?`, 'Sí, activar')) {
+                    await this.bulkUpdateStatusConfig(userIds, 'APPROVED');
+                    this.editSelectedUsersConfig(userIds);
+                }
+            } else if (action === 'suspend') {
+                if (await this._confirmAction('¿Suspender staff?', `¿Suspender ${userIds.length} staff?`, 'Sí, suspender')) {
+                    await this.bulkUpdateStatusConfig(userIds, 'SUSPENDED');
+                    this.editSelectedUsersConfig(userIds);
+                }
+            } else if (action === 'delete') {
+                if (await this._confirmAction('¿Eliminar staff?', `¿Eliminar ${userIds.length} staff? Esta acción no se puede deshacer.`)) {
+                    await this.bulkDeleteUsersConfig(userIds);
+                }
+            }
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error en la acción', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    bulkUpdateStatusConfig: async function(userIds, status) {
+        for (const userId of userIds) {
+            await this.fetchAPI(`/users/${userId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+        }
+        await this.loadUsersTable();
+    },
+
+    bulkDeleteUsersConfig: async function(userIds) {
+        for (const userId of userIds) {
+            await this.fetchAPI(`/users/${userId}`, { method: 'DELETE' });
+        }
+        await this.loadUsersTable();
+        Swal.fire({ title: '✅ Eliminado', text: `${userIds.length} staff eliminado(s)`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+        Swal.close();
     },
     
     // Toggle estado de usuario - INDEPENDIENTE para Personal
@@ -13598,11 +13645,10 @@ const App = window.App = {
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
-                <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
+                <!-- Barra de navegación 3 botones - SOLO EDITAR/GESTIONAR/ROL -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
                     <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                     <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
@@ -13651,7 +13697,8 @@ const App = window.App = {
         
         try {
             for (const userId of userIds) {
-                await this.fetchAPI(`/users/${userId}`, {
+                // Usar el endpoint correcto para cambiar rol
+                await this.fetchAPI(`/users/${userId}/role`, {
                     method: 'PUT',
                     body: JSON.stringify({ role })
                 });
