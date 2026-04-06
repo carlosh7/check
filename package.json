@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.134",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.134 - Fix: titulo de modales editar y gestionar ahora muestra nombre de empresa",
+  "version": "12.44.135",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.135 - Fix: restaurar carrusel al cerrar modales crear + quitados botones cancelar",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

@@ -1861,6 +1861,8 @@ const App = window.App = {
     // Modal crear cliente
     // Abrir modal para crear cliente (diseño igual al de empresa)
     openCreateClientModal: function() {
+        // Guardar contexto del carrusel actual
+        this._lastCarouselContext = 'client';
         const groups = this.state.groups || [];
         const select = document.getElementById('create-client-company');
         if (select) {
@@ -1875,6 +1877,7 @@ const App = window.App = {
 
     // Abrir modal para crear staff (diseño igual al de empresa)
     openCreateStaffModal: function() {
+        this._lastCarouselContext = 'staff';
         const groups = this.state.groups || [];
         const select = document.getElementById('create-staff-company');
         if (select) {
@@ -1890,6 +1893,7 @@ const App = window.App = {
 
     // Abrir modal para crear evento (diseño igual al de empresa)
     openCreateEventModal: function() {
+        this._lastCarouselContext = 'event';
         document.getElementById('create-event-name').value = '';
         document.getElementById('create-event-date').value = '';
         document.getElementById('create-event-location').value = '';
@@ -1898,15 +1902,33 @@ const App = window.App = {
         if (modal) modal.classList.remove('hidden');
     },
 
-    // Cerrar modales de creación
+    // Cerrar modales de creación y restaurar carrusel
     closeCreateClientModal: function() {
         document.getElementById('modal-create-client')?.classList.add('hidden');
+        this._restoreCarouselContext();
     },
     closeCreateStaffModal: function() {
         document.getElementById('modal-create-staff')?.classList.add('hidden');
+        this._restoreCarouselContext();
     },
     closeCreateEventModal: function() {
         document.getElementById('modal-create-event')?.classList.add('hidden');
+        this._restoreCarouselContext();
+    },
+
+    // Restaurar el carrusel que estaba abierto antes de crear
+    _restoreCarouselContext: function() {
+        if (!this._lastCarouselContext) return;
+        const ctx = this._lastCarouselContext;
+        this._lastCarouselContext = null;
+
+        if (ctx === 'client' && this.state.selectedGroups?.length) {
+            this.openAssignClientToGroupModal(this.state.selectedGroups);
+        } else if (ctx === 'staff' && this.state.selectedGroups?.length) {
+            this.showUserSelectorForBulkGroups(this.state.selectedGroups);
+        } else if (ctx === 'event' && this.state.selectedGroups?.length) {
+            this.showEventSelectorForBulkGroups(this.state.selectedGroups);
+        }
     },
 
     // Modal asignar eventos a cliente
@@ -8143,15 +8165,12 @@ const App = window.App = {
         
         // Modales de creación (diseño igual al de empresa)
         cl('btn-close-create-client', () => this.closeCreateClientModal());
-        cl('btn-cancel-create-client', () => this.closeCreateClientModal());
         sf('create-client-form', (e) => this.handleCreateClientSubmit(e));
         
         cl('btn-close-create-staff', () => this.closeCreateStaffModal());
-        cl('btn-cancel-create-staff', () => this.closeCreateStaffModal());
         sf('create-staff-form', (e) => this.handleCreateStaffSubmit(e));
         
         cl('btn-close-create-event', () => this.closeCreateEventModal());
-        cl('btn-cancel-create-event', () => this.closeCreateEventModal());
         sf('create-event-form', (e) => this.handleCreateEventSubmit(e));
         
         // Event Tabs (Panel de Control - solo Invitados)
