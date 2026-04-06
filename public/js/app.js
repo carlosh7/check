@@ -3738,25 +3738,6 @@ const App = window.App = {
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
-    assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
-        const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
-        if (userIds.length === 0) return;
-        try {
-            for (const userId of userIds) {
-                if (isAssigned) {
-                    await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
-                } else {
-                    await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
-                }
-            }
-            await this.loadUsersTable();
-            this.showEventSelectorForUsers(userIds);
-        } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: 'Error al asignar evento: ' + e.message, icon: 'error', background: '#0f172a', color: '#fff' });
-            this.showEventSelectorForUsers(userIds);
-        }
-    },
-
     // Asignar rol a staff (NUEVO)
     showRoleSelectorForUsers: function(userIds) {
         this._lastUserCarouselContext = 'role';
