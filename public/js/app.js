@@ -2091,7 +2091,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Editar un solo cliente - versión inline
@@ -2154,7 +2154,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Guardar edición inline de cliente
@@ -2263,7 +2263,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Acciones masivas directas de clientes
@@ -2351,7 +2351,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignCompanyToClientsFromModal: async function(groupId, isAssigned) {
@@ -2462,7 +2462,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignStaffToClientsFromModal: async function(userId, isAssigned) {
@@ -2527,7 +2527,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignEventToClientsFromModal: async function(eventId, isAssigned) {
@@ -4160,7 +4160,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Editar un solo usuario - versión inline en el carrusel
@@ -4234,7 +4234,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '520px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     // Guardar edición inline de staff
@@ -4352,7 +4352,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     handleBulkUserActionDirect: async function(action) {
@@ -4424,7 +4424,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignCompanyToUsersFromModal: async function(groupId, isAssigned) {
@@ -4490,7 +4490,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
@@ -4673,7 +4673,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, position: 'start', customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     assignRoleToUsersFromModal: async function(newRole) {
