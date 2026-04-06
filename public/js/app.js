@@ -1238,7 +1238,8 @@ const App = window.App = {
         if (!this.state.clients) return;
         const searchTerm = document.getElementById('client-search')?.value.toLowerCase() || '';
         const companyFilter = document.getElementById('filter-client-company')?.value || '';
-        const statusFilter = document.getElementById('filter-client-status')?.value || '';
+        const staffFilter = document.getElementById('filter-client-staff')?.value || '';
+        const eventFilter = document.getElementById('filter-client-event')?.value || '';
         
         let filtered = this.state.clients;
         
@@ -1253,8 +1254,16 @@ const App = window.App = {
             filtered = filtered.filter(c => c.group_id === companyFilter);
         }
         
-        if (statusFilter) {
-            filtered = filtered.filter(c => c.status === statusFilter);
+        if (staffFilter) {
+            filtered = filtered.filter(c => 
+                c.staff && c.staff.some(s => s.id === staffFilter)
+            );
+        }
+        
+        if (eventFilter) {
+            filtered = filtered.filter(c => 
+                c.events && c.events.some(e => e.id === eventFilter)
+            );
         }
         
         // Re-renderizar tabla con filtered
