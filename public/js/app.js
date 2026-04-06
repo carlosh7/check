@@ -2091,7 +2091,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     // Editar un solo cliente - versión inline
@@ -2154,7 +2154,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     // Guardar edición inline de cliente
@@ -2263,7 +2263,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     // Acciones masivas directas de clientes
@@ -2351,7 +2351,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignCompanyToClientsFromModal: async function(groupId, isAssigned) {
@@ -2462,7 +2462,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignStaffToClientsFromModal: async function(userId, isAssigned) {
@@ -2527,7 +2527,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignEventToClientsFromModal: async function(eventId, isAssigned) {
@@ -2993,7 +2993,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     assignClientToGroupsFromModal: async function(groupIdsStr, clientId, isAssigned) {
@@ -3101,7 +3101,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     // Guardar edición de empresa inline (sin cerrar modal)
@@ -3227,7 +3227,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     handleBulkGroupActionDirect: async function(action) {
@@ -3304,7 +3304,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     assignEventToGroupsFromModal: async function(groupIdsStr, eventId, isAssigned) {
@@ -3372,7 +3372,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, didClose: () => { this.clearGroupSelection(); } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' }, didClose: () => { this.clearGroupSelection(); } });
     },
 
     assignUserToGroupsFromModal: async function(groupIdsStr, userId, isAssigned) {
@@ -4150,7 +4150,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     // Editar un solo usuario - versión inline en el carrusel
@@ -4224,7 +4224,7 @@ const App = window.App = {
                     </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     // Guardar edición inline de staff
@@ -4342,7 +4342,7 @@ const App = window.App = {
                 </div>
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     handleBulkUserActionDirect: async function(action) {
@@ -4414,7 +4414,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignCompanyToUsersFromModal: async function(groupId, isAssigned) {
@@ -4480,7 +4480,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignClientToUsersFromModal: async function(userIdsStr, clientId, isAssigned) {
@@ -4566,7 +4566,7 @@ const App = window.App = {
                     }).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
@@ -4645,7 +4645,7 @@ const App = window.App = {
                     `).join('')}
                 </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'modal-left-aligned' }, showClass: { popup: '', container: '' }, hideClass: { popup: '', container: '' } });
     },
 
     assignRoleToUsersFromModal: async function(newRole) {
