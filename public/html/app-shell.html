@@ -11,10 +11,122 @@
                 <div class="flex flex-col logo-text">
                     <span class="font-bold text-lg tracking-tight leading-none text-white">Check<span class="text-violet-500">.</span>Pro</span>
                     <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">Ecosistema Elite</span>
+                </div>
+            </div>
+            <button id="btn-toggle-sidebar" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined text-slate-400 text-lg">menu_open</span>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
+            <!-- Mis Eventos -->
+            <button id="nav-btn-my-events" class="nav-item w-full btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all group sub-nav-btn" data-tab="my-events">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">event</span>
+                <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Mis Eventos</span>
+            </button>
+
+            <!-- Panel Administrativo -->
+            <button id="nav-btn-admin" class="nav-item w-full btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all group sub-nav-btn" data-tab="admin" data-view="admin">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">dashboard</span>
+                <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Dashboard</span>
+            </button>
+
+            <!-- Configuracion del Evento -->
+            <button id="nav-btn-event-config" class="nav-item w-full btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all group sub-nav-btn" data-tab="event-config" data-view="event-config">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">settings</span>
+                <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Configuración</span>
+            </button>
+
+            <!-- Sistema -->
+            <button id="nav-btn-system" class="nav-item w-full btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all group sub-nav-btn" data-tab="system" data-view="system">
+                <span class="material-symbols-outlined text-base group-hover:text-violet-400">tune</span>
+                <span class="sidebar-text font-bold text-xs uppercase tracking-widest">Sistema</span>
+            </button>
+            
+            <!-- Separador y elementos de usuario -->
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <!-- Información del usuario -->
+                <div class="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-2xl mb-4">
+                    <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0 border border-violet-500/30">
+                        <span class="material-symbols-outlined text-violet-400 text-base">person</span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span id="sidebar-username" class="sidebar-text text-[11px] font-bold text-white truncate">admin@check.com</span>
+                        <span id="sidebar-role" class="sidebar-text text-[9px] font-black text-violet-400 uppercase tracking-widest">ADMIN</span>
                     </div>
                 </div>
+                
+                <!-- Botones de acción -->
+                <div class="flex items-center gap-2 px-2">
+                    <button id="btn-toggle-theme" class="flex-1 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors gap-2 border border-white/5" title="Cambiar tema">
+                        <span class="material-symbols-outlined text-slate-400 text-lg">dark_mode</span>
+                    </button>
+                    
+                    <button id="btn-logout" class="flex-1 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/10 hover:text-red-400 transition-colors gap-2 border border-white/5" title="Cerrar sesión">
+                        <span class="material-symbols-outlined text-slate-400 text-lg">logout</span>
+                    </button>
+                </div>
+                
+                    <!-- Firma y versión -->
+                <div class="px-4 py-4 text-center">
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.234</p>
+                    <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
+                        Powered By Smart Eventos
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
 
-                <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
+    <!-- Main Content Area -->
+    <main id="app-main-content" class="flex flex-1 flex-col min-w-0 bg-[#121212] relative overflow-hidden">
+        <!-- Background Blobs -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+
+        <div class="h-full overflow-y-auto p-8 relative z-10">
+            <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
+            <section id="view-my-events" class="hidden animate-fade-in">
+                <div class="max-w-7xl mx-auto">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                        <div>
+                            <h1 class="text-4xl font-black tracking-tight text-white mb-2">Mis <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">Eventos</span></h1>
+                            <p class="text-slate-400 font-medium">Gestiona tu ecosistema de eventos desde un solo lugar</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center bg-white/5 rounded-2xl p-1.5 border border-white/5 shadow-inner">
+                                <button id="btn-events-view-grid" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 transition-all active text-slate-400" title="Vista en cuadrícula">
+                                    <span class="material-symbols-outlined text-xl">grid_view</span>
+                                </button>
+                                <button id="btn-events-view-list" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 transition-all text-slate-400" title="Vista en lista">
+                                    <span class="material-symbols-outlined text-xl">view_list</span>
+                                </button>
+                            </div>
+                            <button id="btn-new-event-full" class="btn-primary flex items-center gap-2 !px-8 !py-4 shadow-xl shadow-violet-900/20">
+                                <span class="material-symbols-outlined">add</span>
+                                <span class="uppercase tracking-widest text-[10px] font-black">Nuevo Evento</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="events-list-container">
+                        <!-- Los eventos se cargarán aquí dinámicamente -->
+                        <div class="col-span-full flex flex-col items-center justify-center py-10 bg-white/[0.02] rounded-2xl border border-dashed border-white/10">
+                            <div class="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-4 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-3xl">event</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">Sin eventos activos</h3>
+                            <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
+                            <button id="btn-new-event-full-empty" class="btn-primary !px-6 !py-3 text-xs font-black uppercase tracking-wider">
+                                Crear Evento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="hidden animate-fade-in">
                 <header class="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
                     <div class="flex items-center gap-8">
@@ -702,6 +814,22 @@
                     </button>
                 </div>
 
+                <!-- SECCIÓN: LEGALES -->
+                <div id="sys-content-legal" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
+                            <div id="editor-policy" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                            <button id="btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
+                            <div id="editor-terms" class="bg-[var(--bg-hover)] rounded-lg min-h-[300px]"></div>
+                            <button id="btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SECCIÓN: EMPRESAS -->
                 <div id="sys-content-groups" class="hidden space-y-4">
                     <!-- Fila 1: Botones de acción -->
@@ -1063,7 +1191,7 @@
 
                 <!-- SECCIÓN: DB (Gestión de Base de Datos) -->
                 <div id="sys-content-db" class="hidden space-y-4">
-                    <!-- Fila 1: Botones de acción -->
+                    <!-- Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="flex gap-2">
                             <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('all')">
@@ -1876,7 +2004,7 @@
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
-                    <p class="text-xs text-[var(--text-secondary)] mb-3">Descarga la plantilla Excel con las 4 secciones a completar:</p>
+                    <p class="text-xs text-[var(--text-secondary)] mb-3">Descarga la plantilla Excel con las 3 secciones a completar:</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2 text-sm">
                             <span class="material-symbols-outlined text-green-400 text-lg">corporate_fare</span>
@@ -1889,10 +2017,6 @@
                         <div class="flex items-center gap-2 text-sm">
                             <span class="material-symbols-outlined text-purple-400 text-lg">person</span>
                             <span><strong>Staff:</strong> Nombre, Email, Contraseña, Rol</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm">
-                            <span class="material-symbols-outlined text-amber-400 text-lg">group</span>
-                            <span><strong>Clientes:</strong> Nombre, Email, Teléfono, Empresa</span>
                         </div>
                     </div>
                     <button id="btn-download-template" onclick="App.downloadImportTemplate()" class="btn-primary !px-4 !py-2 mt-4 text-sm flex items-center gap-2">
