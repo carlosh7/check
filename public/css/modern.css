@@ -620,16 +620,32 @@ html.dark .mailbox-message.flagged {
     backdrop-filter: blur(20px) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
     max-height: 650px !important;
-    height: auto !important;
+    min-height: 400px !important;
+    height: 650px !important;
     overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
 }
 
-.swal2-popup .swal2-html-container {
-    overflow-y: auto !important;
-    flex: 1 !important;
-    max-height: calc(650px - 150px) !important;
+/* Quitar animación del carrusel */
+.swal2-popup {
+    transition: none !important;
+}
+
+.swal2-transition {
+    animation: none !important;
+    transition: none !important;
+}
+
+.swal2-animate {
+    animation: none !important;
+}
+
+.swal2-fade {
+    animation: none !important;
+    opacity: 1 !important;
+}
+
+.swal2-show {
+    animation: none !important;
 }
 
 .swal2-popup.swal2-modal-left-aligned,
