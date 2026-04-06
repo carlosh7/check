@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.141",
+  "version": "12.44.142",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.140 - Fase 1 Paso 4-5: Carrusel 6 botones staff + modal asignar rol + asignar empresa/cliente/evento",
   "main": "script.js",
   "scripts": {
