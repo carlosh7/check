@@ -3667,13 +3667,18 @@ const App = window.App = {
             </div>`;
         Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' },
             didOpen: () => {
+                console.log('[EVENT] didOpen ejecutado');
                 const container = document.getElementById('event-selector-items');
+                console.log('[EVENT] container:', container);
                 if (container) {
                     container.addEventListener('click', (e) => {
+                        console.log('[EVENT] click en container');
                         const item = e.target.closest('.event-selector-item');
+                        console.log('[EVENT] item:', item);
                         if (!item) return;
                         const eventId = item.dataset.eventId;
                         const isAssigned = item.dataset.isAssigned === 'true';
+                        console.log('[EVENT] eventId:', eventId, 'isAssigned:', isAssigned);
                         App.assignEventToUsersFromModal(userIds.join(','), eventId, isAssigned);
                     });
                 }

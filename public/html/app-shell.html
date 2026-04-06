@@ -1444,6 +1444,54 @@
     </div>
 </div>
 
+<!-- MODAL: ASIGNAR EVENTO A STAFF -->
+<div id="modal-assign-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Asignar Evento a Staff</h3>
+            </div>
+            <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1">
+            <div class="relative group mt-2 mb-4">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);">search</span>
+                <input type="text" id="assign-event-search" placeholder="Buscar evento..." style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: var(--text-main); outline: none;">
+            </div>
+            <div id="assign-event-list" class="max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+                <!-- Se llena dinamicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ASIGNAR EVENTO A STAFF -->
+<div id="modal-assign-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Asignar Evento a Staff</h3>
+            </div>
+            <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1">
+            <div class="relative group mt-2 mb-4">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);">search</span>
+                <input type="text" id="assign-event-search" placeholder="Buscar evento..." style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: var(--text-main); outline: none;">
+            </div>
+            <div id="assign-event-list" class="max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+                <!-- Se llena dinamicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL: INVITAR COLABORADOR -->
 <div id="modal-invite" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">

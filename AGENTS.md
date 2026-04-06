@@ -47,7 +47,7 @@ C:\Users\carlo\OneDrive\Documentos\APP\Registro
 ## Docker (Entorno de Producción/Pruebas)
 
 El proyecto usa Docker con docker-compose. Ubicación del contenedor: `C:\Users\carlo\check`
-
+No escribas en el Clon
 ### Comandos Docker:
 
 ```bash
@@ -109,7 +109,7 @@ Al completar cualquier cambio de código:
 
 ### ESTRUCTURA DE DIRECTORIOS:
 - **REPOSITORIO ORIGINAL:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro` (aquí se hacen los cambios)
-- **CONTENEDOR DE PRUEBAS:** `C:\Users\carlo\check` (git clone solo para validación)
+- **CONTENEDOR DE PRUEBAS:** `C:\Users\carlo\check` (git clone solo para validación) No escribas en el contenedor 
 
 ### Pasos obligatorios después de CADA tarea:
 
