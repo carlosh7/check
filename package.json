@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.180",
+  "version": "12.44.181",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.163 - Fix: corregir orden columnas Staff y Evento",
   "main": "script.js",
   "scripts": {
