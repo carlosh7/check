@@ -1871,8 +1871,11 @@ const App = window.App = {
     // Modal crear cliente
     // Abrir modal para crear cliente (diseño igual al de empresa)
     openCreateClientModal: function() {
+        // If coming from user carousel, save context
+        if (this._lastUserCarouselContext) {
+            this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
+        }
         this._lastCarouselContext = 'client';
-        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         const groups = this.state.groups || [];
         const select = document.getElementById('create-client-company');
         if (select) {
@@ -1887,8 +1890,11 @@ const App = window.App = {
 
     // Abrir modal para crear staff (diseño igual al de empresa)
     openCreateStaffModal: function() {
+        // If coming from user carousel, save context
+        if (this._lastUserCarouselContext) {
+            this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
+        }
         this._lastCarouselContext = 'staff';
-        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         const groups = this.state.groups || [];
         const select = document.getElementById('create-staff-company');
         if (select) {
@@ -1904,9 +1910,11 @@ const App = window.App = {
 
     // Abrir modal para crear evento (diseño igual al de empresa)
     openCreateEventModal: function() {
-        // Guardar contexto Y los grupos seleccionados antes de que el SweetAlert se cierre
+        // If coming from user carousel, save context
+        if (this._lastUserCarouselContext) {
+            this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
+        }
         this._lastCarouselContext = 'event';
-        this._savedSelectedGroups = [...(this.state.selectedGroups || [])];
         document.getElementById('create-event-name').value = '';
         document.getElementById('create-event-date').value = '';
         document.getElementById('create-event-location').value = '';
@@ -1963,6 +1971,14 @@ const App = window.App = {
 
         if (ctx === 'company') {
             this.showCompanySelectorForUsers(savedUsers);
+        } else if (ctx === 'client') {
+            this.showClientSelectorForUsers(savedUsers);
+        } else if (ctx === 'event') {
+            this.showEventSelectorForUsers(savedUsers);
+        } else if (ctx === 'role') {
+            this.showRoleSelectorForUsers(savedUsers);
+        } else if (ctx === 'edit') {
+            this.editSelectedUsers(savedUsers);
         }
     },
 
@@ -3321,6 +3337,8 @@ const App = window.App = {
 
     // Carrusel de edición de staff (6 botones)
     editSelectedUsers: function(userIds) {
+        this._lastUserCarouselContext = 'edit';
+        this._savedSelectedUsers = [...(userIds || [])];
         const users = this.state.allUsers || [];
         const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
@@ -3374,6 +3392,9 @@ const App = window.App = {
         const ids = Array.isArray(userIds) ? userIds : [userIds];
         if (ids.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo staff para editar', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         if (ids.length > 1) { Swal.fire({ title: '⚠️ Atención', text: 'Solo puedes editar un staff a la vez', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
+        // Guardar contexto para restaurar después
+        this._lastUserCarouselContext = this._lastUserCarouselContext || 'edit';
+        this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
         this.editUser(ids[0]);
     },
 
@@ -3384,9 +3405,21 @@ const App = window.App = {
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
         const bgCard = isDark ? '#1e293b' : '#ffffff';
+        const textMain = isDark ? '#f8fafc' : '#1e293b';
         const textSecondary = isDark ? '#94a3b8' : '#475569';
+        const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const getCurrentUserIds = `App.state.selectedUsers.length > 0 ? App.state.selectedUsers : Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.dataset.userId)`;
         const html = `
-            <div class="space-y-3">
+            <div class="space-y-5" style="padding-right: 8px;">
+                <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                    <button onclick="App.editSingleUser(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #a855f7;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(${getCurrentUserIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                </div>
+                <div class="space-y-3">
                 <div onclick="App.handleBulkUserActionDirect('activate', ${JSON.stringify(ids)})" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
                     <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Activar ${ids.length} staff</div></div>
@@ -3399,8 +3432,9 @@ const App = window.App = {
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">delete</span></div>
                     <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar ${ids.length} staff</div></div>
                 </div>
+                </div>
             </div>`;
-        Swal.fire({ title: '', html, width: '400px', background: bgMain, color: isDark ? '#f8fafc' : '#1e293b', showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
+        Swal.fire({ title: '', html, width: '460px', background: bgMain, color: textMain, showConfirmButton: false, showCloseButton: false, customClass: { popup: 'rounded-[1.5rem] shadow-2xl' } });
     },
 
     handleBulkUserActionDirect: async function(action, userIds) {
@@ -3425,6 +3459,8 @@ const App = window.App = {
 
     // Asignar empresa a staff
     showCompanySelectorForUsers: function(userIds) {
+        this._lastUserCarouselContext = 'company';
+        this._savedSelectedUsers = [...(userIds || [])];
         const groups = this.state.groups || [];
         const users = this.state.allUsers || [];
         const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
@@ -3477,7 +3513,11 @@ const App = window.App = {
         if (userIds.length === 0) return;
         try {
             for (const userId of userIds) {
-                await this.fetchAPI(`/users/${userId}`, { method: 'PUT', body: JSON.stringify({ group_id: isAssigned ? null : groupId }) });
+                if (isAssigned) {
+                    await this.fetchAPI(`/groups/${groupId}/users/${userId}`, { method: 'DELETE' });
+                } else {
+                    await this.fetchAPI(`/groups/${groupId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+                }
             }
             await this.loadUsersTable();
             this.showCompanySelectorForUsers(userIds);
@@ -3486,6 +3526,8 @@ const App = window.App = {
 
     // Asignar cliente a staff
     showClientSelectorForUsers: function(userIds) {
+        this._lastUserCarouselContext = 'client';
+        this._savedSelectedUsers = [...(userIds || [])];
         const clients = this.state.clients || [];
         const users = this.state.allUsers || [];
         const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
@@ -3539,18 +3581,23 @@ const App = window.App = {
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
-                    await this.fetchAPI(`/users/${userId}/clients/${clientId}`, { method: 'DELETE' });
+                    // Desasignar: quitar user_id del cliente
+                    await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: null }) });
                 } else {
-                    await this.fetchAPI(`/users/${userId}/clients`, { method: 'POST', body: JSON.stringify({ client_id: clientId }) });
+                    // Asignar: poner user_id en el cliente
+                    await this.fetchAPI(`/clients/${clientId}`, { method: 'PUT', body: JSON.stringify({ user_id: userId }) });
                 }
             }
             await this.loadUsersTable();
+            await this.loadClients();
             this.showClientSelectorForUsers(userIds);
         } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar cliente', icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
 
     // Asignar evento a staff
     showEventSelectorForUsers: function(userIds) {
+        this._lastUserCarouselContext = 'event';
+        this._savedSelectedUsers = [...(userIds || [])];
         const events = this.state.allEvents || [];
         const users = this.state.allUsers || [];
         const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
@@ -3604,9 +3651,9 @@ const App = window.App = {
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
-                    await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
+                    await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
                 } else {
-                    await this.fetchAPI(`/users/${userId}/events`, { method: 'POST', body: JSON.stringify({ event_id: eventId }) });
+                    await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
                 }
             }
             await this.loadUsersTable();
@@ -3616,6 +3663,8 @@ const App = window.App = {
 
     // Asignar rol a staff (NUEVO)
     showRoleSelectorForUsers: function(userIds) {
+        this._lastUserCarouselContext = 'role';
+        this._savedSelectedUsers = [...(userIds || [])];
         const users = this.state.allUsers || [];
         const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
         const roles = [
@@ -3664,7 +3713,20 @@ const App = window.App = {
         const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (userIds.length === 0) return;
         const roleNames = { ADMIN: 'ADMIN', PRODUCTOR: 'PRODUCTOR', LOGISTICO: 'LOGÍSTICO', STAFF: 'STAFF', CLIENTE: 'CLIENTE' };
-        if (!await this._confirmAction('¿Cambiar rol?', `¿Cambiar rol a ${roleNames[newRole] || newRole} para ${userIds.length} staff?`)) return;
+        const roleName = roleNames[newRole] || newRole;
+        const result = await Swal.fire({
+            title: '¿Cambiar rol?',
+            text: `¿Cambiar rol a ${roleName} para ${userIds.length} staff?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#475569',
+            background: '#0f172a',
+            color: '#fff'
+        });
+        if (!result.isConfirmed) return;
         try {
             for (const userId of userIds) {
                 await this.fetchAPI(`/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
@@ -3677,7 +3739,8 @@ const App = window.App = {
     openCreateGroupFromUserCarousel: function() {
         this._lastUserCarouselContext = 'company';
         this._savedSelectedUsers = [...(this.state.selectedUsers || [])];
-        this.navigateToCreateGroup();
+        Swal.close();
+        setTimeout(() => this.navigateToCreateGroup(), 200);
     },
 
     // Editar empresa seleccionada desde dropdown (con validación de permisos)
@@ -11993,6 +12056,10 @@ const App = window.App = {
             
             this.closeInvite();
             this.loadUsersTable();
+            // Restaurar carrusel de staff si venimos de ahí
+            if (this._savedSelectedUsers?.length) {
+                setTimeout(() => this._restoreUserCarouselContext(), 300);
+            }
         } catch(err) {
             this._notifyAction('Error', err.message || 'Error al guardar colaborador', 'error');
         }
