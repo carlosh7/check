@@ -1337,7 +1337,11 @@ const App = window.App = {
                         </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                        ${clientEvents.length > 0 ? clientEvents.map(e => `
+                        <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
+                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #a855f7; background: rgba(168,85,247,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
+                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
                     </td>
                     <td class="px-2 py-3 align-middle text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
