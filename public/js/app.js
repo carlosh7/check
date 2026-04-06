@@ -2174,7 +2174,7 @@ const App = window.App = {
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.navigateToCreateGroup()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                    <button onclick="App.openCreateGroupFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar empresa..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
@@ -2210,6 +2210,54 @@ const App = window.App = {
         } catch (e) { Swal.fire({ title: '⚠️ Error', text: 'Error al asignar empresa', icon: 'error', background: '#0f172a', color: '#fff' }); }
     },
 
+    // Abrir crear empresa desde carrusel de clientes (sin cerrar carrusel)
+    openCreateGroupFromClientCarousel: function() {
+        this._lastClientCarouselContext = 'company';
+        this._savedSelectedClients = [...(this.state.selectedClients || [])];
+        this._openCompanyModalFromSelector = true;
+        // NO cerrar SweetAlert - el modal HTML se abre encima y se restaurará al cerrar
+        this.openCompanyModal();
+    },
+
+    // Abrir crear staff desde carrusel de clientes (sin cerrar carrusel)
+    openCreateStaffFromClientCarousel: function() {
+        this._lastClientCarouselContext = 'staff';
+        this._savedSelectedClients = [...(this.state.selectedClients || [])];
+        this._openStaffModalFromSelector = true;
+        // NO cerrar SweetAlert - el modal HTML se abre encima y se restaurará al cerrar
+        this.openCreateStaffModal();
+    },
+
+    // Abrir crear evento desde carrusel de clientes (sin cerrar carrusel)
+    openCreateEventFromClientCarousel: function() {
+        this._lastClientCarouselContext = 'event';
+        this._savedSelectedClients = [...(this.state.selectedClients || [])];
+        this._openEventModalFromSelector = true;
+        // NO cerrar SweetAlert - el modal HTML se abre encima y se restaurará al cerrar
+        this.openCreateEventModal();
+    },
+
+    // Restaurar carrusel de clientes desde modal de crear
+    _restoreClientCarouselFromCreate: function() {
+        if (!this._lastClientCarouselContext) return;
+        const ctx = this._lastClientCarouselContext;
+        this._lastClientCarouselContext = null;
+        const savedClients = this._savedSelectedClients || [];
+        this._savedSelectedClients = null;
+
+        if (savedClients.length === 0) return;
+
+        if (ctx === 'company') {
+            this.showCompanySelectorForClients(savedClients);
+        } else if (ctx === 'staff') {
+            this.showStaffSelectorForClients(savedClients);
+        } else if (ctx === 'event') {
+            this.showEventSelectorForClients(savedClients);
+        } else if (ctx === 'edit') {
+            this.editSelectedClients(savedClients);
+        }
+    },
+
     // Asignar staff a clientes
     showStaffSelectorForClients: function(clientIds) {
         this._lastClientCarouselContext = 'staff';
@@ -2239,7 +2287,7 @@ const App = window.App = {
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
-                    <button onclick="App.navigateToCreateClient()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
+                    <button onclick="App.openCreateStaffFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar staff..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
@@ -2304,6 +2352,7 @@ const App = window.App = {
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
+                    <button onclick="App.openCreateEventFromClientCarousel()" class="btn-primary !px-3 !py-2 text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">add</span> Crear</button>
                 </div>
                 <div class="relative group mt-6 mb-6"><span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: ${textSecondary};">search</span><input type="text" placeholder="Buscar evento..." oninput="App.filterSelectorItems(this, '.selector-item')" style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: ${bgInput}; border: 1px solid ${borderColor}; font-size: 14px; color: ${textMain}; outline: none;"></div>
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
