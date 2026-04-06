@@ -13071,6 +13071,54 @@ const App = window.App = {
         } catch(e) { console.error('Error loading event staff:', e); }
     },
     
+    // Abrir carrusel de edición de staff desde configuración del evento
+    openStaffCarouselFromConfig: async function() {
+        // Obtener checkboxes marcados en la tabla de config-staff
+        const checkboxes = document.querySelectorAll('#config-staff-tbody .config-staff-checkbox:checked');
+        const selectedUserIds = Array.from(checkboxes).map(cb => cb.dataset.userId);
+        
+        if (selectedUserIds.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
+        // Guardar seleccionados para el carrusel
+        this.state.selectedUsers = selectedUserIds;
+        
+        // Asegurar que los datos estén cargados
+        if (!this.state.allUsers?.length || !this.state.groups?.length) {
+            await this.loadUsersTable();
+        }
+        if (!this.state.clients?.length) {
+            try {
+                const clientsRes = await this.fetchAPI('/clients');
+                this.state.clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+            } catch(e) { this.state.clients = []; }
+        }
+        
+        // Abrir el carrusel
+        this.editSelectedUsers(selectedUserIds);
+    },
+    
+    // Registro rápido de staff desde configuración del evento
+    quickRegisterStaff: function() {
+        // Usar el modal de invitación existente
+        document.getElementById('invite-user-form')?.reset();
+        this.state.editingUserId = null;
+        
+        const modalTitle = document.querySelector('#modal-invite h3');
+        if (modalTitle) modalTitle.textContent = 'Añadir Colaborador';
+        
+        const submitBtn = document.querySelector('#modal-invite button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Crear';
+        
+        document.getElementById('invite-password').required = true;
+        
+        const modal = document.getElementById('modal-invite');
+        modal?.classList.remove('hidden');
+        modal?.setAttribute('aria-hidden', 'false');
+    },
+
     // Filtrar staff del evento
     filterConfigStaff: function() {
         const searchTerm = document.getElementById('config-staff-search')?.value.toLowerCase() || '';
@@ -13110,6 +13158,13 @@ const App = window.App = {
                 </td>
             </tr>
         `).join('');
+    },
+    
+    // Seleccionar todos los checkboxes de staff en config
+    toggleAllConfigStaff: function(checked) {
+        document.querySelectorAll('#config-staff-tbody .config-staff-checkbox').forEach(cb => {
+            cb.checked = checked;
+        });
     },
 
     // Editar staff desde el panel de configuración del evento
