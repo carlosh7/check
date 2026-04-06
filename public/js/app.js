@@ -11858,6 +11858,15 @@ const App = window.App = {
             if (targetBtn) targetBtn.classList.add('active');
         }
 
+        // También activar los botones principales de navegación del sistema
+        const mainNavBtns = document.querySelectorAll('#view-system > div:first-child .sub-nav-btn');
+        mainNavBtns.forEach(b => {
+            b.classList.remove('active');
+            if (b.getAttribute('data-tab') === tabName) {
+                b.classList.add('active');
+            }
+        });
+
         // Mostrar panel activo
         const panel = document.getElementById('sys-content-' + tabName);
         if (panel) panel.classList.remove('hidden');

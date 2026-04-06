@@ -1153,6 +1153,25 @@ html:not(.dark) .sub-nav-btn.active {
     color: #ffffff !important;
 }
 
+/* Active states for system tabs - different colors per section */
+html:not(.dark) .sub-nav-btn[data-tab="groups"].active {
+    background: rgba(124, 58, 237, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(124, 58, 237, 1) !important;
+}
+
+html:not(.dark) .sub-nav-btn[data-tab="users"].active {
+    background: rgba(59, 130, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(59, 130, 246, 1) !important;
+}
+
+html:not(.dark) .sub-nav-btn[data-tab="clients"].active {
+    background: rgba(16, 185, 129, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(16, 185, 129, 1) !important;
+}
+
 /* ===== TEMAS: CARDS Y GLASS ===== */
 html:not(.dark) .glass-card,
 html:not(.dark) .card {
@@ -1216,5 +1235,24 @@ html:not(.dark) .btn-secondary .material-symbols-outlined {
 
 html:not(.dark) .btn-secondary:hover .material-symbols-outlined {
     color: #7c3aed !important;
+}
+
+/* Dark mode active states for system tabs */
+html.dark .sub-nav-btn[data-tab="groups"].active {
+    background: rgba(124, 58, 237, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(124, 58, 237, 1) !important;
+}
+
+html.dark .sub-nav-btn[data-tab="users"].active {
+    background: rgba(59, 130, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(59, 130, 246, 1) !important;
+}
+
+html.dark .sub-nav-btn[data-tab="clients"].active {
+    background: rgba(16, 185, 129, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(16, 185, 129, 1) !important;
 }
 
