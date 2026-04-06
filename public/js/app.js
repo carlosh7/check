@@ -373,6 +373,15 @@ const App = window.App = {
         this._openUserModalFromSelector = true;
         this.openInviteModal(); 
     },
+    // Abrir carrusel de edición de staff (botón "Edición")
+    openUserEditCarousel: function() {
+        const selectedUsers = this.state.selectedUsers || [];
+        if (selectedUsers.length === 0) {
+            Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        this.editSelectedUsers(selectedUsers);
+    },
     navigateToCreateGroup: function() {
         // Cerrar modal de SweetAlert2 si está abierto
         if (typeof Swal !== 'undefined') {
@@ -2801,14 +2810,23 @@ const App = window.App = {
     renderUsersTable: function(users, groups, events) {
         if (!this.state.user) return;
         
-        const filterGroup = document.getElementById('filter-group');
-        const filterEvent = document.getElementById('filter-event');
+        const filterGroup = document.getElementById('filter-user-group');
+        const filterClient = document.getElementById('filter-user-client');
+        const filterEvent = document.getElementById('filter-user-event');
         
         if (filterGroup && groups.length > 0) {
             const currentVal = filterGroup.value;
             filterGroup.innerHTML = '<option value="">Empresas</option>' + 
                 groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
             filterGroup.value = currentVal;
+        }
+        
+        if (filterClient) {
+            const clients = this.state.clients || [];
+            const currentVal = filterClient.value;
+            filterClient.innerHTML = '<option value="">Clientes</option>' + 
+                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            filterClient.value = currentVal;
         }
         
         if (filterEvent && events.length > 0) {
@@ -2949,51 +2967,54 @@ const App = window.App = {
     
     // Filtrar usuarios
     filterUsers: function() {
-        if (!this.state.user) return; // No filtrar si no hay sesión
-        const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
-        const groupFilter = document.getElementById('filter-group')?.value || '';
-        const eventFilter = document.getElementById('filter-event')?.value || '';
-        const roleFilter = document.getElementById('filter-role')?.value || '';
+        if (!this.state.user) return;
+        const searchTermRaw = document.getElementById('user-search')?.value || '';
+        const searchTerm = this._normalize(searchTermRaw);
+        const groupFilter = document.getElementById('filter-user-group')?.value || '';
+        const clientFilter = document.getElementById('filter-user-client')?.value || '';
+        const eventFilter = document.getElementById('filter-user-event')?.value || '';
+        const roleFilter = document.getElementById('filter-user-role')?.value || '';
+        const statusFilter = document.getElementById('filter-user-status')?.value || '';
         
         let filtered = this.state.allUsers || [];
+        const clients = this.state.clients || [];
+        const events = this.state.allEvents || [];
         
-        // Filtro de búsqueda - buscar por todos los campos
+        // Búsqueda flexible: normaliza acentos y busca por palabras separadas
         if (searchTerm) {
+            const searchWords = searchTerm.split(' ').filter(w => w.length > 0);
             filtered = filtered.filter(u => {
-                const term = searchTerm.toLowerCase();
-                
-                // Campos básicos
-                const basicMatch = 
-                    (u.display_name && u.display_name.toLowerCase().includes(term)) ||
-                    u.username.toLowerCase().includes(term) ||
-                    (u.role && u.role.toLowerCase().includes(term)) ||
-                    (u.group_name && u.group_name.toLowerCase().includes(term));
-                
-                // Buscar en empresas/grupos (array)
-                const groupMatch = u.groups && Array.isArray(u.groups) && 
-                    u.groups.some(g => g.name && g.name.toLowerCase().includes(term));
-                
-                // Buscar en eventos
-                const eventMatch = u.events && Array.isArray(u.events) && 
-                    u.events.some(e => String(e).includes(term));
-                
-                // Buscar en nombres de eventos (si están en el objeto del usuario)
-                const eventNameMatch = u.events && Array.isArray(u.events) && 
-                    this.state.allEvents && this.state.allEvents.some(e => 
-                        u.events.includes(e.id) && e.name && e.name.toLowerCase().includes(term));
-                
-                return basicMatch || groupMatch || eventMatch || eventNameMatch;
+                const displayName = this._normalize(u.display_name);
+                const username = this._normalize(u.username);
+                const role = this._normalize(u.role);
+                const groupName = this._normalize(u.group_name);
+                const groups = u.groups && Array.isArray(u.groups) ? u.groups.map(g => this._normalize(g.name)).join(' ') : '';
+                const userEvents = u.events && Array.isArray(u.events) ? events.filter(e => u.events.includes(e.id)).map(e => this._normalize(e.name)).join(' ') : '';
+                // Buscar en campos básicos
+                const basicText = `${displayName} ${username} ${role} ${groupName} ${groups} ${userEvents}`;
+                if (searchWords.every(w => basicText.includes(w))) return true;
+                // Buscar en clientes asignados (si el usuario es cliente)
+                const userClients = clients.filter(c => String(c.user_id) === String(u.id));
+                if (userClients.some(c => searchWords.every(w => this._normalize(c.name).includes(w)))) return true;
+                return false;
             });
         }
         
-        // Filtro por empresa - buscar en el array de grupos del usuario
+        // Filtro por empresa
         if (groupFilter) {
             filtered = filtered.filter(u => {
-                // Verificar si el usuario tiene grupos y si alguno coincide con el filtro
                 if (u.groups && Array.isArray(u.groups)) {
                     return u.groups.some(g => String(g.id) === String(groupFilter));
                 }
                 return false;
+            });
+        }
+        
+        // Filtro por cliente
+        if (clientFilter) {
+            filtered = filtered.filter(u => {
+                const userClients = clients.filter(c => String(c.user_id) === String(u.id));
+                return userClients.some(c => String(c.id) === String(clientFilter));
             });
         }
         
@@ -3005,6 +3026,11 @@ const App = window.App = {
         // Filtro por rol
         if (roleFilter) {
             filtered = filtered.filter(u => u.role === roleFilter);
+        }
+        
+        // Filtro por estado
+        if (statusFilter) {
+            filtered = filtered.filter(u => u.status === statusFilter);
         }
         
         this.renderUsersTable(filtered, this.state.allGroups || [], this.state.allEvents || []);
