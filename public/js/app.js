@@ -1288,10 +1288,10 @@ const App = window.App = {
                         <span class="text-xs text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle">
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">${eventChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span>'}</div>
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">${staffChips || '<span class="text-xs text-[var(--text-muted)] italic">Sin staff</span>'}</div>
                     </td>
                     <td class="px-2 py-3 align-middle text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
