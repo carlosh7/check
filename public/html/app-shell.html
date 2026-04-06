@@ -198,12 +198,6 @@
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
                         <span class="material-symbols-outlined text-base">person</span> Personal
                     </button>
-                    <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-base">person_add</span> +Staff
-                    </button>
-                    <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-base">edit</span> Edición
-                    </button>
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
                         <span class="material-symbols-outlined text-base">mail</span> Mailing
                     </button>
@@ -221,6 +215,16 @@
                     </button>
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
                         <span class="material-symbols-outlined text-base">settings</span> Ajustes
+                    </button>
+                </div>
+
+                <!-- Botones entre menú y header -->
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">person_add</span> +Staff
+                    </button>
+                    <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">edit</span> Edición
                     </button>
                 </div>
 
