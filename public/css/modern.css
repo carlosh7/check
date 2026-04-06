@@ -1153,69 +1153,88 @@ html:not(.dark) .sub-nav-btn.active {
     color: #ffffff !important;
 }
 
-/* Active states for system tabs - different colors per section */
-html:not(.dark) .sub-nav-btn[data-tab="groups"].active {
+/* Active states for system tabs - different colors per section - ALL THEMES */
+.sub-nav-btn[data-tab="groups"].active {
     background: rgba(124, 58, 237, 1) !important;
     color: #ffffff !important;
     border-color: rgba(124, 58, 237, 1) !important;
 }
 
-html:not(.dark) .sub-nav-btn[data-tab="users"].active {
+.sub-nav-btn[data-tab="users"].active {
     background: rgba(59, 130, 246, 1) !important;
     color: #ffffff !important;
     border-color: rgba(59, 130, 246, 1) !important;
 }
 
-html:not(.dark) .sub-nav-btn[data-tab="clients"].active {
+.sub-nav-btn[data-tab="clients"].active {
     background: rgba(16, 185, 129, 1) !important;
     color: #ffffff !important;
     border-color: rgba(16, 185, 129, 1) !important;
 }
 
 /* Active states for config tabs (event configuration) */
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="staff"].active {
+#view-event-config .sub-nav-btn[data-tab="staff"].active {
     background: rgba(59, 130, 246, 1) !important;
     color: #ffffff !important;
     border-color: rgba(59, 130, 246, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="email"].active {
+#view-event-config .sub-nav-btn[data-tab="email"].active {
     background: rgba(245, 158, 11, 1) !important;
     color: #ffffff !important;
     border-color: rgba(245, 158, 11, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="agenda"].active {
+#view-event-config .sub-nav-btn[data-tab="agenda"].active {
     background: rgba(236, 72, 153, 1) !important;
     color: #ffffff !important;
     border-color: rgba(236, 72, 153, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="wheel"].active {
+#view-event-config .sub-nav-btn[data-tab="wheel"].active {
     background: rgba(168, 85, 247, 1) !important;
     color: #ffffff !important;
     border-color: rgba(168, 85, 247, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="pre-registrations"].active {
+#view-event-config .sub-nav-btn[data-tab="pre-registrations"].active {
     background: rgba(16, 185, 129, 1) !important;
     color: #ffffff !important;
     border-color: rgba(16, 185, 129, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="surveys"].active {
+#view-event-config .sub-nav-btn[data-tab="surveys"].active {
     background: rgba(99, 102, 241, 1) !important;
     color: #ffffff !important;
     border-color: rgba(99, 102, 241, 1) !important;
 }
 
-html:not(.dark) #view-event-config .sub-nav-btn[data-tab="settings"].active {
+#view-event-config .sub-nav-btn[data-tab="settings"].active {
     background: rgba(107, 114, 128, 1) !important;
     color: #ffffff !important;
     border-color: rgba(107, 114, 128, 1) !important;
 }
 
-/* Dark mode config tabs */
+/* Active states for other system tabs - ALL THEMES */
+.sub-nav-btn[data-tab="email"].active {
+    background: rgba(245, 158, 11, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(245, 158, 11, 1) !important;
+}
+
+.sub-nav-btn[data-tab="legal"].active {
+    background: rgba(107, 114, 128, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(107, 114, 128, 1) !important;
+}
+
+.sub-nav-btn[data-tab="account"].active {
+    background: rgba(139, 92, 246, 1) !important;
+    color: #ffffff !important;
+    border-color: rgba(139, 92, 246, 1) !important;
+}
+
+/* ===== SIDEBAR: Estilos activos para navegación ===== */
 html.dark #view-event-config .sub-nav-btn[data-tab="staff"].active {
     background: rgba(59, 130, 246, 1) !important;
     color: #ffffff !important;
@@ -1251,35 +1270,29 @@ html.dark #view-event-config .sub-nav-btn[data-tab="settings"].active {
     color: #ffffff !important;
 }
 
-/* ===== SIDEBAR: Estilos activos para navegación ===== */
-html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="my-events"].active {
+/* ===== SIDEBAR: Estilos activos para navegación - ALL THEMES */
+#global-sidebar .sub-nav-btn[data-tab="my-events"].active {
     background: rgba(139, 92, 246, 0.2) !important;
     color: #8b5cf6 !important;
     border-left: 3px solid #8b5cf6 !important;
 }
 
-html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="admin"].active {
+#global-sidebar .sub-nav-btn[data-tab="admin"].active {
     background: rgba(59, 130, 246, 0.2) !important;
     color: #3b82f6 !important;
     border-left: 3px solid #3b82f6 !important;
 }
 
-html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="event-config"].active {
+#global-sidebar .sub-nav-btn[data-tab="event-config"].active {
     background: rgba(236, 72, 153, 0.2) !important;
     color: #ec4899 !important;
     border-left: 3px solid #ec4899 !important;
 }
 
-html:not(.dark) #global-sidebar .sub-nav-btn[data-tab="system"].active {
+#global-sidebar .sub-nav-btn[data-tab="system"].active {
     background: rgba(16, 185, 129, 0.2) !important;
     color: #10b981 !important;
     border-left: 3px solid #10b981 !important;
-}
-
-/* Dark mode sidebar active */
-html.dark #global-sidebar .sub-nav-btn.active {
-    background: rgba(139, 92, 246, 0.15) !important;
-    color: #a78bfa !important;
 }
 
 /* ===== TEMAS: CARDS Y GLASS ===== */
