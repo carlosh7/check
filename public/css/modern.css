@@ -174,15 +174,15 @@ html.dark .filter-select {
 }
 
 .filter-select-evento {
-    background: rgba(168, 85, 247, 0.15);
-    border-color: rgba(168, 85, 247, 0.4);
-    color: #a855f7;
+    background: rgba(236, 72, 153, 0.15);
+    border-color: rgba(236, 72, 153, 0.4);
+    color: #ec4899;
 }
 
 html.dark .filter-select-evento {
-    background: rgba(168, 85, 247, 0.2);
-    border-color: rgba(168, 85, 247, 0.5);
-    color: #c084fc;
+    background: rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.5);
+    color: #f472b6;
 }
 
 .filter-select-empresa {
@@ -197,7 +197,6 @@ html.dark .filter-select-empresa {
     color: #a78bfa;
 }
 
-/* Filtro Staff - Azul */
 .filter-select-staff {
     background: rgba(59, 130, 246, 0.15);
     border-color: rgba(59, 130, 246, 0.4);
@@ -221,6 +220,19 @@ html.dark .filter-select-cliente {
     background: rgba(16, 185, 129, 0.2);
     border-color: rgba(16, 185, 129, 0.5);
     color: #34d399;
+}
+
+/* Light mode */
+html:not(.dark) .filter-select-staff {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+html:not(.dark) .filter-select-cliente {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
 }
 
 .filter-select-role {
@@ -798,7 +810,9 @@ body.app-loaded > *:not(style):not(script):not(link) {
 .filter-select-evento,
 .filter-select,
 .filter-select-role,
-.filter-select-action {
+.filter-select-action,
+.filter-select-staff,
+.filter-select-cliente {
     padding: 8px 12px;
     font-size: 12px;
     min-width: 110px;
@@ -812,16 +826,16 @@ body.app-loaded > *:not(style):not(script):not(link) {
     align-items: center;
 }
 
-/* Empresas - estilo esmeralda */
+/* Empresas - estilo púrpura */
 .filter-select-empresa {
-    border: 1px solid rgba(16, 185, 129, 0.5);
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    border: 1px solid rgba(124, 58, 237, 0.5);
+    background: rgba(124, 58, 237, 0.15);
+    color: #a78bfa;
 }
 
 .filter-select-empresa:hover {
-    border-color: rgba(16, 185, 129, 0.8);
-    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(124, 58, 237, 0.8);
+    background: rgba(124, 58, 237, 0.25);
 }
 
 .filter-select-empresa option {
@@ -829,16 +843,16 @@ body.app-loaded > *:not(style):not(script):not(link) {
     color: #e2e8f0;
 }
 
-/* Eventos - estilo ámbar */
+/* Eventos - estilo rosa */
 .filter-select-evento {
-    border: 1px solid rgba(245, 158, 11, 0.5);
-    background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
+    border: 1px solid rgba(236, 72, 153, 0.5);
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
 }
 
 .filter-select-evento:hover {
-    border-color: rgba(245, 158, 11, 0.8);
-    background: rgba(245, 158, 11, 0.25);
+    border-color: rgba(236, 72, 153, 0.8);
+    background: rgba(236, 72, 153, 0.25);
 }
 
 .filter-select-evento option {
@@ -945,9 +959,9 @@ html:not(.dark) .filter-select-role option {
 }
 
 html:not(.dark) .filter-select-empresa {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: #059669;
+    background: rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.3);
+    color: #7c3aed;
 }
 
 html:not(.dark) .filter-select-empresa option {
@@ -956,14 +970,26 @@ html:not(.dark) .filter-select-empresa option {
 }
 
 html:not(.dark) .filter-select-evento {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.3);
-    color: #d97706;
+    background: rgba(236, 72, 153, 0.1);
+    border-color: rgba(236, 72, 153, 0.3);
+    color: #ec4899;
 }
 
 html:not(.dark) .filter-select-evento option {
     background: #ffffff;
     color: #334155;
+}
+
+html:not(.dark) .filter-select-staff {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+html:not(.dark) .filter-select-cliente {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
 }
 
 /* ===== TEMAS: SIDEBAR Y NAVEGACIÓN ===== */
