@@ -628,87 +628,36 @@ html.dark .mailbox-message.flagged {
 }
 
 /* QUITAR TODAS las animaciones de SweetAlert2 */
-.swal2-container {
+* {
     animation: none !important;
     transition: none !important;
 }
 
-.swal2-popup {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1 !important;
-}
-
-.swal2-modal {
-    animation: none !important;
-    transition: none !important;
-}
-
-.swal2-overlay {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1 !important;
-}
-
-.swal2-show {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1 !important;
-    display: block !important;
-}
-
-.swal2-hide {
-    animation: none !important;
-    transition: none !important;
-    display: none !important;
-}
-
-.swal2-animate {
-    animation: none !important;
-    transition: none !important;
-}
-
-.swal2-fade {
+.swal2-container, 
+.swal2-popup, 
+.swal2-modal, 
+.swal2-overlay,
+.swal2-show, 
+.swal2-hide,
+.swal2-animate,
+.swal2-fade,
+.swal2-content,
+.swal2-title,
+.swal2-icon,
+.swal2-actions,
+.swal2-backdrop-show,
+.swal2-backdrop-hide,
+.swal2-html-container,
+.swal2-header,
+.swal2-body,
+.swal2-footer {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
+    transform: none !important;
 }
 
-.swal2-content {
-    animation: none !important;
-    transition: none !important;
-}
-
-.swal2-title {
-    animation: none !important;
-    transition: none !important;
-}
-
-.swal2-icon {
-    animation: none !important;
-    transition: none !important;
-}
-
-.swal2-actions {
-    animation: none !important;
-    transition: none !important;
-}
-
-/* Quitar backdrop animations */
-.swal2-backdrop-show {
-    animation: none !important;
-}
-
-.swal2-backdrop-hide {
-    animation: none !important;
-}
-
-/* Transición suave para el contenido */
-.swal2-html-container {
-    transition: none !important;
-}
-
-/* Evitar que el contenido parpadee */
+/* Transiciones suaves para contenido interno */
 .swal2-html-container > * {
     animation: none !important;
     transition: none !important;
