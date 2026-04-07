@@ -15584,7 +15584,7 @@ App.processAttendanceImportFile = async function(file) {
             const data = await response.json();
             
             if (data.success) {
-                this._importAttendanceData = data.data;
+                this._importAttendanceData = data.data.attendance || [];
                 this._importAttendanceStats = data.stats;
                 
                 // Mostrar progreso
