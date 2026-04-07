@@ -4288,7 +4288,7 @@ const App = window.App = {
         this._lastUserCarouselContext = 'edit';
         this._savedSelectedUsers = [...ids];
         const users = this.state.allUsers || [];
-        const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
+        const selectedUsers = ids ? users.filter(u => ids.some(id => String(id) === String(u.id))) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -4525,7 +4525,7 @@ const App = window.App = {
         this._savedSelectedUsers = [...ids];
         
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const selectedUsers = users.filter(u => ids.some(id => String(id) === String(u.id)));
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
         const isDark = document.documentElement.classList.contains('dark');
@@ -4609,7 +4609,7 @@ const App = window.App = {
         this._savedSelectedUsers = [...(userIds || [])];
         const groups = this.state.groups || [];
         const users = this.state.allUsers || [];
-        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const selectedUsers = userIds ? users.filter(u => userIds.some(uid => String(uid) === String(u.id))) : [];
         if (groups.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay empresas disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -4687,7 +4687,7 @@ const App = window.App = {
         this._savedSelectedUsers = [...(userIds || [])];
         const clients = this.state.clients || [];
         const users = this.state.allUsers || [];
-        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const selectedUsers = userIds ? users.filter(u => userIds.some(uid => String(uid) === String(u.id))) : [];
         if (clients.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay clientes disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -4775,7 +4775,7 @@ const App = window.App = {
         this._savedSelectedUsers = [...(userIds || [])];
         const events = this.state.allEvents || [];
         const users = this.state.allUsers || [];
-        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const selectedUsers = userIds ? users.filter(u => userIds.some(uid => String(uid) === String(u.id))) : [];
         if (events.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'No hay eventos disponibles', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         const isDark = document.documentElement.classList.contains('dark');
         const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -4811,14 +4811,13 @@ const App = window.App = {
                                 const evId = typeof ev === 'object' ? (ev.id || ev.event_id) : ev;
                                 return String(evId) === String(e.id);
                             });
-                            if (result) console.log('[EVENT CHECK] MATCH! user:', uid, 'event:', e.id, 'user.events:', JSON.stringify(user.events));
                             return result;
                         });
-                        if (isAssigned) console.log('[EVENT CHECK] isAssigned=true for event:', e.id);
                         const icon = isAssigned ? 'check' : 'add';
                         const itemBorder = isAssigned ? primaryColor : borderColor;
                         const itemBg = isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc');
-                        return `<div data-event-id="${e.id}" data-is-assigned="${isAssigned}" class="event-selector-item selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
+                        const userIdsJoined = Array.isArray(userIds) ? userIds.join(',') : userIds;
+                        return `<div data-event-id="${e.id}" data-is-assigned="${isAssigned}" onclick="App.assignEventToUsersFromModal('${userIdsJoined}', '${e.id}', ${isAssigned})" class="event-selector-item selector-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer group shadow-sm mb-2" style="background: ${itemBg}; border: 1px solid ${itemBorder};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: ${primaryLight}; color: ${primaryColor};"><span class="material-symbols-outlined">event</span></div>
                             <div class="flex-1"><div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div><div class="text-[11px]" style="color: ${textSecondary};">${e.date || 'Sin fecha'} ${e.location ? '• ' + e.location : ''}</div></div>
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${isAssigned ? primaryLight : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0')}; border: 2px solid ${isAssigned ? primaryColor : borderColor};"><span class="material-symbols-outlined text-sm" style="color: ${primaryColor};">${icon}</span></div>
@@ -4876,7 +4875,7 @@ const App = window.App = {
         this._lastUserCarouselContext = 'role';
         this._savedSelectedUsers = [...(userIds || [])];
         const users = this.state.allUsers || [];
-        const selectedUsers = userIds ? users.filter(u => userIds.includes(u.id)) : [];
+        const selectedUsers = userIds ? users.filter(u => userIds.some(uid => String(uid) === String(u.id))) : [];
         const roles = [
             { value: 'ADMIN', label: 'ADMIN', color: '#ef4444', icon: 'admin_panel_settings' },
             { value: 'PRODUCTOR', label: 'PRODUCTOR', color: '#f59e0b', icon: 'work' },
@@ -5151,7 +5150,7 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)';
         
         // Calcular usuarios seleccionados y sus clientes
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const selectedUsers = users.filter(u => userIds.some(uid => String(uid) === String(u.id)));
         
         // Para cada usuario, saber cuántos clientes tiene asignados
         const getUserClientCount = (userId) => {
@@ -5293,7 +5292,7 @@ const App = window.App = {
         }
         
         // Calcular cuántos de los usuarios seleccionados tienen cada empresa
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const selectedUsers = users.filter(u => userIds.some(uid => String(uid) === String(u.id)));
         const getAssignedCount = (groupId) => {
             return selectedUsers.filter(u => {
                 const userGroups = u.groups || [];
@@ -5447,7 +5446,7 @@ const App = window.App = {
         const primaryLight = isDark ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.15)';
         
         // Calcular cuántos de los usuarios seleccionados tienen cada evento
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const selectedUsers = users.filter(u => userIds.some(uid => String(uid) === String(u.id)));
         const getAssignedCount = (eventId) => {
             return selectedUsers.filter(u => {
                 const userEvents = u.events || [];
@@ -5529,10 +5528,12 @@ const App = window.App = {
     // Toggle evento para usuarios seleccionados (asignar o desasignar)
     bulkToggleEventForUsers: async function(userIdsStr, eventId, currentlyAssigned) {
         const userIds = userIdsStr.split(',');
+        console.log('[BULK TOGGLE EVENT] userIds:', userIds, 'eventId:', eventId, 'currentlyAssigned:', currentlyAssigned);
         try {
             const promises = userIds.map(async (userId) => {
-                const user = this.state.allUsers?.find(u => u.id === userId);
+                const user = this.state.allUsers?.find(u => String(u.id) === String(userId));
                 const currentEvents = user?.events || [];
+                console.log('[BULK TOGGLE EVENT] User:', userId, 'currentEvents:', currentEvents);
                 let newEvents;
                 
                 if (currentlyAssigned) {
@@ -5547,10 +5548,13 @@ const App = window.App = {
                     }
                 }
                 
-                return this.fetchAPI(`/users/${userId}/events`, {
+                console.log('[BULK TOGGLE EVENT] PUT /users/' + userId + '/events', JSON.stringify({ events: newEvents }));
+                const result = await this.fetchAPI(`/users/${userId}/events`, {
                     method: 'PUT',
                     body: JSON.stringify({ events: newEvents })
                 });
+                console.log('[BULK TOGGLE EVENT] Response:', result);
+                return result;
             });
             
             await Promise.all(promises);
@@ -11476,7 +11480,7 @@ const App = window.App = {
         
         this._savedSelectedUsersConfig = [...ids];
         const users = this.state.allUsers || [];
-        const selectedUsers = ids ? users.filter(u => ids.includes(u.id)) : [];
+        const selectedUsers = ids ? users.filter(u => ids.some(id => String(id) === String(u.id))) : [];
         if (selectedUsers.length === 0) { Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un staff', icon: 'warning', background: '#0f172a', color: '#fff' }); return; }
         
         const isDark = document.documentElement.classList.contains('dark');
@@ -11690,7 +11694,7 @@ const App = window.App = {
         this._savedSelectedUsersConfig = [...ids];
         
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const selectedUsers = users.filter(u => ids.some(id => String(id) === String(u.id)));
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
         const isDark = document.documentElement.classList.contains('dark');
@@ -11794,7 +11798,7 @@ const App = window.App = {
     toggleUserStatusConfig: async function(userIdsStr) {
         const userIds = userIdsStr.split(',');
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const selectedUsers = users.filter(u => userIds.some(uid => String(uid) === String(u.id)));
         
         const allActive = selectedUsers.every(u => u.status === 'ACTIVE');
         const newStatus = allActive ? 'INACTIVE' : 'ACTIVE';
@@ -11840,7 +11844,7 @@ const App = window.App = {
     deleteUserConfig: async function(userIdsStr) {
         const userIds = userIdsStr.split(',');
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => userIds.includes(u.id));
+        const selectedUsers = users.filter(u => userIds.some(uid => String(uid) === String(u.id)));
         
         const result = await Swal.fire({
             title: '¿Eliminar Staff?',
@@ -11883,7 +11887,7 @@ const App = window.App = {
         this._savedSelectedUsersConfig = [...ids];
         
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const selectedUsers = users.filter(u => ids.some(id => String(id) === String(u.id)));
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
         const isDark = document.documentElement.classList.contains('dark');
@@ -11974,7 +11978,7 @@ const App = window.App = {
         this._savedSelectedUsersConfig = [...ids];
         
         const users = this.state.allUsers || [];
-        const selectedUsers = users.filter(u => ids.includes(u.id));
+        const selectedUsers = users.filter(u => ids.some(id => String(id) === String(u.id)));
         const subtitleText = selectedUsers.length === 1 ? `${selectedUsers[0].display_name || selectedUsers[0].username}` : `${selectedUsers.length} staff seleccionados`;
         
         const isDark = document.documentElement.classList.contains('dark');
