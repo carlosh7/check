@@ -15511,7 +15511,173 @@ App.openImportAttendanceModal = function() {
     document.getElementById('import-attendance-error-count').textContent = '0';
     document.getElementById('import-attendance-progress-fill').style.width = '0%';
     
+    // Configurar event listeners para drop zone si no existen
+    this.initAttendanceImportHandlers();
+    
     document.getElementById('modal-import-attendance').classList.remove('hidden');
+},
+
+App.initAttendanceImportHandlers: function() {
+    const dropZone = document.getElementById('import-attendance-drop-zone');
+    const fileInput = document.getElementById('import-attendance-file-input');
+    const btnConfirm = document.getElementById('btn-confirm-import-attendance');
+    
+    // Click en drop zone abre el file input
+    dropZone?.addEventListener('click', () => fileInput?.click());
+    
+    // Drag over
+    dropZone?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-[var(--primary)]');
+    });
+    
+    // Drag leave
+    dropZone?.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-[var(--primary)]');
+    });
+    
+    // Drop
+    dropZone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-[var(--primary)]');
+        const file = e.dataTransfer.files[0];
+        if (file) this.processAttendanceImportFile(file);
+    });
+    
+    // File input change
+    fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) this.processAttendanceImportFile(file);
+    });
+    
+    // Botón confirmar importación
+    btnConfirm?.addEventListener('click', () => this.executeAttendanceImport());
+},
+
+App.processAttendanceImportFile = async function(file) {
+    // Obtener token
+    let token = window.App?.state?.user?.token;
+    if (!token) {
+        const userStr = LS.get('user');
+        const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+        token = user.token || LS.get('token');
+    }
+    
+    // Convertir archivo a base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result.split(',')[1];
+        
+        try {
+            const response = await fetch('/api/import/validate', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    file: base64,
+                    filename: file.name,
+                    type: 'attendance'
+                })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                this._importAttendanceData = data.data;
+                this._importAttendanceStats = data.stats;
+                
+                // Mostrar progreso
+                document.getElementById('import-attendance-progress-container').classList.remove('hidden');
+                document.getElementById('import-attendance-new-count').textContent = data.stats.new || 0;
+                document.getElementById('import-attendance-update-count').textContent = data.stats.update || 0;
+                document.getElementById('import-attendance-error-count').textContent = data.stats.errors || 0;
+                document.getElementById('import-attendance-status').textContent = data.stats.message || 'Datos válidos';
+                document.getElementById('import-attendance-progress-fill').style.width = '100%';
+                document.getElementById('btn-confirm-import-attendance').disabled = false;
+                
+                // Mostrar detalles si hay errores
+                if (data.errors && data.errors.length > 0) {
+                    const details = document.getElementById('import-attendance-details');
+                    if (details) {
+                        details.classList.remove('hidden');
+                        details.innerHTML = data.errors.slice(0, 10).map(err => `<p class="text-red-400">• ${err}</p>`).join('');
+                        if (data.errors.length > 10) {
+                            details.innerHTML += `<p class="text-[var(--text-muted)]">... y ${data.errors.length - 10} más</p>`;
+                        }
+                    }
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
+            }
+        } catch(err) {
+            console.error('[IMPORT] Error:', err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el archivo' });
+        }
+    };
+    reader.readAsDataURL(file);
+},
+
+App.executeAttendanceImport = async function() {
+    if (!this._importAttendanceData) return;
+    
+    let token = window.App?.state?.user?.token;
+    if (!token) {
+        const userStr = LS.get('user');
+        const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+        token = user.token || LS.get('token');
+    }
+    
+    const btn = document.getElementById('btn-confirm-import-attendance');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
+
+    try {
+        const eventId = this.state.currentEventId;
+        
+        // Importar cada asistente como attendance del evento
+        let imported = 0;
+        let errors = 0;
+        
+        for (const item of this._importAttendanceData) {
+            try {
+                await this.fetchAPI(`/events/${eventId}/attendance`, 'POST', {
+                    client_id: item.client_id,
+                    organization: item.organization,
+                    cargo: item.cargo,
+                    vegano: item.vegano || 'NO',
+                    restricciones: item.restricciones,
+                    status: 'PENDIENTE'
+                });
+                imported++;
+            } catch(e) {
+                errors++;
+                console.error('[IMPORT ATTENDANCE] Error:', e.message);
+            }
+        }
+        
+        document.getElementById('import-attendance-status').textContent = `Importación completada: ${imported} registros`;
+        document.getElementById('modal-import-attendance').classList.add('hidden');
+        
+        // Recargar attendance
+        await this.loadAttendance(eventId);
+        
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'Importación exitosa', 
+            text: `${imported} asistentes importados${errors > 0 ? `, ${errors} errores` : ''}`, 
+            timer: 3000, 
+            toast: true, 
+            position: 'top-end' 
+        });
+        
+    } catch(e) {
+        console.error('[IMPORT] Error:', e);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al importar asistentes' });
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">check</span> Importar';
 },
 
 App.exportAttendance = function() {
