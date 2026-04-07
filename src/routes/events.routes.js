@@ -973,6 +973,60 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
     }
 });
 
+// POST /api/events/:id/attendance/import - Importación masiva de asistentes
+router.post('/:id/attendance/import', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    const eventId = castId('events', req.params.id);
+    const { attendees } = req.body;
+    
+    if (!eventId || !Array.isArray(attendees) || attendees.length === 0) {
+        return res.status(400).json({ error: 'ID de evento y asistentes requeridos' });
+    }
+    
+    try {
+        const { v4: uuidv4 } = require('uuid');
+        const now = new Date().toISOString();
+        
+        const insertStmt = db.prepare(`
+            INSERT OR IGNORE INTO event_attendance (id, event_id, name, email, phone, organization, cargo, vegano, restricciones, status, validated, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+        `);
+        
+        let imported = 0;
+        let skipped = 0;
+        
+        const insertMany = db.transaction((items) => {
+            for (const a of items) {
+                const id = uuidv4();
+                const result = insertStmt.run(
+                    id, 
+                    eventId, 
+                    a.name, 
+                    a.email || null, 
+                    a.phone || null, 
+                    a.organization || null, 
+                    a.cargo || null, 
+                    a.vegano || 'NO', 
+                    a.restricciones || null, 
+                    a.status || 'PENDIENTE', 
+                    now
+                );
+                if (result.changes > 0) {
+                    imported++;
+                } else {
+                    skipped++;
+                }
+            }
+        });
+        
+        insertMany(attendees);
+        
+        res.json({ success: true, imported, skipped, total: attendees.length });
+    } catch (e) {
+        console.error('[ATTENDANCE] Error en importación masiva:', e.message);
+        res.status(500).json({ error: 'Error en importación masiva' });
+    }
+});
+
 // PUT /api/events/:id/attendance/:id - Actualizar asistencia
 router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);

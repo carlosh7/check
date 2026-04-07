@@ -15635,13 +15635,13 @@ App.executeAttendanceImport = async function() {
     try {
         const eventId = this.state.currentEventId;
         
-        // Importar cada asistente como attendance del evento
+        // Importar asistentes en una sola llamada
         let imported = 0;
-        let errors = 0;
+        let skipped = 0;
         
-        for (const item of this._importAttendanceData) {
-            try {
-                await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify({
+        try {
+            const response = await this.fetchAPI(`/events/${eventId}/attendance/import`, { method: 'POST', body: JSON.stringify({
+                attendees: this._importAttendanceData.map(item => ({
                     name: item.name,
                     email: item.email,
                     phone: item.phone,
@@ -15650,11 +15650,32 @@ App.executeAttendanceImport = async function() {
                     vegano: item.vegano || 'NO',
                     restricciones: item.restricciones,
                     status: 'PENDIENTE'
-                }) });
-                imported++;
-            } catch(e) {
-                errors++;
-                console.error('[IMPORT ATTENDANCE] Error:', e.message);
+                }))
+            }) });
+            
+            if (response.success) {
+                imported = response.imported;
+                skipped = response.skipped;
+            }
+        } catch(e) {
+            console.error('[IMPORT ATTENDANCE] Error:', e.message);
+            // Si falla la importación masiva, intentar uno por uno
+            for (const item of this._importAttendanceData) {
+                try {
+                    await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify({
+                        name: item.name,
+                        email: item.email,
+                        phone: item.phone,
+                        organization: item.organization,
+                        cargo: item.cargo,
+                        vegano: item.vegano || 'NO',
+                        restricciones: item.restricciones,
+                        status: 'PENDIENTE'
+                    }) });
+                    imported++;
+                } catch(err) {
+                    skipped++;
+                }
             }
         }
         
@@ -15667,7 +15688,7 @@ App.executeAttendanceImport = async function() {
         Swal.fire({ 
             icon: 'success', 
             title: 'Importación exitosa', 
-            text: `${imported} asistentes importados${errors > 0 ? `, ${errors} errores` : ''}`, 
+            text: `${imported} asistentes importados${skipped > 0 ? `, ${skipped} duplicados omitidos` : ''}`, 
             timer: 3000, 
             toast: true, 
             position: 'top-end' 
