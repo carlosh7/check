@@ -15633,7 +15633,12 @@ App.executeAttendanceImport = async function() {
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
 
     try {
-        const eventId = this.state.currentEventId;
+        // Obtener eventId desde la URL o desde el estado
+        let eventId = this.state.currentEventId;
+        if (!eventId) {
+            const urlParts = window.location.pathname.split('/');
+            eventId = urlParts[urlParts.length - 1];
+        }
         
         // Importar asistentes en una sola llamada
         let imported = 0;
