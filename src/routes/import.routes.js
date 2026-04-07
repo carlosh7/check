@@ -370,7 +370,6 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         // ─── PROCESAR ASISTENTES (type: attendance) ───
         if (type === 'attendance' && workbook.getWorksheet('Asistentes')) {
             const sheet = workbook.getWorksheet('Asistentes');
-            const existingClients = db.prepare("SELECT id, name, email FROM clients").all();
             
             data.attendance = [];
             
@@ -384,7 +383,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     const vegano = row.getCell(6).text?.trim() || 'NO';
                     const restricciones = row.getCell(7).text?.trim() || '';
 
-                    if (!name && !email) return;
+                    if (!name) return;
                     
                     // Skip header rows
                     const firstCell = (name || '').toLowerCase();
@@ -393,28 +392,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                         return;
                     }
 
-                    // Buscar cliente existente por email
-                    let clientId = null;
-                    const existingClient = existingClients.find(c => 
-                        c.email && c.email.toLowerCase() === email.toLowerCase()
-                    );
+                    // Guardar directamente en attendance (sin crear cliente)
+                    stats.new++;
                     
-                    if (existingClient) {
-                        clientId = existingClient.id;
-                        stats.update++;
-                    } else {
-                        // Crear nuevo cliente
-                        const newClientId = getValidId('clients');
-                        db.prepare("INSERT INTO clients (id, name, email, phone, status, created_at) VALUES (?, ?, ?, ?, 'ACTIVE', ?)")
-                            .run(newClientId, name, email, phone, new Date().toISOString());
-                        clientId = newClientId;
-                        stats.new++;
-                        // Actualizar lista de clientes existentes
-                        existingClients.push({ id: newClientId, name, email });
-                    }
-
                     data.attendance.push({
-                        client_id: clientId,
                         name,
                         email,
                         phone,
@@ -422,16 +403,16 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                         cargo,
                         vegano,
                         restricciones,
-                        action: existingClient ? 'update' : 'create'
+                        action: 'create'
                     });
                 } catch(e) {
                     stats.errors++;
-                    errors.push(`Fila ${rowNumber}: Error procesando asistente`);
+                    errors.push(`Fila ${rowNumber}: Error procesando asistente - ${e.message}`);
                 }
             });
             
             if (data.attendance.length > 0) {
-                stats.message = `${stats.new} nuevos clientes/asistentes, ${stats.update} para actualizar, ${stats.errors} errores`;
+                stats.message = `${data.attendance.length} asistentes para importar`;
             }
         }
 

@@ -442,7 +442,9 @@ db.exec(`CREATE TABLE IF NOT EXISTS client_users (
 db.exec(`CREATE TABLE IF NOT EXISTS event_attendance (
     id TEXT PRIMARY KEY,
     event_id TEXT NOT NULL,
-    client_id TEXT NOT NULL,
+    name TEXT,
+    email TEXT,
+    phone TEXT,
     organization TEXT,
     cargo TEXT,
     vegano TEXT DEFAULT 'NO',
@@ -453,8 +455,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS event_attendance (
     validated_by TEXT,
     created_at TEXT,
     FOREIGN KEY (event_id) REFERENCES events(id),
-    FOREIGN KEY (client_id) REFERENCES clients(id),
-    UNIQUE(event_id, client_id)
+    UNIQUE(event_id, email)
 )`);
 
 // Migración V12.44.244+: Agregar columnas a event_attendance si no existen

@@ -927,15 +927,14 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
     try {
         const attendance = db.prepare(`
             SELECT 
-                ea.id, ea.client_id, ea.organization, ea.cargo, ea.vegano, 
+                ea.id, ea.name, ea.email, ea.phone, ea.organization, ea.cargo, ea.vegano, 
                 ea.restricciones, ea.status, ea.validated, ea.validated_at,
-                c.name as client_name, c.email as client_email, c.phone as client_phone,
                 g.name as group_name
             FROM event_attendance ea
-            LEFT JOIN clients c ON ea.client_id = c.id
+            LEFT JOIN clients c ON ea.email = c.email
             LEFT JOIN groups g ON c.group_id = g.id
             WHERE ea.event_id = ?
-            ORDER BY c.name ASC
+            ORDER BY ea.name ASC
         `).all(eventId);
         
         res.json(attendance);
@@ -945,13 +944,13 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
     }
 });
 
-// POST /api/events/:id/attendance - Agregar cliente a asistencia
+// POST /api/events/:id/attendance - Agregar asistente a asistencia
 router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const { client_id, organization, cargo, vegano, restricciones, status } = req.body;
+    const { name, email, phone, organization, cargo, vegano, restricciones, status } = req.body;
     
-    if (!eventId || !client_id) {
-        return res.status(400).json({ error: 'ID de evento y cliente requeridos' });
+    if (!eventId || !name) {
+        return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
     }
     
     try {
@@ -960,23 +959,24 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
         const now = new Date().toISOString();
         
         db.prepare(`
-            INSERT INTO event_attendance (id, event_id, client_id, organization, cargo, vegano, restricciones, status, validated, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-        `).run(id, eventId, client_id, organization || null, cargo || null, vegano || 'NO', restricciones || null, status || 'PENDING', now);
+            INSERT INTO event_attendance (id, event_id, name, email, phone, organization, cargo, vegano, restricciones, status, validated, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+        `).run(id, eventId, name, email || null, phone || null, organization || null, cargo || null, vegano || 'NO', restricciones || null, status || 'PENDING', now);
         
         res.json({ success: true, id });
     } catch (e) {
         if (e.message.includes('UNIQUE constraint failed')) {
-            return res.status(400).json({ error: 'Cliente ya está en la lista de asistencia' });
+            return res.status(400).json({ error: 'Asistente ya está en la lista de asistencia' });
         }
         console.error('[ATTENDANCE] Error agregando:', e.message);
         res.status(500).json({ error: 'Error agregando a asistencia' });
     }
 });
 
-// PUT /api/events/:id/attendance/:clientId - Actualizar asistencia (validar)
-router.put('/:id/attendance/:clientId', authMiddleware(), async (req, res) => {
+// PUT /api/events/:id/attendance/:id - Actualizar asistencia
+router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
+    const attendanceId = req.params.attendanceId;
     const { validated, organization, cargo, vegano, restricciones, status } = req.body;
     const userId = req.session?.user?.id;
     
@@ -1001,10 +1001,10 @@ router.put('/:id/attendance/:clientId', authMiddleware(), async (req, res) => {
                 vegano = COALESCE(?, vegano),
                 restricciones = COALESCE(?, restricciones),
                 status = COALESCE(?, status)
-            WHERE event_id = ? AND client_id = ?
+            WHERE event_id = ? AND id = ?
         `).run(validatedVal || 0, validatedAtVal, userId || null, 
                organization, cargo, vegano, restricciones, status,
-               eventId, req.params.clientId);
+               eventId, attendanceId);
         
         res.json({ success: true });
     } catch (e) {
@@ -1013,17 +1013,17 @@ router.put('/:id/attendance/:clientId', authMiddleware(), async (req, res) => {
     }
 });
 
-// DELETE /api/events/:id/attendance/:clientId - Eliminar de asistencia
-router.delete('/:id/attendance/:clientId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+// DELETE /api/events/:id/attendance/:attendanceId - Eliminar de asistencia
+router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const clientId = req.params.clientId;
+    const attendanceId = req.params.attendanceId;
     
-    if (!eventId || !clientId) {
+    if (!eventId || !attendanceId) {
         return res.status(400).json({ error: 'IDs requeridos' });
     }
     
     try {
-        db.prepare('DELETE FROM event_attendance WHERE event_id = ? AND client_id = ?').run(eventId, clientId);
+        db.prepare('DELETE FROM event_attendance WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
         res.json({ success: true });
     } catch (e) {
         console.error('[ATTENDANCE] Error eliminando:', e.message);
