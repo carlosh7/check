@@ -15863,32 +15863,32 @@ App.downloadAttendanceTemplate = function() {
             token = user.token || LS.get('token');
         }
         
-        // Crear plantilla en el servidor
-        const data = {
-            type: 'attendance',
-            fields: ['Nombre', 'Email', 'Teléfono', 'Organización', 'Cargo', 'Vegano', 'Restricciones']
-        };
-        
-        // Generar blob directamente con los datos
-        const headers = ['Nombre', 'Email', 'Teléfono', 'Organización', 'Cargo', 'Vegano', 'Restricciones'];
-        const exampleRow = ['Ejemplo Nombre', 'ejemplo@email.com', '+52 123 456 7890', 'Empresa S.A.', 'Gerente', 'NO', ''];
-        
-        // Crear CSV como alternativa simple
-        const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'plantilla_asistentes.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+        fetch('/api/import/template/attendance', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en respuesta');
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla_asistentes.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+        })
+        .catch(err => {
+            console.error('[TEMPLATE] Error:', err);
+            Swal.fire({ title: '❌ Error', text: 'No se pudo descargar la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
+        });
     } catch(e) {
         console.error('[TEMPLATE] Error:', e);
-        Swal.fire({ title: '❌ Error', text: 'No se pudo descargar la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
+        Swal.fire({ title: '❌ Error', text: 'Error al descargar plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
     }
 };
 

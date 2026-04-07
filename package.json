@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.255",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.255 - Fix: descargar plantilla CSV en vez de Excel",
+  "version": "12.44.256",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.256 - Fix: descargar plantilla Excel desde servidor",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

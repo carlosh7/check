@@ -136,6 +136,52 @@ router.get('/template', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
     }
 });
 
+// DESCARGAR PLANTILLA DE ASISTENTES
+router.get('/template/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Check Pro';
+        workbook.created = new Date();
+
+        const attendanceSheet = workbook.addWorksheet('Asistentes');
+        attendanceSheet.columns = [
+            { header: 'Nombre', key: 'name', width: 25 },
+            { header: 'Email', key: 'email', width: 30 },
+            { header: 'Teléfono', key: 'phone', width: 15 },
+            { header: 'Organización', key: 'organization', width: 20 },
+            { header: 'Cargo', key: 'cargo', width: 20 },
+            { header: 'Vegano', key: 'vegano', width: 10 },
+            { header: 'Restricciones', key: 'restricciones', width: 25 }
+        ];
+        
+        // Fila de ejemplo
+        attendanceSheet.addRow({
+            name: 'Ejemplo Nombre',
+            email: 'ejemplo@email.com',
+            phone: '+52 123 456 7890',
+            organization: 'Empresa S.A.',
+            cargo: 'Gerente',
+            vegano: 'NO',
+            restricciones: ''
+        });
+
+        // Estilo header
+        attendanceSheet.getRow(1).font = { bold: true };
+        attendanceSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366f1' } };
+        attendanceSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+        // Generar buffer
+        const buffer = await workbook.xlsx.writeBuffer();
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=plantilla_asistentes.xlsx');
+        res.send(buffer);
+    } catch(e) {
+        console.error('Error generando plantilla de asistentes:', e);
+        res.status(500).json({ success: false, message: 'Error generando plantilla' });
+    }
+});
+
 // ══════════════════════════════════════════════════════════════
 // VALIDAR ARCHIVO DE IMPORTACIÓN
 // ══════════════════════════════════════════════════════════════
