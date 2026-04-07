@@ -928,11 +928,8 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
         const attendance = db.prepare(`
             SELECT 
                 ea.id, ea.name, ea.email, ea.phone, ea.organization, ea.cargo, ea.vegano, 
-                ea.restricciones, ea.status, ea.validated, ea.validated_at,
-                g.name as group_name
+                ea.restricciones, ea.status, ea.validated, ea.validated_at
             FROM event_attendance ea
-            LEFT JOIN clients c ON ea.email = c.email
-            LEFT JOIN groups g ON c.group_id = g.id
             WHERE ea.event_id = ?
             ORDER BY ea.name ASC
         `).all(eventId);
