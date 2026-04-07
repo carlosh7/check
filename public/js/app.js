@@ -15192,3 +15192,325 @@ window.copyTemplateVar = (varName) => {
 // Función global hideModal expuesta para onclick en HTML
 window.hideModal = function(id) { App.hideModal(id); };
 
+// ============================================================
+// ASISTENCIA AL EVENTO (ATTENDANCE) - V12.44.250
+// ============================================================
+
+App._attendanceLoaded = false;
+App._selectedAttendance = [];
+
+App.loadAttendance = async function(eventId) {
+    if (!eventId) {
+        const pathParts = window.location.pathname.split('/');
+        eventId = pathParts[pathParts.length - 1] || this.state.currentEventId;
+    }
+    if (!eventId) return;
+    
+    try {
+        const res = await this.fetchAPI(`/events/${eventId}/attendance`);
+        this.state.attendance = Array.isArray(res) ? res : (res.data || []);
+        this._attendanceLoaded = true;
+        this.populateAttendanceFilters();
+        this.filterAttendance();
+    } catch(e) {
+        console.error('[ATTENDANCE] Error cargando:', e.message);
+        this.state.attendance = [];
+    }
+},
+
+App.populateAttendanceFilters: function() {
+    const attendance = this.state.attendance || [];
+    
+    // Extraer organizaciones únicas
+    const orgs = [...new Set(attendance.map(a => a.organization).filter(o => o))];
+    const orgSelect = document.getElementById('filter-attendance-org');
+    if (orgSelect) {
+        orgSelect.innerHTML = '<option value="">Organización</option>' + 
+            orgs.map(o => `<option value="${o}">${o}</option>`).join('');
+    }
+    
+    // Extraer cargos únicos
+    const cargos = [...new Set(attendance.map(a => a.cargo).filter(c => c))];
+    const cargoSelect = document.getElementById('filter-attendance-cargo');
+    if (cargoSelect) {
+        cargoSelect.innerHTML = '<option value="">Cargo</option>' + 
+            cargos.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+},
+
+App.filterAttendance: function() {
+    const search = (document.getElementById('attendance-search')?.value || '').toLowerCase();
+    const orgFilter = document.getElementById('filter-attendance-org')?.value || '';
+    const cargoFilter = document.getElementById('filter-attendance-cargo')?.value || '';
+    const veganoFilter = document.getElementById('filter-attendance-vegano')?.value || '';
+    const statusFilter = document.getElementById('filter-attendance-status')?.value || '';
+    
+    let filtered = this.state.attendance || [];
+    
+    // Filtro de búsqueda
+    if (search) {
+        const words = search.split(' ').filter(w => w.length > 0);
+        filtered = filtered.filter(a => {
+            const text = `${a.client_name || ''} ${a.client_email || ''} ${a.client_phone || ''} ${a.organization || ''} ${a.cargo || ''}`.toLowerCase();
+            return words.every(w => text.includes(w));
+        });
+    }
+    
+    // Filtros
+    if (orgFilter) filtered = filtered.filter(a => a.organization === orgFilter);
+    if (cargoFilter) filtered = filtered.filter(a => a.cargo === cargoFilter);
+    if (veganoFilter) filtered = filtered.filter(a => a.vegano === veganoFilter);
+    if (statusFilter) filtered = filtered.filter(a => a.status === statusFilter);
+    
+    this.renderAttendanceTable(filtered);
+},
+
+App.renderAttendanceTable: function(attendance) {
+    const tbody = document.getElementById('attendance-tbody');
+    if (!tbody) return;
+    
+    if (!attendance || attendance.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">No hay asistentes registrados</td></tr>`;
+        return;
+    }
+    
+    const selectedIds = this._selectedAttendance || [];
+    
+    tbody.innerHTML = attendance.map(a => {
+        const isSelected = selectedIds.includes(a.client_id);
+        const statusColors = { PENDIENTE: '#f59e0b', CONFIRMADO: '#10b981', CANCELADO: '#ef4444' };
+        const statusColor = statusColors[a.status] || '#64748b';
+        const veganoBadge = a.vegano === 'SI' 
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400">Sí</span>`
+            : `<span class="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-red-500/20 text-red-400">No</span>`;
+        
+        return `<tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="!py-3 !px-3">
+                <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                    onchange="App.toggleAttendance('${a.client_id}')" 
+                    style="width: 16px; height: 16px; cursor: pointer;">
+            </td>
+            <td class="!py-3 !px-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">
+                        ${(a.client_name || 'A').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-white">${a.client_name || 'Sin nombre'}</div>
+                        <div class="text-[11px] text-slate-400">${a.client_email || ''}</div>
+                        <div class="text-[11px] text-slate-500">${a.client_phone || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="!py-3 !px-3 text-slate-300">${a.organization || '-'}</td>
+            <td class="!py-3 !px-3 text-slate-300">${a.cargo || '-'}</td>
+            <td class="!py-3 !px-3">${veganoBadge}</td>
+            <td class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
+            <td class="!py-3 !px-3">
+                <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase" 
+                    style="background: ${statusColor}20; color: ${statusColor};">
+                    ${a.status || 'PENDIENTE'}
+                </span>
+            </td>
+            <td class="!py-3 !px-3 text-center">
+                <button onclick="App.toggleValidateAttendance('${a.client_id}')" 
+                    class="w-11 h-6 rounded-full transition-colors ${a.validated ? 'bg-emerald-500' : 'bg-slate-600'} relative">
+                    <span class="absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${a.validated ? 'left-5' : 'left-0.5'}"></span>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+},
+
+App.toggleSelectAllAttendance: function() {
+    const checkbox = document.getElementById('select-all-attendance');
+    const attendance = this.state.attendance || [];
+    if (checkbox.checked) {
+        this._selectedAttendance = attendance.map(a => a.client_id);
+    } else {
+        this._selectedAttendance = [];
+    }
+    this.filterAttendance();
+},
+
+App.toggleAttendance: function(clientId) {
+    const idx = this._selectedAttendance.indexOf(clientId);
+    if (idx > -1) {
+        this._selectedAttendance.splice(idx, 1);
+    } else {
+        this._selectedAttendance.push(clientId);
+    }
+    this.filterAttendance();
+},
+
+App.toggleValidateAttendance: async function(clientId) {
+    const eventId = this.state.currentEventId;
+    if (!eventId || !clientId) return;
+    
+    const attendance = this.state.attendance || [];
+    const current = attendance.find(a => a.client_id === clientId);
+    if (!current) return;
+    
+    const newValidated = current.validated ? 0 : 1;
+    
+    try {
+        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'PUT', { validated: newValidated });
+        current.validated = newValidated;
+        this.filterAttendance();
+    } catch(e) {
+        console.error('[ATTENDANCE] Error validando:', e.message);
+    }
+},
+
+App.showAttendanceSuggestions: function() {
+    const input = document.getElementById('attendance-search');
+    const container = document.getElementById('attendance-suggestions');
+    if (!input || !container) return;
+    
+    const term = input.value.toLowerCase();
+    if (term.length < 2) {
+        container.classList.add('hidden');
+        return;
+    }
+    
+    const attendance = this.state.attendance || [];
+    const matches = attendance.filter(a => 
+        (a.client_name || '').toLowerCase().includes(term) ||
+        (a.client_email || '').toLowerCase().includes(term) ||
+        (a.organization || '').toLowerCase().includes(term)
+    ).slice(0, 8);
+    
+    if (matches.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+    
+    container.innerHTML = matches.map(a => `
+        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/5" onclick="App.selectAttendanceSuggestion('${a.client_id}')">
+            <div class="text-sm font-bold text-white">${a.client_name}</div>
+            <div class="text-[11px] text-slate-400">${a.client_email}</div>
+        </div>
+    `).join('');
+    
+    container.classList.remove('hidden');
+},
+
+App.hideAttendanceSuggestions: function() {
+    const container = document.getElementById('attendance-suggestions');
+    if (container) container.classList.add('hidden');
+},
+
+App.selectAttendanceSuggestion: function(clientId) {
+    const input = document.getElementById('attendance-search');
+    const attendance = this.state.attendance || [];
+    const a = attendance.find(x => x.client_id === clientId);
+    if (a && input) {
+        input.value = a.client_name || '';
+        this.filterAttendance();
+    }
+    this.hideAttendanceSuggestions();
+},
+
+App.openAddAssistantModal: async function() {
+    // Por implementar: abrir modal para agregar asistente
+    Swal.fire({ title: '➕ Nuevo Asistente', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+},
+
+App.openAttendanceCarousel: function() {
+    const selected = this._selectedAttendance || [];
+    if (selected.length === 0) {
+        Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un asistente con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    // Mostrar carousel similar al de staff
+    const isDark = document.documentElement.classList.contains('dark');
+    const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+    const bgCard = isDark ? '#1e293b' : '#ffffff';
+    const textMain = isDark ? '#f8fafc' : '#1e293b';
+    const textSecondary = isDark ? '#94a3b8' : '#475569';
+    const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    
+    const attendance = this.state.attendance || [];
+    const selectedAssistants = attendance.filter(a => selected.includes(a.client_id));
+    const subtitleText = selectedAssistants.length === 1 
+        ? `${selectedAssistants[0].client_name}` 
+        : `${selectedAssistants.length} asistentes seleccionados`;
+    
+    const html = `
+        <div class="space-y-5" style="padding-right: 8px;">
+            <!-- Barra de navegación 2 botones -->
+            <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <button onclick="App.editAttendance(App._selectedAttendance)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.manageAttendance(App._selectedAttendance)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+            </div>
+            <!-- Título -->
+            <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                <div class="flex flex-col flex-1">
+                    <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Editar Asistentes</span>
+                    <span class="text-xs" style="color: ${textMain};">${subtitleText}</span>
+                </div>
+            </div>
+            <!-- Lista de asistentes seleccionados -->
+            <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
+                ${selectedAssistants.map(a => {
+                    const statusColors = { PENDIENTE: '#f59e0b', CONFIRMADO: '#10b981', CANCELADO: '#ef4444' };
+                    const statusColor = statusColors[a.status] || '#64748b';
+                    return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">${(a.client_name || 'A').charAt(0).toUpperCase()}</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-bold" style="color: ${textMain};">${a.client_name}</div>
+                            <div class="text-[11px]" style="color: ${textSecondary};">${a.client_email}</div>
+                            <div class="text-[11px]" style="color: ${statusColor};">${a.status}</div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    
+    Swal.fire({ 
+        title: '', 
+        html, 
+        width: '460px', 
+        background: bgMain, 
+        color: textMain, 
+        showConfirmButton: false, 
+        showCloseButton: false, 
+        customClass: { popup: 'modal-left-aligned' }, 
+        showClass: { popup: '', container: '', backdrop: '' }, 
+        hideClass: { popup: '', container: '', backdrop: '' },
+        timer: 0
+    });
+},
+
+App.editAttendance: function(clientIds) {
+    // Por implementar: editar asistente(s)
+    Swal.fire({ title: '✏️ Editar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+},
+
+App.manageAttendance: function(clientIds) {
+    // Por implementar: gestionar asistentes (cambiar estado, eliminar)
+    Swal.fire({ title: '⚙️ Gestionar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+},
+
+App.openImportAttendanceModal: function() {
+    // Por implementar
+    Swal.fire({ title: '📥 Importar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+},
+
+App.exportAttendance: function() {
+    // Por implementar
+    Swal.fire({ title: '📤 Exportar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+};
+
+// Click outside para sugerencias de attendance
+document.addEventListener('click', (e) => {
+    const attendanceSearch = document.getElementById('attendance-search');
+    const attendanceSuggestions = document.getElementById('attendance-suggestions');
+    if (attendanceSuggestions && !attendanceSuggestions.classList.contains('hidden')) {
+        if (attendanceSearch && !attendanceSearch.contains(e.target) && !attendanceSuggestions.contains(e.target)) {
+            App.hideAttendanceSuggestions();
+        }
+    }
+});
+

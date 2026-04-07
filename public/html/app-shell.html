@@ -128,7 +128,43 @@
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="hidden animate-fade-in">
-                <header class="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
+                <!-- Fila 1: Botones de acción -->
+                <div class="flex flex-wrap items-center gap-2 mb-6">
+                    <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openAddAssistantModal()">
+                        <span class="material-symbols-outlined text-base">person_add</span> +Asistente
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openAttendanceCarousel()">
+                        <span class="material-symbols-outlined text-base">edit</span> Edición
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportAttendanceModal()">
+                        <span class="material-symbols-outlined text-base">upload</span> Importar
+                    </button>
+                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportAttendance()">
+                        <span class="material-symbols-outlined text-base">download</span> Exportar
+                    </button>
+                </div>
+                <!-- Fila 2: Filtros -->
+                <div class="flex gap-2 flex-wrap items-center mb-6">
+                    <select id="filter-attendance-org" onchange="App.filterAttendance()" class="filter-select filter-select-empresa">
+                        <option value="">Organización</option>
+                    </select>
+                    <select id="filter-attendance-cargo" onchange="App.filterAttendance()" class="filter-select">
+                        <option value="">Cargo</option>
+                    </select>
+                    <select id="filter-attendance-vegano" onchange="App.filterAttendance()" class="filter-select">
+                        <option value="">Vegano</option>
+                        <option value="SI">Sí</option>
+                        <option value="NO">No</option>
+                    </select>
+                    <select id="filter-attendance-status" onchange="App.filterAttendance()" class="filter-select">
+                        <option value="">Estado</option>
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="CONFIRMADO">Confirmado</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                </div>
+
+                <header class="flex flex-col lg:flex-row justify-between items-center gap-8 mb-8">
                     <div class="flex items-center gap-8">
                         <div id="admin-event-logo-container" class="w-20 h-20 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl relative group">
                             <div class="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -159,6 +195,40 @@
                         </div>
                     </div>
                 </header>
+                <!-- Buscador de asistentes -->
+                <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
+                    <input id="attendance-search" type="text" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
+                           style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                           oninput="App.filterAttendance(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
+                    <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                    <span id="attendance-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
+                    <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
+                    <!-- Dropdown de sugerencias -->
+                    <div id="attendance-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                </div>
+
+                <!-- Tabla de asistencia -->
+                <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr class="bg-white/[0.01]">
+                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                        <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" style="width: 16px; height: 16px; cursor: pointer;">
+                                    </th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistente</th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cargo</th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Vegano</th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Restricciones</th>
+                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                    <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Validar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
