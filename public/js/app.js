@@ -1762,6 +1762,7 @@ const App = window.App = {
                         if (section === 'group') this.filterGroups();
                         if (section === 'user') this.filterUsers();
                         if (section === 'client') this.filterClients();
+                        if (section === 'event') this.filterEvents();
                     }
                     setTimeout(() => this._hideVoiceToast(), 3000);
                 } else {
@@ -5609,2838 +5610,16 @@ const App = window.App = {
         if (!name || !name.trim()) return;
         const date = prompt('Fecha del evento (YYYY-MM-DD HH:MM):') || '';
         try {
-            const res = await this.fetchAPI('/events', { 
-                method: 'POST', 
-                body: JSON.stringify({ name: name.trim(), date, location: '', description: '' }) 
-            });
-            if (res.success) { 
-                alert('✓ Evento creado exitosamente');
-                this.loadUsersTable();
-            } else {
-                alert('Error: ' + res.error);
-            }
-        } catch { alert('Error de conexión'); }
-    },
-    
-    // Asignar usuario a un grupo
-    assignUserGroup: async function(userId, groupId) {
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/group`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ group_id: groupId || null }) 
-            });
-            if (res.success) console.log('Grupo asignado');
-        } catch(e) { console.error('Error assigning group:', e); }
-    },
-    
-    // Asignar usuario a eventos (recibe el select multiple)
-    assignUserEvents: async function(userId, selectEl) {
-        const selectedEvents = Array.from(selectEl.selectedOptions).map(o => o.value);
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/events`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ events: selectedEvents }) 
-            });
-            if (res.success) console.log('Eventos asignados');
-        } catch(e) { console.error('Error assigning events:', e); }
-    },
-    
-    // Quitar empresa de un usuario
-    removeUserGroup: async function(userId) {
-        if (!(await this._confirmAction('¿Quitar empresa?', 'El usuario perderá la empresa asignada.'))) return;
-        try {
-            const res = await this.fetchAPI(`/users/${userId}/group`, { 
-                method: 'PUT', 
-                body: JSON.stringify({ group_id: null }) 
-            });
-            if (res.success) {
-                Swal.fire({ title: '✓ Actualizado', text: 'Empresa quitada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
-                this.loadUsersTable();
-            }
-        } catch(e) { 
-            Swal.fire({ title: '⚠️ Error', text: 'Error al quitar empresa', icon: 'error', background: '#0f172a', color: '#fff' }); 
-        }
-    },
-    
-    // Quitar un evento específico de un usuario
-    removeUserFromEvent: async function(userId, eventId) {
-        if (await this._confirmAction('¿Quitar acceso al evento?', 'El usuario ya no podrá gestionar este evento.')) {
-            try {
-                const res = await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
-                if (res.success) {
-                    Swal.fire({ title: 'Éxito', text: 'Acceso revocado', icon: 'success', timer: 1000, showConfirmButton: false });
-                    this.loadUsersTable();
-                } else {
-                    Swal.fire('Error', res.error || 'No se pudo quitar el evento', 'error');
-                }
-            } catch { Swal.fire('Error', 'Error de red', 'error'); }
-        }
-    },
-    
-// Eliminar usuario completamente
-    deleteUser: async function(userId, userName) {
-        const currentUserId = this.state.user?.userId;
-        
-        // Validaciones de seguridad
-        if (userId === currentUserId) {
-            Swal.fire({ title: '⚠️ Acción denegada', text: 'No puedes eliminarte a ti mismo', icon: 'warning', background: '#0f172a', color: '#fff' });
-            return;
-        }
-        
-        if (!(await this._confirmAction('¿Eliminar usuario?', `¿Estás seguro de eliminar a "${userName}"? Esta acción no se puede deshacer.`))) return;
-        
-        try {
-            const res = await this.fetchAPI(`/users/${userId}`, { method: 'DELETE' });
-            if (res.success) {
-                Swal.fire({ title: '✓ Eliminado', text: 'Usuario eliminado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
-                this.loadUsersTable();
-            } else {
-                Swal.fire({ title: '⚠️ Error', text: res.error || 'No se pudo eliminar el usuario', icon: 'error', background: '#0f172a', color: '#fff' });
-            }
-        } catch { Swal.fire({ title: '⚠️ Error', text: 'Error de red', icon: 'error', background: '#0f172a', color: '#fff' }); }
-    },
-    
-    // openCreateGroupModal - ver versión en línea ~5632 (showGroupSelector)
-    openCreateGroupModal: function() {
-        const name = prompt('Nombre de la nueva empresa:');
-        if (!name || !name.trim()) return;
-        const description = prompt('Descripción (opcional):') || '';
-        
-        fetch('/api/groups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name.trim(), description })
-        }).then(r => r.json()).then(d => {
-            if (d.success) {
-                alert('✓ Empresa creada');
-                this.loadGroups();
-            }
-        }).catch(() => alert('Error al crear empresa'));
-    },
-    
-    // Versiones obsoletas eliminadas para unificación V12.16.0
-    
-    approveUser: async function(id, status) {
-        await this.fetchAPI(`/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
-        this.loadUsersTable();
-    },
-    
-    changeUserRole: async function(id, role) {
-        await this.fetchAPI(`/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
-    },
-    
-    loadLegalTexts: async function() {
-        try {
-            const s = await fetch('/api/settings').then(r => r.json());
-            const pt = document.getElementById('legal-policy-text');
-            const tt = document.getElementById('legal-terms-text');
-            if (pt) pt.value = s.policy_data?.replace(/<[^>]*>/g,'') || '';
-            if (tt) tt.value = s.terms_conditions?.replace(/<[^>]*>/g,'') || '';
-        } catch {}
-    },
-
-    // ==================== MÓDULO DE EMAIL (V12.45) ====================
-    
-    loadEmailModuleData: async function() {
-        await Promise.all([
-            this.loadEmailAccounts(),
-            this.loadEmailTemplates(),
-            this.loadEmailCampaigns()
-        ]);
-    },
-
-    switchEmailSubTab: function(subTab) {
-        const subTabs = ['accounts', 'mailbox', 'campaigns'];
-        subTabs.forEach(tab => {
-            const el = document.getElementById(`email-subtab-${tab}`);
-            const btn = document.getElementById(`email-tab-${tab}`);
-            if (el) el.classList.add('hidden');
-            if (btn) {
-                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
-                btn.classList.add('bg-white/5', 'text-slate-400');
-            }
-        });
-        
-        const activeEl = document.getElementById(`email-subtab-${subTab}`);
-        const activeBtn = document.getElementById(`email-tab-${subTab}`);
-        if (activeEl) activeEl.classList.remove('hidden');
-        if (activeBtn) {
-            activeBtn.classList.add('bg-violet-500/20', 'text-violet-300');
-            activeBtn.classList.remove('bg-white/5', 'text-slate-400');
-        }
-    },
-
-    loadEmailAccounts: async function() {
-        const container = document.getElementById('email-accounts-list');
-        if (!container) return;
-        
-        try {
-            const accounts = await this.fetchAPI('/email/accounts');
+            const eventId = form.querySelector('#ev-id-hidden')?.value?.trim();
             
-            if (!accounts || accounts.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-slate-500">
-                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">mail</span>
-                        <p class="text-sm">No hay cuentas configuradas</p>
-                        <p class="text-xs mt-1">Crea una cuenta SMTP/IMAP para comenzar</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = accounts.map(acc => `
-                <div class="card p-4 flex items-center justify-between" data-account-id="${acc.id}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${acc.is_active ? 'from-violet-500/20 to-blue-500/20' : 'from-slate-500/20 to-slate-500/20'} flex items-center justify-center">
-                            <span class="material-symbols-outlined text-xl ${acc.is_active ? 'text-violet-400' : 'text-slate-500'}">mail</span>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white">${acc.name}</h4>
-                            <p class="text-xs text-slate-500">${acc.smtp_host || 'Sin SMTP'} ${acc.is_default ? '<span class="text-violet-400 ml-1">[Default]</span>' : ''}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs px-2 py-1 rounded-full ${acc.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-                            ${acc.is_active ? 'Activa' : 'Inactiva'}
-                        </span>
-                        <button onclick="App.openEmailAccountModal('${acc.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Editar">
-                            <span class="material-symbols-outlined text-slate-400">edit</span>
-                        </button>
-                        <button onclick="App.testEmailAccount('${acc.id}', 'smtp')" class="p-2 hover:bg-white/10 rounded-lg" title="Probar SMTP">
-                            <span class="material-symbols-outlined text-slate-400">send</span>
-                        </button>
-                        <button onclick="App.deleteEmailAccount('${acc.id}')" class="p-2 hover:bg-red-500/10 rounded-lg" title="Eliminar">
-                            <span class="material-symbols-outlined text-red-400">delete</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            
-            // También cargar en selects
-            this.updateEmailAccountSelects(accounts);
-            
-        } catch (e) {
-            console.error('[EMAIL] Error loading accounts:', e);
-            container.innerHTML = `<div class="text-center py-8 text-red-400">Error al cargar cuentas</div>`;
-        }
-    },
-
-    updateEmailAccountSelects: function(accounts) {
-        const selects = ['mailbox-account-select', 'mailing-account-select'];
-        selects.forEach(selId => {
-            const sel = document.getElementById(selId);
-            if (!sel) return;
-            
-            const currentVal = sel.value;
-            sel.innerHTML = '<option value="">-- Seleccionar Cuenta --</option>' + 
-                accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-            if (currentVal && accounts.find(a => a.id === currentVal)) {
-                sel.value = currentVal;
-            }
-        });
-    },
-
-    openEmailAccountModal: async function(accountId = null) {
-        let account = { is_active: true, is_default: false, smtp_port: 587, imap_port: 993, daily_limit: 500 };
-        
-        if (accountId) {
-            account = await this.fetchAPI(`/email/accounts/${accountId}`);
-        }
-        
-        const modalContent = `
-        <div id="modal-email-account" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-            <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                    <h3 class="text-xl font-bold text-[var(--text-main)]">${accountId ? 'Editar' : 'Nueva'} Cuenta de Email</h3>
-                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-[var(--text-secondary)]">close</span>
-                    </button>
-                </div>
-                <div class="p-6 overflow-y-auto flex-1 space-y-6">
-                    <input type="hidden" id="email-account-id" value="${accountId || ''}">
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Nombre de la Cuenta</label>
-                            <input type="text" id="email-account-name" value="${account.name || ''}" class="input-field w-full" placeholder="Mi Gmail, Outlook, etc.">
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-[var(--border)] pt-4">
-                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm text-violet-400">send</span> Configuración SMTP (Enviar)
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Servidor SMTP</label>
-                                <input type="text" id="email-smtp-host" value="${account.smtp_host || ''}" class="input-field w-full" placeholder="smtp.gmail.com">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Puerto SMTP</label>
-                                <input type="number" id="email-smtp-port" value="${account.smtp_port || 587}" class="input-field w-full" placeholder="587">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Usuario SMTP</label>
-                                <input type="text" id="email-smtp-user" value="${account.smtp_user || ''}" class="input-field w-full" placeholder="tu@email.com">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Contraseña SMTP</label>
-                                <input type="password" id="email-smtp-pass" value="${account.smtp_password === '***' ? '' : account.smtp_password || ''}" class="input-field w-full" placeholder="${account.smtp_password === '***' ? '••••••••' : 'Contraseña o app password'}">
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
-                                <input type="checkbox" id="email-smtp-ssl" ${account.smtp_ssl ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-[var(--border)] pt-4">
-                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm text-blue-400">inbox</span> Configuración IMAP (Recibir)
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Servidor IMAP</label>
-                                <input type="text" id="email-imap-host" value="${account.imap_host || ''}" class="input-field w-full" placeholder="imap.gmail.com">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Puerto IMAP</label>
-                                <input type="number" id="email-imap-port" value="${account.imap_port || 993}" class="input-field w-full" placeholder="993">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Usuario IMAP</label>
-                                <input type="text" id="email-imap-user" value="${account.imap_user || ''}" class="input-field w-full" placeholder="tu@email.com">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Contraseña IMAP</label>
-                                <input type="password" id="email-imap-pass" value="${account.imap_password === '***' ? '' : account.imap_password || ''}" class="input-field w-full" placeholder="${account.imap_password === '***' ? '••••••••' : 'Contraseña'}">
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
-                                <input type="checkbox" id="email-imap-ssl" ${account.imap_ssl !== 0 ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Usar SSL/TLS
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-[var(--border)] pt-4">
-                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm text-green-400">person</span> Remitente
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Nombre Remitente</label>
-                                <input type="text" id="email-sender-name" value="${account.sender_name || ''}" class="input-field w-full" placeholder="Mi Empresa">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Email Remitente</label>
-                                <input type="email" id="email-sender-email" value="${account.sender_email || ''}" class="input-field w-full" placeholder="noreply@empresa.com">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-[var(--border)] pt-4">
-                        <h4 class="text-sm font-bold text-[var(--text-main)] mb-3">Opciones</h4>
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
-                                <input type="checkbox" id="email-is-default" ${account.is_default ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta por defecto
-                            </label>
-                            <label class="flex items-center gap-2 text-sm text-[var(--text-main)]">
-                                <input type="checkbox" id="email-is-active" ${account.is_active ? 'checked' : ''} class="accent-violet-500 w-4 h-4"> Cuenta activa
-                            </label>
-                        </div>
-                        <div class="mt-3">
-                            <label class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1 block">Límite diario de emails</label>
-                            <input type="number" id="email-daily-limit" value="${account.daily_limit || 500}" class="input-field w-full max-w-[200px]" min="1" max="10000">
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-[var(--border)] pt-4">
-                        <div class="flex items-center gap-2 mb-3">
-                            <button onclick="App.testSmtpConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">send</span>
-                                Probar SMTP
-                            </button>
-                            <button onclick="App.testImapConnection()" class="btn-secondary !px-3 !py-1.5 text-xs flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">inbox</span>
-                                Probar IMAP
-                            </button>
-                        </div>
-                        <button onclick="App.showEmailSetupHelp()" class="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">help</span> Necesito ayuda para configurar mi cuenta
-                        </button>
-                    </div>
-                </div>
-                <div class="p-6 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
-                    <button onclick="document.getElementById('modal-email-account')?.classList.add('hidden')" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold hover:bg-white/10 transition-colors">Cancelar</button>
-                    <button onclick="App.saveEmailAccount()" class="btn-primary !px-6 !py-2">Guardar</button>
-                </div>
-            </div>
-        </div>`;
-        
-        document.getElementById('modal-container-portal').innerHTML = modalContent;
-        document.getElementById('modal-email-account').classList.remove('hidden');
-    },
-
-    showEmailSetupHelp: function() {
-        Swal.fire({
-            title: 'Instructivo de Configuración',
-            html: `
-            <div class="text-left space-y-4 max-h-[60vh] overflow-y-auto">
-                <div class="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                    <h4 class="font-bold text-blue-400 mb-2">📧 GMAIL</h4>
-                    <ol class="text-xs text-slate-300 space-y-1 list-decimal list-inside">
-                        <li>Ve a tu cuenta de Google → Seguridad</li>
-                        <li>Habilita "Verificación en dos pasos"</li>
-                        <li>Ve a "Contraseñas de aplicaciones"</li>
-                        <li>Genera una nueva contraseña de 16 caracteres</li>
-                        <li>Usa esa contraseña en "Contraseña SMTP"</li>
-                        <li>Para IMAP usa tu contraseña normal de Google</li>
-                    </ol>
-                </div>
-                
-                <div class="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                    <h4 class="font-bold text-orange-400 mb-2">📧 OUTLOOK / HOTMAIL</h4>
-                    <ol class="text-xs text-slate-300 space-y-1 list-decimal list-inside">
-                        <li>Ve a account.microsoft.com</li>
-                        <li>Seguridad avanzada</li>
-                        <li>Habilita autenticación MFA</li>
-                        <li>Contraseñas de aplicación → Nueva</li>
-                        <li>Usa esa contraseña</li>
-                    </ol>
-                </div>
-                
-                <div class="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                    <h4 class="font-bold text-green-400 mb-2">📧 OTROS PROVEEDORES</h4>
-                    <p class="text-xs text-slate-300">Busca en la ayuda de tu proveedor: "configuración SMTP/IMAP"</p>
-                    <p class="text-xs text-slate-400 mt-2">Ejemplo genérico:</p>
-                    <ul class="text-xs text-slate-400 space-y-1 list-disc list-inside">
-                        <li>SMTP: smtp.tudominio.com, Puerto: 587 (TLS) o 465 (SSL)</li>
-                        <li>IMAP: imap.tudominio.com, Puerto: 993 (SSL)</li>
-                    </ul>
-                </div>
-            </div>`,
-            background: 'var(--bg-card)',
-            color: 'var(--text-primary)',
-            confirmButtonText: 'Entendido'
-        });
-    },
-
-    testSmtpConnection: async function() {
-        const data = {
-            smtp_host: document.getElementById('email-smtp-host')?.value,
-            smtp_port: parseInt(document.getElementById('email-smtp-port')?.value) || 587,
-            smtp_user: document.getElementById('email-smtp-user')?.value,
-            smtp_password: document.getElementById('email-smtp-pass')?.value,
-            smtp_ssl: document.getElementById('email-smtp-ssl')?.checked
-        };
-        
-        if (!data.smtp_host || !data.smtp_user || !data.smtp_password) {
-            return Swal.fire('Error', 'Completa los campos SMTP', 'error');
-        }
-        
-        Swal.fire({ title: 'Probando SMTP...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-        
-        try {
-            const result = await this.fetchAPI('/email/test-smtp', { method: 'POST', body: JSON.stringify(data) });
-            if (result.success) {
-                Swal.fire('✓ Éxito', 'Conexión SMTP exitosa', 'success');
-            } else {
-                Swal.fire('Error', result.error || 'Error de conexión SMTP', 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
-        }
-    },
-
-    testImapConnection: async function() {
-        const data = {
-            imap_host: document.getElementById('email-imap-host')?.value,
-            imap_port: parseInt(document.getElementById('email-imap-port')?.value) || 993,
-            imap_user: document.getElementById('email-imap-user')?.value,
-            imap_password: document.getElementById('email-imap-pass')?.value,
-            imap_ssl: document.getElementById('email-imap-ssl')?.checked
-        };
-        
-        if (!data.imap_host || !data.imap_user || !data.imap_password) {
-            return Swal.fire('Error', 'Completa los campos IMAP', 'error');
-        }
-        
-        Swal.fire({ title: 'Probando IMAP...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-        
-        try {
-            const result = await this.fetchAPI('/email/test-imap', { method: 'POST', body: JSON.stringify(data) });
-            if (result.success) {
-                Swal.fire('✓ Éxito', 'Conexión IMAP exitosa', 'success');
-            } else {
-                Swal.fire('Error', result.error || 'Error de conexión IMAP', 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
-        }
-    },
-
-    saveEmailAccount: async function() {
-        const id = document.getElementById('email-account-id').value;
-        const smtpPassVal = document.getElementById('email-smtp-pass').value;
-        const imapPassVal = document.getElementById('email-imap-pass').value;
-        
-        const data = {
-            name: document.getElementById('email-account-name').value,
-            smtp_host: document.getElementById('email-smtp-host').value,
-            smtp_port: parseInt(document.getElementById('email-smtp-port').value) || 587,
-            smtp_user: document.getElementById('email-smtp-user').value,
-            smtp_password: smtpPassVal || '',
-            smtp_ssl: document.getElementById('email-smtp-ssl').checked,
-            imap_host: document.getElementById('email-imap-host').value,
-            imap_port: parseInt(document.getElementById('email-imap-port').value) || 993,
-            imap_user: document.getElementById('email-imap-user').value,
-            imap_password: imapPassVal || '',
-            imap_ssl: document.getElementById('email-imap-ssl').checked,
-            imap_folder: 'INBOX',
-            sender_name: document.getElementById('email-sender-name').value,
-            sender_email: document.getElementById('email-sender-email').value,
-            is_default: document.getElementById('email-is-default').checked,
-            is_active: document.getElementById('email-is-active').checked,
-            daily_limit: parseInt(document.getElementById('email-daily-limit').value) || 500
-        };
-        
-        if (!data.name) {
-            return Swal.fire('Error', 'El nombre de la cuenta es requerido', 'error');
-        }
-        
-        try {
-            if (id) {
-                // Al editar, si la password viene vacía y el placeholder era '***', no enviarla
-                if (smtpPassVal === '') delete data.smtp_password;
-                if (imapPassVal === '') delete data.imap_password;
-                await this.fetchAPI(`/email/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-            } else {
-                await this.fetchAPI('/email/accounts', { method: 'POST', body: JSON.stringify(data) });
-            }
-            
-            const el = document.getElementById('modal-email-account');
-            if (el) el.classList.add('hidden');
-            this.loadEmailAccounts();
-            Swal.fire('✓ Éxito', 'Cuenta guardada correctamente', 'success');
-        } catch (e) {
-            console.error('[EMAIL] Error guardando cuenta:', e);
-            Swal.fire('Error', e.message || 'No se pudo guardar la cuenta', 'error');
-        }
-    },
-
-    testEmailAccount: async function(accountId, type) {
-        Swal.fire({ title: 'Probando conexión...', text: 'Por favor espera', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
-        try {
-            const endpoint = type === 'smtp' ? `/email/accounts/${accountId}/test-smtp` : `/email/accounts/${accountId}/test-imap`;
-            const result = await this.fetchAPI(endpoint, { method: 'POST' });
-            
-            if (result.success) {
-                Swal.fire('✓ Éxito', result.message || 'Conexión exitosa', 'success');
-            } else {
-                Swal.fire('✗ Error', result.error || 'Error en la conexión', 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo probar la conexión', 'error');
-        }
-    },
-
-    deleteEmailAccount: async function(accountId) {
-        const result = await Swal.fire({
-            title: '¿Eliminar cuenta?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        });
-        
-        if (result.isConfirmed) {
-            try {
-                await this.fetchAPI(`/email/accounts/${accountId}`, { method: 'DELETE' });
-                this.loadEmailAccounts();
-                Swal.fire('✓ Eliminado', 'Cuenta eliminada', 'success');
-            } catch (e) {
-                Swal.fire('Error', 'No se pudo eliminar', 'error');
-            }
-        }
-    },
-
-    loadMailboxFolders: async function() {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        if (!accountId) {
-            const container = document.getElementById('mailbox-folders');
-            if (container) container.innerHTML = `<div class="text-center py-8 text-[var(--text-secondary)] text-sm"><span class="material-symbols-outlined text-3xl mb-2 block opacity-50">folder</span><p>Selecciona una cuenta</p></div>`;
-            return;
-        }
-        
-        const container = document.getElementById('mailbox-folders');
-        const progress = document.getElementById('mailbox-progress');
-        if (!container) return;
-        
-        const progressFill = document.getElementById('mailbox-progress-fill');
-        const progressTrack = document.getElementById('mailbox-progress-track');
-        if (progress) {
-            progress.classList.remove('hidden');
-            if (progressFill) progressFill.style.width = '30%';
-        }
-        container.innerHTML = `<div class="p-4 text-center animate-pulse text-xs text-[var(--text-secondary)]">Cargando carpetas...</div>`;
-        
-        try {
-            const result = await this.fetchAPI(`/email/mailbox/folders?account_id=${accountId}`);
-            
-            if (progressFill) progressFill.style.width = '70%';
-            
-            if (!result.success) {
-                container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">${result.error || 'Error al cargar carpetas'}</p>`;
-                if (progress) progress.classList.add('hidden');
-                return;
-            }
-            
-            const folders = result.folders || ['INBOX', 'Sent', 'Drafts', 'Trash', 'Spam'];
-            
-            if (progressFill) progressFill.style.width = '90%';
-            
-            const folderIcons = { 'INBOX': 'inbox', 'Sent': 'send', 'Drafts': 'draft', 'Trash': 'delete', 'Spam': 'report', 'Junk': 'block', 'Archive': 'archive', 'Junk Email': 'block', 'Deleted Items': 'delete' };
-            const folderNames = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Sent Items': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Deleted Items': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado', 'Junk Email': 'No deseado', 'Archive': 'Archivados' };
-            
-            const tree = this._buildFolderTree(folders);
-            
-            container.innerHTML = this._renderFolderTree(tree, '', folderIcons, folderNames);
-            
-            if (progressFill) progressFill.style.width = '100%';
-            setTimeout(() => { if (progress) progress.classList.add('hidden'); }, 400);
-            
-            const hasInbox = folders.includes('INBOX');
-            this.loadMailboxMessages(hasInbox ? 'INBOX' : folders[0]);
-            
-        } catch (e) {
-            console.error('[MAILBOX] Error loading folders:', e);
-            container.innerHTML = `<p class="text-xs text-[var(--error)] p-2">Error: ${e.message}</p>`;
-            if (progress) progress.classList.add('hidden');
-        }
-    },
-
-    _buildFolderTree: function(folders) {
-        const tree = {};
-        for (const folder of folders) {
-            const parts = folder.split('.');
-            let current = tree;
-            for (const part of parts) {
-                if (!current[part]) current[part] = {};
-                current = current[part];
-            }
-        }
-        return tree;
-    },
-
-    _renderFolderTree: function(tree, prefix, icons, names, depth = 0) {
-        let html = '';
-        const entries = Object.keys(tree).sort((a, b) => {
-            const order = ['INBOX', 'Sent', 'Sent Items', 'Drafts', 'Archive', 'Spam', 'Junk', 'Junk Email', 'Trash', 'Deleted Items'];
-            return order.indexOf(a) - order.indexOf(b);
-        });
-        
-        for (const name of entries) {
-            const fullPath = prefix ? `${prefix}.${name}` : name;
-            const hasChildren = Object.keys(tree[name]).length > 0;
-            const icon = icons[name] || (hasChildren ? 'folder' : 'mail');
-            const displayName = names[name] || name;
-            const indent = depth * 16;
-            
-            html += `
-            <div class="mailbox-folder-group">
-                <button onclick="App.loadMailboxMessages('${fullPath}')" 
-                        class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-[var(--text-main)] hover:bg-[var(--bg-hover)] flex items-center gap-2 transition-all duration-200 mailbox-folder-btn group" 
-                        data-folder="${fullPath}"
-                        style="padding-left: ${12 + indent}px;">
-                    <span class="material-symbols-outlined text-sm text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors">${icon}</span>
-                    <span class="truncate">${displayName}</span>
-                    ${hasChildren ? `<span class="material-symbols-outlined text-xs text-[var(--text-secondary)] ml-auto">expand_more</span>` : ''}
-                </button>
-                ${hasChildren ? this._renderFolderTree(tree[name], fullPath, icons, names, depth + 1) : ''}
-            </div>`;
-        }
-        return html;
-    },
-
-    loadMailboxMessages: async function(folder = 'INBOX') {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        const container = document.getElementById('mailbox-messages');
-        const progress = document.getElementById('mailbox-progress');
-        const folderLabel = document.getElementById('mailbox-current-folder');
-        const countLabel = document.getElementById('mailbox-message-count');
-        if (!container) return;
-        
-        const names = { 'INBOX': 'Bandeja de Entrada', 'Sent': 'Enviados', 'Sent Items': 'Enviados', 'Drafts': 'Borradores', 'Trash': 'Papelera', 'Deleted Items': 'Papelera', 'Spam': 'Spam', 'Junk': 'No deseado', 'Junk Email': 'No deseado', 'Archive': 'Archivados' };
-        if (folderLabel) {
-            const folderBase = folder.split('.').pop();
-            folderLabel.textContent = names[folderBase] || folder;
-        }
-        
-        document.querySelectorAll('.mailbox-folder-btn').forEach(btn => {
-            const isActive = btn.dataset.folder === folder;
-            btn.style.background = isActive ? 'var(--bg-hover)' : '';
-            btn.style.borderLeft = isActive ? '3px solid var(--primary)' : '3px solid transparent';
-        });
-        
-        const progressFill = document.getElementById('mailbox-progress-fill');
-        if (progress) {
-            progress.classList.remove('hidden');
-            if (progressFill) progressFill.style.width = '20%';
-        }
-        container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]">
-            <span class="material-symbols-outlined text-4xl mb-2 animate-spin">sync</span>
-            <p class="text-sm">Cargando mensajes...</p>
-        </div>`;
-        
-        if (!accountId) {
-            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">Selecciona una cuenta</p></div>`;
-            if (progress) progress.classList.add('hidden');
-            return;
-        }
-        
-        try {
-            if (progressFill) progressFill.style.width = '50%';
-            const result = await this.fetchAPI(`/email/mailbox/messages?account_id=${accountId}&folder=${folder}`);
-            
-            if (progressFill) progressFill.style.width = '80%';
-            
-            if (!result.success) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'Error al cargar'}</p></div>`;
-                if (progress) progress.classList.add('hidden');
-                return;
-            }
-            
-            const messages = result.messages || [];
-            if (countLabel) countLabel.textContent = messages.length > 0 ? `${messages.length} mensajes` : '';
-            
-            if (messages.length === 0) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span><p class="text-sm">No hay mensajes en esta carpeta</p></div>`;
-                if (progress) progress.classList.add('hidden');
-                return;
-            }
-            
-            container.innerHTML = `<div class="divide-y divide-[var(--border)]">` + messages.map(msg => {
-                const initial = (msg.from_name || msg.from || 'S').charAt(0).toUpperCase();
-                const subject = msg.subject || '(Sin asunto)';
-                const fromName = msg.from_name || msg.from || 'Desconocido';
-                const dateStr = msg.date ? new Date(msg.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-                const timeStr = msg.date ? new Date(msg.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
-                const preview = (msg.text_plain || msg.text || '').substring(0, 100).replace(/<[^>]*>/g, '');
-                
-                return `
-                <div onclick="App.viewMailMessage('${msg.uid}', '${folder}')" 
-                     class="p-4 hover:bg-[var(--bg-hover)] cursor-pointer transition-all duration-200 flex items-start gap-3 group ${msg.seen ? '' : 'bg-gradient-to-r from-[var(--primary)]/5 to-transparent'}"
-                     role="button" tabindex="0">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-lg ${msg.seen ? 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]' : 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white'}">
-                        ${initial}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline mb-1">
-                            <h5 class="text-sm font-semibold text-[var(--text-main)] truncate pr-4 ${msg.seen ? 'font-normal' : 'font-bold'}">${this._escapeHtml(subject)}</h5>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] text-[var(--text-secondary)]">${timeStr}</span>
-                                <span class="text-[10px] text-[var(--text-secondary)]">${dateStr}</span>
-                            </div>
-                        </div>
-                        <p class="text-[11px] text-[var(--text-secondary)] truncate mb-0.5">${this._escapeHtml(fromName)}</p>
-                        ${preview ? `<p class="text-[10px] text-[var(--text-muted)] truncate">${this._escapeHtml(preview)}</p>` : ''}
-                    </div>
-                    ${msg.seen ? '' : '<span class="w-2.5 h-2.5 rounded-full bg-[var(--primary)] shrink-0 mt-2 shadow-lg shadow-[var(--primary)]/30"></span>'}
-                </div>`;
-            }).join('') + `</div>`;
-            
-            if (progressFill) progressFill.style.width = '100%';
-            setTimeout(() => { if (progress) progress.classList.add('hidden'); }, 400);
-            
-        } catch (e) {
-            console.error('[MAILBOX] Error:', e);
-            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-16 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar mensajes</p></div>`;
-            if (progress) progress.classList.add('hidden');
-        }
-    },
-
-    _escapeHtml: function(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    },
-
-    filterMailboxMessages: function(query) {
-        const container = document.getElementById('mailbox-messages');
-        if (!container) return;
-        const items = container.querySelectorAll('[onclick*="viewMailMessage"]');
-        const q = query.toLowerCase();
-        items.forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(q) ? '' : 'none';
-        });
-    },
-
-    refreshMailbox: function() {
-        this.loadMailboxFolders();
-    },
-
-    viewMailMessage: async function(uid, folder) {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        if (!accountId) return;
-        
-        const container = document.getElementById('modal-container-portal');
-        container.innerHTML = `
-        <div id="modal-mail-view" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
-            <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
-                <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                        <span class="material-symbols-outlined text-[var(--primary)] text-xl">mail</span>
-                        <h3 class="text-base font-bold text-[var(--text-main)] truncate" id="mail-view-subject">Cargando...</h3>
-                    </div>
-                    <button id="btn-close-mail-view" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors shrink-0 ml-3" title="Cerrar">
-                        <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                    </button>
-                </div>
-                <div class="p-4 border-b border-[var(--border)] shrink-0" id="mail-view-headers">
-                    <div class="flex items-center gap-3 animate-pulse">
-                        <div class="w-10 h-10 rounded-full bg-[var(--bg-secondary)]"></div>
-                        <div class="flex-1 space-y-2">
-                            <div class="h-3 bg-[var(--bg-secondary)] rounded w-1/3"></div>
-                            <div class="h-2 bg-[var(--bg-secondary)] rounded w-1/4"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-6 overflow-y-auto flex-1" id="mail-view-body">
-                    <div class="flex flex-col items-center justify-center py-12 text-[var(--text-secondary)]">
-                        <span class="material-symbols-outlined text-3xl mb-2 animate-spin">sync</span>
-                        <p class="text-sm">Cargando mensaje...</p>
-                    </div>
-                </div>
-                <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0" id="mail-view-footer">
-                    <div id="mail-view-attachments" class="flex items-center gap-2 flex-wrap"></div>
-                    <div class="flex gap-2">
-                        <button onclick="App.replyToEmail('${uid}', '${folder}')" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1" style="background: var(--bg-hover); color: var(--text-main);">
-                            <span class="material-symbols-outlined text-sm">reply</span>
-                            Responder
-                        </button>
-                        <button id="btn-close-mail-view-footer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-        
-        try {
-            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
-            
-            if (!result.success) {
-                document.getElementById('mail-view-body').innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>${result.error || 'No se pudo cargar el mensaje'}</p></div>`;
-                return;
-            }
-            
-            const msg = result.message;
-            
-            document.getElementById('mail-view-subject').textContent = msg.subject || 'Sin asunto';
-            
-            const initial = (msg.from_name || msg.from || 'S').charAt(0).toUpperCase();
-            const dateStr = msg.date ? new Date(msg.date).toLocaleString('es-ES') : '';
-            
-            document.getElementById('mail-view-headers').innerHTML = `
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-lg">
-                        ${initial}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <span class="text-sm font-bold text-[var(--text-main)]">${this._escapeHtml(msg.from_name || msg.from || 'Desconocido')}</span>
-                            ${msg.from ? `<span class="text-xs text-[var(--text-secondary)]">&lt;${this._escapeHtml(msg.from)}&gt;</span>` : ''}
-                        </div>
-                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-[var(--text-secondary)]">
-                            <span>Para: ${this._escapeHtml(msg.to || '')}</span>
-                            <span>${dateStr}</span>
-                        </div>
-                    </div>
-                </div>`;
-            
-            const attachmentsContainer = document.getElementById('mail-view-attachments');
-            if (msg.attachments && msg.attachments.length > 0) {
-                attachmentsContainer.innerHTML = `<span class="text-xs font-semibold text-[var(--text-secondary)] mr-1">Adjuntos:</span>` + msg.attachments.map((a, i) => `
-                    <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-main)]" 
-                            onclick="App.downloadAttachment(${i}, '${accountId}', '${folder}', '${uid}')"
-                            title="${this._escapeHtml(a.filename)} (${this._formatFileSize(a.size || 0)})">
-                        <span class="material-symbols-outlined text-sm">attach_file</span>
-                        ${this._escapeHtml(a.filename)}
-                    </button>
-                `).join('');
-            } else {
-                attachmentsContainer.innerHTML = '';
-            }
-            
-            const bodyEl = document.getElementById('mail-view-body');
-            if (msg.html) {
-                bodyEl.innerHTML = `<div class="prose prose-sm max-w-none" style="color: var(--text-main);">${msg.html}</div>`;
-            } else if (msg.text) {
-                bodyEl.innerHTML = `<pre class="text-sm text-[var(--text-main)] whitespace-pre-wrap font-sans leading-relaxed">${this._escapeHtml(msg.text)}</pre>`;
-            } else {
-                bodyEl.innerHTML = `<p class="text-sm text-[var(--text-secondary)] italic">Sin contenido</p>`;
-            }
-            
-        } catch (e) {
-            console.error('[MAILBOX] Error viewing message:', e);
-            document.getElementById('mail-view-body').innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-[var(--error)]"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error al cargar el mensaje</p></div>`;
-        }
-        
-        document.getElementById('btn-close-mail-view')?.addEventListener('click', () => this._closeMailModal());
-        document.getElementById('btn-close-mail-view-footer')?.addEventListener('click', () => this._closeMailModal());
-        
-        document.getElementById('modal-mail-view')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modal-mail-view') this._closeMailModal();
-        });
-    },
-
-    _closeMailModal: function() {
-        const modal = document.getElementById('modal-mail-view');
-        if (modal) {
-            modal.style.opacity = '0';
-            modal.style.transition = 'opacity 0.2s ease';
-            setTimeout(() => {
-                document.getElementById('modal-container-portal').innerHTML = '';
-            }, 200);
-        }
-    },
-
-    downloadAttachment: async function(attIndex, accountId, folder, uid) {
-        try {
-            const token = window.App?.state?.user?.token || LS.get('token');
-            const response = await fetch(`/api/email/mailbox/attachment/${uid}?account_id=${accountId}&folder=${folder}&attachmentIndex=${attIndex}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Error al descargar');
-            const blob = await response.blob();
-            const disposition = response.headers.get('content-disposition');
-            let filename = 'archivo';
-            if (disposition) {
-                const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (match) filename = match[1].replace(/['"]/g, '');
-            }
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } catch (e) {
-            console.error('[MAILBOX] Error downloading attachment:', e);
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo descargar el adjunto', timer: 2000, toast: true, position: 'top-end' });
-            }
-        }
-    },
-
-    seedAllTemplates: async function() {
-        try {
-            const result = await this.fetchAPI('/email/templates/seed-all', { method: 'POST' });
-            if (result.success) {
-                Swal.fire('✓ Éxito', `${result.created} plantillas creadas`, 'success');
-                this.loadEmailTemplates();
-                this.loadComposerTemplates();
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudieron crear las plantillas', 'error');
-        }
-    },
-
-    exportCampaignLogs: async function(campaignId) {
-        try {
-            const token = window.App?.state?.user?.token || LS.get('token');
-            const response = await fetch(`/api/email/campaigns/${campaignId}/export-logs`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Error al exportar');
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `campaign-${campaignId}-logs.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } catch (e) {
-            Swal.fire('Error', 'No se pudieron exportar los logs', 'error');
-        }
-    },
-
-    duplicateCampaign: async function(campaignId) {
-        try {
-            const result = await this.fetchAPI(`/email/campaigns/${campaignId}/duplicate`, { method: 'POST' });
-            if (result.success) {
-                Swal.fire('✓ Éxito', `Campaña duplicada: ${result.name}`, 'success');
-                this.loadEmailCampaigns();
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo duplicar la campaña', 'error');
-        }
-    },
-
-    retryFailedCampaign: async function(campaignId) {
-        try {
-            const result = await this.fetchAPI(`/email/campaigns/${campaignId}/retry-failed`, { method: 'POST' });
-            if (result.success) {
-                Swal.fire('✓ Éxito', `${result.retried} emails reintentados`, 'success');
-                this.loadEmailCampaigns();
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudieron reintentar los emails', 'error');
-        }
-    },
-
-    saveContact: async function() {
-        const id = document.getElementById('contact-id')?.value;
-        const name = document.getElementById('contact-name')?.value?.trim();
-        const email = document.getElementById('contact-email')?.value?.trim();
-        const organization = document.getElementById('contact-organization')?.value?.trim();
-        const phone = document.getElementById('contact-phone')?.value?.trim();
-        const tags = document.getElementById('contact-tags')?.value?.trim();
-        const notes = document.getElementById('contact-notes')?.value?.trim();
-        const isActive = document.getElementById('contact-active')?.checked;
-        
-        if (!name || !email) {
-            return Swal.fire('Error', 'Nombre y Email son requeridos', 'error');
-        }
-        
-        try {
-            if (id) {
-                await this.fetchAPI(`/contacts/${id}`, { method: 'PUT', body: JSON.stringify({ name, email, organization, phone, tags, notes, is_active: isActive }) });
-            } else {
-                await this.fetchAPI('/contacts', { method: 'POST', body: JSON.stringify({ name, email, organization, phone, tags, notes, is_active: isActive }) });
-            }
-            Swal.fire('✓ Éxito', 'Contacto guardado', 'success');
-            document.getElementById('modal-contact-editor')?.classList.add('hidden');
-            this.loadContacts?.();
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo guardar el contacto', 'error');
-        }
-    },
-
-    saveContactGroup: async function() {
-        const id = document.getElementById('group-id')?.value;
-        const name = document.getElementById('group-name')?.value?.trim();
-        const description = document.getElementById('group-description')?.value?.trim();
-        
-        if (!name) {
-            return Swal.fire('Error', 'Nombre del grupo es requerido', 'error');
-        }
-        
-        try {
-            if (id) {
-                await this.fetchAPI(`/contact-groups/${id}`, { method: 'PUT', body: JSON.stringify({ name, description }) });
-            } else {
-                await this.fetchAPI('/contact-groups', { method: 'POST', body: JSON.stringify({ name, description }) });
-            }
-            Swal.fire('✓ Éxito', 'Grupo guardado', 'success');
-            document.getElementById('modal-group-editor')?.classList.add('hidden');
-            this.loadContactGroups?.();
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo guardar el grupo', 'error');
-        }
-    },
-
-    importContacts: async function() {
-        const fileInput = document.getElementById('import-file');
-        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-            return Swal.fire('Error', 'Selecciona un archivo', 'error');
-        }
-        
-        const file = fileInput.files[0];
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        try {
-            Swal.fire({ title: 'Importando...', didOpen: () => Swal.showLoading() });
-            const result = await fetch('/api/import/validate', { method: 'POST', body: formData });
-            const data = await result.json();
-            
-            if (data.success) {
-                Swal.fire('✓ Éxito', `${data.count || 'Contactos'} importados correctamente`, 'success');
-                document.getElementById('modal-import')?.classList.add('hidden');
-                this.loadContacts?.();
-            } else {
-                Swal.fire('Error', data.error || 'Error al importar', 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo importar el archivo', 'error');
-        }
-    },
-
-    editMailingTemplate: async function(templateId) {
-        this.editEmailTemplate(templateId);
-    },
-
-    replyToEmail: async function(uid, folder) {
-        const accountId = document.getElementById('mailbox-account-select')?.value;
-        if (!accountId) return;
-        
-        try {
-            const result = await this.fetchAPI(`/email/mailbox/message/${uid}?account_id=${accountId}&folder=${folder}`);
-            if (!result.success) return;
-            
-            const msg = result.message;
-            const replyTo = msg.from || '';
-            const replySubject = msg.subject ? (msg.subject.startsWith('Re:') ? msg.subject : `Re: ${msg.subject}`) : 'Re:';
-            
-            // Close mail view modal
-            document.getElementById('modal-mail-view')?.classList.add('hidden');
-            setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            
-            // Open composer with pre-filled data
-            this.openEmailComposer(replyTo, replySubject);
-        } catch (e) {
-            console.error('[MAILBOX] Error replying:', e);
-        }
-    },
-
-    sortMailboxMessages: function(criteria) {
-        const container = document.getElementById('mailbox-messages');
-        if (!container) return;
-        const items = Array.from(container.querySelectorAll('[onclick*="viewMailMessage"]'));
-        
-        items.sort((a, b) => {
-            const getSubject = el => el.querySelector('h5')?.textContent?.trim() || '';
-            const getFrom = el => el.querySelector('p')?.textContent?.replace('De: ', '') || '';
-            const getDate = el => {
-                const span = el.querySelector('span.text-\\[9px\\]');
-                return span ? span.textContent.trim() : '';
-            };
-            
-            switch (criteria) {
-                case 'date-desc': return getDate(b).localeCompare(getDate(a));
-                case 'date-asc': return getDate(a).localeCompare(getDate(b));
-                case 'sender': return getFrom(a).localeCompare(getFrom(b));
-                case 'subject': return getSubject(a).localeCompare(getSubject(b));
-                default: return 0;
-            }
-        });
-        
-        items.forEach(item => container.appendChild(item));
-    },
-
-    previewComposer: function() {
-        const htmlSource = document.getElementById('composer-html-source');
-        let content = '';
-        if (htmlSource) {
-            content = htmlSource.value;
-        } else if (this.composerQuill) {
-            content = this.composerQuill.root.innerHTML;
-        }
-        
-        if (!content) {
-            Swal.fire('Vista previa', 'No hay contenido para previsualizar', 'info');
-            return;
-        }
-        
-        Swal.fire({
-            title: 'Vista Previa',
-            html: `<div style="text-align:left;max-height:60vh;overflow-y:auto;">${content}</div>`,
-            width: '800px',
-            showConfirmButton: true,
-            confirmButtonText: 'Cerrar'
-        });
-    },
-
-    insertComposerVariable: function(variable) {
-        const textarea = document.getElementById('composer-html-source');
-        if (textarea) {
-            // HTML mode
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, start) + variable + textarea.value.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + variable.length;
-            textarea.focus();
-        } else if (this.composerQuill) {
-            // Visual mode
-            const range = this.composerQuill.getSelection();
-            this.composerQuill.insertText(range ? range.index : 0, variable);
-        }
-    },
-
-    _formatFileSize: function(bytes) {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    },
-
-    openEmailComposer: function(to = '', subject = '') {
-        const existing = document.getElementById('modal-email-composer');
-        if (existing) existing.remove();
-        
-        const composerHTML = `
-        <div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
-            <div class="w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
-                <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-[var(--primary)] text-xl">edit</span>
-                        <h3 class="text-base font-bold text-[var(--text-main)]">Nuevo Email</h3>
-                    </div>
-                    <button id="btn-close-composer" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors" title="Cerrar">
-                        <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                    </button>
-                </div>
-                <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                    <div>
-                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Para</label>
-                        <input type="email" id="composer-to" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" placeholder="destinatario@email.com" value="${this._escapeHtml(to)}" />
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Asunto</label>
-                        <input type="text" id="composer-subject" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all" placeholder="Asunto del email" value="${this._escapeHtml(subject)}" />
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Plantilla:</label>
-                        <select id="composer-template" onchange="App.loadTemplateIntoComposer(this.value)" class="px-2 py-1 rounded text-xs border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]">
-                            <option value="">-- Elegir plantilla --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Mensaje</label>
-                        <div id="composer-editor-container" class="border border-[var(--border)] rounded-lg overflow-hidden" style="background: var(--bg-secondary);">
-                            <div id="composer-quill" style="min-height: 250px; color: var(--text-main);"></div>
-                        </div>
-                        <input type="hidden" id="composer-body" />
-                        <div class="flex items-center gap-2 mt-2">
-                            <button onclick="App.toggleComposerMode('visual')" id="btn-mode-visual" class="px-3 py-1 rounded text-xs font-medium bg-[var(--primary)] text-white">Visual</button>
-                            <button onclick="App.toggleComposerMode('html')" id="btn-mode-html" class="px-3 py-1 rounded text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-main)]">HTML</button>
-                            <button onclick="App.previewComposer()" class="px-3 py-1 rounded text-xs font-medium bg-[var(--bg-hover)] text-[var(--text-main)] flex items-center gap-1">
-                                <span class="material-symbols-outlined text-xs">visibility</span>
-                                Preview
-                            </button>
-                            <label class="ml-auto flex items-center gap-1 text-xs text-[var(--text-secondary)] cursor-pointer">
-                                <span class="material-symbols-outlined text-sm">attach_file</span>
-                                Adjunto
-                                <input type="file" id="composer-attachment" class="hidden" onchange="App.handleComposerAttachment(this)" />
-                            </label>
-                        </div>
-                        <div class="mt-2">
-                            <p class="text-[10px] text-[var(--text-muted)] mb-1">Variables:</p>
-                            <div class="flex flex-wrap gap-1">
-                                <button onclick="App.insertComposerVariable('{{guest_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{guest_name}}</button>
-                                <button onclick="App.insertComposerVariable('{{guest_first_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{guest_first_name}}</button>
-                                <button onclick="App.insertComposerVariable('{{event_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_name}}</button>
-                                <button onclick="App.insertComposerVariable('{{event_date}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_date}}</button>
-                                <button onclick="App.insertComposerVariable('{{event_location}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{event_location}}</button>
-                                <button onclick="App.insertComposerVariable('{{qr_code}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">{{qr_code}}</button>
-                            </div>
-                        </div>
-                        <div id="composer-attachment-list" class="mt-2 space-y-1"></div>
-                    </div>
-                </div>
-                <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0">
-                    <p class="text-[10px] text-[var(--text-muted)]">Para y Asunto obligatorios</p>
-                    <div class="flex gap-2">
-                        <button id="btn-cancel-composer" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cancelar</button>
-                        <button id="btn-draft-composer" onclick="App.saveDraftEmail()" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-secondary); color: var(--text-main);">Borrador</button>
-                        <button id="btn-send-composer" class="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-200 flex items-center gap-2" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">
-                            <span class="material-symbols-outlined text-sm">send</span>
-                            Enviar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-        
-        document.getElementById('modal-container-portal').innerHTML = composerHTML;
-        
-        // Inicializar Quill
-        setTimeout(() => {
-            if (window.Quill) {
-                this.composerQuill = new Quill('#composer-quill', {
-                    theme: 'snow',
-                    placeholder: 'Escribe tu mensaje aquí...',
-                    modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'image'],
-                            ['clean']
-                        ]
-                    }
-                });
-            }
-            
-            // Cargar plantillas
-            this.loadComposerTemplates();
-        }, 100);
-        
-        document.getElementById('btn-close-composer')?.addEventListener('click', () => this._closeComposerModal());
-        document.getElementById('btn-cancel-composer')?.addEventListener('click', () => this._closeComposerModal());
-        document.getElementById('btn-send-composer')?.addEventListener('click', () => this.sendEmail());
-        
-        document.getElementById('modal-email-composer')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modal-email-composer') this._closeComposerModal();
-        });
-        
-        setTimeout(() => {
-            const toInput = document.getElementById('composer-to');
-            if (toInput && !toInput.value) toInput.focus();
-        }, 100);
-    },
-
-    toggleComposerMode: function(mode) {
-        if (!this.composerQuill) return;
-        const editor = document.getElementById('composer-quill');
-        const btnVisual = document.getElementById('btn-mode-visual');
-        const btnHtml = document.getElementById('btn-mode-html');
-        
-        if (mode === 'html') {
-            const html = this.composerQuill.root.innerHTML;
-            editor.innerHTML = `<textarea id="composer-html-source" class="w-full h-64 p-3 text-xs font-mono bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] rounded resize-y" style="min-height:250px;">${this._escapeHtml(html)}</textarea>`;
-            btnHtml.classList.add('bg-[var(--primary)]', 'text-white');
-            btnHtml.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
-            btnVisual.classList.remove('bg-[var(--primary)]', 'text-white');
-            btnVisual.classList.add('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
-        } else {
-            const source = document.getElementById('composer-html-source');
-            if (source) {
-                this.composerQuill.root.innerHTML = source.value;
-            }
-            editor.innerHTML = '<div id="composer-quill-inner" style="min-height: 250px; color: var(--text-main);"></div>';
-            // Re-init quill
-            this.composerQuill = new Quill('#composer-quill-inner', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image'],
-                        ['clean']
-                    ]
-                }
-            });
-            btnVisual.classList.add('bg-[var(--primary)]', 'text-white');
-            btnVisual.classList.remove('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
-            btnHtml.classList.remove('bg-[var(--primary)]', 'text-white');
-            btnHtml.classList.add('bg-[var(--bg-hover)]', 'text-[var(--text-main)]');
-        }
-    },
-
-    loadComposerTemplates: async function() {
-        try {
-            const templates = await this.fetchAPI('/email/templates');
-            const sel = document.getElementById('composer-template');
-            if (sel && templates) {
-                sel.innerHTML = '<option value="">-- Elegir plantilla --</option>' + templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            }
-        } catch(e) {}
-    },
-
-    loadTemplateIntoComposer: async function(templateId) {
-        if (!templateId || !this.composerQuill) return;
-        try {
-            const template = await this.fetchAPI(`/email/templates/${templateId}`);
-            if (template) {
-                if (template.body_html) {
-                    this.composerQuill.root.innerHTML = template.body_html;
-                } else if (template.body_text) {
-                    this.composerQuill.setText(template.body_text);
-                }
-                if (template.subject && !document.getElementById('composer-subject')?.value) {
-                    document.getElementById('composer-subject').value = template.subject;
-                }
-            }
-        } catch(e) {}
-    },
-
-    handleComposerAttachment: function(input) {
-        const list = document.getElementById('composer-attachment-list');
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const maxSize = 10 * 1024 * 1024; // 10MB
-            if (file.size > maxSize) {
-                Swal.fire('Error', `El archivo "${file.name}" excede el tamaño máximo de 10MB`, 'error');
-                input.value = '';
-                return;
-            }
-            list.innerHTML += `<div class="flex items-center gap-2 text-xs text-[var(--text-main)] bg-[var(--bg-secondary)] px-2 py-1 rounded"><span class="material-symbols-outlined text-sm">attach_file</span>${this._escapeHtml(file.name)} (${this._formatFileSize(file.size)})</div>`;
-        }
-    },
-
-    _closeComposerModal: function() {
-        const modal = document.getElementById('modal-email-composer');
-        if (modal) {
-            modal.style.opacity = '0';
-            modal.style.transition = 'opacity 0.2s ease';
-            setTimeout(() => {
-                document.getElementById('modal-container-portal').innerHTML = '';
-            }, 200);
-        }
-    },
-
-    sendEmail: async function() {
-        const to = document.getElementById('composer-to')?.value?.trim();
-        const subject = document.getElementById('composer-subject')?.value?.trim();
-        
-        let body = '';
-        const htmlSource = document.getElementById('composer-html-source');
-        if (htmlSource) {
-            body = htmlSource.value;
-        } else if (this.composerQuill) {
-            body = this.composerQuill.root.innerHTML;
-        } else {
-            body = document.getElementById('composer-body')?.value?.trim() || '';
-        }
-        
-        if (!to || !subject) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'warning', title: 'Campos requeridos', text: 'Completa los campos Para y Asunto', timer: 2500, toast: true, position: 'top-end' });
-            }
-            return;
-        }
-        
-        const btn = document.getElementById('btn-send-composer');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Enviando...';
-        }
-        
-        try {
-            // Read attachments as base64
-            const attachments = [];
-            const fileInput = document.getElementById('composer-attachment');
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                for (const file of fileInput.files) {
-                    const base64 = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
-                    attachments.push({ filename: file.name, content: base64 });
-                }
-            }
-            
-            const result = await this.fetchAPI('/email/send', {
-                method: 'POST',
-                body: JSON.stringify({ to, subject, body_html: body, attachments })
-            });
-            
-            if (result.success) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'success', title: 'Enviado', text: 'Email enviado correctamente', timer: 2000, toast: true, position: 'top-end' });
-                }
-                this._closeComposerModal();
-            } else {
-                throw new Error(result.error || 'Error al enviar');
-            }
-        } catch (e) {
-            console.error('[MAILBOX] Error sending email:', e);
-            let errorMsg = 'No se pudo enviar el email';
-            if (e.message?.includes('SMTP')) errorMsg = 'Error de conexión SMTP. Verifica la configuración de la cuenta.';
-            else if (e.message?.includes('límite')) errorMsg = 'Se alcanzó el límite diario de emails.';
-            else if (e.message?.includes('requerido')) errorMsg = e.message;
-            else if (e.message) errorMsg = e.message;
-            
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Error al enviar', text: errorMsg, confirmButtonText: 'Entendido' });
-            }
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Enviar';
-            }
-        }
-    },
-
-    saveDraftEmail: function() {
-        const to = document.getElementById('composer-to')?.value?.trim();
-        const subject = document.getElementById('composer-subject')?.value?.trim();
-        
-        let body = '';
-        const htmlSource = document.getElementById('composer-html-source');
-        if (htmlSource) {
-            body = htmlSource.value;
-        } else if (this.composerQuill) {
-            body = this.composerQuill.root.innerHTML;
-        } else {
-            body = document.getElementById('composer-body')?.value?.trim() || '';
-        }
-        
-        // Save to localStorage as draft
-        const draft = { to, subject, body, savedAt: new Date().toISOString() };
-        localStorage.setItem('email_draft', JSON.stringify(draft));
-        
-        Swal.fire({ icon: 'success', title: 'Borrador guardado', text: 'Se guardó como borrador local', timer: 2000, toast: true, position: 'top-end' });
-        this._closeComposerModal();
-    },
-
-    loadEmailTemplates: async function() {
-        const container = document.getElementById('email-templates-grid');
-        if (!container) return;
-        
-        try {
-            const templates = await this.fetchAPI('/email/templates');
-            
-            if (!templates || templates.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-3 text-center py-12 text-slate-500">
-                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span>
-                        <p class="text-sm">No hay plantillas</p>
-                        <p class="text-xs mt-1">Crea plantillas para tus comunicaciones</p>
-                    </div>`;
-                return;
-            }
-            
-            container.innerHTML = templates.map(t => `
-                <div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate('${t.id}')">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">${t.category || 'general'}</span>
-                    </div>
-                    <p class="text-xs text-slate-500 truncate">${t.subject || 'Sin asunto'}</p>
-                    ${t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : ''}
-                </div>
-            `).join('');
-            
-            // También cargar en selects de mailing
-            this.updateEmailTemplateSelects(templates);
-            
-        } catch (e) {
-            console.error('[EMAIL] Error loading templates:', e);
-        }
-    },
-
-    updateEmailTemplateSelects: function(templates) {
-        const sel = document.getElementById('mailing-template-select');
-        if (!sel) return;
-        
-        sel.innerHTML = '<option value="">-- Sin plantilla --</option>' + 
-            templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-    },
-
-    viewEmailTemplate: async function(templateId) {
-        try {
-            const t = await this.fetchAPI(`/email/templates/${templateId}`);
-            
-            Swal.fire({
-                title: t.name,
-                html: `<div class="text-left">
-                    <p class="text-xs text-slate-500 mb-2">Asunto: ${t.subject || 'N/A'}</p>
-                    <div class="bg-white rounded-lg p-4 max-h-[400px] overflow-y-auto">
-                        ${t.body_html || '<pre class="text-sm">' + (t.body_text || 'Sin contenido') + '</pre>'}
-                    </div>
-                </div>`,
-                width: '800px',
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)'
-            });
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
-        }
-    },
-
-    showTemplateLibrary: async function() {
-        try {
-            const templates = await this.fetchAPI('/email/templates');
-            
-            const templateCards = (templates || []).map(t => `
-                <div class="border border-[var(--border)] rounded-lg p-4 hover:border-[var(--primary)] transition-colors cursor-pointer" onclick="App.editEmailTemplate('${t.id}')">
-                    <div class="flex justify-between items-start mb-2">
-                        <h4 class="text-sm font-bold text-[var(--text-main)]">${t.name}</h4>
-                        ${t.is_system ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">Sistema</span>' : ''}
-                    </div>
-                    <p class="text-xs text-[var(--text-secondary)] mb-2">${t.subject || 'Sin asunto'}</p>
-                    <p class="text-[10px] text-[var(--text-muted)]">${t.category || 'general'}</p>
-                </div>
-            `).join('');
-            
-            Swal.fire({
-                title: 'Biblioteca de Plantillas',
-                html: `
-                    <div class="text-left">
-                        <div class="mb-4 flex justify-between items-center">
-                            <p class="text-xs text-[var(--text-secondary)]">${(templates || []).length} plantillas disponibles</p>
-                            <button onclick="App.seedAllTemplates()" class="text-xs text-violet-400 hover:text-violet-300">+ Crear 12 Plantillas Base</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
-                            ${templateCards || '<p class="col-span-2 text-center text-sm text-[var(--text-secondary)] py-8">No hay plantillas. Crea las 12 plantillas base.</p>'}
-                        </div>
-                    </div>`,
-                width: '800px',
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)',
-                showConfirmButton: true,
-                confirmButtonText: 'Cerrar'
-            });
-        } catch (e) {
-            Swal.fire('Error', 'No se pudieron cargar las plantillas', 'error');
-        }
-    },
-
-    editEmailTemplate: async function(templateId) {
-        try {
-            const t = await this.fetchAPI(`/email/templates/${templateId}`);
-            
-            // Crear modal con Quill editor
-            const modalContent = `
-            <div id="modal-template-editor" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
-                <div class="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-[var(--border)] shadow-2xl" style="background: var(--bg-card); backdrop-filter: blur(20px);">
-                    <div class="p-5 border-b border-[var(--border)] flex justify-between items-center shrink-0">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[var(--primary)] text-xl">edit_note</span>
-                            <h3 class="text-base font-bold text-[var(--text-main)]">Editar Plantilla: ${t.name}</h3>
-                        </div>
-                        <button onclick="document.getElementById('modal-template-editor')?.classList.add('hidden'); setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                            <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-                        </button>
-                    </div>
-                    <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                        <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Asunto</label>
-                            <input type="text" id="edit-template-subject" class="w-full px-3 py-2.5 rounded-lg text-sm border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-main)]" value="${this._escapeHtml(t.subject || '')}" />
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 block">Contenido</label>
-                            <div id="edit-template-quill" style="min-height: 300px; background: var(--bg-card); color: var(--text-main);"></div>
-                            <input type="hidden" id="edit-template-html" value="${this._escapeHtml(t.body_html || t.body_text || '')}" />
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                            <button onclick="App.insertTemplateVariable('{{guest_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{guest_name}}</button>
-                            <button onclick="App.insertTemplateVariable('{{guest_first_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{guest_first_name}}</button>
-                            <button onclick="App.insertTemplateVariable('{{event_name}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_name}}</button>
-                            <button onclick="App.insertTemplateVariable('{{event_date}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_date}}</button>
-                            <button onclick="App.insertTemplateVariable('{{event_location}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_location}}</button>
-                            <button onclick="App.insertTemplateVariable('{{event_time}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{event_time}}</button>
-                            <button onclick="App.insertTemplateVariable('{{qr_code}}')" class="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">{{qr_code}}</button>
-                        </div>
-                    </div>
-                    <div class="p-4 border-t border-[var(--border)] flex justify-between items-center shrink-0">
-                        <p class="text-[10px] text-[var(--text-muted)]">Las variables se reemplazan al enviar</p>
-                        <div class="flex gap-2">
-                            <button onclick="document.getElementById('modal-template-editor')?.classList.add('hidden'); setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);" class="px-5 py-2 rounded-lg text-sm font-medium transition-colors" style="background: var(--bg-hover); color: var(--text-main);">Cancelar</button>
-                            <button onclick="App.saveEmailTemplate('${templateId}')" class="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-200" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));">Guardar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-            
-            document.getElementById('modal-container-portal').innerHTML = modalContent;
-            
-            // Inicializar Quill
-            setTimeout(() => {
-                if (window.Quill) {
-                    this.templateEditorQuill = new Quill('#edit-template-quill', {
-                        theme: 'snow',
-                        placeholder: 'Escribe el contenido de la plantilla...',
-                        modules: {
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'color': [] }, { 'background': [] }],
-                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                ['link', 'image'],
-                                ['clean']
-                            ]
-                        }
-                    });
-                    // Cargar contenido existente
-                    const htmlVal = document.getElementById('edit-template-html')?.value;
-                    if (htmlVal) {
-                        this.templateEditorQuill.root.innerHTML = htmlVal;
-                    }
-                }
-            }, 100);
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo cargar la plantilla', 'error');
-        }
-    },
-
-    insertTemplateVariable: function(variable) {
-        if (this.templateEditorQuill) {
-            const range = this.templateEditorQuill.getSelection();
-            this.templateEditorQuill.insertText(range ? range.index : 0, variable);
-        }
-    },
-
-    saveEmailTemplate: async function(templateId) {
-        const subject = document.getElementById('edit-template-subject')?.value;
-        let bodyHtml = '';
-        if (this.templateEditorQuill) {
-            bodyHtml = this.templateEditorQuill.root.innerHTML;
-        }
-        
-        if (!subject) {
-            return Swal.fire('Error', 'El asunto es requerido', 'error');
-        }
-        
-        try {
-            await this.fetchAPI(`/email/templates/${templateId}`, {
-                method: 'PUT',
-                body: JSON.stringify({ subject, body_html: bodyHtml })
-            });
-            Swal.fire('✓ Guardado', 'Plantilla actualizada', 'success');
-            document.getElementById('modal-template-editor')?.classList.add('hidden');
-            setTimeout(() => { document.getElementById('modal-container-portal').innerHTML = ''; }, 300);
-            this.templateEditorQuill = null;
-            this.showTemplateLibrary();
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo guardar la plantilla: ' + e.message, 'error');
-        }
-    },
-
-    loadEmailCampaigns: async function() {
-        const container = document.getElementById('email-campaigns-list');
-        if (!container) return;
-        
-        try {
-            const campaigns = await this.fetchAPI('/email/campaigns');
-            
-            if (!campaigns || campaigns.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-slate-500">
-                        <span class="material-symbols-outlined text-5xl mb-3 text-slate-600">campaign</span>
-                        <p class="text-sm">No hay campañas</p>
-                    </div>`;
-                return;
-            }
-            
-            const statusColors = {
-                'DRAFT': 'bg-slate-500/20 text-slate-400',
-                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
-                'SENDING': 'bg-blue-500/20 text-blue-400',
-                'SENT': 'bg-green-500/20 text-green-400',
-                'PAUSED': 'bg-orange-500/20 text-orange-400',
-                'CANCELLED': 'bg-red-500/20 text-red-400'
-            };
-            
-            container.innerHTML = campaigns.map(c => `
-                <div class="card p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-xl text-violet-400">campaign</span>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white">${c.name}</h4>
-                            <p class="text-xs text-slate-500">${c.subject || 'Sin asunto'}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">
-                            ${c.status}
-                        </span>
-                        <span class="text-xs text-slate-500">${c.sent_count || 0}/${c.total_recipients || 0}</span>
-                        ${c.status === 'DRAFT' ? `<button onclick="App.sendCampaign('${c.id}')" class="btn-primary !px-3 !py-1 text-xs">Enviar</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-            
-        } catch (e) {
-            console.error('[EMAIL] Error loading campaigns:', e);
-        }
-    },
-
-    sendCampaign: async function(campaignId) {
-        const result = await Swal.fire({
-            title: '¿Iniciar envío?',
-            text: 'La campaña se enviará a todos los destinatarios',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, enviar',
-            cancelButtonText: 'Cancelar'
-        });
-        
-        if (result.isConfirmed) {
-            try {
-                await this.fetchAPI(`/email/campaigns/${campaignId}/send`, { method: 'POST' });
-                Swal.fire('✓ Éxito', 'Envío iniciado', 'success');
-                this.loadEmailCampaigns();
-            } catch (e) {
-                Swal.fire('Error', e.message || 'No se pudo iniciar el envío', 'error');
-            }
-        }
-    },
-
-    createDefaultTemplates: async function() {
-        try {
-            await this.fetchAPI('/email/templates/seed', { method: 'POST' });
-            this.loadEmailTemplates();
-            Swal.fire('✓ Éxito', 'Plantillas base creadas', 'success');
-        } catch (e) {
-            Swal.fire('Info', e.message || 'Las plantillas ya existen', 'info');
-        }
-    },
-
-    // ==================== MAILING (CONFIG EVENTO) ====================
-    
-    switchMailingSubTab: function(subTab) {
-        const subTabs = ['composer', 'campaigns', 'templates'];
-        subTabs.forEach(tab => {
-            const el = document.getElementById(`mailing-subtab-${tab}`);
-            const btn = document.getElementById(`mailing-tab-${tab}`);
-            if (el) el.classList.add('hidden');
-            if (btn) {
-                btn.classList.remove('bg-violet-500/20', 'text-violet-300');
-                btn.classList.add('bg-white/5', 'text-slate-400');
-            }
-        });
-        
-        const activeEl = document.getElementById(`mailing-subtab-${subTab}`);
-        const activeBtn = document.getElementById(`mailing-tab-${subTab}`);
-        if (activeEl) activeEl.classList.remove('hidden');
-        if (activeBtn) {
-            activeBtn.classList.add('bg-violet-500/20', 'text-violet-300');
-            activeBtn.classList.remove('bg-white/5', 'text-slate-400');
-        }
-        
-        // Cargar datos según subtab
-        if (subTab === 'campaigns') this.loadMailingCampaigns();
-        if (subTab === 'templates') this.loadMailingTemplates();
-    },
-
-    loadMailingData: async function() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        try {
-            // Cargar cuentas del evento
-            const accounts = await this.fetchAPI(`/email/accounts?event_id=${eventId}`);
-            this.updateEmailAccountSelects(accounts);
-            
-            // Cargar plantillas
-            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
-            this.updateEmailTemplateSelects(templates);
-            
-            // Cargar guests para conteo
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            const total = guests?.length || 0;
-            const confirmed = guests?.filter(g => g.checked_in)?.length || 0;
-            const pending = total - confirmed;
-            
-            const countEl = document.getElementById('mailing-recipient-count');
-            if (countEl) countEl.textContent = `${total} invitados (${confirmed} confirmados, ${pending} pendientes)`;
-            
-            // Guardar guests en estado
-            this.state.mailingGuests = guests || [];
-            
-            // Cargar grupos
-            const groups = [...new Set((guests || []).filter(g => g.group_name).map(g => g.group_name))];
-            const groupSel = document.getElementById('mailing-recipient-group');
-            if (groupSel) {
-                groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
-                    groups.map(g => `<option value="${g}">${g}</option>`).join('');
-            }
-            
-            // Handler para mostrar/ocultar selector de grupo
-            document.querySelectorAll('input[name="mailing-recipient-type"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const groupSelector = document.getElementById('mailing-group-selector');
-                    if (groupSelector) {
-                        groupSelector.classList.toggle('hidden', e.target.value !== 'group');
-                    }
-                    this.updateMailingRecipientCount();
-                });
-            });
-            
-            // Inicializar editor Quill
-            setTimeout(() => this.initMailingQuillEditor(), 100);
-            
-        } catch (e) {
-            console.error('[MAILING] Error loading data:', e);
-        }
-    },
-
-    updateMailingRecipientCount: function() {
-        const guests = this.state.mailingGuests || [];
-        const recipientType = document.querySelector('input[name="mailing-recipient-type"]:checked')?.value || 'all';
-        const groupId = document.getElementById('mailing-recipient-group')?.value || '';
-        
-        let count = 0;
-        if (recipientType === 'all') {
-            count = guests.length;
-        } else if (recipientType === 'confirmed') {
-            count = guests.filter(g => g.checked_in).length;
-        } else if (recipientType === 'pending') {
-            count = guests.filter(g => !g.checked_in).length;
-        } else if (recipientType === 'group' && groupId) {
-            count = guests.filter(g => g.group_name === groupId).length;
-        }
-        
-        const countEl = document.getElementById('mailing-recipient-count');
-        if (countEl) countEl.textContent = `${count} destinatarios`;
-    },
-
-    onMailingTemplateChange: function() {
-        const templateId = document.getElementById('mailing-template-select')?.value;
-        if (!templateId) return;
-        
-        const template = this.state.emailTemplates?.find(t => t.id === templateId);
-        if (template) {
-            const subjectEl = document.getElementById('mailing-subject');
-            
-            if (subjectEl && !subjectEl.value) subjectEl.value = template.subject || '';
-            
-            // Inicializar editor visual
-            this.switchMailingEditorMode('visual');
-            this.initMailingQuillEditor();
-            
-            // Cargar contenido de la plantilla
-            if (template.body_html) {
-                this.setMailingContent(template.body_html);
-            } else if (template.body_text) {
-                this.setMailingContent(`<p>${template.body_text}</p>`);
-            }
-            
-            // Actualizar preview
-            this.updateMailingPreview();
-        }
-    },
-
-    sendTestEmail: async function() {
-        const accountId = document.getElementById('mailing-account-select')?.value;
-        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
-        
-        const { value: email } = await Swal.fire({
-            title: 'Enviar email de prueba',
-            input: 'email',
-            inputPlaceholder: 'tu@email.com',
-            showCancelButton: true
-        });
-        
-        if (email) {
-            try {
-                await this.fetchAPI('/email/send', {
-                    method: 'POST',
-                    body: {
-                        account_id: accountId,
-                        to: email,
-                        subject: document.getElementById('mailing-subject')?.value || 'Test',
-                        body_html: this.getMailingContent(),
-                        variables: { guest_name: 'Test User' }
-                    }
-                });
-                Swal.fire('✓ Éxito', 'Email de prueba enviado', 'success');
-            } catch (e) {
-                Swal.fire('Error', e.message || 'No se pudo enviar', 'error');
-            }
-        }
-    },
-
-    sendMailing: async function() {
-        const accountId = document.getElementById('mailing-account-select')?.value;
-        const subject = document.getElementById('mailing-subject')?.value;
-        const bodyHtml = this.getMailingContent();
-        
-        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
-        if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
-        
-        const recipientType = document.querySelector('input[name="mailing-recipient-type"]:checked')?.value || 'all';
-        const groupId = recipientType === 'group' ? (document.getElementById('mailing-recipient-group')?.value || '') : '';
-        const eventId = this.state.event?.id;
-        
-        if (!eventId) return Swal.fire('Error', 'No hay evento seleccionado', 'error');
-        
-        try {
-            // Crear campaña
-            const campaign = await this.fetchAPI('/email/campaigns', {
-                method: 'POST',
-                body: {
-                    event_id: eventId,
-                    account_id: accountId,
-                    name: subject.substring(0, 50),
-                    subject,
-                    body_html: bodyHtml,
-                    recipient_type: recipientType === 'group' ? 'group' : recipientType,
-                    recipient_group_id: groupId || null
-                }
-            });
-            
-            // Iniciar envío
-            await this.fetchAPI(`/email/campaigns/${campaign.id}/send`, { method: 'POST' });
-            
-            Swal.fire('✓ Éxito', 'Mailing en progreso', 'success');
-            this.loadMailingCampaigns();
-            
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo iniciar el mailing', 'error');
-        }
-    },
-
-    loadMailingCampaigns: async function() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        const container = document.getElementById('mailing-campaigns-list');
-        if (!container) return;
-        
-        try {
-            const campaigns = await this.fetchAPI(`/email/campaigns?event_id=${eventId}`);
-            
-            if (!campaigns || campaigns.length === 0) {
-                container.innerHTML = `<p class="text-center py-8 text-slate-500 text-sm">No hay campañas para este evento</p>`;
-                return;
-            }
-            
-            const statusColors = {
-                'DRAFT': 'bg-slate-500/20 text-slate-400',
-                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
-                'SENDING': 'bg-blue-500/20 text-blue-400 animate-pulse',
-                'SENT': 'bg-green-500/20 text-green-400',
-                'PAUSED': 'bg-orange-500/20 text-orange-400',
-                'CANCELLED': 'bg-red-500/20 text-red-400'
-            };
-            
-            container.innerHTML = campaigns.map(c => `
-                <div class="card p-4 flex items-center justify-between text-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-xl ${c.status === 'SENDING' ? 'bg-blue-500/20' : 'bg-violet-500/20'} flex items-center justify-center">
-                            <span class="material-symbols-outlined text-lg ${c.status === 'SENDING' ? 'text-blue-400' : 'text-violet-400'}">campaign</span>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white">${c.name}</h4>
-                            <p class="text-xs text-slate-500 truncate max-w-[200px]">${c.subject || 'Sin asunto'}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <p class="text-xs text-slate-400">${c.sent_count || 0}/${c.total_recipients || 0}</p>
-                            <div class="w-20 h-1.5 bg-slate-700 rounded-full mt-1 overflow-hidden">
-                                <div class="h-full bg-violet-500" style="width: ${c.total_recipients > 0 ? Math.round((c.sent_count / c.total_recipients) * 100) : 0}%"></div>
-                            </div>
-                        </div>
-                        <span class="text-xs px-2 py-1 rounded-full ${statusColors[c.status] || 'bg-slate-500/20 text-slate-400'}">${c.status}</span>
-                        ${c.status === 'SENDING' || c.status === 'PAUSED' || c.status === 'SENT' ? `
-                            <button onclick="App.openCampaignMonitor('${c.id}')" class="p-2 hover:bg-white/10 rounded-lg" title="Monitorear">
-                                <span class="material-symbols-outlined text-slate-400">monitoring</span>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-            
-        } catch (e) {
-            console.error('[MAILING] Error loading campaigns:', e);
-        }
-    },
-
-    loadMailingTemplates: async function() {
-        const eventId = this.state.event?.id;
-        const container = document.getElementById('mailing-templates-grid');
-        if (!container || !eventId) return;
-        
-        try {
-            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
-            
-            if (!templates || templates.length === 0) {
-                container.innerHTML = `<p class="col-span-3 text-center py-8 text-slate-500 text-sm">No hay plantillas para este evento</p>`;
-                return;
-            }
-            
-            container.innerHTML = templates.map(t => `
-                <div class="card p-4 cursor-pointer hover:border-violet-500/30" onclick="App.selectMailingTemplate('${t.id}')">
-                    <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                    <p class="text-xs text-slate-500 truncate">${t.subject || 'Sin asunto'}</p>
-                </div>
-            `).join('');
-            
-        } catch (e) {
-            console.error('[MAILING] Error loading templates:', e);
-        }
-    },
-
-    selectMailingTemplate: function(templateId) {
-        document.getElementById('mailing-template-select').value = templateId;
-        this.onMailingTemplateChange();
-        this.switchMailingSubTab('composer');
-    },
-
-    // ==================== WIZARD DE CAMPAÑAS (V12.45) ====================
-    
-    wizardCurrentStep: 1,
-    wizardQuillEditor: null,
-    wizardCampaignId: null,
-    wizardSelectedRecipients: 0,
-
-    openCampaignWizard: function() {
-        const eventId = this.state.event?.id;
-        // Admin en sistema puede crear campañas sin evento
-        const isAdmin = this.state.user?.role === 'ADMIN';
-        if (!eventId && !isAdmin) {
-            return Swal.fire('Error', 'Selecciona un evento primero', 'error');
-        }
-        
-        this.wizardCurrentStep = 1;
-        this.wizardCampaignId = null;
-        this.wizardQuillEditor = null;
-        
-        // Cargar datos
-        this.loadWizardData();
-        
-        // Mostrar modal
-        document.getElementById('modal-campaign-wizard').classList.remove('hidden');
-        
-        // Mostrar primer paso
-        this.showWizardStep(1);
-    },
-
-    loadWizardData: async function() {
-        const eventId = this.state.event?.id;
-        
-        // Cargar cuentas
-        try {
-            const accounts = await this.fetchAPI(`/email/accounts?event_id=${eventId}`);
-            const sel = document.getElementById('wizard-account-select');
-            if (sel) {
-                sel.innerHTML = '<option value="">-- Seleccionar Cuenta --</option>' +
-                    (accounts || []).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-            }
-        } catch (e) {}
-        
-        // Cargar plantillas
-        try {
-            const templates = await this.fetchAPI(`/email/templates?event_id=${eventId}`);
-            const sel = document.getElementById('wizard-template-select');
-            if (sel) {
-                sel.innerHTML = '<option value="">-- Sin plantilla (en blanco) --</option>' +
-                    (templates || []).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            }
-        } catch (e) {}
-        
-        // Cargar conteo de guests
-        try {
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            const total = guests?.length || 0;
-            const confirmed = guests?.filter(g => g.checked_in)?.length || 0;
-            const pending = total - confirmed;
-            
-            const elAll = document.getElementById('wizard-count-all');
-            const elConf = document.getElementById('wizard-count-confirmed');
-            const elPend = document.getElementById('wizard-count-pending');
-            
-            if (elAll) elAll.textContent = `${total} invitados`;
-            if (elConf) elConf.textContent = `${confirmed} confirmados`;
-            if (elPend) elPend.textContent = `${pending} pendientes`;
-            
-            // Cargar grupos
-            const groups = [...new Set(guests?.filter(g => g.group_name).map(g => g.group_name))];
-            const groupSel = document.getElementById('wizard-recipient-group');
-            if (groupSel) {
-                groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
-                    groups.map(g => `<option value="${g}">${g}</option>`).join('');
-            }
-        } catch (e) {}
-        
-        // Handler para mostrar/ocultar selector de grupo
-        document.querySelectorAll('input[name="wizard-recipient-type"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const groupSelector = document.getElementById('wizard-group-selector');
-                if (groupSelector) {
-                    groupSelector.classList.toggle('hidden', e.target.value !== 'group');
-                }
-                if (e.target.value === 'group') {
-                    this.updateWizardRecipientCount();
-                }
-            });
-        });
-    },
-
-    updateWizardRecipientCount: function() {
-        const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
-        const groupId = document.getElementById('wizard-recipient-group')?.value || '';
-        
-        if (recipientType === 'group' && groupId) {
-            const guests = this.state.guests || [];
-            const count = guests.filter(g => g.group_name === groupId).length;
-            this.wizardSelectedRecipients = count;
-        }
-    },
-
-    showWizardStep: function(step) {
-        // Ocultar todos los pasos
-        for (let i = 1; i <= 3; i++) {
-            const stepEl = document.getElementById(`wizard-step-${i}`);
-            if (stepEl) stepEl.classList.add('hidden');
-        }
-        
-        // Mostrar paso actual
-        const currentStepEl = document.getElementById(`wizard-step-${step}`);
-        if (currentStepEl) currentStepEl.classList.remove('hidden');
-        
-        // Actualizar progress bar
-        const progressBar = document.getElementById('wizard-progress-bar');
-        if (progressBar) progressBar.style.width = `${(step / 3) * 100}%`;
-        
-        // Actualizar label
-        const stepLabels = ['Destinatarios', 'Contenido', 'Programación'];
-        const labelEl = document.getElementById('wizard-step-label');
-        if (labelEl) labelEl.textContent = `Paso ${step} de 3`;
-        
-        // Mostrar/ocultar botón atrás
-        const backBtn = document.getElementById('wizard-btn-back');
-        if (backBtn) {
-            if (step > 1) {
-                backBtn.classList.remove('hidden');
-            } else {
-                backBtn.classList.add('hidden');
-            }
-        }
-        
-        // Cambiar texto del botón siguiente
-        const nextBtn = document.getElementById('wizard-btn-next');
-        if (nextBtn) {
-            if (step === 3) {
-                nextBtn.textContent = '🚀 Iniciar Envío';
-            } else {
-                nextBtn.textContent = 'Siguiente →';
-            }
-        }
-        
-        // Inicializar Quill en paso 2
-        if (step === 2) {
-            setTimeout(() => this.initWizardQuillEditor(), 100);
-        }
-        
-        // Actualizar resumen en paso 3
-        if (step === 3) {
-            this.updateWizardSummary();
-        }
-    },
-
-    wizardNextStep: function() {
-        if (this.wizardCurrentStep === 1) {
-            // Validar paso 1
-            const accountId = document.getElementById('wizard-account-select')?.value;
-            const campaignName = document.getElementById('wizard-campaign-name')?.value;
-            
-            if (!accountId) {
-                return Swal.fire('Error', 'Selecciona una cuenta de email', 'error');
-            }
-            if (!campaignName) {
-                return Swal.fire('Error', 'Ingresa un nombre para la campaña', 'error');
-            }
-            
-            // Calcular destinatarios
-            const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
-            const guests = this.state.mailingGuests || [];
-            
-            if (recipientType === 'confirmed') {
-                this.wizardSelectedRecipients = guests.filter(g => g.checked_in).length;
-            } else if (recipientType === 'pending') {
-                this.wizardSelectedRecipients = guests.filter(g => !g.checked_in).length;
-            } else {
-                this.wizardSelectedRecipients = guests.length;
-            }
-        }
-        
-        if (this.wizardCurrentStep === 2) {
-            // Validar paso 2
-            const subject = document.getElementById('wizard-email-subject')?.value;
-            
-            if (!subject) {
-                return Swal.fire('Error', 'Ingresa el asunto del email', 'error');
-            }
-        }
-        
-        if (this.wizardCurrentStep < 3) {
-            this.wizardCurrentStep++;
-            this.showWizardStep(this.wizardCurrentStep);
-        } else {
-            // Iniciar envío
-            this.startWizardCampaign();
-        }
-    },
-
-    wizardPrevStep: function() {
-        if (this.wizardCurrentStep > 1) {
-            this.wizardCurrentStep--;
-            this.showWizardStep(this.wizardCurrentStep);
-        }
-    },
-
-    initWizardQuillEditor: function() {
-        if (this.wizardQuillEditor) return;
-        
-        const container = document.getElementById('wizard-quill-editor');
-        if (!container) return;
-        
-        this.wizardQuillEditor = new Quill('#wizard-quill-editor', {
-            theme: 'snow',
-            placeholder: 'Escribe el contenido de tu email aquí...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link'],
-                    ['clean']
-                ]
-            }
-        });
-    },
-
-    onWizardTemplateChange: function() {
-        const templateId = document.getElementById('wizard-template-select')?.value;
-        if (!templateId) return;
-        
-        const template = this.state.emailTemplates?.find(t => t.id === templateId);
-        if (template) {
-            if (!this.wizardQuillEditor) this.initWizardQuillEditor();
-            
-            document.getElementById('wizard-email-subject').value = template.subject || '';
-            
-            if (template.body_html) {
-                this.wizardQuillEditor.root.innerHTML = template.body_html;
-            } else if (template.body_text) {
-                this.wizardQuillEditor.root.innerHTML = `<p>${template.body_text}</p>`;
-            }
-        }
-    },
-
-    insertWizardVariable: function(varName) {
-        if (!this.wizardQuillEditor) this.initWizardQuillEditor();
-        
-        const varText = `{{${varName}}}`;
-        const range = this.wizardQuillEditor.getSelection();
-        if (range) {
-            this.wizardQuillEditor.insertText(range.index, varText);
-        } else {
-            this.wizardQuillEditor.setText(this.wizardQuillEditor.getText() + varText);
-        }
-    },
-
-    toggleWizardMode: function(mode) {
-        const editor = document.getElementById('wizard-quill-editor');
-        const btnVisual = document.getElementById('btn-wizard-visual');
-        const btnHtml = document.getElementById('btn-wizard-html');
-        
-        if (mode === 'html') {
-            const html = this.wizardQuillEditor ? this.wizardQuillEditor.root.innerHTML : '';
-            editor.innerHTML = `<textarea id="wizard-html-source" class="w-full h-48 p-3 text-xs font-mono bg-slate-800 text-slate-200 border border-slate-600 rounded resize-y" style="min-height:200px;">${this._escapeHtml(html)}</textarea>`;
-            btnHtml.classList.add('bg-violet-500', 'text-white');
-            btnHtml.classList.remove('bg-slate-700', 'text-slate-300');
-            btnVisual.classList.remove('bg-violet-500', 'text-white');
-            btnVisual.classList.add('bg-slate-700', 'text-slate-300');
-        } else {
-            const source = document.getElementById('wizard-html-source');
-            if (source) {
-                if (this.wizardQuillEditor) {
-                    this.wizardQuillEditor.root.innerHTML = source.value;
-                }
-            }
-            editor.innerHTML = '<div id="wizard-quill-editor-inner" style="min-height: 200px;"></div>';
-            if (!this.wizardQuillEditor) {
-                this.wizardQuillEditor = new Quill('#wizard-quill-editor-inner', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } });
-            } else {
-                this.wizardQuillEditor = new Quill('#wizard-quill-editor-inner', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean']] } });
-            }
-            btnVisual.classList.add('bg-violet-500', 'text-white');
-            btnVisual.classList.remove('bg-slate-700', 'text-slate-300');
-            btnHtml.classList.remove('bg-violet-500', 'text-white');
-            btnHtml.classList.add('bg-slate-700', 'text-slate-300');
-        }
-    },
-
-    updateWizardSummary: function() {
-        const name = document.getElementById('wizard-campaign-name')?.value || '-';
-        const subject = document.getElementById('wizard-email-subject')?.value || '-';
-        const sendType = document.querySelector('input[name="wizard-send-type"]:checked')?.value || 'now';
-        
-        document.getElementById('wizard-summary-name').textContent = name;
-        document.getElementById('wizard-summary-subject').textContent = subject;
-        document.getElementById('wizard-summary-recipients').textContent = `${this.wizardSelectedRecipients} invitados`;
-        document.getElementById('wizard-summary-send-type').textContent = sendType === 'now' ? 'Inmediato' : 'Programado';
-    },
-
-    startWizardCampaign: async function() {
-        const eventId = this.state.event?.id;
-        const accountId = document.getElementById('wizard-account-select')?.value;
-        const campaignName = document.getElementById('wizard-campaign-name')?.value;
-        const subject = document.getElementById('wizard-email-subject')?.value;
-        const recipientType = document.querySelector('input[name="wizard-recipient-type"]:checked')?.value || 'all';
-        const groupId = recipientType === 'group' ? (document.getElementById('wizard-recipient-group')?.value || '') : '';
-        const sendType = document.querySelector('input[name="wizard-send-type"]:checked')?.value || 'now';
-        const scheduledDate = document.getElementById('wizard-scheduled-date')?.value;
-        
-        let bodyHtml = '';
-        const htmlSource = document.getElementById('wizard-html-source');
-        if (htmlSource) {
-            bodyHtml = htmlSource.value;
-        } else if (this.wizardQuillEditor) {
-            bodyHtml = this.wizardQuillEditor.root.innerHTML;
-        }
-        
-        try {
-            // Crear campaña
-            const campaign = await this.fetchAPI('/email/campaigns', {
-                method: 'POST',
-                body: {
-                    event_id: eventId,
-                    account_id: accountId,
-                    name: campaignName,
-                    subject,
-                    body_html: bodyHtml,
-                    recipient_type: recipientType === 'group' ? 'group' : recipientType,
-                    recipient_group_id: groupId || null,
-                    scheduled_at: sendType === 'scheduled' ? scheduledDate : null
-                }
-            });
-            
-            this.wizardCampaignId = campaign.id;
-            
-            // Cerrar wizard
-            this.closeCampaignWizard();
-            
-            // Iniciar envío
-            if (sendType === 'now') {
-                await this.fetchAPI(`/email/campaigns/${campaign.id}/send`, { method: 'POST' });
-                Swal.fire('✓ Éxito', 'Campaña iniciada', 'success');
-            } else {
-                Swal.fire('✓ Programado', 'Campaña programada para ' + new Date(scheduledDate).toLocaleString(), 'success');
-            }
-            
-            // Abrir monitor
-            this.openCampaignMonitor(campaign.id);
-            
-            // Recargar listas
-            this.loadEmailCampaigns();
-            this.loadMailingCampaigns();
-            
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo crear la campaña', 'error');
-        }
-    },
-
-    closeCampaignWizard: function() {
-        document.getElementById('modal-campaign-wizard').classList.add('hidden');
-        this.wizardQuillEditor = null;
-    },
-
-    // ==================== MONITOR DE CAMPAÑAS ====================
-    
-    monitorCampaignId: null,
-    monitorInterval: null,
-
-    openCampaignMonitor: function(campaignId) {
-        this.monitorCampaignId = campaignId;
-        
-        document.getElementById('modal-campaign-monitor').classList.remove('hidden');
-        
-        this.refreshCampaignMonitor();
-        
-        // Auto-refresh cada 3 segundos
-        if (this.monitorInterval) clearInterval(this.monitorInterval);
-        this.monitorInterval = setInterval(() => this.refreshCampaignMonitor(), 3000);
-    },
-
-    refreshCampaignMonitor: async function() {
-        if (!this.monitorCampaignId) return;
-        
-        try {
-            const campaign = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}`);
-            const stats = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/stats`);
-            
-            // Actualizar info
-            document.getElementById('monitor-campaign-name').textContent = campaign.name || '-';
-            document.getElementById('monitor-campaign-status').textContent = `Asunto: ${campaign.subject || '-'}`;
-            
-            // Badge de estado
-            const badge = document.getElementById('monitor-status-badge');
-            const statusColors = {
-                'DRAFT': 'bg-slate-500/20 text-slate-400',
-                'SCHEDULED': 'bg-yellow-500/20 text-yellow-400',
-                'SENDING': 'bg-blue-500/20 text-blue-400',
-                'SENT': 'bg-green-500/20 text-green-400',
-                'PAUSED': 'bg-orange-500/20 text-orange-400',
-                'CANCELLED': 'bg-red-500/20 text-red-400'
-            };
-            badge.className = `px-3 py-1 rounded-full text-xs font-bold ${statusColors[campaign.status] || 'bg-slate-500/20 text-slate-400'}`;
-            badge.textContent = campaign.status;
-            
-            // Progress
-            const total = campaign.total_recipients || 0;
-            const sent = campaign.sent_count || 0;
-            const failed = campaign.failed_count || 0;
-            const pending = stats.pending || 0;
-            const percent = total > 0 ? Math.round((sent / total) * 100) : 0;
-            
-            document.getElementById('monitor-progress-text').textContent = `${sent} / ${total}`;
-            document.getElementById('monitor-progress-bar').style.width = `${percent}%`;
-            document.getElementById('monitor-sent').textContent = sent;
-            document.getElementById('monitor-failed').textContent = failed;
-            document.getElementById('monitor-pending').textContent = pending;
-            
-            // Botones según estado
-            const btnPause = document.getElementById('monitor-btn-pause');
-            const btnResume = document.getElementById('monitor-btn-resume');
-            const btnCancel = document.getElementById('monitor-btn-cancel');
-            
-            if (campaign.status === 'SENDING') {
-                btnPause.classList.remove('hidden');
-                btnResume.classList.add('hidden');
-            } else if (campaign.status === 'PAUSED') {
-                btnPause.classList.add('hidden');
-                btnResume.classList.remove('hidden');
-            } else {
-                btnPause.classList.add('hidden');
-                btnResume.classList.add('hidden');
-            }
-            
-            if (campaign.status === 'SENT' || campaign.status === 'CANCELLED') {
-                btnCancel.classList.add('hidden');
-            } else {
-                btnCancel.classList.remove('hidden');
-            }
-            
-            // Si terminó, dejar de hacer refresh
-            if (campaign.status === 'SENT' || campaign.status === 'CANCELLED') {
-                if (this.monitorInterval) {
-                    clearInterval(this.monitorInterval);
-                    this.monitorInterval = null;
-                }
-            }
-            
-            // Cargar logs
-            const logs = await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/logs?limit=10`);
-            const logsContainer = document.getElementById('monitor-logs');
-            
-            if (logs && logs.length > 0) {
-                logsContainer.innerHTML = logs.slice(0, 10).map(log => `
-                    <div class="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm ${log.status === 'SENT' ? 'text-green-400' : log.status === 'FAILED' ? 'text-red-400' : 'text-slate-500'}">
-                                ${log.status === 'SENT' ? 'check_circle' : log.status === 'FAILED' ? 'error' : 'schedule'}
-                            </span>
-                            <span class="text-slate-300">${log.recipient_email}</span>
-                        </div>
-                        <span class="text-slate-500">${log.status === 'SENT' ? 'Enviado' : log.error_message || 'Error'}</span>
-                    </div>
-                `).join('');
-            } else {
-                logsContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Sin envíos aún</p>`;
-            }
-            
-        } catch (e) {
-            console.error('[MONITOR] Error:', e);
-        }
-    },
-
-    pauseCampaign: async function() {
-        if (!this.monitorCampaignId) return;
-        
-        try {
-            await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/pause`, { method: 'POST' });
-            Swal.fire('✓', 'Campaña pausada', 'success');
-            this.refreshCampaignMonitor();
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo pausar', 'error');
-        }
-    },
-
-    resumeCampaign: async function() {
-        if (!this.monitorCampaignId) return;
-        
-        try {
-            await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/resume`, { method: 'POST' });
-            Swal.fire('✓', 'Campaña reanudada', 'success');
-            this.refreshCampaignMonitor();
-        } catch (e) {
-            Swal.fire('Error', e.message || 'No se pudo reanudar', 'error');
-        }
-    },
-
-    cancelCampaign: async function() {
-        if (!this.monitorCampaignId) return;
-        
-        const result = await Swal.fire({
-            title: '¿Cancelar campaña?',
-            text: 'Los emails pendientes no se enviarán',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Sí, cancelar'
-        });
-        
-        if (result.isConfirmed) {
-            try {
-                await this.fetchAPI(`/email/campaigns/${this.monitorCampaignId}/cancel`, { method: 'POST' });
-                Swal.fire('✓', 'Campaña cancelada', 'success');
-                this.refreshCampaignMonitor();
-                this.loadEmailCampaigns();
-            } catch (e) {
-                Swal.fire('Error', e.message || 'No se pudo cancelar', 'error');
-            }
-        }
-    },
-
-    closeCampaignMonitor: function() {
-        document.getElementById('modal-campaign-monitor').classList.add('hidden');
-        
-        if (this.monitorInterval) {
-            clearInterval(this.monitorInterval);
-            this.monitorInterval = null;
-        }
-        
-        this.monitorCampaignId = null;
-    },
-
-    // ==================== EDITOR WYSIWYG (QUILL) ====================
-    
-    mailingQuillEditor: null,
-    mailingEditorMode: 'visual',
-
-    initMailingQuillEditor: function() {
-        if (this.mailingQuillEditor) return;
-        
-        const container = document.getElementById('mailing-quill-editor');
-        if (!container) return;
-        
-        this.mailingQuillEditor = new Quill('#mailing-quill-editor', {
-            theme: 'snow',
-            placeholder: 'Escribe tu mensaje aquí...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                ]
-            }
-        });
-        
-        // Actualizar preview al cambiar contenido
-        this.mailingQuillEditor.on('text-change', () => {
-            if (this.mailingEditorMode === 'visual') {
-                this.updateMailingPreview();
-            }
-        });
-    },
-
-    switchMailingEditorMode: function(mode) {
-        this.mailingEditorMode = mode;
-        
-        const btnVisual = document.getElementById('btn-mode-visual');
-        const btnHtml = document.getElementById('btn-mode-html');
-        const containerVisual = document.getElementById('mailing-editor-container');
-        const containerHtml = document.getElementById('mailing-html-editor');
-        const htmlTextarea = document.getElementById('mailing-body-html');
-        
-        if (mode === 'visual') {
-            // Cambiar a modo visual
-            btnVisual.classList.add('bg-violet-500/20', 'text-violet-300');
-            btnVisual.classList.remove('bg-white/5', 'text-slate-400');
-            btnHtml.classList.remove('bg-violet-500/20', 'text-violet-300');
-            btnHtml.classList.add('bg-white/5', 'text-slate-400');
-            containerVisual.classList.remove('hidden');
-            containerHtml.classList.add('hidden');
-            
-            // Inicializar Quill si no existe
-            this.initMailingQuillEditor();
-            
-            // Copiar HTML del textarea al Quill si hay contenido
-            if (htmlTextarea.value && !this.mailingQuillEditor.getText().trim()) {
-                this.mailingQuillEditor.root.innerHTML = htmlTextarea.value;
-            }
-        } else {
-            // Cambiar a modo HTML
-            btnHtml.classList.add('bg-violet-500/20', 'text-violet-300');
-            btnHtml.classList.remove('bg-white/5', 'text-slate-400');
-            btnVisual.classList.remove('bg-violet-500/20', 'text-violet-300');
-            btnVisual.classList.add('bg-white/5', 'text-slate-400');
-            containerVisual.classList.add('hidden');
-            containerHtml.classList.remove('hidden');
-            
-            // Guardar contenido visual en textarea
-            if (this.mailingQuillEditor) {
-                htmlTextarea.value = this.mailingQuillEditor.root.innerHTML;
-            }
-        }
-    },
-
-    insertMailingVariable: function(varName) {
-        const varText = `{{${varName}}}`;
-        
-        if (this.mailingEditorMode === 'visual') {
-            if (!this.mailingQuillEditor) this.initMailingQuillEditor();
-            
-            const range = this.mailingQuillEditor.getSelection();
-            if (range) {
-                this.mailingQuillEditor.insertText(range.index, varText);
-            } else {
-                this.mailingQuillEditor.setText(this.mailingQuillEditor.getText() + varText);
-            }
-        } else {
-            const textarea = document.getElementById('mailing-body-html');
-            const cursor = textarea.selectionStart;
-            const text = textarea.value;
-            textarea.value = text.slice(0, cursor) + varText + text.slice(cursor);
-            textarea.selectionStart = textarea.selectionEnd = cursor + varText.length;
-            textarea.focus();
-        }
-        
-        this.updateMailingPreview();
-    },
-
-    updateMailingPreview: function() {
-        let htmlContent;
-        
-        if (this.mailingEditorMode === 'visual') {
-            if (!this.mailingQuillEditor) return;
-            htmlContent = this.mailingQuillEditor.root.innerHTML;
-        } else {
-            htmlContent = document.getElementById('mailing-body-html').value;
-        }
-        
-        const subject = document.getElementById('mailing-subject')?.value || 'Sin asunto';
-        const event = this.state.event || {};
-        
-        // Reemplazar variables de ejemplo
-        const previewData = {
-            guest_name: 'Juan Pérez',
-            guest_first_name: 'Juan',
-            event_name: event.name || 'Nombre del Evento',
-            event_date: event.date ? new Date(event.date).toLocaleDateString() : 'Fecha por confirmar',
-            event_location: event.location || 'Ubicación por confirmar',
-            company_name: 'Check Pro',
-            company_address: 'Mi Dirección',
-            current_year: new Date().getFullYear()
-        };
-        
-        let previewHtml = htmlContent;
-        for (const [key, value] of Object.entries(previewData)) {
-            previewHtml = previewHtml.replace(new RegExp(`{{${key}}}`, 'g'), value);
-        }
-        
-        // Renderizar en iframe
-        const frame = document.getElementById('mailing-preview-frame');
-        if (frame && previewHtml) {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            doc.open();
-            doc.write(previewHtml);
-            doc.close();
-        }
-    },
-
-    toggleMailingPreview: function() {
-        const autoPreview = document.getElementById('mailing-preview-toggle')?.checked;
-        if (autoPreview) {
-            this.updateMailingPreview();
-        }
-    },
-
-    getMailingContent: function() {
-        if (this.mailingEditorMode === 'visual') {
-            if (!this.mailingQuillEditor) return '';
-            return this.mailingQuillEditor.root.innerHTML;
-        } else {
-            return document.getElementById('mailing-body-html').value || '';
-        }
-    },
-
-    setMailingContent: function(html) {
-        if (this.mailingEditorMode === 'visual') {
-            if (!this.mailingQuillEditor) this.initMailingQuillEditor();
-            this.mailingQuillEditor.root.innerHTML = html || '';
-        } else {
-            document.getElementById('mailing-body-html').value = html || '';
-        }
-    },
-    
-    // --- NUEVO EVENTO V10 ---
-    async createEvent(formData) {
-        try {
-            const res = await fetch(`${this.constants.API_URL}/events`, { 
-                method: 'POST', 
-                headers: { 'x-user-id': this.state.user.userId },
-                body: formData 
-            });
-            const d = await res.json();
-            if (d.success) {
-                alert("✓ Evento creado con éxito.");
-                hideModal('modal-event');
-                document.getElementById('new-event-form').reset();
-                this.loadEvents();
-            } else {
-                alert("Error: " + d.error);
-            }
-        } catch (e) { alert("Error al crear evento."); }
-    },
-    
-    saveEventFull: async function(e) {
-        console.log('[EVENT CREATE] saveEventFull called (FormData version), event:', e);
-        
-        // Siempre prevenir el comportamiento por defecto
-        if (e && e.preventDefault) e.preventDefault();
-        
-        const f = document.getElementById('new-event-full-form');
-        console.log('[EVENT CREATE] Form element found:', f);
-        if (!f) {
-            console.error('[EVENT CREATE] Form not found!');
-            return;
-        }
-        
-        // Validar campos obligatorios antes de procesar - buscar dentro del formulario específico
-        const name = f.querySelector('#evf-name')?.value?.trim();
-        const date = f.querySelector('#evf-date')?.value?.trim();
-        
-        console.log('[EVENT CREATE] Validating fields - name:', name, 'date:', date);
-        
-        if (!name || !date) {
-            console.error('[EVENT CREATE] Required fields are empty, aborting');
-            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
-            return;
-        }
-        
-        const fd = new FormData(f);
-        const data = {};
-        
-        // Debug: mostrar todos los campos del formulario
-        console.log('[EVENT CREATE DEBUG] Form elements:');
-        for (let el of f.elements) {
-            if (el.name) {
-                console.log(`  ${el.name}: type=${el.type}, value="${el.value}", checked=${el.checked}, required=${el.required}`);
-            }
-        }
-        
-        // El formulario ya tiene los 'name' correctos que coinciden con el esquema Zod
-        fd.forEach((v, k) => {
-            const el = f.elements[k];
-            console.log(`[EVENT CREATE DEBUG] Processing field ${k}: value="${v}", type=${el?.type}`);
-            if (el && el.type === 'checkbox') {
-                // Convertir boolean a 1/0 para compatibilidad con backend
-                data[k] = el.checked ? 1 : 0;
-            } else {
-                // Convertir null/undefined a string vacío para Zod
-                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
-            }
-        });
-        
-        // Asegurar que group_id esté presente (campo requerido por esquema pero opcional)
-        if (!data.group_id) data.group_id = '';
-        
-        // Asegurar valores por defecto para campos de color
-        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
-        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
-        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
-        
-        // Debug: mostrar datos que se enviarán
-        console.log('[EVENT CREATE FRONTEND] Data to send:', data);
-        
-        try {
+            // Si hay ID, es edición (PUT), si no es creación (POST)
             let res;
-            const eventId = document.getElementById('evf-id-hidden')?.value;
-            
             if (eventId) {
-                // Actualizar evento existente
                 res = await this.fetchAPI(`/events/${eventId}`, {
                     method: 'PUT',
                     body: JSON.stringify(data)
                 });
             } else {
-                // Crear nuevo evento
                 res = await this.fetchAPI('/events', {
                     method: 'POST',
                     body: JSON.stringify(data)
@@ -8451,102 +5630,16 @@ const App = window.App = {
                 await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
                 return;
             }
-
-            // Actualizar estado local si editamos el evento activo
-            if (eventId && this.state.event && String(this.state.event.id) === String(eventId)) {
-                Object.assign(this.state.event, data);
-            }
-
-            document.getElementById('modal-event-full')?.classList.add('hidden');
-            await this.loadEvents();
-            await this._notifyAction('✓ Guardado', eventId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.', 'success');
-        } catch (err) {
-            console.error('[saveEventFull] Error:', err);
-            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
-        }
-    },
-    
-    saveEventShort: async function(e) {
-        console.log('[EVENT CREATE] saveEventShort called, event:', e);
-        
-        // Siempre prevenir el comportamiento por defecto
-        if (e && e.preventDefault) e.preventDefault();
-        
-        const form = document.getElementById('new-event-form');
-        console.log('[EVENT CREATE] Short form element found:', form);
-        if (!form) {
-            console.error('[EVENT CREATE] Short form not found!');
-            return;
-        }
-        
-        // Validar campos obligatorios - buscar dentro del formulario específico
-        const name = form.querySelector('#ev-name')?.value?.trim();
-        const date = form.querySelector('#ev-date')?.value?.trim();
-        
-        console.log('[EVENT CREATE] Validating short fields - name:', name, 'date:', date);
-        
-        if (!name || !date) {
-            console.error('[EVENT CREATE] Required fields are empty, aborting');
-            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
-            return;
-        }
-        
-        const fd = new FormData(form);
-        const data = {};
-        
-        // Convertir FormData a objeto
-        fd.forEach((v, k) => {
-            const el = form.elements[k];
-            if (el && el.type === 'checkbox') {
-                data[k] = el.checked ? 1 : 0;
-            } else {
-                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
-            }
-        });
-        
-        //También obtener campos por ID para el formulario corto
-        const evName = form.querySelector('#ev-name')?.value?.trim();
-        const evDate = form.querySelector('#ev-date')?.value?.trim();
-        const evLocation = form.querySelector('#ev-location')?.value?.trim();
-        const evDesc = form.querySelector('#ev-desc')?.value?.trim();
-        const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
-        
-        if (evName) data.name = evName;
-        if (evDate) data.date = evDate;
-        if (evLocation) data.location = evLocation;
-        if (evDesc) data.description = evDesc;
-        if (evEmailTemplate && evEmailTemplate !== '') {
-            data.email_template_id = evEmailTemplate;
-        }
-        
-        // Valores por defecto para el formulario corto
-        if (!data.group_id) data.group_id = '';
-        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
-        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
-        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
-        
-        console.log('[EVENT CREATE SHORT] Data to send:', data);
-        
-        try {
-            // Procesar template de email si está seleccionado
-            if (data.email_template_id) {
-                const processedData = await App.saveEventWithTemplate(data);
-                Object.assign(data, processedData);
-            }
-            
-            const res = await this.fetchAPI('/events', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
-            
-            if (res && res.success === false) {
-                await this._notifyAction('Error', res.error || 'No se pudo crear el evento.', 'error', 0);
-                return;
-            }
             
             hideModal('modal-event');
-            await this.loadEvents(true); // true = forzar recarga desde el servidor
-            await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
+            await this.loadEvents(true);
+            
+            if (eventId) {
+                await this._notifyAction('✓ Actualizado', 'Evento actualizado correctamente.', 'success');
+            } else {
+                await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
+            }
+            }
         } catch (err) {
             console.error('[saveEventShort] Error:', err);
             await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
@@ -9819,8 +6912,15 @@ const App = window.App = {
         // Mis Eventos - Acciones
         cl('btn-new-event-full', () => this.navigateToCreateEvent('full'));
         cl('btn-new-event-full-empty', () => this.navigateToCreateEvent('full'));
-        cl('btn-events-view-grid', () => this.toggleEventsView());
-        cl('btn-events-view-list', () => this.toggleEventsView());
+        
+        // Cerrar sugerencias al hacer click fuera
+        document.addEventListener('click', (e) => {
+            const suggestions = document.getElementById('event-suggestions');
+            const searchInput = document.getElementById('event-search');
+            if (suggestions && !suggestions.contains(e.target) && e.target !== searchInput) {
+                this.hideEventSuggestions();
+            }
+        });
         
         // Event Config view - action buttons
         cl('btn-config-show-qr', () => this.showQR());
@@ -10284,185 +7384,1325 @@ const App = window.App = {
     // --- DATA LOADERS ---
     _lastEventsLoad: 0,
     _eventsCache: null,
+    _countdownInterval: null,
+    _eventsFiltered: [],
+    _selectedEvents: new Set(),
     
     async loadEvents(force = false) {
-        // Cache de 30 segundos para evitar múltiples cargas seguidas
         const now = Date.now();
-        const CACHE_DURATION = 30000; // 30 segundos
+        const CACHE_DURATION = 30000;
         
-        // Si hay datos en caché y no se fuerza recarga, usarlos
         if (!force && this._eventsCache && (now - this._lastEventsLoad) < CACHE_DURATION) {
             this.state.events = this._eventsCache;
-            this.renderEventsGrid();
+            this.renderEventsTable();
             this.updateSidebarVisibility();
             return;
         }
         
         try {
-            const response = await this.fetchAPI('/events');
+            const [eventsRes, clientsRes, groupsRes] = await Promise.all([
+                this.fetchAPI('/events'),
+                this.fetchAPI('/clients').catch(() => []),
+                this.fetchAPI('/groups').catch(() => [])
+            ]);
             
-            // Validar que la respuesta sea un array válido
-            if (Array.isArray(response)) {
-                this.state.events = response;
-                this._eventsCache = response;
+            if (Array.isArray(eventsRes)) {
+                this.state.events = eventsRes;
+                this._eventsCache = eventsRes;
                 this._lastEventsLoad = now;
-            } else if (response && response.success === false) {
-                // Si hay error (rate limit, etc), mantener eventos anteriores si existen
-                console.warn('[EVENTS] Error del servidor:', response.error);
-                if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
-                    this._eventsCache = [];
-                }
-                this.state.events = this._eventsCache;
             } else {
-                // Respuesta inválida, mantener eventos anteriores o vacío
-                console.warn('[EVENTS] Respuesta inválida, manteniendo eventos anteriores');
                 if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
                     this._eventsCache = [];
                 }
                 this.state.events = this._eventsCache;
             }
+            
+            this.state.clients = Array.isArray(clientsRes) ? clientsRes : [];
+            this.state.allGroups = Array.isArray(groupsRes) ? groupsRes : [];
             
             const btnAdminNav = document.getElementById('nav-btn-admin');
             if (btnAdminNav) {
                 btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
             }
             
-            // Cargar preferencia de vista desde localStorage
-            const savedViewMode = LS.get('events_view_mode');
-            if (savedViewMode === 'list' || savedViewMode === 'grid') {
-                this.state.eventsViewMode = savedViewMode;
-            }
-            
-            // Actualizar estado de botones de toggle
-            const gridBtn = document.getElementById('btn-events-view-grid');
-            const listBtn = document.getElementById('btn-events-view-list');
-            
-            if (gridBtn && listBtn) {
-                if (this.state.eventsViewMode === 'grid') {
-                    gridBtn.classList.add('active');
-                    listBtn.classList.remove('active');
-                } else {
-                    listBtn.classList.add('active');
-                    gridBtn.classList.remove('active');
-                }
-            }
-            
-            this.renderEventsGrid();
-            // Actualizar visibilidad del sidebar basada en evento seleccionado
+            this.renderEventsTable();
             this.updateSidebarVisibility();
+            this.startCountdownTimers();
         } catch (e) { 
             console.warn('[EVENTS] Error cargando eventos:', e);
-            // Mantener eventos anteriores si existen
             if (!this._eventsCache || !Array.isArray(this._eventsCache)) {
                 this._eventsCache = [];
             }
             this.state.events = this._eventsCache;
-            this.renderEventsGrid();
+            this.renderEventsTable();
         }
     },
 
-    toggleEventsView() {
-        // Cambiar entre modos grid/list
-        this.state.eventsViewMode = this.state.eventsViewMode === 'grid' ? 'list' : 'grid';
+    renderEventsTable() {
+        const tbody = document.getElementById('events-tbody');
+        const emptyState = document.getElementById('events-empty-state');
+        const tableContainer = document.querySelector('#view-my-events .card');
         
-        // Actualizar botones de toggle
-        const gridBtn = document.getElementById('btn-events-view-grid');
-        const listBtn = document.getElementById('btn-events-view-list');
+        if (!tbody) return;
         
-        if (gridBtn && listBtn) {
-            if (this.state.eventsViewMode === 'grid') {
-                gridBtn.classList.add('active');
-                listBtn.classList.remove('active');
-            } else {
-                listBtn.classList.add('active');
-                gridBtn.classList.remove('active');
-            }
+        let events = Array.isArray(this.state.events) ? this.state.events : [];
+        
+        // FILTRO: PRODUCTOR solo ve sus eventos
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
         }
         
-        // Guardar preferencia en localStorage
-        LS.set('events_view_mode', this.state.eventsViewMode);
+        // Guardar eventos filtrados para búsqueda
+        this._eventsFiltered = [...events];
         
-        // Re-renderizar eventos
-        this.renderEventsGrid();
-    },
-    
-    renderEventsGrid() {
-        const c = document.getElementById('events-list-container');
-        if (!c) return;
+        // Actualizar selects de filtros
+        this._populateEventFilters(events);
         
-        const events = Array.isArray(this.state.events) ? this.state.events : [];
+        // Actualizar subtítulo con info del usuario
+        this._updateEventsSubtitle(events);
         
-        // Verificar permisos para mostrar botón de eliminar
+        // Mostrar/ocultar estado vacío
+        if (events.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (emptyState) emptyState.style.display = 'flex';
+            if (tableContainer) tableContainer.classList.add('hidden');
+            return;
+        }
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        if (emptyState) emptyState.style.display = 'none';
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        
         const userRole = this.state.user?.role;
         const canDelete = userRole === 'ADMIN' || userRole === 'PRODUCTOR';
         
-        if (this.state.eventsViewMode === 'list') {
-            c.className = 'space-y-2';
-            c.innerHTML = events.map(ev => {
-                const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                const total = ev.total_guests || 0;
-                const attended = ev.attended_guests || 0;
-                
-                const deleteBtn = canDelete ? `
-                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation(); App.deleteEvent('${ev.id}')" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                ` : '';
-                
-                return `
-                    <div data-action="openEvent" data-event-id="${ev.id}" class="flex items-center gap-3 bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-base font-variation-fill">event</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm font-bold text-[var(--text-main)] truncate">${ev.name}</h3>
-                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-1">
-                                <span class="material-symbols-outlined text-xs">calendar_month</span> ${dateStr}
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-4 text-xs">
-                            <span><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
-                            <span><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
-                        </div>
-                        ${deleteBtn}
-                    </div>
-                `;
-            }).join('');
-        } else {
-            c.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
-            c.innerHTML = events.map(ev => {
-                const dateStr = new Date(ev.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                const total = ev.total_guests || 0;
-                const attended = ev.attended_guests || 0;
-                
-                const deleteBtn = canDelete ? `
-                    <button data-action="deleteEvent" data-event-id="${ev.id}" onclick="event.stopPropagation(); App.deleteEvent('${ev.id}')" class="absolute top-2 right-2 p-2 hover:bg-red-500/20 text-red-500 rounded-lg" title="Eliminar Evento">
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                ` : '';
-                
-                return `
-                    <div data-action="openEvent" data-event-id="${ev.id}" class="bg-[var(--bg-card)] border border-white/10 rounded-xl p-3 cursor-pointer hover:border-violet-500/50 hover:bg-white/[0.03] transition-all relative">
-                        ${deleteBtn}
+        // Mapear clientes y grupos para lookup
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        const groupsMap = {};
+        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
+        
+        tbody.innerHTML = events.map(ev => {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
+            const location = ev.location || '—';
+            const status = this._getEventStatus(ev);
+            const statusBadge = this._getEventStatusBadge(status);
+            const isChecked = this._selectedEvents.has(String(ev.id));
+            
+            return `
+                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}">
+                    <td class="!py-3 !px-3">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                    </td>
+                    <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] text-white flex items-center justify-center flex-shrink-0">
-                                <span class="material-symbols-outlined text-base font-variation-fill">event</span>
+                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
                             </div>
-                            <div class="min-w-0 flex-1 overflow-hidden">
-                                <h3 class="text-sm font-bold text-[var(--text-main)] truncate leading-tight">${ev.name}</h3>
-                                <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-1">
-                                    <span class="material-symbols-outlined text-xs">calendar_month</span> ${dateStr}
-                                </p>
+                            <div class="min-w-0">
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
-                        
-                        <div class="flex items-center gap-4 mt-3 pt-2 border-t border-white/5">
-                            <span class="text-xs"><span class="font-bold text-violet-400">${total}</span> <span class="text-slate-400">Reg.</span></span>
-                            <span class="text-xs"><span class="font-bold text-emerald-400">${attended}</span> <span class="text-slate-400">Asist.</span></span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-300">${clientName}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs">
+                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-emerald-400">${attended}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    _populateEventFilters(events) {
+        // Filtro Cliente
+        const clientFilter = document.getElementById('filter-event-client');
+        if (clientFilter) {
+            const clients = this.state.clients || [];
+            const currentVal = clientFilter.value;
+            clientFilter.innerHTML = '<option value="">Cliente</option>' + 
+                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            clientFilter.value = currentVal;
+        }
+        
+        // Filtro Empresa
+        const companyFilter = document.getElementById('filter-event-company');
+        if (companyFilter) {
+            const groups = this.state.allGroups || [];
+            const currentVal = companyFilter.value;
+            companyFilter.innerHTML = '<option value="">Empresa</option>' + 
+                groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            companyFilter.value = currentVal;
+        }
+    },
+
+    _updateEventsSubtitle(events) {
+        const subtitle = document.getElementById('my-events-subtitle');
+        if (!subtitle) return;
+        
+        const userRole = this.state.user?.role || '';
+        const userName = this.state.user?.name || this.state.user?.email || '';
+        
+        if (this.state.user?.role === 'PRODUCTOR') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else if (this.state.user?.role === 'STAFF') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} asignado${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else if (this.state.user?.role === 'CLIENTE') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} en total — ${userName} (${userRole})`;
+        }
+    },
+
+    _getEventStatus(ev) {
+        const now = new Date();
+        const eventDate = new Date(ev.date);
+        const endDate = ev.end_date ? new Date(ev.end_date) : new Date(eventDate.getTime() + 8 * 60 * 60 * 1000);
+        
+        if (ev.status === 'cancelled') return 'cancelled';
+        if (ev.status === 'draft') return 'draft';
+        if (now > endDate) return 'completed';
+        if (now >= eventDate && now <= endDate) return 'active';
+        return 'upcoming';
+    },
+
+    _getEventStatusBadge(status) {
+        const badges = {
+            active: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Activo</span>',
+            upcoming: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><span class="material-symbols-outlined text-[10px]">schedule</span>Próximo</span>',
+            completed: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20"><span class="material-symbols-outlined text-[10px]">check_circle</span>Finalizado</span>',
+            draft: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[10px]">edit_note</span>Borrador</span>',
+            cancelled: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20"><span class="material-symbols-outlined text-[10px]">cancel</span>Cancelado</span>'
+        };
+        return badges[status] || badges.draft;
+    },
+
+    startCountdownTimers() {
+        if (this._countdownInterval) {
+            clearInterval(this._countdownInterval);
+        }
+        
+        this._countdownInterval = setInterval(() => {
+            const timers = document.querySelectorAll('.countdown-timer');
+            const now = new Date();
+            
+            timers.forEach(timer => {
+                const eventDate = new Date(timer.dataset.eventDate);
+                const diff = eventDate - now;
+                
+                if (diff <= 0) {
+                    timer.textContent = '🔴 En vivo';
+                    timer.style.color = '#ef4444';
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                if (days > 0) {
+                    timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
+                } else if (hours > 0) {
+                    timer.textContent = `⏳ ${hours}h ${mins}m`;
+                } else {
+                    timer.textContent = `⏳ ${mins}m`;
+                    timer.style.color = '#f59e0b';
+                }
+            });
+        }, 30000); // Actualizar cada 30 segundos (sin segundos)
+        
+        // Ejecutar inmediatamente
+        setTimeout(() => {
+            const timers = document.querySelectorAll('.countdown-timer');
+            const now = new Date();
+            timers.forEach(timer => {
+                const eventDate = new Date(timer.dataset.eventDate);
+                const diff = eventDate - now;
+                if (diff <= 0) {
+                    timer.textContent = '🔴 En vivo';
+                    timer.style.color = '#ef4444';
+                } else {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    if (days > 0) {
+                        timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
+                    } else if (hours > 0) {
+                        timer.textContent = `⏳ ${hours}h ${mins}m`;
+                    } else {
+                        timer.textContent = `⏳ ${mins}m`;
+                        timer.style.color = '#f59e0b';
+                    }
+                }
+            });
+        }, 100);
+    },
+
+    // ─── FILTRADO DE EVENTOS ───
+    filterEvents() {
+        const searchInput = document.getElementById('event-search');
+        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
+        const clientFilter = document.getElementById('filter-event-client')?.value || '';
+        const statusFilter = document.getElementById('filter-event-status')?.value || '';
+        const companyFilter = document.getElementById('filter-event-company')?.value || '';
+        
+        let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
+        
+        // FILTRO: PRODUCTOR solo ve sus eventos
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
+        }
+        
+        // Filtro por búsqueda
+        if (searchTerm) {
+            events = events.filter(ev => {
+                const clientName = (this.state.clients || []).find(c => c.id === ev.client_id)?.name || '';
+                const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
+                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientName} ${groupName}`.toLowerCase();
+                return searchable.includes(searchTerm);
+            });
+        }
+        
+        // Filtro por cliente
+        if (clientFilter) {
+            events = events.filter(ev => String(ev.client_id) === String(clientFilter));
+        }
+        
+        // Filtro por estado
+        if (statusFilter) {
+            events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
+        }
+        
+        // Filtro por empresa
+        if (companyFilter) {
+            events = events.filter(ev => String(ev.group_id) === String(companyFilter));
+        }
+        
+        this._eventsFiltered = events;
+        this._renderFilteredEvents(events);
+    },
+
+    _renderFilteredEvents(events) {
+        const tbody = document.getElementById('events-tbody');
+        const emptyState = document.getElementById('events-empty-state');
+        const tableContainer = document.querySelector('#view-my-events .card');
+        
+        if (!tbody) return;
+        
+        if (events.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) { emptyState.classList.remove('hidden'); emptyState.style.display = 'flex'; }
+            if (tableContainer) tableContainer.classList.add('hidden');
+            return;
+        }
+        
+        if (emptyState) { emptyState.classList.add('hidden'); emptyState.style.display = 'none'; }
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        const groupsMap = {};
+        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
+        
+        tbody.innerHTML = events.map(ev => {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const location = ev.location || '—';
+            const status = this._getEventStatus(ev);
+            const statusBadge = this._getEventStatusBadge(status);
+            const isChecked = this._selectedEvents.has(String(ev.id));
+            
+            return `
+                <tr class="hover:bg-white/[0.02] transition-colors" data-event-id="${ev.id}">
+                    <td class="!py-3 !px-3">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-300">${clientName}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs">
+                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-emerald-400">${attended}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    // ─── SUGERENCIAS DEL BUSCADOR ───
+    showEventSuggestions() {
+        const input = document.getElementById('event-search');
+        const dropdown = document.getElementById('event-suggestions');
+        if (!input || !dropdown) return;
+        
+        const term = input.value.toLowerCase().trim();
+        if (!term) { this.hideEventSuggestions(); return; }
+        
+        let events = Array.isArray(this.state.events) ? this.state.events : [];
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
+        }
+        
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        
+        const suggestions = [];
+        
+        events.forEach(ev => {
+            const clientName = clientsMap[ev.client_id] || '';
+            let score = 0;
+            let matchType = '';
+            
+            if (ev.name.toLowerCase().includes(term)) { score = 100; matchType = 'Evento'; }
+            else if (clientName.toLowerCase().includes(term)) { score = 80; matchType = 'Cliente'; }
+            else if ((ev.location || '').toLowerCase().includes(term)) { score = 60; matchType = 'Locación'; }
+            
+            if (score > 0) {
+                suggestions.push({ event: ev, score, matchType, clientName });
+            }
+        });
+        
+        suggestions.sort((a, b) => b.score - a.score);
+        const top = suggestions.slice(0, 8);
+        
+        if (top.length === 0) {
+            dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-500">Sin resultados</div>';
+            dropdown.classList.remove('hidden');
+            return;
+        }
+        
+        dropdown.innerHTML = top.map(s => {
+            const status = this._getEventStatus(s.event);
+            const statusColor = status === 'active' ? 'text-emerald-400' : status === 'upcoming' ? 'text-blue-400' : 'text-slate-400';
+            return `
+                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="material-symbols-outlined text-violet-400 text-sm flex-shrink-0">event</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-white truncate">${this._highlightText(s.event.name, term)}</div>
+                            <div class="text-[10px] text-slate-500">${s.matchType}${s.clientName ? ' · ' + s.clientName : ''}</div>
                         </div>
                     </div>
-                `;
-            }).join('');
+                    <span class="text-[10px] font-bold ${statusColor} flex-shrink-0 ml-2">${status === 'active' ? 'Activo' : status === 'upcoming' ? 'Próximo' : 'Finalizado'}</span>
+                </div>
+            `;
+        }).join('');
+        
+        dropdown.classList.remove('hidden');
+    },
+
+    hideEventSuggestions() {
+        const dropdown = document.getElementById('event-suggestions');
+        if (dropdown) dropdown.classList.add('hidden');
+    },
+
+    _highlightText(text, term) {
+        if (!term) return text;
+        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<span class="text-violet-400 font-bold">$1</span>');
+    },
+
+    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
+    toggleSelectAllEvents() {
+        const checkbox = document.getElementById('select-all-events');
+        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+        
+        if (checkbox.checked) {
+            events.forEach(ev => this._selectedEvents.add(String(ev.id)));
+        } else {
+            this._selectedEvents.clear();
+        }
+        
+        document.querySelectorAll('.event-checkbox').forEach(cb => {
+            cb.checked = checkbox.checked;
+        });
+    },
+
+    toggleEventSelection(eventId) {
+        const id = String(eventId);
+        if (this._selectedEvents.has(id)) {
+            this._selectedEvents.delete(id);
+        } else {
+            this._selectedEvents.add(id);
+        }
+        
+        // Actualizar select-all
+        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+        const allSelected = events.length > 0 && events.every(ev => this._selectedEvents.has(String(ev.id)));
+        const selectAllCheckbox = document.getElementById('select-all-events');
+        if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
+    },
+
+    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
+    openEventEditAction() {
+        const selected = Array.from(this._selectedEvents);
+        
+        if (selected.length === 0) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un evento con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            }
+            return;
+        }
+        
+        if (selected.length === 1) {
+            // Modal individual
+            this.openEventEditModal(selected[0]);
+        } else {
+            // Carrusel múltiple
+            this.openEventEditCarousel(selected);
+        }
+    },
+
+    openEventEditModal(eventId) {
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        document.getElementById('modal-event-title').textContent = 'Editar Evento';
+        document.getElementById('ev-id-hidden').value = ev.id;
+        document.getElementById('ev-name').value = ev.name || '';
+        document.getElementById('ev-location').value = ev.location || '';
+        
+        // Formatear fechas para datetime-local
+        const formatDate = (d) => {
+            if (!d) return '';
+            const date = new Date(d);
+            const offset = date.getTimezoneOffset();
+            const local = new Date(date.getTime() - offset * 60000);
+            return local.toISOString().slice(0, 16);
+        };
+        
+        document.getElementById('ev-date').value = formatDate(ev.date);
+        document.getElementById('ev-end-date').value = formatDate(ev.end_date);
+        document.getElementById('ev-desc').value = ev.description || '';
+        
+        const form = document.getElementById('new-event-form');
+        if (form) {
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            newForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveEventShort(e);
+            });
+        }
+        
+        const modal = document.getElementById('modal-event');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    },
+
+    openEventEditCarousel: async function(selectedIds) {
+        const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
+        if (events.length === 0) return;
+        
+        let currentIndex = 0;
+        
+        const renderCarousel = () => {
+            const ev = events[currentIndex];
+            const formatDate = (d) => {
+                if (!d) return '';
+                const date = new Date(d);
+                const offset = date.getTimezoneOffset();
+                const local = new Date(date.getTime() - offset * 60000);
+                return local.toISOString().slice(0, 16);
+            };
+            
+            if (typeof Swal === 'undefined') return;
+            
+            Swal.fire({
+                title: `Editar Evento (${currentIndex + 1}/${events.length})`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Nombre del Evento</label>
+                            <input id="swal-ev-name" type="text" value="${ev.name || ''}" class="swal2-input" style="width:100%;margin:0;">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Ubicación</label>
+                            <input id="swal-ev-location" type="text" value="${ev.location || ''}" class="swal2-input" style="width:100%;margin:0;">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fecha Inicio</label>
+                                <input id="swal-ev-date" type="datetime-local" value="${formatDate(ev.date)}" class="swal2-input" style="width:100%;margin:0;">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fecha Fin</label>
+                                <input id="swal-ev-end-date" type="datetime-local" value="${formatDate(ev.end_date)}" class="swal2-input" style="width:100%;margin:0;">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Descripción</label>
+                            <textarea id="swal-ev-desc" class="swal2-textarea" style="width:100%;margin:0;">${ev.description || ''}</textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: currentIndex < events.length - 1 ? 'Guardar y Siguiente →' : 'Guardar ✓',
+                cancelButtonText: 'Cancelar',
+                background: '#0f172a',
+                color: '#fff',
+                width: '500px',
+                preConfirm: async () => {
+                    const name = document.getElementById('swal-ev-name').value.trim();
+                    if (!name) {
+                        Swal.showValidationMessage('El nombre es obligatorio');
+                        return false;
+                    }
+                    return {
+                        id: ev.id,
+                        name,
+                        location: document.getElementById('swal-ev-location').value.trim(),
+                        date: document.getElementById('swal-ev-date').value,
+                        end_date: document.getElementById('swal-ev-end-date').value,
+                        description: document.getElementById('swal-ev-desc').value.trim()
+                    };
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed && result.value) {
+                    try {
+                        const { id, ...data } = result.value;
+                        await this.fetchAPI(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+                        
+                        if (currentIndex < events.length - 1) {
+                            currentIndex++;
+                            renderCarousel();
+                        } else {
+                            this._notifyAction('✓ Eventos actualizados', `${events.length} evento(s) editado(s)`, 'success');
+                            this.loadEvents(true);
+                        }
+                    } catch (e) {
+                        Swal.showValidationMessage('Error al guardar: ' + e.message);
+                    }
+                }
+            });
+        };
+        
+        renderCarousel();
+    },
+
+    // ─── EXPORTAR EVENTOS ───
+    exportEvents: async function() {
+        try {
+            const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+            if (events.length === 0) {
+                this._notifyAction('⚠️ Sin datos', 'No hay eventos para exportar', 'warning');
+                return;
+            }
+            
+            const clientsMap = {};
+            (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+            
+            const csvContent = [
+                ['ID', 'Nombre', 'Fecha', 'Ubicación', 'Cliente', 'Total Registrados', 'Asistentes', 'Estado'].join(','),
+                ...events.map(ev => [
+                    ev.id,
+                    `"${(ev.name || '').replace(/"/g, '""')}"`,
+                    new Date(ev.date).toLocaleDateString('es-ES'),
+                    `"${(ev.location || '').replace(/"/g, '""')}"`,
+                    `"${(clientsMap[ev.client_id] || '').replace(/"/g, '""')}"`,
+                    ev.total_guests || 0,
+                    ev.attended_guests || 0,
+                    this._getEventStatus(ev)
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `eventos_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            this._notifyAction('✓ Exportado', `${events.length} eventos exportados a CSV`, 'success');
+        } catch (e) {
+            this._notifyAction('Error', 'No se pudo exportar: ' + e.message, 'error');
+        }
+    },
+
+    renderEventsTable() {
+        const tbody = document.getElementById('events-tbody');
+        const emptyState = document.getElementById('events-empty-state');
+        const tableContainer = document.querySelector('#view-my-events .card');
+        
+        if (!tbody) return;
+        
+        let events = Array.isArray(this.state.events) ? this.state.events : [];
+        
+        // FILTRO: PRODUCTOR solo ve sus eventos
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
+        }
+        
+        // Guardar eventos filtrados para búsqueda
+        this._eventsFiltered = [...events];
+        
+        // Actualizar selects de filtros
+        this._populateEventFilters(events);
+        
+        // Actualizar subtítulo con info del usuario
+        this._updateEventsSubtitle(events);
+        
+        // Mostrar/ocultar estado vacío
+        if (events.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (emptyState) emptyState.style.display = 'flex';
+            if (tableContainer) tableContainer.classList.add('hidden');
+            return;
+        }
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        if (emptyState) emptyState.style.display = 'none';
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        
+        const userRole = this.state.user?.role;
+        const canDelete = userRole === 'ADMIN' || userRole === 'PRODUCTOR';
+        
+        // Mapear clientes y grupos para lookup
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        const groupsMap = {};
+        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
+        
+        tbody.innerHTML = events.map(ev => {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
+            const location = ev.location || '—';
+            const status = this._getEventStatus(ev);
+            const statusBadge = this._getEventStatusBadge(status);
+            const isChecked = this._selectedEvents.has(String(ev.id));
+            
+            return `
+                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}">
+                    <td class="!py-3 !px-3">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-300">${clientName}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs">
+                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-emerald-400">${attended}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    _populateEventFilters(events) {
+        // Filtro Cliente
+        const clientFilter = document.getElementById('filter-event-client');
+        if (clientFilter) {
+            const clients = this.state.clients || [];
+            const currentVal = clientFilter.value;
+            clientFilter.innerHTML = '<option value="">Cliente</option>' + 
+                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            clientFilter.value = currentVal;
+        }
+        
+        // Filtro Empresa
+        const companyFilter = document.getElementById('filter-event-company');
+        if (companyFilter) {
+            const groups = this.state.allGroups || [];
+            const currentVal = companyFilter.value;
+            companyFilter.innerHTML = '<option value="">Empresa</option>' + 
+                groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            companyFilter.value = currentVal;
+        }
+    },
+
+    _updateEventsSubtitle(events) {
+        const subtitle = document.getElementById('my-events-subtitle');
+        if (!subtitle) return;
+        
+        const userRole = this.state.user?.role || '';
+        const userName = this.state.user?.name || this.state.user?.email || '';
+        
+        if (this.state.user?.role === 'PRODUCTOR') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else if (this.state.user?.role === 'STAFF') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} asignado${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else if (this.state.user?.role === 'CLIENTE') {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} — ${userName}`;
+        } else {
+            subtitle.textContent = `${events.length} evento${events.length !== 1 ? 's' : ''} en total — ${userName} (${userRole})`;
+        }
+    },
+
+    _getEventStatus(ev) {
+        const now = new Date();
+        const eventDate = new Date(ev.date);
+        const endDate = ev.end_date ? new Date(ev.end_date) : new Date(eventDate.getTime() + 8 * 60 * 60 * 1000);
+        
+        if (ev.status === 'cancelled') return 'cancelled';
+        if (ev.status === 'draft') return 'draft';
+        if (now > endDate) return 'completed';
+        if (now >= eventDate && now <= endDate) return 'active';
+        return 'upcoming';
+    },
+
+    _getEventStatusBadge(status) {
+        const badges = {
+            active: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Activo</span>',
+            upcoming: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><span class="material-symbols-outlined text-[10px]">schedule</span>Próximo</span>',
+            completed: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20"><span class="material-symbols-outlined text-[10px]">check_circle</span>Finalizado</span>',
+            draft: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[10px]">edit_note</span>Borrador</span>',
+            cancelled: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20"><span class="material-symbols-outlined text-[10px]">cancel</span>Cancelado</span>'
+        };
+        return badges[status] || badges.draft;
+    },
+
+    startCountdownTimers() {
+        if (this._countdownInterval) {
+            clearInterval(this._countdownInterval);
+        }
+        
+        this._countdownInterval = setInterval(() => {
+            const timers = document.querySelectorAll('.countdown-timer');
+            const now = new Date();
+            
+            timers.forEach(timer => {
+                const eventDate = new Date(timer.dataset.eventDate);
+                const diff = eventDate - now;
+                
+                if (diff <= 0) {
+                    timer.textContent = '🔴 En vivo';
+                    timer.style.color = '#ef4444';
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                if (days > 0) {
+                    timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
+                } else if (hours > 0) {
+                    timer.textContent = `⏳ ${hours}h ${mins}m`;
+                } else {
+                    timer.textContent = `⏳ ${mins}m`;
+                    timer.style.color = '#f59e0b';
+                }
+            });
+        }, 30000); // Actualizar cada 30 segundos (sin segundos)
+        
+        // Ejecutar inmediatamente
+        setTimeout(() => {
+            const timers = document.querySelectorAll('.countdown-timer');
+            const now = new Date();
+            timers.forEach(timer => {
+                const eventDate = new Date(timer.dataset.eventDate);
+                const diff = eventDate - now;
+                if (diff <= 0) {
+                    timer.textContent = '🔴 En vivo';
+                    timer.style.color = '#ef4444';
+                } else {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    if (days > 0) {
+                        timer.textContent = `⏳ ${days}d ${hours}h ${mins}m`;
+                    } else if (hours > 0) {
+                        timer.textContent = `⏳ ${hours}h ${mins}m`;
+                    } else {
+                        timer.textContent = `⏳ ${mins}m`;
+                        timer.style.color = '#f59e0b';
+                    }
+                }
+            });
+        }, 100);
+    },
+
+    // ─── FILTRADO DE EVENTOS ───
+    filterEvents() {
+        const searchInput = document.getElementById('event-search');
+        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
+        const clientFilter = document.getElementById('filter-event-client')?.value || '';
+        const statusFilter = document.getElementById('filter-event-status')?.value || '';
+        const companyFilter = document.getElementById('filter-event-company')?.value || '';
+        
+        let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
+        
+        // FILTRO: PRODUCTOR solo ve sus eventos
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
+        }
+        
+        // Filtro por búsqueda
+        if (searchTerm) {
+            events = events.filter(ev => {
+                const clientName = (this.state.clients || []).find(c => c.id === ev.client_id)?.name || '';
+                const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
+                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientName} ${groupName}`.toLowerCase();
+                return searchable.includes(searchTerm);
+            });
+        }
+        
+        // Filtro por cliente
+        if (clientFilter) {
+            events = events.filter(ev => String(ev.client_id) === String(clientFilter));
+        }
+        
+        // Filtro por estado
+        if (statusFilter) {
+            events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
+        }
+        
+        // Filtro por empresa
+        if (companyFilter) {
+            events = events.filter(ev => String(ev.group_id) === String(companyFilter));
+        }
+        
+        this._eventsFiltered = events;
+        this._renderFilteredEvents(events);
+    },
+
+    _renderFilteredEvents(events) {
+        const tbody = document.getElementById('events-tbody');
+        const emptyState = document.getElementById('events-empty-state');
+        const tableContainer = document.querySelector('#view-my-events .card');
+        
+        if (!tbody) return;
+        
+        if (events.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) { emptyState.classList.remove('hidden'); emptyState.style.display = 'flex'; }
+            if (tableContainer) tableContainer.classList.add('hidden');
+            return;
+        }
+        
+        if (emptyState) { emptyState.classList.add('hidden'); emptyState.style.display = 'none'; }
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        const groupsMap = {};
+        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
+        
+        tbody.innerHTML = events.map(ev => {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const location = ev.location || '—';
+            const status = this._getEventStatus(ev);
+            const statusBadge = this._getEventStatusBadge(status);
+            const isChecked = this._selectedEvents.has(String(ev.id));
+            
+            return `
+                <tr class="hover:bg-white/[0.02] transition-colors" data-event-id="${ev.id}">
+                    <td class="!py-3 !px-3">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-300">${clientName}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs">
+                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-emerald-400">${attended}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    // ─── SUGERENCIAS DEL BUSCADOR ───
+    showEventSuggestions() {
+        const input = document.getElementById('event-search');
+        const dropdown = document.getElementById('event-suggestions');
+        if (!input || !dropdown) return;
+        
+        const term = input.value.toLowerCase().trim();
+        if (!term) { this.hideEventSuggestions(); return; }
+        
+        let events = Array.isArray(this.state.events) ? this.state.events : [];
+        if (this.state.user?.role === 'PRODUCTOR') {
+            events = events.filter(e => e.user_id === this.state.user.userId);
+        }
+        
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        
+        const suggestions = [];
+        
+        events.forEach(ev => {
+            const clientName = clientsMap[ev.client_id] || '';
+            let score = 0;
+            let matchType = '';
+            
+            if (ev.name.toLowerCase().includes(term)) { score = 100; matchType = 'Evento'; }
+            else if (clientName.toLowerCase().includes(term)) { score = 80; matchType = 'Cliente'; }
+            else if ((ev.location || '').toLowerCase().includes(term)) { score = 60; matchType = 'Locación'; }
+            
+            if (score > 0) {
+                suggestions.push({ event: ev, score, matchType, clientName });
+            }
+        });
+        
+        suggestions.sort((a, b) => b.score - a.score);
+        const top = suggestions.slice(0, 8);
+        
+        if (top.length === 0) {
+            dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-500">Sin resultados</div>';
+            dropdown.classList.remove('hidden');
+            return;
+        }
+        
+        dropdown.innerHTML = top.map(s => {
+            const status = this._getEventStatus(s.event);
+            const statusColor = status === 'active' ? 'text-emerald-400' : status === 'upcoming' ? 'text-blue-400' : 'text-slate-400';
+            return `
+                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="material-symbols-outlined text-violet-400 text-sm flex-shrink-0">event</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-white truncate">${this._highlightText(s.event.name, term)}</div>
+                            <div class="text-[10px] text-slate-500">${s.matchType}${s.clientName ? ' · ' + s.clientName : ''}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold ${statusColor} flex-shrink-0 ml-2">${status === 'active' ? 'Activo' : status === 'upcoming' ? 'Próximo' : 'Finalizado'}</span>
+                </div>
+            `;
+        }).join('');
+        
+        dropdown.classList.remove('hidden');
+    },
+
+    hideEventSuggestions() {
+        const dropdown = document.getElementById('event-suggestions');
+        if (dropdown) dropdown.classList.add('hidden');
+    },
+
+    _highlightText(text, term) {
+        if (!term) return text;
+        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<span class="text-violet-400 font-bold">$1</span>');
+    },
+
+    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
+    toggleSelectAllEvents() {
+        const checkbox = document.getElementById('select-all-events');
+        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+        
+        if (checkbox.checked) {
+            events.forEach(ev => this._selectedEvents.add(String(ev.id)));
+        } else {
+            this._selectedEvents.clear();
+        }
+        
+        document.querySelectorAll('.event-checkbox').forEach(cb => {
+            cb.checked = checkbox.checked;
+        });
+    },
+
+    toggleEventSelection(eventId) {
+        const id = String(eventId);
+        if (this._selectedEvents.has(id)) {
+            this._selectedEvents.delete(id);
+        } else {
+            this._selectedEvents.add(id);
+        }
+        
+        // Actualizar select-all
+        const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+        const allSelected = events.length > 0 && events.every(ev => this._selectedEvents.has(String(ev.id)));
+        const selectAllCheckbox = document.getElementById('select-all-events');
+        if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
+    },
+
+    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
+    openEventEditAction() {
+        const selected = Array.from(this._selectedEvents);
+        
+        if (selected.length === 0) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un evento con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            }
+            return;
+        }
+        
+        if (selected.length === 1) {
+            // Modal individual
+            this.openEventEditModal(selected[0]);
+        } else {
+            // Carrusel múltiple
+            this.openEventEditCarousel(selected);
+        }
+    },
+
+    openEventEditModal(eventId) {
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        document.getElementById('modal-event-title').textContent = 'Editar Evento';
+        document.getElementById('ev-id-hidden').value = ev.id;
+        document.getElementById('ev-name').value = ev.name || '';
+        document.getElementById('ev-location').value = ev.location || '';
+        
+        // Formatear fechas para datetime-local
+        const formatDate = (d) => {
+            if (!d) return '';
+            const date = new Date(d);
+            const offset = date.getTimezoneOffset();
+            const local = new Date(date.getTime() - offset * 60000);
+            return local.toISOString().slice(0, 16);
+        };
+        
+        document.getElementById('ev-date').value = formatDate(ev.date);
+        document.getElementById('ev-end-date').value = formatDate(ev.end_date);
+        document.getElementById('ev-desc').value = ev.description || '';
+        
+        const form = document.getElementById('new-event-form');
+        if (form) {
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            newForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveEventShort(e);
+            });
+        }
+        
+        const modal = document.getElementById('modal-event');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    },
+
+    openEventEditCarousel: async function(selectedIds) {
+        const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
+        if (events.length === 0) return;
+        
+        let currentIndex = 0;
+        
+        const renderCarousel = () => {
+            const ev = events[currentIndex];
+            const formatDate = (d) => {
+                if (!d) return '';
+                const date = new Date(d);
+                const offset = date.getTimezoneOffset();
+                const local = new Date(date.getTime() - offset * 60000);
+                return local.toISOString().slice(0, 16);
+            };
+            
+            if (typeof Swal === 'undefined') return;
+            
+            Swal.fire({
+                title: `Editar Evento (${currentIndex + 1}/${events.length})`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Nombre del Evento</label>
+                            <input id="swal-ev-name" type="text" value="${ev.name || ''}" class="swal2-input" style="width:100%;margin:0;">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Ubicación</label>
+                            <input id="swal-ev-location" type="text" value="${ev.location || ''}" class="swal2-input" style="width:100%;margin:0;">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fecha Inicio</label>
+                                <input id="swal-ev-date" type="datetime-local" value="${formatDate(ev.date)}" class="swal2-input" style="width:100%;margin:0;">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Fecha Fin</label>
+                                <input id="swal-ev-end-date" type="datetime-local" value="${formatDate(ev.end_date)}" class="swal2-input" style="width:100%;margin:0;">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Descripción</label>
+                            <textarea id="swal-ev-desc" class="swal2-textarea" style="width:100%;margin:0;">${ev.description || ''}</textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: currentIndex < events.length - 1 ? 'Guardar y Siguiente →' : 'Guardar ✓',
+                cancelButtonText: 'Cancelar',
+                background: '#0f172a',
+                color: '#fff',
+                width: '500px',
+                preConfirm: async () => {
+                    const name = document.getElementById('swal-ev-name').value.trim();
+                    if (!name) {
+                        Swal.showValidationMessage('El nombre es obligatorio');
+                        return false;
+                    }
+                    return {
+                        id: ev.id,
+                        name,
+                        location: document.getElementById('swal-ev-location').value.trim(),
+                        date: document.getElementById('swal-ev-date').value,
+                        end_date: document.getElementById('swal-ev-end-date').value,
+                        description: document.getElementById('swal-ev-desc').value.trim()
+                    };
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed && result.value) {
+                    try {
+                        const { id, ...data } = result.value;
+                        await this.fetchAPI(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+                        
+                        if (currentIndex < events.length - 1) {
+                            currentIndex++;
+                            renderCarousel();
+                        } else {
+                            this._notifyAction('✓ Eventos actualizados', `${events.length} evento(s) editado(s)`, 'success');
+                            this.loadEvents(true);
+                        }
+                    } catch (e) {
+                        Swal.showValidationMessage('Error al guardar: ' + e.message);
+                    }
+                }
+            });
+        };
+        
+        renderCarousel();
+    },
+
+    // ─── EXPORTAR EVENTOS ───
+    exportEvents: async function() {
+        try {
+            const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
+            if (events.length === 0) {
+                this._notifyAction('⚠️ Sin datos', 'No hay eventos para exportar', 'warning');
+                return;
+            }
+            
+            const clientsMap = {};
+            (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+            
+            const csvContent = [
+                ['ID', 'Nombre', 'Fecha', 'Ubicación', 'Cliente', 'Total Registrados', 'Asistentes', 'Estado'].join(','),
+                ...events.map(ev => [
+                    ev.id,
+                    `"${(ev.name || '').replace(/"/g, '""')}"`,
+                    new Date(ev.date).toLocaleDateString('es-ES'),
+                    `"${(ev.location || '').replace(/"/g, '""')}"`,
+                    `"${(clientsMap[ev.client_id] || '').replace(/"/g, '""')}"`,
+                    ev.total_guests || 0,
+                    ev.attended_guests || 0,
+                    this._getEventStatus(ev)
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `eventos_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            this._notifyAction('✓ Exportado', `${events.length} eventos exportados a CSV`, 'success');
+        } catch (e) {
+            this._notifyAction('Error', 'No se pudo exportar: ' + e.message, 'error');
         }
     },
 
@@ -10604,7 +8844,7 @@ const App = window.App = {
                 this._lastEventsLoad = 0;
                 
                 // Renderizar inmediatamente
-                this.renderEventsGrid();
+                this.renderEventsTable();
                 this._notifyAction('Eliminando...', 'Procesando eliminación', 'info', 2000);
                 
                 // Llamar al servidor
@@ -10616,7 +8856,7 @@ const App = window.App = {
                     console.warn('[DELETE EVENT] Sin respuesta del servidor, revirtiendo cambios locales');
                     this.state.events = previousEvents;
                     this._eventsCache = previousCache;
-                    this.renderEventsGrid();
+                    this.renderEventsTable();
                     this._notifyAction('Error', 'No se recibió respuesta del servidor', 'error');
                     return;
                 }
@@ -10625,7 +8865,7 @@ const App = window.App = {
                     console.warn('[DELETE EVENT] Error del servidor, revirtiendo:', res.error);
                     this.state.events = previousEvents;
                     this._eventsCache = previousCache;
-                    this.renderEventsGrid();
+                    this.renderEventsTable();
                     const errorMsg = res?.error || 'El evento no puede ser eliminado.';
                     this._notifyAction('Error', errorMsg, 'error');
                     return;

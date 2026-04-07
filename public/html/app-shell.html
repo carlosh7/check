@@ -86,42 +86,96 @@
         <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
 
         <div class="h-full overflow-y-auto p-8 relative z-10">
-            <!-- VIEW: MY EVENTS (LISTA DE EVENTOS) -->
+            <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
             <section id="view-my-events" class="hidden animate-fade-in">
                 <div class="max-w-7xl mx-auto">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                         <div>
                             <h1 class="text-4xl font-black tracking-tight text-white mb-2">Mis <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">Eventos</span></h1>
-                            <p class="text-slate-400 font-medium">Gestiona tu ecosistema de eventos desde un solo lugar</p>
+                            <p id="my-events-subtitle" class="text-slate-400 font-medium">Gestiona tu ecosistema de eventos desde un solo lugar</p>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center bg-white/5 rounded-2xl p-1.5 border border-white/5 shadow-inner">
-                                <button id="btn-events-view-grid" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 transition-all active text-slate-400" title="Vista en cuadrícula">
-                                    <span class="material-symbols-outlined text-xl">grid_view</span>
-                                </button>
-                                <button id="btn-events-view-list" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 transition-all text-slate-400" title="Vista en lista">
-                                    <span class="material-symbols-outlined text-xl">view_list</span>
-                                </button>
-                            </div>
-                            <button id="btn-new-event-full" class="btn-primary flex items-center gap-2 !px-8 !py-4 shadow-xl shadow-violet-900/20">
-                                <span class="material-symbols-outlined">add</span>
-                                <span class="uppercase tracking-widest text-[10px] font-black">Nuevo Evento</span>
+                    </div>
+
+                    <!-- Fila 1: Botones de acción -->
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <div class="flex gap-2">
+                            <button id="btn-new-event-full" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-base">add</span> + Evento
+                            </button>
+                            <button id="btn-edit-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openEventEditAction()">
+                                <span class="material-symbols-outlined text-base">edit</span> Editar
+                            </button>
+                            <button id="btn-import-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('events')">
+                                <span class="material-symbols-outlined text-base">upload</span> Importar
+                            </button>
+                            <button id="btn-export-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportEvents()">
+                                <span class="material-symbols-outlined text-base">download</span> Exportar
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="events-list-container">
-                        <!-- Los eventos se cargarán aquí dinámicamente -->
-                        <div class="col-span-full flex flex-col items-center justify-center py-10 bg-white/[0.02] rounded-2xl border border-dashed border-white/10">
-                            <div class="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-4 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-3xl">event</span>
-                            </div>
-                            <h3 class="text-lg font-bold text-white mb-1">Sin eventos activos</h3>
-                            <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
-                            <button id="btn-new-event-full-empty" class="btn-primary !px-6 !py-3 text-xs font-black uppercase tracking-wider">
-                                Crear Evento
-                            </button>
+
+                    <!-- Fila 2: Filtros -->
+                    <div class="flex gap-2 flex-wrap items-center mb-4">
+                        <select id="filter-event-client" onchange="App.filterEvents()" class="filter-select filter-select-cliente">
+                            <option value="">Cliente</option>
+                        </select>
+                        <select id="filter-event-status" onchange="App.filterEvents()" class="filter-select">
+                            <option value="">Estado</option>
+                            <option value="active">Activo</option>
+                            <option value="upcoming">Próximo</option>
+                            <option value="completed">Finalizado</option>
+                            <option value="draft">Borrador</option>
+                            <option value="cancelled">Cancelado</option>
+                        </select>
+                        <select id="filter-event-company" onchange="App.filterEvents()" class="filter-select filter-select-empresa">
+                            <option value="">Empresa</option>
+                        </select>
+                    </div>
+
+                    <!-- Fila 3: Buscador -->
+                    <div class="mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
+                        <input id="event-search" type="text" placeholder="Buscar por nombre, cliente, locación, estado..."
+                               style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                               oninput="App.filterEvents(); App.showEventSuggestions()" onfocus="App.showEventSuggestions()" autocomplete="off">
+                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                        <span id="event-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('event')" title="Búsqueda por voz">mic</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('event-search').value=''; document.getElementById('filter-event-client').value=''; document.getElementById('filter-event-status').value=''; document.getElementById('filter-event-company').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
+                        <!-- Dropdown de sugerencias -->
+                        <div id="event-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                    </div>
+
+                    <!-- Fila 4: Tabla de Eventos -->
+                    <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr class="bg-white/[0.01]">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                            <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        </th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Evento</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Fecha / Cuenta Regresiva</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cliente</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Locación</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistentes</th>
+                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="events-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                            </table>
                         </div>
+                    </div>
+
+                    <!-- Estado vacío (se muestra cuando no hay eventos) -->
+                    <div id="events-empty-state" class="hidden flex-col items-center justify-center py-10 bg-white/[0.02] rounded-2xl border border-dashed border-white/10 mt-6">
+                        <div class="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-4 border border-violet-500/20">
+                            <span class="material-symbols-outlined text-violet-400 text-3xl">event</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1">Sin eventos activos</h3>
+                        <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
+                        <button id="btn-new-event-full-empty" class="btn-primary !px-6 !py-3 text-xs font-black uppercase tracking-wider">
+                            Crear Evento
+                        </button>
                     </div>
                 </div>
             </section>
