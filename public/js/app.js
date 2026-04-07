@@ -5610,9 +5610,77 @@ const App = window.App = {
         if (!name || !name.trim()) return;
         const date = prompt('Fecha del evento (YYYY-MM-DD HH:MM):') || '';
         try {
+            const res = await this.fetchAPI('/events', { 
+                method: 'POST', 
+                body: JSON.stringify({ name: name.trim(), date }) 
+            });
+            if (res.success) { 
+                alert('✓ Evento creado exitosamente');
+                this.loadEvents();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        } catch { alert('Error de conexión'); }
+    },
+
+    // Guardar evento (formulario corto) - Creación y Edición
+    saveEventShort: async function(e) {
+        console.log('[EVENT CREATE] saveEventShort called, event:', e);
+        
+        if (e && e.preventDefault) e.preventDefault();
+        
+        const form = document.getElementById('new-event-form');
+        if (!form) return;
+        
+        const name = form.querySelector('#ev-name')?.value?.trim();
+        const date = form.querySelector('#ev-date')?.value?.trim();
+        
+        if (!name || !date) {
+            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
+            return;
+        }
+        
+        const fd = new FormData(form);
+        const data = {};
+        
+        fd.forEach((v, k) => {
+            const el = form.elements[k];
+            if (el && el.type === 'checkbox') {
+                data[k] = el.checked ? 1 : 0;
+            } else {
+                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
+            }
+        });
+        
+        const evName = form.querySelector('#ev-name')?.value?.trim();
+        const evDate = form.querySelector('#ev-date')?.value?.trim();
+        const evLocation = form.querySelector('#ev-location')?.value?.trim();
+        const evDesc = form.querySelector('#ev-desc')?.value?.trim();
+        const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
+        
+        if (evName) data.name = evName;
+        if (evDate) data.date = evDate;
+        if (evLocation) data.location = evLocation;
+        if (evDesc) data.description = evDesc;
+        if (evEmailTemplate && evEmailTemplate !== '') {
+            data.email_template_id = evEmailTemplate;
+        }
+        
+        if (!data.group_id) data.group_id = '';
+        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
+        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
+        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
+        
+        console.log('[EVENT CREATE SHORT] Data to send:', data);
+        
+        try {
+            if (data.email_template_id) {
+                const processedData = await App.saveEventWithTemplate(data);
+                Object.assign(data, processedData);
+            }
+            
             const eventId = form.querySelector('#ev-id-hidden')?.value?.trim();
             
-            // Si hay ID, es edición (PUT), si no es creación (POST)
             let res;
             if (eventId) {
                 res = await this.fetchAPI(`/events/${eventId}`, {
@@ -5638,7 +5706,6 @@ const App = window.App = {
                 await this._notifyAction('✓ Actualizado', 'Evento actualizado correctamente.', 'success');
             } else {
                 await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
-            }
             }
         } catch (err) {
             console.error('[saveEventShort] Error:', err);
