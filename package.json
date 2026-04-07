@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.262",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.262 - Fix: asistencia sin clients, solo event_attendance",
+  "version": "12.44.263",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.263 - Fix: forzar recarga limpia",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
