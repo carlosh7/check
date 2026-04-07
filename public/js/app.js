@@ -15413,14 +15413,13 @@ App.selectAttendanceSuggestion = function(clientId) {
 
 App.openAddAssistantModal = function() {
     // Limpiar formulario
-    document.getElementById('add-attendance-client-search').value = '';
-    document.getElementById('add-attendance-client-id').value = '';
-    document.getElementById('add-attendance-client-info').classList.add('hidden');
+    document.getElementById('add-attendance-name').value = '';
+    document.getElementById('add-attendance-email').value = '';
+    document.getElementById('add-attendance-phone').value = '';
     document.getElementById('add-attendance-organization').value = '';
     document.getElementById('add-attendance-cargo').value = '';
     document.getElementById('add-attendance-vegano').value = 'NO';
     document.getElementById('add-attendance-restricciones').value = '';
-    document.getElementById('add-attendance-client-suggestions').classList.add('hidden');
     
     document.getElementById('modal-add-attendance').classList.remove('hidden');
 },
@@ -15803,29 +15802,53 @@ App.clearSelectedAttendanceClient = function() {
 };
 
 App.saveAddAttendance = async function() {
-    const clientId = document.getElementById('add-attendance-client-id').value;
+    const name = document.getElementById('add-attendance-name').value.trim();
+    const email = document.getElementById('add-attendance-email').value.trim();
+    const phone = document.getElementById('add-attendance-phone').value.trim();
     const eventId = this.state.currentEventId;
     
-    if (!clientId) {
-        Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
+    if (!name) {
+        Swal.fire({ title: '⚠️ Atención', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
         return;
     }
     
-    const data = {
-        client_id: clientId,
-        organization: document.getElementById('add-attendance-organization').value,
-        cargo: document.getElementById('add-attendance-cargo').value,
-        vegano: document.getElementById('add-attendance-vegano').value,
-        restricciones: document.getElementById('add-attendance-restricciones').value,
-        status: 'PENDIENTE'
-    };
+    // Buscar cliente existente o crear nuevo
+    let clientId = null;
     
     try {
+        // Buscar cliente por email
+        const clients = await this.fetchAPI('/clients');
+        const existingClient = (clients || []).find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+        
+        if (existingClient) {
+            clientId = existingClient.id;
+        } else if (email) {
+            // Crear nuevo cliente
+            const newClient = await this.fetchAPI('/clients', 'POST', {
+                name: name,
+                email: email,
+                phone: phone
+            });
+            clientId = newClient.id;
+        }
+        
+        // Agregar a asistencia
+        const data = {
+            client_id: clientId,
+            organization: document.getElementById('add-attendance-organization').value,
+            cargo: document.getElementById('add-attendance-cargo').value,
+            vegano: document.getElementById('add-attendance-vegano').value,
+            restricciones: document.getElementById('add-attendance-restricciones').value,
+            status: 'PENDIENTE'
+        };
+        
         await this.fetchAPI(`/events/${eventId}/attendance`, 'POST', data);
         document.getElementById('modal-add-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Agregado', text: 'Asistente agregado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+        
     } catch(e) {
+        console.error('[ADD ATTENDANCE] Error:', e);
         Swal.fire({ title: '❌ Error', text: e.message || 'No se pudo agregar', icon: 'error', background: '#0f172a', color: '#fff' });
     }
 };

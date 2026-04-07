@@ -148,15 +148,15 @@
                     <select id="filter-attendance-org" onchange="App.filterAttendance()" class="filter-select filter-select-empresa">
                         <option value="">Organización</option>
                     </select>
-                    <select id="filter-attendance-cargo" onchange="App.filterAttendance()" class="filter-select">
+                    <select id="filter-attendance-cargo" onchange="App.filterAttendance()" class="filter-select filter-select-staff">
                         <option value="">Cargo</option>
                     </select>
-                    <select id="filter-attendance-vegano" onchange="App.filterAttendance()" class="filter-select">
+                    <select id="filter-attendance-vegano" onchange="App.filterAttendance()" class="filter-select filter-select-cliente">
                         <option value="">Vegano</option>
                         <option value="SI">Sí</option>
                         <option value="NO">No</option>
                     </select>
-                    <select id="filter-attendance-status" onchange="App.filterAttendance()" class="filter-select">
+                    <select id="filter-attendance-status" onchange="App.filterAttendance()" class="filter-select filter-select-evento">
                         <option value="">Estado</option>
                         <option value="PENDIENTE">Pendiente</option>
                         <option value="CONFIRMADO">Confirmado</option>
@@ -2449,63 +2449,47 @@
 
 <!-- MODAL: AGREGAR ASISTENTE -->
 <div id="modal-add-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Agregar Asistente</h3>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
                 <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
             </button>
         </div>
-        <div class="p-6 overflow-y-auto flex-1 space-y-4">
-            <!-- Buscar/Seleccionar Cliente -->
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Buscar Cliente</label>
-                <div class="relative">
-                    <input type="text" id="add-attendance-client-search" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Buscar por nombre o email..." oninput="App.searchClientsForAttendance(this.value)" autocomplete="off">
-                    <div id="add-attendance-client-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"></div>
-                </div>
-                <input type="hidden" id="add-attendance-client-id">
+        <div class="p-5 overflow-y-auto flex-1 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre</label>
+                <input type="text" id="add-attendance-name" placeholder="Nombre completo" class="input-field w-full">
             </div>
-            <!-- Cliente seleccionado -->
-            <div id="add-attendance-client-info" class="hidden p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(99,102,241,0.2); color: #6366f1;">
-                        <span id="add-attendance-client-initial">-</span>
-                    </div>
-                    <div>
-                        <p id="add-attendance-client-name" class="text-sm font-medium text-white">-</p>
-                        <p id="add-attendance-client-email" class="text-xs text-[var(--text-muted)]">-</p>
-                    </div>
-                    <button onclick="App.clearSelectedAttendanceClient()" class="ml-auto text-red-400 hover:text-red-300">
-                        <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
-                </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Email</label>
+                <input type="email" id="add-attendance-email" placeholder="correo@ejemplo.com" class="input-field w-full">
             </div>
-            <!-- Organización -->
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Organización</label>
-                <input type="text" id="add-attendance-organization" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Empresa u organización">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Teléfono</label>
+                <input type="text" id="add-attendance-phone" placeholder="+52 123 456 7890" class="input-field w-full">
             </div>
-            <!-- Cargo -->
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Cargo</label>
-                <input type="text" id="add-attendance-cargo" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Puesto o cargo">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Organización</label>
+                <input type="text" id="add-attendance-organization" placeholder="Empresa u organización" class="input-field w-full">
             </div>
-            <!-- Vegano -->
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Vegano</label>
-                <select id="add-attendance-vegano" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Cargo</label>
+                <input type="text" id="add-attendance-cargo" placeholder="Puesto o cargo" class="input-field w-full">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vegano</label>
+                <select id="add-attendance-vegano" class="input-field w-full">
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
                 </select>
             </div>
-            <!-- Restricciones -->
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Restricciones Alimentarias</label>
-                <textarea id="add-attendance-restricciones" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" rows="2" placeholder="Alergias o restricciones alimentaires"></textarea>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Restricciones Alimentarias</label>
+                <textarea id="add-attendance-restricciones" placeholder="Alergias o restricciones" class="input-field w-full" rows="2"></textarea>
             </div>
         </div>
         <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
