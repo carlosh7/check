@@ -15218,7 +15218,7 @@ App.loadAttendance = async function(eventId) {
     }
 },
 
-App.populateAttendanceFilters: function() {
+App.populateAttendanceFilters = function() {
     const attendance = this.state.attendance || [];
     
     // Extraer organizaciones únicas
@@ -15238,7 +15238,7 @@ App.populateAttendanceFilters: function() {
     }
 },
 
-App.filterAttendance: function() {
+App.filterAttendance = function() {
     const search = (document.getElementById('attendance-search')?.value || '').toLowerCase();
     const orgFilter = document.getElementById('filter-attendance-org')?.value || '';
     const cargoFilter = document.getElementById('filter-attendance-cargo')?.value || '';
@@ -15265,7 +15265,7 @@ App.filterAttendance: function() {
     this.renderAttendanceTable(filtered);
 },
 
-App.renderAttendanceTable: function(attendance) {
+App.renderAttendanceTable = function(attendance) {
     const tbody = document.getElementById('attendance-tbody');
     if (!tbody) return;
     
@@ -15322,7 +15322,7 @@ App.renderAttendanceTable: function(attendance) {
     }).join('');
 },
 
-App.toggleSelectAllAttendance: function() {
+App.toggleSelectAllAttendance = function() {
     const checkbox = document.getElementById('select-all-attendance');
     const attendance = this.state.attendance || [];
     if (checkbox.checked) {
@@ -15333,7 +15333,7 @@ App.toggleSelectAllAttendance: function() {
     this.filterAttendance();
 },
 
-App.toggleAttendance: function(clientId) {
+App.toggleAttendance = function(clientId) {
     const idx = this._selectedAttendance.indexOf(clientId);
     if (idx > -1) {
         this._selectedAttendance.splice(idx, 1);
@@ -15343,7 +15343,7 @@ App.toggleAttendance: function(clientId) {
     this.filterAttendance();
 },
 
-App.toggleValidateAttendance: async function(clientId) {
+App.toggleValidateAttendance = async function(clientId) {
     const eventId = this.state.currentEventId;
     if (!eventId || !clientId) return;
     
@@ -15362,7 +15362,7 @@ App.toggleValidateAttendance: async function(clientId) {
     }
 },
 
-App.showAttendanceSuggestions: function() {
+App.showAttendanceSuggestions = function() {
     const input = document.getElementById('attendance-search');
     const container = document.getElementById('attendance-suggestions');
     if (!input || !container) return;
@@ -15395,12 +15395,12 @@ App.showAttendanceSuggestions: function() {
     container.classList.remove('hidden');
 },
 
-App.hideAttendanceSuggestions: function() {
+App.hideAttendanceSuggestions = function() {
     const container = document.getElementById('attendance-suggestions');
     if (container) container.classList.add('hidden');
 },
 
-App.selectAttendanceSuggestion: function(clientId) {
+App.selectAttendanceSuggestion = function(clientId) {
     const input = document.getElementById('attendance-search');
     const attendance = this.state.attendance || [];
     const a = attendance.find(x => x.client_id === clientId);
@@ -15411,12 +15411,12 @@ App.selectAttendanceSuggestion: function(clientId) {
     this.hideAttendanceSuggestions();
 },
 
-App.openAddAssistantModal: async function() {
+App.openAddAssistantModal = async function() {
     // Por implementar: abrir modal para agregar asistente
     Swal.fire({ title: '➕ Nuevo Asistente', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
 
-App.openAttendanceCarousel: function() {
+App.openAttendanceCarousel = function() {
     const selected = this._selectedAttendance || [];
     if (selected.length === 0) {
         Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un asistente con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
@@ -15483,22 +15483,22 @@ App.openAttendanceCarousel: function() {
     });
 },
 
-App.editAttendance: function(clientIds) {
+App.editAttendance = function(clientIds) {
     // Por implementar: editar asistente(s)
     Swal.fire({ title: '✏️ Editar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
 
-App.manageAttendance: function(clientIds) {
+App.manageAttendance = function(clientIds) {
     // Por implementar: gestionar asistentes (cambiar estado, eliminar)
     Swal.fire({ title: '⚙️ Gestionar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
 
-App.openImportAttendanceModal: function() {
+App.openImportAttendanceModal = function() {
     // Por implementar
     Swal.fire({ title: '📥 Importar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 },
 
-App.exportAttendance: function() {
+App.exportAttendance = function() {
     // Por implementar
     Swal.fire({ title: '📤 Exportar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 };
