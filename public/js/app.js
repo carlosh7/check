@@ -15411,9 +15411,18 @@ App.selectAttendanceSuggestion = function(clientId) {
     this.hideAttendanceSuggestions();
 },
 
-App.openAddAssistantModal = async function() {
-    // Por implementar: abrir modal para agregar asistente
-    Swal.fire({ title: '➕ Nuevo Asistente', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+App.openAddAssistantModal = function() {
+    // Limpiar formulario
+    document.getElementById('add-attendance-client-search').value = '';
+    document.getElementById('add-attendance-client-id').value = '';
+    document.getElementById('add-attendance-client-info').classList.add('hidden');
+    document.getElementById('add-attendance-organization').value = '';
+    document.getElementById('add-attendance-cargo').value = '';
+    document.getElementById('add-attendance-vegano').value = 'NO';
+    document.getElementById('add-attendance-restricciones').value = '';
+    document.getElementById('add-attendance-client-suggestions').classList.add('hidden');
+    
+    document.getElementById('modal-add-attendance').classList.remove('hidden');
 },
 
 App.openAttendanceCarousel = function() {
@@ -15494,13 +15503,360 @@ App.manageAttendance = function(clientIds) {
 },
 
 App.openImportAttendanceModal = function() {
-    // Por implementar
-    Swal.fire({ title: '📥 Importar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+    // Limpiar modal
+    document.getElementById('import-attendance-file-input').value = '';
+    document.getElementById('import-attendance-progress-container').classList.add('hidden');
+    document.getElementById('btn-confirm-import-attendance').disabled = true;
+    document.getElementById('import-attendance-new-count').textContent = '0';
+    document.getElementById('import-attendance-update-count').textContent = '0';
+    document.getElementById('import-attendance-error-count').textContent = '0';
+    document.getElementById('import-attendance-progress-fill').style.width = '0%';
+    
+    document.getElementById('modal-import-attendance').classList.remove('hidden');
 },
 
 App.exportAttendance = function() {
-    // Por implementar
-    Swal.fire({ title: '📤 Exportar', text: 'Funcionalidad en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+    document.getElementById('modal-export-attendance').classList.remove('hidden');
+},
+
+App.confirmExportAttendance = async function() {
+    const format = document.querySelector('input[name="export-attendance-format"]:checked')?.value || 'excel';
+    const eventId = this.state.currentEventId;
+    const attendance = this.state.attendance || [];
+    
+    if (attendance.length === 0) {
+        Swal.fire({ title: '⚠️ Atención', text: 'No hay asistentes para exportar', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    try {
+        if (format === 'excel') {
+            await this.exportAttendanceExcel(attendance);
+        } else if (format === 'csv') {
+            this.exportAttendanceCSV(attendance);
+        } else if (format === 'pdf') {
+            await this.exportAttendancePDF(attendance);
+        }
+        document.getElementById('modal-export-attendance').classList.add('hidden');
+    } catch(e) {
+        console.error('[EXPORT] Error:', e);
+    }
+},
+
+App.exportAttendanceExcel = async function(attendance) {
+    const ExcelJS = window.ExcelJS;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Asistentes');
+    
+    ws.columns = [
+        { header: 'Nombre', key: 'name', width: 25 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Teléfono', key: 'phone', width: 15 },
+        { header: 'Organización', key: 'org', width: 20 },
+        { header: 'Cargo', key: 'cargo', width: 20 },
+        { header: 'Vegano', key: 'vegano', width: 10 },
+        { header: 'Restricciones', key: 'restricciones', width: 25 },
+        { header: 'Estado', key: 'status', width: 12 },
+        { header: 'Validado', key: 'validated', width: 10 }
+    ];
+    
+    attendance.forEach(a => {
+        ws.addRow({
+            name: a.client_name || '',
+            email: a.client_email || '',
+            phone: a.client_phone || '',
+            org: a.organization || '',
+            cargo: a.cargo || '',
+            vegano: a.vegano || 'NO',
+            restricciones: a.restricciones || '',
+            status: a.status || 'PENDIENTE',
+            validated: a.validated ? 'Sí' : 'No'
+        });
+    });
+    
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `asistentes_evento_${this.state.currentEventId}_${Date.now()}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+},
+
+App.exportAttendanceCSV = function(attendance) {
+    const headers = ['Nombre', 'Email', 'Teléfono', 'Organización', 'Cargo', 'Vegano', 'Restricciones', 'Estado', 'Validado'];
+    const rows = attendance.map(a => [
+        a.client_name || '',
+        a.client_email || '',
+        a.client_phone || '',
+        a.organization || '',
+        a.cargo || '',
+        a.vegano || 'NO',
+        a.restricciones || '',
+        a.status || 'PENDIENTE',
+        a.validated ? 'Sí' : 'No'
+    ]);
+    
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `asistentes_evento_${this.state.currentEventId}_${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+},
+
+App.exportAttendancePDF = async function(attendance) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text('Lista de Asistentes', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 28);
+    
+    const headers = [['Nombre', 'Email', 'Org', 'Estado', 'Validado']];
+    const data = attendance.map(a => [
+        (a.client_name || '').substring(0, 20),
+        (a.client_email || '').substring(0, 25),
+        (a.organization || '').substring(0, 15),
+        a.status || 'PENDIENTE',
+        a.validated ? 'Sí' : 'No'
+    ]);
+    
+    doc.autoTable({ head: headers, body: data, startY: 35, styles: { fontSize: 8 } });
+    doc.save(`asistentes_evento_${this.state.currentEventId}_${Date.now()}.pdf`);
+};
+
+App.editAttendance = function(clientIds) {
+    Swal.close();
+    const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+    if (ids.length !== 1) {
+        Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo asistente para editar', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    const clientId = ids[0];
+    const attendance = this.state.attendance || [];
+    const a = attendance.find(x => x.client_id === clientId);
+    if (!a) {
+        Swal.fire({ title: '⚠️ Error', text: 'Asistente no encontrado', icon: 'error', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    // Llenar formulario
+    document.getElementById('edit-attendance-client-id').value = clientId;
+    document.getElementById('edit-attendance-name').value = a.client_name || '';
+    document.getElementById('edit-attendance-email').value = a.client_email || '';
+    document.getElementById('edit-attendance-phone').value = a.client_phone || '';
+    document.getElementById('edit-attendance-organization').value = a.organization || '';
+    document.getElementById('edit-attendance-cargo').value = a.cargo || '';
+    document.getElementById('edit-attendance-vegano').value = a.vegano || 'NO';
+    document.getElementById('edit-attendance-restricciones').value = a.restricciones || '';
+    document.getElementById('edit-attendance-status').value = a.status || 'PENDIENTE';
+    
+    document.getElementById('modal-edit-attendance').classList.remove('hidden');
+};
+
+App.saveEditAttendance = async function() {
+    const clientId = document.getElementById('edit-attendance-client-id').value;
+    const eventId = this.state.currentEventId;
+    
+    const data = {
+        organization: document.getElementById('edit-attendance-organization').value,
+        cargo: document.getElementById('edit-attendance-cargo').value,
+        vegano: document.getElementById('edit-attendance-vegano').value,
+        restricciones: document.getElementById('edit-attendance-restricciones').value,
+        status: document.getElementById('edit-attendance-status').value
+    };
+    
+    try {
+        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'PUT', data);
+        document.getElementById('modal-edit-attendance').classList.add('hidden');
+        await this.loadAttendance(eventId);
+        Swal.fire({ title: '✅ Guardado', text: 'Asistente actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+    } catch(e) {
+        Swal.fire({ title: '❌ Error', text: 'No se pudo guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.manageAttendance = function(clientIds) {
+    Swal.close();
+    const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+    if (ids.length !== 1) {
+        Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un solo asistente para gestionar', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    const clientId = ids[0];
+    const attendance = this.state.attendance || [];
+    const a = attendance.find(x => x.client_id === clientId);
+    if (!a) {
+        Swal.fire({ title: '⚠️ Error', text: 'Asistente no encontrado', icon: 'error', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    // Llenar info
+    document.getElementById('manage-attendance-client-id').value = clientId;
+    document.getElementById('manage-attendance-name').textContent = a.client_name || '-';
+    document.getElementById('manage-attendance-email').textContent = a.client_email || '-';
+    
+    // Seleccionar estado actual
+    const statusRadios = document.getElementsByName('manage-attendance-status');
+    for (let r of statusRadios) {
+        r.checked = r.value === (a.status || 'PENDIENTE');
+    }
+    
+    document.getElementById('modal-manage-attendance').classList.remove('hidden');
+};
+
+App.saveManageAttendance = async function() {
+    const clientId = document.getElementById('manage-attendance-client-id').value;
+    const eventId = this.state.currentEventId;
+    const newStatus = document.querySelector('input[name="manage-attendance-status"]:checked')?.value || 'PENDIENTE';
+    
+    try {
+        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'PUT', { status: newStatus });
+        document.getElementById('modal-manage-attendance').classList.add('hidden');
+        await this.loadAttendance(eventId);
+        Swal.fire({ title: '✅ Guardado', text: 'Estado actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+    } catch(e) {
+        Swal.fire({ title: '❌ Error', text: 'No se pudo guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.deleteAttendance = async function() {
+    const clientId = document.getElementById('manage-attendance-client-id').value;
+    const eventId = this.state.currentEventId;
+    
+    const result = await Swal.fire({
+        title: '⚠️ Confirmar',
+        text: '¿Estás seguro de eliminar este asistente?',
+        icon: 'warning',
+        background: '#0f172a',
+        color: '#fff',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    try {
+        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'DELETE');
+        document.getElementById('modal-manage-attendance').classList.add('hidden');
+        await this.loadAttendance(eventId);
+        Swal.fire({ title: '✅ Eliminado', text: 'Asistente eliminado', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+    } catch(e) {
+        Swal.fire({ title: '❌ Error', text: 'No se pudo eliminar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.searchClientsForAttendance = async function(term) {
+    const container = document.getElementById('add-attendance-client-suggestions');
+    if (!term || term.length < 2) {
+        container.classList.add('hidden');
+        return;
+    }
+    
+    try {
+        const clients = await this.fetchAPI('/clients');
+        const matches = (clients || []).filter(c => 
+            (c.name || '').toLowerCase().includes(term.toLowerCase()) ||
+            (c.email || '').toLowerCase().includes(term.toLowerCase())
+        ).slice(0, 8);
+        
+        if (matches.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+        
+        container.innerHTML = matches.map(c => `
+            <div class="p-3 hover:bg-[var(--bg-hover)] cursor-pointer border-b border-[var(--border)]" onclick="App.selectAttendanceClient('${c.id}', '${c.name}', '${c.email}')">
+                <div class="text-sm font-medium text-white">${c.name}</div>
+                <div class="text-xs text-[var(--text-muted)]">${c.email}</div>
+            </div>
+        `).join('');
+        
+        container.classList.remove('hidden');
+    } catch(e) {
+        console.error('[SEARCH] Error:', e);
+    }
+};
+
+App.selectAttendanceClient = function(clientId, name, email) {
+    document.getElementById('add-attendance-client-id').value = clientId;
+    document.getElementById('add-attendance-client-search').value = name;
+    document.getElementById('add-attendance-client-name').textContent = name;
+    document.getElementById('add-attendance-client-email').textContent = email;
+    document.getElementById('add-attendance-client-initial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('add-attendance-client-info').classList.remove('hidden');
+    document.getElementById('add-attendance-client-suggestions').classList.add('hidden');
+};
+
+App.clearSelectedAttendanceClient = function() {
+    document.getElementById('add-attendance-client-id').value = '';
+    document.getElementById('add-attendance-client-search').value = '';
+    document.getElementById('add-attendance-client-info').classList.add('hidden');
+};
+
+App.saveAddAttendance = async function() {
+    const clientId = document.getElementById('add-attendance-client-id').value;
+    const eventId = this.state.currentEventId;
+    
+    if (!clientId) {
+        Swal.fire({ title: '⚠️ Atención', text: 'Selecciona un cliente', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    
+    const data = {
+        client_id: clientId,
+        organization: document.getElementById('add-attendance-organization').value,
+        cargo: document.getElementById('add-attendance-cargo').value,
+        vegano: document.getElementById('add-attendance-vegano').value,
+        restricciones: document.getElementById('add-attendance-restricciones').value,
+        status: 'PENDIENTE'
+    };
+    
+    try {
+        await this.fetchAPI(`/events/${eventId}/attendance`, 'POST', data);
+        document.getElementById('modal-add-attendance').classList.add('hidden');
+        await this.loadAttendance(eventId);
+        Swal.fire({ title: '✅ Agregado', text: 'Asistente agregado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+    } catch(e) {
+        Swal.fire({ title: '❌ Error', text: e.message || 'No se pudo agregar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.downloadAttendanceTemplate = function() {
+    const ExcelJS = window.ExcelJS;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Asistentes');
+    
+    ws.columns = [
+        { header: 'Nombre', key: 'name', width: 25 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Teléfono', key: 'phone', width: 15 },
+        { header: 'Organización', key: 'org', width: 20 },
+        { header: 'Cargo', key: 'cargo', width: 20 },
+        { header: 'Vegano', key: 'vegano', width: 10 },
+        { header: 'Restricciones', key: 'restricciones', width: 25 }
+    ];
+    
+    ws.addRow({ name: 'Ejemplo Nombre', email: 'ejemplo@email.com', phone: '+52 123 456 7890', org: 'Empresa S.A.', cargo: 'Gerente', vegano: 'NO', restricciones: '' });
+    
+    const buffer = wb.xlsx.writeBuffer();
+    buffer.then(b => {
+        const blob = new Blob([b], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plantilla_asistentes.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
 };
 
 // Click outside para sugerencias de attendance

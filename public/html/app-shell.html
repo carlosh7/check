@@ -2163,3 +2163,356 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL: IMPORTAR ASISTENCIA -->
+<div id="modal-import-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">upload</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Importar Asistentes</h3>
+            </div>
+            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+            <!-- Descarga de plantilla -->
+            <div class="mb-6">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
+                </h4>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                    <p class="text-xs text-[var(--text-secondary)] mb-3">Descarga la plantilla Excel con los campos a completar:</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-blue-400 text-lg">person</span>
+                            <span><strong>Nombre:</strong> Nombre completo del asistente</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-purple-400 text-lg">mail</span>
+                            <span><strong>Email:</strong> Correo electrónico</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-green-400 text-lg">phone</span>
+                            <span><strong>Teléfono:</strong> Número de teléfono</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-orange-400 text-lg">corporate_fare</span>
+                            <span><strong>Organización:</strong> Nombre de la empresa u organización</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-cyan-400 text-lg">badge</span>
+                            <span><strong>Cargo:</strong> Puesto o cargo del asistente</span>
+                        </div>
+                    </div>
+                    <button onclick="App.downloadAttendanceTemplate()" class="btn-primary !px-4 !py-2 mt-4 text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">download</span> Descargar Plantilla Excel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Subida de archivo -->
+            <div class="mb-6">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">attach_file</span> Subir Archivo
+                </h4>
+                <div id="import-attendance-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
+                    <input type="file" id="import-attendance-file-input" accept=".xlsx,.xls,.csv" class="hidden">
+                    <span class="material-symbols-outlined text-4xl text-[var(--text-muted)] mb-2">upload_file</span>
+                    <p class="text-sm text-[var(--text-secondary)]">Arrastra el archivo aquí o <span class="text-[var(--primary)] font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv</p>
+                </div>
+            </div>
+            
+            <!-- Progreso de validación -->
+            <div id="import-attendance-progress-container" class="hidden">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">fact_check</span> Validación de Datos
+                </h4>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                    <div id="import-attendance-progress-bar" class="w-full bg-[var(--bg-app)] rounded-full h-2 mb-3 overflow-hidden">
+                        <div id="import-attendance-progress-fill" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div id="import-attendance-status" class="text-sm text-[var(--text-secondary)] mb-3">Procesando...</div>
+                    <div id="import-attendance-stats" class="grid grid-cols-3 gap-3">
+                        <div class="text-center p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                            <p class="text-lg font-bold text-green-400" id="import-attendance-new-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-green-400/70">Nuevos</p>
+                        </div>
+                        <div class="text-center p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                            <p class="text-lg font-bold text-blue-400" id="import-attendance-update-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-blue-400/70">Actualizar</p>
+                        </div>
+                        <div class="text-center p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                            <p class="text-lg font-bold text-red-400" id="import-attendance-error-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-red-400/70">Errores</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+            <button id="btn-confirm-import-attendance" class="btn-primary !px-5 !py-2" disabled>
+                <span class="material-symbols-outlined text-sm mr-1">check</span> Importar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EXPORTAR ASISTENCIA -->
+<div id="modal-export-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">download</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Asistentes</h3>
+            </div>
+            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+            <p class="text-sm text-[var(--text-secondary)] mb-4">Selecciona el formato de exportación:</p>
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] cursor-pointer transition-colors export-attendance-format-option" data-format="excel">
+                    <input type="radio" name="export-attendance-format" value="excel" checked class="w-5 h-5 accent-[var(--primary)]">
+                    <span class="material-symbols-outlined text-green-400 text-xl">table_chart</span>
+                    <div>
+                        <p class="font-medium text-sm">Archivo Excel (.xlsx)</p>
+                        <p class="text-xs text-[var(--text-muted)]">Ideal para editar y analizar datos</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] cursor-pointer transition-colors export-attendance-format-option" data-format="pdf">
+                    <input type="radio" name="export-attendance-format" value="pdf" class="w-5 h-5 accent-[var(--primary)]">
+                    <span class="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
+                    <div>
+                        <p class="font-medium text-sm">Archivo PDF (.pdf)</p>
+                        <p class="text-xs text-[var(--text-muted)]">Ideal para imprimir y compartir</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] cursor-pointer transition-colors export-attendance-format-option" data-format="csv">
+                    <input type="radio" name="export-attendance-format" value="csv" class="w-5 h-5 accent-[var(--primary)]">
+                    <span class="material-symbols-outlined text-blue-400 text-xl">code</span>
+                    <div>
+                        <p class="font-medium text-sm">Archivo CSV (.csv)</p>
+                        <p class="text-xs text-[var(--text-muted)]">Compatible con cualquier editor de texto</p>
+                    </div>
+                </label>
+            </div>
+            <div id="export-attendance-progress-container" class="hidden mt-4">
+                <div class="w-full bg-[var(--bg-app)] rounded-full h-2 overflow-hidden">
+                    <div id="export-attendance-progress-fill" class="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full animate-pulse" style="width: 100%"></div>
+                </div>
+                <p class="text-xs text-[var(--text-secondary)] mt-2 text-center">Generando archivo...</p>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cerrar</button>
+            <button onclick="App.confirmExportAttendance()" class="btn-primary !px-5 !py-2">
+                <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EDITAR ASISTENTE -->
+<div id="modal-edit-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">edit</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Editar Asistente</h3>
+            </div>
+            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 space-y-4">
+            <input type="hidden" id="edit-attendance-client-id">
+            <!-- Nombre -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Nombre</label>
+                <input type="text" id="edit-attendance-name" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Nombre completo">
+            </div>
+            <!-- Email -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Email</label>
+                <input type="email" id="edit-attendance-email" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="correo@ejemplo.com">
+            </div>
+            <!-- Teléfono -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Teléfono</label>
+                <input type="tel" id="edit-attendance-phone" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="+52 123 456 7890">
+            </div>
+            <!-- Organización -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Organización</label>
+                <input type="text" id="edit-attendance-organization" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Empresa u organización">
+            </div>
+            <!-- Cargo -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Cargo</label>
+                <input type="text" id="edit-attendance-cargo" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Puesto o cargo">
+            </div>
+            <!-- Vegano -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Vegano</label>
+                <select id="edit-attendance-vegano" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí</option>
+                </select>
+            </div>
+            <!-- Restricciones -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Restricciones Alimentarias</label>
+                <textarea id="edit-attendance-restricciones" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" rows="2" placeholder="Alergias o restricciones alimentaires"></textarea>
+            </div>
+            <!-- Estado -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Estado</label>
+                <select id="edit-attendance-status" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="CONFIRMADO">Confirmado</option>
+                    <option value="CANCELADO">Cancelado</option>
+                </select>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+            <button onclick="App.saveEditAttendance()" class="btn-primary !px-5 !py-2">
+                <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: GESTIONAR ASISTENTE -->
+<div id="modal-manage-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-red-500 text-xl">settings</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Gestionar Asistente</h3>
+            </div>
+            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+            <input type="hidden" id="manage-attendance-client-id">
+            <!-- Cambiar Estado -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 block">Cambiar Estado</label>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] hover:border-amber-500 cursor-pointer transition-colors manage-status-option" data-status="PENDIENTE">
+                        <input type="radio" name="manage-attendance-status" value="PENDIENTE" class="w-5 h-5 accent-amber-500">
+                        <span class="material-symbols-outlined text-amber-400 text-lg">schedule</span>
+                        <span class="text-sm">Pendiente</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] hover:border-green-500 cursor-pointer transition-colors manage-status-option" data-status="CONFIRMADO">
+                        <input type="radio" name="manage-attendance-status" value="CONFIRMADO" class="w-5 h-5 accent-green-500">
+                        <span class="material-symbols-outlined text-green-400 text-lg">check_circle</span>
+                        <span class="text-sm">Confirmado</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] hover:border-red-500 cursor-pointer transition-colors manage-status-option" data-status="CANCELADO">
+                        <input type="radio" name="manage-attendance-status" value="CANCELADO" class="w-5 h-5 accent-red-500">
+                        <span class="material-symbols-outlined text-red-400 text-lg">cancel</span>
+                        <span class="text-sm">Cancelado</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Información del asistente -->
+            <div id="manage-attendance-info" class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Asistente</p>
+                <p id="manage-attendance-name" class="text-sm font-medium text-white">-</p>
+                <p id="manage-attendance-email" class="text-xs text-[var(--text-muted)]">-</p>
+            </div>
+            
+            <!-- Eliminar -->
+            <div class="pt-4 border-t border-[var(--border)]">
+                <button onclick="App.deleteAttendance()" class="w-full px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">delete</span> Eliminar Asistente
+                </button>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cerrar</button>
+            <button onclick="App.saveManageAttendance()" class="btn-primary !px-5 !py-2">
+                <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: AGREGAR ASISTENTE -->
+<div id="modal-add-attendance" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
+        <div class="premium-modal-header">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[var(--primary)] text-xl">person_add</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider">Agregar Asistente</h3>
+            </div>
+            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 space-y-4">
+            <!-- Buscar/Seleccionar Cliente -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Buscar Cliente</label>
+                <div class="relative">
+                    <input type="text" id="add-attendance-client-search" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Buscar por nombre o email..." oninput="App.searchClientsForAttendance(this.value)" autocomplete="off">
+                    <div id="add-attendance-client-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"></div>
+                </div>
+                <input type="hidden" id="add-attendance-client-id">
+            </div>
+            <!-- Cliente seleccionado -->
+            <div id="add-attendance-client-info" class="hidden p-4 bg-[var(--bg-hover)] rounded-xl border border-[var(--border)]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold" style="background: rgba(99,102,241,0.2); color: #6366f1;">
+                        <span id="add-attendance-client-initial">-</span>
+                    </div>
+                    <div>
+                        <p id="add-attendance-client-name" class="text-sm font-medium text-white">-</p>
+                        <p id="add-attendance-client-email" class="text-xs text-[var(--text-muted)]">-</p>
+                    </div>
+                    <button onclick="App.clearSelectedAttendanceClient()" class="ml-auto text-red-400 hover:text-red-300">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Organización -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Organización</label>
+                <input type="text" id="add-attendance-organization" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Empresa u organización">
+            </div>
+            <!-- Cargo -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Cargo</label>
+                <input type="text" id="add-attendance-cargo" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Puesto o cargo">
+            </div>
+            <!-- Vegano -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Vegano</label>
+                <select id="add-attendance-vegano" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí</option>
+                </select>
+            </div>
+            <!-- Restricciones -->
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Restricciones Alimentarias</label>
+                <textarea id="add-attendance-restricciones" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" rows="2" placeholder="Alergias o restricciones alimentaires"></textarea>
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+            <button onclick="App.saveAddAttendance()" class="btn-primary !px-5 !py-2">
+                <span class="material-symbols-outlined text-sm mr-1">add</span> Agregar
+            </button>
+        </div>
+    </div>
+</div>
