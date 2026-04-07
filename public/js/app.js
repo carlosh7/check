@@ -7560,7 +7560,10 @@ const App = window.App = {
             const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
-            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            // Clientes: ahora vienen como string comma-separated (client_ids, client_names)
+            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
+            const clientIds = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+            
             const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
             const location = ev.location || '—';
             const status = this._getEventStatus(ev);
@@ -7568,7 +7571,7 @@ const App = window.App = {
             const isChecked = this._selectedEvents.has(String(ev.id));
             
             return `
-                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}">
+                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
                     <td class="!py-3 !px-3">
                         <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
@@ -7588,7 +7591,7 @@ const App = window.App = {
                         <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientName}</span>
+                        <span class="text-xs text-slate-300">${clientNames}</span>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
@@ -7750,16 +7753,27 @@ const App = window.App = {
         // Filtro por búsqueda
         if (searchTerm) {
             events = events.filter(ev => {
-                const clientName = (this.state.clients || []).find(c => c.id === ev.client_id)?.name || '';
+                const clientNames = ev.client_names || '';
                 const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
-                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientName} ${groupName}`.toLowerCase();
+                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`.toLowerCase();
                 return searchable.includes(searchTerm);
             });
         }
         
         // Filtro por cliente
         if (clientFilter) {
-            events = events.filter(ev => String(ev.client_id) === String(clientFilter));
+            events = events.filter(ev => {
+                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+                return ids.some(id => String(id) === String(clientFilter));
+            });
+        }
+        
+        // Filtro por cliente
+        if (clientFilter) {
+            events = events.filter(ev => {
+                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+                return ids.some(id => String(id) === String(clientFilter));
+            });
         }
         
         // Filtro por estado
@@ -7830,7 +7844,7 @@ const App = window.App = {
                         <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientName}</span>
+                        <span class="text-xs text-slate-300">${clientNames}</span>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
@@ -7870,7 +7884,7 @@ const App = window.App = {
         const suggestions = [];
         
         events.forEach(ev => {
-            const clientName = clientsMap[ev.client_id] || '';
+            const clientName = ev.client_names || '';
             let score = 0;
             let matchType = '';
             
@@ -8122,7 +8136,7 @@ const App = window.App = {
                     `"${(ev.name || '').replace(/"/g, '""')}"`,
                     new Date(ev.date).toLocaleDateString('es-ES'),
                     `"${(ev.location || '').replace(/"/g, '""')}"`,
-                    `"${(clientsMap[ev.client_id] || '').replace(/"/g, '""')}"`,
+                    `"${(ev.client_names || '').replace(/"/g, '""')}"`,
                     ev.total_guests || 0,
                     ev.attended_guests || 0,
                     this._getEventStatus(ev)
@@ -8194,7 +8208,10 @@ const App = window.App = {
             const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
-            const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            // Clientes: ahora vienen como string comma-separated (client_ids, client_names)
+            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
+            const clientIds = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+            
             const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
             const location = ev.location || '—';
             const status = this._getEventStatus(ev);
@@ -8202,7 +8219,7 @@ const App = window.App = {
             const isChecked = this._selectedEvents.has(String(ev.id));
             
             return `
-                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}">
+                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
                     <td class="!py-3 !px-3">
                         <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
@@ -8222,7 +8239,7 @@ const App = window.App = {
                         <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientName}</span>
+                        <span class="text-xs text-slate-300">${clientNames}</span>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
@@ -8384,16 +8401,27 @@ const App = window.App = {
         // Filtro por búsqueda
         if (searchTerm) {
             events = events.filter(ev => {
-                const clientName = (this.state.clients || []).find(c => c.id === ev.client_id)?.name || '';
+                const clientNames = ev.client_names || '';
                 const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
-                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientName} ${groupName}`.toLowerCase();
+                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`.toLowerCase();
                 return searchable.includes(searchTerm);
             });
         }
         
         // Filtro por cliente
         if (clientFilter) {
-            events = events.filter(ev => String(ev.client_id) === String(clientFilter));
+            events = events.filter(ev => {
+                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+                return ids.some(id => String(id) === String(clientFilter));
+            });
+        }
+        
+        // Filtro por cliente
+        if (clientFilter) {
+            events = events.filter(ev => {
+                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+                return ids.some(id => String(id) === String(clientFilter));
+            });
         }
         
         // Filtro por estado
@@ -8464,7 +8492,7 @@ const App = window.App = {
                         <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
                     </td>
                     <td class="!py-3 !px-3">
-                        <span class="text-xs text-slate-300">${clientName}</span>
+                        <span class="text-xs text-slate-300">${clientNames}</span>
                     </td>
                     <td class="!py-3 !px-3">
                         <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
@@ -8504,7 +8532,7 @@ const App = window.App = {
         const suggestions = [];
         
         events.forEach(ev => {
-            const clientName = clientsMap[ev.client_id] || '';
+            const clientName = ev.client_names || '';
             let score = 0;
             let matchType = '';
             
@@ -8756,7 +8784,7 @@ const App = window.App = {
                     `"${(ev.name || '').replace(/"/g, '""')}"`,
                     new Date(ev.date).toLocaleDateString('es-ES'),
                     `"${(ev.location || '').replace(/"/g, '""')}"`,
-                    `"${(clientsMap[ev.client_id] || '').replace(/"/g, '""')}"`,
+                    `"${(ev.client_names || '').replace(/"/g, '""')}"`,
                     ev.total_guests || 0,
                     ev.attended_guests || 0,
                     this._getEventStatus(ev)

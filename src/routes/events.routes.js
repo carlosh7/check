@@ -24,7 +24,9 @@ router.get('/', authMiddleware(), async (req, res) => {
             SELECT e.*, 
                 (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id) as total_guests,
                 (SELECT COUNT(*) FROM guests g WHERE g.event_id = e.id AND g.checked_in = 1) as attended_guests,
-                (SELECT COUNT(*) FROM pre_registrations pr WHERE pr.event_id = e.id AND pr.status = 'PENDING') as pending_pre_reg
+                (SELECT COUNT(*) FROM pre_registrations pr WHERE pr.event_id = e.id AND pr.status = 'PENDING') as pending_pre_reg,
+                (SELECT GROUP_CONCAT(c.id) FROM client_events ce JOIN clients c ON c.id = ce.client_id WHERE ce.event_id = e.id) as client_ids,
+                (SELECT GROUP_CONCAT(c.name) FROM client_events ce JOIN clients c ON c.id = ce.client_id WHERE ce.event_id = e.id) as client_names
             FROM events e
             ${req.userRole === 'ADMIN' ? '' : 'WHERE e.group_id IN (SELECT group_id FROM group_users WHERE user_id = ?)'}
             ORDER BY e.created_at DESC
