@@ -15517,7 +15517,7 @@ App.openImportAttendanceModal = function() {
     document.getElementById('modal-import-attendance').classList.remove('hidden');
 },
 
-App.initAttendanceImportHandlers: function() {
+App.initAttendanceImportHandlers = function() {
     const dropZone = document.getElementById('import-attendance-drop-zone');
     const fileInput = document.getElementById('import-attendance-file-input');
     const btnConfirm = document.getElementById('btn-confirm-import-attendance');
