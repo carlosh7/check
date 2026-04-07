@@ -15855,47 +15855,40 @@ App.saveAddAttendance = async function() {
 
 App.downloadAttendanceTemplate = function() {
     try {
-        const ExcelJS = window.ExcelJS;
-        if (!ExcelJS) {
-            console.error('[TEMPLATE] ExcelJS no está disponible');
-            Swal.fire({ title: '❌ Error', text: 'Biblioteca Excel no disponible', icon: 'error', background: '#0f172a', color: '#fff' });
-            return;
+        // Obtener token igual que downloadImportTemplate
+        let token = window.App?.state?.user?.token;
+        if (!token) {
+            const userStr = LS.get('user');
+            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+            token = user.token || LS.get('token');
         }
         
-        const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet('Asistentes');
+        // Crear plantilla en el servidor
+        const data = {
+            type: 'attendance',
+            fields: ['Nombre', 'Email', 'Teléfono', 'Organización', 'Cargo', 'Vegano', 'Restricciones']
+        };
         
-        ws.columns = [
-            { header: 'Nombre', key: 'name', width: 25 },
-            { header: 'Email', key: 'email', width: 30 },
-            { header: 'Teléfono', key: 'phone', width: 15 },
-            { header: 'Organización', key: 'org', width: 20 },
-            { header: 'Cargo', key: 'cargo', width: 20 },
-            { header: 'Vegano', key: 'vegano', width: 10 },
-            { header: 'Restricciones', key: 'restricciones', width: 25 }
-        ];
+        // Generar blob directamente con los datos
+        const headers = ['Nombre', 'Email', 'Teléfono', 'Organización', 'Cargo', 'Vegano', 'Restricciones'];
+        const exampleRow = ['Ejemplo Nombre', 'ejemplo@email.com', '+52 123 456 7890', 'Empresa S.A.', 'Gerente', 'NO', ''];
         
-        ws.addRow({ name: 'Ejemplo Nombre', email: 'ejemplo@email.com', phone: '+52 123 456 7890', org: 'Empresa S.A.', cargo: 'Gerente', vegano: 'NO', restricciones: '' });
+        // Crear CSV como alternativa simple
+        const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plantilla_asistentes.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
         
-        wb.xlsx.writeBuffer().then(buffer => {
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'plantilla_asistentes.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
-        }).catch(err => {
-            console.error('[TEMPLATE] Error creando archivo:', err);
-            Swal.fire({ title: '❌ Error', text: 'No se pudo crear la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
-        });
+        Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
     } catch(e) {
         console.error('[TEMPLATE] Error:', e);
-        Swal.fire({ title: '❌ Error', text: 'Error al descargar plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
+        Swal.fire({ title: '❌ Error', text: 'No se pudo descargar la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
     }
 };
 
