@@ -975,6 +975,8 @@ router.post('/:id/attendance/import', authMiddleware(['ADMIN', 'PRODUCTOR']), as
     const eventId = castId('events', req.params.id);
     const { attendees } = req.body;
     
+    console.log('[IMPORT ATTENDANCE] eventId:', eventId, 'attendees:', attendees?.length);
+    
     if (!eventId || !Array.isArray(attendees) || attendees.length === 0) {
         return res.status(400).json({ error: 'ID de evento y asistentes requeridos' });
     }
