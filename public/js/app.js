@@ -15641,14 +15641,14 @@ App.executeAttendanceImport = async function() {
         
         for (const item of this._importAttendanceData) {
             try {
-                await this.fetchAPI(`/events/${eventId}/attendance`, 'POST', {
+                await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify({
                     client_id: item.client_id,
                     organization: item.organization,
                     cargo: item.cargo,
                     vegano: item.vegano || 'NO',
                     restricciones: item.restricciones,
                     status: 'PENDIENTE'
-                });
+                }) });
                 imported++;
             } catch(e) {
                 errors++;
