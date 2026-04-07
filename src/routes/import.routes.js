@@ -367,6 +367,74 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
         stats.message = `${stats.new} nuevos, ${stats.update} para actualizar, ${stats.errors} errores`;
 
+        // ─── PROCESAR ASISTENTES (type: attendance) ───
+        if (type === 'attendance' && workbook.getWorksheet('Asistentes')) {
+            const sheet = workbook.getWorksheet('Asistentes');
+            const existingClients = db.prepare("SELECT id, name, email FROM clients").all();
+            
+            data.attendance = [];
+            
+            sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
+                try {
+                    const name = row.getCell(1).text?.trim();
+                    const email = row.getCell(2).text?.trim();
+                    const phone = row.getCell(3).text?.trim() || '';
+                    const organization = row.getCell(4).text?.trim() || '';
+                    const cargo = row.getCell(5).text?.trim() || '';
+                    const vegano = row.getCell(6).text?.trim() || 'NO';
+                    const restricciones = row.getCell(7).text?.trim() || '';
+
+                    if (!name && !email) return;
+                    
+                    // Skip header rows
+                    const firstCell = (name || '').toLowerCase();
+                    const secondCell = (email || '').toLowerCase();
+                    if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
+                        return;
+                    }
+
+                    // Buscar cliente existente por email
+                    let clientId = null;
+                    const existingClient = existingClients.find(c => 
+                        c.email && c.email.toLowerCase() === email.toLowerCase()
+                    );
+                    
+                    if (existingClient) {
+                        clientId = existingClient.id;
+                        stats.update++;
+                    } else {
+                        // Crear nuevo cliente
+                        const newClientId = getValidId('clients');
+                        db.prepare("INSERT INTO clients (id, name, email, phone, status, created_at) VALUES (?, ?, ?, ?, 'ACTIVE', ?)")
+                            .run(newClientId, name, email, phone, new Date().toISOString());
+                        clientId = newClientId;
+                        stats.new++;
+                        // Actualizar lista de clientes existentes
+                        existingClients.push({ id: newClientId, name, email });
+                    }
+
+                    data.attendance.push({
+                        client_id: clientId,
+                        name,
+                        email,
+                        phone,
+                        organization,
+                        cargo,
+                        vegano,
+                        restricciones,
+                        action: existingClient ? 'update' : 'create'
+                    });
+                } catch(e) {
+                    stats.errors++;
+                    errors.push(`Fila ${rowNumber}: Error procesando asistente`);
+                }
+            });
+            
+            if (data.attendance.length > 0) {
+                stats.message = `${stats.new} nuevos clientes/asistentes, ${stats.update} para actualizar, ${stats.errors} errores`;
+            }
+        }
+
         res.json({ success: true, data, stats, errors });
     } catch(e) {
         console.error('Error validando archivo:', e);
