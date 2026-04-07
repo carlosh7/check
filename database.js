@@ -484,6 +484,16 @@ try {
     if (!columnNames.includes('validated_by')) {
         db.exec('ALTER TABLE event_attendance ADD COLUMN validated_by TEXT');
     }
+    // V12.44.265: Agregar columnas de asistente si no existen
+    if (!columnNames.includes('name')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN name TEXT');
+    }
+    if (!columnNames.includes('email')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN email TEXT');
+    }
+    if (!columnNames.includes('phone')) {
+        db.exec('ALTER TABLE event_attendance ADD COLUMN phone TEXT');
+    }
     console.log('[MIGRATION] Tabla event_attendance verificada/actualizada');
 } catch (e) {
     console.error('[MIGRATION] Error verificando event_attendance:', e.message);
