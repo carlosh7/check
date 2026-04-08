@@ -7755,9 +7755,13 @@ const App = window.App = {
         const statusFilter = document.getElementById('filter-event-status')?.value || '';
         let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
         
+        // Debug
+        console.log('[filterEvents] searchTerm:', searchTerm, 'clientFilter:', clientFilter, 'statusFilter:', statusFilter, 'total events:', events.length);
+        
         // FILTRO: PRODUCTOR solo ve sus eventos
         if (this.state.user?.role === 'PRODUCTOR') {
             events = events.filter(e => e.user_id === this.state.user.userId);
+            console.log('[filterEvents] after PRODUCTOR filter:', events.length);
         }
         
         // Filtro por búsqueda
@@ -7768,6 +7772,7 @@ const App = window.App = {
                 const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`.toLowerCase();
                 return searchable.includes(searchTerm);
             });
+            console.log('[filterEvents] after search filter:', events.length);
         }
         
         // Filtro por cliente
@@ -7776,20 +7781,16 @@ const App = window.App = {
                 const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
                 return ids.some(id => String(id) === String(clientFilter));
             });
-        }
-        
-        // Filtro por cliente
-        if (clientFilter) {
-            events = events.filter(ev => {
-                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
-                return ids.some(id => String(id) === String(clientFilter));
-            });
+            console.log('[filterEvents] after client filter:', events.length);
         }
         
         // Filtro por estado
         if (statusFilter) {
             events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
+            console.log('[filterEvents] after status filter:', events.length);
         }
+        
+        console.log('[filterEvents] final events:', events.length);
         
         this._eventsFiltered = events;
         this._renderFilteredEvents(events);
