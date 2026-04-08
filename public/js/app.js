@@ -8017,6 +8017,10 @@ const App = window.App = {
         
         const renderCarousel = () => {
             const ev = events[currentIndex];
+            
+            // Obtener valores del estado del carrusel
+            const activeTab = this._eventCarouselState?.currentTab || 0;
+            
             const isDark = document.documentElement.classList.contains('dark');
             const bgMain = isDark ? '#0f172a' : '#f1f5f9';
             const bgCard = isDark ? '#1e293b' : '#ffffff';
@@ -8032,7 +8036,7 @@ const App = window.App = {
             
             // Contenido según pestaña activa
             let tabContent = '';
-            if (currentTab === 0) {
+            if (activeTab === 0) {
                 // Pestaña Editar
                 const formatDate = (d) => {
                     if (!d) return '';
@@ -8126,10 +8130,10 @@ const App = window.App = {
             // Barra de navegación de pestañas
             const tabsHtml = `
                 <div class="flex mb-4 rounded-xl overflow-hidden" style="border: 1px solid ${borderColor};">
-                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${currentTab === 0 ? '' : 'opacity-50'}" style="background: ${currentTab === 0 ? 'rgba(245,158,11,0.2)' : bgCard}; color: ${currentTab === 0 ? '#f59e0b' : textSecondary}; border-right: 1px solid ${borderColor};">
+                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 0 ? '' : 'opacity-50'}" style="background: ${activeTab === 0 ? 'rgba(245,158,11,0.2)' : bgCard}; color: ${activeTab === 0 ? '#f59e0b' : textSecondary}; border-right: 1px solid ${borderColor};">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">edit</span> Editar
                     </button>
-                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${currentTab === 1 ? '' : 'opacity-50'}" style="background: ${currentTab === 1 ? 'rgba(239,68,68,0.2)' : bgCard}; color: ${currentTab === 1 ? '#ef4444' : textSecondary};">
+                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 1 ? '' : 'opacity-50'}" style="background: ${activeTab === 1 ? 'rgba(239,68,68,0.2)' : bgCard}; color: ${activeTab === 1 ? '#ef4444' : textSecondary};">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">settings</span> Gestionar
                     </button>
                 </div>
@@ -8176,19 +8180,21 @@ const App = window.App = {
 
     // Cambiar pestaña en el carrusel (Editar <-> Gestionar)
     showEventTabInCarousel: function(index, tab) {
-        console.log('[showEventTabInCarousel] index:', index, 'tab:', tab, 'modalOpen:', this._eventCarouselModalOpen);
+        console.log('[showEventTabInCarousel] Cambiando a tab:', tab);
         if (!this._eventCarouselState) {
             console.log('[showEventTabInCarousel] No _eventCarouselState');
             return;
         }
-        // Solo cambiar si el modal está abierto
         if (!this._eventCarouselModalOpen) {
-            console.log('[showEventTabInCarousel] Modal cerrado, ignorando');
+            console.log('[showEventTabInCarousel] Modal cerrado');
             return;
         }
+        
         this._eventCarouselState.currentIndex = index;
         this._eventCarouselState.currentTab = tab;
+        console.log('[showEventTabInCarousel] state antes:', this._eventCarouselState.currentTab);
         this._eventCarouselState.renderCarousel();
+        console.log('[showEventTabInCarousel] state después:', this._eventCarouselState.currentTab);
     },
 
     // Guardar evento desde el carrusel
