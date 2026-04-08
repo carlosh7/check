@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.112';
+const VERSION = '12.44.287';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -8008,7 +8008,21 @@ const App = window.App = {
     },
 
     // Carrusel unificado: Editar + Gestionar con barra de navegación
-    openEventEditCarousel: function(selectedIds) {
+    openEventEditCarousel: async function(selectedIds) {
+        // Asegurar que los datos de grupos y clientes estén cargados
+        if (!this.state.allGroups?.length) {
+            await this.loadGroups();
+        }
+        if (!this.state.clients?.length) {
+            try {
+                const clientsRes = await this.fetchAPI('/clients');
+                this.state.clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+            } catch(e) { 
+                console.error('[EVENT CAROUSEL] Error loading clients:', e);
+                this.state.clients = []; 
+            }
+        }
+
         const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
         if (events.length === 0) return;
         
@@ -8029,10 +8043,14 @@ const App = window.App = {
             const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
             
-            // Preparar opciones de empresa
-            const groupsOptions = (this.state.allGroups || []).map(g => 
-                `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`
+            // Preparar opciones de cliente
+            const eventClientIds = ev.client_ids ? String(ev.client_ids).split(',') : [];
+            const selectedClientId = eventClientIds.length > 0 ? eventClientIds[0] : '';
+            
+            const clientsOptions = (this.state.clients || []).map(c => 
+                `<option value="${c.id}" ${String(selectedClientId) === String(c.id) ? 'selected' : ''}>${c.name}</option>`
             ).join('');
+
             
             // Barra de navegación con iconos (igual que staff)
             const navButtons = `
@@ -8073,10 +8091,10 @@ const App = window.App = {
                                 <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Ubicación del evento">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Empresa</label>
-                                <select id="ev-edit-group-${ev.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                    <option value="">Seleccionar empresa</option>
-                                    ${groupsOptions}
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Cliente</label>
+                                <select id="ev-edit-client-${ev.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                    <option value="">Seleccionar cliente</option>
+                                    ${clientsOptions}
                                 </select>
                             </div>
                             <div>
@@ -8214,7 +8232,6 @@ const App = window.App = {
         
         const name = document.getElementById(`ev-edit-name-${eventId}`)?.value?.trim();
         const location = document.getElementById(`ev-edit-location-${eventId}`)?.value?.trim();
-        const group_id = document.getElementById(`ev-edit-group-${eventId}`)?.value?.trim();
         const date = document.getElementById(`ev-edit-date-${eventId}`)?.value?.trim();
         const end_date = document.getElementById(`ev-edit-end-date-${eventId}`)?.value?.trim();
         const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
@@ -8227,7 +8244,7 @@ const App = window.App = {
         try {
             await this.fetchAPI(`/events/${eventId}`, {
                 method: 'PUT',
-                body: JSON.stringify({ name, location, group_id, date, end_date, description })
+                body: JSON.stringify({ name, location, date, end_date, description })
             });
             console.log('[saveEventFromCarousel] Event updated:', eventId);
             await this.loadEvents();
@@ -8257,7 +8274,8 @@ const App = window.App = {
         
         const name = document.getElementById(`ev-edit-name-${eventId}`)?.value?.trim();
         const location = document.getElementById(`ev-edit-location-${eventId}`)?.value?.trim();
-        const group_id = document.getElementById(`ev-edit-group-${eventId}`)?.value?.trim();
+        const client_id = document.getElementById(`ev-edit-client-${eventId}`)?.value?.trim() || null;
+        const group_id = ev.group_id; 
         const date = document.getElementById(`ev-edit-date-${eventId}`)?.value?.trim();
         const end_date = document.getElementById(`ev-edit-end-date-${eventId}`)?.value?.trim();
         const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
@@ -8275,17 +8293,31 @@ const App = window.App = {
         try {
             const result = await this.fetchAPI(`/events/${eventId}`, {
                 method: 'PUT',
-                body: JSON.stringify({ name, location, group_id, date, end_date, description })
+                body: JSON.stringify({ name, location, group_id, client_id, date, end_date, description })
             });
             
             if (result?.success || result?.event || result?.id) {
-                // Actualizar en el estado
+                // Actualizar en el estado local
                 const eventIndex = this.state.events?.findIndex(e => String(e.id) === String(eventId));
                 if (eventIndex !== -1) {
-                    this.state.events[eventIndex] = { ...this.state.events[eventIndex], name, location, group_id, date, end_date, description };
+                    const selectedClient = (this.state.clients || []).find(c => String(c.id) === String(client_id));
+                    this.state.events[eventIndex] = { 
+                        ...this.state.events[eventIndex], 
+                        name, location, group_id, date, end_date, description,
+                        client_ids: client_id,
+                        client_names: selectedClient ? selectedClient.name : ''
+                    };
                 }
                 
                 Swal.fire({ title: '✅ Guardado', text: 'Evento actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // REFRESCAR TABLA AUTOMÁTICAMENTE
+                if (typeof this.filterEvents === 'function') {
+                    this.filterEvents();
+                } else if (typeof this.loadEvents === 'function') {
+                    this.loadEvents();
+                }
+
                 
                 // Actualizar el nombre en el título del modal
                 const titleSpan = document.querySelector('.text-xs[style*="color:"]');

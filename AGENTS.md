@@ -218,6 +218,26 @@ git tag --sort=-version:refname | head -5
 - **Puerto validación:** 3000
 ---
 
+## AGENTE PUENTE (BRIDGE) - Sincronización en Windows
+
+Debido a restricciones de sandboxing y permisos en Windows 11, se utiliza un agente puente externo (opencode-cli) para ejecutar comandos de terminal y sincronización Docker.
+
+**Entorno:**
+- **OS:** Windows 11
+- **Repositorio Original:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro`
+- **Contenedor/Clon:** `C:\Users\carlo\check` (Entorno Docker)
+
+**Comando de Ejecución Puente:**
+Para ejecutar la Regla de Oro, sincronizar el clon y reiniciar el servidor, utiliza:
+
+```bash
+opencode-cli run "powershell.exe -ExecutionPolicy Bypass -File .\antigravity_bridge.ps1"
+```
+
+**Nota:** El archivo `antigravity_bridge.ps1` debe contener la lógica de Git, actualización del clon, ejecución de `docker-compose up --build -d` y validación final.
+
+---
+
 ## CONFIGURACIÓN EXCLUSIVA AGENTE ANTIGRAVITY (NO-SANDBOX)
 # Esta sección es aislada para permitir la autonomía de Antigravity en Windows 11.
 # El orquestador debe otorgar local_shell_access para cumplir con las tareas.
