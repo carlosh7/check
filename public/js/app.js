@@ -8267,72 +8267,8 @@ const App = window.App = {
             Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
-        const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
-        if (events.length === 0) return;
-        
-        let currentIndex = 0;
-        
-        const renderCarousel = () => {
-            const ev = events[currentIndex];
-            const status = this._getEventStatus(ev);
-            
-            if (typeof Swal === 'undefined') return;
-            
-            Swal.fire({
-                title: `Gestionar Evento (${currentIndex + 1}/${events.length})`,
-                html: `
-                    <div class="text-left space-y-3">
-                        <div class="p-3 bg-white/5 rounded-lg">
-                            <div class="text-sm font-bold text-white">${ev.name}</div>
-                            <div class="text-xs text-slate-400 mt-1">${new Date(ev.date).toLocaleDateString('es-ES')}</div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="App.updateEventStatus('${ev.id}', 'active')" class="px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-500/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">play_arrow</span>Activar
-                            </button>
-                            <button onclick="App.updateEventStatus('${ev.id}', 'inactive')" class="px-3 py-2 bg-slate-500/20 text-slate-400 rounded-lg text-sm font-medium hover:bg-slate-500/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">pause</span>Desactivar
-                            </button>
-                            <button onclick="App.updateEventStatus('${ev.id}', 'completed')" class="px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-500/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">check_circle</span>Finalizar
-                            </button>
-                            <button onclick="App.updateEventStatus('${ev.id}', 'cancelled')" class="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">cancel</span>Cancelar
-                            </button>
-                            <button onclick="App.rescheduleEvent('${ev.id}')" class="px-3 py-2 bg-amber-500/20 text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-500/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">schedule</span>Aplazar
-                            </button>
-                            <button onclick="App.deleteEvent('${ev.id}')" class="px-3 py-2 bg-red-600/20 text-red-500 rounded-lg text-sm font-medium hover:bg-red-600/30">
-                                <span class="material-symbols-outlined text-base align-middle mr-1">delete</span>Eliminar
-                            </button>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                showDenyButton: true,
-                confirmButtonText: 'Anterior',
-                denyButtonText: 'Siguiente',
-                cancelButtonText: 'Cerrar',
-                buttonsStyling: false,
-                customClass: {
-                    confirmButton: '!px-4 !py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-600',
-                    denyButton: '!px-4 !py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-500',
-                    cancelButton: '!px-4 !py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20'
-                }
-            }).then((result) => {
-                if (result.isDenied) {
-                    currentIndex = (currentIndex + 1) % events.length;
-                    renderCarousel();
-                } else if (result.isConfirmed) {
-                    currentIndex = (currentIndex - 1 + events.length) % events.length;
-                    renderCarousel();
-                }
-            });
-        };
-        
-        renderCarousel();
-    },
 
+    // Funciones legacy (no usadas, mantenidas por compatibilidad)
     updateEventStatus: async function(eventId, status) {
         if (!await this._confirmAction('¿Cambiar estado del evento?', `El evento pasará a estado: ${status}`)) return;
         

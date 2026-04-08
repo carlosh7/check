@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.276",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.276 - Fix: carrusel editar+gestionar eventos con barra de navegación",
+  "version": "12.44.277",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.277 - Fix: error syntax en app.js (código duplicado)",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
