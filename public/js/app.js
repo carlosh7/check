@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.288';
+const VERSION = '12.44.289';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -8305,7 +8305,17 @@ const App = window.App = {
         const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
         
         if (!name || !date) {
-            Swal.fire({ title: '⚠️ Error', text: 'Nombre y fecha son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            Swal.fire({ 
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                title: '⚠️ Error', 
+                text: 'Nombre y fecha son obligatorios', 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
             if (saveBtn) {
                 saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
                 saveBtn.style.opacity = '1';
@@ -8333,7 +8343,18 @@ const App = window.App = {
                     };
                 }
                 
-                Swal.fire({ title: '✅ Guardado', text: 'Evento actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                Swal.fire({ 
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    title: '✅ Guardado', 
+                    text: 'Evento actualizado correctamente', 
+                    icon: 'success', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
                 
                 // REFRESCAR TABLA AUTOMÁTICAMENTE
                 if (typeof this.filterEvents === 'function') {
@@ -8390,9 +8411,30 @@ const App = window.App = {
                 if (localEv) localEv.status = dbStatus;
                 this._eventCarouselState.renderCarousel();
             }
-            Swal.fire({ title: '✓ Listo', text: 'Estado actualizado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+            Swal.fire({ 
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                title: '✓ Listo', 
+                text: 'Estado actualizado', 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
         } catch(e) {
-            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+            Swal.fire({ 
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                title: '✗ Error', 
+                text: e.message, 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
         }
     },
 
@@ -8420,9 +8462,30 @@ const App = window.App = {
                     if (localEv) localEv.date = newDate;
                     this._eventCarouselState.renderCarousel();
                 }
-                Swal.fire({ title: '✓ Listo', text: 'Evento aplazado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+                Swal.fire({ 
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    title: '✓ Listo', 
+                    text: 'Evento aplazado', 
+                    icon: 'success', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
             } catch(e) {
-                Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+                Swal.fire({ 
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    title: '✗ Error', 
+                    text: e.message, 
+                    icon: 'error', 
+                    background: '#0f172a', 
+                    color: '#fff' 
+                });
             }
         }
     },
@@ -8434,11 +8497,49 @@ const App = window.App = {
         try {
             await this.fetchAPI(`/events/${eventId}`, { method: 'DELETE' });
             await this.loadEvents();
-            // Cerrar el carrusel
-            Swal.close();
-            Swal.fire({ title: '✓ Listo', text: 'Evento eliminado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+            
+            // Actualizar lista local del carrusel
+            if (this._eventCarouselState && this._eventCarouselState.events) {
+                const indexToRemove = this._eventCarouselState.events.findIndex(e => String(e.id) === String(eventId));
+                if (indexToRemove !== -1) {
+                    this._eventCarouselState.events.splice(indexToRemove, 1);
+                    
+                    if (this._eventCarouselState.events.length === 0) {
+                        Swal.close();
+                    } else {
+                        // Ajustar índice si era el último
+                        if (this._eventCarouselState.currentIndex >= this._eventCarouselState.events.length) {
+                            this._eventCarouselState.currentIndex = Math.max(0, this._eventCarouselState.events.length - 1);
+                        }
+                        this._eventCarouselState.renderCarousel();
+                    }
+                }
+            }
+
+            Swal.fire({ 
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                title: '✓ Listo', 
+                text: 'Evento eliminado', 
+                icon: 'success', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
         } catch(e) {
-            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+            Swal.fire({ 
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                title: '✗ Error', 
+                text: e.message, 
+                icon: 'error', 
+                background: '#0f172a', 
+                color: '#fff' 
+            });
         }
     },
 
