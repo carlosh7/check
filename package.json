@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.271",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.271 - Fix: columna clientes en Mis Eventos (relación muchos-a-muchos via client_events)",
+  "version": "12.44.272",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.272 - Fix: filtro cliente eventos, eliminar filtro empresa, arreglar btn +Evento, buscar y clear, selector empresa modal nuevo/editar, carrusel gestionar eventos",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

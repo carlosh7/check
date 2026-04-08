@@ -5660,12 +5660,14 @@ const App = window.App = {
         const evDate = form.querySelector('#ev-date')?.value?.trim();
         const evLocation = form.querySelector('#ev-location')?.value?.trim();
         const evDesc = form.querySelector('#ev-desc')?.value?.trim();
+        const evGroup = form.querySelector('#ev-group')?.value?.trim();
         const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
         
         if (evName) data.name = evName;
         if (evDate) data.date = evDate;
         if (evLocation) data.location = evLocation;
         if (evDesc) data.description = evDesc;
+        if (evGroup) data.group_id = evGroup;
         if (evEmailTemplate && evEmailTemplate !== '') {
             data.email_template_id = evEmailTemplate;
         }
@@ -7249,6 +7251,16 @@ const App = window.App = {
     openCreateEventModal: function() {
         document.getElementById('new-event-form')?.reset();
         document.getElementById('ev-id-hidden').value = '';
+        
+        // Poblar selector de empresa
+        const groupSelect = document.getElementById('ev-group');
+        if (groupSelect && this.state.allGroups) {
+            const currentVal = groupSelect.value;
+            groupSelect.innerHTML = '<option value="">Seleccionar empresa</option>' + 
+                this.state.allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            groupSelect.value = currentVal;
+        }
+        
         const modal = document.getElementById('modal-event');
         if (modal) {
             modal.classList.remove('hidden');
@@ -7741,8 +7753,6 @@ const App = window.App = {
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
         const clientFilter = document.getElementById('filter-event-client')?.value || '';
         const statusFilter = document.getElementById('filter-event-status')?.value || '';
-        const companyFilter = document.getElementById('filter-event-company')?.value || '';
-        
         let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
         
         // FILTRO: PRODUCTOR solo ve sus eventos
@@ -7781,11 +7791,6 @@ const App = window.App = {
             events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
         }
         
-        // Filtro por empresa
-        if (companyFilter) {
-            events = events.filter(ev => String(ev.group_id) === String(companyFilter));
-        }
-        
         this._eventsFiltered = events;
         this._renderFilteredEvents(events);
     },
@@ -7819,6 +7824,7 @@ const App = window.App = {
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
             const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
             const location = ev.location || '—';
             const status = this._getEventStatus(ev);
             const statusBadge = this._getEventStatusBadge(status);
@@ -7931,6 +7937,19 @@ const App = window.App = {
         if (dropdown) dropdown.classList.add('hidden');
     },
 
+    clearEventSearch() {
+        const searchInput = document.getElementById('event-search');
+        const clientFilter = document.getElementById('filter-event-client');
+        const statusFilter = document.getElementById('filter-event-status');
+        
+        if (searchInput) searchInput.value = '';
+        if (clientFilter) clientFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        
+        this.filterEvents();
+        this.hideEventSuggestions();
+    },
+
     _highlightText(text, term) {
         if (!term) return text;
         const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -7988,6 +8007,146 @@ const App = window.App = {
         }
     },
 
+    // ─── ACCIÓN DE GESTIÓN DE EVENTOS ───
+    openEventManageAction() {
+        const selected = Array.from(this._selectedEvents);
+        
+        if (selected.length === 0) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un evento con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+            }
+            return;
+        }
+        
+        this.openEventManageCarousel(selected);
+    },
+
+    openEventManageCarousel: async function(selectedIds) {
+        const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
+        if (events.length === 0) return;
+        
+        let currentIndex = 0;
+        
+        const renderCarousel = () => {
+            const ev = events[currentIndex];
+            const status = this._getEventStatus(ev);
+            
+            if (typeof Swal === 'undefined') return;
+            
+            Swal.fire({
+                title: `Gestionar Evento (${currentIndex + 1}/${events.length})`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="text-sm font-bold text-white">${ev.name}</div>
+                            <div class="text-xs text-slate-400 mt-1">${new Date(ev.date).toLocaleDateString('es-ES')}</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="App.updateEventStatus('${ev.id}', 'active')" class="px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-500/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">play_arrow</span>Activar
+                            </button>
+                            <button onclick="App.updateEventStatus('${ev.id}', 'inactive')" class="px-3 py-2 bg-slate-500/20 text-slate-400 rounded-lg text-sm font-medium hover:bg-slate-500/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">pause</span>Desactivar
+                            </button>
+                            <button onclick="App.updateEventStatus('${ev.id}', 'completed')" class="px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-500/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">check_circle</span>Finalizar
+                            </button>
+                            <button onclick="App.updateEventStatus('${ev.id}', 'cancelled')" class="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">cancel</span>Cancelar
+                            </button>
+                            <button onclick="App.rescheduleEvent('${ev.id}')" class="px-3 py-2 bg-amber-500/20 text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-500/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">schedule</span>Aplazar
+                            </button>
+                            <button onclick="App.deleteEvent('${ev.id}')" class="px-3 py-2 bg-red-600/20 text-red-500 rounded-lg text-sm font-medium hover:bg-red-600/30">
+                                <span class="material-symbols-outlined text-base align-middle mr-1">delete</span>Eliminar
+                            </button>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Anterior',
+                denyButtonText: 'Siguiente',
+                cancelButtonText: 'Cerrar',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: '!px-4 !py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-600',
+                    denyButton: '!px-4 !py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-500',
+                    cancelButton: '!px-4 !py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20'
+                }
+            }).then((result) => {
+                if (result.isDenied) {
+                    currentIndex = (currentIndex + 1) % events.length;
+                    renderCarousel();
+                } else if (result.isConfirmed) {
+                    currentIndex = (currentIndex - 1 + events.length) % events.length;
+                    renderCarousel();
+                }
+            });
+        };
+        
+        renderCarousel();
+    },
+
+    updateEventStatus: async function(eventId, status) {
+        if (!await this._confirmAction('¿Cambiar estado del evento?', `El evento pasará a estado: ${status}`)) return;
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            await this.loadEvents();
+            Swal.fire({ title: '✓ Listo', text: 'Estado actualizado', icon: 'success', background: '#0f172a', color: '#fff' });
+        } catch(e) {
+            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    rescheduleEvent: async function(eventId) {
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        const { value: newDate } = await Swal.fire({
+            title: 'Aplazar Evento',
+            html: `<input type="datetime-local" id="new-event-date" class="swal2-input" value="${new Date(ev.date).toISOString().slice(0,16)}">`,
+            preConfirm: () => {
+                return document.getElementById('new-event-date').value;
+            }
+        });
+        
+        if (newDate) {
+            try {
+                await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ date: newDate })
+                });
+                await this.loadEvents();
+                Swal.fire({ title: '✓ Listo', text: 'Evento aplazado', icon: 'success', background: '#0f172a', color: '#fff' });
+            } catch(e) {
+                Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+            }
+        }
+    },
+
+    deleteEvent: async function(eventId) {
+        if (!await this._confirmAction('¿Eliminar evento?', 'Esta acción no se puede deshacer.')) return;
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}`, { method: 'DELETE' });
+            await this.loadEvents();
+            Swal.fire({ title: '✓ Listo', text: 'Evento eliminado', icon: 'success', background: '#0f172a', color: '#fff' });
+        } catch(e) {
+            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    _confirmAction: async function(title, text) {
+        if (typeof Swal === 'undefined') return confirm(text);
+        const result = await Swal.fire({ title, text, icon: 'warning', background: '#0f172a', color: '#fff', showCancelButton: true });
+        return result.isConfirmed;
+    },
+
     openEventEditModal(eventId) {
         const ev = this.state.events.find(e => String(e.id) === String(eventId));
         if (!ev) return;
@@ -7996,6 +8155,13 @@ const App = window.App = {
         document.getElementById('ev-id-hidden').value = ev.id;
         document.getElementById('ev-name').value = ev.name || '';
         document.getElementById('ev-location').value = ev.location || '';
+        
+        // Poblar selector de empresa
+        const groupSelect = document.getElementById('ev-group');
+        if (groupSelect && this.state.allGroups) {
+            groupSelect.innerHTML = '<option value="">Seleccionar empresa</option>' + 
+                this.state.allGroups.map(g => `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`).join('');
+        }
         
         // Formatear fechas para datetime-local
         const formatDate = (d) => {
@@ -8389,8 +8555,6 @@ const App = window.App = {
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
         const clientFilter = document.getElementById('filter-event-client')?.value || '';
         const statusFilter = document.getElementById('filter-event-status')?.value || '';
-        const companyFilter = document.getElementById('filter-event-company')?.value || '';
-        
         let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
         
         // FILTRO: PRODUCTOR solo ve sus eventos
@@ -8467,6 +8631,7 @@ const App = window.App = {
             const total = ev.total_guests || 0;
             const attended = ev.attended_guests || 0;
             const clientName = ev.client_id ? (clientsMap[ev.client_id] || '—') : '—';
+            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
             const location = ev.location || '—';
             const status = this._getEventStatus(ev);
             const statusBadge = this._getEventStatusBadge(status);
@@ -8644,6 +8809,13 @@ const App = window.App = {
         document.getElementById('ev-id-hidden').value = ev.id;
         document.getElementById('ev-name').value = ev.name || '';
         document.getElementById('ev-location').value = ev.location || '';
+        
+        // Poblar selector de empresa
+        const groupSelect = document.getElementById('ev-group');
+        if (groupSelect && this.state.allGroups) {
+            groupSelect.innerHTML = '<option value="">Seleccionar empresa</option>' + 
+                this.state.allGroups.map(g => `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`).join('');
+        }
         
         // Formatear fechas para datetime-local
         const formatDate = (d) => {

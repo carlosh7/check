@@ -100,10 +100,13 @@
                     <div class="flex flex-wrap items-center gap-3 mb-4">
                         <div class="flex gap-2">
                             <button id="btn-new-event-full" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-base">add</span> + Evento
+                                <span class="material-symbols-outlined text-base">add</span> Evento
                             </button>
                             <button id="btn-edit-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openEventEditAction()">
                                 <span class="material-symbols-outlined text-base">edit</span> Editar
+                            </button>
+                            <button id="btn-manage-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openEventManageAction()">
+                                <span class="material-symbols-outlined text-base">settings</span> Gestionar
                             </button>
                             <button id="btn-import-events" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('events')">
                                 <span class="material-symbols-outlined text-base">upload</span> Importar
@@ -127,9 +130,6 @@
                             <option value="draft">Borrador</option>
                             <option value="cancelled">Cancelado</option>
                         </select>
-                        <select id="filter-event-company" onchange="App.filterEvents()" class="filter-select filter-select-empresa">
-                            <option value="">Empresa</option>
-                        </select>
                     </div>
 
                     <!-- Fila 3: Buscador -->
@@ -139,7 +139,7 @@
                                oninput="App.filterEvents(); App.showEventSuggestions()" onfocus="App.showEventSuggestions()" autocomplete="off">
                         <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
                         <span id="event-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('event')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('event-search').value=''; document.getElementById('filter-event-client').value=''; document.getElementById('filter-event-status').value=''; document.getElementById('filter-event-company').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
+                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="App.clearEventSearch()">close</span>
                         <!-- Dropdown de sugerencias -->
                         <div id="event-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
                     </div>
@@ -1345,9 +1345,16 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5">
+                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
+                    <select id="ev-group" class="input-field w-full">
+                        <option value="">Seleccionar empresa</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
                     <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
                     <input type="datetime-local" id="ev-date" required class="input-field w-full">
                 </div>
+            </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
                     <input type="datetime-local" id="ev-end-date" class="input-field w-full">
