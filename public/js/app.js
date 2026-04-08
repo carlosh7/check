@@ -8172,7 +8172,11 @@ const App = window.App = {
 
     // Cambiar pestaña en el carrusel (Editar <-> Gestionar)
     showEventTabInCarousel: function(index, tab) {
-        if (!this._eventCarouselState) return;
+        console.log('[showEventTabInCarousel] index:', index, 'tab:', tab);
+        if (!this._eventCarouselState) {
+            console.log('[showEventTabInCarousel] No _eventCarouselState');
+            return;
+        }
         this._eventCarouselState.currentIndex = index;
         this._eventCarouselState.currentTab = tab;
         this._eventCarouselState.renderCarousel();

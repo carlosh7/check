@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.280",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.280 - Fix: carrusel unificado con tabs Editar/Gestionar",
+  "version": "12.44.281",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.281 - Fix: debug showEventTabInCarousel",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
