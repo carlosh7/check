@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.279",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.279 - Fix: carrusel siempre, no modal individual",
+  "version": "12.44.280",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.280 - Fix: carrusel unificado con tabs Editar/Gestionar",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
