@@ -8952,6 +8952,7 @@ const App = window.App = {
     },
 
     // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
+    // Legacy - usar siempre el carrusel unificado
     openEventEditAction() {
         const selected = Array.from(this._selectedEvents);
         
@@ -8962,13 +8963,8 @@ const App = window.App = {
             return;
         }
         
-        if (selected.length === 1) {
-            // Modal individual
-            this.openEventEditModal(selected[0]);
-        } else {
-            // Carrusel múltiple
-            this.openEventEditCarousel(selected);
-        }
+        // Siempre abrir el carrusel unificado
+        this.openEventEditCarousel(selected);
     },
 
     openEventEditModal(eventId) {
