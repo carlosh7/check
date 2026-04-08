@@ -8154,11 +8154,15 @@ const App = window.App = {
                     container: '!font-sans'
                 },
                 didOpen: () => {
-                    // Agregar event listeners para guardar cambios al cambiar de evento/pestaña
+                    // Marcar que el modal está abierto
+                    this._eventCarouselModalOpen = true;
+                },
+                willClose: () => {
+                    this._eventCarouselModalOpen = false;
                 }
             }).then((result) => {
-                if (result.isConfirmed || result.isDismissed) {
-                    // Guardar cambios al cerrar
+                if (result.isDismissed || result.isConfirmed) {
+                    // Solo guardar cuando se cierra explícitamente
                     this.saveEventFromCarousel(ev.id);
                 }
             });
@@ -8166,15 +8170,21 @@ const App = window.App = {
         
         // Guardar estado del carrusel para navegación
         this._eventCarouselState = { events, currentIndex, currentTab, renderCarousel };
+        this._eventCarouselModalOpen = false;
         
         renderCarousel();
     },
 
     // Cambiar pestaña en el carrusel (Editar <-> Gestionar)
     showEventTabInCarousel: function(index, tab) {
-        console.log('[showEventTabInCarousel] index:', index, 'tab:', tab);
+        console.log('[showEventTabInCarousel] index:', index, 'tab:', tab, 'modalOpen:', this._eventCarouselModalOpen);
         if (!this._eventCarouselState) {
             console.log('[showEventTabInCarousel] No _eventCarouselState');
+            return;
+        }
+        // Solo cambiar si el modal está abierto
+        if (!this._eventCarouselModalOpen) {
+            console.log('[showEventTabInCarousel] Modal cerrado, ignorando');
             return;
         }
         this._eventCarouselState.currentIndex = index;
@@ -8184,6 +8194,12 @@ const App = window.App = {
 
     // Guardar evento desde el carrusel
     saveEventFromCarousel: async function(eventId) {
+        // No guardar si el modal ya está cerrado
+        if (!this._eventCarouselModalOpen) {
+            console.log('[saveEventFromCarousel] Modal cerrado, no guardar');
+            return;
+        }
+        
         const ev = this.state.events.find(e => String(e.id) === String(eventId));
         if (!ev) return;
         
