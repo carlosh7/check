@@ -7992,7 +7992,7 @@ const App = window.App = {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
-    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
+    // ─── ACCIÓN DE EDICIÓN DE EVENTOS (CARRUSEL CON BARRA DE NAVEGACIÓN) ───
     openEventEditAction() {
         const selected = Array.from(this._selectedEvents);
         
@@ -8003,30 +8003,270 @@ const App = window.App = {
             return;
         }
         
-        if (selected.length === 1) {
-            // Modal individual
-            this.openEventEditModal(selected[0]);
-        } else {
-            // Carrusel múltiple
-            this.openEventEditCarousel(selected);
-        }
+        // Abrir carrusel unificado con Editar + Gestionar
+        this.openEventEditCarousel(selected);
     },
 
-    // ─── ACCIÓN DE GESTIÓN DE EVENTOS ───
-    openEventManageAction() {
-        const selected = Array.from(this._selectedEvents);
+    // Carrusel unificado: Editar + Gestionar con barra de navegación
+    openEventEditCarousel: function(selectedIds) {
+        const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
+        if (events.length === 0) return;
         
-        if (selected.length === 0) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ title: '⚠️ Atención', text: 'Selecciona al menos un evento con el checkbox', icon: 'warning', background: '#0f172a', color: '#fff' });
+        let currentIndex = 0;
+        let currentTab = 0; // 0 = Editar, 1 = Gestionar
+        
+        const renderCarousel = () => {
+            const ev = events[currentIndex];
+            const isDark = document.documentElement.classList.contains('dark');
+            const bgMain = isDark ? '#0f172a' : '#f1f5f9';
+            const bgCard = isDark ? '#1e293b' : '#ffffff';
+            const textMain = isDark ? '#f8fafc' : '#1e293b';
+            const textSecondary = isDark ? '#94a3b8' : '#475569';
+            const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
+            
+            // Preparar opciones de empresa
+            const groupsOptions = (this.state.allGroups || []).map(g => 
+                `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`
+            ).join('');
+            
+            // Contenido según pestaña activa
+            let tabContent = '';
+            if (currentTab === 0) {
+                // Pestaña Editar
+                const formatDate = (d) => {
+                    if (!d) return '';
+                    const date = new Date(d);
+                    const offset = date.getTimezoneOffset();
+                    const local = new Date(date.getTime() - offset * 60000);
+                    return local.toISOString().slice(0, 16);
+                };
+                
+                tabContent = `
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                            <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);">
+                                <span class="material-symbols-outlined text-sm align-middle mr-1">settings</span> Gestionar
+                            </button>
+                        </div>
+                        <div class="p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color: ${textSecondary};">Editar Evento (${currentIndex + 1}/${events.length})</div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre del Evento</label>
+                                    <input id="ev-edit-name-${ev.id}" type="text" value="${ev.name || ''}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Ubicación</label>
+                                    <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Empresa</label>
+                                    <select id="ev-edit-group-${ev.id}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                        <option value="">Seleccionar empresa</option>
+                                        ${groupsOptions}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Inicio</label>
+                                    <input id="ev-edit-date-${ev.id}" type="datetime-local" value="${formatDate(ev.date)}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Fin</label>
+                                    <input id="ev-edit-end-date-${ev.id}" type="datetime-local" value="${formatDate(ev.end_date)}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Descripción</label>
+                                    <textarea id="ev-edit-desc-${ev.id}" rows="2" class="w-full px-4 py-3 rounded-lg text-sm outline-none resize-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">${ev.description || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                // Pestaña Gestionar
+                tabContent = `
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                            <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors" style="background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                                <span class="material-symbols-outlined text-sm align-middle mr-1">edit</span> Editar
+                            </button>
+                        </div>
+                        <div class="p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color: ${textSecondary};">Gestionar Evento (${currentIndex + 1}/${events.length})</div>
+                            <div class="space-y-2">
+                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined text-sm">play_arrow</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div></div>
+                                </div>
+                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined text-sm">pause</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div></div>
+                                </div>
+                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined text-sm">check_circle</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #3b82f6;">Finalizar</div></div>
+                                </div>
+                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'cancelled')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined text-sm">cancel</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div></div>
+                                </div>
+                                <div onclick="App.rescheduleEventInCarousel('${ev.id}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined text-sm">schedule</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #a855f7;">Aplazar</div></div>
+                                </div>
+                                <div onclick="App.deleteEventInCarousel('${ev.id}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3);">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(220,38,38,0.2); color: #dc2626;"><span class="material-symbols-outlined text-sm">delete</span></div>
+                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #dc2626;">Eliminar</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
             }
+            
+            // Barra de navegación de pestañas
+            const tabsHtml = `
+                <div class="flex mb-4 rounded-xl overflow-hidden" style="border: 1px solid ${borderColor};">
+                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${currentTab === 0 ? '' : 'opacity-50'}" style="background: ${currentTab === 0 ? 'rgba(245,158,11,0.2)' : bgCard}; color: ${currentTab === 0 ? '#f59e0b' : textSecondary}; border-right: 1px solid ${borderColor};">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">edit</span> Editar
+                    </button>
+                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${currentTab === 1 ? '' : 'opacity-50'}" style="background: ${currentTab === 1 ? 'rgba(239,68,68,0.2)' : bgCard}; color: ${currentTab === 1 ? '#ef4444' : textSecondary};">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">settings</span> Gestionar
+                    </button>
+                </div>
+                <div class="text-xs font-bold mb-2" style="color: ${textSecondary};">${ev.name}</div>
+                ${tabContent}`;
+            
+            // Mostrar en Swal
+            Swal.fire({
+                title: '',
+                html: tabsHtml,
+                width: '480px',
+                background: bgMain,
+                color: textMain,
+                showConfirmButton: false,
+                showCancelButton: true,
+                cancelButtonText: 'Cerrar',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: '!px-4 !py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-600',
+                    cancelButton: '!px-4 !py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20',
+                    popup: '!rounded-2xl',
+                    container: '!font-sans'
+                },
+                didOpen: () => {
+                    // Agregar event listeners para guardar cambios al cambiar de evento/pestaña
+                }
+            }).then((result) => {
+                if (result.isConfirmed || result.isDismissed) {
+                    // Guardar cambios al cerrar
+                    this.saveEventFromCarousel(ev.id);
+                }
+            });
+        };
+        
+        // Guardar estado del carrusel para navegación
+        this._eventCarouselState = { events, currentIndex, currentTab, renderCarousel };
+        
+        renderCarousel();
+    },
+
+    // Cambiar pestaña en el carrusel (Editar <-> Gestionar)
+    showEventTabInCarousel: function(index, tab) {
+        if (!this._eventCarouselState) return;
+        this._eventCarouselState.currentIndex = index;
+        this._eventCarouselState.currentTab = tab;
+        this._eventCarouselState.renderCarousel();
+    },
+
+    // Guardar evento desde el carrusel
+    saveEventFromCarousel: async function(eventId) {
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        const name = document.getElementById(`ev-edit-name-${eventId}`)?.value?.trim();
+        const location = document.getElementById(`ev-edit-location-${eventId}`)?.value?.trim();
+        const group_id = document.getElementById(`ev-edit-group-${eventId}`)?.value?.trim();
+        const date = document.getElementById(`ev-edit-date-${eventId}`)?.value?.trim();
+        const end_date = document.getElementById(`ev-edit-end-date-${eventId}`)?.value?.trim();
+        const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
+        
+        if (!name || !date) {
+            console.log('[saveEventFromCarousel] Name or date missing');
             return;
         }
         
-        this.openEventManageCarousel(selected);
+        try {
+            await this.fetchAPI(`/events/${eventId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ name, location, group_id, date, end_date, description })
+            });
+            console.log('[saveEventFromCarousel] Event updated:', eventId);
+            await this.loadEvents();
+        } catch (err) {
+            console.error('[saveEventFromCarousel] Error:', err);
+        }
     },
 
-    openEventManageCarousel: async function(selectedIds) {
+    // Actualizar estado del evento desde el carrusel
+    updateEventStatusInCarousel: async function(eventId, status) {
+        try {
+            await this.fetchAPI(`/events/${eventId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            await this.loadEvents();
+            // Volver a renderizar el carrusel
+            if (this._eventCarouselState) {
+                this._eventCarouselState.renderCarousel();
+            }
+            Swal.fire({ title: '✓ Listo', text: 'Estado actualizado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+        } catch(e) {
+            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    // Aplazar evento desde el carrusel
+    rescheduleEventInCarousel: async function(eventId) {
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) return;
+        
+        const { value: newDate } = await Swal.fire({
+            title: 'Aplazar Evento',
+            html: `<input type="datetime-local" id="new-event-date" class="swal2-input" value="${new Date(ev.date).toISOString().slice(0,16)}">`,
+            preConfirm: () => document.getElementById('new-event-date').value
+        });
+        
+        if (newDate) {
+            try {
+                await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ date: newDate })
+                });
+                await this.loadEvents();
+                if (this._eventCarouselState) {
+                    this._eventCarouselState.renderCarousel();
+                }
+                Swal.fire({ title: '✓ Listo', text: 'Evento aplazado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+            } catch(e) {
+                Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+            }
+        }
+    },
+
+    // Eliminar evento desde el carrusel
+    deleteEventInCarousel: async function(eventId) {
+        if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
+        
+        try {
+            await this.fetchAPI(`/events/${eventId}`, { method: 'DELETE' });
+            await this.loadEvents();
+            // Cerrar el carrusel
+            Swal.close();
+            Swal.fire({ title: '✓ Listo', text: 'Evento eliminado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+        } catch(e) {
+            Swal.fire({ title: '✗ Error', text: e.message, icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
         const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
         if (events.length === 0) return;
         
