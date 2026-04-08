@@ -8581,23 +8581,12 @@ const App = window.App = {
             });
         }
         
-        // Filtro por cliente
-        if (clientFilter) {
-            events = events.filter(ev => {
-                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
-                return ids.some(id => String(id) === String(clientFilter));
-            });
-        }
-        
         // Filtro por estado
         if (statusFilter) {
             events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
         }
         
-        // Filtro por empresa
-        if (companyFilter) {
-            events = events.filter(ev => String(ev.group_id) === String(companyFilter));
-        }
+        console.log('[filterEvents] final events:', events.length);
         
         this._eventsFiltered = events;
         this._renderFilteredEvents(events);
