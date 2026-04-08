@@ -8159,10 +8159,9 @@ const App = window.App = {
                 },
                 willClose: () => {
                     this._eventCarouselModalOpen = false;
-                }
-            }).then((result) => {
-                if (result.isDismissed || result.isConfirmed) {
-                    // Solo guardar cuando se cierra explícitamente
+                },
+                didClose: () => {
+                    // Guardar cuando se cierra
                     this.saveEventFromCarousel(ev.id);
                 }
             });
