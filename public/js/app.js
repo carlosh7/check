@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.287';
+const VERSION = '12.44.288';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -8118,21 +8118,45 @@ const App = window.App = {
                 
                 tabContent = `
                     <div class="space-y-3">
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" 
+                             class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'ACTIVE' ? 'ring-2 ring-emerald-500' : ''}" 
+                             style="background: ${ev.status === 'ACTIVE' ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.1)'}; border: 1px solid rgba(34,197,94,0.3);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como activo</div></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold flex items-center gap-2" style="color: #22c55e;">
+                                    Activar 
+                                    ${ev.status === 'ACTIVE' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white">ACTUAL</span>' : ''}
+                                </div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como activo</div>
+                            </div>
                         </div>
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" 
+                             class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'INACTIVE' ? 'ring-2 ring-amber-500' : ''}" 
+                             style="background: ${ev.status === 'INACTIVE' ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)'}; border: 1px solid rgba(245,158,11,0.3);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como inactivo</div></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold flex items-center gap-2" style="color: #f59e0b;">
+                                    Desactivar
+                                    ${ev.status === 'INACTIVE' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-amber-500 text-white">ACTUAL</span>' : ''}
+                                </div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como inactivo</div>
+                            </div>
                         </div>
-                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);">
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" 
+                             class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${ev.status === 'COMPLETED' ? 'ring-2 ring-blue-500' : ''}" 
+                             style="background: ${ev.status === 'COMPLETED' ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)'}; border: 1px solid rgba(59,130,246,0.3);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined">check_circle</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #3b82f6;">Finalizar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como completado</div></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold flex items-center gap-2" style="color: #3b82f6;">
+                                    Finalizar
+                                    ${ev.status === 'COMPLETED' ? '<span class="px-2 py-0.5 rounded-full text-[9px] bg-blue-500 text-white">ACTUAL</span>' : ''}
+                                </div>
+                                <div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como completado</div>
+                            </div>
                         </div>
                         <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'cancelled')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">cancel</span></div>
-                            <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div><div class="text-[11px]" style="color: ${textSecondary};">Cancelar el evento</div></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div><div class="text-[11px]" style="color: ${textSecondary};">Cancelar el evento (INACTIVO)</div></div>
                         </div>
                         <div onclick="App.rescheduleEventInCarousel('${ev.id}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined">schedule</span></div>
@@ -8360,8 +8384,10 @@ const App = window.App = {
                 body: JSON.stringify({ status: dbStatus })
             });
             await this.loadEvents();
-            // Volver a renderizar el carrusel
-            if (this._eventCarouselState) {
+            // Actualizar el objeto local del carrusel antes de re-renderizar
+            if (this._eventCarouselState && this._eventCarouselState.events) {
+                const localEv = this._eventCarouselState.events.find(e => String(e.id) === String(eventId));
+                if (localEv) localEv.status = dbStatus;
                 this._eventCarouselState.renderCarousel();
             }
             Swal.fire({ title: '✓ Listo', text: 'Estado actualizado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
@@ -8388,7 +8414,10 @@ const App = window.App = {
                     body: JSON.stringify({ date: newDate })
                 });
                 await this.loadEvents();
-                if (this._eventCarouselState) {
+                // Actualizar el objeto local del carrusel antes de re-renderizar
+                if (this._eventCarouselState && this._eventCarouselState.events) {
+                    const localEv = this._eventCarouselState.events.find(e => String(e.id) === String(eventId));
+                    if (localEv) localEv.date = newDate;
                     this._eventCarouselState.renderCarousel();
                 }
                 Swal.fire({ title: '✓ Listo', text: 'Evento aplazado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });

@@ -168,13 +168,13 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status, 
         ...(groupIdVal !== undefined ? [groupIdVal] : []),
         d.reg_title, d.reg_welcome_text, d.reg_policy, d.reg_success_message, d.reg_logo_url, 
-        (d.reg_show_phone === true || d.reg_show_phone === 1) ? 1 : 0, 
-        (d.reg_show_org === true || d.reg_show_org === 1) ? 1 : 0, 
-        (d.reg_show_position === true || d.reg_show_position === 1) ? 1 : 0, 
-        (d.reg_show_vegan === true || d.reg_show_vegan === 1) ? 1 : 0, 
-        (d.reg_show_dietary === true || d.reg_show_dietary === 1) ? 1 : 0, 
-        (d.reg_show_gender === true || d.reg_show_gender === 1) ? 1 : 0, 
-        (d.reg_require_agreement === true || d.reg_require_agreement === 1) ? 1 : 0, 
+        'reg_show_phone' in d ? (d.reg_show_phone ? 1 : 0) : undefined, 
+        'reg_show_org' in d ? (d.reg_show_org ? 1 : 0) : undefined, 
+        'reg_show_position' in d ? (d.reg_show_position ? 1 : 0) : undefined, 
+        'reg_show_vegan' in d ? (d.reg_show_vegan ? 1 : 0) : undefined, 
+        'reg_show_dietary' in d ? (d.reg_show_dietary ? 1 : 0) : undefined, 
+        'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : undefined, 
+        'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : undefined, 
         d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId
     );
 
