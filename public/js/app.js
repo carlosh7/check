@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.289';
+const VERSION = '12.44.290';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -8026,14 +8026,19 @@ const App = window.App = {
         const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
         if (events.length === 0) return;
         
-        let currentIndex = 0;
-        let currentTab = 0; // 0 = Editar, 1 = Gestionar
-        
-        const renderCarousel = () => {
-            const ev = events[currentIndex];
+        // Guardar estado del carrusel para navegación
+        this._eventCarouselState = { 
+            events, 
+            currentIndex: 0, 
+            currentTab: 0 
+        };
+
+        const renderCarousel = (notif = null) => {
+            if (!this._eventCarouselState) return;
             
-            // Obtener valores del estado del carrusel
-            const activeTab = this._eventCarouselState?.currentTab || 0;
+            const state = this._eventCarouselState;
+            const ev = state.events[state.currentIndex];
+            const activeTab = state.currentTab;
             
             const isDark = document.documentElement.classList.contains('dark');
             const bgMain = isDark ? '#0f172a' : '#f1f5f9';
@@ -8043,28 +8048,22 @@ const App = window.App = {
             const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
             
-            // Preparar opciones de cliente
             const eventClientIds = ev.client_ids ? String(ev.client_ids).split(',') : [];
             const selectedClientId = eventClientIds.length > 0 ? eventClientIds[0] : '';
-            
             const clientsOptions = (this.state.clients || []).map(c => 
                 `<option value="${c.id}" ${String(selectedClientId) === String(c.id) ? 'selected' : ''}>${c.name}</option>`
             ).join('');
 
-            
-            // Barra de navegación con iconos (igual que staff)
             const navButtons = `
-                <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 0)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 1)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             `;
             
-            // Contenido según pestaña activa
             let tabContent = '';
             let titleText = '';
             let saveButton = '';
             
             if (activeTab === 0) {
-                // Pestaña Editar
                 titleText = 'Editar Evento';
                 const formatDate = (d) => {
                     if (!d) return '';
@@ -8073,8 +8072,6 @@ const App = window.App = {
                     const local = new Date(date.getTime() - offset * 60000);
                     return local.toISOString().slice(0, 16);
                 };
-                
-                // Botón guardar para pestaña de editar
                 saveButton = `<button onclick="App.saveEventFromCarouselNow('${ev.id}')" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
                     <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
                 </button>`;
@@ -8112,10 +8109,8 @@ const App = window.App = {
                         </div>
                     </div>`;
             } else {
-                // Pestaña Gestionar
                 titleText = 'Gestionar Evento';
-                saveButton = ''; // No hay botón guardar en gestión
-                
+                saveButton = '';
                 tabContent = `
                     <div class="space-y-3">
                         <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" 
@@ -8169,58 +8164,55 @@ const App = window.App = {
                     </div>`;
             }
             
-            // HTML completo del modal (igual que staff)
+            let notifHtml = '';
+            if (notif) {
+                const notifColor = notif.icon === 'success' ? '#22c55e' : (notif.icon === 'error' ? '#ef4444' : '#f59e0b');
+                const notifBg = notif.icon === 'success' ? 'rgba(34,197,94,0.1)' : (notif.icon === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)');
+                notifHtml = `
+                    <div class="flex items-center gap-3 p-3 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300" style="background: ${notifBg}; border: 1px solid ${notifColor}33;">
+                        <span class="material-symbols-outlined text-sm" style="color: ${notifColor};">${notif.icon === 'success' ? 'check_circle' : (notif.icon === 'error' ? 'error' : 'warning')}</span>
+                        <span class="text-[11px] font-bold" style="color: ${notifColor};">${notif.text}</span>
+                    </div>`;
+            }
+
             const html = `
                 <div class="space-y-5" style="padding-right: 8px;">
-                    <!-- Barra de navegación -->
                     <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                         ${navButtons}
                     </div>
-                    <!-- Título + Guardar -->
                     <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                         <div class="flex flex-col flex-1">
                             <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">${titleText}</span>
-                            <span class="text-xs" style="color: ${textMain};">${ev.name} (${currentIndex + 1}/${events.length})</span>
+                            <span class="text-xs" style="color: ${textMain};">${ev.name} (${state.currentIndex + 1}/${state.events.length})</span>
                         </div>
                         ${saveButton}
                     </div>
-                    <!-- Contenido principal -->
+                    ${notifHtml}
                     ${tabContent}
                 </div>`;
             
-            // Mostrar en Swal (sin botón de cerrar, igual que staff)
-            Swal.fire({ 
-                title: '', 
-                html, 
-                width: '460px', 
-                background: bgMain, 
-                color: textMain, 
-                showConfirmButton: false, 
-                showCloseButton: false, 
-                customClass: { popup: 'modal-left-aligned' }, 
-                showClass: { popup: '', container: '', backdrop: '' }, 
-                hideClass: { popup: '', container: '', backdrop: '' },
-                timer: 0,
-                didOpen: () => {
-                    // Marcar que el modal está abierto
-                    this._eventCarouselModalOpen = true;
-                },
-                willClose: () => {
-                    this._eventCarouselModalOpen = false;
-                },
-                didClose: () => {
-                    // Guardar cuando se cierra (solo si estamos en pestaña de editar)
-                    if (activeTab === 0) {
-                        this.saveEventFromCarousel(ev.id);
+            if (Swal.isVisible()) {
+                Swal.update({ html, background: bgMain, color: textMain });
+            } else {
+                Swal.fire({
+                    title: '', html, width: '460px', background: bgMain, color: textMain,
+                    showConfirmButton: false, showCloseButton: false, 
+                    customClass: { popup: 'modal-left-aligned' },
+                    showClass: { popup: '', container: '', backdrop: '' },
+                    hideClass: { popup: '', container: '', backdrop: '' },
+                    didOpen: () => { this._eventCarouselModalOpen = true; },
+                    willClose: () => { this._eventCarouselModalOpen = false; },
+                    didClose: () => {
+                        if (this._eventCarouselState && this._eventCarouselState.currentTab === 0) {
+                            this.saveEventFromCarousel(ev.id);
+                        }
                     }
-                }
-            });
+                });
+            }
         };
-        
-        // Guardar estado del carrusel para navegación
-        this._eventCarouselState = { events, currentIndex, currentTab, renderCarousel };
+
+        this._eventCarouselState.renderCarousel = renderCarousel;
         this._eventCarouselModalOpen = false;
-        
         renderCarousel();
     },
 
@@ -8343,18 +8335,14 @@ const App = window.App = {
                     };
                 }
                 
-                Swal.fire({ 
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    title: '✅ Guardado', 
-                    text: 'Evento actualizado correctamente', 
-                    icon: 'success', 
-                    background: '#0f172a', 
-                    color: '#fff' 
-                });
+                if (this._eventCarouselState) {
+                    this._eventCarouselState.renderCarousel({ text: 'Evento guardado', icon: 'success' });
+                    setTimeout(() => {
+                        if (this._eventCarouselState && this._eventCarouselModalOpen) {
+                            this._eventCarouselState.renderCarousel();
+                        }
+                    }, 3000);
+                }
                 
                 // REFRESCAR TABLA AUTOMÁTICAMENTE
                 if (typeof this.filterEvents === 'function') {
@@ -8363,17 +8351,20 @@ const App = window.App = {
                     this.loadEvents();
                 }
 
-                
                 // Actualizar el nombre en el título del modal
                 const titleSpan = document.querySelector('.text-xs[style*="color:"]');
                 if (titleSpan) {
-                    titleSpan.textContent = `${name} (${this._eventCarouselState?.currentIndex + 1}/${this._eventCarouselState?.events?.length})`;
+                    const currentIndex = this._eventCarouselState?.currentIndex || 0;
+                    const totalEvents = this._eventCarouselState?.events?.length || 0;
+                    titleSpan.textContent = `${name} (${currentIndex + 1}/${totalEvents})`;
                 }
             } else {
                 throw new Error(result?.message || 'Error al guardar');
             }
         } catch (e) {
-            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+            if (this._eventCarouselState) {
+                this._eventCarouselState.renderCarousel({ text: e.message || 'Error al guardar', icon: 'error' });
+            }
         } finally {
             if (saveBtn) {
                 saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
@@ -8405,36 +8396,25 @@ const App = window.App = {
                 body: JSON.stringify({ status: dbStatus })
             });
             await this.loadEvents();
+            
             // Actualizar el objeto local del carrusel antes de re-renderizar
             if (this._eventCarouselState && this._eventCarouselState.events) {
                 const localEv = this._eventCarouselState.events.find(e => String(e.id) === String(eventId));
                 if (localEv) localEv.status = dbStatus;
-                this._eventCarouselState.renderCarousel();
+                
+                // Notificación interna (v12.44.290)
+                this._eventCarouselState.renderCarousel({ text: 'Estado actualizado', icon: 'success' });
+                
+                setTimeout(() => {
+                    if (this._eventCarouselState && this._eventCarouselModalOpen) {
+                        this._eventCarouselState.renderCarousel();
+                    }
+                }, 3000);
             }
-            Swal.fire({ 
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                title: '✓ Listo', 
-                text: 'Estado actualizado', 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
         } catch(e) {
-            Swal.fire({ 
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4000,
-                title: '✗ Error', 
-                text: e.message, 
-                icon: 'error', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
+            if (this._eventCarouselState) {
+                this._eventCarouselState.renderCarousel({ text: e.message, icon: 'error' });
+            }
         }
     },
 
@@ -8460,32 +8440,19 @@ const App = window.App = {
                 if (this._eventCarouselState && this._eventCarouselState.events) {
                     const localEv = this._eventCarouselState.events.find(e => String(e.id) === String(eventId));
                     if (localEv) localEv.date = newDate;
-                    this._eventCarouselState.renderCarousel();
+                    
+                    this._eventCarouselState.renderCarousel({ text: 'Evento aplazado', icon: 'success' });
+                    
+                    setTimeout(() => {
+                        if (this._eventCarouselState && this._eventCarouselModalOpen) {
+                            this._eventCarouselState.renderCarousel();
+                        }
+                    }, 3000);
                 }
-                Swal.fire({ 
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    title: '✓ Listo', 
-                    text: 'Evento aplazado', 
-                    icon: 'success', 
-                    background: '#0f172a', 
-                    color: '#fff' 
-                });
             } catch(e) {
-                Swal.fire({ 
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    title: '✗ Error', 
-                    text: e.message, 
-                    icon: 'error', 
-                    background: '#0f172a', 
-                    color: '#fff' 
-                });
+                if (this._eventCarouselState) {
+                    this._eventCarouselState.renderCarousel({ text: e.message, icon: 'error' });
+                }
             }
         }
     },
@@ -8516,30 +8483,16 @@ const App = window.App = {
                 }
             }
 
-            Swal.fire({ 
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                title: '✓ Listo', 
-                text: 'Evento eliminado', 
-                icon: 'success', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
+            this._eventCarouselState.renderCarousel({ text: 'Evento eliminado', icon: 'success' });
+            setTimeout(() => {
+                if (this._eventCarouselState && this._eventCarouselModalOpen) {
+                    this._eventCarouselState.renderCarousel();
+                }
+            }, 3000);
         } catch(e) {
-            Swal.fire({ 
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4000,
-                title: '✗ Error', 
-                text: e.message, 
-                icon: 'error', 
-                background: '#0f172a', 
-                color: '#fff' 
-            });
+            if (this._eventCarouselState) {
+                this._eventCarouselState.renderCarousel({ text: e.message, icon: 'error' });
+            }
         }
     },
 
