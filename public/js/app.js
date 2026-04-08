@@ -8034,10 +8034,20 @@ const App = window.App = {
                 `<option value="${g.id}" ${String(ev.group_id) === String(g.id) ? 'selected' : ''}>${g.name}</option>`
             ).join('');
             
+            // Barra de navegación con iconos (igual que staff)
+            const navButtons = `
+                <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+            `;
+            
             // Contenido según pestaña activa
             let tabContent = '';
+            let titleText = '';
+            let saveButton = '';
+            
             if (activeTab === 0) {
                 // Pestaña Editar
+                titleText = 'Editar Evento';
                 const formatDate = (d) => {
                     if (!d) return '';
                     const date = new Date(d);
@@ -8046,117 +8056,109 @@ const App = window.App = {
                     return local.toISOString().slice(0, 16);
                 };
                 
+                // Botón guardar para pestaña de editar
+                saveButton = `<button onclick="App.saveEventFromCarouselNow('${ev.id}')" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar
+                </button>`;
+                
                 tabContent = `
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                            <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);">
-                                <span class="material-symbols-outlined text-sm align-middle mr-1">settings</span> Gestionar
-                            </button>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                            <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color: ${textSecondary};">Editar Evento (${currentIndex + 1}/${events.length})</div>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre del Evento</label>
-                                    <input id="ev-edit-name-${ev.id}" type="text" value="${ev.name || ''}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Ubicación</label>
-                                    <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Empresa</label>
-                                    <select id="ev-edit-group-${ev.id}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                        <option value="">Seleccionar empresa</option>
-                                        ${groupsOptions}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Inicio</label>
-                                    <input id="ev-edit-date-${ev.id}" type="datetime-local" value="${formatDate(ev.date)}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Fin</label>
-                                    <input id="ev-edit-end-date-${ev.id}" type="datetime-local" value="${formatDate(ev.end_date)}" class="w-full px-4 py-3 rounded-lg text-sm outline-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Descripción</label>
-                                    <textarea id="ev-edit-desc-${ev.id}" rows="2" class="w-full px-4 py-3 rounded-lg text-sm outline-none resize-none" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">${ev.description || ''}</textarea>
-                                </div>
+                    <div class="p-4 rounded-2xl" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Nombre del Evento</label>
+                                <input id="ev-edit-name-${ev.id}" type="text" value="${ev.name || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Nombre del evento">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Ubicación</label>
+                                <input id="ev-edit-location-${ev.id}" type="text" value="${ev.location || ''}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};" placeholder="Ubicación del evento">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Empresa</label>
+                                <select id="ev-edit-group-${ev.id}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                                    <option value="">Seleccionar empresa</option>
+                                    ${groupsOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Inicio</label>
+                                <input id="ev-edit-date-${ev.id}" type="datetime-local" value="${formatDate(ev.date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Fecha Fin</label>
+                                <input id="ev-edit-end-date-${ev.id}" type="datetime-local" value="${formatDate(ev.end_date)}" class="w-full px-4 py-6 rounded-lg text-sm outline-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2" style="color: ${textSecondary};">Descripción</label>
+                                <textarea id="ev-edit-desc-${ev.id}" rows="2" class="w-full px-4 py-6 rounded-lg text-sm outline-none resize-none transition-all" style="background: ${inputBg}; border: 1px solid ${borderColor}; color: ${textMain};">${ev.description || ''}</textarea>
                             </div>
                         </div>
                     </div>`;
             } else {
                 // Pestaña Gestionar
+                titleText = 'Gestionar Evento';
+                saveButton = ''; // No hay botón guardar en gestión
+                
                 tabContent = `
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                            <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors" style="background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
-                                <span class="material-symbols-outlined text-sm align-middle mr-1">edit</span> Editar
-                            </button>
+                    <div class="space-y-3">
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined">play_circle</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como activo</div></div>
                         </div>
-                        <div class="p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                            <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color: ${textSecondary};">Gestionar Evento (${currentIndex + 1}/${events.length})</div>
-                            <div class="space-y-2">
-                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'active')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34,197,94,0.2); color: #22c55e;"><span class="material-symbols-outlined text-sm">play_arrow</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #22c55e;">Activar</div></div>
-                                </div>
-                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined text-sm">pause</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div></div>
-                                </div>
-                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined text-sm">check_circle</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #3b82f6;">Finalizar</div></div>
-                                </div>
-                                <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'cancelled')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined text-sm">cancel</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div></div>
-                                </div>
-                                <div onclick="App.rescheduleEventInCarousel('${ev.id}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined text-sm">schedule</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #a855f7;">Aplazar</div></div>
-                                </div>
-                                <div onclick="App.deleteEventInCarousel('${ev.id}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors" style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3);">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(220,38,38,0.2); color: #dc2626;"><span class="material-symbols-outlined text-sm">delete</span></div>
-                                    <div class="flex-1"><div class="text-sm font-bold" style="color: #dc2626;">Eliminar</div></div>
-                                </div>
-                            </div>
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'inactive')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245,158,11,0.2); color: #f59e0b;"><span class="material-symbols-outlined">pause_circle</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #f59e0b;">Desactivar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como inactivo</div></div>
+                        </div>
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'completed')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(59,130,246,0.2); color: #3b82f6;"><span class="material-symbols-outlined">check_circle</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #3b82f6;">Finalizar</div><div class="text-[11px]" style="color: ${textSecondary};">Marcar evento como completado</div></div>
+                        </div>
+                        <div onclick="App.updateEventStatusInCarousel('${ev.id}', 'cancelled')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(239,68,68,0.2); color: #ef4444;"><span class="material-symbols-outlined">cancel</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #ef4444;">Cancelar</div><div class="text-[11px]" style="color: ${textSecondary};">Cancelar el evento</div></div>
+                        </div>
+                        <div onclick="App.rescheduleEventInCarousel('${ev.id}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(168,85,247,0.2); color: #a855f7;"><span class="material-symbols-outlined">schedule</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #a855f7;">Aplazar</div><div class="text-[11px]" style="color: ${textSecondary};">Cambiar fecha del evento</div></div>
+                        </div>
+                        <div onclick="App.deleteEventInCarousel('${ev.id}')" class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-colors" style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(220,38,38,0.2); color: #dc2626;"><span class="material-symbols-outlined">delete</span></div>
+                            <div class="flex-1"><div class="text-sm font-bold" style="color: #dc2626;">Eliminar</div><div class="text-[11px]" style="color: ${textSecondary};">Eliminar evento permanentemente</div></div>
                         </div>
                     </div>`;
             }
             
-            // Barra de navegación de pestañas
-            const tabsHtml = `
-                <div class="flex mb-4 rounded-xl overflow-hidden" style="border: 1px solid ${borderColor};">
-                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 0)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 0 ? '' : 'opacity-50'}" style="background: ${activeTab === 0 ? 'rgba(245,158,11,0.2)' : bgCard}; color: ${activeTab === 0 ? '#f59e0b' : textSecondary}; border-right: 1px solid ${borderColor};">
-                        <span class="material-symbols-outlined text-sm align-middle mr-1">edit</span> Editar
-                    </button>
-                    <button onclick="App.showEventTabInCarousel(${currentIndex}, 1)" class="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 1 ? '' : 'opacity-50'}" style="background: ${activeTab === 1 ? 'rgba(239,68,68,0.2)' : bgCard}; color: ${activeTab === 1 ? '#ef4444' : textSecondary};">
-                        <span class="material-symbols-outlined text-sm align-middle mr-1">settings</span> Gestionar
-                    </button>
-                </div>
-                <div class="text-xs font-bold mb-2" style="color: ${textSecondary};">${ev.name}</div>
-                ${tabContent}`;
+            // HTML completo del modal (igual que staff)
+            const html = `
+                <div class="space-y-5" style="padding-right: 8px;">
+                    <!-- Barra de navegación -->
+                    <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                        ${navButtons}
+                    </div>
+                    <!-- Título + Guardar -->
+                    <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
+                        <div class="flex flex-col flex-1">
+                            <span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">${titleText}</span>
+                            <span class="text-xs" style="color: ${textMain};">${ev.name} (${currentIndex + 1}/${events.length})</span>
+                        </div>
+                        ${saveButton}
+                    </div>
+                    <!-- Contenido principal -->
+                    ${tabContent}
+                </div>`;
             
-            // Mostrar en Swal
-            Swal.fire({
-                title: '',
-                html: tabsHtml,
-                width: '480px',
-                background: bgMain,
-                color: textMain,
-                showConfirmButton: false,
-                showCancelButton: true,
-                cancelButtonText: 'Cerrar',
-                buttonsStyling: false,
-                customClass: {
-                    confirmButton: '!px-4 !py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-600',
-                    cancelButton: '!px-4 !py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20',
-                    popup: '!rounded-2xl',
-                    container: '!font-sans'
-                },
+            // Mostrar en Swal (sin botón de cerrar, igual que staff)
+            Swal.fire({ 
+                title: '', 
+                html, 
+                width: '460px', 
+                background: bgMain, 
+                color: textMain, 
+                showConfirmButton: false, 
+                showCloseButton: false, 
+                customClass: { popup: 'modal-left-aligned' }, 
+                showClass: { popup: '', container: '', backdrop: '' }, 
+                hideClass: { popup: '', container: '', backdrop: '' },
+                timer: 0,
                 didOpen: () => {
                     // Marcar que el modal está abierto
                     this._eventCarouselModalOpen = true;
@@ -8165,8 +8167,10 @@ const App = window.App = {
                     this._eventCarouselModalOpen = false;
                 },
                 didClose: () => {
-                    // Guardar cuando se cierra
-                    this.saveEventFromCarousel(ev.id);
+                    // Guardar cuando se cierra (solo si estamos en pestaña de editar)
+                    if (activeTab === 0) {
+                        this.saveEventFromCarousel(ev.id);
+                    }
                 }
             });
         };
@@ -8197,7 +8201,7 @@ const App = window.App = {
         console.log('[showEventTabInCarousel] state después:', this._eventCarouselState.currentTab);
     },
 
-    // Guardar evento desde el carrusel
+    // Guardar evento desde el carrusel (cuando se cierra el modal)
     saveEventFromCarousel: async function(eventId) {
         // No guardar si el modal ya está cerrado
         if (!this._eventCarouselModalOpen) {
@@ -8232,12 +8236,96 @@ const App = window.App = {
         }
     },
 
+    // Guardar evento inmediatamente desde el botón guardar
+    saveEventFromCarouselNow: async function(eventId) {
+        const saveBtn = document.querySelector(`[onclick="App.saveEventFromCarouselNow('${eventId}')"]`);
+        if (saveBtn) {
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin align-middle mr-1">sync</span> Guardando...';
+            saveBtn.style.opacity = '0.6';
+            saveBtn.style.pointerEvents = 'none';
+        }
+        
+        const ev = this.state.events.find(e => String(e.id) === String(eventId));
+        if (!ev) {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+            return;
+        }
+        
+        const name = document.getElementById(`ev-edit-name-${eventId}`)?.value?.trim();
+        const location = document.getElementById(`ev-edit-location-${eventId}`)?.value?.trim();
+        const group_id = document.getElementById(`ev-edit-group-${eventId}`)?.value?.trim();
+        const date = document.getElementById(`ev-edit-date-${eventId}`)?.value?.trim();
+        const end_date = document.getElementById(`ev-edit-end-date-${eventId}`)?.value?.trim();
+        const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
+        
+        if (!name || !date) {
+            Swal.fire({ title: '⚠️ Error', text: 'Nombre y fecha son obligatorios', icon: 'error', background: '#0f172a', color: '#fff' });
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+            return;
+        }
+        
+        try {
+            const result = await this.fetchAPI(`/events/${eventId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ name, location, group_id, date, end_date, description })
+            });
+            
+            if (result?.event || result?.id) {
+                // Actualizar en el estado
+                const eventIndex = this.state.events?.findIndex(e => String(e.id) === String(eventId));
+                if (eventIndex !== -1) {
+                    this.state.events[eventIndex] = { ...this.state.events[eventIndex], name, location, group_id, date, end_date, description };
+                }
+                
+                Swal.fire({ title: '✅ Guardado', text: 'Evento actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                
+                // Actualizar el nombre en el título del modal
+                const titleSpan = document.querySelector('.text-xs[style*="color:"]');
+                if (titleSpan) {
+                    titleSpan.textContent = `${name} (${this._eventCarouselState?.currentIndex + 1}/${this._eventCarouselState?.events?.length})`;
+                }
+            } else {
+                throw new Error(result?.message || 'Error al guardar');
+            }
+        } catch (e) {
+            Swal.fire({ title: '⚠️ Error', text: e.message || 'Error al guardar', icon: 'error', background: '#0f172a', color: '#fff' });
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">save</span> Guardar';
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            }
+        }
+    },
+
     // Actualizar estado del evento desde el carrusel
     updateEventStatusInCarousel: async function(eventId, status) {
+        // Mapear estados del carrusel a estados de la base de datos
+        const statusMap = {
+            'active': 'ACTIVE',
+            'inactive': 'INACTIVE', 
+            'completed': 'COMPLETED',
+            'cancelled': 'INACTIVE' // 'cancelled' se mapea a 'INACTIVE'
+        };
+        
+        const dbStatus = statusMap[status];
+        if (!dbStatus) {
+            Swal.fire({ title: '✗ Error', text: `Estado no válido: ${status}`, icon: 'error', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        
         try {
             await this.fetchAPI(`/events/${eventId}`, {
                 method: 'PUT',
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status: dbStatus })
             });
             await this.loadEvents();
             // Volver a renderizar el carrusel
