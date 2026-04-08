@@ -1,13 +1,13 @@
-# Sincronización Automática Check Pro v12.44.292 (Docker)
+# Sincronización Automática Check Pro v12.44.294 (Docker)
 Write-Host "Iniciando despliegue final (Regla de Oro - Docker Edition)..." -ForegroundColor Cyan
 
 # 1. Sincronización de Repositorio Original
 Write-Host "Paso 1: Sincronizando Git en Registro..." -ForegroundColor Yellow
 git add .
-git commit -m "Automated update: Check Pro v12.44.292 - Modal Eventos Premium & Navegación"
+git commit -m "Automated update: Check Pro v12.44.294 - Modal Eventos Premium & Navegación"
 git push origin main
-git tag v12.44.292 HEAD
-git push origin v12.44.292
+git tag v12.44.294 HEAD
+git push origin v12.44.294
 
 # 2. Actualización del Entorno Docker (Clon)
 Write-Host "Paso 2: Actualizando clon y tags en C:\Users\carlo\check..." -ForegroundColor Yellow

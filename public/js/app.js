@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.292';
+const VERSION = '12.44.294';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -293,55 +293,82 @@ const App = window.App = {
         this.showPremiumToast(title, message, type);
     },
 
-    navigateToCreateEvent(type = 'short') {
-        console.log('[NAVIGATE TO CREATE EVENT] Type:', type);
+    navigateToCreateEvent: function(type = 'short') {
+        console.log('[NAVIGATE TO CREATE EVENT] Iniciando tipo:', type);
         
-        // Cerrar cualquier SweetAlert abierto de forma agresiva
-        if (Swal && Swal.close) {
-            Swal.close();
+        // No navegar si ya estamos en una vista permitida (my-events, dashboard)
+        const currentView = LS.get('current_view');
+        if (currentView !== 'my-events' && currentView !== 'dashboard') {
+            this.navigate('my-events');
         }
-        // Remover cualquier overlay de SweetAlert que pueda estar bloqueando
-        const swalOverlay = document.querySelector('.swal2-container');
-        if (swalOverlay) {
-            swalOverlay.remove();
-        }
-        
-        // Siempre abrir el formulario corto (modal-event) para crear eventos
-        {
-            // Abrir formulario corto (Equipo/Empresa) - SIN navegar forzosamente a system
-            console.log('[NAVIGATE TO CREATE EVENT] Opening modal over current view');
 
-            
-            setTimeout(() => {
-                console.log('[NAVIGATE TO CREATE EVENT] Opening short form modal');
+        // Preparar y abrir el modal
+        setTimeout(() => {
+            const form = document.getElementById('new-event-form');
+            if (form) {
+                form.reset();
                 document.getElementById('ev-id-hidden').value = '';
-                const form = document.getElementById('new-event-form');
-                if (form) {
-                    form.reset();
-                    
-                    // REMOVER cualquier listener previo (para evitar duplicados)
-                    const newForm = form.cloneNode(true);
-                    form.parentNode.replaceChild(newForm, form);
-                    
-                    // AGREGAR listener SOLO AHORA que el usuario va a usar el formulario
-                    newForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        console.log('[FORM SUBMIT SHORT] Formulario corto enviado por usuario');
-                        this.saveEventShort(e);
-                    });
-                }
-                if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
                 
+                // Asegurar listener único
+                form.onsubmit = (e) => {
+                    e.preventDefault();
+                    this.saveEventShort(e);
+                };
+            }
+            
+            const modal = document.getElementById('modal-event');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                modal.removeAttribute('aria-hidden');
+            } else {
+                console.error('[NAVIGATE TO CREATE EVENT] Modal no encontrado');
+                this._notifyAction('Error', 'No se pudo abrir el modal', 'error');
+            }
+        }, 100);
+    },
+
+    saveEventShort: async function(e) {
+        console.log('[SAVE EVENT SHORT] Procesando guardado...');
+        try {
+            const name = document.getElementById('ev-name')?.value;
+            const location = document.getElementById('ev-location')?.value;
+            const date = document.getElementById('ev-date')?.value;
+            const description = document.getElementById('ev-desc')?.value;
+
+            if (!name) return this._notifyAction('⚠️ Error', 'El nombre es obligatorio', 'warning');
+
+            this._notifyAction('Guardando...', 'Creando evento', 'info', 0);
+
+            const res = await this.fetchAPI('/events', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    name, 
+                    location: location || '', 
+                    date: date || new Date().toISOString(),
+                    description: description || '',
+                    status: 'PUBLISHED'
+                })
+            });
+
+            if (res && (res.id || res.success)) {
                 const modal = document.getElementById('modal-event');
-                console.log('[NAVIGATE TO CREATE EVENT] Modal element:', modal);
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    modal.style.display = 'flex';
-                    console.log('[NAVIGATE TO CREATE EVENT] Modal should be visible now, classes:', modal.className);
-                } else {
-                    console.error('[NAVIGATE TO CREATE EVENT] Modal not found!');
+                if (modal) modal.classList.add('hidden');
+                
+                this._notifyAction('✓ Éxito', 'Evento creado', 'success');
+                
+                this._lastEventsLoad = 0;
+                await this.loadEvents();
+                
+                if (LS.get('current_view') === 'my-events') {
+                    this.renderEventsTable();
                 }
-            }, 150);
+            } else {
+                throw new Error(res?.error || 'Error al guardar');
+            }
+        } catch (err) {
+            console.error('[SAVE EVENT SHORT] Error:', err);
+            this._notifyAction('Error', 'No se pudo guardar: ' + err.message, 'error');
         }
     },
 
