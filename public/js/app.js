@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.294';
+const VERSION = '12.44.295';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -303,12 +303,28 @@ const App = window.App = {
         }
 
         // Preparar y abrir el modal
-        setTimeout(() => {
+        setTimeout(async () => {
             const form = document.getElementById('new-event-form');
             if (form) {
                 form.reset();
                 document.getElementById('ev-id-hidden').value = '';
                 
+                // Poblar selector de clientes
+                const clientSelect = document.getElementById('ev-client');
+                if (clientSelect) {
+                    // Asegurar que los clientes estén cargados en el estado
+                    if (!this.state.clients || this.state.clients.length === 0) {
+                        try {
+                            const clientsRes = await this.fetchAPI('/clients');
+                            this.state.clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
+                        } catch(e) { console.error('Error cargando clientes:', e); }
+                    }
+                    
+                    const clients = this.state.clients || [];
+                    clientSelect.innerHTML = '<option value="">Seleccionar cliente</option>' + 
+                        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                }
+
                 // Asegurar listener único
                 form.onsubmit = (e) => {
                     e.preventDefault();
@@ -335,6 +351,7 @@ const App = window.App = {
             const location = document.getElementById('ev-location')?.value;
             const date = document.getElementById('ev-date')?.value;
             const description = document.getElementById('ev-desc')?.value;
+            const clientId = document.getElementById('ev-client')?.value;
 
             if (!name) return this._notifyAction('⚠️ Error', 'El nombre es obligatorio', 'warning');
 
@@ -347,6 +364,7 @@ const App = window.App = {
                     location: location || '', 
                     date: date || new Date().toISOString(),
                     description: description || '',
+                    client_id: clientId || null,
                     status: 'PUBLISHED'
                 })
             });
