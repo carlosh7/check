@@ -8278,7 +8278,7 @@ const App = window.App = {
                 body: JSON.stringify({ name, location, group_id, date, end_date, description })
             });
             
-            if (result?.event || result?.id) {
+            if (result?.success || result?.event || result?.id) {
                 // Actualizar en el estado
                 const eventIndex = this.state.events?.findIndex(e => String(e.id) === String(eventId));
                 if (eventIndex !== -1) {
