@@ -7764,13 +7764,17 @@ const App = window.App = {
             console.log('[filterEvents] after PRODUCTOR filter:', events.length);
         }
         
-        // Filtro por búsqueda
+        // Filtro por búsqueda con normalización de texto (manejo de acentos)
         if (searchTerm) {
+            // Normalizar: quitar acentos y convertir a lowercase
+            const normalize = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const normalizedTerm = normalize(searchTerm);
+            
             events = events.filter(ev => {
                 const clientNames = ev.client_names || '';
                 const groupName = (this.state.allGroups || []).find(g => g.id === ev.group_id)?.name || '';
-                const searchable = `${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`.toLowerCase();
-                return searchable.includes(searchTerm);
+                const searchable = normalize(`${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`);
+                return searchable.includes(normalizedTerm);
             });
             console.log('[filterEvents] after search filter:', events.length);
         }
