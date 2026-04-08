@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.291</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.292</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -1310,17 +1310,9 @@
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
-</div>
-
-<!-- Modales Premium v12.34.0 -->
-<div id="modal-container-portal"></div>
-
-<!-- MODAL: EVENTO CORTO (Crear Evento) -->
+          <!-- MODAL: EVENTO CORTO (Crear Evento) -->
 <div id="modal-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
+    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-[var(--primary)] text-xl">event</span>
@@ -1330,38 +1322,39 @@
                 <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
             </button>
         </div>
-        <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-5">
+        <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="ev-id-hidden" value="">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
-                    <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
-                    <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
-                </div>
+            
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
+                <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
-                    <select id="ev-group" class="input-field w-full">
-                        <option value="">Seleccionar empresa</option>
-                    </select>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
-                    <input type="datetime-local" id="ev-date" required class="input-field w-full">
-                </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
+                <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
             </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
-                    <input type="datetime-local" id="ev-end-date" class="input-field w-full">
-                </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Empresa</label>
+                <select id="ev-group" class="input-field w-full">
+                    <option value="">Seleccionar empresa</option>
+                </select>
             </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Inicio</label>
+                <input type="datetime-local" id="ev-date" required class="input-field w-full">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha Fin</label>
+                <input type="datetime-local" id="ev-end-date" class="input-field w-full">
+            </div>
+
             <div class="space-y-1.5">
                 <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
-                <textarea id="ev-desc" rows="2" placeholder="Descripción del evento" class="input-field w-full"></textarea>
+                <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
             
             <div class="flex justify-end gap-3 pt-3">
@@ -1503,41 +1496,6 @@
     </div>
 </div>
 
-<!-- MODAL: CREAR EVENTO -->
-<div id="modal-create-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
-            </div>
-            <button id="btn-close-create-event" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <form id="create-event-form" class="p-5 overflow-y-auto flex-1 space-y-4">
-            <div class="space-y-1.5">
-                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Evento</label>
-                <input type="text" id="create-event-name" required placeholder="Ej: Conferencia Tech 2026" class="input-field w-full">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Fecha</label>
-                <input type="date" id="create-event-date" class="input-field w-full">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ubicación</label>
-                <input type="text" id="create-event-location" placeholder="Ej: Centro de Convenciones" class="input-field w-full">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
-                <textarea id="create-event-description" rows="3" placeholder="Descripción del evento..." class="input-field w-full"></textarea>
-            </div>
-            <div class="flex justify-end pt-3">
-                <button type="submit" class="btn-primary !px-5 !py-2">Crear Evento</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- MODAL: ASIGNAR EVENTO A STAFF -->
 <div id="modal-assign-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">

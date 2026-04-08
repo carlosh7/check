@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.291';
+const VERSION = '12.44.292';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -308,14 +308,9 @@ const App = window.App = {
         
         // Siempre abrir el formulario corto (modal-event) para crear eventos
         {
-            // Abrir formulario corto (Equipo/Empresa) - navegar a system si no estamos ya ahí
-            const currentView = document.querySelector('[id^="view-"]:not(.hidden)');
-            const isInSystem = currentView && currentView.id === 'view-system';
-            
-            if (!isInSystem) {
-                // Navegar a system con la pestaña 'users' por defecto
-                this.navigate('system', { tab: 'users' });
-            }
+            // Abrir formulario corto (Equipo/Empresa) - SIN navegar forzosamente a system
+            console.log('[NAVIGATE TO CREATE EVENT] Opening modal over current view');
+
             
             setTimeout(() => {
                 console.log('[NAVIGATE TO CREATE EVENT] Opening short form modal');
