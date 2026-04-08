@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.290</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.291</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -89,14 +89,7 @@
             <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
             <section id="view-my-events" class="hidden animate-fade-in" data-section="my-events">
                 <div class="max-w-7xl mx-auto">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-                        <div>
-                            <h1 class="text-4xl font-black tracking-tight text-white mb-2">Mis <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">Eventos</span></h1>
-                            <p id="my-events-subtitle" class="text-slate-400 font-medium">Gestiona tu ecosistema de eventos desde un solo lugar</p>
-                        </div>
-                    </div>
-
-                    <!-- Fila 1: Botones de acción -->
+                    <!-- Fila 1: Botones de acción (Movido Arriba) -->
                     <div class="flex flex-wrap items-center gap-3 mb-4">
                         <div class="flex gap-2">
                             <button id="btn-new-event-full" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
@@ -114,7 +107,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila 2: Filtros -->
+                    <!-- Fila 2: Filtros (Movido Arriba) -->
                     <div class="flex gap-2 flex-wrap items-center mb-4">
                         <select id="filter-event-client" onchange="App.filterEvents()" class="filter-select filter-select-cliente">
                             <option value="">Cliente</option>
@@ -128,6 +121,14 @@
                             <option value="cancelled">Cancelado</option>
                             <option value="inactive">Inactivo</option>
                         </select>
+                    </div>
+
+                    <!-- Contenedor con el Título -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 mt-4">
+                        <div>
+                            <h1 class="text-4xl font-black tracking-tight text-white mb-2">Mis <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">Eventos</span></h1>
+                            <p id="my-events-subtitle" class="text-slate-400 font-medium">Gestiona tu ecosistema de eventos desde un solo lugar</p>
+                        </div>
                     </div>
 
                     <!-- Fila 3: Buscador -->
