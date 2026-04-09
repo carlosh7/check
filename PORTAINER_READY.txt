@@ -1,0 +1,42 @@
+# === COPIA DESDE AQUÍ (V2 - Corregida) ===
+version: '3.8'
+
+services:
+  check-app:
+    image: node:20
+    container_name: check-app
+    working_dir: /usr/src/app
+    ports:
+      - "3000:3000"
+    volumes:
+      # Usamos rutas absolutas para que Portainer encuentre los archivos
+      - /home/carlosh/check/data:/usr/src/app/data
+      - /home/carlosh/check:/usr/src/app
+      - node_modules:/usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - APP_URL=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000
+      - JWT_SECRET=check-pro-docker-secret-key-$(openssl rand -hex 4 2>/dev/null || echo "12345")
+      - ADMIN_EMAIL=admin@check.com
+      - ADMIN_PASSWORD=admin123
+    
+    # Este comando asegura que se instalen las dependencias y se inicie el servidor
+    command: sh -c "npm install && node server.js"
+    
+    restart: unless-stopped
+    networks:
+      - check-network
+
+volumes:
+  node_modules:
+
+networks:
+  check-network:
+    driver: bridge
+# === HASTA AQUÍ ===
+
+# NOTA DE ERROR ANTERIOR: 
+# Si usas "Web Editor", Docker no puede leer el "Dockerfile" local. 
+# Esta versión (V2) usa una imagen directa de Node y monta tus archivos.

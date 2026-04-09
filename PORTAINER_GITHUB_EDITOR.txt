@@ -1,0 +1,56 @@
+# === COPIA TODO ESTO (VERSIÓN GITHUB AUTO-CLONE) ===
+version: '3.8'
+
+services:
+  check-app:
+    image: node:20
+    container_name: check-app-github
+    working_dir: /usr/src/app
+    ports:
+      - "3000:3000"
+    environment:
+      # CONFIGURACIÓN BÁSICA
+      - NODE_ENV=production
+      - PORT=3000
+      - APP_URL=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000
+      
+      # SEGURIDAD (Cambia estas 3)
+      - JWT_SECRET=check-secret-key-super-safe
+      - ADMIN_EMAIL=admin@check.com
+      - ADMIN_PASSWORD=admin123
+    
+    # Este comando hace la magia: 
+    # 1. Instala git si no está (la imagen node:20 lo suele traer)
+    # 2. Clona el repo si la carpeta está vacía
+    # 3. Instala dependencias y arranca
+    command: >
+      sh -c "
+      apt-get update && apt-get install -y git &&
+      if [ -z \"$(ls -A /usr/src/app)\" ]; then
+        git clone https://github.com/carlosh7/check.git .
+      else
+        echo 'Carpeta no vacía, omitiendo clone...'
+      fi &&
+      npm install &&
+      node server.js
+      "
+    
+    volumes:
+      - check_repo_data:/usr/src/app
+    
+    restart: unless-stopped
+    networks:
+      - check-network
+
+volumes:
+  check_repo_data:
+
+networks:
+  check-network:
+    driver: bridge
+# === HASTA AQUÍ ===
+
+# INSTRUCCIONES:
+# 1. Copia el texto y pégalo en el "Web editor" de un nuevo Stack en Portainer.
+# 2. No necesitas tener archivos en tu servidor, Portainer los bajará de GitHub.
