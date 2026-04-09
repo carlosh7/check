@@ -140,12 +140,18 @@ function createEventTables(db, eventId) {
             phone TEXT,
             organization TEXT,
             position TEXT,
+            cargo TEXT,
             gender TEXT DEFAULT 'O',
             dietary_notes TEXT,
+            restricciones TEXT,
+            vegano TEXT DEFAULT 'NO',
             is_new_registration INTEGER DEFAULT 0,
             checked_in INTEGER DEFAULT 0,
             checkin_time TEXT,
             qr_token TEXT UNIQUE,
+            validated INTEGER DEFAULT 0,
+            validated_at TEXT,
+            validated_by TEXT,
             unsubscribed INTEGER DEFAULT 0,
             unsubscribe_token TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -170,6 +176,8 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (event_id) REFERENCES events(id)
         )
     `);
+
+
     
     // Tabla de ruletas
     db.exec(`
@@ -295,7 +303,8 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_surveys_event ON surveys(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_survey_responses_event ON survey_responses(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_event_agenda_event ON event_agenda(event_id)",
-        "CREATE INDEX IF NOT EXISTS idx_guest_suggestions_event ON guest_suggestions(event_id)"
+        "CREATE INDEX IF NOT EXISTS idx_guests_event ON guests(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email)"
     ];
     
     for (const sql of indices) {

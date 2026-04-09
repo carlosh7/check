@@ -8625,6 +8625,12 @@ const App = window.App = {
         document.getElementById('ev-end-date').value = formatDate(ev.end_date);
         document.getElementById('ev-desc').value = ev.description || '';
         
+        // Cargar estado de base de datos propia
+        const hasOwnDbCheck = document.getElementById('ev-has-own-db');
+        if (hasOwnDbCheck) {
+            hasOwnDbCheck.checked = Boolean(ev.has_own_db);
+        }
+        
         const form = document.getElementById('new-event-form');
         if (form) {
             const newForm = form.cloneNode(true);
@@ -14269,10 +14275,12 @@ App.processAttendanceImportFile = async function(file) {
         token = user.token || LS.get('token');
     }
     
-    // Convertir archivo a base64
+    // Guardar nombre de archivo
+    this._importFilename = file.name;
+    
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const base64 = e.target.result.split(',')[1];
+        this._importBase64 = e.target.result.split(',')[1];
         
         try {
             const response = await fetch('/api/import/validate', {
@@ -14282,7 +14290,7 @@ App.processAttendanceImportFile = async function(file) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ 
-                    file: base64,
+                    file: this._importBase64,
                     filename: file.name,
                     type: 'attendance'
                 })
@@ -14290,28 +14298,47 @@ App.processAttendanceImportFile = async function(file) {
             const data = await response.json();
             
             if (data.success) {
-                this._importAttendanceData = data.data.attendance || [];
-                this._importAttendanceStats = data.stats;
+                this._availableColumns = data.availableColumns || [];
                 
-                // Mostrar progreso
+                // 1. Mostrar progreso/stats iniciales
                 document.getElementById('import-attendance-progress-container').classList.remove('hidden');
-                document.getElementById('import-attendance-new-count').textContent = data.stats.new || 0;
-                document.getElementById('import-attendance-update-count').textContent = data.stats.update || 0;
-                document.getElementById('import-attendance-error-count').textContent = data.stats.errors || 0;
-                document.getElementById('import-attendance-status').textContent = data.stats.message || 'Datos válidos';
+                document.getElementById('import-attendance-status').textContent = data.stats.message || 'Archivo procesado';
                 document.getElementById('import-attendance-progress-fill').style.width = '100%';
-                document.getElementById('btn-confirm-import-attendance').disabled = false;
                 
-                // Mostrar detalles si hay errores
-                if (data.errors && data.errors.length > 0) {
-                    const details = document.getElementById('import-attendance-details');
-                    if (details) {
-                        details.classList.remove('hidden');
-                        details.innerHTML = data.errors.slice(0, 10).map(err => `<p class="text-red-400">• ${err}</p>`).join('');
-                        if (data.errors.length > 10) {
-                            details.innerHTML += `<p class="text-[var(--text-muted)]">... y ${data.errors.length - 10} más</p>`;
-                        }
-                    }
+                // 2. Gestionar Mapeo (V12.44.298)
+                if (data.isMappingRequired && this._availableColumns.length > 0) {
+                    const mappingContainer = document.getElementById('import-attendance-mapping-container');
+                    const fieldsList = document.getElementById('mapping-fields-list');
+                    mappingContainer.classList.remove('hidden');
+                    
+                    const fields = [
+                        { id: 'att-map-name', label: 'Nombre Completo *', key: 'name', icon: 'person', required: true },
+                        { id: 'att-map-email', label: 'Email *', key: 'email', icon: 'mail', required: true },
+                        { id: 'att-map-phone', label: 'Teléfono', key: 'phone', icon: 'phone' },
+                        { id: 'att-map-org', label: 'Organización', key: 'organization', icon: 'corporate_fare' },
+                        { id: 'att-map-position', label: 'Cargo', key: 'cargo', icon: 'badge' },
+                        { id: 'att-map-dietary', label: 'Restricciones/Dieta', key: 'restricciones', icon: 'restaurant' }
+                    ];
+                    
+                    fieldsList.innerHTML = fields.map(f => `
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">${f.icon}</span> ${f.label}
+                            </label>
+                            <select id="${f.id}" class="premium-select !bg-[var(--bg-main)] !py-2 !text-xs">
+                                <option value="">-- No importar --</option>
+                                ${this._availableColumns.map(col => {
+                                    const lowerName = col.name.toLowerCase();
+                                    const lowerLabel = f.label.toLowerCase();
+                                    const isSelected = lowerName.includes(f.key) || lowerName.includes(f.label.toLowerCase().split(' ')[0]) ? 'selected' : '';
+                                    return `<option value="${col.index}" ${isSelected}>${col.name}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    `).join('');
+
+                    // Habilitar botón si hay mapeo básico
+                    document.getElementById('btn-confirm-import-attendance').disabled = false;
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
@@ -14325,8 +14352,9 @@ App.processAttendanceImportFile = async function(file) {
 },
 
 App.executeAttendanceImport = async function() {
-    if (!this._importAttendanceData) return;
+    if (!this._importBase64) return;
     
+    // Obtener token
     let token = window.App?.state?.user?.token;
     if (!token) {
         const userStr = LS.get('user');
@@ -14334,84 +14362,82 @@ App.executeAttendanceImport = async function() {
         token = user.token || LS.get('token');
     }
     
+    // Recolectar mapeo de los selectores del DOM
+    const mapping = {
+        name: document.getElementById('att-map-name')?.value,
+        email: document.getElementById('att-map-email')?.value,
+        phone: document.getElementById('att-map-phone')?.value,
+        organization: document.getElementById('att-map-org')?.value,
+        cargo: document.getElementById('att-map-position')?.value,
+        restricciones: document.getElementById('att-map-dietary')?.value
+    };
+
+    if (!mapping.name || !mapping.email) {
+        Swal.fire({ icon: 'warning', title: 'Atención', text: 'Debes mapear al menos Nombre y Email para importar.' });
+        return;
+    }
+    
     const btn = document.getElementById('btn-confirm-import-attendance');
+    const oldHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Procesando...';
 
     try {
-        // Obtener eventId desde la URL o desde el estado
+        // Obtener eventId
         let eventId = this.state.currentEventId;
         if (!eventId) {
             const urlParts = window.location.pathname.split('/');
             eventId = urlParts[urlParts.length - 1];
         }
         
-        // Importar asistentes en una sola llamada
-        let imported = 0;
-        let skipped = 0;
-        
-        try {
-            const response = await this.fetchAPI(`/events/${eventId}/attendance/import`, { method: 'POST', body: JSON.stringify({
-                attendees: this._importAttendanceData.map(item => ({
-                    name: item.name,
-                    email: item.email,
-                    phone: item.phone,
-                    organization: item.organization,
-                    cargo: item.cargo,
-                    vegano: item.vegano || 'NO',
-                    restricciones: item.restricciones,
-                    status: 'PENDIENTE'
-                }))
-            }) });
-            
-            if (response.success) {
-                imported = response.imported;
-                skipped = response.skipped;
-            }
-        } catch(e) {
-            console.error('[IMPORT ATTENDANCE] Error:', e.message);
-            // Si falla la importación masiva, intentar uno por uno
-            for (const item of this._importAttendanceData) {
-                try {
-                    await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify({
-                        name: item.name,
-                        email: item.email,
-                        phone: item.phone,
-                        organization: item.organization,
-                        cargo: item.cargo,
-                        vegano: item.vegano || 'NO',
-                        restricciones: item.restricciones,
-                        status: 'PENDIENTE'
-                    }) });
-                    imported++;
-                } catch(err) {
-                    skipped++;
-                }
-            }
-        }
-        
-        document.getElementById('import-attendance-status').textContent = `Importación completada: ${imported} registros`;
-        document.getElementById('modal-import-attendance').classList.add('hidden');
-        
-        // Recargar attendance
-        await this.loadAttendance(eventId);
-        
-        Swal.fire({ 
-            icon: 'success', 
-            title: 'Importación exitosa', 
-            text: `${imported} asistentes importados${skipped > 0 ? `, ${skipped} duplicados omitidos` : ''}`, 
-            timer: 3000, 
-            toast: true, 
-            position: 'top-end' 
+        const response = await fetch('/api/import/execute', {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                type: 'attendance', 
+                file: this._importBase64, 
+                filename: this._importFilename,
+                mapping: mapping,
+                eventId: eventId
+            })
         });
+        const result = await response.json();
         
+        if (result.success) {
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Importación Completada', 
+                text: `${result.imported} registros nuevos, ${result.updated} actualizados`,
+                timer: 4000,
+                toast: true,
+                position: 'top-end'
+            });
+            
+            // Cerrar modal y limpiar UI
+            document.getElementById('modal-import-attendance').classList.add('hidden');
+            document.getElementById('import-attendance-mapping-container').classList.add('hidden');
+            document.getElementById('import-attendance-progress-container').classList.add('hidden');
+            this._importBase64 = null;
+            
+            // Recargar datos del dashboard
+            if (typeof this.loadAttendance === 'function') {
+                await this.loadAttendance(eventId);
+            } else if (typeof this.loadGuests === 'function') {
+                await this.loadGuests();
+            }
+        } else {
+            throw new Error(result.message || 'Error en el servidor');
+        }
     } catch(e) {
-        console.error('[IMPORT] Error:', e);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al importar asistentes' });
+        console.error('[IMPORT EXECUTE] Error:', e);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo completar la importación: ' + e.message });
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
     }
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">check</span> Importar';
 },
 
 App.exportAttendance = function() {

@@ -75,7 +75,8 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     
     const id = getValidId('events');
     const eventGroupId = group_id || (req.userRole === 'ADMIN' ? null : getProducerGroups(req.userId)[0]);
-    const hasOwnDb = has_own_db ? 1 : 0;
+    // POLÍTICA V12.44.299: Base de datos propia por defecto para todos los eventos
+    const hasOwnDb = (has_own_db !== undefined) ? (has_own_db ? 1 : 0) : 1;
 
     db.prepare(`
         INSERT INTO events (
@@ -928,173 +929,120 @@ router.get('/:id/database', authMiddleware(), async (req, res) => {
 });
 
 // ═════════════════════════════════════════════════════════════
-// GESTIÓN DE ASISTENCIA (DASHBOARD)
+// GESTIÓN DE ASISTENCIA (DASHBOARD UNIFICADO V12.44.299)
 // ═════════════════════════════════════════════════════════════
+const { getEventConnection } = require('../utils/database-manager');
 
-// GET /api/events/:id/attendance - Obtener lista de asistencia
+// GET /api/events/:id/attendance - Obtener lista de asistencia (vía tabla guests)
 router.get('/:id/attendance', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    if (!eventId) {
-        return res.status(400).json({ error: 'ID de evento no válido' });
-    }
+    if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
-        const attendance = db.prepare(`
+        const targetDb = getEventConnection(eventId) || db;
+        const attendance = targetDb.prepare(`
             SELECT 
-                ea.id, ea.name, ea.email, ea.phone, ea.organization, ea.cargo, ea.vegano, 
-                ea.restricciones, ea.status, ea.validated, ea.validated_at
-            FROM event_attendance ea
-            WHERE ea.event_id = ?
-            ORDER BY ea.name ASC
+                g.id, g.name, g.email, g.phone, g.organization, 
+                COALESCE(g.cargo, g.position) as cargo, 
+                g.vegano, 
+                COALESCE(g.restricciones, g.dietary_notes) as restricciones, 
+                g.checked_in as validated, g.checkin_time as validated_at
+            FROM guests g
+            WHERE g.event_id = ?
+            ORDER BY g.name ASC
         `).all(eventId);
         
         res.json(attendance);
     } catch (e) {
         console.error('[ATTENDANCE] Error obteniendo asistencia:', e.message);
-        res.status(500).json({ error: 'Error obteniendo asistencia' });
+        res.status(500).json({ error: 'Error obteniendo asistencia desde guests' });
     }
 });
 
-// POST /api/events/:id/attendance - Agregar asistente a asistencia
+// POST /api/events/:id/attendance - Agregar asistente manual
 router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const { name, email, phone, organization, cargo, vegano, restricciones, status } = req.body;
+    const { name, email, phone, organization, cargo, vegano, restricciones } = req.body;
     
-    if (!eventId || !name) {
-        return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
-    }
+    if (!eventId || !name) return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
     
     try {
+        const targetDb = getEventConnection(eventId) || db;
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         const now = new Date().toISOString();
         
-        db.prepare(`
-            INSERT INTO event_attendance (id, event_id, name, email, phone, organization, cargo, vegano, restricciones, status, validated, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-        `).run(id, eventId, name, email || null, phone || null, organization || null, cargo || null, vegano || 'NO', restricciones || null, status || 'PENDING', now);
+        targetDb.prepare(`
+            INSERT INTO guests (
+                id, event_id, name, email, phone, organization, position, cargo, 
+                vegano, dietary_notes, restricciones, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            id, eventId, name, email || null, phone || null, organization || null, 
+            cargo || null, cargo || null, vegano || 'NO', 
+            restricciones || null, restricciones || null, now
+        );
         
         res.json({ success: true, id });
     } catch (e) {
         if (e.message.includes('UNIQUE constraint failed')) {
-            return res.status(400).json({ error: 'Asistente ya está en la lista de asistencia' });
+            return res.status(400).json({ error: 'El email ya está registrado para este evento' });
         }
-        console.error('[ATTENDANCE] Error agregando:', e.message);
-        res.status(500).json({ error: 'Error agregando a asistencia' });
+        console.error('[ATTENDANCE] Error al agregar:', e.message);
+        res.status(500).json({ error: 'Error agregando invitado' });
     }
 });
 
-// POST /api/events/:id/attendance/import - Importación masiva de asistentes
-router.post('/:id/attendance/import', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
-    const eventId = castId('events', req.params.id);
-    const { attendees } = req.body;
-    
-    console.log('[IMPORT ATTENDANCE] eventId:', eventId, 'attendees:', attendees?.length);
-    
-    if (!eventId || !Array.isArray(attendees) || attendees.length === 0) {
-        return res.status(400).json({ error: 'ID de evento y asistentes requeridos' });
-    }
-    
-    try {
-        const { v4: uuidv4 } = require('uuid');
-        const now = new Date().toISOString();
-        
-        const insertStmt = db.prepare(`
-            INSERT OR IGNORE INTO event_attendance (id, event_id, name, email, phone, organization, cargo, vegano, restricciones, status, validated, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-        `);
-        
-        let imported = 0;
-        let skipped = 0;
-        
-        const insertMany = db.transaction((items) => {
-            for (const a of items) {
-                const id = uuidv4();
-                const result = insertStmt.run(
-                    id, 
-                    eventId, 
-                    a.name, 
-                    a.email || null, 
-                    a.phone || null, 
-                    a.organization || null, 
-                    a.cargo || null, 
-                    a.vegano || 'NO', 
-                    a.restricciones || null, 
-                    a.status || 'PENDIENTE', 
-                    now
-                );
-                if (result.changes > 0) {
-                    imported++;
-                } else {
-                    skipped++;
-                }
-            }
-        });
-        
-        insertMany(attendees);
-        
-        res.json({ success: true, imported, skipped, total: attendees.length });
-    } catch (e) {
-        console.error('[ATTENDANCE] Error en importación masiva:', e.message);
-        res.status(500).json({ error: 'Error en importación masiva' });
-    }
-});
-
-// PUT /api/events/:id/attendance/:id - Actualizar asistencia
+// PUT /api/events/:id/attendance/:id - Actualizar asistente (Dashboard)
 router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
-    const { validated, organization, cargo, vegano, restricciones, status } = req.body;
-    const userId = req.session?.user?.id;
+    const { validated, organization, cargo, vegano, restricciones } = req.body;
     
-    if (!eventId) {
-        return res.status(400).json({ error: 'ID de evento no válido' });
-    }
+    if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
+        const targetDb = getEventConnection(eventId) || db;
         const now = new Date().toISOString();
-        let validatedVal = validated;
-        let validatedAtVal = null;
         
-        if (validated === 1) {
-            validatedAtVal = now;
-        }
-        
-        db.prepare(`
-            UPDATE event_attendance 
-            SET validated = ?, validated_at = ?, validated_by = ?,
+        targetDb.prepare(`
+            UPDATE guests 
+            SET checked_in = ?, checkin_time = ?,
                 organization = COALESCE(?, organization),
                 cargo = COALESCE(?, cargo),
+                position = COALESCE(?, position),
                 vegano = COALESCE(?, vegano),
                 restricciones = COALESCE(?, restricciones),
-                status = COALESCE(?, status)
+                dietary_notes = COALESCE(?, dietary_notes)
             WHERE event_id = ? AND id = ?
-        `).run(validatedVal || 0, validatedAtVal, userId || null, 
-               organization, cargo, vegano, restricciones, status,
-               eventId, attendanceId);
+        `).run(
+            validated || 0, validated === 1 ? now : null,
+            organization, cargo, cargo, vegano, restricciones, restricciones,
+            eventId, attendanceId
+        );
         
         res.json({ success: true });
     } catch (e) {
         console.error('[ATTENDANCE] Error actualizando:', e.message);
-        res.status(500).json({ error: 'Error actualizando asistencia' });
+        res.status(500).json({ error: 'Error actualizando datos de invitado' });
     }
 });
 
-// DELETE /api/events/:id/attendance/:attendanceId - Eliminar de asistencia
+// DELETE /api/events/:id/attendance/:attendanceId - Eliminar asistente
 router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     
-    if (!eventId || !attendanceId) {
-        return res.status(400).json({ error: 'IDs requeridos' });
-    }
+    if (!eventId || !attendanceId) return res.status(400).json({ error: 'IDs requeridos' });
     
     try {
-        db.prepare('DELETE FROM event_attendance WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
+        const targetDb = getEventConnection(eventId) || db;
+        targetDb.prepare('DELETE FROM guests WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
         res.json({ success: true });
     } catch (e) {
         console.error('[ATTENDANCE] Error eliminando:', e.message);
-        res.status(500).json({ error: 'Error eliminando de asistencia' });
+        res.status(500).json({ error: 'Error eliminando invitado' });
     }
 });
 

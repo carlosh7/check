@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const { db } = require('../../database');
+const { db, getEventConnection } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
@@ -368,52 +368,68 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         stats.message = `${stats.new} nuevos, ${stats.update} para actualizar, ${stats.errors} errores`;
 
         // ─── PROCESAR ASISTENTES (type: attendance) ───
-        if (type === 'attendance' && workbook.getWorksheet('Asistentes')) {
-            const sheet = workbook.getWorksheet('Asistentes');
-            
-            data.attendance = [];
-            
-            sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
+        if (type === 'attendance') {
+            let availableColumns = [];
+            let previewRows = [];
+            let totalRows = 0;
+
+            if (filename.toLowerCase().endsWith('.pdf')) {
+                // Soporte PDF (Extracción básica de emails/nombres)
                 try {
-                    const name = row.getCell(1).text?.trim();
-                    const email = row.getCell(2).text?.trim();
-                    const phone = row.getCell(3).text?.trim() || '';
-                    const organization = row.getCell(4).text?.trim() || '';
-                    const cargo = row.getCell(5).text?.trim() || '';
-                    const vegano = row.getCell(6).text?.trim() || 'NO';
-                    const restricciones = row.getCell(7).text?.trim() || '';
-
-                    if (!name) return;
+                    const pdfParse = require('pdf-parse');
+                    const pdfData = await pdfParse(buffer);
+                    const text = pdfData.text;
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5);
                     
-                    // Skip header rows
-                    const firstCell = (name || '').toLowerCase();
-                    const secondCell = (email || '').toLowerCase();
-                    if (headerValues.includes(firstCell) || headerValues.includes(secondCell)) {
-                        return;
-                    }
-
-                    // Guardar directamente en attendance (sin crear cliente)
-                    stats.new++;
+                    availableColumns = ['Dato Detectado'];
+                    previewRows = lines.slice(0, 10).map(l => ({ 'Dato Detectado': l }));
+                    totalRows = lines.length;
                     
-                    data.attendance.push({
-                        name,
-                        email,
-                        phone,
-                        organization,
-                        cargo,
-                        vegano,
-                        restricciones,
-                        action: 'create'
-                    });
-                } catch(e) {
-                    stats.errors++;
-                    errors.push(`Fila ${rowNumber}: Error procesando asistente - ${e.message}`);
+                    data.attendance = lines.map(line => ({ raw: line }));
+                    stats.message = `PDF detectado: ${lines.length} líneas encontradas`;
+                } catch (pdfErr) {
+                    console.error('Error procesando PDF:', pdfErr);
+                    throw new Error('No se pudo procesar el PDF');
                 }
-            });
-            
-            if (data.attendance.length > 0) {
-                stats.message = `${data.attendance.length} asistentes para importar`;
+            } else {
+                // Excel / XLSX
+                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1);
+                if (!sheet) throw new Error('No se encontró una hoja válida en el Excel');
+
+                // Obtener cabeceras (Fila 1)
+                const headerRow = sheet.getRow(1);
+                headerRow.eachCell((cell, colNumber) => {
+                    availableColumns.push({
+                        index: colNumber - 1,
+                        name: cell.text?.trim() || `Columna ${colNumber}`
+                    });
+                });
+
+                // Obtener vista previa (Siguientes 5 filas)
+                sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
+                    if (rowNumber <= 6) {
+                        const previewRow = {};
+                        row.eachCell((cell, colNumber) => {
+                            const header = availableColumns.find(c => c.index === colNumber - 1)?.name || `Columna ${colNumber}`;
+                            previewRow[header] = cell.text;
+                        });
+                        previewRows.push(previewRow);
+                    }
+                    totalRows++;
+                });
+
+                data.attendance = []; // Se llenará en execute
+                stats.message = `Excel detectado: ${totalRows} filas encontradas`;
             }
+
+            return res.json({ 
+                success: true, 
+                data, 
+                stats: { ...stats, totalRows }, 
+                availableColumns, 
+                previewRows,
+                isMappingRequired: true 
+            });
         }
 
         res.json({ success: true, data, stats, errors });
@@ -722,6 +738,101 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         console.log('[IMPORT] Client', c.name, 'linked to', linkedCount, 'events');
                     }
                 }
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // PASO 5: Importar/Actualizar ASISTENTES (Attendance)
+        // ════════════════════════════════════════════════════════════
+        if (type === 'attendance') {
+            const eventId = castId('events', req.body.eventId);
+            if (!eventId) throw new Error('Se requiere un Event ID válido para importar asistentes');
+
+            let attendeesToProcess = [];
+
+            // Opción A: Se envía el mapeo y el archivo para procesar en el servidor (RECOMENDADO)
+            if (req.body.mapping && req.body.file) {
+                const buffer = Buffer.from(req.body.file, 'base64');
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(buffer);
+                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1);
+                
+                const m = req.body.mapping; // { name: index, email: index, ... }
+                
+                sheet.eachRow({ skip: 1 }, (row) => {
+                    const a = {
+                        name: m.name !== undefined ? row.getCell(parseInt(m.name) + 1).text?.trim() : '',
+                        email: m.email !== undefined ? row.getCell(parseInt(m.email) + 1).text?.trim() : '',
+                        phone: m.phone !== undefined ? row.getCell(parseInt(m.phone) + 1).text?.trim() : '',
+                        organization: m.organization !== undefined ? row.getCell(parseInt(m.organization) + 1).text?.trim() : '',
+                        cargo: m.cargo !== undefined ? row.getCell(parseInt(m.cargo) + 1).text?.trim() : '',
+                        vegano: m.vegano !== undefined ? row.getCell(parseInt(m.vegano) + 1).text?.trim() : 'NO',
+                        restricciones: m.restricciones !== undefined ? row.getCell(parseInt(m.restricciones) + 1).text?.trim() : ''
+                    };
+                    if (a.email && a.name) attendeesToProcess.push(a);
+                });
+            } else if (data.attendance && data.attendance.length > 0) {
+                // Opción B: Datos ya procesados (Legacy o Simple)
+                attendeesToProcess = data.attendance;
+            }
+
+            if (attendeesToProcess.length === 0) {
+                throw new Error('No se encontraron asistentes válidos para procesar');
+            }
+
+            console.log(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
+            
+            // Obtener la base de datos correcta (Global o Independiente)
+            const targetDb = getEventConnection(eventId) || db;
+            
+            for (const a of attendeesToProcess) {
+                if (!a.email) continue;
+                const emailLower = a.email.toLowerCase().trim();
+
+                // 1. Gestionar tabla 'guests'
+                let guest = targetDb.prepare("SELECT id FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
+                
+                if (guest) {
+                    console.log('[IMPORT] Updating existing guest:', emailLower);
+                    targetDb.prepare(`
+                        UPDATE guests SET 
+                            name = COALESCE(?, name), 
+                            phone = COALESCE(?, phone), 
+                            organization = COALESCE(?, organization), 
+                            position = COALESCE(?, position),
+                            cargo = COALESCE(?, cargo),
+                            dietary_notes = COALESCE(?, dietary_notes),
+                            restricciones = COALESCE(?, restricciones),
+                            vegano = COALESCE(?, vegano)
+                        WHERE id = ?
+                    `).run(
+                        a.name, a.phone, a.organization, 
+                        a.cargo || a.position, a.cargo || a.position,
+                        a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
+                        a.vegano,
+                        guest.id
+                    );
+                    updated++;
+                } else {
+                    console.log('[IMPORT] Creating new guest:', emailLower);
+                    const guestId = getValidId('guests');
+                    const qrToken = require('uuid').v4();
+                    targetDb.prepare(`
+                        INSERT INTO guests (
+                            id, event_id, name, email, phone, organization, position, cargo, 
+                            dietary_notes, restricciones, vegano, qr_token, created_at
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        guestId, eventId, a.name || 'S/N', emailLower, a.phone, a.organization, 
+                        a.cargo || a.position, a.cargo || a.position,
+                        a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
+                        a.vegano || 'NO', qrToken, new Date().toISOString()
+                    );
+                    imported++;
+                }
+
+
             }
         }
 

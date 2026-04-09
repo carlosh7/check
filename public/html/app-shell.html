@@ -1066,6 +1066,7 @@
                                 <div class="p-3 border-b border-[var(--border)] flex items-center justify-between">
                                     <div class="flex items-center gap-2">
                                         <span id="mailbox-current-folder" class="text-sm font-medium text-[var(--text-main)]">Bandeja de Entrada</span>
+                                        <span class="text-[10px] font-bold tracking-widest text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/20">v12.44.300</span>
                                         <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full"></span>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -1359,6 +1360,17 @@
                 <label class="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
                 <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
+
+            <div class="p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/20">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="ev-has-own-db" checked name="has_own_db" class="w-5 h-5 rounded accent-[var(--primary)]">
+                    <div>
+                        <p class="text-sm font-bold text-white">Base de Datos Propia</p>
+                        <p class="text-[10px] text-[var(--text-muted)]">Aislamiento total de datos para este evento (Recomendado)</p>
+                    </div>
+                </label>
+            </div>
+
             
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
@@ -2239,10 +2251,23 @@
                     <span class="material-symbols-outlined text-sm">attach_file</span> Subir Archivo
                 </h4>
                 <div id="import-attendance-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
-                    <input type="file" id="import-attendance-file-input" accept=".xlsx,.xls,.csv" class="hidden">
+                    <input type="file" id="import-attendance-file-input" accept=".xlsx,.xls,.csv,.pdf" class="hidden">
                     <span class="material-symbols-outlined text-4xl text-[var(--text-muted)] mb-2">upload_file</span>
                     <p class="text-sm text-[var(--text-secondary)]">Arrastra el archivo aquí o <span class="text-[var(--primary)] font-medium">haz clic para seleccionar</span></p>
-                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv</p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv, .pdf</p>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DE MAPEO DE COLUMNAS (NUEVO V12.44.298) -->
+            <div id="import-attendance-mapping-container" class="hidden mb-6 animate-fade-in">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">Alt_Route</span> Mapeo de Columnas
+                </h4>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-5 border border-[var(--primary)]/30">
+                    <p class="text-xs text-[var(--text-secondary)] mb-4">Asocia las columnas de tu archivo con los campos del sistema:</p>
+                    <div id="mapping-fields-list" class="space-y-4">
+                        <!-- Se poblará dinámicamente desde JS -->
+                    </div>
                 </div>
             </div>
             
