@@ -27,10 +27,12 @@ services:
     command: >
       sh -c "
       apt-get update && apt-get install -y git &&
-      if [ -z \"$(ls -A /usr/src/app)\" ]; then
-        git clone https://github.com/carlosh7/check.git .
+      if [ -d \".git\" ]; then
+        echo 'Actualizando código desde GitHub...' &&
+        git pull origin main
       else
-        echo 'Carpeta no vacía, omitiendo clone...'
+        echo 'Clonando código por primera vez...' &&
+        git clone https://github.com/carlosh7/check.git .
       fi &&
       npm install &&
       node server.js

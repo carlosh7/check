@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.296",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.296 - Configuración Portainer desde GitHub",
+  "version": "12.44.297",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.297 - Mejora en script de auto-actualización Portainer",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
