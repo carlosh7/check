@@ -6,15 +6,13 @@ services:
     container_name: check-app-stack
     working_dir: /usr/src/app
     ports:
-      - "8080:3000"
+      - "3000:3000"
     volumes:
-      - check_data:/usr/src/app/data
-      # Si despliegas desde Git en Portainer, el código se monta automáticamente
+      - /home/data_check:/usr/src/app/persistence
+      - .:/usr/src/app
     environment:
       - NODE_ENV=production
+      - DATA_PATH=/usr/src/app/persistence
     command: >
       sh -c "npm install && node server.js"
     restart: always
-
-volumes:
-  check_data:

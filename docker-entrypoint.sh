@@ -7,6 +7,22 @@ set -e
 echo "🚀 Iniciando Check Pro en contenedor Docker..."
 echo "=============================================="
 
+# 0. Automatización de Persistencia Externa (v12.44.314)
+if [ ! -z "$DATA_PATH" ]; then
+    echo "📂 Configurando persistencia externa en: $DATA_PATH"
+    if [ ! -d "$DATA_PATH" ]; then
+        echo "📁 Creando directorio de persistencia..."
+        mkdir -p "$DATA_PATH"
+    fi
+    # Asegurar que subcarpetas existen
+    mkdir -p "$DATA_PATH/events"
+    mkdir -p "$DATA_PATH/uploads"
+    
+    # Intentar ajustar permisos para que el código pueda escribir
+    chmod -R 777 "$DATA_PATH" || echo "⚠️ No se pudo cambiar permisos, continuando..."
+    echo "✅ Directorio de persistencia listo"
+fi
+
 # 1. Verificar si node_modules existe
 if [ ! -d "node_modules" ]; then
     echo "📦 Instalando dependencias..."
@@ -28,13 +44,10 @@ else
     echo "✅ Archivo .env ya existe"
 fi
 
-# 3. Crear directorio data si no existe
+# 3. Crear directorio data si no existe (fallback local)
 if [ ! -d "data" ]; then
-    echo "📁 Creando directorio data..."
+    echo "📁 Creando directorio data local..."
     mkdir -p data
-    echo "✅ Directorio data creado"
-else
-    echo "✅ Directorio data ya existe"
 fi
 
 # 4. Inicializar base de datos y crear usuario admin
@@ -47,7 +60,10 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
 try {
-    const dbPath = path.resolve(__dirname, 'data/check_app.db');
+    const basePath = process.env.DATA_PATH || path.resolve(__dirname, 'data');
+    if (!fs.existsSync(basePath)) fs.mkdirSync(basePath, { recursive: true });
+    
+    const dbPath = path.resolve(basePath, 'check_app.db');
     const db = new Database(dbPath);
     
     // Activar WAL mode

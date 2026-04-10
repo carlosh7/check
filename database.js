@@ -4,8 +4,22 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.resolve(__dirname, 'data/check_app.db');
+const fs = require('fs');
+const basePath = process.env.DATA_PATH || path.join(__dirname, 'data');
+
+// Asegurar que el directorio de datos existe (v12.44.314)
+if (!fs.existsSync(basePath)) {
+    try {
+        fs.mkdirSync(basePath, { recursive: true });
+        console.log('✓ Directorio de persistencia creado:', basePath);
+    } catch (e) {
+        console.error('✗ Error creando directorio de persistencia:', e.message);
+    }
+}
+
+const dbPath = path.resolve(basePath, 'check_app.db');
 const db = new Database(dbPath);
+console.log('🗄️  Base de Datos conectada en:', dbPath);
 
 // ═══ OPTIMIZACIONES DE RENDIMIENTO (Enterprise Grade) ═══
 

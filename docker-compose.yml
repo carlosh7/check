@@ -8,12 +8,13 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/usr/src/app/data
+      - ./persistence:/usr/src/app/persistence
       - .:/usr/src/app
       - node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3000
+      - DATA_PATH=/usr/src/app/persistence
       - ALLOWED_ORIGINS=http://localhost:3000
       - JWT_SECRET=check-pro-docker-secret-key
       - ADMIN_EMAIL=admin@check.com

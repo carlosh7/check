@@ -9,9 +9,9 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Directorio de datos (V12.44.312 - Reubicado para mejor persistencia en Portainer)
-const DATA_DIR = path.resolve(process.cwd(), 'databases');
-const EVENTS_DIR = path.join(DATA_DIR, 'events');
+// Directorio de datos (V12.44.314 - Soporte para persistencia absoluta externa)
+const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'events') : path.resolve(process.cwd(), 'databases/events');
+const EVENTS_DIR = DATA_DIR;
 
 // Cache de conexiones activas
 const connectionCache = new Map();
