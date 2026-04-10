@@ -2,8 +2,10 @@ version: '3.8'
 
 services:
   check-app:
-    build: .
-    image: check-app:v12.44.319
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: check-app:latest
     container_name: check-app-stack
     working_dir: /usr/src/app
     ports:
