@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.311';
+const VERSION = '12.44.312';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -14384,7 +14384,8 @@ App.processAttendanceImportFile = async function(file) {
                         { id: 'att-map-phone', label: 'Teléfono', key: 'phone', icon: 'phone' },
                         { id: 'att-map-org', label: 'Organización', key: 'organization', icon: 'corporate_fare' },
                         { id: 'att-map-position', label: 'Cargo', key: 'cargo', icon: 'badge' },
-                        { id: 'att-map-dietary', label: 'Restricciones/Dieta', key: 'restricciones', icon: 'restaurant' }
+                        { id: 'att-map-dietary', label: 'Restricciones/Dieta', key: 'restricciones', icon: 'restaurant' },
+                        { id: 'att-map-vegano', label: 'Vegano (Sí/No)', key: 'vegano', icon: 'leaf' }
                     ];
                     
                     fieldsList.innerHTML = fields.map(f => `
@@ -14408,7 +14409,7 @@ App.processAttendanceImportFile = async function(file) {
                     document.getElementById('btn-confirm-import-attendance').disabled = false;
 
                     // --- V12.44.304: Listeners para actualizar estadísticas en tiempo real ---
-                    const selectors = ['att-map-name', 'att-map-email', 'att-map-phone', 'att-map-org', 'att-map-position', 'att-map-dietary'];
+                    const selectors = ['att-map-name', 'att-map-email', 'att-map-phone', 'att-map-org', 'att-map-position', 'att-map-dietary', 'att-map-vegano'];
                     selectors.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
@@ -14493,7 +14494,8 @@ App.executeAttendanceImport = async function() {
         phone: document.getElementById('att-map-phone')?.value,
         organization: document.getElementById('att-map-org')?.value,
         cargo: document.getElementById('att-map-position')?.value,
-        restricciones: document.getElementById('att-map-dietary')?.value
+        restricciones: document.getElementById('att-map-dietary')?.value,
+        vegano: document.getElementById('att-map-vegano')?.value
     };
 
     if (!mapping.name || !mapping.email) {

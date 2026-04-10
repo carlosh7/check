@@ -861,6 +861,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             console.error('[MIGRATION-EVENT] Error migrando DB del evento:', migErr.message);
         }
             
+            let updated = 0;
+            let imported = 0;
+            let duplicates = 0;
+            
             for (const a of attendeesToProcess) {
                 if (!a.email) continue;
                 const emailLower = a.email.toLowerCase().trim();
@@ -877,7 +881,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 let guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
                 
                 if (guest) {
-                    // console.log('[IMPORT] Updating existing guest:', emailLower);
+                    duplicates++; // Marcado como existente/duplicado
                     // Solo actualizar el nombre si el nuevo nombre no está vacío
                     const nameToUpdate = cleanName || guest.name || provisionalName;
 
@@ -923,8 +927,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             }
         }
 
-        console.log('[IMPORT] Final Result - imported:', imported, 'updated:', updated);
-        res.json({ success: true, imported, updated });
+        console.log('[IMPORT] Final Result - imported:', imported, 'updated:', updated, 'duplicates:', duplicates);
+        res.json({ success: true, imported, updated, duplicates, total: imported + updated });
     } catch(e) {
         console.error('Error ejecutando importación:', e);
         res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });

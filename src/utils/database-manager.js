@@ -9,8 +9,8 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Directorio de datos
-const DATA_DIR = path.resolve(__dirname, '../../data');
+// Directorio de datos (V12.44.312 - Reubicado para mejor persistencia en Portainer)
+const DATA_DIR = path.resolve(process.cwd(), 'databases');
 const EVENTS_DIR = path.join(DATA_DIR, 'events');
 
 // Cache de conexiones activas
@@ -21,8 +21,12 @@ const connectionCache = new Map();
  */
 function ensureEventsDir() {
     if (!fs.existsSync(EVENTS_DIR)) {
-        fs.mkdirSync(EVENTS_DIR, { recursive: true });
-        console.log('✓ Directorio de eventos creado:', EVENTS_DIR);
+        try {
+            fs.mkdirSync(EVENTS_DIR, { recursive: true });
+            console.log('✓ Directorio de eventos creado:', EVENTS_DIR);
+        } catch (e) {
+            console.error('✗ Error creando directorio de eventos:', e.message);
+        }
     }
 }
 
@@ -32,7 +36,9 @@ function ensureEventsDir() {
  * @returns {string} Ruta de la base de datos
  */
 function getEventDbPath(eventId) {
-    return path.join(EVENTS_DIR, `${eventId}.db`);
+    const dbPath = path.join(EVENTS_DIR, `${eventId}.db`);
+    // console.log(`[DB-MANAGER] Ruta calculada para ${eventId}: ${path.resolve(dbPath)}`);
+    return dbPath;
 }
 
 /**
