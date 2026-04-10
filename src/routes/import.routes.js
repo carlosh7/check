@@ -372,6 +372,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
             let availableColumns = [];
             let previewRows = [];
             let totalRows = 0;
+            const eventId = castId('events', req.body.eventId);
 
             if (filename.toLowerCase().endsWith('.pdf')) {
                 // Soporte PDF (Extracción básica de emails/nombres)
@@ -405,24 +406,62 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                     });
                 });
 
-                // Obtener vista previa (Siguientes 5 filas)
-                let allRows = [];
+                // Detectar columna de email automáticamente (V12.44.309) para conteo real
+                let emailColIdx = -1;
+                headerRow.eachCell((cell, colNumber) => {
+                    const txt = (cell.text || '').toLowerCase();
+                    if (txt.includes('email') || txt.includes('correo')) {
+                        emailColIdx = colNumber - 1;
+                    }
+                });
+
+                // Si no se encuentra por nombre, buscar por contenido en la segunda fila
+                if (emailColIdx === -1) {
+                    const secondRow = sheet.getRow(2);
+                    secondRow.eachCell((cell, colNumber) => {
+                        const val = cell.text || '';
+                        if (val.includes('@') && val.includes('.')) {
+                            emailColIdx = colNumber - 1;
+                        }
+                    });
+                }
+
+                // Cargar emails existentes del evento si hay emailColIdx
+                const existingEmails = new Set();
+                if (emailColIdx !== -1 && eventId) {
+                    const targetDb = getEventConnection(eventId) || db;
+                    const guests = targetDb.prepare("SELECT email FROM guests WHERE event_id = ?").all(eventId);
+                    guests.forEach(g => {
+                        if (g.email) existingEmails.add(g.email.toLowerCase().trim());
+                    });
+                }
+
+                // Procesar todas las filas para estadísticas reales
                 sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                     const vals = [];
-                    // includeEmpty: true es vital para no desfasar índices
                     row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                         vals[colNumber - 1] = cell.text?.trim() || '';
                     });
                     
-                    if (rowNumber <= 6) {
+                    if (rowNumber <= 11) { // 1 header + 10 rows
                         previewRows.push(vals);
                     }
-                    allRows.push(vals);
+
+                    if (emailColIdx !== -1) {
+                        const email = (vals[emailColIdx] || '').toString().toLowerCase().trim();
+                        if (email && email.includes('@')) {
+                            if (existingEmails.has(email)) {
+                                stats.update++;
+                            } else {
+                                stats.new++;
+                            }
+                        }
+                    }
+
                     totalRows++;
                 });
 
-                data.attendance = []; 
-                stats.message = `Excel detectado: ${totalRows} filas encontradas`;
+                stats.message = `Excel: ${totalRows} filas detectadas. (${stats.new} nuevos, ${stats.update} existentes)`;
             }
 
             return res.json({ 
@@ -431,7 +470,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 stats: { ...stats, totalRows }, 
                 availableColumns, 
                 previewRows,
-                allRows, // Enviamos todo para conteo exacto en frontend
+                // allRows ELIMINADO para evitar error 500 en archivos grandes
                 isMappingRequired: true 
             });
         }
@@ -826,14 +865,21 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 if (!a.email) continue;
                 const emailLower = a.email.toLowerCase().trim();
 
+                // Fallback de nombre: usar email si no hay nombre
+                const cleanName = (a.name || "").trim();
+                const provisionalName = cleanName || emailLower.split('@')[0];
+
                 // 1. Gestionar tabla 'guests'
-                let guest = targetDb.prepare("SELECT id FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
+                let guest = targetDb.prepare("SELECT id, name FROM guests WHERE event_id = ? AND LOWER(email) = ?").get(eventId, emailLower);
                 
                 if (guest) {
-                    console.log('[IMPORT] Updating existing guest:', emailLower);
+                    // console.log('[IMPORT] Updating existing guest:', emailLower);
+                    // Solo actualizar el nombre si el nuevo nombre no está vacío
+                    const nameToUpdate = cleanName || guest.name || provisionalName;
+
                     targetDb.prepare(`
                         UPDATE guests SET 
-                            name = COALESCE(?, name), 
+                            name = ?, 
                             phone = COALESCE(?, phone), 
                             organization = COALESCE(?, organization), 
                             position = COALESCE(?, position),
@@ -843,7 +889,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                             vegano = COALESCE(?, vegano)
                         WHERE id = ?
                     `).run(
-                        a.name, a.phone, a.organization, 
+                        nameToUpdate, 
+                        a.phone, a.organization, 
                         a.cargo || a.position, a.cargo || a.position,
                         a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
                         a.vegano,
@@ -854,7 +901,6 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     console.log('[IMPORT] Creating new guest:', emailLower);
                     const guestId = getValidId('guests');
                     const qrToken = require('uuid').v4();
-                    const provisionalName = a.name || emailLower.split('@')[0];
                     
                     targetDb.prepare(`
                         INSERT INTO guests (
@@ -870,8 +916,6 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     );
                     imported++;
                 }
-
-
             }
         }
 

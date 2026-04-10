@@ -295,7 +295,7 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
 // Limpiar base de datos de evento
 router.post('/clear/:eventId', authMiddleware(['ADMIN']), (req, res) => {
     const eId = castId('events', req.params.eventId);
-    const targetDb = getEventDb(eId);
+    const targetDb = getEventConnection(eId) || db;
     targetDb.prepare("DELETE FROM guests WHERE event_id = ?").run(eId);
     res.json({ success: true });
 });

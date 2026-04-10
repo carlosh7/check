@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.308';
+const VERSION = '12.44.309';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -14339,7 +14339,7 @@ App.processAttendanceImportFile = async function(file) {
             
             if (data.success) {
                     this._availableColumns = data.availableColumns || [];
-                    this._allRows = data.allRows || []; // Almacenar todas las filas para conteo exacto
+                    this._importStats = data.stats || {}; // Guardar stats reales del servidor
                     
                     // 1. Mostrar progreso/stats iniciales
                     document.getElementById('import-attendance-progress-container').classList.remove('hidden');
@@ -14386,12 +14386,12 @@ App.processAttendanceImportFile = async function(file) {
                     selectors.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
-                            el.addEventListener('change', () => this.updateAttendanceImportStats(data.availableColumns, this._allRows, data.stats));
+                            el.addEventListener('change', () => this.updateAttendanceImportStats(data.availableColumns, data.previewRows, data.stats));
                         }
                     });
 
-                    // Carga inicial de estadísticas
-                    this.updateAttendanceImportStats(data.availableColumns, this._allRows, data.stats);
+                    // Carga inicial de estadísticas (usando data.stats del backend)
+                    this.updateAttendanceImportStats(data.availableColumns, data.previewRows, data.stats);
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
@@ -14406,41 +14406,48 @@ App.processAttendanceImportFile = async function(file) {
 
 App.updateAttendanceImportStats = function(availableColumns, previewRows, stats) {
     const emailColIndex = document.getElementById('att-map-email')?.value;
-    const totalFound = stats?.totalRows || previewRows?.length || 0;
+    const totalFound = stats?.totalRows || 0;
     
     // Actualizar el mensaje de cabecera del modal para mostrar el TOTAL real
     const statsDetail = document.getElementById('import-attendance-stats-detail');
     if (statsDetail) {
-        statsDetail.innerHTML = `<span class="text-violet-400 font-bold">${totalFound}</span> registros detectados en el archivo. Analizando muestra...`;
+        statsDetail.innerHTML = `<span class="text-violet-400 font-bold">${totalFound}</span> registros detectados en el archivo.`;
     }
 
-    if (!emailColIndex || !previewRows) return;
-
-    const emailIdx = parseInt(emailColIndex);
-    let newCount = 0;
-    let updateCount = 0;
+    // Si tenemos estadísticas reales del servidor en el objeto 'stats', usarlas
+    // El servidor ahora calcula esto en el /validate (V12.44.309)
+    let newCount = stats?.new || 0;
+    let updateCount = stats?.update || 0;
     
-    // Obtener emails existentes en el dashboard actual para comparación rápida
-    const currentEmails = new Set((this.state.attendance || []).map(a => (a.client_email || '').toLowerCase()));
+    // Si el usuario cambia el mapeo, las estadísticas de la muestra pueden variar
+    // pero para la versión estable actual, confiamos en el pre-análisis del servidor
+    if (emailColIndex && previewRows) {
+        const emailIdx = parseInt(emailColIndex);
+        let sampleNew = 0;
+        let sampleUpdate = 0;
+        const currentEmails = new Set((this.state.attendance || []).map(a => (a.client_email || '').toLowerCase()));
 
-    previewRows.forEach(row => {
-        // 'row' ahora es un array gracias al fix en el backend
-        const email = (row[emailIdx] || '').toString().trim().toLowerCase();
-        if (email && email.includes('@')) {
-            if (currentEmails.has(email)) {
-                updateCount++;
-            } else {
-                newCount++;
+        previewRows.forEach(row => {
+            const email = (row[emailIdx] || '').toString().trim().toLowerCase();
+            if (email && email.includes('@')) {
+                if (currentEmails.has(email)) sampleUpdate++;
+                else sampleNew++;
             }
+        });
+        
+        // Si no hay stats del servidor (archivo pequeño), usar la muestra
+        if (newCount === 0 && updateCount === 0) {
+            newCount = sampleNew;
+            updateCount = sampleUpdate;
         }
-    });
+    }
 
     document.getElementById('import-attendance-new-count').textContent = newCount;
     document.getElementById('import-attendance-update-count').textContent = updateCount;
     document.getElementById('import-attendance-error-count').textContent = '0';
     
-    console.log(`[IMPORT STATS] Total: ${totalFound}, Preview Sample - New: ${newCount}, Update: ${updateCount}`);
-},
+    console.log(`[IMPORT STATS] Total: ${totalFound}, Server Stats - New: ${newCount}, Update: ${updateCount}`);
+};
 
 App.executeAttendanceImport = async function() {
     if (!this._importBase64) return;
