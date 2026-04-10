@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.307';
+const VERSION = '12.44.308';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -14331,16 +14331,18 @@ App.processAttendanceImportFile = async function(file) {
                 body: JSON.stringify({ 
                     file: this._importBase64,
                     filename: file.name,
-                    type: 'attendance'
+                    type: 'attendance',
+                    eventId: this.state.currentEventId
                 })
             });
             const data = await response.json();
             
             if (data.success) {
-                this._availableColumns = data.availableColumns || [];
-                
-                // 1. Mostrar progreso/stats iniciales
-                document.getElementById('import-attendance-progress-container').classList.remove('hidden');
+                    this._availableColumns = data.availableColumns || [];
+                    this._allRows = data.allRows || []; // Almacenar todas las filas para conteo exacto
+                    
+                    // 1. Mostrar progreso/stats iniciales
+                    document.getElementById('import-attendance-progress-container').classList.remove('hidden');
                 document.getElementById('import-attendance-status').textContent = data.stats.message || 'Archivo procesado';
                 document.getElementById('import-attendance-progress-fill').style.width = '100%';
                 
@@ -14384,12 +14386,12 @@ App.processAttendanceImportFile = async function(file) {
                     selectors.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
-                            el.addEventListener('change', () => this.updateAttendanceImportStats(data.availableColumns, data.previewRows));
+                            el.addEventListener('change', () => this.updateAttendanceImportStats(data.availableColumns, this._allRows, data.stats));
                         }
                     });
 
                     // Carga inicial de estadísticas
-                    this.updateAttendanceImportStats(data.availableColumns, data.previewRows, data.stats);
+                    this.updateAttendanceImportStats(data.availableColumns, this._allRows, data.stats);
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });

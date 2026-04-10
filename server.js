@@ -144,7 +144,7 @@ app.use(cors({
     credentials: true
 }));
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
-app.use(express.json({ limit: '10mb' })); // Límite de 10MB para uploads JSON
+app.use(express.json({ limit: '50mb' })); // Límite de 50MB para permitir importaciones masivas
 
 // --- RATE LIMITING POR ENDPOINT ---
 app.set('trust proxy', 1);

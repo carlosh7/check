@@ -406,18 +406,22 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 });
 
                 // Obtener vista previa (Siguientes 5 filas)
+                let allRows = [];
                 sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
+                    const vals = [];
+                    // includeEmpty: true es vital para no desfasar índices
+                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                        vals[colNumber - 1] = cell.text?.trim() || '';
+                    });
+                    
                     if (rowNumber <= 6) {
-                        const vals = [];
-                        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                            vals[colNumber - 1] = cell.text?.trim() || '';
-                        });
                         previewRows.push(vals);
                     }
+                    allRows.push(vals);
                     totalRows++;
                 });
 
-                data.attendance = []; // Se llenará en execute
+                data.attendance = []; 
                 stats.message = `Excel detectado: ${totalRows} filas encontradas`;
             }
 
@@ -427,6 +431,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 stats: { ...stats, totalRows }, 
                 availableColumns, 
                 previewRows,
+                allRows, // Enviamos todo para conteo exacto en frontend
                 isMappingRequired: true 
             });
         }
@@ -762,9 +767,11 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 
                 sheet.eachRow({ skip: 1 }, (row) => {
                     const getVal = (idx) => {
-                        if (idx === undefined || idx === null || idx === "") return "";
+                        if (idx === undefined || idx === null || idx === "") return null;
                         const cell = row.getCell(parseInt(idx) + 1);
-                        return cell.text?.trim() || (cell.value?.toString() || "").trim();
+                        const val = cell.text?.trim() || (cell.value?.toString() || "").trim();
+                        // Importante: devolver null si está vacío para que el COALESCE de SQL funcione
+                        return val || null;
                     };
 
                     const a = {
@@ -773,13 +780,13 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         phone: getVal(m.phone),
                         organization: getVal(m.organization),
                         cargo: getVal(m.cargo),
-                        vegano: getVal(m.vegano) || 'NO',
+                        vegano: getVal(m.vegano),
                         restricciones: getVal(m.restricciones)
                     };
 
                     // Guardar si tiene al menos email
                     if (a.email) {
-                        if (!a.name) a.name = a.email.split('@')[0]; // Fallback si no hay nombre
+                        // Fallback de nombre solo si es NUEVO registro
                         attendeesToProcess.push(a);
                     }
                 });
@@ -847,6 +854,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     console.log('[IMPORT] Creating new guest:', emailLower);
                     const guestId = getValidId('guests');
                     const qrToken = require('uuid').v4();
+                    const provisionalName = a.name || emailLower.split('@')[0];
+                    
                     targetDb.prepare(`
                         INSERT INTO guests (
                             id, event_id, name, email, phone, organization, position, cargo, 
@@ -854,9 +863,9 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         )
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `).run(
-                        guestId, eventId, a.name || 'S/N', emailLower, a.phone, a.organization, 
-                        a.cargo || a.position, a.cargo || a.position,
-                        a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
+                        guestId, eventId, provisionalName, emailLower, a.phone, a.organization, 
+                        a.cargo || (a.position || null), a.cargo || (a.position || null),
+                        a.restricciones || (a.dietary_notes || null), a.restricciones || (a.dietary_notes || null),
                         a.vegano || 'NO', qrToken, new Date().toISOString()
                     );
                     imported++;
