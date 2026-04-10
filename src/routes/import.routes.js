@@ -429,7 +429,8 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 // Cargar emails existentes del evento si hay emailColIdx
                 const existingEmails = new Set();
                 if (emailColIdx !== -1 && eventId) {
-                    const targetDb = getEventConnection(eventId) || db;
+                    const targetDb = getEventConnection(eventId);
+                    if (!targetDb) throw new Error(`No se pudo conectar a la base de datos del evento ${eventId}. Verifica los permisos de carpeta.`);
                     const guests = targetDb.prepare("SELECT email FROM guests WHERE event_id = ?").all(eventId);
                     guests.forEach(g => {
                         if (g.email) existingEmails.add(g.email.toLowerCase().trim());
@@ -842,7 +843,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             console.log(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
             
             // Obtener la base de datos correcta (Global o Independiente)
-            const targetDb = getEventConnection(eventId) || db;
+            const targetDb = getEventConnection(eventId);
+            if (!targetDb) throw new Error(`Error de persistencia: No se pudo abrir la base de datos del evento ${eventId}.`);
         
         // --- Migración de Emergencia para Eventos Independientes (V12.44.305) ---
         try {

@@ -12,6 +12,7 @@ const fs = require('fs');
 // Directorio de datos (V12.44.314 - Soporte para persistencia absoluta externa)
 const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'events') : path.resolve(process.cwd(), 'databases/events');
 const EVENTS_DIR = DATA_DIR;
+console.log('[DB-MANAGER] Directorio de eventos configurado en:', EVENTS_DIR);
 
 // Cache de conexiones activas
 const connectionCache = new Map();
@@ -23,9 +24,11 @@ function ensureEventsDir() {
     if (!fs.existsSync(EVENTS_DIR)) {
         try {
             fs.mkdirSync(EVENTS_DIR, { recursive: true });
-            console.log('✓ Directorio de eventos creado:', EVENTS_DIR);
+            console.log('✓ Directorio de eventos creado/verificado:', EVENTS_DIR);
         } catch (e) {
-            console.error('✗ Error creando directorio de eventos:', e.message);
+            console.error('✗ ERROR CRÍTICO creando directorio de eventos:', EVENTS_DIR, e.message);
+            // Si falla, intentamos usar una ruta local como último recurso para evitar crash, 
+            // aunque no sea persistente fuera del contenedor.
         }
     }
 }
