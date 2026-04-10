@@ -332,6 +332,14 @@ function createEventTables(db, eventId) {
  */
 function repairEventDatabase(db, eventId) {
     try {
+        // 0. Verificar versión del esquema (User Version)
+        // Esto evita que el sistema intente reparar en cada recarga.
+        const currentVersion = db.pragma('user_version', { simple: true });
+        if (currentVersion >= 337) {
+            // console.log(`[MIGRATION] Saltando reparación de ${eventId}, esquema ya validado (v${currentVersion})`);
+            return;
+        }
+
         // 1. Detectar si existe el problema de la llave foránea fantasma mediante SQL RAW
         // Esto es infalible porque lee el código fuente original de la base de datos
         const poisonedTables = db.prepare(`
@@ -368,17 +376,24 @@ function repairEventDatabase(db, eventId) {
                     if (commonCols.length > 0) {
                         const colsStr = commonCols.join(', ');
                         db.exec(`INSERT INTO ${table} (${colsStr}) SELECT ${colsStr} FROM ${table}_old`);
+                        console.log(`✅ [REPAIR] Migrados ${commonCols.length} campos en tabla ${table}`);
                     }
                     
                     // 4. ELIMINAR tabla vieja
                     db.exec(`DROP TABLE ${table}_old`);
                 }
 
+                // 2. Marcar como reparada (User Version 337)
+                db.pragma('user_version = 337');
+                
                 // REACTIVAR FK
                 db.pragma('foreign_keys = ON');
             })();
 
             console.log(`✅ [REPAIR] Auto-sanación completada para evento ${eventId}. Las restricciones rotas han sido eliminadas.`);
+        } else {
+            // Si no estaba envenenada pero no tenía versión, marcarla para el futuro
+            db.pragma('user_version = 337');
         }
     } catch (error) {
         console.error(`✗ [REPAIR] Falló la auto-sanación de ${eventId}:`, error.message);
