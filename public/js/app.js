@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.310';
+const VERSION = '12.44.311';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -14013,6 +14013,10 @@ App.filterAttendance = function() {
     if (veganoFilter) filtered = filtered.filter(a => a.vegano === veganoFilter);
     if (statusFilter) filtered = filtered.filter(a => a.status === statusFilter);
     
+    // Actualizar contador visual (V12.44.311)
+    const badge = document.getElementById('attendance-total-badge');
+    if (badge) badge.textContent = `${filtered.length} Asistentes`;
+
     this.renderAttendanceTable(filtered);
 },
 
@@ -14095,9 +14099,13 @@ App.toggleAttendance = function(clientId) {
 },
 
 App.toggleValidateAttendance = async function(clientId) {
-    const eventId = this.state.currentEventId;
-    if (!eventId || !clientId) return;
+    const eventId = this.state.currentEventId || this.state.event?.id;
+    if (!eventId || !clientId) {
+        console.error('[ATTENDANCE] Error: IDs faltantes para validación', { eventId, clientId });
+        return;
+    }
     
+    const token = this.state.user?.token;
     const attendance = this.state.attendance || [];
     const current = attendance.find(a => a.client_id === clientId);
     if (!current) return;
@@ -14105,11 +14113,29 @@ App.toggleValidateAttendance = async function(clientId) {
     const newValidated = current.validated ? 0 : 1;
     
     try {
-        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'PUT', { validated: newValidated });
+        // Optimismo UI: cambiar estado localmente antes de la petición
         current.validated = newValidated;
         this.filterAttendance();
+
+        const response = await fetch(`/api/events/${eventId}/attendance/${clientId}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ validated: newValidated })
+        });
+        
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Error en servidor');
+        
+        console.log(`[ATTENDANCE] Estado de validación actualizado para ${clientId}: ${newValidated}`);
     } catch(e) {
-        console.error('[ATTENDANCE] Error validando:', e.message);
+        console.error('[ATTENDANCE] Fallo al validar:', e.message);
+        // Revertir cambio en caso de error
+        current.validated = newValidated ? 0 : 1;
+        this.filterAttendance();
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo actualizar la asistencia: ' + e.message });
     }
 },
 

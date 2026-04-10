@@ -865,6 +865,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 if (!a.email) continue;
                 const emailLower = a.email.toLowerCase().trim();
 
+                // Normalización de Vegano (V12.44.311)
+                const vRaw = (a.vegano || "").toString().trim().toUpperCase();
+                const vNorm = (vRaw === 'SI' || vRaw === 'SÍ' || vRaw === 'YES' || vRaw === 'TRUE' || vRaw === '1') ? 'SI' : 'NO';
+
                 // Fallback de nombre: usar email si no hay nombre
                 const cleanName = (a.name || "").trim();
                 const provisionalName = cleanName || emailLower.split('@')[0];
@@ -893,7 +897,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         a.phone, a.organization, 
                         a.cargo || a.position, a.cargo || a.position,
                         a.restricciones || a.dietary_notes, a.restricciones || a.dietary_notes,
-                        a.vegano,
+                        vNorm,
                         guest.id
                     );
                     updated++;
@@ -912,7 +916,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         guestId, eventId, provisionalName, emailLower, a.phone, a.organization, 
                         a.cargo || (a.position || null), a.cargo || (a.position || null),
                         a.restricciones || (a.dietary_notes || null), a.restricciones || (a.dietary_notes || null),
-                        a.vegano || 'NO', qrToken, new Date().toISOString()
+                        vNorm, qrToken, new Date().toISOString()
                     );
                     imported++;
                 }

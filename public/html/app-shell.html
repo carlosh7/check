@@ -196,8 +196,12 @@
                         <span class="material-symbols-outlined text-base">download</span> Exportar
                     </button>
                     <button class="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm flex items-center gap-1.5 transition-all" onclick="App.clearAttendanceDatabase()">
-                        <span class="material-symbols-outlined text-base">delete_forever</span> Borrar Asistentes
+                        <span class="material-symbols-outlined text-base">delete_forever</span> Borrar
                     </button>
+                    <div class="ml-auto flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                        <span class="material-symbols-outlined text-sm text-[var(--primary)]">group</span>
+                        <span id="attendance-total-badge" class="text-xs font-black text-slate-300 uppercase tracking-widest">0 Asistentes</span>
+                    </div>
                 </div>
                 <!-- Fila 2: Filtros -->
                 <div class="flex gap-2 flex-wrap items-center mb-6">
