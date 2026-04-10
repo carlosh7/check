@@ -9,7 +9,6 @@ services:
       - "3000:3000"
     volumes:
       - /home/data_check:/usr/src/app/persistence
-      - .:/usr/src/app
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence

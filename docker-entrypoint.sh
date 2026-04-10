@@ -7,22 +7,19 @@ set -e
 echo "🚀 Iniciando Check Pro en contenedor Docker..."
 echo "=============================================="
 
-# 0. Automatización de Persistencia Externa (v12.44.315)
+# 0. Automatización de Persistencia Externa (v12.44.316)
 if [ ! -z "$DATA_PATH" ]; then
-    echo "📂 Esperando montaje de persistencia: $DATA_PATH"
-    sleep 2
-    if [ ! -d "$DATA_PATH" ]; then
-        echo "📁 Creando directorio de persistencia..."
-        mkdir -p "$DATA_PATH"
-    fi
-    # Asegurar que subcarpetas existen
-    mkdir -p "$DATA_PATH/events" || true
-    mkdir -p "$DATA_PATH/uploads" || true
+    echo "📂 Configurando entorno de persistencia en: $DATA_PATH"
     
-    # Intentar ajustar permisos de forma segura
-    echo "🔐 Ajustando permisos en $DATA_PATH..."
-    chmod -R 777 "$DATA_PATH" 2>/dev/null || echo "⚠️ Advertencia: No se pudieron forzar todos los permisos, pero se intentará continuar."
-    echo "✅ Persistencia activa en: $DATA_PATH"
+    # Asegurar que los directorios existen físicamente
+    mkdir -p "$DATA_PATH"
+    mkdir -p "$DATA_PATH/events"
+    mkdir -p "$DATA_PATH/uploads"
+    
+    # Forzar permisos de escritura totales (777 es lo más seguro para Docker montado en host)
+    echo "🔐 Forzando permisos de escritura en la persistencia..."
+    chmod -R 777 "$DATA_PATH" 2>/dev/null || true
+    echo "✅ Persistencia lista"
 fi
 
 # 1. Verificar si node_modules existe
@@ -30,30 +27,17 @@ if [ ! -d "node_modules" ]; then
     echo "📦 Instalando dependencias..."
     npm install
 else
-    echo "✅ Dependencias ya instaladas"
+    echo "✅ Dependencias OK"
 fi
 
 # 2. Verificar archivo .env
 if [ ! -f ".env" ]; then
-    echo "📝 Creando archivo .env desde .env.example..."
-    if [ -f ".env.example" ]; then
-        cp .env.example .env
-        echo "✅ Archivo .env creado"
-    else
-        echo "⚠️  Advertencia: No se encontró .env.example"
-    fi
-else
-    echo "✅ Archivo .env ya existe"
+    cp .env.example .env 2>/dev/null || touch .env
+    echo "✅ Archivo .env verificado"
 fi
 
-# 3. Crear directorio data si no existe (fallback local)
-if [ ! -d "data" ]; then
-    echo "📁 Creando directorio data local..."
-    mkdir -p data
-fi
-
-# 4. Inicializar base de datos y crear usuario admin
-echo "🗄️  Inicializando base de datos..."
+# 3. Inicializar base de datos y crear usuario admin
+echo "🗄️  Inicializando base de datos central..."
 node -e "
 const fs = require('fs');
 const path = require('path');
@@ -65,21 +49,17 @@ try {
     const basePath = process.env.DATA_PATH || path.resolve(__dirname, 'data');
     if (!fs.existsSync(basePath)) fs.mkdirSync(basePath, { recursive: true });
     
-    const dbPath = path.resolve(basePath, 'check_app.db');
+    const dbPath = path.resolve(basePath, 'database.db');
     const db = new Database(dbPath);
     
-    // Activar WAL mode
     db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
     
-    // Crear tabla de usuarios si no existe
+    // Crear tabla de usuarios
     db.exec(\`CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT,
         role TEXT DEFAULT 'PRODUCTOR',
-        role_detail TEXT DEFAULT 'STAFF',
-        group_id TEXT,
         status TEXT DEFAULT 'PENDING',
         created_at TEXT
     )\`);

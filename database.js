@@ -17,9 +17,19 @@ if (!fs.existsSync(basePath)) {
     }
 }
 
-const dbPath = path.resolve(basePath, 'check_app.db');
-const db = new Database(dbPath);
-console.log('🗄️  Base de Datos conectada en:', dbPath);
+const dbFile = 'database.db';
+const dbPath = path.resolve(basePath, dbFile);
+let db;
+
+try {
+    db = new Database(dbPath);
+    console.log('✓ Base de Datos lista en:', dbPath);
+} catch (error) {
+    console.error('❌ ERROR FATAL: No se pudo abrir la base de datos.');
+    console.error('📍 Ruta:', dbPath);
+    console.error('📝 Detalle:', error.message);
+    process.exit(1);
+}
 
 // ═══ OPTIMIZACIONES DE RENDIMIENTO (Enterprise Grade) ═══
 
@@ -27,7 +37,6 @@ console.log('🗄️  Base de Datos conectada en:', dbPath);
 db.pragma('journal_mode = WAL');
 
 // 2. Busy Timeout: Si la BD está ocupada, espera hasta 5000ms en lugar de fallar
-// CRÍTICO para eventos con 20+ staff haciendo check-in simultáneo
 db.pragma('busy_timeout = 5000');
 
 // 3. Synchronous NORMAL: Balance perfecto entre seguridad y velocidad
