@@ -13,6 +13,4 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
-    command: >
-      sh -c "npm install && node server.js"
     restart: always

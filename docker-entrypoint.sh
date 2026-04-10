@@ -7,20 +7,22 @@ set -e
 echo "🚀 Iniciando Check Pro en contenedor Docker..."
 echo "=============================================="
 
-# 0. Automatización de Persistencia Externa (v12.44.314)
+# 0. Automatización de Persistencia Externa (v12.44.315)
 if [ ! -z "$DATA_PATH" ]; then
-    echo "📂 Configurando persistencia externa en: $DATA_PATH"
+    echo "📂 Esperando montaje de persistencia: $DATA_PATH"
+    sleep 2
     if [ ! -d "$DATA_PATH" ]; then
         echo "📁 Creando directorio de persistencia..."
         mkdir -p "$DATA_PATH"
     fi
     # Asegurar que subcarpetas existen
-    mkdir -p "$DATA_PATH/events"
-    mkdir -p "$DATA_PATH/uploads"
+    mkdir -p "$DATA_PATH/events" || true
+    mkdir -p "$DATA_PATH/uploads" || true
     
-    # Intentar ajustar permisos para que el código pueda escribir
-    chmod -R 777 "$DATA_PATH" || echo "⚠️ No se pudo cambiar permisos, continuando..."
-    echo "✅ Directorio de persistencia listo"
+    # Intentar ajustar permisos de forma segura
+    echo "🔐 Ajustando permisos en $DATA_PATH..."
+    chmod -R 777 "$DATA_PATH" 2>/dev/null || echo "⚠️ Advertencia: No se pudieron forzar todos los permisos, pero se intentará continuar."
+    echo "✅ Persistencia activa en: $DATA_PATH"
 fi
 
 # 1. Verificar si node_modules existe
