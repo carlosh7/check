@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.333';
+const VERSION = '12.44.334';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -65,7 +65,7 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.44.333',
+        version: '12.44.334',
         groups: [],
         _navigating: false,
         quillEditor: null,

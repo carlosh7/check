@@ -168,8 +168,7 @@ function createEventTables(db, eventId) {
             validated_by TEXT,
             unsubscribed INTEGER DEFAULT 0,
             unsubscribe_token TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (event_id) REFERENCES events(id)
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     `);
     
@@ -186,13 +185,10 @@ function createEventTables(db, eventId) {
             gender TEXT DEFAULT 'O',
             dietary_notes TEXT,
             status TEXT DEFAULT 'PENDING',
-            registered_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (event_id) REFERENCES events(id)
+            registered_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     `);
 
-
-    
     // Tabla de ruletas
     db.exec(`
         CREATE TABLE IF NOT EXISTS event_wheels (
@@ -202,8 +198,7 @@ function createEventTables(db, eventId) {
             config TEXT,
             is_active INTEGER DEFAULT 1,
             created_at TEXT,
-            updated_at TEXT,
-            FOREIGN KEY (event_id) REFERENCES events(id)
+            updated_at TEXT
         )
     `);
     
@@ -258,8 +253,7 @@ function createEventTables(db, eventId) {
             event_id TEXT,
             question TEXT,
             type TEXT DEFAULT 'stars',
-            options TEXT,
-            FOREIGN KEY (event_id) REFERENCES events(id)
+            options TEXT
         )
     `);
     
@@ -271,7 +265,6 @@ function createEventTables(db, eventId) {
             guest_id TEXT,
             responses_json TEXT,
             submitted_at TEXT,
-            FOREIGN KEY (event_id) REFERENCES events(id),
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
@@ -289,8 +282,7 @@ function createEventTables(db, eventId) {
             location TEXT,
             duration TEXT,
             sort_order INTEGER DEFAULT 0,
-            created_at TEXT,
-            FOREIGN KEY (event_id) REFERENCES events(id)
+            created_at TEXT
         )
     `);
     
@@ -302,7 +294,6 @@ function createEventTables(db, eventId) {
             guest_id TEXT,
             suggestion TEXT,
             submitted_at TEXT,
-            FOREIGN KEY (event_id) REFERENCES events(id),
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
     `);
