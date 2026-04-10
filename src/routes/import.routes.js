@@ -647,7 +647,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 } else {
                     console.log('[IMPORT] Creating new user (APPROVED):', u.username);
                     try {
-                        const hashedPassword = u.password ? await bcrypt.hash(u.password, 10) : await bcrypt.hash('check123', 10);
+                        const hashedPassword = u.password ? bcrypt.hashSync(u.password, 10) : bcrypt.hashSync('check123', 10);
                         userId = getValidId('users');
                         db.prepare("INSERT INTO users (id, username, password, role, display_name, phone, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?)")
                             .run(userId, u.username, hashedPassword, u.role, u.display_name, u.phone, resolvedGroupId || null, new Date().toISOString());
