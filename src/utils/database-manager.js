@@ -326,6 +326,66 @@ function createEventTables(db, eventId) {
 }
 
 /**
+ * Repara el esquema de una base de datos de evento si tiene restricciones corruptas
+ * @param {Database} db - Conexión a la base de datos
+ * @param {string} eventId - ID del evento
+ */
+function repairEventDatabase(db, eventId) {
+    try {
+        // 1. Detectar si existe el problema de la llave foránea fantasma mediante SQL RAW
+        // Esto es infalible porque lee el código fuente original de la base de datos
+        const poisonedTables = db.prepare(`
+            SELECT name, sql 
+            FROM sqlite_master 
+            WHERE type='table' 
+            AND sql LIKE '%REFERENCES events(id)%'
+        `).all();
+
+        if (poisonedTables.length > 0) {
+            console.warn(`⚠️ [REPAIR] Detectadas ${poisonedTables.length} tablas con SQL corrupto en evento ${eventId}. Iniciando auto-sanación...`);
+            
+            db.transaction(() => {
+                // DESACTIVAR FK temporalmente para poder renombrar y recrear tablas sin errores
+                db.pragma('foreign_keys = OFF');
+
+                for (const row of poisonedTables) {
+                    const table = row.name;
+                    console.log(`🔧 [REPAIR] Reconstruyendo tabla: ${table}`);
+                    
+                    // 1. Renombrar tabla vieja
+                    db.exec(`ALTER TABLE ${table} RENAME TO ${table}_old`);
+                    
+                    // 2. Recrear tablas usando la función estándar (v12.44.334+ ya no tiene las FKs)
+                    // Nota: createEventTables usa CREATE TABLE IF NOT EXISTS
+                    // Como acabamos de renombrar la original, esto creará una NUEVA tabla limpia.
+                    createEventTables(db, eventId);
+                    
+                    // 3. Migrar datos de forma robusta
+                    const columns = db.prepare(`PRAGMA table_info(${table}_old)`).all().map(c => c.name);
+                    const newCols = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
+                    const commonCols = columns.filter(c => newCols.includes(c));
+                    
+                    if (commonCols.length > 0) {
+                        const colsStr = commonCols.join(', ');
+                        db.exec(`INSERT INTO ${table} (${colsStr}) SELECT ${colsStr} FROM ${table}_old`);
+                    }
+                    
+                    // 4. ELIMINAR tabla vieja
+                    db.exec(`DROP TABLE ${table}_old`);
+                }
+
+                // REACTIVAR FK
+                db.pragma('foreign_keys = ON');
+            })();
+
+            console.log(`✅ [REPAIR] Auto-sanación completada para evento ${eventId}. Las restricciones rotas han sido eliminadas.`);
+        }
+    } catch (error) {
+        console.error(`✗ [REPAIR] Falló la auto-sanación de ${eventId}:`, error.message);
+    }
+}
+
+/**
  * Eliminar la base de datos de un evento
  * @param {string} eventId - ID del evento
  * @returns {boolean} true si se eliminó correctamente
