@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.330",
+  "version": "12.44.331",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.297 - Mejora en script de auto-actualización Portainer",
   "main": "script.js",
   "scripts": {

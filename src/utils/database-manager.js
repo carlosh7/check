@@ -86,7 +86,10 @@ function getEventConnection(eventId) {
         console.log('✓ Conexión a base de datos del evento:', eventId);
         return db;
     } catch (error) {
-        console.error('✗ Error al conectar con base de datos del evento:', eventId, error.message);
+        const errorMsg = `✗ Error al conectar con base de datos del evento ${eventId}: ${error.message}${error.code ? ' ('+error.code+')' : ''}`;
+        console.error(errorMsg);
+        // Guardar el último error para diagnóstico
+        global.lastDbError = errorMsg;
         return null;
     }
 }
