@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const { db, getEventConnection } = require('../../database');
+const { db, getEventConnection, createEventDatabase } = require('../../database');
 const { getValidId, castId } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const ExcelJS = require('exceljs');
