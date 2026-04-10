@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
-    # MÉTODO DE PRODUCCIÓN SEGURO: El contenedor descarga su propio código de GitHub al arrancar
+    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.330 (Auto-Persistence)
     command: >
       sh -c "
       apt-get update && apt-get install -y git &&
@@ -21,6 +21,10 @@ services:
       cp -ru /tmp/app_new/. /usr/src/app/ &&
       rm -rf /tmp/app_new &&
       cd /usr/src/app &&
+      echo '🔧 [AUTO-CONFIG] Configurando persistencia...' &&
+      mkdir -p /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
+      chmod -R 777 /usr/src/app/persistence &&
+      echo '✅ [AUTO-CONFIG] Persistencia lista.' &&
       npm install --omit=dev &&
       npm start"
     restart: always
