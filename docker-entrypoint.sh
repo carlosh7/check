@@ -1,25 +1,26 @@
-#!/bin/bash
-# Docker Entrypoint Script para Check Pro
-# Este script se ejecuta al iniciar el contenedor Docker
-
+#!/bin/sh
+# Universal Entrypoint (v12.44.317)
 set -e
 
-echo "🚀 Iniciando Check Pro en contenedor Docker..."
-echo "=============================================="
+echo "--------------------------------------------------------"
+echo "🔍 DIAGNÓSTICO DE ARRANQUE (Check Pro v12.44.317)"
+echo "⏱️  Hora: $(date)"
+echo "👤 Usuario: $(id)"
+echo "📁 Directorio actual: $(pwd)"
+echo "--------------------------------------------------------"
 
-# 0. Automatización de Persistencia Externa (v12.44.316)
+# 0. Automatización de Persistencia Externa (v12.44.317)
 if [ ! -z "$DATA_PATH" ]; then
-    echo "📂 Configurando entorno de persistencia en: $DATA_PATH"
+    echo "📂 Persistencia configurada en: $DATA_PATH"
     
-    # Asegurar que los directorios existen físicamente
-    mkdir -p "$DATA_PATH"
-    mkdir -p "$DATA_PATH/events"
-    mkdir -p "$DATA_PATH/uploads"
+    # Crear con log explícito
+    mkdir -p "$DATA_PATH/events" "$DATA_PATH/uploads" || echo "⚠️ Falló mkdir -p en $DATA_PATH"
     
-    # Forzar permisos de escritura totales (777 es lo más seguro para Docker montado en host)
-    echo "🔐 Forzando permisos de escritura en la persistencia..."
+    # Test de escritura
+    touch "$DATA_PATH/.write_test" 2>/dev/null && echo "✅ Test de escritura: EXITOSO" || echo "❌ Test de escritura: FALLIDO (Permisos denegados)"
+    
+    # Forzar permisos
     chmod -R 777 "$DATA_PATH" 2>/dev/null || true
-    echo "✅ Persistencia lista"
 fi
 
 # 1. Verificar si node_modules existe
