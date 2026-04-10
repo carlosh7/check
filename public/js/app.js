@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.339';
+const VERSION = '12.44.340';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -10663,7 +10663,8 @@ const App = window.App = {
         if (tabName === 'groups') this.loadGroups();
         if (tabName === 'clients') this.loadClients();
         if (tabName === 'legal') this.loadLegalTexts();
-        if (tabName === 'email') this.loadEmailModuleData();
+        // if (tabName === 'email') this.loadEmailModuleData(); // Eliminado: función no definida en v12.44.340
+
 
         if (tabName === 'account') this.loadUserProfile();
     },

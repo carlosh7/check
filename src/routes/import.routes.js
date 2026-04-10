@@ -526,7 +526,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         .run(g.email, g.phone, g.status, g.description, existing.id);
                     updated++;
                     // Registrar en mapa para siguientes pasos
-                    createdGroupsMap[g.name.toLowerCase()] = existing.id;
+                    createdGroupsMap[g.name.trim().toLowerCase()] = existing.id;
                 } else {
                     console.log('[IMPORT] Creating new group:', g.name);
                     const newId = getValidId('groups');
@@ -534,7 +534,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         .run(newId, g.name, g.email, g.phone, g.status, g.description, new Date().toISOString());
                     imported++;
                     // Registrar en mapa para siguientes pasos
-                    createdGroupsMap[g.name.toLowerCase()] = newId;
+                    createdGroupsMap[g.name.trim().toLowerCase()] = newId;
                 }
             }
         }
@@ -559,7 +559,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 // Resolver nombre de empresa a ID (primero mapa local, luego BD)
                 let resolvedGroupId = null;
                 if (e.group_name) {
-                    const groupNameLower = e.group_name.toLowerCase();
+                    const groupNameLower = e.group_name.trim().toLowerCase();
                     if (createdGroupsMap[groupNameLower]) {
                         resolvedGroupId = createdGroupsMap[groupNameLower];
                         console.log('[IMPORT] Resolved group from created:', e.group_name, '->', resolvedGroupId);

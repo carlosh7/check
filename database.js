@@ -84,10 +84,12 @@ db.exec(`CREATE TABLE IF NOT EXISTS events (
     date TEXT,
     location TEXT,
     logo_url TEXT,
+    group_id TEXT,
     description TEXT,
     status TEXT DEFAULT 'ACTIVE',
     created_at TEXT,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (group_id) REFERENCES groups (id)
 )`);
 try { db.exec("ALTER TABLE events ADD COLUMN created_at TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN end_date TEXT"); } catch (_) {}
