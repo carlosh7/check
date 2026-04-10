@@ -494,6 +494,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         
         let imported = 0;
         let updated = 0;
+        let duplicates = 0;
         
         // Mapas para resolver nombres a IDs durante esta importación
         const createdGroupsMap = {};  // nombre_lowercase -> id
@@ -861,9 +862,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             console.error('[MIGRATION-EVENT] Error migrando DB del evento:', migErr.message);
         }
             
-            let updated = 0;
-            let imported = 0;
-            let duplicates = 0;
+            // Contadores ya inicializados al inicio del manejador
+             
             
             for (const a of attendeesToProcess) {
                 if (!a.email) continue;
