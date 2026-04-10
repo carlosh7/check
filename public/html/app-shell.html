@@ -195,6 +195,9 @@
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportAttendance()">
                         <span class="material-symbols-outlined text-base">download</span> Exportar
                     </button>
+                    <button class="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm flex items-center gap-1.5 transition-all" onclick="App.clearAttendanceDatabase()">
+                        <span class="material-symbols-outlined text-base">delete_forever</span> Borrar Asistentes
+                    </button>
                 </div>
                 <!-- Fila 2: Filtros -->
                 <div class="flex gap-2 flex-wrap items-center mb-6">
@@ -1066,7 +1069,7 @@
                                 <div class="p-3 border-b border-[var(--border)] flex items-center justify-between">
                                     <div class="flex items-center gap-2">
                                         <span id="mailbox-current-folder" class="text-sm font-medium text-[var(--text-main)]">Bandeja de Entrada</span>
-                                        <span class="text-[10px] font-bold tracking-widest text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/20">v12.44.306</span>
+                                        <span class="text-[10px] font-bold tracking-widest text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/20">v12.44.307</span>
                                         <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full"></span>
                                     </div>
                                     <div class="flex items-center gap-2">

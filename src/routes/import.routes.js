@@ -408,12 +408,11 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 // Obtener vista previa (Siguientes 5 filas)
                 sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
                     if (rowNumber <= 6) {
-                        const previewRow = {};
-                        row.eachCell((cell, colNumber) => {
-                            const header = availableColumns.find(c => c.index === colNumber - 1)?.name || `Columna ${colNumber}`;
-                            previewRow[header] = cell.text;
+                        const vals = [];
+                        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                            vals[colNumber - 1] = cell.text?.trim() || '';
                         });
-                        previewRows.push(previewRow);
+                        previewRows.push(vals);
                     }
                     totalRows++;
                 });
@@ -759,19 +758,30 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1);
                 
-                const m = req.body.mapping; // { name: index, email: index, ... }
+                const m = req.body.mapping; 
                 
                 sheet.eachRow({ skip: 1 }, (row) => {
-                    const a = {
-                        name: m.name !== undefined ? row.getCell(parseInt(m.name) + 1).text?.trim() : '',
-                        email: m.email !== undefined ? row.getCell(parseInt(m.email) + 1).text?.trim() : '',
-                        phone: m.phone !== undefined ? row.getCell(parseInt(m.phone) + 1).text?.trim() : '',
-                        organization: m.organization !== undefined ? row.getCell(parseInt(m.organization) + 1).text?.trim() : '',
-                        cargo: m.cargo !== undefined ? row.getCell(parseInt(m.cargo) + 1).text?.trim() : '',
-                        vegano: m.vegano !== undefined ? row.getCell(parseInt(m.vegano) + 1).text?.trim() : 'NO',
-                        restricciones: m.restricciones !== undefined ? row.getCell(parseInt(m.restricciones) + 1).text?.trim() : ''
+                    const getVal = (idx) => {
+                        if (idx === undefined || idx === null || idx === "") return "";
+                        const cell = row.getCell(parseInt(idx) + 1);
+                        return cell.text?.trim() || (cell.value?.toString() || "").trim();
                     };
-                    if (a.email && a.name) attendeesToProcess.push(a);
+
+                    const a = {
+                        name: getVal(m.name),
+                        email: getVal(m.email),
+                        phone: getVal(m.phone),
+                        organization: getVal(m.organization),
+                        cargo: getVal(m.cargo),
+                        vegano: getVal(m.vegano) || 'NO',
+                        restricciones: getVal(m.restricciones)
+                    };
+
+                    // Guardar si tiene al menos email
+                    if (a.email) {
+                        if (!a.name) a.name = a.email.split('@')[0]; // Fallback si no hay nombre
+                        attendeesToProcess.push(a);
+                    }
                 });
             } else if (data.attendance && data.attendance.length > 0) {
                 // Opción B: Datos ya procesados (Legacy o Simple)

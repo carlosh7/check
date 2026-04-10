@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.306';
+const VERSION = '12.44.307';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -13950,6 +13950,45 @@ App.populateAttendanceFilters = function() {
     }
 },
 
+App.clearAttendanceDatabase = async function() {
+    const eventId = this.state.currentEventId;
+    if (!eventId) return;
+
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción borrará TODOS los asistentes registrados para este evento. Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, borrar todo',
+        cancelButtonText: 'Cancelar',
+        background: '#1e293b',
+        color: '#ffffff'
+    });
+
+    if (isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Borrando...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const result = await this.fetchAPI(`/guests/clear/${eventId}`, { method: 'POST' });
+            if (result.success) {
+                await Swal.fire({ icon: 'success', title: 'Completado', text: 'Base de datos de asistentes limpia.', timer: 1500 });
+                this.loadAttendance(eventId);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result.error || 'No se pudo limpiar la base de datos' });
+            }
+        } catch (err) {
+            console.error('[CLEAR] Error:', err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión con el servidor' });
+        }
+    }
+},
+
 App.filterAttendance = function() {
     const search = (document.getElementById('attendance-search')?.value || '').toLowerCase();
     const orgFilter = document.getElementById('filter-attendance-org')?.value || '';
@@ -14350,7 +14389,7 @@ App.processAttendanceImportFile = async function(file) {
                     });
 
                     // Carga inicial de estadísticas
-                    this.updateAttendanceImportStats(data.availableColumns, data.previewRows);
+                    this.updateAttendanceImportStats(data.availableColumns, data.previewRows, data.stats);
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
@@ -14363,8 +14402,16 @@ App.processAttendanceImportFile = async function(file) {
     reader.readAsDataURL(file);
 },
 
-App.updateAttendanceImportStats = function(availableColumns, previewRows) {
+App.updateAttendanceImportStats = function(availableColumns, previewRows, stats) {
     const emailColIndex = document.getElementById('att-map-email')?.value;
+    const totalFound = stats?.totalRows || previewRows?.length || 0;
+    
+    // Actualizar el mensaje de cabecera del modal para mostrar el TOTAL real
+    const statsDetail = document.getElementById('import-attendance-stats-detail');
+    if (statsDetail) {
+        statsDetail.innerHTML = `<span class="text-violet-400 font-bold">${totalFound}</span> registros detectados en el archivo. Analizando muestra...`;
+    }
+
     if (!emailColIndex || !previewRows) return;
 
     const emailIdx = parseInt(emailColIndex);
@@ -14375,6 +14422,7 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows) {
     const currentEmails = new Set((this.state.attendance || []).map(a => (a.client_email || '').toLowerCase()));
 
     previewRows.forEach(row => {
+        // 'row' ahora es un array gracias al fix en el backend
         const email = (row[emailIdx] || '').toString().trim().toLowerCase();
         if (email && email.includes('@')) {
             if (currentEmails.has(email)) {
@@ -14389,7 +14437,7 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows) {
     document.getElementById('import-attendance-update-count').textContent = updateCount;
     document.getElementById('import-attendance-error-count').textContent = '0';
     
-    console.log(`[IMPORT STATS] New: ${newCount}, Update: ${updateCount}`);
+    console.log(`[IMPORT STATS] Total: ${totalFound}, Preview Sample - New: ${newCount}, Update: ${updateCount}`);
 },
 
 App.executeAttendanceImport = async function() {
