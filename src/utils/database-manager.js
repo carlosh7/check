@@ -83,6 +83,9 @@ function getEventConnection(eventId) {
         // Guardar en cache
         connectionCache.set(eventId, db);
         
+        // --- AUTO-REPARACIÓN (V12.44.335) ---
+        repairEventDatabase(db, eventId);
+        
         console.log('✓ Conexión a base de datos del evento:', eventId);
         return db;
     } catch (error) {
@@ -127,6 +130,9 @@ function createEventDatabase(eventId) {
         
         // Guardar en cache
         connectionCache.set(eventId, db);
+        
+        // --- AUTO-REPARACIÓN (V12.44.335) ---
+        repairEventDatabase(db, eventId);
         
         console.log('✓ Base de datos del evento creada:', eventId);
         return db;
