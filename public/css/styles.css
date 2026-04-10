@@ -2394,3 +2394,18 @@
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
 }
+
+/* Corrección para selects y options en modo oscuro (V12.44.304) */
+.dark select, 
+.dark select option,
+.premium-select,
+.premium-select option {
+    background-color: #1e293b !important; /* Slate-800 */
+    color: #f8fafc !important; /* Slate-50 */
+}
+
+/* Forzar que las opciones del navegador no usen el fondo blanco por defecto */
+select option {
+    background-color: #1e293b;
+    color: #f8fafc;
+}

@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.303';
+const VERSION = '12.44.304';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -14339,6 +14339,18 @@ App.processAttendanceImportFile = async function(file) {
 
                     // Habilitar botón si hay mapeo básico
                     document.getElementById('btn-confirm-import-attendance').disabled = false;
+
+                    // --- V12.44.304: Listeners para actualizar estadísticas en tiempo real ---
+                    const selectors = ['att-map-name', 'att-map-email', 'att-map-phone', 'att-map-org', 'att-map-position', 'att-map-dietary'];
+                    selectors.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.addEventListener('change', () => this.updateAttendanceImportStats(data.availableColumns, data.previewRows));
+                        }
+                    });
+
+                    // Carga inicial de estadísticas
+                    this.updateAttendanceImportStats(data.availableColumns, data.previewRows);
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error validando archivo' });
@@ -14349,6 +14361,35 @@ App.processAttendanceImportFile = async function(file) {
         }
     };
     reader.readAsDataURL(file);
+},
+
+App.updateAttendanceImportStats = function(availableColumns, previewRows) {
+    const emailColIndex = document.getElementById('att-map-email')?.value;
+    if (!emailColIndex || !previewRows) return;
+
+    const emailIdx = parseInt(emailColIndex);
+    let newCount = 0;
+    let updateCount = 0;
+    
+    // Obtener emails existentes en el dashboard actual para comparación rápida
+    const currentEmails = new Set((this.state.attendance || []).map(a => (a.client_email || '').toLowerCase()));
+
+    previewRows.forEach(row => {
+        const email = (row[emailIdx] || '').toString().trim().toLowerCase();
+        if (email && email.includes('@')) {
+            if (currentEmails.has(email)) {
+                updateCount++;
+            } else {
+                newCount++;
+            }
+        }
+    });
+
+    document.getElementById('import-attendance-new-count').textContent = newCount;
+    document.getElementById('import-attendance-update-count').textContent = updateCount;
+    document.getElementById('import-attendance-error-count').textContent = '0';
+    
+    console.log(`[IMPORT STATS] New: ${newCount}, Update: ${updateCount}`);
 },
 
 App.executeAttendanceImport = async function() {

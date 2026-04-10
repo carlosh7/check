@@ -444,8 +444,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 // ══════════════════════════════════════════════════════════════
 router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
-        const { type, data } = req.body;
-        console.log('[IMPORT EXECUTE] Processing:', data.groups?.length || 0, 'groups,', data.events?.length || 0, 'events,', data.users?.length || 0, 'users');
+        const { type } = req.body;
+        const data = req.body.data || {}; // Protección contra undefined
+        
+        console.log('[IMPORT EXECUTE] Type:', type, 'Processing:', data.groups?.length || 0, 'groups,', data.events?.length || 0, 'events,', data.users?.length || 0, 'users');
         
         let imported = 0;
         let updated = 0;
