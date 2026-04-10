@@ -786,6 +786,24 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             
             // Obtener la base de datos correcta (Global o Independiente)
             const targetDb = getEventConnection(eventId) || db;
+        
+        // --- Migración de Emergencia para Eventos Independientes (V12.44.305) ---
+        try {
+            const columns = targetDb.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
+            const requiredColumns = ['created_at', 'cargo', 'vegano', 'restricciones', 'validated', 'qr_token', 'organization', 'phone', 'position', 'dietary_notes'];
+            requiredColumns.forEach(col => {
+                if (!columns.includes(col)) {
+                    let def = "TEXT";
+                    if (col === 'vegano') def = "TEXT DEFAULT 'NO'";
+                    if (col === 'validated') def = "INTEGER DEFAULT 0";
+                    if (col === 'created_at') def = "TEXT DEFAULT CURRENT_TIMESTAMP";
+                    targetDb.exec(`ALTER TABLE guests ADD COLUMN ${col} ${def}`);
+                    console.log(`[MIGRATION-EVENT] Columna ${col} añadida a guests del evento ${eventId}`);
+                }
+            });
+        } catch (migErr) {
+            console.error('[MIGRATION-EVENT] Error migrando DB del evento:', migErr.message);
+        }
             
             for (const a of attendeesToProcess) {
                 if (!a.email) continue;
