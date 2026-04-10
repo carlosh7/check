@@ -430,11 +430,12 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 const existingEmails = new Set();
                 if (emailColIdx !== -1 && eventId) {
                     const targetDb = getEventConnection(eventId);
-                    if (!targetDb) throw new Error(`No se pudo conectar a la base de datos del evento ${eventId}. Detalle: ${global.lastDbError || 'Desconocido'}`);
-                    const guests = targetDb.prepare("SELECT email FROM guests WHERE event_id = ?").all(eventId);
-                    guests.forEach(g => {
-                        if (g.email) existingEmails.add(g.email.toLowerCase().trim());
-                    });
+                    if (targetDb) {
+                        const guests = targetDb.prepare("SELECT email FROM guests WHERE event_id = ?").all(eventId);
+                        guests.forEach(g => {
+                            if (g.email) existingEmails.add(g.email.toLowerCase().trim());
+                        });
+                    }
                 }
 
                 // Procesar todas las filas para estadísticas reales
@@ -843,7 +844,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             console.log(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
             
             // Obtener la base de datos correcta (Global o Independiente)
-            const targetDb = getEventConnection(eventId);
+            // Asegurar que la base de datos del evento exista (Get or Create)
+            const targetDb = createEventDatabase(eventId);
             if (!targetDb) throw new Error(`Error de persistencia en evento ${eventId}. Detalle: ${global.lastDbError || 'Desconocido'}`);
         
         // --- Migración de Emergencia para Eventos Independientes (V12.44.305) ---

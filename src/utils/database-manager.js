@@ -131,7 +131,9 @@ function createEventDatabase(eventId) {
         console.log('✓ Base de datos del evento creada:', eventId);
         return db;
     } catch (error) {
-        console.error('✗ Error al crear base de datos del evento:', eventId, error.message);
+        const errorMsg = `✗ Error al crear base de datos del evento ${eventId}: ${error.message}${error.code ? ' ('+error.code+')' : ''}`;
+        console.error(errorMsg);
+        global.lastDbError = errorMsg;
         return null;
     }
 }
