@@ -942,7 +942,11 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
         const targetDb = getEventConnection(eventId) || db;
         const attendance = targetDb.prepare(`
             SELECT 
-                g.id, g.name, g.email, g.phone, g.organization, 
+                g.id as client_id, 
+                g.name as client_name, 
+                g.email as client_email, 
+                g.phone as client_phone, 
+                g.organization, 
                 COALESCE(g.cargo, g.position) as cargo, 
                 g.vegano, 
                 COALESCE(g.restricciones, g.dietary_notes) as restricciones, 
