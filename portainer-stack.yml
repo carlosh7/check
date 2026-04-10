@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   check-app:
-    image: node:20-slim
+    build: .
+    image: check-app:v12.44.319
     container_name: check-app-stack
     working_dir: /usr/src/app
     ports:
