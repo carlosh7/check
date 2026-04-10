@@ -22,24 +22,21 @@ let dbPath = path.resolve(basePath, dbFile);
 let db;
 
 try {
+    // Prueba de escritura inmediata en el directorio de persistencia
+    const writeTestPath = path.resolve(basePath, '.write_test');
+    fs.writeFileSync(writeTestPath, 'ok');
+    fs.unlinkSync(writeTestPath);
+    
     db = new Database(dbPath);
-    console.log('✓ Base de Datos iniciada en:', dbPath);
+    console.log('✓ Base de Datos PERSISTENTE validada en:', dbPath);
+    
+    // Sello de seguridad para verificar persistencia en logs
+    db.pragma('user_version = 339');
 } catch (error) {
-    console.error('⚠️ ALERTA: Fallo de acceso a persistencia:', error.message);
-    console.error('🔄 ACTIVANDO MODO DE EMERGENCIA (Base de datos interna)');
-    
-    // Fallback absoluto: carpeta data del contenedor
-    const emergencyPath = path.resolve(__dirname, 'data');
-    if (!fs.existsSync(emergencyPath)) fs.mkdirSync(emergencyPath, { recursive: true });
-    
-    dbPath = path.resolve(emergencyPath, dbFile);
-    try {
-        db = new Database(dbPath);
-        console.log('✅ Modo Emergencia: Base de datos interna activa en:', dbPath);
-    } catch (criticalError) {
-        console.error('❌ ERROR FATAL: Ni siquiera el modo emergencia pudo iniciar.', criticalError.message);
-        process.exit(1);
-    }
+    console.error('❌ ERROR FATAL DE PERSISTENCIA:', error.message);
+    console.error('La aplicación se detendrá para evitar pérdida de datos en carpetas temporales.');
+    console.error('Ruta intentada:', dbPath);
+    process.exit(1);
 }
 
 // ═══ OPTIMIZACIONES DE RENDIMIENTO (Enterprise Grade) ═══
