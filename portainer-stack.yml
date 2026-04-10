@@ -2,15 +2,16 @@ version: '3.8'
 
 services:
   check-app:
-    build: .
-    image: check-app:latest
+    image: node:20-slim
     container_name: check-app-stack
     working_dir: /usr/src/app
     ports:
       - "3000:3000"
     volumes:
+      - .:/usr/src/app
       - /home/data_check:/usr/src/app/persistence
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
+    entrypoint: ["sh", "/usr/src/app/docker-entrypoint.sh"]
     restart: always
