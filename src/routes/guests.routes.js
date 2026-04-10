@@ -58,7 +58,18 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
     }
 
     const total = targetDb.prepare(`SELECT COUNT(*) as count FROM guests WHERE ${whereClause}`).get(...params).count;
-    const rows = targetDb.prepare(`SELECT * FROM guests WHERE ${whereClause} ORDER BY name ASC LIMIT ? OFFSET ?`).all(...params, limit, offset);
+    const rows = targetDb.prepare(`
+        SELECT 
+            *, 
+            id as client_id, 
+            name as client_name, 
+            email as client_email, 
+            phone as client_phone 
+        FROM guests 
+        WHERE ${whereClause} 
+        ORDER BY name ASC 
+        LIMIT ? OFFSET ?
+    `).all(...params, limit, offset);
 
     res.json({
         data: rows,
