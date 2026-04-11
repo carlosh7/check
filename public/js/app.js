@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.362';
+const VERSION = '12.44.363';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -6349,6 +6349,7 @@ const App = window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
+        console.log('[VIEW] showView llamado:', viewName);
         
         // PREVENIR ejecuciones múltiples
         if (this._showingView === viewName) {
@@ -6415,6 +6416,14 @@ const App = window.App = {
         if (viewToShow) {
             viewToShow.classList.remove('hidden');
             console.log(`[VIEW] Mostrando: ${viewToShow.id}`);
+            
+            // V12.44.363: Si es admin o event-config, cargar attendance
+            if ((viewName === 'admin' || viewName === 'event-config') && this.state.event && this.state.event.id) {
+                console.log('[VIEW] EVENT DETECTED - loading attendance for:', this.state.event.id);
+                if (typeof this.loadAttendance === 'function') {
+                    this.loadAttendance(this.state.event.id);
+                }
+            }
         } else {
             console.error('[VIEW] ERROR: No se pudo encontrar ninguna vista para mostrar!');
         }
