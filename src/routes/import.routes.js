@@ -959,9 +959,6 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             console.error('Error ejecutando importación:', e);
             res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });
         }
-    } catch(e) {
-        console.error('Error ejecutando importación:', e);
-        res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });
     }
 });
 
