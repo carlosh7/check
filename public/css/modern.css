@@ -206,16 +206,16 @@ body {
     width: 22px;
 }
 
-/* STICKY PANELS v12.44.371 */
+/* STICKY PANELS v12.44.372 */
 .sticky-panel {
     position: sticky;
-    top: -32px; /* Compensa el padding del contenedor padre si es necesario */
+    top: 0;
     z-index: 50;
     background: rgba(var(--bg-card-rgb), 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     margin: -32px -32px 24px -32px;
-    padding: 32px 32px 16px 32px;
+    padding: 24px 32px 16px 32px;
     border-bottom: 1px solid var(--border);
     transition: all 0.3s ease;
 }
@@ -228,7 +228,6 @@ html.dark .sticky-panel {
 /* Ajuste para que el scroll principal no tenga saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
-    padding-top: 32px;
 }
 
 /* Filter Selects - Unified styling for system sections */

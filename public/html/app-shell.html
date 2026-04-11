@@ -89,7 +89,7 @@
             <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
             <section id="view-my-events" class="hidden animate-fade-in" data-section="my-events">
                 <div class="max-w-7xl mx-auto">
-                    <!-- PANEL DE CONTROL PEGAJOSO (v12.44.371) -->
+                    <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
                     <div class="sticky-panel">
                         <!-- Fila 1: Botones de acción -->
                         <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -183,7 +183,7 @@
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="hidden animate-fade-in">
-                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.371) -->
+                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
                 <div class="sticky-panel">
                     <!-- Fila 1: Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -298,39 +298,42 @@
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
             <section id="view-event-config" class="hidden space-y-6 animate-fade-in">
-                <!-- Config Navigation - Mismo estilo que Sistema -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
-                        <span class="material-symbols-outlined text-base">person</span> Personal
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
-                        <span class="material-symbols-outlined text-base">mail</span> Mailing
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
-                        <span class="material-symbols-outlined text-base">schedule</span> Agenda
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
-                        <span class="material-symbols-outlined text-base">casino</span> Sorteos
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
-                        <span class="material-symbols-outlined text-base">how_to_reg</span> Pre-Reg
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
-                        <span class="material-symbols-outlined text-base">poll</span> Encuestas
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
-                        <span class="material-symbols-outlined text-base">settings</span> Ajustes
-                    </button>
-                </div>
+                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
+                <div class="sticky-panel">
+                    <!-- Config Navigation - Mismo estilo que Sistema -->
+                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
+                            <span class="material-symbols-outlined text-base">person</span> Personal
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchConfigTab('email')">
+                            <span class="material-symbols-outlined text-base">mail</span> Mailing
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="agenda" onclick="App.switchConfigTab('agenda')">
+                            <span class="material-symbols-outlined text-base">schedule</span> Agenda
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="wheel" onclick="App.switchConfigTab('wheel')">
+                            <span class="material-symbols-outlined text-base">casino</span> Sorteos
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="pre-registrations" onclick="App.switchConfigTab('pre-registrations')">
+                            <span class="material-symbols-outlined text-base">how_to_reg</span> Pre-Reg
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
+                            <span class="material-symbols-outlined text-base">poll</span> Encuestas
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
+                            <span class="material-symbols-outlined text-base">settings</span> Ajustes
+                        </button>
+                    </div>
 
-                <!-- Botones entre menú y header -->
-                <div class="flex flex-wrap items-center gap-2 mt-2">
-                    <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-base">person_add</span> +Staff
-                    </button>
-                    <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-base">edit</span> Edición
-                    </button>
+                    <!-- Botones de acción -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">person_add</span> +Staff
+                        </button>
+                        <button id="btn-config-staff-edit" onclick="App.openStaffCarouselFromConfig()" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">edit</span> Edición
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Event Header (después del menú) -->
@@ -896,28 +899,31 @@
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
             <section id="view-system" class="hidden space-y-6 animate-fade-in">
-                <div class="flex flex-wrap items-center gap-2">
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
-                        <span class="material-symbols-outlined text-base">business</span> Empresas
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="users" onclick="App.switchSystemTab('users')">
-                        <span class="material-symbols-outlined text-base">group</span> Equipo
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="clients" onclick="App.switchSystemTab('clients')">
-                        <span class="material-symbols-outlined text-base">contacts</span> Clientes
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchSystemTab('email')">
-                        <span class="material-symbols-outlined text-base">mail</span> Email
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="legal" onclick="App.switchSystemTab('legal')">
-                        <span class="material-symbols-outlined text-base">description</span> Legales
-                    </button>
-                    <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="account" onclick="App.switchSystemTab('account')">
-                        <span class="material-symbols-outlined text-base">person</span> Perfil
-                    </button>
-                    <button id="sys-nav-db" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
-                        <span class="material-symbols-outlined text-base">storage</span> DB
-                    </button>
+                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
+                <div class="sticky-panel">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
+                            <span class="material-symbols-outlined text-base">business</span> Empresas
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="users" onclick="App.switchSystemTab('users')">
+                            <span class="material-symbols-outlined text-base">group</span> Equipo
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="clients" onclick="App.switchSystemTab('clients')">
+                            <span class="material-symbols-outlined text-base">contacts</span> Clientes
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="email" onclick="App.switchSystemTab('email')">
+                            <span class="material-symbols-outlined text-base">mail</span> Email
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="legal" onclick="App.switchSystemTab('legal')">
+                            <span class="material-symbols-outlined text-base">description</span> Legales
+                        </button>
+                        <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="account" onclick="App.switchSystemTab('account')">
+                            <span class="material-symbols-outlined text-base">person</span> Perfil
+                        </button>
+                        <button id="sys-nav-db" class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
+                            <span class="material-symbols-outlined text-base">storage</span> DB
+                        </button>
+                    </div>
                 </div>
 
                 <!-- SECCIÓN: LEGALES -->
