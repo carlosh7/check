@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
-    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.343 (Fix duplicate getEventDb)
+    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.345 (Debug getEventDb)
     entrypoint: []
     command: >
       sh -c "

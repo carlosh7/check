@@ -12,13 +12,40 @@ const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
-// Función helper para obtener la BD correcta según el evento (V12.44.342)
+// Función helper para obtener la BD correcta según el evento (V12.44.345)
 function getEventDbForAttendance(eventId) {
-    const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
-    if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
-        const eventDb = getEventConnection(eventId);
-        if (eventDb) return eventDb;
+    console.log('[GET-EVENT-DB] ========== INICIO ==========');
+    console.log('[GET-EVENT-DB] eventId:', eventId);
+    
+    if (!eventId) {
+        console.log('[GET-EVENT-DB] eventId es null, retorno DB sistema');
+        return db;
     }
+    
+    // Consultar evento en DB sistema
+    const event = db.prepare("SELECT id, has_own_db, name FROM events WHERE id = ?").get(eventId);
+    console.log('[GET-EVENT-DB] Evento encontrado:', event);
+    
+    if (!event) {
+        console.log('[GET-EVENT-DB] Evento no encontrado en DB sistema, retorno DB sistema');
+        return db;
+    }
+    
+    console.log('[GET-EVENT-DB] has_own_db del evento:', event.has_own_db);
+    console.log('[GET-EVENT-DB] eventDatabaseExists(eventId):', eventDatabaseExists(eventId));
+    
+    if (event.has_own_db === 1 && eventDatabaseExists(eventId)) {
+        const eventDb = getEventConnection(eventId);
+        console.log('[GET-EVENT-DB] Conexión a DB evento exitosa:', eventDb ? 'SI' : 'NO');
+        if (eventDb) {
+            console.log('[GET-EVENT-DB] >>> RETORNANDO DB DEL EVENTO <<<');
+            return eventDb;
+        }
+    } else {
+        console.log('[GET-EVENT-DB] Condiciones NO cumplidas: has_own_db=' + event.has_own_db + ', exists=' + eventDatabaseExists(eventId));
+    }
+    
+    console.log('[GET-EVENT-DB] >>> RETORNANDO DB SISTEMA <<<');
     return db;
 }
 
