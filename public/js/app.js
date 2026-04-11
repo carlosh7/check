@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.360';
+const VERSION = '12.44.361';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -13434,6 +13434,14 @@ window.switchAdminTab = function(tabName) {
         const activeBtn = document.querySelector('#view-admin [data-tab="' + tabName + '"]');
         if (activeBtn) activeBtn.classList.add('bg-primary', 'text-white', 'shadow-xl', 'active');
     }
+    
+    // V12.44.361: FORZAR CARGAR ATTENDANCE cuando se muestra cualquier tab del evento
+    if (this.state.event && this.state.event.id) {
+        console.log('[TAB-CHANGE] Forzando carga de attendance para evento:', this.state.event.id);
+        if (typeof this.loadAttendance === 'function') {
+            this.loadAttendance(this.state.event.id);
+        }
+    }
 };
 
 // --- DOM READY BOOTSTRAP V12.3.2.2 ---
@@ -13919,14 +13927,18 @@ App.loadAttendance = async function(eventId) {
     }
     if (!eventId) return;
     
+    console.log('[FRONTEND] loadAttendance llamado, eventId:', eventId);
+    
     try {
         const res = await this.fetchAPI(`/events/${eventId}/attendance`);
+        console.log('[FRONTEND] Respuesta attendance:', res);
         this.state.attendance = Array.isArray(res) ? res : (res.data || []);
+        console.log('[FRONTEND] state.attendance:', this.state.attendance.length);
         this._attendanceLoaded = true;
         this.populateAttendanceFilters();
         this.filterAttendance();
     } catch(e) {
-        console.error('[ATTENDANCE] Error cargando:', e.message);
+        console.error('[FRONTEND ATTENDANCE] Error cargando:', e.message);
         this.state.attendance = [];
     }
 },
