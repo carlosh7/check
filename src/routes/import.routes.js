@@ -928,11 +928,19 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                     );
                     imported++;
                 }
+}
             }
-        }
 
-        console.log('[IMPORT] Final Result - imported:', imported, 'updated:', updated, 'duplicates:', duplicates);
-        res.json({ success: true, imported, updated, duplicates, total: imported + updated });
+            // FORZAR ESCRITURA A DISCO (V12.44.350)
+            if (targetDb) {
+                targetDb.prepare("PRAGMA wal_checkpoint(FULL)").get();
+                console.log('[IMPORT] Datos sincronizados a disco');
+            }
+
+        } catch (e) {
+            console.error('Error ejecutando importación:', e);
+            res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });
+        }
     } catch(e) {
         console.error('Error ejecutando importación:', e);
         res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });
