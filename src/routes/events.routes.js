@@ -4,13 +4,23 @@
 
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { db, createEventDatabase, deleteEventDatabase } = require('../../database');
+const { db, createEventDatabase, deleteEventDatabase, getEventConnection, eventDatabaseExists } = require('../../database');
 const { getValidId, castId, getProducerGroups, hasEventAccess } = require('../utils/helpers');
 const { authMiddleware } = require('../middleware/auth');
 const { schemas, validate } = require('../security/validation');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+
+// Función helper para obtener la BD correcta según el evento (V12.44.342)
+function getEventDb(eventId) {
+    const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
+    if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
+        const eventDb = getEventConnection(eventId);
+        if (eventDb) return eventDb;
+    }
+    return db;
+}
 
 const router = express.Router();
 
@@ -939,7 +949,12 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
-        const targetDb = getEventConnection(eventId) || db;
+        // V12.44.342: Usar getEventDb para consistency con guests.routes
+        const targetDb = getEventDb(eventId);
+        
+        console.log('[ATTENDANCE DEBUG] eventId:', eventId);
+        console.log('[ATTENDANCE DEBUG] targetDb es DB sistema?:', targetDb === db);
+        
         const attendance = targetDb.prepare(`
             SELECT 
                 g.id as client_id, 
@@ -971,7 +986,7 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
     if (!eventId || !name) return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
     
     try {
-        const targetDb = getEventConnection(eventId) || db;
+        const targetDb = getEventDb(eventId);
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -1007,7 +1022,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
-        const targetDb = getEventConnection(eventId) || db;
+        const targetDb = getEventDb(eventId);
         const now = new Date().toISOString();
         
         targetDb.prepare(`
@@ -1041,7 +1056,7 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
     if (!eventId || !attendanceId) return res.status(400).json({ error: 'IDs requeridos' });
     
     try {
-        const targetDb = getEventConnection(eventId) || db;
+        const targetDb = getEventDb(eventId);
         targetDb.prepare('DELETE FROM guests WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
         res.json({ success: true });
     } catch (e) {
