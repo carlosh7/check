@@ -46,7 +46,48 @@ C:\Users\carlo\OneDrive\Documentos\APP\Registro
 
 ## Docker (Entorno de Producción/Pruebas)
 
-El proyecto usa Docker con docker-compose. Ubicación del contenedor: `C:\Users\carlo\check`
+El proyecto usa Docker con dos modalidades:
+1. **docker-compose.yml** - Entorno local de desarrollo
+2. **portainer-stack.yml** - Despliegue en Portainer (producción)
+
+### Estructura de Persistencia de Datos
+
+**IMPORTANTE:** Todas las bases de datos se almacenan en `/home/data_check` (host) que se mapea a `/usr/src/app/persistence` (contenedor).
+
+```
+/home/data_check/
+├── system/          # Base de datos del sistema (usuarios, eventos, grupos, clientes, etc.)
+├── events/         # Bases de datos independientes por evento
+│   ├── {eventId1}.db   # DB del evento 1 (guests, pre_registrations, surveys, wheels, etc.)
+│   └── {eventId2}.db   # DB del evento 2
+└── uploads/        # Archivos subidos (logos, imágenes, etc.)
+```
+
+**Cada evento tiene su propia base de datos independiente** con las siguientes tablas:
+- `guests` - Asistentes/importados
+- `pre_registrations` - Registros desde la página pública
+- `event_wheels` / `wheel_participants` / `wheel_spins` / `wheel_leads` - Ruletas de sorteos
+- `surveys` / `survey_responses` - Encuestas
+- `event_agenda` - Agenda del evento
+- `guest_suggestions` - Sugerencias de invitados
+
+### Portainer (Producción)
+
+El archivo `portainer-stack.yml` es el que se copia al stack de Portainer.
+
+**Características del stack:**
+- Crea automáticamente las carpetas `/system`, `/events`, `/uploads` al iniciar
+- Descarga el código desde GitHub y sincroniza con rsync (protegiendo datos persistidos)
+- Monta `/home/data_check` del host a `/usr/src/app/persistence` del contenedor
+
+**Para actualizar en Portainer:**
+1. Copiar el nuevo contenido de `portainer-stack.yml` al stack
+2. Portainer recreará el contenedor automáticamente
+3. Los datos persistentes se mantienen en `/home/data_check`
+
+### docker-compose.yml (Desarrollo Local)
+
+Ubicación del contenedor: `C:\Users\carlo\check`
 No escribas en el Clon
 ### Comandos Docker:
 
@@ -64,13 +105,11 @@ docker-compose logs -f
 docker-compose ps
 ```
 
-### Flujo de Actualización Completo:
+### Flujo de Actualización Completo (docker-compose local):
 ```bash
 cd C:\Users\carlo\check
 
 # Hacer pull de últimos cambios
-# git pull origin main
-
 git pull origin --tags
 
 # Rebuild del contenedor
@@ -111,7 +150,7 @@ Al completar cualquier cambio de código:
 - **REPOSITORIO ORIGINAL:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro` (aquí se hacen los cambios)
 - **CONTENEDOR DE PRUEBAS:** `C:\Users\carlo\check` (git clone solo para validación) No escribas en el contenedor 
 
-### Pasos obligatorios después de CADA tarea:
+### Pasos obligatorios después de CADA tarea (Modo Puerto/Local):
 
 ```bash
 # 1. DESDE REPOSITORIO ORIGINAL (C:\Users\carlo\OneDrive\Documentos\APP\Registro)
@@ -143,6 +182,24 @@ curl -s http://localhost:3000/api/health
 #    - Proporcionar URL para pruebas: http://localhost:3000
 ```
 
+### Modo Portainer (Producción):
+```bash
+# 1. DESDE REPOSITORIO ORIGINAL
+#    - Hacer cambios en el código
+#    - Incrementar versión en package.json si es cambio significativo
+git add . && git commit -m "mensaje descriptivo" && git push origin main
+
+# 2. CREAR TAG si fue version bump
+git tag v${VERSION} HEAD && git push origin v${VERSION}
+
+# 3. ACTUALIZAR STACK EN PORTAINER
+#    - Copiar el contenido de portainer-stack.yml al stack de Portainer
+#    - Portainer recreará el contenedor automáticamente
+
+# 4. VALIDAR que el contenedor está funcionando
+curl -s http://localhost:3000/api/health
+```
+
 **CRÍTICO:** El contenedor de pruebas (`C:\Users\carlo\check`) es solo para validación. Todos los cambios se hacen en el repositorio original. 
 Si el sistema del Agente devuelve error de "fuera de workspace" al intentar operar en `C:\Users\carlo\check`, **DEBE** usar el parámetro `-C` desde el repositorio original:
 - Ejemplo: `git -C C:\Users\carlo\check pull origin main`
@@ -171,6 +228,7 @@ La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 | `package.json` | `"version": "X.Y.Z"` | `"version": "12.16.8"` |
 | `app-shell.html` | `?v=X.Y.Z` | `?v=12.16.8` |
 | `index.html` | `?v=X.Y.Z` | `?v=12.16.8` |
+| `portainer-stack.yml` | `v12.X.X` en comentario | `v12.44.341` |
 | `script_v12_16_2.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
 
 **SIN este version bump, el navegador usa caché y NO ve los cambios.**
