@@ -934,6 +934,12 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
             // FORZAR ESCRITURA A DISCO (V12.44.350)
             if (targetDb) {
                 targetDb.prepare("PRAGMA wal_checkpoint(FULL)").get();
+                
+                // VERIFICAR QUE EL ARCHIVO EXISTE Y TIENE DATOS
+                const dbPath = targetDb.name;
+                const fs = require('fs');
+                const stats = fs.statSync(dbPath);
+                console.log('[IMPORT] DB tamaño después de importar:', stats.size, 'bytes');
                 console.log('[IMPORT] Datos sincronizados a disco');
             }
 
