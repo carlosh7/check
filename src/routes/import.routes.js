@@ -595,16 +595,20 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 
                 if (existing) {
                     console.log('[IMPORT] Updating event:', existing.name);
-                    db.prepare("UPDATE events SET location = ?, description = ?, group_id = ? WHERE id = ?")
+                    db.prepare("UPDATE events SET location = ?, description = ?, group_id = ?, has_own_db = 1 WHERE id = ?")
                         .run(e.location, e.description, resolvedGroupId || null, existing.id);
+                    // Crear DB del evento si no existe
+                    createEventDatabase(existing.id);
                     updated++;
                     // Registrar en mapa
                     createdEventsMap[e.name.toLowerCase()] = existing.id;
                 } else {
                     console.log('[IMPORT] Creating new event:', e.name);
                     const newId = getValidId('events');
-                    db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)")
+                    db.prepare("INSERT INTO events (id, user_id, name, date, location, description, group_id, status, created_at, has_own_db) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, 1)")
                         .run(newId, req.userId, e.name, e.date, e.location, e.description, resolvedGroupId || null, new Date().toISOString());
+                    // Crear DB del evento
+                    createEventDatabase(newId);
                     imported++;
                     // Registrar en mapa
                     createdEventsMap[e.name.toLowerCase()] = newId;
