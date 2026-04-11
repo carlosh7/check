@@ -228,7 +228,7 @@ La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 | `package.json` | `"version": "X.Y.Z"` | `"version": "12.16.8"` |
 | `app-shell.html` | `?v=X.Y.Z` | `?v=12.16.8` |
 | `index.html` | `?v=X.Y.Z` | `?v=12.16.8` |
-| `portainer-stack.yml` | `v12.X.X` en comentario | `v12.44.341` |
+| `portainer-stack.yml` | Mensaje de inicio echo | `echo '🛡️ [INIT] Iniciando Check Pro v12.16.8...'` |
 | `script_v12_16_2.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
 
 **SIN este version bump, el navegador usa caché y NO ve los cambios.**
