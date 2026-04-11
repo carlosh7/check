@@ -3,8 +3,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const BACKUP_DIR = path.resolve(__dirname, '../data/backups');
-const DB_PATH = path.resolve(__dirname, '../data/check_app.db');
+const DB_PATH = process.env.DATA_PATH 
+    ? path.join(process.env.DATA_PATH, 'system', 'database.db')
+    : '/usr/src/app/persistence/system/database.db';
+
+const BACKUP_DIR = process.env.DATA_PATH
+    ? path.join(process.env.DATA_PATH, 'system', 'backups')
+    : '/usr/src/app/persistence/system/backups';
 
 // Asegurar que el directorio de backups existe
 if (!fs.existsSync(BACKUP_DIR)) {
