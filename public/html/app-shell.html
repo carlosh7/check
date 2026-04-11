@@ -936,45 +936,47 @@
 
                 <!-- SECCIÓN: EMPRESAS -->
                 <div id="sys-content-groups" class="hidden space-y-4">
-                    <!-- Fila 1: Botones de acción -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex gap-2">
-                            <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
-                                <span class="material-symbols-outlined text-base">add_business</span> + Empresa
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openGroupEditCarousel()">
-                                <span class="material-symbols-outlined text-base">edit</span> Edición
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('groups')">
-                                <span class="material-symbols-outlined text-base">upload</span> Importar
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('groups')">
-                                <span class="material-symbols-outlined text-base">download</span> Exportar
-                            </button>
+                    <div class="sticky-header-container">
+                        <!-- Fila 1: Botones de acción -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex gap-2">
+                                <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateGroup()">
+                                    <span class="material-symbols-outlined text-base">add_business</span> + Empresa
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openGroupEditCarousel()">
+                                    <span class="material-symbols-outlined text-base">edit</span> Edición
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('groups')">
+                                    <span class="material-symbols-outlined text-base">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('groups')">
+                                    <span class="material-symbols-outlined text-base">download</span> Exportar
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Fila 2: Filtros -->
-                    <div class="flex gap-2 flex-wrap items-center">
-                        <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select filter-select-cliente">
-                            <option value="">Clientes</option>
-                        </select>
-                        <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-staff">
-                            <option value="">Staff</option>
-                        </select>
-                        <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
-                            <option value="">Eventos</option>
-                        </select>
-                    </div>
-                    <!-- Fila 2: Buscador -->
-                    <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                        <input id="group-search" type="text" placeholder="Buscar por nombre, email, cliente, staff, evento..."
-                               style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
-                               oninput="App.filterGroups(); App.showGroupSuggestions()" onfocus="App.showGroupSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                        <span id="group-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('group')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; App.filterGroups(); App.hideGroupSuggestions();">close</span>
-                        <!-- Dropdown de sugerencias -->
-                        <div id="group-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                        <!-- Fila 2: Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center mt-4">
+                            <select id="filter-group-client" onchange="App.filterGroups()" class="filter-select filter-select-cliente">
+                                <option value="">Clientes</option>
+                            </select>
+                            <select id="filter-group-user" onchange="App.filterGroups()" class="filter-select filter-select-staff">
+                                <option value="">Staff</option>
+                            </select>
+                            <select id="filter-group-event" onchange="App.filterGroups()" class="filter-select filter-select-evento">
+                                <option value="">Eventos</option>
+                            </select>
+                        </div>
+                        <!-- Fila 3: Buscador -->
+                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
+                            <input id="group-search" type="text" placeholder="Buscar por nombre, email, cliente, staff, evento..."
+                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                                   oninput="App.filterGroups(); App.showGroupSuggestions()" onfocus="App.showGroupSuggestions()" autocomplete="off">
+                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                            <span id="group-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('group')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; App.filterGroups(); App.hideGroupSuggestions();">close</span>
+                            <!-- Dropdown de sugerencias -->
+                            <div id="group-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                        </div>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -1118,53 +1120,55 @@
 
                 <!-- SECCIÓN: EQUIPO -->
                 <div id="sys-content-users" class="hidden space-y-4">
-                    <!-- Fila 1: Botones de acción -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex gap-2">
-                            <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateUser()">
-                                <span class="material-symbols-outlined text-base">person_add</span> + Staff
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openUserEditCarousel()">
-                                <span class="material-symbols-outlined text-base">edit</span> Edición
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('staff')">
-                                <span class="material-symbols-outlined text-base">upload</span> Importar
-                            </button>
-                            <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('staff')">
-                                <span class="material-symbols-outlined text-base">download</span> Exportar
-                            </button>
+                    <div class="sticky-header-container">
+                        <!-- Fila 1: Botones de acción -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex gap-2">
+                                <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateUser()">
+                                    <span class="material-symbols-outlined text-base">person_add</span> + Staff
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openUserEditCarousel()">
+                                    <span class="material-symbols-outlined text-base">edit</span> Edición
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('staff')">
+                                    <span class="material-symbols-outlined text-base">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openExportModal('staff')">
+                                    <span class="material-symbols-outlined text-base">download</span> Exportar
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Fila 2: Filtros -->
-                    <div class="flex gap-2 flex-wrap items-center">
-                        <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select filter-select-empresa">
-                            <option value="">Empresa</option>
-                        </select>
-                        <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select filter-select-cliente">
-                            <option value="">Clientes</option>
-                        </select>
-                        <select id="filter-user-event" onchange="App.filterUsers()" class="filter-select filter-select-evento">
-                            <option value="">Eventos</option>
-                        </select>
-                        <select id="filter-user-role" onchange="App.filterUsers()" class="filter-select">
-                            <option value="">Rol</option>
-                            <option value="ADMIN">ADMIN</option>
-                            <option value="PRODUCTOR">PRODUCTOR</option>
-                            <option value="LOGISTICO">LOGÍSTICO</option>
-                            <option value="STAFF">STAFF</option>
-                            <option value="CLIENTE">CLIENTE</option>
-                        </select>
-                    </div>
-                    <!-- Fila 2: Buscador -->
-                    <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                        <input id="user-search" type="text" placeholder="Buscar por nombre, email, empresa, cliente, evento, rol..."
-                               style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
-                               oninput="App.filterUsers(); App.showUserSuggestions()" onfocus="App.showUserSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                        <span id="user-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('user')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-user-group').value=''; document.getElementById('filter-user-client').value=''; document.getElementById('filter-user-event').value=''; document.getElementById('filter-user-role').value=''; document.getElementById('filter-user-status').value=''; App.filterUsers(); App.hideUserSuggestions();">close</span>
-                        <!-- Dropdown de sugerencias -->
-                        <div id="user-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                        <!-- Fila 2: Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center mt-4">
+                            <select id="filter-user-group" onchange="App.filterUsers()" class="filter-select filter-select-empresa">
+                                <option value="">Empresa</option>
+                            </select>
+                            <select id="filter-user-client" onchange="App.filterUsers()" class="filter-select filter-select-cliente">
+                                <option value="">Clientes</option>
+                            </select>
+                            <select id="filter-user-event" onchange="App.filterUsers()" class="filter-select filter-select-evento">
+                                <option value="">Eventos</option>
+                            </select>
+                            <select id="filter-user-role" onchange="App.filterUsers()" class="filter-select">
+                                <option value="">Rol</option>
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="PRODUCTOR">PRODUCTOR</option>
+                                <option value="LOGISTICO">LOGÍSTICO</option>
+                                <option value="STAFF">STAFF</option>
+                                <option value="CLIENTE">CLIENTE</option>
+                            </select>
+                        </div>
+                        <!-- Fila 3: Buscador -->
+                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
+                            <input id="user-search" type="text" placeholder="Buscar por nombre, email, empresa, cliente, evento, rol..."
+                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                                   oninput="App.filterUsers(); App.showUserSuggestions()" onfocus="App.showUserSuggestions()" autocomplete="off">
+                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                            <span id="user-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('user')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-user-group').value=''; document.getElementById('filter-user-client').value=''; document.getElementById('filter-user-event').value=''; document.getElementById('filter-user-role').value=''; document.getElementById('filter-user-status').value=''; App.filterUsers(); App.hideUserSuggestions();">close</span>
+                            <!-- Dropdown de sugerencias -->
+                            <div id="user-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                        </div>
                     </div>
 
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -1212,27 +1216,50 @@
                     <div class="flex gap-2 flex-wrap items-center">
                         <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
                             <option value="">Empresa</option>
-                        </select>
-                        <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-staff">
-                            <option value="">Staff</option>
-                        </select>
-                        <select id="filter-client-event" onchange="App.filterClients()" class="filter-select filter-select-evento">
-                            <option value="">Evento</option>
-                        </select>
-                    </div>
-                    <!-- Fila 2: Buscador -->
-                    <div class="mt-6 mb-6" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                        <input id="client-search" type="text" placeholder="Buscar por nombre, email, empresa, staff, evento..."
-                               style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
-                               oninput="App.filterClients(); App.showClientSuggestions()" onfocus="App.showClientSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                        <span id="client-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('client')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('client-search').value=''; document.getElementById('filter-client-company').value=''; document.getElementById('filter-client-staff').value=''; document.getElementById('filter-client-event').value=''; document.getElementById('filter-client-status').value=''; App.filterClients(); App.hideClientSuggestions();">close</span>
-                        <!-- Dropdown de sugerencias -->
-                        <div id="client-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                    <div class="sticky-header-container">
+                        <!-- Fila 1: Botones de acción -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex gap-2">
+                                <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.navigateToCreateClient()">
+                                    <span class="material-symbols-outlined text-base">person_add</span> + Cliente
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openClientEditCarousel()">
+                                    <span class="material-symbols-outlined text-base">edit</span> Edición
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.openImportModal('clients')">
+                                    <span class="material-symbols-outlined text-base">upload</span> Importar
+                                </button>
+                                <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportClients()">
+                                    <span class="material-symbols-outlined text-base">download</span> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Fila 2: Filtros -->
+                        <div class="flex gap-2 flex-wrap items-center mt-4">
+                            <select id="filter-client-company" onchange="App.filterClients()" class="filter-select filter-select-empresa">
+                                <option value="">Empresa</option>
+                            </select>
+                            <select id="filter-client-staff" onchange="App.filterClients()" class="filter-select filter-select-staff">
+                                <option value="">Staff</option>
+                            </select>
+                            <select id="filter-client-event" onchange="App.filterClients()" class="filter-select filter-select-evento">
+                                <option value="">Evento</option>
+                            </select>
+                        </div>
+                        <!-- Fila 3: Buscador -->
+                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
+                            <input id="client-search" type="text" placeholder="Buscar por nombre, email, empresa, staff, evento..."
+                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                                   oninput="App.filterClients(); App.showClientSuggestions()" onfocus="App.showClientSuggestions()" autocomplete="off">
+                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
+                            <span id="client-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('client')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('client-search').value=''; document.getElementById('filter-client-company').value=''; document.getElementById('filter-client-staff').value=''; document.getElementById('filter-client-event').value=''; document.getElementById('filter-client-status').value=''; App.filterClients(); App.hideClientSuggestions();">close</span>
+                            <!-- Dropdown de sugerencias -->
+                            <div id="client-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                        </div>
                     </div>
 
-                    <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                    <div class="card !p-0 border-white/5 bg-white/[0.01]">
                         <div class="overflow-x-auto">
                             <table class="data-table">
                                 <thead>
