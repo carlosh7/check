@@ -926,38 +926,15 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                         a.restricciones || (a.dietary_notes || null), a.restricciones || (a.dietary_notes || null),
                         vNorm, qrToken, new Date().toISOString()
                     );
-                    imported++;
+imported++;
                 }
-}
             }
-
-            // FORZAR ESCRITURA A DISCO (V12.44.351)
-            if (targetDb) {
-                // PRAGMA para forzar checkpoint COMPLETO
-                targetDb.pragma('wal_checkpoint(TRUNCATE)');
-                
-                // Verificar tamaño después del checkpoint
-                const fs = require('fs');
-                const dbPath = targetDb.name;
-                const stats = fs.statSync(dbPath);
-                const walFile = dbPath + '-wal';
-                let walSize = 0;
-                if (fs.existsSync(walFile)) {
-                    walSize = fs.statSync(walFile).size;
-                }
-                console.log('[IMPORT] DB principal:', stats.size, 'bytes, WAL:', walSize, 'bytes');
-                
-                if (walSize > 1000) {
-                    console.log('[IMPORT] ADVERTENCIA: WAL aún grande, forzando checkpoint...');
-                    targetDb.pragma('wal_checkpoint(TRUNCATE)');
-                }
-                
-                console.log('[IMPORT] Datos forzados a disco');
-            }
-        } catch (e) {
-            console.error('Error ejecutando importación:', e);
-            res.status(500).json({ success: false, message: 'Error en importación: ' + e.message });
         }
+
+        res.json({ success: true, imported, updated, duplicates, total: imported + updated });
+    } catch(e) {
+        console.error('Error ejecutando importacion:', e);
+        res.status(500).json({ success: false, message: 'Error en importacion: ' + e.message });
     }
 });
 
