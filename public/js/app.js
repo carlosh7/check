@@ -14097,11 +14097,10 @@ App.renderAttendanceTable = function(attendance) {
                 </span>
             </td>
             <td class="!py-3 !px-3 text-center">
-                <button onclick="App.toggleValidateAttendance('${a.client_id}')" 
+                <div onclick="App.toggleValidateAttendance('${a.client_id}')" 
                     title="${a.validated ? 'Marcar como ausente' : 'Marcar como presente'}"
-                    class="w-12 h-6 rounded-full flex items-center p-1 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${a.validated ? 'bg-emerald-500 justify-end' : 'bg-slate-700 justify-start'}">
-                    <span class="w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300"></span>
-                </button>
+                    class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
+                </div>
             </td>
         </tr>`;
     }).join('');
