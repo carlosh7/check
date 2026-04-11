@@ -406,12 +406,16 @@ html.dark .status-error { background: rgba(239, 68, 68, 0.15); color: #f87171; }
     border: 1px solid transparent;
 }
 
-/* Tablas premium */
+/* Tablas premium con Glassmorphism adaptable */
 .data-table {
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    background: transparent;
+    background: rgba(15, 23, 42, 0.4) !important; /* Gris/Negro sutil */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .data-table thead th {
@@ -1202,7 +1206,11 @@ html:not(.dark) #view-system .btn-secondary:hover .material-symbols-outlined {
 }
 
 /* ===== TEMAS: TABLAS DE DATOS ===== */
-/* Light theme: table headers */
+/* Light theme: table base and headers */
+html:not(.dark) .data-table {
+    background: rgba(241, 245, 249, 0.7) !important;
+}
+
 html:not(.dark) .data-table thead th {
     background: rgba(241, 245, 249, 0.8) !important;
     color: #475569 !important;
