@@ -941,7 +941,6 @@ router.get('/:id/database', authMiddleware(), async (req, res) => {
 // ═════════════════════════════════════════════════════════════
 // GESTIÓN DE ASISTENCIA (DASHBOARD UNIFICADO V12.44.299)
 // ═════════════════════════════════════════════════════════════
-const { getEventConnection } = require('../utils/database-manager');
 
 // GET /api/events/:id/attendance - Obtener lista de asistencia (vía tabla guests)
 router.get('/:id/attendance', authMiddleware(), async (req, res) => {
