@@ -15,19 +15,20 @@ services:
     entrypoint: []
     command: >
       sh -c "
-      echo '🛡️ [INIT] Iniciando Check Pro v12.44.341...' &&
+      echo '🛡️ [INIT] Iniciando Check Pro v12.44.346...' &&
       apt-get update && apt-get install -y git rsync &&
       echo '📂 [DIRS] Creando estructura de datos...' &&
       mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
       chmod -R 777 /usr/src/app/persistence &&
       echo '✓ Directorios creados: /system, /events, /uploads' &&
       rm -rf /tmp/app_new &&
-      git clone https://github.com/carlosh7/check.git /tmp/app_new &&
+      git clone --depth 1 https://github.com/carlosh7/check.git /tmp/app_new &&
       echo '📂 [SYNC] Sincronizando código con rsync (protegiendo datos)...' &&
-      rsync -av --exclude=persistence --exclude=data --exclude=databases --exclude=uploads --exclude=.git /tmp/app_new/. /usr/src/app/ &&
+      rsync -av --delete --exclude=persistence --exclude=data --exclude=databases --exclude=uploads --exclude=.git --exclude=node_modules /tmp/app_new/. /usr/src/app/ &&
       rm -rf /tmp/app_new &&
       cd /usr/src/app &&
-      npm install --omit=dev &&
+      rm -rf node_modules/.cache &&
+      npm install --omit=dev --prefer-offline &&
       echo '🚀 [START] Arrancando servidor...' &&
       npm start"
     restart: always
