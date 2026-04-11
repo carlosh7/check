@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
-    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.345 (Debug getEventDb)
+    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.346 (Debug guests.routes)
     entrypoint: []
     command: >
       sh -c "

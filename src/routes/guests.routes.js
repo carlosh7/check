@@ -18,11 +18,31 @@ let tempImport = {};
 
 // Función helper para obtener la BD correcta según el evento
 function getEventDb(eventId) {
-    const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
-    if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
+    console.log('[GET-EVENT-DB guests] ========== INICIO ==========');
+    console.log('[GET-EVENT-DB guests] eventId:', eventId);
+    
+    if (!eventId) {
+        console.log('[GET-EVENT-DB guests] eventId es null, retorno DB sistema');
+        return db;
+    }
+    
+    const event = db.prepare("SELECT id, has_own_db, name FROM events WHERE id = ?").get(eventId);
+    console.log('[GET-EVENT-DB guests] Evento encontrado:', event);
+    
+    if (!event) {
+        console.log('[GET-EVENT-DB guests] Evento no encontrado, retorno DB sistema');
+        return db;
+    }
+    
+    console.log('[GET-EVENT-DB guests] has_own_db:', event.has_own_db, 'exists:', eventDatabaseExists(eventId));
+    
+    if (event.has_own_db === 1 && eventDatabaseExists(eventId)) {
         const eventDb = getEventConnection(eventId);
+        console.log('[GET-EVENT-DB guests] retorneando DB EVENTO:', eventDb ? 'SI' : 'NO');
         if (eventDb) return eventDb;
     }
+    
+    console.log('[GET-EVENT-DB guests] retorno DB sistema');
     return db;
 }
 
@@ -87,6 +107,8 @@ router.get('/:eventId', authMiddleware(), (req, res) => {
 
 // Importar confirmados
 router.post('/import-confirm', authMiddleware(), async (req, res) => {
+    console.log('[IMPORT-CONFIRM] ========== INICIO IMPORT ==========');
+    
     const session = tempImport[req.userId];
     if (!session || !require('fs').existsSync(session.filePath)) {
         return res.status(400).json({ error: 'Sesión expirada' });
@@ -97,7 +119,10 @@ router.post('/import-confirm', authMiddleware(), async (req, res) => {
     const ExcelJS = require('exceljs');
     
     const { mapping, event_id } = req.body;
+    console.log('[IMPORT-CONFIRM] event_id:', event_id);
+    
     const eId = castId('events', event_id);
+    console.log('[IMPORT-CONFIRM] eId:', eId);
     const guests = [];
     
     // Usar BD del evento si existe
