@@ -13,7 +13,7 @@ const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 
 // Función helper para obtener la BD correcta según el evento (V12.44.342)
-function getEventDb(eventId) {
+function getEventDbForAttendance(eventId) {
     const event = db.prepare("SELECT has_own_db FROM events WHERE id = ?").get(eventId);
     if (event && event.has_own_db === 1 && eventDatabaseExists(eventId)) {
         const eventDb = getEventConnection(eventId);
@@ -949,8 +949,8 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
-        // V12.44.342: Usar getEventDb para consistency con guests.routes
-        const targetDb = getEventDb(eventId);
+        // V12.44.342: Usar getEventDbForAttendance para consistency con guests.routes
+        const targetDb = getEventDbForAttendance(eventId);
         
         console.log('[ATTENDANCE DEBUG] eventId:', eventId);
         console.log('[ATTENDANCE DEBUG] targetDb es DB sistema?:', targetDb === db);
@@ -986,7 +986,7 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
     if (!eventId || !name) return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
     
     try {
-        const targetDb = getEventDb(eventId);
+        const targetDb = getEventDbForAttendance(eventId);
         const { v4: uuidv4 } = require('uuid');
         const id = uuidv4();
         const now = new Date().toISOString();
@@ -1022,7 +1022,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
     try {
-        const targetDb = getEventDb(eventId);
+        const targetDb = getEventDbForAttendance(eventId);
         const now = new Date().toISOString();
         
         targetDb.prepare(`
@@ -1056,7 +1056,7 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
     if (!eventId || !attendanceId) return res.status(400).json({ error: 'IDs requeridos' });
     
     try {
-        const targetDb = getEventDb(eventId);
+        const targetDb = getEventDbForAttendance(eventId);
         targetDb.prepare('DELETE FROM guests WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
         res.json({ success: true });
     } catch (e) {
