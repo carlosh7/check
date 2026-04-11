@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.374",
+  "version": "12.44.375",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.373 - Full Sticky Headers Sync",
   "main": "script.js",
   "scripts": {
