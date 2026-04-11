@@ -233,6 +233,19 @@ body {
 /* Ajuste de scroll para evitar saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
+    overflow-x: hidden; /* Evitar scroll horizontal si no es necesario */
+}
+
+/* Modificación de Card para permitir Sticky */
+.card {
+    background: rgba(var(--bg-card-rgb), 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    position: relative;
+    /* overflow: hidden;  <-- ELIMINADO PARA PERMITIR STICKY */
 }
 
 /* Filter Selects - Unified styling for system sections */
