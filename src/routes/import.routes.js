@@ -857,17 +857,9 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 
             console.log(`[IMPORT] Step 5 - Processing ${attendeesToProcess.length} attendees for event:`, eventId);
             
-            // Obtener la base de datos correcta (Global o Independiente)
-            // Asegurar que la base de datos del evento exista (Get or Create)
-            console.log('[IMPORT-EXECUTE] Antes de createEventDatabase, eventId:', eventId);
+            // Obtener la base de datos correcta
             const targetDb = createEventDatabase(eventId);
-            console.log('[IMPORT-EXECUTE] targetDb creado:', targetDb ? 'SI' : 'NO');
-            if (!targetDb) throw new Error(`Error de persistencia en evento ${eventId}. Detalle: ${global.lastDbError || 'Desconocido'});
-            
-            // Verificar que tiene la tabla guests
-            console.log('[IMPORT-EXECUTE] Verificando tabla guests en DB evento');
-            const tables = targetDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='guests'").all();
-            console.log('[IMPORT-EXECUTE] Tablas encontradas:', tables);
+            if (!targetDb) throw new Error('Error de persistencia en evento');
         
         // --- Migración de Emergencia para Eventos Independientes (V12.44.305) ---
         try {
