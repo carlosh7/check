@@ -52,7 +52,11 @@ function getEventDbPath(eventId) {
  */
 function eventDatabaseExists(eventId) {
     const dbPath = getEventDbPath(eventId);
-    return fs.existsSync(dbPath);
+    const exists = fs.existsSync(dbPath);
+    console.log('[DB-EXISTS] Verificando DB para evento:', eventId);
+    console.log('[DB-EXISTS] Ruta:', dbPath);
+    console.log('[DB-EXISTS] Existe:', exists);
+    return exists;
 }
 
 /**
