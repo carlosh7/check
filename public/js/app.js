@@ -18,7 +18,7 @@ console.log('[INIT] app.js version 12.44.364 loaded');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.365';
+const VERSION = '12.44.366';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -13976,7 +13976,7 @@ App.populateAttendanceFilters = function() {
 },
 
 App.clearAttendanceDatabase = async function() {
-    const eventId = this.state.currentEventId;
+    const eventId = this.state.event?.id || this.state.currentEventId;
     if (!eventId) return;
 
     const { isConfirmed } = await Swal.fire({
@@ -14038,9 +14038,9 @@ App.filterAttendance = function() {
     if (veganoFilter) filtered = filtered.filter(a => a.vegano === veganoFilter);
     if (statusFilter) filtered = filtered.filter(a => a.status === statusFilter);
     
-    // Actualizar contador visual (V12.44.311)
+    // Actualizar contador visual (V12.44.366)
     const badge = document.getElementById('attendance-total-badge');
-    if (badge) badge.textContent = `${filtered.length} Asistentes`;
+    if (badge) badge.textContent = `${filtered.length}`;
 
     this.renderAttendanceTable(filtered);
 },
