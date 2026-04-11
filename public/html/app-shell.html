@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.340</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.367</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -195,13 +195,9 @@
                     <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.exportAttendance()">
                         <span class="material-symbols-outlined text-base">download</span> Exportar
                     </button>
-                    <button class="!px-4 !py-2.5 text-sm flex items-center gap-1.5 rounded-xl !border !border-red-500/30 !text-red-400 hover:!bg-red-500/10" onclick="App.clearAttendanceDatabase()">
+                    <button class="btn-danger-glass !px-4 !py-2.5 text-sm" onclick="App.clearAttendanceDatabase()">
                         <span class="material-symbols-outlined text-base">delete_forever</span> Limpiar
                     </button>
-                    <div class="ml-2 flex items-center gap-2 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
-                        <span class="material-symbols-outlined text-[18px] text-[var(--primary)]">group</span>
-                        <span id="attendance-total-badge" class="text-sm font-black text-slate-300 uppercase tracking-widest">0</span>
-                    </div>
                 </div>
                 <!-- Fila 2: Filtros -->
                 <div class="flex gap-2 flex-wrap items-center mb-6">
@@ -243,6 +239,14 @@
                     
                     <div class="flex items-center gap-6 bg-white/[0.03] border border-white/5 p-4 rounded-3xl shadow-2xl backdrop-blur-xl">
                         <div class="flex items-center gap-8 px-4">
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-violet-400 mb-2 leading-none">Asistentes</p>
+                                <div class="flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-lg text-violet-400">groups</span>
+                                    <p id="attendance-total-badge" class="text-xl font-black font-mono text-white">0</p>
+                                </div>
+                            </div>
+                            <div class="h-10 w-[1px] bg-white/5"></div>
                             <div class="text-center">
                                 <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 leading-none">Hora Local</p>
                                 <p id="admin-clock-real" class="text-xl font-black font-mono text-white">00:00:00</p>

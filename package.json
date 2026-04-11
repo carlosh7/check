@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.366",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.297 - Mejora en script de auto-actualización Portainer",
+  "version": "12.44.367",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.367 - Rediseño UI Dashboard",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
