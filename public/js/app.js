@@ -18,7 +18,7 @@ console.log('[INIT] app.js version 12.44.364 loaded');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.364';
+const VERSION = '12.44.365';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
