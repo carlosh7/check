@@ -14,7 +14,7 @@ services:
     entrypoint: []
     command: >
       sh -c "
-      echo 'Init v12.44.355...' &&
+      echo 'Init...' &&
       apt-get update && apt-get install -y git rsync &&
       mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
       chmod -R 777 /usr/src/app/persistence &&
