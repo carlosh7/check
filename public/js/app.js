@@ -1,9 +1,12 @@
 import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
+// DEBUG V12.44.364 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.364 loaded');
+
 /**
  * MASTER SCRIPT
- * Version: V12.44.341 (Neutral Dark)
+ * Version: V12.44.363 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -15,7 +18,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.363';
+const VERSION = '12.44.364';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
