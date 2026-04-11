@@ -997,6 +997,8 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
             ORDER BY g.name ASC
         `).all(eventId);
         
+        console.log('[ATTENDANCE DEBUG] Registros encontrados:', attendance.length);
+        
         res.json(attendance);
     } catch (e) {
         console.error('[ATTENDANCE] Error obteniendo asistencia:', e.message);
