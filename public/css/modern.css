@@ -167,6 +167,11 @@ body {
     transform: translateY(-1px);
 }
 
+/* Toggle Switch Utility */
+.left-6\.5 {
+    left: 1.625rem; /* 26px approx for a 48px wide switch */
+}
+
 /* Filter Selects - Unified styling for system sections */
 .filter-select {
     padding: 8px 12px;

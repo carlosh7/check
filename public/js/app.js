@@ -14038,9 +14038,13 @@ App.filterAttendance = function() {
     if (veganoFilter) filtered = filtered.filter(a => a.vegano === veganoFilter);
     if (statusFilter) filtered = filtered.filter(a => a.status === statusFilter);
     
-    // Actualizar contador visual (V12.44.366)
+    // Actualizar contador visual dual (Total / Presentes) (V12.44.368)
     const badge = document.getElementById('attendance-total-badge');
-    if (badge) badge.textContent = `${filtered.length}`;
+    if (badge) {
+        const total = filtered.length;
+        const present = filtered.filter(a => a.validated === 1).length;
+        badge.textContent = `${total} / ${present}`;
+    }
 
     this.renderAttendanceTable(filtered);
 },
@@ -14094,8 +14098,9 @@ App.renderAttendanceTable = function(attendance) {
             </td>
             <td class="!py-3 !px-3 text-center">
                 <button onclick="App.toggleValidateAttendance('${a.client_id}')" 
-                    class="w-11 h-6 rounded-full transition-colors ${a.validated ? 'bg-emerald-500' : 'bg-slate-600'} relative">
-                    <span class="absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${a.validated ? 'left-5' : 'left-0.5'}"></span>
+                    title="${a.validated ? 'Marcar como ausente' : 'Marcar como presente'}"
+                    class="w-12 h-6 rounded-full transition-all duration-300 ease-in-out shadow-inner focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${a.validated ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-slate-700 shadow-black/40'} relative group/switch">
+                    <span class="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow-md transition-all duration-300 ease-in-out ${a.validated ? 'left-6.5' : 'left-0.5'} group-active/switch:scale-90"></span>
                 </button>
             </td>
         </tr>`;
