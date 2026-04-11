@@ -206,26 +206,48 @@ body {
     width: 22px;
 }
 
-/* STICKY PANELS v12.44.372 */
-.sticky-panel {
+/* STICKY HEADERS v12.44.374 */
+/* Nivel 1: Filtros y Botones Superiores */
+#view-my-events .flex.flex-wrap,
+#view-admin .flex.flex-wrap,
+#view-event-config .flex.flex-wrap,
+#view-system .flex.flex-wrap {
     position: sticky;
     top: 0;
+    z-index: 60;
+    background: var(--bg-app);
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Nivel 2: Buscadores y Headers de sección */
+#view-my-events .flex-col.md\:flex-row,
+#view-my-events div[style*="position: relative"],
+#view-admin header,
+#view-admin div[style*="position: relative"],
+#view-event-config header,
+#view-event-config .config-tab-content div[style*="position: relative"],
+#view-system div[style*="position: relative"] {
+    position: sticky;
+    top: 56px; /* Ajustado según altura del Nivel 1 */
+    z-index: 55;
+    background: var(--bg-app);
+    padding-top: 4px;
+    padding-bottom: 8px;
+}
+
+/* Nivel 3: Encabezados de Tabla (thead) */
+.data-table thead th {
+    position: sticky;
+    top: 110px; /* Ajustado según altura de Niveles 1 y 2 */
     z-index: 50;
-    background: rgba(var(--bg-card-rgb), 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    margin: -32px -32px 24px -32px;
-    padding: 24px 32px 16px 32px;
+    background: rgba(var(--bg-card-rgb), 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
-    transition: all 0.3s ease;
 }
 
-html.dark .sticky-panel {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Ajuste para que el scroll principal no tenga saltos */
+/* Ajuste de scroll para evitar saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
 }

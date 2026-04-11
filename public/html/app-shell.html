@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.373</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.374</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -89,8 +89,6 @@
             <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
             <section id="view-my-events" class="hidden animate-fade-in" data-section="my-events">
                 <div class="max-w-7xl mx-auto">
-                    <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
-                    <div class="sticky-panel">
                         <!-- Fila 1: Botones de acción -->
                         <div class="flex flex-wrap items-center gap-3 mb-4">
                             <div class="flex gap-2">
@@ -143,7 +141,6 @@
                             <!-- Dropdown de sugerencias -->
                             <div id="event-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
                         </div>
-                    </div>
 
                     <!-- Fila 4: Tabla de Eventos -->
                     <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -183,8 +180,6 @@
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="hidden animate-fade-in">
-                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
-                <div class="sticky-panel">
                     <!-- Fila 1: Botones de acción -->
                     <div class="flex flex-wrap items-center gap-3 mb-4">
                         <button class="btn-primary !px-4 !py-2.5 text-sm flex items-center gap-1.5" onclick="App.toggleAddAttendanceModal()">
@@ -270,7 +265,6 @@
                         <!-- Dropdown de sugerencias -->
                         <div id="attendance-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
                     </div>
-                </div>
 
                 <!-- Tabla de asistencia -->
                 <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
@@ -298,8 +292,6 @@
 
             <!-- VIEW: CONFIGURACIÓN DEL EVENTO -->
             <section id="view-event-config" class="hidden space-y-6 animate-fade-in">
-                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
-                <div class="sticky-panel">
                     <!-- Config Navigation - Mismo estilo que Sistema -->
                     <div class="flex flex-wrap items-center gap-2 mb-4">
                         <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="staff" onclick="App.switchConfigTab('staff')">
@@ -334,7 +326,6 @@
                             <span class="material-symbols-outlined text-base">edit</span> Edición
                         </button>
                     </div>
-                </div>
 
                 <!-- Event Header (después del menú) -->
                 <header class="flex flex-col lg:flex-row justify-between items-center gap-8">
@@ -899,8 +890,6 @@
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
             <section id="view-system" class="hidden space-y-6 animate-fade-in">
-                <!-- PANEL DE CONTROL PEGAJOSO (v12.44.372) -->
-                <div class="sticky-panel">
                     <div class="flex flex-wrap items-center gap-2">
                         <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
                             <span class="material-symbols-outlined text-base">business</span> Empresas
@@ -924,7 +913,6 @@
                             <span class="material-symbols-outlined text-base">storage</span> DB
                         </button>
                     </div>
-                </div>
 
                 <!-- SECCIÓN: LEGALES -->
                 <div id="sys-content-legal" class="hidden space-y-6">
