@@ -3,7 +3,7 @@ import { API } from './src/frontend/api.js';
 
 /**
  * MASTER SCRIPT
- * Version: V12.34.2 (Neutral Dark)
+ * Version: V12.44.341 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
@@ -15,7 +15,7 @@ import { API } from './src/frontend/api.js';
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.340';
+const VERSION = '12.44.341';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
