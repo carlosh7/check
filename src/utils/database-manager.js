@@ -9,8 +9,9 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Directorio de datos (V12.44.314 - Soporte para persistencia absoluta externa)
-const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'events') : path.resolve(process.cwd(), 'databases/events');
+// Directorio de datos (V12.44.341 - Soporte para persistencia absoluta externa)
+// DATA_PATH en portainer es /usr/src/app/persistence, entonces las BDs de eventos van en /usr/src/app/persistence/events
+const DATA_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'events') : '/usr/src/app/persistence/events';
 const EVENTS_DIR = DATA_DIR;
 console.log('[DB-MANAGER] Directorio de eventos configurado en:', EVENTS_DIR);
 

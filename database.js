@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
 const fs = require('fs');
-const basePath = process.env.DATA_PATH || path.join(__dirname, 'data');
+const basePath = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH, 'system') : '/usr/src/app/persistence/system';
 
 // Asegurar que el directorio de datos existe (v12.44.314)
 if (!fs.existsSync(basePath)) {

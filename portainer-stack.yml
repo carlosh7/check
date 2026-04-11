@@ -11,14 +11,16 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
-    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.331 (Advanced Diagnostics)
+    # MÉTODO DE PRODUCCIÓN SEGURO: Versión v12.44.341 (Multi-DB por Evento)
     entrypoint: []
     command: >
       sh -c "
-      echo '🛡️ [HARDENING] Iniciando Check Pro v12.44.338 con rsync robusto...' &&
+      echo '🛡️ [INIT] Iniciando Check Pro v12.44.341...' &&
       apt-get update && apt-get install -y git rsync &&
-      mkdir -p /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
+      echo '📂 [DIRS] Creando estructura de datos...' &&
+      mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
       chmod -R 777 /usr/src/app/persistence &&
+      echo '✓ Directorios creados: /system, /events, /uploads' &&
       rm -rf /tmp/app_new &&
       git clone https://github.com/carlosh7/check.git /tmp/app_new &&
       echo '📂 [SYNC] Sincronizando código con rsync (protegiendo datos)...' &&
