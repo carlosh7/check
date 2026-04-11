@@ -199,6 +199,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const buffer = Buffer.from(file, 'base64');
         console.log('[IMPORT] buffer created, size:', buffer.length);
         await workbook.xlsx.load(buffer);
+        
+        // Debug: Listar todas las hojas del workbook
+        const sheetNames = workbook.worksheets.map(ws => ws.name);
+        console.log('[IMPORT] Hojas encontradas:', sheetNames);
 
         const stats = { new: 0, update: 0, errors: 0 };
         const errors = [];
@@ -208,8 +212,10 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         const headerValues = ['nombre', 'name', 'email', 'telefono', 'phone', 'estado', 'status', 'descripcion', 'description', 'ubicacion', 'location', 'fecha', 'date', 'display', 'username', 'rol', 'role', 'empresa', 'company'];
 
         // ─── PROCESAR EMPRESAS ───
-        if (workbook.getWorksheet('Empresas')) {
-            const sheet = workbook.getWorksheet('Empresas');
+        const empresasSheet = workbook.getWorksheet('Empresas') || workbook.getWorksheet('empresas');
+        if (empresasSheet) {
+            console.log('[IMPORT] Hoja Empresas encontrada');
+            const sheet = empresasSheet;
             const existingGroups = db.prepare("SELECT name, email FROM groups").all();
             
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
@@ -247,8 +253,11 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         }
 
         // ─── PROCESAR EVENTOS ───
-        if (workbook.getWorksheet('Eventos')) {
-            const sheet = workbook.getWorksheet('Eventos');
+        console.log('[IMPORT] Buscando hoja Eventos/eventos...');
+        const eventosSheet = workbook.getWorksheet('Eventos') || workbook.getWorksheet('eventos');
+        if (eventosSheet) {
+            console.log('[IMPORT] Hoja Eventos encontrada, procesando...');
+            const sheet = eventosSheet;
             const existingEvents = db.prepare("SELECT name, date FROM events").all();
             
             sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
@@ -284,7 +293,8 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         }
 
         // ─── PROCESAR STAFF ───
-        if (workbook.getWorksheet('Staff')) {
+        const staffSheet = workbook.getWorksheet('Staff') || workbook.getWorksheet('staff');
+        if (staffSheet) {
             const sheet = workbook.getWorksheet('Staff');
             const existingUsers = db.prepare("SELECT username FROM users").all();
             
@@ -325,7 +335,8 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
         }
 
         // ─── PROCESAR CLIENTES ───
-        if (workbook.getWorksheet('Clientes')) {
+        const clientesSheet = workbook.getWorksheet('Clientes') || workbook.getWorksheet('clientes');
+        if (clientesSheet) {
             const sheet = workbook.getWorksheet('Clientes');
             const existingClients = db.prepare("SELECT name, email FROM clients").all();
             
@@ -394,7 +405,7 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
                 }
             } else {
                 // Excel / XLSX
-                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1);
+                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1) || workbook.getWorksheet('asistentes');
                 if (!sheet) throw new Error('No se encontró una hoja válida en el Excel');
 
                 // Obtener cabeceras (Fila 1)
@@ -492,7 +503,10 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
         const { type } = req.body;
         const data = req.body.data || {}; // Protección contra undefined
         
-        console.log('[IMPORT EXECUTE] Type:', type, 'Processing:', data.groups?.length || 0, 'groups,', data.events?.length || 0, 'events,', data.users?.length || 0, 'users');
+        console.log('[IMPORT EXECUTE] Type:', type);
+        console.log('[IMPORT EXECUTE] Groups:', data.groups?.length || 0);
+        console.log('[IMPORT EXECUTE] Events:', data.events?.length || 0);
+        console.log('[IMPORT EXECUTE] Users:', data.users?.length || 0);
         
         let imported = 0;
         let updated = 0;
@@ -803,7 +817,7 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
                 const buffer = Buffer.from(req.body.file, 'base64');
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
-                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1);
+                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1) || workbook.getWorksheet('asistentes');
                 
                 const m = req.body.mapping; 
                 
