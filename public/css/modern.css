@@ -222,9 +222,9 @@ body {
 /* Nivel 2: Encabezados de Tabla (thead) */
 .data-table thead th {
     position: sticky;
-    top: 280px; /* Ajuste manual según la altura promedio del header sólido */
+    top: 195px; /* Ajustado para aparecer justo debajo del buscador del bloque sólido */
     z-index: 50;
-    background: rgba(var(--bg-card-rgb), 0.95);
+    background: #020617; /* Fondo sólido oscuro (var(--bg-app) en dark) */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
