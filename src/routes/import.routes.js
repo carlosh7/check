@@ -931,16 +931,28 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 }
             }
 
-            // FORZAR ESCRITURA A DISCO (V12.44.350)
+            // FORZAR ESCRITURA A DISCO (V12.44.351)
             if (targetDb) {
-                targetDb.prepare("PRAGMA wal_checkpoint(FULL)").get();
+                // PRAGMA para forzar checkpoint COMPLETO
+                targetDb.pragma('wal_checkpoint(TRUNCATE)');
                 
-                // VERIFICAR QUE EL ARCHIVO EXISTE Y TIENE DATOS
-                const dbPath = targetDb.name;
+                // Verificar tamaño después del checkpoint
                 const fs = require('fs');
+                const dbPath = targetDb.name;
                 const stats = fs.statSync(dbPath);
-                console.log('[IMPORT] DB tamaño después de importar:', stats.size, 'bytes');
-                console.log('[IMPORT] Datos sincronizados a disco');
+                const walFile = dbPath + '-wal';
+                let walSize = 0;
+                if (fs.existsSync(walFile)) {
+                    walSize = fs.statSync(walFile).size;
+                }
+                console.log('[IMPORT] DB principal:', stats.size, 'bytes, WAL:', walSize, 'bytes');
+                
+                if (walSize > 1000) {
+                    console.log('[IMPORT] ADVERTENCIA: WAL aún grande, forzando checkpoint...');
+                    targetDb.pragma('wal_checkpoint(TRUNCATE)');
+                }
+                
+                console.log('[IMPORT] Datos forzados a disco');
             }
 
         } catch (e) {
