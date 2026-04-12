@@ -137,7 +137,7 @@ app.use(cors({
         if (!origin) return callback(null, true);
 
         // 2. Permitir Red Local / Desarrollo (v12.44.398 Hybrid Check)
-        const isLocal = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1]))(:[0-9]+)?$/.test(origin);
+        const isLocal = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.[0-9.]+|10\.[0-9.]+|172\.[0-9.]+)(:[0-9]+)?$/.test(origin);
         
         // 3. Permitir Dominios en Whitelist (ALLOWED_ORIGINS)
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
