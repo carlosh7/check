@@ -219,12 +219,27 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA v12.44.385 - Sticky Headers */
+/* TABLA SCROLL INTERNA v12.44.386 - Sticky Headers */
 .table-scroll-container {
-    max-height: calc(100vh - 340px);
+    height: calc(100vh - 280px);
+    min-height: 400px;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
     border-radius: 12px;
+    background: transparent;
+    border: none;
+}
+
+.table-scroll-container table.data-table {
+    min-width: 800px;
+    background: transparent;
+    border: none;
+}
+
+.table-scroll-container .card {
+    background: transparent;
+    border: none;
+    backdrop-filter: none;
 }
 
 .table-scroll-container::-webkit-scrollbar {
