@@ -279,13 +279,14 @@ body {
 #view-admin .table-scroll-container .data-table {
     display: block;
     width: 100%;
+    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table thead,
 #view-admin .table-scroll-container .data-table thead {
     display: table;
     width: 100%;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table tbody,
@@ -293,14 +294,60 @@ body {
     display: block;
     max-height: calc(100vh - 260px);
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 #view-my-events .table-scroll-container .data-table tbody tr,
 #view-admin .table-scroll-container .data-table tbody tr {
     display: table;
     width: 100%;
-    table-layout: fixed;
+    table-layout: auto;
+}
+
+/* Anchos específicos por columna */
+#view-my-events .table-scroll-container .data-table th:nth-child(1),
+#view-my-events .table-scroll-container .data-table td:nth-child(1) {
+    width: 40px;
+    min-width: 40px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(2),
+#view-my-events .table-scroll-container .data-table td:nth-child(2) {
+    min-width: 200px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(3),
+#view-my-events .table-scroll-container .data-table td:nth-child(3) {
+    min-width: 150px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(4),
+#view-my-events .table-scroll-container .data-table td:nth-child(4) {
+    min-width: 150px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(5),
+#view-my-events .table-scroll-container .data-table td:nth-child(5) {
+    min-width: 150px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(6),
+#view-my-events .table-scroll-container .data-table td:nth-child(6) {
+    width: 100px;
+    min-width: 100px;
+}
+
+#view-my-events .table-scroll-container .data-table th:nth-child(7),
+#view-my-events .table-scroll-container .data-table td:nth-child(7) {
+    width: 90px;
+    min-width: 90px;
+}
+
+/* Alineación de cabecera */
+#view-my-events .table-scroll-container .data-table th {
+    text-align: left;
+    vertical-align: bottom;
+    padding-bottom: 12px;
 }
 
 .data-table thead th {
