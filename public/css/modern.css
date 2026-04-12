@@ -206,14 +206,14 @@ body {
     width: 22px;
 }
 
-/* STICKY HEADERS v12.44.375 - BLOQUE ÚNICO SÓLIDO */
+/* STICKY HEADERS v12.44.403 - BLOQUE ÚNICO SÓLIDO */
 .sticky-header-container {
     position: sticky;
-    top: -32px; /* Margen negativo para compensar el padding del main */
+    top: -32px;
     z-index: 60;
-    background: var(--bg-app); /* Fondo sólido para tapar el contenido que sube */
-    margin: -32px -32px 24px -32px;
-    padding: 32px 32px 16px 32px;
+    background: var(--bg-app);
+    margin: -32px -32px 8px -32px;
+    padding: 32px 32px 8px 32px;
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -244,11 +244,11 @@ body {
 
 /* Altura por página - Desktop */
 #view-my-events .table-scroll-container {
-    max-height: calc(100vh - 220px);
+    max-height: calc(100vh - 190px);
 }
 
 #view-admin .table-scroll-container {
-    max-height: calc(100vh - 280px);
+    max-height: calc(100vh - 250px);
 }
 
 /* Tables sin scroll container - altura fija */
@@ -292,7 +292,7 @@ body {
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    max-height: calc(100vh - 260px);
+    max-height: calc(100vh - 230px);
     overflow-y: auto;
     overflow-x: auto;
 }
