@@ -2147,11 +2147,11 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 5 botones -->
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título + botón crear -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -2216,11 +2216,11 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 5 botones -->
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título + Guardar -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -2343,11 +2343,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -2446,11 +2446,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -2569,11 +2569,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -2646,11 +2646,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSingleClient(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageClientAction(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showStaffSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForClients(App._savedSelectedClients)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Cliente</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -3102,19 +3102,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3216,19 +3216,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3372,19 +3372,19 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar">
                         <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar">
                         <span class="material-symbols-outlined text-sm">settings</span>
                     </button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente">
                         <span class="material-symbols-outlined text-sm">person</span>
                     </button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff">
                         <span class="material-symbols-outlined text-sm">badge</span>
                     </button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento">
                         <span class="material-symbols-outlined text-sm">event</span>
                     </button>
                 </div>
@@ -3474,11 +3474,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -3555,11 +3555,11 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
-                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.editSelectedGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageGroupAction(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.openAssignClientToGroupModal(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showUserSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Staff"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.showEventSelectorForBulkGroups(${getCurrentGroupIds})" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Staff a Empresas</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -4344,12 +4344,12 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 6 botones -->
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título + botón crear -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -4422,20 +4422,20 @@ const App = window.App = {
         if (isConfigContext) {
             // Solo 4 botones para configuración del evento
             navButtons = `
-                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
             `;
         } else {
             // 6 botones para sistema normal
             navButtons = `
-                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
             `;
         }
         
@@ -4580,12 +4580,12 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -4667,12 +4667,12 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Empresa a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -4745,12 +4745,12 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Cliente a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -4833,12 +4833,12 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
                     <div class="flex flex-col flex-1"><span class="text-[11px] font-black uppercase tracking-widest" style="color: ${textSecondary};">Asignar Evento a Staff</span><span class="text-xs" style="color: ${textMain};">${subtitleText}</span></div>
@@ -4937,12 +4937,12 @@ const App = window.App = {
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
                 <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
-                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
-                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUser(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserAction(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showCompanySelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #7c3aed;" title="Asignar Empresa"><span class="material-symbols-outlined text-sm">corporate_fare</span></button>
+                    <button onclick="App.showClientSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #10b981;" title="Asignar Cliente"><span class="material-symbols-outlined text-sm">person</span></button>
+                    <button onclick="App.showEventSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsers(App._savedSelectedUsers)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid rgba(255,255,255,0.1);">
                     <div class="flex flex-col flex-1">
@@ -7179,10 +7179,10 @@ const App = window.App = {
             const btn = document.getElementById('btn-toggle-password');
             if (pwd.type === 'password') {
                 pwd.type = 'text';
-                btn.innerHTML = '<span class="material-symbols-outlined text-lg">visibility_off</span>';
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">visibility_off</span>';
             } else {
                 pwd.type = 'password';
-                btn.innerHTML = '<span class="material-symbols-outlined text-lg">visibility</span>';
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">visibility</span>';
             }
         });
 
@@ -7675,8 +7675,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -7777,8 +7777,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -8030,8 +8030,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -8243,8 +8243,8 @@ const App = window.App = {
             ).join('');
 
             const navButtons = `
-                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 0)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 1)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 0)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 0 ? '#f59e0b' : textSecondary};" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.showEventTabInCarousel(${state.currentIndex}, 1)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: ${activeTab === 1 ? '#ef4444' : textSecondary};" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             `;
             
             let tabContent = '';
@@ -8905,8 +8905,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -9147,8 +9147,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -9656,7 +9656,7 @@ const App = window.App = {
                 <!-- Asistente (nombre, email, teléfono) -->
                 <td class="!py-3 !px-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg ${isValidated ? 'bg-emerald-500/20' : 'bg-[var(--bg-hover)]'} flex items-center justify-center">
+                        <div class="w-7 h-7 rounded-lg ${isValidated ? 'bg-emerald-500/20' : 'bg-[var(--bg-hover)]'} flex items-center justify-center">
                             <span class="material-symbols-outlined text-sm ${isValidated ? 'text-emerald-500' : 'text-slate-500'}">${isValidated ? 'check_circle' : 'person'}</span>
                         </div>
                         <div>
@@ -11144,10 +11144,10 @@ const App = window.App = {
                         ${w.is_active ? 'Activa' : 'Inactiva'}
                     </span>
                     <button class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="event.stopPropagation(); App.deleteWheel('${w.id}')">
-                        <span class="material-symbols-outlined text-lg">delete</span>
+                        <span class="material-symbols-outlined text-sm">delete</span>
                     </button>
                     <button class="p-2 hover:bg-[var(--bg-card)] rounded-lg" onclick="event.stopPropagation(); App.editWheel('${w.id}')">
-                        <span class="material-symbols-outlined text-lg">edit</span>
+                        <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
                 </div>
             </div>
@@ -11254,7 +11254,7 @@ const App = window.App = {
                 <td class="py-3"><span class="px-2 py-1 text-xs rounded bg-[var(--bg-card)]">${p.source}</span></td>
                 <td class="py-3 text-right">
                     <button data-id="${p.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.removeWheelParticipant('${p.id}')">
-                        <span class="material-symbols-outlined text-lg">delete</span>
+                        <span class="material-symbols-outlined text-sm">delete</span>
                     </button>
                 </td>
             </tr>
@@ -11595,7 +11595,7 @@ const App = window.App = {
                             <p class="text-xs text-emerald-400 mt-1">${winners.length} ganador(es)</p>
                         </div>
                         <button data-id="${r.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.deleteWheelResult('${r.id}')">
-                            <span class="material-symbols-outlined text-lg">delete</span>
+                            <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                     </div>
                     
@@ -12045,10 +12045,10 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
                 <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -12116,10 +12116,10 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título + Guardar -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -12258,10 +12258,10 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título debajo de la barra -->
                 <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -12454,10 +12454,10 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 4 botones - INDEPENDIENTE -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showEventSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ec4899;" title="Asignar Evento"><span class="material-symbols-outlined text-sm">event</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
                 <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -12471,7 +12471,7 @@ const App = window.App = {
                     ${events.length === 0 ? `<div class="text-center py-8 text-sm" style="color: ${textSecondary};">No hay eventos disponibles</div>` : events.map(e => `
                         <div onclick="App.assignEventToUsersConfig('${ids.join(',')}', '${e.id}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(236,72,153,0.2); color: #ec4899;">
-                                <span class="material-symbols-outlined text-lg">event</span>
+                                <span class="material-symbols-outlined text-sm">event</span>
                             </div>
                             <div class="flex-1">
                                 <div class="text-sm font-bold" style="color: ${textMain};">${e.name}</div>
@@ -12544,9 +12544,9 @@ const App = window.App = {
             <div class="space-y-5" style="padding-right: 8px;">
                 <!-- Barra de navegación 3 botones - SOLO EDITAR/GESTIONAR/ROL -->
                 <div class="flex items-center justify-center gap-3 p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
-                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
+                    <button onclick="App.editSingleUserConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="App.showManageUserActionConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                    <button onclick="App.showRoleSelectorForUsersConfig(App._savedSelectedUsersConfig)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #3b82f6;" title="Asignar Rol"><span class="material-symbols-outlined text-sm">badge</span></button>
                 </div>
                 <!-- Título -->
                 <div class="flex items-center p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
@@ -12564,7 +12564,7 @@ const App = window.App = {
                         return `
                         <div onclick="App.assignRoleToUsersConfig('${ids.join(',')}', '${role}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: ${roleColor}20; color: ${roleColor};">
-                                <span class="material-symbols-outlined text-lg">${roleIcons[role]}</span>
+                                <span class="material-symbols-outlined text-sm">${roleIcons[role]}</span>
                             </div>
                             <div class="flex-1">
                                 <div class="text-sm font-bold" style="color: ${textMain};">${role}</div>
@@ -14391,8 +14391,8 @@ App.openAttendanceCarousel = function() {
         <div class="space-y-5" style="padding-right: 8px;">
             <!-- Barra de navegación 2 botones -->
             <div class="flex items-center justify-between p-3 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
-                <button onclick="App.editAttendance(App._selectedAttendance)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
-                <button onclick="App.manageAttendance(App._selectedAttendance)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
+                <button onclick="App.editAttendance(App._selectedAttendance)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #f59e0b;" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="App.manageAttendance(App._selectedAttendance)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" style="color: #ef4444;" title="Gestionar"><span class="material-symbols-outlined text-sm">settings</span></button>
             </div>
             <!-- Título -->
             <div class="flex items-center justify-between p-4 rounded-xl" style="background: ${bgCard}; border: 1px solid ${borderColor};">
