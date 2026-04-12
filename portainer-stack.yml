@@ -13,7 +13,6 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DATA_PATH=/usr/src/app/persistence
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
     networks:
       - check-network
     entrypoint: []
