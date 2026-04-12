@@ -2,10 +2,17 @@ version: '3.8'
 
 services:
   check-app:
-    image: node:20-slim
-    container_name: check-app-stack
-    ports:
-      - "3000:3000"
+    image: 'node:20-alpine'
+    container_name: check-app
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Para desarrollo local - agregar IP según sea necesario
+      # Ejemplo: ALLOWED_ORIGINS=http://localhost:3000,http://192.168.1.100:3000
+      # Para producción con dominio: eliminar arriba y usar:
+      # - ALLOWED_ORIGINS=http://tusitio.com,https://tusitio.com
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
     volumes:
       - /home/data_check:/usr/src/app/persistence
     environment:
