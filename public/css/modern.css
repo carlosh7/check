@@ -206,12 +206,14 @@ body {
     width: 22px;
 }
 
-/* STICKY HEADERS v12.44.390 - BLOQUE ÚNICO SÓLIDO */
+/* STICKY HEADERS v12.44.389 - BLOQUE ÚNICO SÓLIDO */
 .sticky-header-container {
     background: var(--bg-app);
-    padding: 0 0 16px 0;
-    margin-bottom: 16px;
+    padding: 24px 24px 16px 24px;
+    margin-bottom: 24px;
     border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     flex-shrink: 0;
 }
 
