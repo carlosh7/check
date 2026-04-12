@@ -73,16 +73,16 @@ El proyecto usa Docker con dos modalidades:
 
 ### Portainer (Producción)
 
-El archivo `portainer-stack.yml` es el que se copia al stack de Portainer.
+**El archivo `portainer-stack.yml` está en el repositorio y se puede editar si hay necesidades específicas.** Portainer tiene el stack configurado para usar este archivo; al hacer "Redeploy", el contenedor ejecuta `git clone` automáticamente para obtener los últimos cambios.
 
 **Características del stack:**
 - Crea automáticamente las carpetas `/system`, `/events`, `/uploads` al iniciar
-- Descarga el código desde GitHub y sincroniza con rsync (protegiendo datos persistidos)
+- Ejecuta `git clone --depth 1` desde GitHub al iniciar/recrear el contenedor
 - Monta `/home/data_check` del host a `/usr/src/app/persistence` del contenedor
 
 **Para actualizar en Portainer:**
-1. Copiar el nuevo contenido de `portainer-stack.yml` al stack
-2. Portainer recreará el contenedor automáticamente
+1. Hacer push de los cambios al repositorio GitHub
+2. En Portainer, hacer "Redeploy" del stack (no copiar archivos, Portainer usa el archivo del repositorio)
 3. Los datos persistentes se mantienen en `/home/data_check`
 
 ### docker-compose.yml (Desarrollo Local)
@@ -193,8 +193,8 @@ git add . && git commit -m "mensaje descriptivo" && git push origin main
 git tag v${VERSION} HEAD && git push origin v${VERSION}
 
 # 3. ACTUALIZAR STACK EN PORTAINER
-#    - Copiar el contenido de portainer-stack.yml al stack de Portainer
-#    - Portainer recreará el contenedor automáticamente
+#    - En Portainer, hacer "Redeploy" del stack
+#    - El contenedor ejecuta git clone automáticamente
 
 # 4. VALIDAR que el contenedor está funcionando
 curl -s http://localhost:3000/api/health
@@ -226,10 +226,11 @@ La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
 | Archivo | Qué cambiar | Ejemplo |
 |---------|--------------|---------|
 | `package.json` | `"version": "X.Y.Z"` | `"version": "12.16.8"` |
-| `app-shell.html` | `?v=X.Y.Z` | `?v=12.16.8` |
-| `index.html` | `?v=X.Y.Z` | `?v=12.16.8` |
-| `portainer-stack.yml` | Mensaje de inicio echo | `echo '🛡️ [INIT] Iniciando Check Pro v12.16.8...'` |
-| `script_v12_16_2.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
+| `app-shell.html` | Texto versión visible | `Check Pro v12.16.8` |
+| `index.html` | `?v=X.Y.Z` en CSS | `?v=12.16.8` |
+| `script_v12_XX_X.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
+
+**NOTA:** `portainer-stack.yml` se modifica solo cuando hay necesidades específicas del stack (cambios en puertos, volúmenes, variables de entorno, etc.). Para cambios de código normales NO se toca.
 
 **SIN este version bump, el navegador usa caché y NO ve los cambios.**
 

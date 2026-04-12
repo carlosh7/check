@@ -7573,6 +7573,142 @@ const App = window.App = {
         }
     },
 
+    sortEventsTable(column) {
+        const currentColumn = this.state.eventsSortColumn || null;
+        const currentDirection = this.state.eventsSortDirection || 'asc';
+        
+        let direction = 'asc';
+        if (column === currentColumn) {
+            direction = currentDirection === 'asc' ? 'desc' : 'asc';
+        }
+        
+        this.state.eventsSortColumn = column;
+        this.state.eventsSortDirection = direction;
+        
+        document.querySelectorAll('#view-my-events th.sortable').forEach(th => {
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            th.querySelector('.sort-icon').textContent = '⇅';
+            th.querySelector('.sort-icon').classList.remove('opacity-100');
+            th.querySelector('.sort-icon').classList.add('opacity-40');
+        });
+        
+        const currentTh = document.querySelector(`#view-my-events th[data-sort="${column}"]`);
+        if (currentTh) {
+            currentTh.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            currentTh.querySelector('.sort-icon').textContent = direction === 'asc' ? '↑' : '↓';
+            currentTh.querySelector('.sort-icon').classList.remove('opacity-40');
+            currentTh.querySelector('.sort-icon').classList.add('opacity-100');
+        }
+        
+        if (!this._eventsFiltered) return;
+        
+        const statusOrder = { 'active': 1, 'upcoming': 2, 'completed': 3, 'draft': 4, 'cancelled': 5, 'inactive': 6 };
+        
+        this._eventsFiltered.sort((a, b) => {
+            let valA, valB;
+            
+            switch (column) {
+                case 'name':
+                    valA = (a.name || '').toLowerCase();
+                    valB = (b.name || '').toLowerCase();
+                    return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                
+                case 'date':
+                    valA = new Date(a.date || 0).getTime();
+                    valB = new Date(b.date || 0).getTime();
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                
+                case 'client':
+                    valA = (a.client_names || '').toLowerCase();
+                    valB = (b.client_names || '').toLowerCase();
+                    return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                
+                case 'location':
+                    valA = (a.location || '').toLowerCase();
+                    valB = (b.location || '').toLowerCase();
+                    return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                
+                case 'guests':
+                    valA = a.total_guests || 0;
+                    valB = b.total_guests || 0;
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                
+                case 'status':
+                    const statusA = this._getEventStatus(a);
+                    const statusB = this._getEventStatus(b);
+                    valA = statusOrder[statusA] || 99;
+                    valB = statusOrder[statusB] || 99;
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                
+                default:
+                    return 0;
+            }
+        });
+        
+        const tbody = document.getElementById('events-tbody');
+        if (!tbody) return;
+        
+        const userRole = this.state.user?.role;
+        const clientsMap = {};
+        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
+        const groupsMap = {};
+        (this.state.allGroups || []).forEach(g => { groupsMap[g.id] = g.name; });
+        
+        tbody.innerHTML = this._eventsFiltered.map(ev => {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const total = ev.total_guests || 0;
+            const attended = ev.attended_guests || 0;
+            const clientNames = ev.client_names ? ev.client_names.split(',').map(n => n.trim()).join(', ') : '—';
+            const clientIds = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+            const companyName = ev.group_id ? (groupsMap[ev.group_id] || '—') : '—';
+            const location = ev.location || '—';
+            const status = this._getEventStatus(ev);
+            const statusBadge = this._getEventStatusBadge(status);
+            const isChecked = this._selectedEvents.has(String(ev.id));
+            
+            return `
+                <tr class="hover:bg-white/[0.02] transition-colors group/event" data-event-id="${ev.id}" data-client-ids="${clientIds.join(',')}">
+                    <td class="!py-3 !px-3">
+                        <input type="checkbox" class="event-checkbox" data-event-id="${ev.id}" ${isChecked ? 'checked' : ''} onchange="App.toggleEventSelection('${ev.id}')" style="width: 16px; height: 16px; cursor: pointer;">
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-violet-400 text-lg">event</span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs text-slate-300">${dateStr} <span class="text-slate-500">${timeStr}</span></div>
+                        <div class="text-[10px] font-mono countdown-timer" data-event-date="${ev.date}" style="color: #a78bfa;">--</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-300">${clientNames}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <span class="text-xs text-slate-400 truncate block max-w-[150px]">${location}</span>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        <div class="text-xs">
+                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-emerald-400">${attended}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
+                    </td>
+                    <td class="!py-3 !px-3">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
     renderEventsTable() {
         const tbody = document.getElementById('events-tbody');
         const emptyState = document.getElementById('events-empty-state');

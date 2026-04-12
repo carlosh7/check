@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.384",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.384 - UI: Killed ambient light blobs and expanded table workspace area.",
+  "version": "12.44.385",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.385 - Tabla con scroll interno y ordenamiento de columnas clickeable.",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",

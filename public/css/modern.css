@@ -219,15 +219,65 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* Nivel 2: Encabezados de Tabla (thead) */
+/* TABLA SCROLL INTERNA v12.44.385 - Sticky Headers */
+.table-scroll-container {
+    max-height: calc(100vh - 340px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Nivel 2: Encabezados de Tabla (thead) - Sticky dentro del scroll container */
 .data-table thead th {
     position: sticky;
-    top: 195px; /* Ajustado para aparecer justo debajo del buscador del bloque sólido */
+    top: 0;
     z-index: 50;
-    background: #09090b; /* Fijo neutro oscuro */
+    background: rgba(24, 24, 27, 0.95);
     backdrop-filter: blur(10px) saturate(0);
     -webkit-backdrop-filter: blur(10px) saturate(0);
     border-bottom: 1px solid var(--border);
+}
+
+/* Columnas ordenables */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+th.sortable:hover {
+    color: #8b5cf6;
+}
+
+th.sortable.sorted-asc .sort-icon {
+    opacity: 1;
+    color: #8b5cf6;
+}
+
+th.sortable.sorted-desc .sort-icon {
+    opacity: 1;
+    color: #8b5cf6;
+}
+
+th.sorted-asc, th.sorted-desc {
+    color: #8b5cf6 !important;
 }
 
 /* Ajuste de scroll para evitar saltos */
