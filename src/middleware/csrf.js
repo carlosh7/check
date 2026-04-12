@@ -9,6 +9,26 @@
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8080').split(',');
 
+// Función para verificar si es IP local (192.168.x.x o 10.x.x.x o 172.16-31.x.x)
+function isLocalIP(origin) {
+    if (!origin) return false;
+    try {
+        const url = new URL(origin);
+        const hostname = url.hostname;
+        // Permitir cualquier IP privada local
+        return hostname.startsWith('192.168.') || 
+               hostname.startsWith('10.') ||
+               hostname.startsWith('172.16') ||
+               hostname.startsWith('172.17') ||
+               hostname.startsWith('172.18') ||
+               hostname.startsWith('172.19') ||
+               hostname.startsWith('172.2') ||
+               hostname.startsWith('172.3') ||
+               hostname.startsWith('127.') ||
+               hostname === 'localhost';
+    } catch { return false; }
+}
+
 // Endpoints que requieren verificación CSRF (state-changing)
 const CSRF_PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const CSRF_PROTECTED_PATHS = [
@@ -59,6 +79,11 @@ function csrfMiddleware(req, res, next) {
     
     // Request con Origin header - verificar que esté en whitelist
     if (ALLOWED_ORIGINS.includes(origin)) {
+        return next();
+    }
+    
+    // Permitir IPs locales (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (isLocalIP(origin)) {
         return next();
     }
     
