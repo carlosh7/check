@@ -7675,7 +7675,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
                                 <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
@@ -7777,7 +7777,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
                                 <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
@@ -8030,7 +8030,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
                                 <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
@@ -8905,7 +8905,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
                                 <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
@@ -9147,7 +9147,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
                                 <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
                             </div>
                             <div class="min-w-0">
