@@ -11,6 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_PATH=/usr/src/app/persistence
+    networks:
+      - check-network
     entrypoint: []
     command: >
       sh -c "
@@ -26,3 +28,22 @@ services:
       npm install --omit=dev &&
       npm start"
     restart: always
+
+  proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - /home/data_check/nginx/data:/data
+      - /home/data_check/nginx/letsencrypt:/etc/letsencrypt
+    networks:
+      - check-network
+
+networks:
+  check-network:
+    driver: bridge
+
