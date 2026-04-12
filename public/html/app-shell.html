@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.391</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.393</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -81,15 +81,12 @@
 
     <!-- Main Content Area -->
     <main id="app-main-content" class="flex flex-1 flex-col min-w-0 bg-[#121212] relative overflow-hidden">
-        <!-- Background Blobs -->
-        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
-        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
-
-        <div class="h-full overflow-y-auto p-8 relative z-10">
+        <!-- Background Blobs Eliminados por solicitud (v12.44.393) -->
+        
+        <div class="h-full overflow-y-auto p-4 md:p-6 relative z-10 w-full">
             <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
-            <section id="view-my-events" class="hidden animate-fade-in" data-section="my-events">
-                <div class="max-w-7xl mx-auto">
-                    <div class="sticky-header-container">
+            <section id="view-my-events" class="hidden animate-fade-in flex flex-col h-full" data-section="my-events">
+                <div class="sticky-header-container">
                         <!-- Fila 1: Botones de acción -->
                         <div class="flex flex-wrap items-center gap-3 mb-4">
                             <div class="flex gap-2">
@@ -145,11 +142,11 @@
                     </div>
 
                     <!-- Fila 4: Tabla de Eventos -->
-                    <div class="table-scroll-container" style="max-height: calc(100vh - 320px);">
+                    <div class="table-scroll-container flex-1 min-h-0">
                         <table class="data-table">
                             <thead>
                                 <tr class="bg-white/[0.01]">
-                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 !w-[40px]">
+                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 !w-[40px] !px-3">
                                         <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" style="width: 16px; height: 16px; cursor: pointer;">
                                     </th>
                                     <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
@@ -179,7 +176,7 @@
             </section>
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
-            <section id="view-admin" class="hidden animate-fade-in">
+            <section id="view-admin" class="hidden animate-fade-in flex flex-col h-full">
                     <div class="sticky-header-container">
                         <!-- Fila 1: Botones de acción -->
                         <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -269,26 +266,24 @@
                     </div>
 
                 <!-- Tabla de asistencia -->
-                <div class="card !p-0 border-white/5 bg-white/[0.01]">
-                    <div class="">
-                        <table class="data-table">
-                            <thead>
-                                <tr class="bg-white/[0.01]">
-                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                        <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" style="width: 16px; height: 16px; cursor: pointer;">
-                                    </th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistente</th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cargo</th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Vegano</th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Restricciones</th>
-                                    <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                    <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Validar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendance-tbody" class="divide-y divide-white/[0.03]"></tbody>
-                        </table>
-                    </div>
+                <div class="table-scroll-container flex-1 min-h-0">
+                    <table class="data-table">
+                        <thead>
+                            <tr class="bg-white/[0.01]">
+                                <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                    <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" style="width: 16px; height: 16px; cursor: pointer;">
+                                </th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistente</th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cargo</th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Vegano</th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Restricciones</th>
+                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Validar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                    </table>
                 </div>
             </section>
 
@@ -495,399 +490,21 @@
                                         </thead>
                                         <tbody id="wheel-participants-tbody" class="divide-y divide-[var(--border-light)]">
                                             <tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <button id="btn-preview-wheel" class="btn-primary !px-5 !py-2.5">Vista Previa</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Publicación -->
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[var(--primary)]">share</span>
-                                    Compartir
-                                </h3>
-                                <div class="flex gap-4">
-                                    <input type="text" id="wheel-share-url" readonly class="input-field flex-1" placeholder="Aún no generado">
-                                    <button id="btn-copy-wheel-url" class="btn-secondary !px-4">Copiar</button>
-                                </div>
-                                <p class="text-xs text-slate-500 mt-2">Comparte este enlace para que los participantes giren la ruleta</p>
-                            </div>
-                            
-                            <!-- Resultados guardados -->
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[var(--primary)]">emoji_events</span>
-                                    Resultados
-                                </h3>
-                                <div id="wheel-results-list" class="space-y-2 mb-4 min-h-20 max-h-96 overflow-y-auto transition-all duration-300">
-                                    <p class="text-slate-500 text-sm">Cargando...</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="btn-delete-all-results" class="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 font-bold text-sm">Borrar Todos</button>
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-3">
-                                <button id="btn-save-wheel" class="btn-primary !px-6 !py-3">Guardar Ruleta</button>
-                                <button id="btn-delete-wheel" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold">Eliminar</button>
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <!-- CONTENIDO: PRE-REGISTROS -->
-                    <div id="config-content-pre-registrations" class="config-tab-content hidden space-y-6">
-                        <h2 class="text-2xl font-semibold tracking-tight">Pre-registros</h2>
-                        <div class="card !p-0 overflow-hidden">
-                            <table class="data-table">
-                                <tbody id="config-pre-reg-tbody"></tbody>
-                            </table>
+                    <!-- Estado vacío (se muestra cuando no hay eventos) -->
+                    <div id="events-empty-state" class="hidden flex-col items-center justify-center py-10 bg-white/[0.02] rounded-2xl border border-dashed border-white/10 mt-6">
+                        <div class="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-4 border border-violet-500/20">
+                            <span class="material-symbols-outlined text-violet-400 text-3xl">event</span>
                         </div>
+                        <h3 class="text-lg font-bold text-white mb-1">Sin eventos activos</h3>
+                        <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
+                        <button id="btn-new-event-full-empty" class="btn-primary !px-6 !py-3 text-xs font-black uppercase tracking-wider">
+                            Crear Evento
+                        </button>
                     </div>
-
-                    <!-- CONTENIDO: MAILING -->
-                    <div id="config-content-email" class="config-tab-content hidden space-y-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text-[var(--primary)]">Mailing</span></h2>
-                                <p class="text-[var(--text-secondary)] text-sm">Gestiona el envío de emails a los invitados de este evento.</p>
-                            </div>
-                        </div>
-
-                        <!-- Sub-tabs para Mailing -->
-                        <div class="flex gap-2 mb-6">
-                            <button id="mailing-tab-composer" class="px-4 py-2 rounded-xl bg-violet-500/20 text-violet-300 text-xs font-bold uppercase tracking-wider" onclick="App.switchMailingSubTab('composer')">Compositor</button>
-                            <button id="mailing-tab-campaigns" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchMailingSubTab('campaigns')">Campañas</button>
-                            <button id="mailing-tab-templates" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchMailingSubTab('templates')">Plantillas</button>
-                        </div>
-
-                        <!-- SUBTAB: COMPOSITOR -->
-                        <div id="mailing-subtab-composer" class="space-y-4">
-                            <div class="grid grid-cols-12 gap-4">
-                                <!-- Panel izquierdo: Formulario -->
-                                <div class="col-span-5 space-y-4">
-                                    <div class="card p-4 space-y-4">
-                                        <h4 class="text-sm font-bold text-white">Nueva Comunicación</h4>
-                                        
-                                        <!-- Selector de cuenta -->
-                                        <div>
-                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Cuenta de Email</label>
-                                            <select id="mailing-account-select" class="input-field w-full !py-2">
-                                                <option value="">-- Seleccionar Cuenta --</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Destinatarios -->
-                                        <div>
-                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Destinatarios</label>
-                                            <div class="space-y-2">
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="all" checked class="accent-violet-500"> Todos los invitados
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="confirmed" class="accent-violet-500"> Solo confirmados
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="pending" class="accent-violet-500"> Solo pendientes
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="group" class="accent-violet-500"> Por grupo específico
-                                                </label>
-                                            </div>
-                                            <div id="mailing-group-selector" class="hidden mt-2">
-                                                <select id="mailing-recipient-group" class="input-field w-full text-sm" onchange="App.updateMailingRecipientCount()">
-                                                    <option value="">-- Seleccionar grupo --</option>
-                                                </select>
-                                            </div>
-                                            <p id="mailing-recipient-count" class="text-xs text-slate-500 mt-2">0 invitados</p>
-                                        </div>
-
-                                        <!-- Asunto -->
-                                        <div>
-                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Asunto</label>
-                                            <input type="text" id="mailing-subject" class="input-field w-full" placeholder="Asunto del email">
-                                        </div>
-
-                                        <!-- Plantilla -->
-                                        <div>
-                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Plantilla</label>
-                                            <div class="flex gap-2">
-                                                <select id="mailing-template-select" class="input-field flex-1 !py-2" onchange="App.onMailingTemplateChange()">
-                                                    <option value="">-- Sin plantilla --</option>
-                                                </select>
-                                                <button onclick="App.showTemplateLibrary()" class="btn-secondary !px-3 !py-2 text-xs" title="Biblioteca de Plantillas">
-                                                    <span class="material-symbols-outlined text-sm">library</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Toggle Modo Visual/HTML -->
-                                        <div class="flex gap-2">
-                                            <button id="btn-mode-visual" onclick="App.switchMailingEditorMode('visual')" class="flex-1 py-2 rounded-lg bg-violet-500/20 text-violet-300 text-xs font-bold">Visual</button>
-                                            <button id="btn-mode-html" onclick="App.switchMailingEditorMode('html')" class="flex-1 py-2 rounded-lg bg-white/5 text-slate-400 text-xs font-bold hover:bg-white/10">HTML</button>
-                                        </div>
-
-                                        <!-- Editor WYSIWYG (Quill) -->
-                                        <div id="mailing-editor-container" class="bg-white rounded-lg overflow-hidden">
-                                            <div id="mailing-quill-editor" style="min-height: 250px;"></div>
-                                        </div>
-
-                                        <!-- Editor HTML (alternativo) -->
-                                        <div id="mailing-html-editor" class="hidden">
-                                            <textarea id="mailing-body-html" rows="10" class="input-field w-full font-mono text-xs" placeholder="<html>..."></textarea>
-                                        </div>
-
-                                        <!-- Variables Rápidas -->
-                                        <div>
-                                            <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Insertar Variable</label>
-                                            <div class="flex flex-wrap gap-1">
-                                                <button onclick="App.insertMailingVariable('guest_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{guest_name}}</button>
-                                                <button onclick="App.insertMailingVariable('guest_first_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{guest_first_name}}</button>
-                                                <button onclick="App.insertMailingVariable('event_name')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_name}}</button>
-                                                <button onclick="App.insertMailingVariable('event_date')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_date}}</button>
-                                                <button onclick="App.insertMailingVariable('event_location')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{event_location}}</button>
-                                                <button onclick="App.insertMailingVariable('qr_code')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[10px] text-slate-300">{{qr_code}}</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Acciones -->
-                                        <div class="flex gap-2">
-                                            <button onclick="App.sendTestEmail()" class="btn-secondary flex-1 !py-2 text-xs">Enviar Prueba</button>
-                                            <button onclick="App.sendMailing()" class="btn-primary flex-1 !py-2 text-xs">Enviar Ahora</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Panel derecho: Preview -->
-                                <div class="col-span-7">
-                                    <div class="card p-4 h-full flex flex-col">
-                                        <div class="flex justify-between items-center mb-3">
-                                            <h4 class="text-sm font-bold text-white">Vista Previa</h4>
-                                            <label class="flex items-center gap-2 text-xs text-slate-400">
-                                                <input type="checkbox" id="mailing-preview-toggle" onchange="App.toggleMailingPreview()" class="accent-violet-500"> Auto-preview
-                                            </label>
-                                        </div>
-                                        <div id="mailing-preview" class="bg-white rounded-lg text-slate-800 flex-1 overflow-hidden">
-                                            <iframe id="mailing-preview-frame" class="w-full h-full border-none" style="min-height: 500px;"></iframe>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SUBTAB: CAMPAÑAS -->
-                        <div id="mailing-subtab-campaigns" class="hidden space-y-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">Campañas de este Evento</h3>
-                                    <p class="text-xs text-slate-500">Historial de campañas enviadas</p>
-                                </div>
-                                <button onclick="App.openCampaignWizard()" class="btn-primary !px-4 !py-2 text-xs">+ Nueva Campaña</button>
-                            </div>
-                            <div id="mailing-campaigns-list" class="space-y-2">
-                                <!-- Lista de campañas se carga dinámicamente -->
-                            </div>
-                        </div>
-
-                        <!-- SUBTAB: PLANTILLAS -->
-                        <div id="mailing-subtab-templates" class="hidden space-y-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">Plantillas del Evento</h3>
-                                    <p class="text-xs text-slate-500">Plantillas específicas para este evento</p>
-                                </div>
-                            </div>
-                            <div id="mailing-templates-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <!-- Plantillas se cargan dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CONTENIDO: ENCUESTAS -->
-                    <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-semibold tracking-tight">Encuesta QR</h2>
-                            <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">+ Nueva Encuesta</button>
-                        </div>
-                        <div class="card !p-0 overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="px-5 py-4">Nombre</th>
-                                            <th class="px-5 py-4 text-center">Estado</th>
-                                            <th class="px-5 py-4 text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="survey-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div id="survey-questions-list" class="space-y-4"></div>
-                    </div>
-
-                    <!-- CONTENIDO: AJUSTES -->
-                    <div id="config-content-settings" class="config-tab-content hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-semibold">⚙️ Ajustes del <span class="text-[var(--primary)]">Evento</span></h2>
-                            <button id="btn-config-save-settings" class="btn-primary !px-5 !py-2.5">💾 Guardar Cambios</button>
-                        </div>
-                        
-                        <div class="card p-6 space-y-8">
-                            <input type="hidden" id="evs-id-hidden">
-                            
-                            <!-- Link de Registro -->
-                            <div class="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4">
-                                <h3 class="text-sm font-bold text-violet-400 mb-3 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">link</span> Enlace de Registro Público
-                                </h3>
-                                <div class="flex gap-2">
-                                    <input type="text" id="evs-registration-link" readonly class="input-field flex-1 bg-black/20 text-sm" placeholder="Selecciona un evento para ver el link">
-                                    <button type="button" id="btn-copy-reg-link" class="btn-secondary !py-2 !px-3" title="Copiar">
-                                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                                    </button>
-                                    <button type="button" id="btn-open-reg-link" class="btn-primary !py-2 !px-3" title="Abrir">
-                                        <span class="material-symbols-outlined text-sm">open_in_new</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Información del Evento -->
-                            <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">info</span> Información del Evento
-                                </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Nombre del Evento</label>
-                                        <input type="text" id="evs-name" class="input-field w-full" placeholder="Nombre del evento">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Ubicación</label>
-                                        <input type="text" id="evs-location" class="input-field w-full" placeholder="Ciudad, Hotel o Virtual">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Descripción</label>
-                                        <input type="text" id="evs-desc" class="input-field w-full" placeholder="Breve descripción">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Fecha Inicio</label>
-                                        <input type="datetime-local" id="evs-date" class="input-field w-full">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Fecha Fin</label>
-                                        <input type="datetime-local" id="evs-end-date" class="input-field w-full">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Configuración de Registro -->
-                            <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">how_to_reg</span> Configuración de Registro
-                                </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Título del Formulario</label>
-                                        <input type="text" id="evs-reg-title" class="input-field w-full" placeholder="Registro de Asistencia">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Mensaje Bienvenida</label>
-                                        <input type="text" id="evs-reg-welcome" class="input-field w-full" placeholder="¡Bienvenido!">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Mensaje de Éxito</label>
-                                        <input type="text" id="evs-reg-success" class="input-field w-full" placeholder="¡Registrado exitosamente!">
-                                    </div>
-                                    <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Política de Privacidad</label>
-                                        <textarea id="evs-reg-policy" class="input-field w-full" rows="2" placeholder="Política de privacidad..."></textarea>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-phone" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Teléfono</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-org" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Organización</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-position" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Cargo/Puesto</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-vegan" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Opción Vegana</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-dietary" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Notas Dietéticas</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-gender" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Género</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                        <input type="checkbox" id="evs-reg-agreement" class="w-4 h-4 accent-primary">
-                                        <span class="text-xs font-medium">Aceptar Términos</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <!-- Personalización Visual -->
-                            <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">palette</span> Personalización Visual
-                                </h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">QR Oscuro</label>
-                                        <input type="color" id="evs-qr-dark" class="w-full h-10 rounded-lg cursor-pointer" value="#000000">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">QR Claro</label>
-                                        <input type="color" id="evs-qr-light" class="w-full h-10 rounded-lg cursor-pointer" value="#ffffff">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Color Acento Ticket</label>
-                                        <input type="color" id="evs-ticket-accent" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Logo QR (URL)</label>
-                                        <input type="text" id="evs-qr-logo" class="input-field w-full" placeholder="https://...">
-                                    </div>
-                                    <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Logo Ticket (URL)</label>
-                                        <input type="text" id="evs-ticket-bg" class="input-field w-full" placeholder="https://...">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Restricciones de Email -->
-                            <div>
-                                <h3 class="text-sm font-bold text-[var(--text-main)] mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">email</span> Restricciones de Registro
-                                </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Emails Permitidos (whitelist)</label>
-                                        <textarea id="evs-reg-whitelist" class="input-field w-full" rows="2" placeholder="uno@email.com, dos@email.com (vacío = todos)"></textarea>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-[var(--text-muted)]">Emails Bloqueados (blacklist)</label>
-                                        <textarea id="evs-reg-blacklist" class="input-field w-full" rows="2" placeholder="spam@email.com, etc."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->

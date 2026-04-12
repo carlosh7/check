@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.391",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.391 - Tabla con scroll interno y thead sticky.",
+  "version": "12.44.393",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.387 - Tabla con scroll interno, thead sticky y ordenamiento clickeable.",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
