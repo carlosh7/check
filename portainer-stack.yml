@@ -9,7 +9,7 @@ services:
     volumes:
       - /home/data_check:/usr/src/app/persistence
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DATA_PATH=/usr/src/app/persistence
     networks:
       - check-network
