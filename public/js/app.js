@@ -1144,26 +1144,26 @@ const App = window.App = {
                     const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                     const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
                     
                     const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                     const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                     
                     const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                     const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
@@ -1172,7 +1172,7 @@ const App = window.App = {
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">business</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                                 <div class="flex flex-col">
                                     <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
@@ -1224,19 +1224,19 @@ const App = window.App = {
                     const clientEvents = c.events || [];
                     const eventRows = clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`;
                     
                     // Staff asignado al cliente con iconos
                     const clientStaff = c.staff || [];
                     const staffRows = clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">badge</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">badge</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
                         </div>
-                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">badge</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`;
+                    `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">badge</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`;
                     
                     return `
                     <tr class="user-row-premium">
@@ -1245,7 +1245,7 @@ const App = window.App = {
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                                 <div>
                                     <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
                                     <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
@@ -1255,7 +1255,7 @@ const App = window.App = {
                         </td>
                         <td class="px-2 py-3 align-middle">
                             <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                                <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">domain</span>
+                                <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">domain</span>
                                 <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                             </div>
                         </td>
@@ -1368,7 +1368,7 @@ const App = window.App = {
                     </td>
                     <td class="px-2 py-3 align-middle">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${c.name}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${c.email || '-'}</div>
@@ -1378,27 +1378,27 @@ const App = window.App = {
                     <td class="px-2 py-3 align-middle">
                         ${c.company_name ? `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name.length > 15 ? c.company_name.substring(0, 15) + '...' : c.company_name}</span>
                         </div>` : `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span>
                             <span class="text-xs text-slate-500 italic">Sin empresa</span>
                         </div>`}
                     </td>
                     <td class="px-2 py-3 align-middle">
                         ${clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${(u.display_name || u.username).length > 15 ? (u.display_name || u.username).substring(0, 15) + '...' : (u.display_name || u.username)}</span>
-                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
+                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
                     </td>
                     <td class="px-2 py-3 align-middle">
                         ${clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
-                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
+                        </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
                     </td>
                     <td class="px-2 py-3 align-middle text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
@@ -1670,26 +1670,26 @@ const App = window.App = {
                 const groupUsers = users.filter(u => u.groups && u.groups.some(gp => String(gp.id) === String(g.id)));
                 const userRows = groupUsers.length > 0 ? groupUsers.map(u => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${u.display_name || u.username}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin staff</span></div>`;
 
                 const groupEvents = events.filter(e => String(e.group_id) === String(g.id));
                 const eventRows = groupEvents.length > 0 ? groupEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 18 ? e.name.substring(0, 18) + '...' : e.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
 
                 const groupClients = clients.filter(c => String(c.group_id) === String(g.id));
                 const clientRows = groupClients.length > 0 ? groupClients.map(c => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
 
                 return `
                 <tr class="user-row-premium">
@@ -1698,7 +1698,7 @@ const App = window.App = {
                     </td>
                     <td class="px-2 py-3 align-middle">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">business</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${g.name}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${g.email || '-'}</div>
@@ -3924,7 +3924,7 @@ const App = window.App = {
                 // --- COLUMNA 1: STAFF ---
                 const colStaff = `
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col gap-0.5">
                             <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || 'Sin nombre'}</div>
                             <div class="text-xs text-[var(--text-secondary)] font-mono">${u.username}</div>
@@ -3935,29 +3935,29 @@ const App = window.App = {
                 // --- COLUMNA 2: EMPRESA ---
                 const groupDisplay = (u.groups && u.groups.length > 0) ? u.groups.map(userGroup => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${userGroup.name.length > 15 ? userGroup.name.substring(0, 15) + '...' : userGroup.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">corporate_fare</span><span class="text-xs text-slate-500 italic">Sin empresa</span></div>`;
                 const colEmpresa = `<div class="flex flex-col max-w-[200px]">${groupDisplay}</div>`;
 
                 // --- COLUMNA 3: CLIENTES ---
                 const userClients = (u.clients && u.clients.length > 0) ? u.clients.map(client => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${client.name.length > 15 ? client.name.substring(0, 15) + '...' : client.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-[var(--text-muted)] italic">Sin clientes</span></div>`;
                 const colClientes = `<div class="flex flex-col max-w-[200px]">${userClients}</div>`;
 
                 // --- COLUMNA 4: EVENTOS ---
                 const userEvents = events.filter(e => u.events && u.events.map(ev => String(ev)).includes(String(e.id)));
                 const eventRows = userEvents.length > 0 ? userEvents.map(e => `
                     <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px; padding: 2px;">event</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                         <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
                     </div>
-                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px; padding: 2px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
+                `).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-[var(--text-muted)] italic">Sin eventos</span></div>`;
                 const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
@@ -7675,8 +7675,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -7777,8 +7777,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -8030,8 +8030,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -8905,8 +8905,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -9147,8 +9147,8 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-4 h-4-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
+                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
                             </div>
                             <div class="min-w-0">
                                 <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
@@ -11971,7 +11971,7 @@ const App = window.App = {
                     </td>
                     <td class="px-2 py-3 align-middle">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                            <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
                                 <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
                                 <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
@@ -12659,7 +12659,7 @@ const App = window.App = {
                 </td>
                 <td class="px-2 py-3 align-middle">
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-xs flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px;">person</span>
+                        <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col">
                             <div class="font-bold text-sm text-[var(--text-main)]">${u.display_name || u.username}</div>
                             <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">${u.username}</div>
