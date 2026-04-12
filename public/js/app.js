@@ -14212,7 +14212,7 @@ App.renderAttendanceTable = function(attendance) {
             </td>
             <td class="!py-3 !px-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">
+                    <div class="w-3 h-3 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0" style="background: rgba(99,102,241,0.2); color: #6366f1;">
                         ${(a.client_name || 'A').charAt(0).toUpperCase()}
                     </div>
                     <div>
