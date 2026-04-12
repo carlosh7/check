@@ -206,122 +206,34 @@ body {
     width: 22px;
 }
 
-/* STICKY HEADERS v12.44.390 - BLOQUE ÚNICO SÓLIDO */
+/* STICKY HEADERS v12.44.375 - BLOQUE ÚNICO SÓLIDO */
 .sticky-header-container {
-    background: var(--bg-app);
-    padding: 0 0 16px 0;
-    margin-bottom: 16px;
+    position: sticky;
+    top: -32px; /* Margen negativo para compensar el padding del main */
+    z-index: 60;
+    background: var(--bg-app); /* Fondo sólido para tapar el contenido que sube */
+    margin: -32px -32px 24px -32px;
+    padding: 32px 32px 16px 32px;
     border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA v12.44.388 - Sticky Headers */
-.table-scroll-container {
-    flex: 1;
-    min-height: 0;
-    height: auto;
-    overflow-y: auto;
-    overflow-x: auto;
-    background: transparent;
-    border: none;
-    will-change: transform;
-}
-
-.table-scroll-container table.data-table {
-    min-width: 800px;
-    background: transparent;
-    border: none;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table-scroll-container .card {
-    background: transparent;
-    border: none;
-    backdrop-filter: none;
-}
-
-.table-scroll-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.table-scroll-container::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* Columnas ordenables */
-th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.2s ease;
-}
-
-th.sortable:hover {
-    color: #8b5cf6;
-}
-
-th.sortable.sorted-asc .sort-icon {
-    opacity: 1;
-    color: #8b5cf6;
-}
-
-th.sortable.sorted-desc .sort-icon {
-    opacity: 1;
-    color: #8b5cf6;
-}
-
-th.sorted-asc, th.sorted-desc {
-    color: #8b5cf6 !important;
+/* Nivel 2: Encabezados de Tabla (thead) */
+.data-table thead th {
+    position: sticky;
+    top: 195px; /* Ajustado para aparecer justo debajo del buscador del bloque sólido */
+    z-index: 50;
+    background: #09090b; /* Fijo neutro oscuro */
+    backdrop-filter: blur(10px) saturate(0);
+    -webkit-backdrop-filter: blur(10px) saturate(0);
+    border-bottom: 1px solid var(--border);
 }
 
 /* Ajuste de scroll para evitar saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
-    overflow-x: hidden;
-}
-
-/* Secciones de tabla con flex para ocupar todo el altura */
-#view-my-events,
-#view-admin {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-}
-
-#view-my-events .sticky-header-container,
-#view-admin .sticky-header-container {
-    flex-shrink: 0;
-}
-
-#view-my-events .table-scroll-container,
-#view-admin .table-scroll-container {
-    flex: 1;
-    min-height: 0;
-    height: auto;
-    overflow-y: auto;
-    overflow-x: auto;
-}
-
-/* Data table thead sticky */
-#view-my-events .data-table thead,
-#view-admin .data-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(24, 24, 27, 0.98);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+    overflow-x: hidden; /* Evitar scroll horizontal si no es necesario */
 }
 
 /* Modificación de Card para permitir Sticky */
