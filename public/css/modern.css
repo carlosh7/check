@@ -219,27 +219,10 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA v12.44.386 - Sticky Headers */
+/* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
 .table-scroll-container {
-    height: calc(100vh - 280px);
-    min-height: 400px;
     overflow-y: auto;
     overflow-x: auto;
-    border-radius: 12px;
-    background: transparent;
-    border: none;
-}
-
-.table-scroll-container table.data-table {
-    min-width: 800px;
-    background: transparent;
-    border: none;
-}
-
-.table-scroll-container .card {
-    background: transparent;
-    border: none;
-    backdrop-filter: none;
 }
 
 .table-scroll-container::-webkit-scrollbar {
@@ -259,14 +242,48 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Nivel 2: Encabezados de Tabla (thead) - Sticky dentro del scroll container */
-.data-table thead th {
+/* Altura por página - Desktop */
+#view-my-events .table-scroll-container {
+    max-height: calc(100vh - 380px);
+}
+
+#view-admin .table-scroll-container {
+    max-height: calc(100vh - 450px);
+}
+
+/* Tables sin scroll container - altura fija */
+#config-content-staff .data-table tbody,
+#wheel-participants-tbody {
+    display: block;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#config-content-staff .data-table thead tr,
+#config-content-staff .data-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Tablas en secciones de sistema */
+#sys-content-groups .card,
+#sys-content-staff .card,
+#sys-content-clients .card {
+    max-height: calc(100vh - 400px);
+    overflow-y: auto;
+}
+
+/* thead sticky en tablas con scroll interno */
+#view-my-events .data-table thead,
+#view-admin .data-table thead {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(24, 24, 27, 0.95);
-    backdrop-filter: blur(10px) saturate(0);
-    -webkit-backdrop-filter: blur(10px) saturate(0);
+    background: rgba(24, 24, 27, 0.98);
+}
+
+.data-table thead th {
     border-bottom: 1px solid var(--border);
 }
 
@@ -281,11 +298,7 @@ th.sortable:hover {
     color: #8b5cf6;
 }
 
-th.sortable.sorted-asc .sort-icon {
-    opacity: 1;
-    color: #8b5cf6;
-}
-
+th.sortable.sorted-asc .sort-icon,
 th.sortable.sorted-desc .sort-icon {
     opacity: 1;
     color: #8b5cf6;
@@ -298,7 +311,7 @@ th.sorted-asc, th.sorted-desc {
 /* Ajuste de scroll para evitar saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
-    overflow-x: hidden; /* Evitar scroll horizontal si no es necesario */
+    overflow-x: hidden;
 }
 
 /* Modificación de Card para permitir Sticky */
