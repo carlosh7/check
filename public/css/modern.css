@@ -274,13 +274,33 @@ body {
     overflow-y: auto;
 }
 
-/* thead sticky en tablas con scroll interno */
-#view-my-events .data-table thead,
-#view-admin .data-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(24, 24, 27, 0.98);
+/* Opción 1: Tabla con tbody scrolleable - thead natural arriba */
+#view-my-events .table-scroll-container .data-table,
+#view-admin .table-scroll-container .data-table {
+    display: block;
+    width: 100%;
+}
+
+#view-my-events .table-scroll-container .data-table thead,
+#view-admin .table-scroll-container .data-table thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+#view-my-events .table-scroll-container .data-table tbody,
+#view-admin .table-scroll-container .data-table tbody {
+    display: block;
+    max-height: calc(100vh - 420px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#view-my-events .table-scroll-container .data-table tbody tr,
+#view-admin .table-scroll-container .data-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .data-table thead th {
