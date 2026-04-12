@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.382",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.382 - Phase 1: Pure Gray/Black Glassmorphism",
+  "version": "12.44.383",
+  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.383 - Phase 1: Killed Blue Light Bleed",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
