@@ -219,10 +219,11 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA v12.44.387 - Sticky Headers */
+/* TABLA SCROLL INTERNA v12.44.388 - Sticky Headers */
 .table-scroll-container {
-    height: calc(100vh - 240px);
-    min-height: 500px;
+    flex: 1;
+    min-height: 0;
+    height: auto;
     overflow-y: auto;
     overflow-x: auto;
     background: transparent;
@@ -307,7 +308,26 @@ th.sorted-asc, th.sorted-desc {
 /* Ajuste de scroll para evitar saltos */
 #app-main-content > .overflow-y-auto {
     scroll-behavior: smooth;
-    overflow-x: hidden; /* Evitar scroll horizontal si no es necesario */
+    overflow-x: hidden;
+}
+
+/* Secciones de tabla con flex para ocupar todo el altura */
+#view-my-events.h-full,
+#view-admin.h-full {
+    height: 100%;
+    min-height: 0;
+}
+
+#view-my-events .sticky-header-container,
+#view-admin .sticky-header-container {
+    flex-shrink: 0;
+}
+
+#view-my-events .table-scroll-container,
+#view-admin .table-scroll-container {
+    flex: 1;
+    min-height: 0;
+    height: auto;
 }
 
 /* Modificación de Card para permitir Sticky */
