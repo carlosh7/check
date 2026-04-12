@@ -2,29 +2,25 @@ version: '3.8'
 
 services:
   check-app:
-    image: 'node:20-alpine'
+    image: node:20-slim
     container_name: check-app
     restart: always
     ports:
       - '3000:3000'
+    volumes:
+      - /home/data_check:/usr/src/app/persistence
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DATA_PATH=/usr/src/app/persistence
-      # Para desarrollo local - agregar IP según-sea-necesario
-      # Ejemplo: ALLOWED_ORIGINS=http://localhost:3000,http://192.168.1.100:3000
-      # Para producción con dominio usar:
-      # - ALLOWED_ORIGINS=http://tusitio.com,https://tusitio.com
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
-    volumes:
-      - /home/data_check:/usr/src/app/persistence
     networks:
       - check-network
     entrypoint: []
     command: >
       sh -c "
       echo 'Init...' &&
-      apk add --no-cache git rsync &&
+      apt-get update && apt-get install -y git rsync &&
       mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
       chmod -R 777 /usr/src/app/persistence &&
       rm -rf /tmp/app_new &&
