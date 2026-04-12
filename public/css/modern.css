@@ -55,13 +55,13 @@
 }
 
 .dark {
-    --bg-app: #020617;
-    --bg-sidebar: rgba(2, 6, 23, 0.8);
-    --bg-card: rgba(15, 23, 42, 0.6);
-    --bg-input: rgba(15, 23, 42, 0.8);
+    --bg-app: #09090b; /* Zinc 950 - Negro puro / Gris profundo sin tinte azul */
+    --bg-sidebar: rgba(9, 9, 11, 0.8);
+    --bg-card: rgba(24, 24, 27, 0.6); /* Zinc 900 - Gris neutro oscuro */
+    --bg-input: rgba(24, 24, 27, 0.8);
     --bg-hover: rgba(139, 92, 246, 0.1);
     --bg-active: rgba(139, 92, 246, 0.15);
-    --bg-card-rgb: 2, 6, 23;
+    --bg-card-rgb: 24, 24, 27;
     --primary: #8b5cf6;
     --primary-vibrant: #7c3aed;
     --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
@@ -224,7 +224,7 @@ body {
     position: sticky;
     top: 195px; /* Ajustado para aparecer justo debajo del buscador del bloque sólido */
     z-index: 50;
-    background: #020617; /* Fondo sólido oscuro (var(--bg-app) en dark) */
+    background: #09090b; /* Fijo neutro oscuro */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
@@ -411,9 +411,9 @@ html.dark .status-error { background: rgba(239, 68, 68, 0.15); color: #f87171; }
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    background: rgba(15, 23, 42, 0.4) !important; /* Gris/Negro sutil */
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    background: rgba(24, 24, 27, 0.6) !important; /* Zinc 900 Glass y !important para matar TODO heredado azul */
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     border-radius: 12px;
     overflow: hidden;
 }
