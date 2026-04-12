@@ -70,7 +70,7 @@
                 
                     <!-- Firma y versión -->
                 <div class="px-4 py-4 text-center">
-                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.383</p>
+                    <p class="text-[11px] text-zinc-600 font-bold tracking-[0.1em] mb-1 app-version-text">Check Pro v12.44.391</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-violet-500 hover:text-blue-400 transition-colors font-bold">
                         Powered By Smart Eventos
                     </a>
@@ -145,25 +145,23 @@
                     </div>
 
                     <!-- Fila 4: Tabla de Eventos -->
-                    <div class="card !p-0 border-white/5 bg-white/[0.01]">
-                        <div class="">
-                            <table class="data-table">
-                                <thead>
-                                    <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                            <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" style="width: 16px; height: 16px; cursor: pointer;">
-                                        </th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Evento</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Fecha / Cuenta Regresiva</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cliente</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Locación</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistentes</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="events-tbody" class="divide-y divide-white/[0.03]"></tbody>
-                            </table>
-                        </div>
+                    <div class="table-scroll-container" style="max-height: calc(100vh - 320px);">
+                        <table class="data-table">
+                            <thead>
+                                <tr class="bg-white/[0.01]">
+                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 !w-[40px]">
+                                        <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" style="width: 16px; height: 16px; cursor: pointer;">
+                                    </th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="client" data-type="text" onclick="App.sortEventsTable('client')">Cliente <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="location" data-type="text" onclick="App.sortEventsTable('location')">Locación <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="guests" data-type="number" onclick="App.sortEventsTable('guests')">Asistentes <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" data-sort="status" data-type="text" onclick="App.sortEventsTable('status')">Estado <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="events-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                        </table>
                     </div>
 
                     <!-- Estado vacío (se muestra cuando no hay eventos) -->

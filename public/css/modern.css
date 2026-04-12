@@ -1526,3 +1526,59 @@ html.dark .sub-nav-btn[data-tab="account"].active {
     border-color: rgba(139, 92, 246, 1) !important;
 }
 
+/* TABLA SCROLL INTERNA v12.44.391 - thead sticky */
+.table-scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* thead sticky dentro del scroll container */
+.table-scroll-container .data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(24, 24, 27, 0.98);
+}
+
+.data-table thead th {
+    border-bottom: 1px solid var(--border);
+}
+
+/* Columnas ordenables */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+th.sortable:hover {
+    color: #8b5cf6;
+}
+
+th.sortable.sorted-asc .sort-icon,
+th.sortable.sorted-desc .sort-icon {
+    opacity: 1;
+    color: #8b5cf6;
+}
+
+th.sorted-asc, th.sorted-desc {
+    color: #8b5cf6 !important;
+}
+
