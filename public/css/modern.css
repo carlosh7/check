@@ -244,11 +244,11 @@ body {
 
 /* Altura por página - Desktop */
 #view-my-events .table-scroll-container {
-    max-height: calc(100vh - 380px);
+    max-height: calc(100vh - 300px);
 }
 
 #view-admin .table-scroll-container {
-    max-height: calc(100vh - 450px);
+    max-height: calc(100vh - 380px);
 }
 
 /* Tables sin scroll container - altura fija */
@@ -291,7 +291,7 @@ body {
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    max-height: calc(100vh - 420px);
+    max-height: calc(100vh - 340px);
     overflow-y: auto;
     overflow-x: hidden;
 }
