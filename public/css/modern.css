@@ -253,6 +253,17 @@ body {
     overflow: visible;
 }
 
+/* Dashboard - eliminar scroll de página, solo tabla */
+#view-admin {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+#view-admin .h-full {
+    height: auto !important;
+    overflow: visible !important;
+}
+
 /* Scroll solo en tbody - thead queda fijo */
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
