@@ -414,15 +414,10 @@ th.sorted-asc, th.sorted-desc {
     color: #8b5cf6 !important;
 }
 
-/* Ajuste de scroll - página sin scroll, solo tablas */
-#app-main-content {
-    overflow: visible !important;
-    height: auto !important;
-}
-
+/* Ajuste de scroll */
 #app-main-content > .overflow-y-auto {
-    overflow: visible !important;
-    height: auto !important;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Modificación de Card para permitir Sticky */
