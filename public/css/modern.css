@@ -431,9 +431,13 @@ th.sorted-asc, th.sorted-desc {
     overflow-x: hidden;
 }
 
-/* Dashboard - eliminar scroll vertical de página, mantener horizontal si es necesario */
-#app-main-content:has(#view-admin:not(.hidden)) > .overflow-y-auto {
-    overflow-y: visible !important;
+/* Eliminar scroll horizontal de la página completa */
+html {
+    overflow-x: hidden !important;
+}
+
+body {
+    overflow-x: hidden !important;
 }
 
 /* Modificación de Card para permitir Sticky */
