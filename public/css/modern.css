@@ -219,14 +219,16 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
+/* TABLA SCROLL INTERNA - Contenedor base sin scroll */
 .table-scroll-container {
-    overflow-y: auto;
+    overflow: visible;
     overflow-x: auto;
+    display: block;
 }
 
 .table-scroll-container::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
 
 .table-scroll-container::-webkit-scrollbar-track {
@@ -243,16 +245,11 @@ body {
 }
 
 /* Altura por página - Desktop */
-#view-my-events .table-scroll-container {
-    max-height: none;
-    overflow: visible;
-    overflow-x: visible;
-}
-
+#view-my-events .table-scroll-container,
 #view-admin .table-scroll-container {
     max-height: none;
     overflow: visible;
-    overflow-x: visible;
+    overflow-x: auto;
 }
 
 /* Scroll solo en tbody - thead queda fijo */
