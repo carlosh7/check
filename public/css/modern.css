@@ -244,11 +244,22 @@ body {
 
 /* Altura por página - Desktop */
 #view-my-events .table-scroll-container {
-    max-height: calc(100vh - 190px);
+    max-height: none;
+    overflow: visible;
 }
 
 #view-admin .table-scroll-container {
-    max-height: calc(100vh - 250px);
+    max-height: none;
+    overflow: visible;
+}
+
+/* Scroll solo en tbody - thead queda fijo */
+#view-my-events .table-scroll-container .data-table tbody,
+#view-admin .table-scroll-container .data-table tbody {
+    display: block;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 /* Config Evento - tabla staff */
