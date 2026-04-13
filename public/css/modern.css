@@ -431,6 +431,17 @@ th.sorted-asc, th.sorted-desc {
     overflow-x: hidden;
 }
 
+/* Dashboard - eliminar scroll de página */
+#app-main-content:has(#view-admin:not(.hidden)) {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+#app-main-content:has(#view-admin:not(.hidden)) > .overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+}
+
 /* Modificación de Card para permitir Sticky */
 .card {
     background: rgba(var(--bg-card-rgb), 0.6);
