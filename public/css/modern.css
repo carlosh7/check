@@ -219,14 +219,35 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA - Contenedor base */
+/* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
 .table-scroll-container {
-    overflow: visible;
-    display: block;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Altura por página - Desktop */
-#view-my-events .table-scroll-container,
+#view-my-events .table-scroll-container {
+    max-height: none;
+    overflow: visible;
+}
+
 #view-admin .table-scroll-container {
     max-height: none;
     overflow: visible;
@@ -236,46 +257,38 @@ body {
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    max-height: calc(100vh - 240px);
+    max-height: calc(100vh - 260px);
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 /* Config Evento - tabla staff */
 #config-content-staff .table-scroll-container {
-    max-height: none;
-    overflow: visible;
+    max-height: calc(100vh - 350px);
 }
 
 #config-content-staff .data-table tbody {
-    display: block;
-    max-height: calc(100vh - 350px);
-    overflow-y: auto;
-    overflow-x: hidden;
+    max-height: calc(100vh - 380px);
 }
 
 /* Config Evento - tabla wheel */
 #config-content-wheel .table-scroll-container {
-    max-height: none;
-    overflow: visible;
+    max-height: calc(100vh - 300px);
 }
 
 /* Sistema - Empresas */
 #sys-content-groups .table-scroll-container {
-    max-height: none;
-    overflow: visible;
+    max-height: calc(100vh - 300px);
 }
 
 /* Sistema - Staff */
 #sys-content-staff .table-scroll-container {
-    max-height: none;
-    overflow: visible;
+    max-height: calc(100vh - 300px);
 }
 
 /* Sistema - Clientes */
 #sys-content-clients .table-scroll-container {
-    max-height: none;
-    overflow: visible;
+    max-height: calc(100vh - 300px);
 }
 
 /* Tables sin scroll container - altura fija */
@@ -306,21 +319,20 @@ body {
 #view-admin .table-scroll-container .data-table {
     display: block;
     width: 100%;
+    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table thead,
 #view-admin .table-scroll-container .data-table thead {
     display: table;
-    table-layout: fixed;
     width: 100%;
+    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    width: 100%;
-    max-height: calc(100vh - 240px);
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: auto;
 }
 
@@ -328,7 +340,7 @@ body {
 #view-admin .table-scroll-container .data-table tbody tr {
     display: table;
     width: 100%;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 /* Anchos específicos por columna */
@@ -340,8 +352,7 @@ body {
 
 #view-my-events .table-scroll-container .data-table th:nth-child(2),
 #view-my-events .table-scroll-container .data-table td:nth-child(2) {
-    min-width: 280px;
-    width: 30%;
+    min-width: 200px;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(3),
@@ -351,13 +362,12 @@ body {
 
 #view-my-events .table-scroll-container .data-table th:nth-child(4),
 #view-my-events .table-scroll-container .data-table td:nth-child(4) {
-    min-width: 250px;
-    width: 25%;
+    min-width: 150px;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(5),
 #view-my-events .table-scroll-container .data-table td:nth-child(5) {
-    min-width: 200px;
+    min-width: 150px;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(6),
@@ -404,14 +414,10 @@ th.sorted-asc, th.sorted-desc {
     color: #8b5cf6 !important;
 }
 
-/* Ajuste de scroll - página sin scroll, solo tablas */
-#app-main-content {
-    overflow: visible !important;
-    height: auto !important;
-}
-
-#app-main-content > * {
-    overflow: visible !important;
+/* Ajuste de scroll para evitar saltos */
+#app-main-content > .overflow-y-auto {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 /* Modificación de Card para permitir Sticky */
