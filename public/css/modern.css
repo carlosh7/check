@@ -219,29 +219,11 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 
-/* TABLA SCROLL INTERNA - Contenedor base sin scroll */
+/* TABLA SCROLL INTERNA - Contenedor base */
 .table-scroll-container {
     overflow: visible;
-    overflow-x: auto;
+    overflow-x: visible;
     display: block;
-}
-
-.table-scroll-container::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.table-scroll-container::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Altura por página - Desktop */
@@ -256,38 +238,45 @@ body {
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    max-height: calc(100vh - 260px);
+    max-height: calc(100vh - 240px);
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden;
 }
 
 /* Config Evento - tabla staff */
 #config-content-staff .table-scroll-container {
-    max-height: calc(100vh - 350px);
+    max-height: none;
+    overflow: visible;
 }
 
 #config-content-staff .data-table tbody {
-    max-height: calc(100vh - 380px);
+    display: block;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
 }
 
 /* Config Evento - tabla wheel */
 #config-content-wheel .table-scroll-container {
-    max-height: calc(100vh - 300px);
+    max-height: none;
+    overflow: visible;
 }
 
 /* Sistema - Empresas */
 #sys-content-groups .table-scroll-container {
-    max-height: calc(100vh - 300px);
+    max-height: none;
+    overflow: visible;
 }
 
 /* Sistema - Staff */
 #sys-content-staff .table-scroll-container {
-    max-height: calc(100vh - 300px);
+    max-height: none;
+    overflow: visible;
 }
 
 /* Sistema - Clientes */
 #sys-content-clients .table-scroll-container {
-    max-height: calc(100vh - 300px);
+    max-height: none;
+    overflow: visible;
 }
 
 /* Tables sin scroll container - altura fija */
