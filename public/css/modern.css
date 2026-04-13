@@ -246,11 +246,13 @@ body {
 #view-my-events .table-scroll-container {
     max-height: none;
     overflow: visible;
+    overflow-x: visible;
 }
 
 #view-admin .table-scroll-container {
     max-height: none;
     overflow: visible;
+    overflow-x: visible;
 }
 
 /* Scroll solo en tbody - thead queda fijo */
