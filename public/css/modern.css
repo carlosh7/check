@@ -251,6 +251,35 @@ body {
     max-height: calc(100vh - 250px);
 }
 
+/* Config Evento - tabla staff */
+#config-content-staff .table-scroll-container {
+    max-height: calc(100vh - 350px);
+}
+
+#config-content-staff .data-table tbody {
+    max-height: calc(100vh - 380px);
+}
+
+/* Config Evento - tabla wheel */
+#config-content-wheel .table-scroll-container {
+    max-height: calc(100vh - 300px);
+}
+
+/* Sistema - Empresas */
+#sys-content-groups .table-scroll-container {
+    max-height: calc(100vh - 300px);
+}
+
+/* Sistema - Staff */
+#sys-content-staff .table-scroll-container {
+    max-height: calc(100vh - 300px);
+}
+
+/* Sistema - Clientes */
+#sys-content-clients .table-scroll-container {
+    max-height: calc(100vh - 300px);
+}
+
 /* Tables sin scroll container - altura fija */
 #config-content-staff .data-table tbody,
 #wheel-participants-tbody {
