@@ -330,12 +330,18 @@ body {
 
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+#view-my-events .table-scroll-container .data-table tbody tr,
+#view-admin .table-scroll-container .data-table tbody tr {
     display: table;
     width: 100%;
     table-layout: fixed;
-    max-height: calc(100vh - 260px);
-    overflow-y: auto;
-    overflow-x: auto;
 }
 
 /* Anchos específicos por columna */
