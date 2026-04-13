@@ -319,28 +319,23 @@ body {
 #view-admin .table-scroll-container .data-table {
     display: block;
     width: 100%;
-    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table thead,
 #view-admin .table-scroll-container .data-table thead {
     display: table;
+    table-layout: fixed;
     width: 100%;
-    table-layout: auto;
 }
 
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
-    display: block;
-    overflow-y: visible;
-    overflow-x: auto;
-}
-
-#view-my-events .table-scroll-container .data-table tbody tr,
-#view-admin .table-scroll-container .data-table tbody tr {
     display: table;
     width: 100%;
-    table-layout: auto;
+    table-layout: fixed;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 /* Anchos específicos por columna */
