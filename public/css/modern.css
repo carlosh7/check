@@ -347,7 +347,8 @@ body {
 
 #view-my-events .table-scroll-container .data-table th:nth-child(2),
 #view-my-events .table-scroll-container .data-table td:nth-child(2) {
-    min-width: 200px;
+    min-width: 280px;
+    width: 30%;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(3),
@@ -357,12 +358,13 @@ body {
 
 #view-my-events .table-scroll-container .data-table th:nth-child(4),
 #view-my-events .table-scroll-container .data-table td:nth-child(4) {
-    min-width: 150px;
+    min-width: 250px;
+    width: 25%;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(5),
 #view-my-events .table-scroll-container .data-table td:nth-child(5) {
-    min-width: 150px;
+    min-width: 200px;
 }
 
 #view-my-events .table-scroll-container .data-table th:nth-child(6),

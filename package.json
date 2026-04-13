@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.416",
+  "version": "12.44.417",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.398 - Tabla con tbody scrolleable, thead natural fijo.",
   "main": "script.js",
   "scripts": {
