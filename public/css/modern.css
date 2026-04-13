@@ -222,7 +222,6 @@ body {
 /* TABLA SCROLL INTERNA - Contenedor base */
 .table-scroll-container {
     overflow: visible;
-    overflow-x: visible;
     display: block;
 }
 
@@ -231,7 +230,6 @@ body {
 #view-admin .table-scroll-container {
     max-height: none;
     overflow: visible;
-    overflow-x: auto;
 }
 
 /* Scroll solo en tbody - thead queda fijo */
@@ -253,6 +251,7 @@ body {
     display: block;
     max-height: calc(100vh - 350px);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Config Evento - tabla wheel */
