@@ -321,8 +321,7 @@ body {
 #view-my-events .table-scroll-container .data-table tbody,
 #view-admin .table-scroll-container .data-table tbody {
     display: block;
-    max-height: calc(100vh - 230px);
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: auto;
 }
 
