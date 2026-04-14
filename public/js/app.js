@@ -2,7 +2,26 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos (Fase 1-5 + Form + Dropdown - COMPLETO)
-import { Config, AppStateManager, Constants, RouterManager, PersistenceManager, ToastManager, ModalManager, TableManager, SidebarManager, FormManager, DropdownManager, ViewManagerInstance, MyEventsViewInstance, AdminViewInstance, EventConfigViewInstance as EventConfigViewInstance, SystemViewInstance, ApiServiceInstance, AuthServiceInstance, EventServiceInstance, GuestServiceInstance } from './modules/index.js';
+import { Config } from './modules/core/Config.js?v=12.44.441';
+import { AppStateManager } from './modules/core/State.js?v=12.44.441';
+import { Constants } from './modules/utils/Constants.js?v=12.44.441';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.441';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.441';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.441';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.441';
+import { TableManager } from './modules/components/Table.js?v=12.44.441';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.441';
+import { FormManager } from './modules/components/Form.js?v=12.44.441';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.441';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.441';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.441';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.441';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.441';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.441';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.441';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.441';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.441';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.441';
 
 // DEBUG V12.44.364 - Si ves esto, el código nuevo se cargó
 console.log('[INIT] app.js version 12.44.364 loaded');
