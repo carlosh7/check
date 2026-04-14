@@ -4,30 +4,22 @@
  */
 
 // Core
-export { Config, default as DefaultConfig } from './core/Config.js';
-export { AppStateManager, default as AppState } from './core/State.js';
+export { Config } from './core/Config.js';
+export { AppStateManager } from './core/State.js';
 
 // Utils
-export { Constants, default as DefaultConstants } from './utils/Constants.js';
+export { Constants } from './utils/Constants.js';
 
 // Navigation
-export { RouterManager as Router, default as DefaultRouter } from './navigation/Router.js';
-export { PersistenceManager as Persistence, default as DefaultPersistence } from './navigation/Persistence.js';
-
-// Components
-export { ToastManager as Toast, default as DefaultToast } from './components/Toast.js';
-export { ModalManager as Modal, hideModal, default as DefaultModal } from './components/Modal.js';
-export { TableManager as Table, default as DefaultTable } from './components/Table.js';
-export { SidebarManager as Sidebar, default as DefaultSidebar } from './components/Sidebar.js';
-export { FormManager as Form, default as DefaultForm } from './components/Form.js';
-export { DropdownManager as Dropdown, default as DefaultDropdown } from './components/Dropdown.js';
+export { RouterManager } from './navigation/Router.js';
+export { PersistenceManager } from './navigation/Persistence.js';
 
 // Views
-export { ViewManagerInstance as ViewManager } from './views/ViewManager.js';
-export { MyEventsViewInstance as MyEventsView } from './views/MyEvents.js';
+export { ViewManagerInstance } from './views/ViewManager.js';
+export { MyEventsViewInstance } from './views/MyEvents.js';
 export { AdminViewInstance } from './views/Admin.js';
-export { EventConfigViewInstance as EventConfigView } from './views/EventConfig.js';
-export { SystemViewInstance as SystemView } from './views/System.js';
+export { EventConfigViewInstance } from './views/EventConfig.js';
+export { SystemViewInstance } from './views/System.js';
 
 // Services
 export { ApiServiceInstance } from './services/ApiService.js';
