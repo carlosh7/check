@@ -2,7 +2,7 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos (Fase 1-5 + Form + Dropdown - COMPLETO)
-import { Config, AppStateManager, Constants, RouterManager, PersistenceManager, ToastManager, ModalManager, TableManager, SidebarManager, FormManager, DropdownManager, ViewManagerInstance, MyEventsViewInstance, AdminViewInstance, EventConfigViewInstance, SystemViewInstance, ApiServiceInstance, AuthServiceInstance, EventServiceInstance, GuestServiceInstance } from './modules/index.js';
+import { Config, AppStateManager, Constants, RouterManager, PersistenceManager, ToastManager, ModalManager, TableManager, SidebarManager, FormManager, DropdownManager, ViewManagerInstance, MyEventsViewInstance, AdminViewInstance, EventConfigViewInstance as EventConfigViewInstance, SystemViewInstance, ApiServiceInstance, AuthServiceInstance, EventServiceInstance, GuestServiceInstance } from './modules/index.js';
 
 // DEBUG V12.44.364 - Si ves esto, el código nuevo se cargó
 console.log('[INIT] app.js version 12.44.364 loaded');

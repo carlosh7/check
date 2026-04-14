@@ -25,7 +25,7 @@ export { DropdownManager as Dropdown, default as DefaultDropdown } from './compo
 // Views
 export { ViewManagerInstance as ViewManager } from './views/ViewManager.js';
 export { MyEventsViewInstance as MyEventsView } from './views/MyEvents.js';
-export { AdminViewInstance as AdminView } from './views/Admin.js';
+export { AdminViewInstance } from './views/Admin.js';
 export { EventConfigViewInstance as EventConfigView } from './views/EventConfig.js';
 export { SystemViewInstance as SystemView } from './views/System.js';
 
