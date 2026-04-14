@@ -208,15 +208,11 @@ body {
 
 /* STICKY HEADERS v12.44.403 - BLOQUE ÚNICO SÓLIDO */
 .sticky-header-container {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 10;
     background: var(--bg-app);
-    margin: -16px -32px 8px -32px;
-    padding: 16px 32px 8px 32px;
+    padding: 8px 0;
     border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 }
 
 /* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
