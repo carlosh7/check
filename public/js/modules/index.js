@@ -14,6 +14,14 @@ export { Constants } from './utils/Constants.js';
 export { RouterManager } from './navigation/Router.js';
 export { PersistenceManager } from './navigation/Persistence.js';
 
+// Components
+export { ToastManager } from './components/Toast.js';
+export { ModalManager, hideModal } from './components/Modal.js';
+export { TableManager } from './components/Table.js';
+export { SidebarManager } from './components/Sidebar.js';
+export { FormManager } from './components/Form.js';
+export { DropdownManager } from './components/Dropdown.js';
+
 // Views
 export { ViewManagerInstance } from './views/ViewManager.js';
 export { MyEventsViewInstance } from './views/MyEvents.js';
