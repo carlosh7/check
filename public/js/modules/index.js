@@ -30,10 +30,10 @@ export { EventConfigViewInstance as EventConfigView } from './views/EventConfig.
 export { SystemViewInstance as SystemView } from './views/System.js';
 
 // Services
-export { ApiServiceInstance as ApiService } from './services/ApiService.js';
-export { AuthServiceInstance as AuthService } from './services/AuthService.js';
-export { EventServiceInstance as EventService } from './services/EventService.js';
-export { GuestServiceInstance as GuestService } from './services/GuestService.js';
+export { ApiServiceInstance } from './services/ApiService.js';
+export { AuthServiceInstance } from './services/AuthService.js';
+export { EventServiceInstance } from './services/EventService.js';
+export { GuestServiceInstance } from './services/GuestService.js';
 
 // Información de versión
 export const MODULES_VERSION = '1.0.0';
