@@ -1,8 +1,12 @@
 import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
+// Imports de nuevos módulos (Fase 1-5 + Form + Dropdown - COMPLETO)
+import { Config, AppStateManager, Constants, RouterManager, PersistenceManager, ToastManager, ModalManager, TableManager, SidebarManager, FormManager, DropdownManager, ViewManagerInstance, MyEventsViewInstance, AdminViewInstance, EventConfigViewInstance, SystemViewInstance, ApiServiceInstance, AuthServiceInstance, EventServiceInstance, GuestServiceInstance } from './modules/index.js';
+
 // DEBUG V12.44.364 - Si ves esto, el código nuevo se cargó
 console.log('[INIT] app.js version 12.44.364 loaded');
+console.log('[MODULES] Todos los módulos cargados (incl. Form, Dropdown)');
 
 /**
  * MASTER SCRIPT
@@ -61,6 +65,10 @@ if ('caches' in window) {
 
 
 const App = window.App = {
+    // Referencia al State Manager (módulos)
+    stateManager: AppStateManager,
+    
+    // Estado legacy (compatibilidad) - migrate gradually
     state: {
         event: null,
         events: [],
@@ -68,26 +76,39 @@ const App = window.App = {
         user: null,
         socket: null,
         chart: null,
-        version: '12.44.339',
+        version: Config.VERSION,
         groups: [],
         _navigating: false,
         quillEditor: null,
         editingTemplate: null,
         emailTemplates: [],
-        columnConfig: {
-            name: { label: 'Nombre', visible: true, order: 0 },
-            email: { label: 'Email', visible: true, order: 1 },
-            organization: { label: 'Empresa', visible: true, order: 2 },
-            phone: { label: 'Teléfono', visible: false, order: 3 },
-            position: { label: 'Cargo', visible: false, order: 4 },
-            status: { label: 'Estado', visible: true, order: 5 }
-        },
+        columnConfig: Constants.COLUMNS,
         importSession: null,
         eventsViewMode: 'grid', // 'grid' o 'list'
     },
-    constants: { API_URL: '/api' },
+    // Usar constants del módulo
+    constants: { API_URL: Config.API_URL },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
-
+    
+    // Referencia a nuevos módulos (Fase 2 + 3 + 4 + 5 - COMPLETO)
+    router: RouterManager,
+    persistence: PersistenceManager,
+    toast: ToastManager,
+    modal: ModalManager,
+    table: TableManager,
+    sidebar: SidebarManager,
+    form: FormManager,
+    dropdown: DropdownManager,
+    views: ViewManagerInstance,
+    myEventsView: MyEventsViewInstance,
+    adminView: AdminViewInstance,
+    eventConfigView: EventConfigViewInstance,
+    systemView: SystemViewInstance,
+    api: ApiServiceInstance,
+    auth: AuthServiceInstance,
+    events: EventServiceInstance,
+    guests: GuestServiceInstance,
+    
     // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
     _isPushingState: false,
     _hasHandledInitialNav: false,
