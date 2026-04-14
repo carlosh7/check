@@ -206,16 +206,25 @@ body {
     width: 22px;
 }
 
-/* STICKY HEADERS - SE QUEDA FIJO AL HACER SCROLL */
+/* STICKY HEADERS - SE QUEDA FIJO ABAJO DEL MENÚ SISTEMA */
 .sticky-header-container {
     position: sticky;
-    top: 0;
+    top: 48px;
     z-index: 1;
     background: var(--bg-app);
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+}
+
+/* SCROLL SÓLO EN TABLA - No en página */
+#sys-content-users .card,
+#sys-content-groups .card,
+#sys-content-clients {
+    max-height: calc(100vh - 280px);
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 /* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
