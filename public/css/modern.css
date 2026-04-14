@@ -206,13 +206,16 @@ body {
     width: 22px;
 }
 
-/* STICKY HEADERS v12.44.403 - BLOQUE ÚNICO SÓLIDO */
+/* STICKY HEADERS - SE QUEDA FIJO AL HACER SCROLL */
 .sticky-header-container {
-    position: relative;
-    z-index: 10;
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background: var(--bg-app);
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* TABLA SCROLL INTERNA v12.44.396 - Altura por página */
