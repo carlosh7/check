@@ -246,7 +246,6 @@ const App = window.App = {
         }, duration);
     },
 
-    // Audio Feedback (Sintetizado para evitar assets externos)
     playPremiumSound(type) {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -259,7 +258,6 @@ const App = window.App = {
             const now = ctx.currentTime;
             
             if (type === 'success') {
-                // Soft Double Chime
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(880, now);
                 osc.frequency.exponentialRampToValueAtTime(1320, now + 0.1);
@@ -269,7 +267,6 @@ const App = window.App = {
                 osc.start(now);
                 osc.stop(now + 0.3);
             } else if (type === 'error') {
-                // Low Dull Thud
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(220, now);
                 osc.frequency.exponentialRampToValueAtTime(110, now + 0.1);
@@ -279,6 +276,7 @@ const App = window.App = {
                 osc.start(now);
                 osc.stop(now + 0.4);
             }
+        } catch (e) {}
     },
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
