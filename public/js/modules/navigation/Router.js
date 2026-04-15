@@ -58,9 +58,21 @@ class Router {
     
     // Validar permisos para una vista
     hasPermissionForView(role, view, tab) {
+        // ADMIN tiene acceso a todo
         if (role === 'ADMIN') return true;
+        
+        // my-events accesible para todos
         if (view === 'my-events') return true;
-        if (view === 'system' && role === 'PRODUCTOR') return true;
+        
+        // system accesible para ADMIN y PRODUCTOR
+        if (view === 'system' && (role === 'PRODUCTOR' || role === 'ADMIN')) return true;
+        
+        // admin accesible para ADMIN y PRODUCTOR
+        if (view === 'admin' && (role === 'PRODUCTOR' || role === 'ADMIN')) return true;
+        
+        // event-config accesible para ADMIN y PRODUCTOR
+        if (view === 'event-config' && (role === 'PRODUCTOR' || role === 'ADMIN')) return true;
+        
         return false;
     }
     
