@@ -7749,7 +7749,27 @@ const App = window.App = {
         }).join('');
     },
 
+    // Wrapper para usar el nuevo módulo TableManager
     renderEventsTable() {
+        // Usar el nuevo módulo TableManager si está disponible
+        if (typeof TableManager !== 'undefined') {
+            let events = Array.isArray(this.state.events) ? this.state.events : [];
+            
+            // FILTRO: PRODUCTOR solo ve sus eventos
+            if (this.state.user?.role === 'PRODUCTOR') {
+                events = events.filter(e => e.user_id === this.state.user.userId);
+            }
+            
+            // Actualizar filtros y subtítulo (código original)
+            this._populateEventFilters(events);
+            this._updateEventsSubtitle(events);
+            
+            // Usar el nuevo módulo para renderizar
+            TableManager.renderEventsTable(events, 'events-table-container');
+            return;
+        }
+        
+        // Fallback al código original si TableManager no está disponible
         const tbody = document.getElementById('events-tbody');
         const emptyState = document.getElementById('events-empty-state');
         const tableContainer = document.querySelector('#view-my-events .card');
