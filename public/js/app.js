@@ -3627,7 +3627,7 @@ const App = window.App = {
                     method: 'PUT', body: JSON.stringify({ events: newEvents })
                 });
                 this.loadGroups();
-            } catch(e) { console.error('Error', e); }
+            
         }
     },
 
@@ -3649,12 +3649,12 @@ const App = window.App = {
                 this.showEventSelector(userId, newEvents);
                 await this.refreshAllTables();
             }
-        } catch(e) { console.error(e); }
+        
     },
 
     async showEventSelector(userId, selectedEventIds = []) {
         let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+        try { events = await this.fetchAPI('/events'); 
 
         const html = `
             <div class="space-y-6 text-left">
@@ -12990,7 +12990,7 @@ navigate(viewName, params = {}, push = true) {
     async showUserSelectorForGroup(groupId) {
         this.state._pendingUserGroupId = groupId;
         let users = [];
-        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+        try { users = await this.fetchAPI('/users'); 
         
         // Calcular usuarios ya asignados a este grupo para mostrar checkmarks
         const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
@@ -13050,7 +13050,7 @@ navigate(viewName, params = {}, push = true) {
     async showUserSelectorForEvent(eventId) {
         this.state._pendingUserEventId = eventId;
         let users = [];
-        try { users = await this.fetchAPI('/users'); } catch(e) { console.error(e); }
+        try { users = await this.fetchAPI('/users'); 
 
         const html = `
             <div class="space-y-6">
@@ -13125,7 +13125,7 @@ navigate(viewName, params = {}, push = true) {
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
-        } catch(e) { console.error(e); }
+        
     },
 
     async assignUserToEvent(userId, eventId) {
@@ -13143,7 +13143,7 @@ navigate(viewName, params = {}, push = true) {
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
-        } catch(e) { console.error(e); }
+        
     },
 
 
@@ -13259,12 +13259,12 @@ navigate(viewName, params = {}, push = true) {
             } else {
                 Swal.fire('Error', res.error || 'No se pudo asignar.', 'error');
             }
-        } catch(e) { console.error(e); }
+        
     },
 
     async showEventSelectorForCompany(groupId) {
         let events = [];
-        try { events = await this.fetchAPI('/events'); } catch(e) { console.error(e); }
+        try { events = await this.fetchAPI('/events'); 
         
         // Obtener eventos actuales de la empresa
         const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
@@ -13340,7 +13340,7 @@ navigate(viewName, params = {}, push = true) {
                 this.showEventSelectorForCompany(groupId);
                 await this.refreshAllTables();
             }
-        } catch(e) { console.error(e); }
+        
     },
 
     async removeUserFromEvent(userId, eventId) {
@@ -13348,7 +13348,7 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI(`/users/${userId}/events/${eventId}`, { method: 'DELETE' });
             await this.refreshAllTables();
-        } catch(e) { console.error(e); }
+        
     },
 
     async initQuill() {
