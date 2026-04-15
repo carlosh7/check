@@ -3649,7 +3649,7 @@ const App = window.App = {
                 this.showEventSelector(userId, newEvents);
                 await this.refreshAllTables();
             }
-        
+        } catch(e) { console.error('Error:', e); }
     },
 
     async showEventSelector(userId, selectedEventIds = []) {
