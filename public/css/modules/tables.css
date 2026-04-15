@@ -58,6 +58,134 @@
     opacity: 1;
 }
 
+/* ================================================
+   TABLE TH & TD (Modular)
+   ================================================ */
+
+.table-th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8b949e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.table-th.text-center {
+    text-align: center;
+}
+
+.table-th.text-right {
+    text-align: right;
+}
+
+.table-th.sortable {
+    cursor: pointer;
+}
+
+.table-th.sortable:hover {
+    color: #0ba5ec;
+}
+
+.table-td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #c9d1d9;
+    vertical-align: middle;
+}
+
+.table-row {
+    transition: background 150ms ease;
+}
+
+.table-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.table-checkbox-cell {
+    width: 40px;
+    padding: 12px 16px;
+}
+
+/* ================================================
+   EMPTY STATE
+   ================================================ */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    margin-top: 24px;
+}
+
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(11, 165, 236, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border: 1px solid rgba(11, 165, 236, 0.2);
+}
+
+.empty-state-icon .material-symbols-outlined {
+    font-size: 28px;
+    color: #0ba5ec;
+}
+
+.empty-state-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.empty-state-text {
+    font-size: 14px;
+    color: #8b949e;
+    margin-bottom: 16px;
+}
+
+/* ================================================
+   TABLE HEADER ROW
+   ================================================ */
+
+.table-header-row {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.table-tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table-tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.table-tbody tr:last-child {
+    border-bottom: none;
+}
+
+.sort-icon {
+    font-size: 12px;
+    margin-left: 4px;
+    opacity: 0.4;
+}
+
+.sortable:hover .sort-icon {
+    opacity: 1;
+}
+
 .data-table td {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -448,4 +576,18 @@
 
 .data-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+
+/* ================================================
+   CARD TABLE (Modular)
+   ================================================ */
+
+.card-table {
+    padding: 0;
+    overflow: hidden;
+}
+
+.card-table .overflow-x-auto {
+    overflow-x: auto;
 }

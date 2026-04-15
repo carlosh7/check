@@ -144,32 +144,30 @@
                     <div class="table-scroll-container">
                         <table class="data-table">
                             <thead>
-                                <tr class="bg-white/[0.01]">
-                                    <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 !w-[40px] !px-3">
+                                <tr class="table-header-row">
+                                    <th class="table-th table-checkbox-cell">
                                         <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" class="checkbox-sm">
                                     </th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="client" data-type="text" onclick="App.sortEventsTable('client')">Cliente <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="location" data-type="text" onclick="App.sortEventsTable('location')">Locación <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="guests" data-type="number" onclick="App.sortEventsTable('guests')">Asistentes <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
-                                    <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="status" data-type="text" onclick="App.sortEventsTable('status')">Estado <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="client" data-type="text" onclick="App.sortEventsTable('client')">Cliente <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="location" data-type="text" onclick="App.sortEventsTable('location')">Locación <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="guests" data-type="number" onclick="App.sortEventsTable('guests')">Asistentes <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="status" data-type="text" onclick="App.sortEventsTable('status')">Estado <span class="sort-icon">⇅</span></th>
                                 </tr>
                             </thead>
-                            <tbody id="events-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                            <tbody id="events-tbody" class="table-tbody"></tbody>
                         </table>
                     </div>
 
                     <!-- Estado vacío (se muestra cuando no hay eventos) -->
-                    <div id="events-empty-state" class="hidden flex-col items-center justify-center py-10 bg-white/[0.02] rounded-2xl border border-dashed border-white/10 mt-6">
-                        <div class="w-14 h-14 rounded-2xl bg-[#0ba5ec]/10 flex items-center justify-center mb-4 border border-[#0ba5ec]/20">
-                            <span class="material-symbols-outlined text-[#0ba5ec] text-3xl">event</span>
+                    <div id="events-empty-state" class="empty-state hidden">
+                        <div class="empty-state-icon">
+                            <span class="material-symbols-outlined">event</span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">Sin eventos activos</h3>
-                        <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
-                        <button id="btn-new-event-full-empty" class="btn-primary !px-6 !py-3 text-xs font-black uppercase tracking-wider">
-                            Crear Evento
-                        </button>
+                        <h3 class="empty-state-title">Sin eventos activos</h3>
+                        <p class="empty-state-text">Comienza creando tu primer evento</p>
+                        <button id="btn-new-event-full-empty" class="btn-primary">Crear Evento</button>
                     </div>
                 </div>
             </section>
@@ -266,20 +264,20 @@
                 <div class="table-scroll-container">
                     <table class="data-table">
                         <thead>
-                            <tr class="bg-white/[0.01]">
-                                <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                            <tr class="table-header-row">
+                                <th class="table-th table-checkbox-cell">
                                     <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" class="checkbox-sm">
                                 </th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistente</th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cargo</th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Vegano</th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Restricciones</th>
-                                <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                <th class="!py-3 !px-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Validar</th>
+                                <th class="table-th">Asistente</th>
+                                <th class="table-th">Organización</th>
+                                <th class="table-th">Cargo</th>
+                                <th class="table-th">Vegano</th>
+                                <th class="table-th">Restricciones</th>
+                                <th class="table-th">Estado</th>
+                                <th class="table-th text-center">Validar</th>
                             </tr>
                         </thead>
-                        <tbody id="attendance-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                        <tbody id="attendance-tbody" class="table-tbody"></tbody>
                     </table>
                 </div>
             </section>
@@ -349,19 +347,19 @@
                             <span id="config-staff-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('config-staff')" title="Búsqueda por voz">mic</span>
                             <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('config-staff-search').value=''; App.filterConfigStaff();">close</span>
                         </div>
-                        <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
+                        <div class="card card-table">
                             <div class="overflow-x-auto">
                                 <table class="data-table">
                                     <thead>
-                                        <tr class="bg-white/[0.01]">
-                                            <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
-                                                <input type="checkbox" class="w-4 h-4 rounded border-slate-600 bg-transparent cursor-pointer" onchange="App.toggleAllConfigStaff(this.checked)">
+                                        <tr class="table-header-row">
+                                            <th class="table-th table-checkbox-cell">
+                                                <input type="checkbox" class="checkbox-sm" onchange="App.toggleAllConfigStaff(this.checked)">
                                             </th>
-                                            <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
-                                            <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Rol</th>
+                                            <th class="table-th">Staff</th>
+                                            <th class="table-th">Rol</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="config-staff-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                                    <tbody id="config-staff-tbody" class="table-tbody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -476,15 +474,15 @@
                                 <div class="overflow-x-auto">
                                     <table class="data-table">
                                         <thead>
-                                            <tr>
-                                                <th>Nombre</th>
-                                                <th>Email</th>
-                                                <th>Fuente</th>
-                                                <th class="text-right">Acciones</th>
+                                            <tr class="table-header-row">
+                                                <th class="table-th">Nombre</th>
+                                                <th class="table-th">Email</th>
+                                                <th class="table-th">Fuente</th>
+                                                <th class="table-th text-right">Acciones</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="wheel-participants-tbody" class="divide-y divide-[var(--border-light)]">
-                                            <tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>
+                                        <tbody id="wheel-participants-tbody" class="table-tbody">
+                                            <tr><td colspan="4" class="table-td text-center">No hay participantes</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
