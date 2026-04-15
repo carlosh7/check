@@ -15,7 +15,7 @@ class MyEventsView {
     
     // Inicializar vista
     init() {
-        console.log('[MY_EVENTS] Inicializado');
+        
         this.bindEvents();
     }
     
@@ -127,7 +127,7 @@ class MyEventsView {
     
     // Crear evento
     createEvent() {
-        console.log('[MY_EVENTS] Crear evento');
+        
         // Delegate to App
         if (window.App?.openCreateEventModal) {
             window.App.openCreateEventModal();
@@ -136,7 +136,7 @@ class MyEventsView {
     
     // Abrir configuración de evento
     openEventConfig(eventId) {
-        console.log('[MY_EVENTS] Abrir config:', eventId);
+        
         if (window.App?.openEventConfig) {
             window.App.openEventConfig(eventId);
         }
@@ -144,7 +144,7 @@ class MyEventsView {
     
     // Eliminar evento
     deleteEvent(eventId) {
-        console.log('[MY_EVENTS] Eliminar:', eventId);
+        
         if (window.App?.deleteEvent) {
             window.App.deleteEvent(eventId);
         }

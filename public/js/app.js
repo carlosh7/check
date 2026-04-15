@@ -25,76 +25,27 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// DEBUG V12.44.470 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.470 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.470');
-console.log('[CSSManager] Cargando módulos CSS...');
-CSSManagerInstance.loadAll().then(() => {
-    console.log('[CSSManager] Módulos CSS cargados:', CSSManagerInstance.getLoadedModules());
-});
+// Init - módulos CSS
+CSSManagerInstance.loadAll();
 
 /**
-* MASTER SCRIPT
- * Version: V12.44.468 (Neutral Dark)
- * Author: Carlos
- * 
- * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
- * 
- * Feature V12.44.468: Migrar funções de theme para ThemeManager
- * Feature V12.44.467: Fix openEventEditFromAdmin - código corrupto restaurado
- * Feature V12.44.466: Agregar openEventEditFromAdmin faltante
- * Feature V12.44.465: Agregar filterEvents y getEventStatus a EventService
- * Feature V12.44.464: Agregar Utils a Constants.js con normalize y getEventStatus
- * Feature V12.44.463: Migrar loadGuests() para usar GuestService
- * Feature V12.44.462: Fix EventService para soportar array directo del API
- * Feature V12.44.461: Migrar loadEvents() para usar EventService
- * Feature V12.44.460: Agregar premium-toast-container al HTML para ToastManager
- * Feature V12.44.459: Agregar saveViewState faltante en Router
- * Feature V12.44.458: Fix nombre de función showView (no _showView)
- * Feature V12.44.457: Fix dependencia circular Router -> App.navigate -> App._showView
- * Feature V12.18.20: Sistema de notificaciones push implementado:
- * - _showEmailSection() - versión antigua eliminada
- * - loadIMAPConfig() - versión antigua eliminada  
- * - showUserSelectorForEvent() - versión antigua eliminada
+ * Check Pro - Sistema de gestión de asistencia
+ * Versión: 12.44.484
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.484';
-console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
+const VERSION = '12.44.485';
 
-// --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
-// Desactivado temporalmente para diagnosticar problemas de carga
-(function checkVersion() {
-    console.log(`[VERSION] Script cargado: V${VERSION}`);
-    
-    // Solo verificación básica sin redirecciones automáticas
-    const currentScript = document.currentScript;
-    if (currentScript && currentScript.src) {
-        const scriptUrl = new URL(currentScript.src, window.location.origin);
-        const versionParam = scriptUrl.searchParams.get('v');
-        
-        if (versionParam && versionParam !== VERSION) {
-            console.warn(`[VERSION WARNING] Script cargado con versión ${versionParam}, pero VERSION constante es ${VERSION}`);
-            console.warn(`[VERSION WARNING] Posible problema de caché. Presiona Ctrl+F5 para recarga forzada.`);
-        }
-    }
-})();
-
-// --- AUTO-UPDATE CACHE V12.16.2 ---
+// --- AUTO-UPDATE CACHE ---
 if ('caches' in window) {
     const v = LS.get('check_app_version');
     if (v !== VERSION) {
         caches.keys().then(names => {
             for (let name of names) caches.delete(name);
         }).then(() => {
-            // SANEAMIENTO RADICAL V12.37.23
-            console.log(`[VERSION] Saneamiento radical: Borrando localStorage...`);
             localStorage.clear(); 
             sessionStorage.clear();
             LS.set('check_app_version', VERSION);
-            console.log(`[VERSION] Cache borrada por actualización a V${VERSION}`);
-            
-            // Forzar reload inmediato
             window.location.reload(true); 
         });
     }
@@ -156,13 +107,11 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // ─── NAVEGACIÓN V12.16.3 (MANTENIDA PARA COMPATIBILIDAD) ───
     navigate(viewId) {
         // Redirigir a la función navigate() completa con parámetros por defecto
         this.navigate(viewId, {}, true);
     },
 
-    // ─── PERSISTENCIA Y NAVEGACIÓN POR ROL (v12.34.96) ───
     
     // Obtener vista por defecto según rol
     getDefaultViewByRole(role) {
@@ -229,30 +178,25 @@ const App = window.App = {
             }
             
             sessionStorage.setItem('check_current_view', JSON.stringify(state));
-            console.log('[PERSISTENCE] Saved view state:', state);
         } catch (e) {
             console.warn('[PERSISTENCE] Error saving view state:', e);
         }
     },
 
-    // Cargar estado de navegación desde sessionStorage
+    loadViewState() {
     loadViewState() {
         try {
             const sessionData = sessionStorage.getItem('check_current_view');
             if (!sessionData) return null;
             
             const state = JSON.parse(sessionData);
-            console.log('[PERSISTENCE] Loaded view state:', state);
             
-            // DEBUG: Registrar si el estado cargado no tiene 'tab' pero es vista 'system'
             if (state.view === 'system' && (!state.params || !state.params.tab)) {
-                console.warn('[PERSISTENCE WARNING] Loaded system view without tab parameter!');
+                console.warn('[PERSISTENCE] Loaded system view without tab parameter!');
             }
             
-            // Validar que el estado no sea demasiado viejo (24 horas)
-            const maxAge = 24 * 60 * 60 * 1000; // 24 horas
+            const maxAge = 24 * 60 * 60 * 1000;
             if (Date.now() - state.timestamp > maxAge) {
-                console.log('[PERSISTENCE] State too old, discarding');
                 return null;
             }
             
@@ -263,20 +207,17 @@ const App = window.App = {
         }
     },
 
-    // Limpiar estado de navegación
     clearViewState() {
         try {
             sessionStorage.removeItem('check_current_view');
             sessionStorage.removeItem('check_current_url');
             sessionStorage.removeItem('active_config_tab');
             sessionStorage.removeItem('active_event_tab');
-            console.log('[PERSISTENCE] Cleared view state and event tabs');
         } catch (e) {
             console.warn('[PERSISTENCE] Error clearing view state:', e);
         }
     },
 
-    // ─── UI PREMIUM UTILS (v12.32.0) ───
     
     // Notificación Toast Premium
     showPremiumToast(title, message, type = 'success', duration = 4000) {
@@ -360,9 +301,6 @@ const App = window.App = {
     },
 
     navigateToCreateEvent: function(type = 'short') {
-        console.log('[NAVIGATE TO CREATE EVENT] Iniciando tipo:', type);
-        
-        // No navegar si ya estamos en una vista permitida (my-events, dashboard)
         const currentView = LS.get('current_view');
         if (currentView !== 'my-events' && currentView !== 'dashboard') {
             this.navigate('my-events');
@@ -411,7 +349,6 @@ const App = window.App = {
     },
 
     saveEventShort: async function(e) {
-        console.log('[SAVE EVENT SHORT] Procesando guardado...');
         try {
             const name = document.getElementById('ev-name')?.value;
             const location = document.getElementById('ev-location')?.value;
@@ -457,7 +394,6 @@ const App = window.App = {
     },
 
     switchEventTab(tabId) {
-        console.log(`[NAV] Event Tab: ${tabId}`);
         document.querySelectorAll('[id^="ev-content-"]').forEach(el => el.classList.add('hidden'));
         document.getElementById(`ev-content-${tabId}`)?.classList.remove('hidden');
 
@@ -507,7 +443,6 @@ const App = window.App = {
         this.openCompanyModal();
     },
 
-    // ─── IMPORTAR / EXPORTAR DATOS V12.44.38 ───
     openImportModal: function(type) {
         this._importType = type; // 'groups' o 'staff'
         this._importData = null;
@@ -822,7 +757,6 @@ const App = window.App = {
         } catch(e) { console.error('Error selecting event:', e); }
     },
 
-    // ─── PERMISOS JERÁRQUICOS V10.5 ───
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -873,7 +807,6 @@ const App = window.App = {
         }
     },
 
-    // ─── TEMA OSCURO/CLARO MEJORADO ───
     
     // Obtener tema del sistema
     getSystemTheme: function() {
@@ -896,7 +829,7 @@ const App = window.App = {
     applyThemeTransition: function() {
         // Agregar clase de transición
         document.documentElement.classList.add('theme-transition');
-        // Remover después de la transición
+
         setTimeout(() => {
             document.documentElement.classList.remove('theme-transition');
         }, 300);
@@ -921,7 +854,6 @@ const App = window.App = {
         });
         
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
-        console.log(`Tema cambiado a: ${newTheme}`);
     },
     
     // Inicializar tema al cargar la aplicación
@@ -951,12 +883,10 @@ const App = window.App = {
                     document.querySelectorAll('.theme-icon').forEach(icon => {
                         icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
                     });
-                    console.log(`Tema cambiado por preferencia del sistema: ${newTheme}`);
                 }
             });
             window._themeListenerAdded = true;
         }
-        console.log(`Tema inicializado: ${theme}`);
     },
     
     // Verificar versión de la aplicación
@@ -965,7 +895,6 @@ const App = window.App = {
         await this.loadAppVersion();
     },
 
-    // ─── SIDEBAR COLAPSABLE - usar SidebarManager ───
     toggleSidebar() {
         if (typeof SidebarManager !== 'undefined') {
             SidebarManager.toggle();
@@ -991,7 +920,6 @@ const App = window.App = {
         }
     },
 
-    // ─── ACTUALIZAR VISIBILIDAD DEL SIDEBAR ───
     updateSidebarVisibility() {
         const hasSelectedEvent = !!this.state.event?.id;
         const isAdmin = this.state.user?.role === 'ADMIN';
@@ -1038,18 +966,15 @@ const App = window.App = {
         }
     },
 
-    // ──── NOTIFICACIONES PUSH (Web Push API) ────
     initPushNotifications: async function() {
         try {
             // Registrar service worker si no está registrado
             const registration = await navigator.serviceWorker.register('/js/sw.js');
-            console.log('Service Worker registrado:', registration);
-            
+                        
             // Solicitar permiso para notificaciones
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
-                console.log('Permiso para notificaciones denegado.');
-                return false;
+                                return false;
             }
             
             // Obtener clave pública VAPID del servidor
@@ -1068,8 +993,7 @@ const App = window.App = {
             // Enviar suscripción al servidor
             await this.sendPushSubscription(subscription);
             
-            console.log('Usuario suscrito a notificaciones push:', subscription);
-            return true;
+                        return true;
         } catch (error) {
             console.warn('[PUSH] Error al inicializar notificaciones push (no crítico):', error.message);
             return false;
@@ -1092,8 +1016,7 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify(subscription)
             });
-            console.log('Suscripción enviada al servidor.');
-        } catch (error) {
+                    } catch (error) {
             console.error('Error al enviar suscripción:', error);
         }
     },
@@ -1108,8 +1031,7 @@ const App = window.App = {
                     method: 'POST',
                     body: JSON.stringify({ endpoint: subscription.endpoint })
                 });
-                console.log('Suscripción eliminada.');
-            }
+                            }
         } catch (error) {
             console.error('Error al eliminar suscripción:', error);
         }
@@ -1136,8 +1058,7 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify({ title, body })
             });
-            console.log('Notificación de prueba enviada.');
-        } catch (error) {
+                    } catch (error) {
             console.error('Error al enviar notificación de prueba:', error);
         }
     },
@@ -1193,15 +1114,13 @@ const App = window.App = {
     
     // Cargar empresas con usuarios y eventos
     loadGroups: async function() {
-        console.log('===== loadGroups LLAMADA =====');
         if (!this.state.user || this.state.user.role !== 'ADMIN') return;
         try {
             const groups = await this.fetchAPI('/groups');
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
             const clients = await this.fetchAPI('/clients');
-            console.log('loadGroups: groups received:', groups?.length);
-            if (!Array.isArray(groups) || !Array.isArray(users)) return;
+                        if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
             this.state.allEvents = events;
@@ -3859,7 +3778,6 @@ const App = window.App = {
 
     // Actualizar TODAS las tablas después de cualquier cambio en modales
     refreshAllTables: async function() {
-        console.log('===== refreshAllTables LLAMADA =====');
         try {
             // Cargar todos los datos en paralelo
             const [usersRes, groupsRes, eventsRes, clientsRes] = await Promise.all([
@@ -3882,7 +3800,6 @@ const App = window.App = {
             
             // Siempre actualizar todas las tablas relevantes (sin verificar si están visibles)
             const currentView = this.state.currentView;
-            console.log('[REFRESH] currentView:', currentView);
             
             if (currentView === 'system') {
                 // Siempre actualizar todas las tablas
@@ -3893,7 +3810,6 @@ const App = window.App = {
                 this.loadEvents();
             }
             
-            console.log('[REFRESH] Tablas actualizadas');
         } catch (error) {
             console.error('Error refreshAllTables:', error);
         }
@@ -4961,26 +4877,19 @@ const App = window.App = {
     },
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
-        console.log('[EVENT ASSIGN] userIdsStr:', userIdsStr, 'eventId:', eventId, 'isAssigned:', isAssigned);
         const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
         if (userIds.length === 0) { console.warn('[EVENT ASSIGN] No userIds'); return; }
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
-                    console.log('[EVENT ASSIGN] DELETE /events/', eventId, '/users/', userId);
                     await this.fetchAPI(`/events/${eventId}/users/${userId}`, { method: 'DELETE' });
                 } else {
-                    console.log('[EVENT ASSIGN] POST /events/', eventId, '/users with user_id:', userId);
                     const res = await this.fetchAPI(`/events/${eventId}/users`, { method: 'POST', body: JSON.stringify({ user_id: userId }) });
-                    console.log('[EVENT ASSIGN] POST response:', res);
                 }
             }
-            console.log('[EVENT ASSIGN] Success, reloading...');
             await this.loadUsersTable();
             // Debug: verificar que el usuario tiene el evento después de recargar
             const reloadedUser = this.state.allUsers?.find(u => String(u.id) === String(userIds[0]));
-            console.log('[EVENT ASSIGN] After reload - user.events:', JSON.stringify(reloadedUser?.events));
-            console.log('[EVENT ASSIGN] After reload - allEvents:', this.state.allEvents?.map(e => e.id));
             this.showEventSelectorForUsers(userIds);
         } catch (e) {
             console.error('[EVENT ASSIGN] Error:', e);
@@ -5648,12 +5557,10 @@ const App = window.App = {
     // Toggle evento para usuarios seleccionados (asignar o desasignar)
     bulkToggleEventForUsers: async function(userIdsStr, eventId, currentlyAssigned) {
         const userIds = userIdsStr.split(',');
-        console.log('[BULK TOGGLE EVENT] userIds:', userIds, 'eventId:', eventId, 'currentlyAssigned:', currentlyAssigned);
         try {
             const promises = userIds.map(async (userId) => {
                 const user = this.state.allUsers?.find(u => String(u.id) === String(userId));
                 const currentEvents = user?.events || [];
-                console.log('[BULK TOGGLE EVENT] User:', userId, 'currentEvents:', currentEvents);
                 let newEvents;
                 
                 if (currentlyAssigned) {
@@ -5668,12 +5575,10 @@ const App = window.App = {
                     }
                 }
                 
-                console.log('[BULK TOGGLE EVENT] PUT /users/' + userId + '/events', JSON.stringify({ events: newEvents }));
                 const result = await this.fetchAPI(`/users/${userId}/events`, {
                     method: 'PUT',
                     body: JSON.stringify({ events: newEvents })
                 });
-                console.log('[BULK TOGGLE EVENT] Response:', result);
                 return result;
             });
             
@@ -5749,7 +5654,6 @@ const App = window.App = {
 
     // Guardar evento (formulario corto) - Creación y Edición
     saveEventShort: async function(e) {
-        console.log('[EVENT CREATE] saveEventShort called, event:', e);
         
         if (e && e.preventDefault) e.preventDefault();
         
@@ -5797,7 +5701,6 @@ const App = window.App = {
         if (!data.qr_color_light) data.qr_color_light = '#ffffff';
         if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
         
-        console.log('[EVENT CREATE SHORT] Data to send:', data);
         
         try {
             if (data.email_template_id) {
@@ -6022,7 +5925,6 @@ const App = window.App = {
     },
 
     async loadMailingData() {
-        console.log('[MAIL] Loading mailing data...');
         try {
             const eventsRes = await this.fetchAPI('/events');
             const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data || []);
@@ -6288,11 +6190,7 @@ const App = window.App = {
     },
 
     async login(username, password) {
-        console.log("[AUTH] Intentando login:", username);
         try {
-            console.log("[AUTH DEBUG] Llamando a fetchAPI con endpoint:", '/login');
-            console.log("[AUTH DEBUG] API object exists:", typeof API !== 'undefined');
-            console.log("[AUTH DEBUG] API.BASE_URL:", API?.BASE_URL);
             const data = await this.fetchAPI('/login', { 
                 method: 'POST', 
                 body: JSON.stringify({ username, password }) 
@@ -6429,7 +6327,6 @@ const App = window.App = {
     
     // --- CORE NAV V10.5 (SPA Routing) ---
     showView(viewName, clearSession = false) {
-        console.log('[VIEW] showView llamado:', viewName);
         
         // PREVENIR ejecuciones múltiples
         if (this._showingView === viewName) {
@@ -6495,11 +6392,9 @@ const App = window.App = {
         
         if (viewToShow) {
             viewToShow.classList.remove('hidden');
-            console.log(`[VIEW] Mostrando: ${viewToShow.id}`);
             
             // V12.44.363: Si es admin o event-config, cargar attendance
             if ((viewName === 'admin' || viewName === 'event-config') && this.state.event && this.state.event.id) {
-                console.log('[VIEW] EVENT DETECTED - loading attendance for:', this.state.event.id);
                 if (typeof this.loadAttendance === 'function') {
                     this.loadAttendance(this.state.event.id);
                 }
@@ -6577,7 +6472,6 @@ navigate(viewName, params = {}, push = true) {
                 if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
                     url = `/system/${tabFromUrl}`;
                     params.tab = tabFromUrl; // Actualizar params también
-                    console.log('[NAV] Updated URL and params from current path:', tabFromUrl);
                 }
             }
             
@@ -6595,7 +6489,6 @@ navigate(viewName, params = {}, push = true) {
         // Guardar evento actual si estamos en admin o event-config
         if ((viewName === 'admin' || viewName === 'event-config') && this.state.event?.id) {
             LS.set('active_event_id', this.state.event.id);
-            console.log('[NAV] Saved active event id:', this.state.event.id);
         }
         
         // Lógica específica por vista (V12.6.0 Unified Hub)
@@ -6616,7 +6509,6 @@ navigate(viewName, params = {}, push = true) {
                 const tabFromUrl = window.location.pathname.split('/')[2];
                 if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
                     tabToShow = tabFromUrl;
-                    console.log('[NAV] Extracted tab from URL for system view:', tabToShow);
                 }
             }
             
@@ -6677,15 +6569,12 @@ navigate(viewName, params = {}, push = true) {
             
             const id = params.id || (this.state.event ? this.state.event.id : null);
             if (id) {
-                console.log('[NAV] Looking for event with id:', id);
                 
                 // Buscar el evento si no está establecido o si es diferente
                 if (!this.state.event || String(this.state.event.id) !== String(id)) {
-                    console.log('[NAV] Event not set or different, searching in events list');
                     if (this.state.events && Array.isArray(this.state.events)) {
                         const foundEvent = this.state.events.find(e => String(e.id) === String(id));
                         if (foundEvent) {
-                            console.log('[NAV] Event found in list:', foundEvent.name);
                             this.state.event = foundEvent;
                         } else {
                             console.warn('[NAV] Event not found in events list, redirecting to my-events');
@@ -6702,7 +6591,6 @@ navigate(viewName, params = {}, push = true) {
                 // A este punto, this.state.event debería estar establecido
                 if (this.state.event) {
                     const event = this.state.event;
-                    console.log('[NAV] Setting up event-config for event:', event.name);
                     
                     // Actualizar título del evento
                     const titleEl = document.getElementById('config-event-title');
@@ -6744,7 +6632,6 @@ navigate(viewName, params = {}, push = true) {
                     
                     // Cargar pestaña activa guardada
                     const activeTab = sessionStorage.getItem('active_config_tab') || 'staff';
-                    console.log('[NAV] Restoring active config tab:', activeTab);
                     this.switchConfigTab(activeTab);
                 } else {
                     console.error('[NAV] Critical: this.state.event is null after search, redirecting to my-events');
@@ -6769,32 +6656,27 @@ navigate(viewName, params = {}, push = true) {
     },
 
     initRouter() {
-        console.log('[ROUTER] initRouter called');
         
         // Resetear bandera cuando se inicializa el router
         this._hasHandledInitialNav = false;
         
         // Manejar navegación con el historial
         window.onpopstate = async (e) => {
-            console.log('[ROUTER] onpopstate triggered', 'e.state:', e.state, 'this._isPushingState:', this._isPushingState);
             
             // Ignorar si estamos en medio de un pushState
             if (this._isPushingState) return;
             
             // Si hay estado en el historial, usarlo
             if (e.state && e.state.view) {
-                console.log('[ROUTER] Navigating from history state:', e.state.view);
                 this.navigate(e.state.view, e.state.params || {}, false);
             } 
             // DESACTIVAR navegación inicial automática - ya se maneja en initApp
             else if (!this._hasHandledInitialNav) {
-                console.log('[ROUTER] Navegación inicial desactivada (ya se maneja en initApp)');
                 // this.handleInitialNavigation(); // Desactivado
                 this._hasHandledInitialNav = true; // Marcar como manejado
             }
             // Si ya manejamos la navegación inicial pero no hay estado, usar la URL actual
             else {
-                console.log('[ROUTER] Already handled initial nav, parsing current URL');
                 await this.handleInitialNavigation();
             }
         };
@@ -6802,43 +6684,35 @@ navigate(viewName, params = {}, push = true) {
         // Algunos navegadores disparan popstate al cargar la página
         // Esperar un momento antes de permitir handleInitialNavigation desde popstate
         setTimeout(() => {
-            console.log('[ROUTER] Router initialization complete');
         }, 100);
     },
 
     async handleInitialNavigation() {
         // Evitar múltiples llamadas
         if (this._hasHandledInitialNav) {
-            console.log('[ROUTER] handleInitialNavigation already called, skipping');
             return;
         }
         
-        console.log('[ROUTER] handleInitialNavigation called');
         
         const path = window.location.pathname;
         
         // Verificar autenticación
         const user = this.state.user;
         if (!user) {
-            console.log('[ROUTER] No user, showing login');
             this.showView('login');
             return;
         }
         
         const userRole = user.role;
-        console.log('[ROUTER] User role:', userRole);
         
         // Cargar eventos si no están cargados (necesario para restaurar vistas de evento)
         if (!this.state.events || this.state.events.length === 0) {
-            console.log('[ROUTER] Loading events for navigation...');
             try {
                 await this.loadEvents(true); // true = forzar recarga
-                console.log('[ROUTER] Events loaded successfully, count:', this.state.events?.length || 0);
             } catch (e) {
                 console.warn('[ROUTER] Error loading events:', e);
                 // Si falla la carga, intentar usar cache
                 if (this._eventsCache && Array.isArray(this._eventsCache)) {
-                    console.log('[ROUTER] Using cached events as fallback');
                     this.state.events = this._eventsCache;
                 } else {
                     console.warn('[ROUTER] No cached events available, using empty array');
@@ -6846,7 +6720,6 @@ navigate(viewName, params = {}, push = true) {
                 }
             }
         } else {
-            console.log('[ROUTER] Events already loaded, count:', this.state.events.length);
         }
         
         // ESTRATEGIA MEJORADA: Prioridad de restauración con validación de permisos
@@ -6860,18 +6733,15 @@ navigate(viewName, params = {}, push = true) {
         // 1. Intentar desde sessionStorage (nuevo sistema con validación de rol)
         const savedState = this.loadViewState();
         if (savedState) {
-            console.log('[ROUTER] Found saved state:', savedState);
             
             // Validar que el rol guardado coincida con el rol actual
             if (savedState.role && savedState.role !== userRole) {
-                console.log('[ROUTER] Role changed, discarding saved state');
                 this.clearViewState();
                 useDefaultView = true;
             }
             // Validar permisos para la vista guardada
             const hasPermission = this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab);
             if (!hasPermission) {
-                console.log('[ROUTER] No permission for saved view:', savedState.view);
                 useDefaultView = true;
             }
             // Solo usar sessionStorage si la URL es raíz o compatible
@@ -6893,8 +6763,6 @@ navigate(viewName, params = {}, push = true) {
                     if (tabFromUrl && ['users', 'groups', 'legal', 'email', 'account'].includes(tabFromUrl)) {
                         // Si el tab de la URL es diferente al guardado, usar el de la URL
                         if (savedState.params?.tab !== tabFromUrl) {
-                            console.log('[ROUTER] URL tab differs from saved tab. URL:', tabFromUrl, 'Saved:', savedState.params?.tab);
-                            console.log('[ROUTER] Using URL tab and updating saved state');
                             targetParams.tab = tabFromUrl;
                             
                             // Actualizar inmediatamente el estado guardado para sincronizar
@@ -6902,19 +6770,15 @@ navigate(viewName, params = {}, push = true) {
                                 this.saveViewState('system', { tab: tabFromUrl });
                             }, 100);
                         } else {
-                            console.log('[ROUTER] URL tab matches saved tab:', tabFromUrl);
                             targetParams.tab = tabFromUrl;
                         }
                     }
                 }
                 
-                console.log('[ROUTER] Using saved state from sessionStorage');
             } else {
-                console.log('[ROUTER] URL mismatch, not using saved state. Path:', path, 'saved view:', savedState.view);
                 useDefaultView = true;
             }
         } else {
-            console.log('[ROUTER] No saved state found');
             useDefaultView = true;
         }
         
@@ -6923,7 +6787,6 @@ navigate(viewName, params = {}, push = true) {
             const defaultView = this.getDefaultViewByRole(userRole);
             targetView = defaultView.view;
             targetParams = defaultView.tab ? { tab: defaultView.tab } : {};
-            console.log('[ROUTER] Using default view for role', userRole, ':', targetView);
         }
         
         // 3. Validación final de permisos (seguridad extra)
@@ -6934,12 +6797,10 @@ navigate(viewName, params = {}, push = true) {
             targetParams = safeView.tab ? { tab: safeView.tab } : {};
         }
         
-        console.log('[ROUTER] Final target - view:', targetView, 'params:', targetParams, 'role:', userRole);
         
         // PREPARACIÓN ESPECIAL PARA VISTAS DE EVENTO
         // Si estamos restaurando una vista de evento, necesitamos cargar el evento primero
         if ((targetView === 'admin' || targetView === 'event-config') && savedState?.eventId) {
-            console.log('[ROUTER] Preparing to restore event view with eventId:', savedState.eventId);
             
             // Buscar el evento en la lista de eventos del usuario
             const eventId = savedState.eventId;
@@ -6950,12 +6811,10 @@ navigate(viewName, params = {}, push = true) {
             }
             
             if (event) {
-                console.log('[ROUTER] Event found, setting as current event:', event.name);
                 this.state.event = event;
                 
                 // Si hay pestaña de evento guardada, agregarla a los params
                 if (savedState.eventTab && savedState.eventTabType) {
-                    console.log('[ROUTER] Restoring event tab:', savedState.eventTab, 'type:', savedState.eventTabType);
                     
                     // Para event-config, guardar la pestaña activa en sessionStorage
                     if (savedState.eventTabType === 'config') {
@@ -6972,7 +6831,6 @@ navigate(viewName, params = {}, push = true) {
                     targetParams.id = eventId;
                 }
                 
-                console.log('[ROUTER] Event restoration complete, params:', targetParams);
             } else {
                 console.warn('[ROUTER] Event not found in user events list, eventId:', eventId);
                 console.warn('[ROUTER] Falling back to default view');
@@ -6991,7 +6849,6 @@ navigate(viewName, params = {}, push = true) {
     // --- AUTH ---
     async fetchAPI(endpoint, options = {}) { return API.fetchAPI(endpoint, options); },
     logout() {
-        console.log("CHECK: Cerrando sesión segura.");
         LS.remove('user');
         LS.remove('selected_event_id');
         LS.remove('selected_event_name');
@@ -6999,7 +6856,7 @@ navigate(viewName, params = {}, push = true) {
         this.clearViewState();
         this.state.user = null;
         this.state.event = null;
-        // Remover app-shell si existe
+
         const appShell = document.getElementById('app-container');
         if (appShell) appShell.remove();
         this.showView('login', true);
@@ -7007,26 +6864,20 @@ navigate(viewName, params = {}, push = true) {
     
     // --- APP SHELL LOADER ---
     loadAppShell() {
-        console.log('[APP-SHELL] Cargando app-shell.html...');
         // Forzar carga fresca con timestamp para evitar caché
         const timestamp = new Date().getTime();
         return fetch(`/html/app-shell.html?t=${timestamp}&v=${VERSION}`)
             .then(r => r.text())
             .then(html => {
-                console.log('[APP-SHELL] HTML recibido, longitud:', html.length);
                 document.body.insertAdjacentHTML('beforeend', html);
-                console.log('[APP-SHELL] app-shell.html cargado exitosamente (oculto)');
                 
                 // Verificar que los elementos críticos existen
                 const appContainer = document.getElementById('app-container');
                 const sidebar = document.getElementById('global-sidebar');
-                console.log('[APP-SHELL] app-container encontrado:', !!appContainer);
-                console.log('[APP-SHELL] sidebar encontrado:', !!sidebar);
                 
                 this.initTheme();
                 this.initSidebar();
                 this.attachAppListeners(); // ¡IMPORTANTE! Configurar event listeners
-                console.log('[APP-SHELL] Listeners adjuntados correctamente');
             })
             .catch(e => console.error('[APP-SHELL] Error cargando app-shell:', e));
     },
@@ -7036,19 +6887,12 @@ navigate(viewName, params = {}, push = true) {
         const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
         const sf = (id, fn) => { 
             const el = document.getElementById(id); 
-            console.log(`[EVENT LISTENER] Registering submit listener for form: ${id}, element found: ${!!el}`);
             if (el) {
                 // Solo permitir submit si el formulario está dentro de un modal visible
                 const submitHandler = (e) => { 
                     const modal = el.closest('.modal-container, [id^="modal-"]');
                     const isModalVisible = modal && !modal.classList.contains('hidden');
                     
-                    console.log(`[FORM SUBMIT] Form ${id} submitted`);
-                    console.log(`[FORM SUBMIT] Submitter:`, e.submitter);
-                    console.log(`[FORM SUBMIT] Modal visible:`, isModalVisible);
-                    console.log(`[FORM SUBMIT] Modal element:`, modal);
-                    console.log(`[FORM SUBMIT] Modal classes:`, modal?.classList);
-                    console.log(`[FORM SUBMIT] Modal id:`, modal?.id);
                     
                     e.preventDefault(); 
                     
@@ -7435,7 +7279,6 @@ navigate(viewName, params = {}, push = true) {
             const appVersionDisplay = document.getElementById('app-version-display');
             if (appVersionDisplay) appVersionDisplay.textContent = `v${d.version}`;
             
-            console.log(`[VERSION] Aplicación actualizada a V${d.version}`);
         } catch(e) {
             console.warn('[VERSION] Error al cargar versión:', e);
         }
@@ -8093,7 +7936,6 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
-    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -8102,12 +7944,10 @@ navigate(viewName, params = {}, push = true) {
         let events = Array.isArray(this.state.events) ? [...this.state.events] : [];
         
         // Debug
-        console.log('[filterEvents] searchTerm:', searchTerm, 'clientFilter:', clientFilter, 'statusFilter:', statusFilter, 'total events:', events.length);
         
         // FILTRO: PRODUCTOR solo ve sus eventos
         if (this.state.user?.role === 'PRODUCTOR') {
             events = events.filter(e => e.user_id === this.state.user.userId);
-            console.log('[filterEvents] after PRODUCTOR filter:', events.length);
         }
         
         // Filtro por búsqueda con normalización de texto (manejo de acentos)
@@ -8122,7 +7962,6 @@ navigate(viewName, params = {}, push = true) {
                 const searchable = normalize(`${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`);
                 return searchable.includes(normalizedTerm);
             });
-            console.log('[filterEvents] after search filter:', events.length);
         }
         
         // Filtro por cliente
@@ -8131,16 +7970,13 @@ navigate(viewName, params = {}, push = true) {
                 const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
                 return ids.some(id => String(id) === String(clientFilter));
             });
-            console.log('[filterEvents] after client filter:', events.length);
         }
         
         // Filtro por estado
         if (statusFilter) {
             events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
-            console.log('[filterEvents] after status filter:', events.length);
         }
         
-        console.log('[filterEvents] final events:', events.length);
         
         this._eventsFiltered = events;
         this._renderFilteredEvents(events);
@@ -8221,7 +8057,6 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -8307,7 +8142,6 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
-    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -8338,7 +8172,6 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
-    // ─── ACCIÓN DE EDICIÓN DE EVENTOS (CARRUSEL CON BARRA DE NAVEGACIÓN) ───
     openEventEditAction() {
         const selected = Array.from(this._selectedEvents);
         
@@ -8564,28 +8397,22 @@ navigate(viewName, params = {}, push = true) {
 
     // Cambiar pestaña en el carrusel (Editar <-> Gestionar)
     showEventTabInCarousel: function(index, tab) {
-        console.log('[showEventTabInCarousel] Cambiando a tab:', tab);
         if (!this._eventCarouselState) {
-            console.log('[showEventTabInCarousel] No _eventCarouselState');
             return;
         }
         if (!this._eventCarouselModalOpen) {
-            console.log('[showEventTabInCarousel] Modal cerrado');
             return;
         }
         
         this._eventCarouselState.currentIndex = index;
         this._eventCarouselState.currentTab = tab;
-        console.log('[showEventTabInCarousel] state antes:', this._eventCarouselState.currentTab);
         this._eventCarouselState.renderCarousel();
-        console.log('[showEventTabInCarousel] state después:', this._eventCarouselState.currentTab);
     },
 
     // Guardar evento desde el carrusel (cuando se cierra el modal)
     saveEventFromCarousel: async function(eventId) {
         // No guardar si el modal ya está cerrado
         if (!this._eventCarouselModalOpen) {
-            console.log('[saveEventFromCarousel] Modal cerrado, no guardar');
             return;
         }
         
@@ -8599,7 +8426,6 @@ navigate(viewName, params = {}, push = true) {
         const description = document.getElementById(`ev-edit-desc-${eventId}`)?.value?.trim();
         
         if (!name || !date) {
-            console.log('[saveEventFromCarousel] Name or date missing');
             return;
         }
         
@@ -8608,7 +8434,6 @@ navigate(viewName, params = {}, push = true) {
                 method: 'PUT',
                 body: JSON.stringify({ name, location, date, end_date, description })
             });
-            console.log('[saveEventFromCarousel] Event updated:', eventId);
             await this.loadEvents();
         } catch (err) {
             console.error('[saveEventFromCarousel] Error:', err);
@@ -8955,7 +8780,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
-    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9221,7 +9045,6 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
-    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -9257,7 +9080,6 @@ navigate(viewName, params = {}, push = true) {
             events = events.filter(ev => this._getEventStatus(ev) === statusFilter);
         }
         
-        console.log('[filterEvents] final events:', events.length);
         
         this._eventsFiltered = events;
         this._renderFilteredEvents(events);
@@ -9338,7 +9160,6 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -9411,7 +9232,6 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
-    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9442,9 +9262,7 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
-    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
 
-    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9571,7 +9389,6 @@ navigate(viewName, params = {}, push = true) {
             // AGREGAR listener para guardar
             newForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('[FORM SUBMIT EDIT] Guardando evento editado');
                 this.saveEventFull(e);
             });
         }
@@ -9612,13 +9429,11 @@ navigate(viewName, params = {}, push = true) {
             return;
         }
         
-        console.log('[DELETE EVENT] Intentando eliminar evento:', id);
         
         if (await this._confirmAction('¿Eliminar evento?', 'Esta acción es irreversible y borrará todos los datos asociados.')) {
             try {
                 // Guardar referencia al evento antes de eliminar
                 const eventToDelete = this.state.events?.find(e => String(e.id) === String(id));
-                console.log('[DELETE EVENT] Evento a eliminar:', eventToDelete);
                 
                 // Eliminar del estado local PRIMERO (optimista)
                 const previousEvents = [...(this.state.events || [])];
@@ -9634,7 +9449,6 @@ navigate(viewName, params = {}, push = true) {
                 
                 // Llamar al servidor
                 const res = await this.fetchAPI(`/events/${id}`, { method: 'DELETE' });
-                console.log('[DELETE EVENT] Response del servidor:', res);
                 
                 // Verificar respuesta del servidor
                 if (!res) {
@@ -9657,7 +9471,6 @@ navigate(viewName, params = {}, push = true) {
                 }
                 
                 // Eliminación exitosa
-                console.log('[DELETE EVENT] Eliminado correctamente del servidor');
                 this._notifyAction('Eliminado', 'Evento eliminado correctamente', 'success');
                 
             } catch (e) { 
@@ -9698,7 +9511,6 @@ navigate(viewName, params = {}, push = true) {
         if (savedEventId && this.state.events.length > 0) {
             const event = this.state.events.find(e => String(e.id) === String(savedEventId));
             if (event) {
-                console.log("Restaurando evento:", event.name);
                 this.state.event = event;
                 const tit = document.getElementById('admin-event-title');
                 const loc = document.getElementById('admin-event-location');
@@ -10408,7 +10220,6 @@ navigate(viewName, params = {}, push = true) {
 
 
 
-    // ─── PDF MEJORADOS CON DISEÑOS PROFESIONALES ───
     
     // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
@@ -10795,7 +10606,6 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
     
     // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
@@ -11038,22 +10848,19 @@ navigate(viewName, params = {}, push = true) {
         
     },
 
-    // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
     
-    // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
-        console.log('[CONFIG] Switching to tab:', tabName, 'current event:', this.state.event?.id);
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
 
-        // Update config navigation buttons - buscar por data-tab
+
         const configNavContainer = document.querySelector('#view-event-config');
         if (configNavContainer) {
             configNavContainer.querySelectorAll('.sub-nav-btn').forEach(b => {
-                // Remover todas las clases de estado activo
+
                 b.classList.remove('active');
                 
                 // Agregar clase de estado activo al botón correspondiente por data-tab
@@ -11068,7 +10875,6 @@ navigate(viewName, params = {}, push = true) {
 
         // Guardar pestaña activa en sessionStorage
         sessionStorage.setItem('active_config_tab', tabName);
-        console.log('[CONFIG] Saved active tab:', tabName);
         
         // Actualizar estado guardado en sessionStorage si estamos en la vista 'event-config'
         try {
@@ -11079,7 +10885,6 @@ navigate(viewName, params = {}, push = true) {
                 currentState.eventTabType = 'config';
                 currentState.timestamp = Date.now();
                 sessionStorage.setItem('check_current_view', JSON.stringify(currentState));
-                console.log('[CONFIG] Updated saved state with event tab:', tabName);
             }
         } catch (e) {
             console.warn('[CONFIG] Error updating saved state:', e);
@@ -11107,7 +10912,6 @@ navigate(viewName, params = {}, push = true) {
     // Cargar staff en config view
     loadConfigStaff() {
         const eventId = this.state.event?.id;
-        console.log('[CONFIG STAFF] loadConfigStaff called, eventId:', eventId);
         if (!eventId) {
             console.warn('[CONFIG STAFF] No eventId, returning');
             return;
@@ -11245,7 +11049,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
-    // ==================== RULETA DE SORTEOS (FASE 1) ====================
     currentWheel: null,
     wheelParticipants: [],
     
@@ -11257,7 +11060,7 @@ navigate(viewName, params = {}, push = true) {
             if (el) el.classList.add('hidden');
         });
 
-        // Update sub-navigation buttons
+
         const subNav = document.querySelector('#view-event-config .sub-nav-container');
         if (subNav) {
             subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
@@ -11434,7 +11237,6 @@ navigate(viewName, params = {}, push = true) {
     
     // Agregar participantes desde guests - muestra modal de selección
     async showAddParticipantsModal() {
-        console.log('[DEBUG] showAddParticipantsModal INICIADO', { currentWheel: this.currentWheel });
         
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             console.error('[DEBUG] currentWheel inválido');
@@ -11567,20 +11369,13 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    // Modal para entrada manual de participantes
     async showManualParticipantsModal() {
-        console.log('[DEBUG] showManualParticipantsModal llamado', {
-            currentWheel: this.currentWheel,
-            wheelId: this.currentWheel?.id
-        });
-        
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             console.error('[DEBUG] currentWheel inválido');
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
             return;
         }
 
-        console.log('[DEBUG] Abriendo modal Swal');
 
         const { value: text, isConfirmed } = await Swal.fire({
             title: 'Entrada manual de participantes',
@@ -11604,7 +11399,6 @@ navigate(viewName, params = {}, push = true) {
         });
 
         if (!isConfirmed || !text) {
-            console.log('Modal cancelado o texto vacío', { isConfirmed, text });
             return;
         }
 
@@ -11624,7 +11418,6 @@ navigate(viewName, params = {}, push = true) {
             return;
         }
 
-        console.log('Agregando participantes:', participants);
 
         try {
             const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
@@ -11634,7 +11427,6 @@ navigate(viewName, params = {}, push = true) {
                 })
             });
             
-            console.log('Resultado:', result);
             this._notifyAction('Éxito', `${participants.length} participantes agregados`, 'success');
             await this.loadWheelParticipants(this.currentWheel.id);
         } catch (e) {
@@ -11643,7 +11435,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
     
-    // Remover participante
+
     async removeWheelParticipant(participantId) {
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') return;
         
@@ -12067,14 +11859,13 @@ navigate(viewName, params = {}, push = true) {
     },
 
     switchEventTab(tabName) {
-        console.log('[EVENT] Switching to tab:', tabName);
         const ALL_EVENT_IDS = ['ev-content-guests', 'ev-content-staff']; // Updated to match actual IDs
         ALL_EVENT_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
 
-        // Update sub-navigation buttons (V12.6.1)
+
         const subNav = document.querySelector('#view-admin .sub-nav-container');
         if (subNav) {
             subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
@@ -12092,7 +11883,6 @@ navigate(viewName, params = {}, push = true) {
 
         // Guardar pestaña activa en sessionStorage
         sessionStorage.setItem('active_event_tab', tabName);
-        console.log('[EVENT] Saved active tab:', tabName);
         
         // Actualizar estado guardado en sessionStorage si estamos en la vista 'admin'
         try {
@@ -12103,7 +11893,6 @@ navigate(viewName, params = {}, push = true) {
                 currentState.eventTabType = 'admin';
                 currentState.timestamp = Date.now();
                 sessionStorage.setItem('check_current_view', JSON.stringify(currentState));
-                console.log('[EVENT] Updated saved state with event tab:', tabName);
             }
         } catch (e) {
             console.warn('[EVENT] Error updating saved state:', e);
@@ -12115,10 +11904,8 @@ navigate(viewName, params = {}, push = true) {
     },
 
     async loadEventStaff(eventId) {
-        console.log('[LOAD EVENT STAFF] Called with eventId:', eventId);
         try {
             const users = await this.fetchAPI(`/events/${eventId}/users`);
-            console.log('[LOAD EVENT STAFF] API returned:', users);
             
             // Guardar usuarios para filtrado
             this.state.configStaffUsers = users;
@@ -12127,7 +11914,6 @@ navigate(viewName, params = {}, push = true) {
             let tbody = document.getElementById('config-staff-tbody');
             if (!tbody) tbody = document.getElementById('ev-staff-tbody');
             
-            console.log('[LOAD EVENT STAFF] tbody found:', !!tbody);
             if (!tbody) return;
             
             if (!users || users.length === 0) {
@@ -12187,9 +11973,7 @@ navigate(viewName, params = {}, push = true) {
         this.editSelectedUsersConfig(selectedUserIds);
     },
     
-    // ==================================================
     // CARRUSEL INDEPENDIENTE PARA PERSONAL (CONFIGURACIÓN)
-    // ==================================================
     
     // Carrusel principal de Personal - 4 botones independientes
     editSelectedUsersConfig: function(userIds) {
@@ -12858,9 +12642,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
     async removeEventStaff(userId) {
-        console.log('[removeEventStaff] Called with userId:', userId);
         const eventId = this.state.event?.id;
-        console.log('[removeEventStaff] eventId:', eventId);
         if (!eventId) return;
         
         const result = await Swal.fire({
@@ -12985,9 +12767,6 @@ navigate(viewName, params = {}, push = true) {
         const isProductor = this.state.user?.role === 'PRODUCTOR';
         const currentEvent = this.state.event;
         
-        console.log('[INVITE] isProductor:', isProductor);
-        console.log('[INVITE] currentEvent:', currentEvent);
-        console.log('[INVITE] state.event:', this.state.event);
         
         // Obtener group_id del evento actual (no del usuario)
         const currentGroupId = currentEvent?.group_id;
@@ -13005,7 +12784,6 @@ navigate(viewName, params = {}, push = true) {
             if (currentGroupId) {
                 userData.group_id = currentGroupId;
             }
-            console.log('[INVITE] Asignando event_id:', currentEvent.id, 'group_id:', currentGroupId);
         }
         
         try {
@@ -13034,7 +12812,6 @@ navigate(viewName, params = {}, push = true) {
                 // Si se creó y hay event_id, asignar al evento
                 if (res.success && userData.event_id) {
                     // El backend debería asignar automáticamente, pero verificamos
-                    console.log('[INVITE] Usuario creado con ID:', res.userId);
                 }
                 
                 this._notifyAction('✓ Creado', 'Colaborador creado correctamente', 'success');
@@ -13593,7 +13370,6 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error(e); }
     },
 
-    // ─── LEGAL Y QUILL (v12.31.22) ───
     async initQuill() {
         if (this.quillPolicy) return;
         if (typeof window.Quill === 'undefined') {
@@ -13622,7 +13398,6 @@ navigate(viewName, params = {}, push = true) {
         if (links) links.classList.toggle('hidden', settings.show_legal_login === '0');
     },
 
-    // ─── HANDLERS DE FORMULARIOS (v12.31.22) ───
     async handleCreateEvent(e) {
         const id = document.getElementById('ev-id-hidden').value;
         const data = {
@@ -13730,7 +13505,6 @@ window.switchEventTab = App.switchEventTab.bind(App);
 window.App.switchConfigTab = App.switchConfigTab.bind(App);
 
 window.switchAdminTab = function(tabName) {
-    console.log('CHECK V12.3.2.2: switchAdminTab ->', tabName || 'dashboard');
     const mainDash = document.getElementById('admin-main-dashboard');
     if (mainDash) mainDash.style.display = 'none';
     ALL_TAB_IDS.forEach(id => {
@@ -13756,7 +13530,6 @@ window.switchAdminTab = function(tabName) {
     
     // V12.44.361: FORZAR CARGAR ATTENDANCE cuando se muestra cualquier tab del evento
     if (this.state.event && this.state.event.id) {
-        console.log('[TAB-CHANGE] Forzando carga de attendance para evento:', this.state.event.id);
         if (typeof this.loadAttendance === 'function') {
             this.loadAttendance(this.state.event.id);
         }
@@ -13764,7 +13537,6 @@ window.switchAdminTab = function(tabName) {
 };
 
 // --- DOM READY BOOTSTRAP V12.3.2.2 ---
-console.log('[DEBUG] Antes de DOMContentLoaded listener, readyState:', document.readyState);
 
 async function initApp() {
     // Guardia de Página Pública (Fase 11) - Detener SPA en registro.html
@@ -13775,17 +13547,14 @@ async function initApp() {
     // 0. Helpers Críticos (Hoisting manual)
     const sf = (id, fn) => { 
         const el = document.getElementById(id); 
-        console.log(`[DOM DEBUG] sf: buscando elemento con id "${id}", encontrado:`, !!el);
         if (el) el.addEventListener('submit', fn); 
     };
     const cl = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
     
-    console.log('[DOM] Inicializando aplicación, readyState:', document.readyState);
     
     // 0.1. ASEGURAR QUE TODOS LOS MODALES ESTÉN OCULTOS AL INICIAR
     document.querySelectorAll('[id^="modal-"]').forEach(modal => {
         if (!modal.classList.contains('hidden')) {
-            console.log(`[INIT] Modal ${modal.id} estaba visible, ocultándolo`);
             modal.classList.add('hidden');
             modal.setAttribute('aria-hidden', 'true');
         }
@@ -13882,7 +13651,6 @@ async function initApp() {
     // Handler de Escape para cerrar modales
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            console.log('[MODAL] Escape presionado, cerrando modales...');
             // Cerrar todos los modales visibles
             document.querySelectorAll('[id^="modal-"]:not(.hidden)').forEach(modal => {
                 modal.classList.add('hidden');
@@ -14053,7 +13821,6 @@ async function initApp() {
         }
     }, 1000);
     
-    // ─── DISEÑO PREMIUM V11.6.1 Live Preview ───
     App.updateQRPreview = async () => {
         const img = document.getElementById('ev-qr-preview-img');
         const logo = document.getElementById('ev-qr-preview-logo');
@@ -14145,7 +13912,6 @@ async function initApp() {
         if (!actionEl) return;
         
         const action = actionEl.dataset.action;
-        console.log('[CLICK] action detected:', action, 'element:', actionEl);
         
         if (typeof App[action] === 'function') {
             const userId = actionEl.dataset.userId;
@@ -14212,11 +13978,9 @@ async function initApp() {
 // Ejecutar initApp dependiendo del estado del DOM
 if (document.readyState === 'loading') {
     // El DOM todavía no está listo, esperar al evento
-    console.log('[DOM] Esperando DOMContentLoaded (readyState: loading)');
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     // El DOM ya está listo, ejecutar inmediatamente
-    console.log('[DOM] DOM ya está listo (readyState:', document.readyState, '), ejecutando initApp inmediatamente');
     initApp();
 }
 
@@ -14232,9 +13996,7 @@ window.copyTemplateVar = (varName) => {
 // Función global hideModal expuesta para onclick en HTML
 window.hideModal = function(id) { App.hideModal(id); };
 
-// ============================================================
 // ASISTENCIA AL EVENTO (ATTENDANCE) - V12.44.250
-// ============================================================
 
 App._attendanceLoaded = false;
 App._selectedAttendance = [];
@@ -14246,13 +14008,10 @@ App.loadAttendance = async function(eventId) {
     }
     if (!eventId) return;
     
-    console.log('[FRONTEND] loadAttendance llamado, eventId:', eventId);
     
     try {
         const res = await this.fetchAPI(`/events/${eventId}/attendance`);
-        console.log('[FRONTEND] Respuesta attendance:', res);
         this.state.attendance = Array.isArray(res) ? res : (res.data || []);
-        console.log('[FRONTEND] state.attendance:', this.state.attendance.length);
         this._attendanceLoaded = true;
         this.populateAttendanceFilters();
         this.filterAttendance();
@@ -14465,7 +14224,6 @@ App.toggleValidateAttendance = async function(clientId) {
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Error en servidor');
         
-        console.log(`[ATTENDANCE] Estado de validación actualizado para ${clientId}: ${newValidated}`);
     } catch(e) {
         console.error('[ATTENDANCE] Fallo al validar:', e.message);
         // Revertir cambio en caso de error
@@ -14809,7 +14567,6 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows, stats)
     document.getElementById('import-attendance-update-count').textContent = updateCount;
     document.getElementById('import-attendance-error-count').textContent = '0';
     
-    console.log(`[IMPORT STATS] Total: ${totalFound}, Server Stats - New: ${newCount}, Update: ${updateCount}`);
 };
 
 App.executeAttendanceImport = async function() {

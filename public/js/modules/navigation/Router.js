@@ -32,7 +32,7 @@ class Router {
         const userObj = user ? (typeof user === 'string' ? JSON.parse(user) : user) : null;
         const role = userObj?.role || 'INVITADO';
         
-        console.log('[ROUTER] navigateTo:', viewId, 'role:', role, 'user:', userObj?.email);
+        
         
         if (!this.hasPermissionForView(role, viewId)) {
             console.warn(`[ROUTER] No permission for view: ${viewId} (role: ${role})`);
@@ -62,7 +62,7 @@ class Router {
             console.error('[ROUTER] No se encontró App.showView');
         }
         
-        console.log(`[ROUTER] Navigated to: ${viewId}`, params);
+        
     }
     
     // Obtener vista por defecto según rol
@@ -124,7 +124,7 @@ class Router {
     
     navigateToCreateEvent(type = 'short') {
         // Lógica para crear evento
-        console.log(`[ROUTER] Navigate to create event: ${type}`);
+        
     }
 }
 

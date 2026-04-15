@@ -31,7 +31,7 @@ class Sidebar {
             this.expand();
         }
         
-        console.log('[SIDEBAR] Initialized');
+        
     }
     
     // Toggle sidebar
@@ -55,7 +55,7 @@ class Sidebar {
             this.toggleButton.querySelector('.material-symbols-outlined')?.classList.add('rotate-180');
         }
         
-        console.log('[SIDEBAR] Collapsed');
+        
     }
     
     // Expandir sidebar
@@ -70,7 +70,7 @@ class Sidebar {
             this.toggleButton.querySelector('.material-symbols-outlined')?.classList.remove('rotate-180');
         }
         
-        console.log('[SIDEBAR] Expanded');
+        
     }
     
     // Actualizar UI de navegación

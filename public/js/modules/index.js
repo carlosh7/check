@@ -74,6 +74,3 @@ export const MODULES_STATUS = {
         GuestService: '✅ Completo',
     },
 };
-
-console.log(`[MODULES] Módulos cargados - v${MODULES_VERSION} (${MODULES_LAST_UPDATE})`);
-console.log('[MODULES] Estado:', MODULES_STATUS);

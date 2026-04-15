@@ -32,7 +32,7 @@ class ViewManager {
             }
         });
         
-        console.log('[VIEWS] Inicializadas:', Object.keys(this.viewElements));
+        
     }
     
     // Mostrar una vista
@@ -50,7 +50,7 @@ class ViewManager {
             // Guardar estado
             PersistenceManager.saveViewState(viewId, params);
             
-            console.log(`[VIEWS] Mostrada: ${viewId}`);
+            
         } else {
             console.warn(`[VIEWS] Vista no encontrada: ${viewId}`);
         }

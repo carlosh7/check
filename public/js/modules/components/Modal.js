@@ -20,7 +20,7 @@ class Modal {
         modal.setAttribute('aria-hidden', 'false');
         this.activeModals.add(modalId);
         
-        console.log(`[MODAL] Opened: ${modalId}`);
+        
     }
     
     // Ocultar un modal
@@ -35,7 +35,7 @@ class Modal {
         modal.setAttribute('aria-hidden', 'true');
         this.activeModals.delete(modalId);
         
-        console.log(`[MODAL] Closed: ${modalId}`);
+        
     }
     
     // Toggle modal

@@ -49,7 +49,7 @@ export class CSSManager {
             
             document.head.appendChild(link);
             this.loadedModules.add(moduleName);
-            console.log(`[CSSManager] Módulo '${moduleName}' cargado`);
+            
             return true;
         } catch (error) {
             console.error(`[CSSManager] Error cargando módulo '${moduleName}':`, error);
@@ -66,17 +66,17 @@ export class CSSManager {
         if (link) {
             link.remove();
             this.loadedModules.delete(moduleName);
-            console.log(`[CSSManager] Módulo '${moduleName}' descargado`);
+            
             return true;
         }
         return false;
     }
 
     async loadAll() {
-        console.log('[CSSManager] Cargando todos los módulos CSS...');
+        
         const promises = Object.keys(this.modules).map(name => this.loadModule(name));
         await Promise.all(promises);
-        console.log('[CSSManager] Todos los módulos cargados');
+        
     }
 
     async loadPage(pageName) {

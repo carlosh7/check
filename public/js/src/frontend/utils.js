@@ -65,10 +65,10 @@ export const lazyLoad = {
     },
 
     async loadQuill() {
-        console.log('[LAZY] Loading Quill 2.0...');
+        
         await this.loadStyle('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css');
         await this.loadScript('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js');
-        console.log('[LAZY] Quill loaded successfully');
+        
     },
     
     async loadStyle(url, options = {}) {

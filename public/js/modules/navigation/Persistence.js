@@ -51,7 +51,7 @@ class Persistence {
             }
             
             sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
-            console.log('[PERSISTENCE] Saved view state:', state);
+            
         } catch (e) {
             console.warn('[PERSISTENCE] Error saving view state:', e);
         }
@@ -64,7 +64,7 @@ class Persistence {
             if (!sessionData) return null;
             
             const state = JSON.parse(sessionData);
-            console.log('[PERSISTENCE] Loaded view state:', state);
+            
             
             if (state.view === 'system' && (!state.params || !state.params.tab)) {
                 console.warn('[PERSISTENCE WARNING] Loaded system view without tab parameter!');
@@ -72,7 +72,7 @@ class Persistence {
             
             // Validar que no sea muy viejo
             if (Date.now() - state.timestamp > this.MAX_AGE) {
-                console.log('[PERSISTENCE] State too old, discarding');
+                
                 return null;
             }
             
@@ -90,7 +90,7 @@ class Persistence {
             sessionStorage.removeItem('check_current_url');
             sessionStorage.removeItem('active_config_tab');
             sessionStorage.removeItem('active_event_tab');
-            console.log('[PERSISTENCE] Cleared view state and event tabs');
+            
         } catch (e) {
             console.warn('[PERSISTENCE] Error clearing view state:', e);
         }

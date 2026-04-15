@@ -24,7 +24,7 @@ class SystemView {
     
     // Inicializar
     init() {
-        console.log('[SYSTEM] Inicializado');
+        
         this.bindEvents();
     }
     
@@ -60,7 +60,7 @@ class SystemView {
         
         if (user?.role !== 'ADMIN') {
             // Ocultar tabs que no son permitidos
-            console.log('[SYSTEM] Permisos limitados para:', user?.role);
+            
         }
     }
     
@@ -92,7 +92,7 @@ class SystemView {
     
     // Cargar contenido de pestaña
     loadTabContent(tabName) {
-        console.log(`[SYSTEM] Cargar tab: ${tabName}`);
+        
         
         // Los contenidos se cargan desde app.js legacy
         // Este módulo es un wrapper para coordinación
@@ -111,7 +111,7 @@ class SystemView {
                 this.loadSettings();
                 break;
             default:
-                console.log(`[SYSTEM] Tab ${tabName} en desarrollo`);
+                
         }
     }
     
@@ -122,7 +122,7 @@ class SystemView {
             if (res.ok) {
                 const users = await res.json();
                 AppStateManager.set('allUsers', users);
-                console.log(`[SYSTEM] ${users.length} usuarios cargados`);
+                
             }
         } catch (error) {
             console.error('[SYSTEM] Error cargando usuarios:', error);
@@ -135,7 +135,7 @@ class SystemView {
             const res = await fetch('/api/clients');
             if (res.ok) {
                 const clients = await res.json();
-                console.log(`[SYSTEM] ${clients.length} clientes cargados`);
+                
             }
         } catch (error) {
             console.error('[SYSTEM] Error cargando clientes:', error);
@@ -144,17 +144,17 @@ class SystemView {
     
     // Cargar configuración SMTP
     async loadSMTP() {
-        console.log('[SYSTEM] Cargar SMTP config');
+        
     }
     
     // Cargar settings
     async loadSettings() {
-        console.log('[SYSTEM] Cargar settings');
+        
     }
     
     // Crear usuario
     createUser(userData) {
-        console.log('[SYSTEM] Crear usuario:', userData);
+        
         if (window.App?.createUser) {
             window.App.createUser(userData);
         }
@@ -162,7 +162,7 @@ class SystemView {
     
     // Editar usuario
     editUser(userId) {
-        console.log('[SYSTEM] Editar usuario:', userId);
+        
         if (window.App?.editUser) {
             window.App.editUser(userId);
         }
@@ -170,7 +170,7 @@ class SystemView {
     
     // Eliminar usuario
     deleteUser(userId) {
-        console.log('[SYSTEM] Eliminar usuario:', userId);
+        
         if (window.App?.deleteUser) {
             window.App.deleteUser(userId);
         }
@@ -178,7 +178,7 @@ class SystemView {
     
     // Guardar configuración SMTP
     saveSMTPConfig(config) {
-        console.log('[SYSTEM] Guardar SMTP:', config);
+        
         if (window.App?.saveSMTPConfig) {
             window.App.saveSMTPConfig(config);
         }

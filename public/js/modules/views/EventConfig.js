@@ -25,7 +25,7 @@ class EventConfigView {
     
     // Inicializar
     init() {
-        console.log('[EVENT_CONFIG] Inicializado');
+        
         this.bindEvents();
     }
     
@@ -92,7 +92,7 @@ class EventConfigView {
             if (res.ok) {
                 const event = await res.json();
                 AppStateManager.set('event', event);
-                console.log(`[EVENT_CONFIG] Evento cargado: ${event.name}`);
+                
             }
         } catch (error) {
             console.error('[EVENT_CONFIG] Error cargando evento:', error);
@@ -102,7 +102,7 @@ class EventConfigView {
     
     // Cargar contenido de pestaña
     loadTabContent(tabName) {
-        console.log(`[EVENT_CONFIG] Cargar tab: ${tabName}`);
+        
         
         // Los contenidos se cargan desde app.js legacy
         // Este módulo es un wrapper para coordinación

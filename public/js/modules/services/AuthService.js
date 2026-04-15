@@ -24,7 +24,7 @@ class AuthService {
                 
                 if (this.isAuthenticated) {
                     AppStateManager.set('user', this.currentUser);
-                    console.log('[AUTH] Usuario cargado desde storage');
+                    
                 }
             } catch (e) {
                 console.warn('[AUTH] Error parseando usuario:', e);
@@ -78,7 +78,7 @@ class AuthService {
         
         AppStateManager.set('user', this.currentUser);
         
-        console.log('[AUTH] Sesión establecida para:', user.email);
+        
     }
     
     // Limpiar sesión
@@ -92,7 +92,7 @@ class AuthService {
         
         AppStateManager.set('user', null);
         
-        console.log('[AUTH] Sesión limpiada');
+        
     }
     
     // Manejar sesión expirada

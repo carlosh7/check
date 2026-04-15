@@ -23,7 +23,7 @@ class AdminView {
     
     // Inicializar
     init() {
-        console.log('[ADMIN] Inicializado');
+        
         this.bindEvents();
     }
     
@@ -91,7 +91,7 @@ class AdminView {
                 AppStateManager.set('guests', guests);
             }
             
-            console.log(`[ADMIN] Datos cargados para evento: ${eventId}`);
+            
         } catch (error) {
             console.error('[ADMIN] Error cargando datos:', error);
             ToastManager.error('Error', 'No se pudieron cargar los datos');
@@ -144,27 +144,27 @@ class AdminView {
     
     // Renderizar staff
     renderStaff() {
-        console.log('[ADMIN] Render staff');
+        
     }
     
     // Renderizar companies
     renderCompanies() {
-        console.log('[ADMIN] Render companies');
+        
     }
     
     // Renderizar groups
     renderGroups() {
-        console.log('[ADMIN] Render groups');
+        
     }
     
     // Renderizar reports
     renderReports() {
-        console.log('[ADMIN] Render reports');
+        
     }
     
     // Renderizar checkin
     renderCheckin() {
-        console.log('[ADMIN] Render checkin');
+        
     }
     
     // Render (por defecto)
@@ -177,7 +177,7 @@ class AdminView {
     
     // Check-in de invitado
     checkInGuest(guestId) {
-        console.log(`[ADMIN] Check-in: ${guestId}`);
+        
         if (window.App?.checkInGuest) {
             window.App.checkInGuest(guestId);
         }
