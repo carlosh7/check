@@ -52,7 +52,7 @@ global.emailService = null;
 try {
     const emailService = require('./src/utils/email-service');
     global.emailService = emailService;
-    
+    console.log('✓ Email Service inicializado');
 } catch (e) {
     console.warn('⚠ Email Service no disponible:', e.message);
 }
@@ -67,12 +67,12 @@ function replaceTemplateVariables(template, data) {
 
 // Envío básico de emails transaccionales (legacy - para compatibilidad)
 async function sendEmail(to, subject, html, options = {}) {
-    
+    console.log('📧 sendEmail() legado llamado - migrar a email-service.js');
     // Si hay un servicio de email configurado, lo usamos
     if (global.emailService) {
         return global.emailService.sendEmail({ to, subject, html, ...options });
     }
-    
+    console.log('📧 Email simulation (no email service configured):', { to, subject });
     return { success: true, simulated: true };
 }
 
@@ -145,7 +145,7 @@ app.use(cors({
         if (isLocal || isWhitelisted) {
             callback(null, true);
         } else {
-            
+            console.log(`[CORS] Bloqueado origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -272,7 +272,7 @@ if (!swaggerUi || isProduction) {
     app.use('/api-docs', (req, res) => {
         res.status(404).json({ error: 'API Docs no disponible en producción' });
     });
-    
+    console.log('⚠️  Swagger UI deshabilitado en producción');
 } else {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
         customCss: '.swagger-ui .topbar { display: none }',
@@ -368,10 +368,10 @@ app.use((req, res) => {
 try {
     const { startBackupScheduler } = require('./src/utils/backup');
     startBackupScheduler();
-    
+    console.log('✓ Backup Scheduler inicializado (cada 6 horas)');
 } catch (e) {
     console.warn('⚠️ Backup Scheduler no disponible:', e.message);
 }
 
 // ═══ ARRANQUE DEL SERVIDOR ═══
-server.listen(port, () => 
+server.listen(port, () => console.log(`\x1b[35mCHECK PRO V${APP_VERSION} (Enterprise Grade + Backups + Rate Limiting): Puerto ${port}\x1b[0m`));
