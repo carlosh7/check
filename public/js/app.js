@@ -3,6 +3,7 @@ import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos con versión actualizada
 import { Config } from './modules/core/Config.js?v=12.44.465';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.467';
 import { AppStateManager } from './modules/core/State.js?v=12.44.465';
 import { Constants } from './modules/utils/Constants.js?v=12.44.465';
 import { RouterManager } from './modules/navigation/Router.js?v=12.44.465';
@@ -23,17 +24,18 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// DEBUG V12.44.467 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.465 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.465');
+// DEBUG V12.44.468 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.468 loaded');
+console.log('[MODULES] Todos los módulos cargados v12.44.468');
 
 /**
 * MASTER SCRIPT
- * Version: V12.44.467 (Neutral Dark)
+ * Version: V12.44.468 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
+ * Feature V12.44.468: Migrar funções de theme para ThemeManager
  * Feature V12.44.467: Fix openEventEditFromAdmin - código corrupto restaurado
  * Feature V12.44.466: Agregar openEventEditFromAdmin faltante
  * Feature V12.44.465: Agregar filterEvents y getEventStatus a EventService
@@ -52,7 +54,7 @@ console.log('[MODULES] Todos los módulos cargados v12.44.465');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.467';
+const VERSION = '12.44.468';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -875,6 +877,9 @@ const App = window.App = {
     
     // Obtener tema guardado o del sistema
     getCurrentTheme: function() {
+        if (typeof ThemeManagerInstance !== 'undefined') {
+            return ThemeManagerInstance.getCurrentTheme();
+        }
         const saved = LS.get('theme');
         if (saved === 'dark' || saved === 'light') {
             return saved;
@@ -894,46 +899,46 @@ const App = window.App = {
     
     // Cambiar entre temas oscuro/claro
     toggleTheme: function() {
-        const currentTheme = this.getCurrentTheme();
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        let newTheme;
+        if (typeof ThemeManagerInstance !== 'undefined') {
+            newTheme = ThemeManagerInstance.toggleTheme();
+        } else {
+            const currentTheme = this.getCurrentTheme();
+            newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            this.applyThemeTransition();
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(newTheme);
+            LS.set('theme', newTheme);
+        }
         
-        this.applyThemeTransition();
-        document.documentElement.classList.remove('dark', 'light');
-        document.documentElement.classList.add(newTheme);
-        LS.set('theme', newTheme);
-        
-        // Actualizar todos los íconos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = newTheme === 'dark' ? 'dark_mode' : 'light_mode';
         });
         
-        // Emitir evento personalizado para que otros componentes reaccionen
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
-        
         console.log(`Tema cambiado a: ${newTheme}`);
     },
     
     // Inicializar tema al cargar la aplicación
     initTheme: function() {
-        const theme = this.getCurrentTheme();
-        const icon = document.getElementById('theme-icon');
+        const theme = ThemeManagerInstance ? ThemeManagerInstance.getCurrentTheme() : this.getCurrentTheme();
+        
+        if (typeof ThemeManagerInstance !== 'undefined') {
+            ThemeManagerInstance.initTheme();
+        }
         
         document.documentElement.classList.remove('dark', 'light');
         document.documentElement.classList.add(theme);
         
-        if (icon) {
-            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
-        }
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         
-        // Actualizar todos los íconos de tema
         document.querySelectorAll('.theme-icon').forEach(icon => {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         });
         
-        // Escuchar cambios en la preferencia del sistema (solo una vez)
         if (!window._themeListenerAdded) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                // Solo cambiar si no hay tema guardado explícitamente
                 if (!LS.get('theme')) {
                     const newTheme = e.matches ? 'dark' : 'light';
                     document.documentElement.classList.remove('dark', 'light');
