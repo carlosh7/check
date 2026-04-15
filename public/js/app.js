@@ -3654,7 +3654,7 @@ const App = window.App = {
 
     async showEventSelector(userId, selectedEventIds = []) {
         let events = [];
-        try { events = await this.fetchAPI('/events'); 
+        try { events = await this.fetchAPI('/events'); } catch(e) { events = []; }
 
         const html = `
             <div class="space-y-6 text-left">
