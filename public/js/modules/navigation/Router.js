@@ -27,11 +27,12 @@ class Router {
     
     // Navegación completa con parámetros
     navigateTo(viewId, params = {}, saveState = true) {
-        // Obtener usuario desde App.state (fuente principal)
-        const user = window.App?.state?.user || AppStateManager.get('user');
-        const role = user?.role || 'INVITADO';
+        // Obtener usuario desde window.App.state (fuente principal)
+        const user = window.App?.state?.user || window.LS?.get('user');
+        const userObj = user ? (typeof user === 'string' ? JSON.parse(user) : user) : null;
+        const role = userObj?.role || 'INVITADO';
         
-        console.log('[ROUTER] navigateTo:', viewId, 'role:', role, 'user:', user?.email);
+        console.log('[ROUTER] navigateTo:', viewId, 'role:', role, 'user:', userObj?.email);
         
         if (!this.hasPermissionForView(role, viewId)) {
             console.warn(`[ROUTER] No permission for view: ${viewId} (role: ${role})`);
@@ -50,12 +51,15 @@ class Router {
         this._currentView = viewId;
         this._currentParams = params;
         
-        // IMPORTANTE: Llamar a la función original de app.js para mostrar la vista
+        // IMPORTANTE: Llamar a App._showView directamente para evitar dependencia circular
+        // NO llamar a App.navigate porque crea ciclo: App.navigate -> Router.navigateTo -> App.navigate
         if (window.App && typeof window.App._showView === 'function') {
             window.App._showView(viewId, params);
-        } else if (window.App && typeof window.App.navigate === 'function') {
-            // Fallback: usar navigate original
-            console.log('[ROUTER] Delegando a App.navigate original');
+        } else if (window.App && typeof window.App._showAdminView === 'function') {
+            // Fallback para vistas de evento
+            window.App._showAdminView(params.id);
+        } else {
+            console.error('[ROUTER] No se encontró App._showView');
         }
         
         console.log(`[ROUTER] Navigated to: ${viewId}`, params);
