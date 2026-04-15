@@ -90,6 +90,90 @@ export const COLUMN_CONFIG = {
     status: { label: 'Estado', visible: true, order: 5 },
 };
 
+// Funciones utilitarias
+export const Utils = {
+    // Normalizar texto para búsqueda
+    normalize(text) {
+        if (!text) return '';
+        return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+    },
+    
+    // Highlight texto
+    highlightText(text, term) {
+        if (!text || !term) return text;
+        const norm = this.normalize(text);
+        const search = this.normalize(term);
+        const idx = norm.indexOf(search);
+        if (idx === -1) return text;
+        return text.substring(0, idx) + '<mark class="bg-yellow-500/30 text-yellow-200 px-1 rounded">' + text.substring(idx, idx + term.length) + '</mark>' + text.substring(idx + term.length);
+    },
+    
+    // Get event status
+    getEventStatus(event) {
+        if (!event) return 'draft';
+        
+        const now = new Date();
+        const fecha = event.date ? new Date(event.date) : null;
+        
+        if (!fecha) return 'draft';
+        if (event.status === 'cancelled') return 'cancelled';
+        if (event.status === 'inactive') return 'inactive';
+        
+        if (now < fecha) {
+            return event.status === 'draft' ? 'draft' : 'upcoming';
+        }
+        
+        const endDate = event.end_date ? new Date(event.end_date) : null;
+        if (endDate && now > endDate) return 'completed';
+        
+        if (event.has_checkin === 1 || event.has_guests === 1) {
+            return 'active';
+        }
+        
+        return 'completed';
+    },
+    
+    // Format fecha
+    formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    },
+    
+    // Format hora
+    formatTime(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    },
+    
+    // Format número
+    formatNumber(num) {
+        return new Intl.NumberFormat('es-ES').format(num);
+    },
+    
+    // Debounce
+    debounce(fn, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fn.apply(this, args), delay);
+        };
+    },
+    
+    // Throttle
+    throttle(fn, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                fn.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    },
+};
+
 // Export todo
 export const Constants = {
     API: API_CONSTANTS,
@@ -98,6 +182,7 @@ export const Constants = {
     ROLE: ROLE_CONSTANTS,
     UI: UI_CONSTANTS,
     COLUMNS: COLUMN_CONFIG,
+    Utils: Utils,
 };
 
 export default Constants;

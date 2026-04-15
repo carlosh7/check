@@ -89,6 +89,28 @@ Los siguientes módulos ya están creados y se importan:
 | Función | Módulo Destino | Estado |
 |---------|----------------|--------|
 | _notifyAction | Toast.js | ✅ Completado |
-| showView | Router.js | ⚠️ Parcial |
-| renderEventsTable | Table.js | ⚠️ Parcial |
+| showView | Router.js | ✅ Completado |
+| renderEventsTable | Table.js | ✅ Completado |
+| loadEvents() | EventService.js | ✅ Completado |
+| loadGuests() | GuestService.js | ✅ Completado |
 | showPremiumToast | Toast.js | ✅ Completado |
+
+## Funciones Migradas v12.44.463
+
+### Services
+- loadEvents() → EventServiceInstance.getAll()
+- loadGuests() → GuestServiceInstance.getGuests()
+
+### Components  
+- _notifyAction() → ToastManager.show()
+- renderEventsTable() → TableManager.renderEventsTable()
+
+### Navigation
+- showView() → App.showView() (via Router)
+- navigate() → RouterManager.navigateTo()
+
+## Funciones NO Migradas (dependen mucho del DOM)
+- saveEventShort() - lógica de formulario
+- filterEvents() - dependencias UI
+- renderGuestsTarget() - HTML embebido
+- Todas las funciones de selector/modals
