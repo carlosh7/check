@@ -387,17 +387,17 @@ th.sortable {
 }
 
 th.sortable:hover {
-    color: #8b5cf6;
+    color: #0ba5ec;
 }
 
 th.sortable.sorted-asc .sort-icon,
 th.sortable.sorted-desc .sort-icon {
     opacity: 1;
-    color: #8b5cf6;
+    color: #0ba5ec;
 }
 
 th.sorted-asc, th.sorted-desc {
-    color: #8b5cf6 !important;
+    color: #0ba5ec !important;
 }
 
 /* Ajuste de scroll */
@@ -469,7 +469,7 @@ html.dark .filter-select-evento {
 .filter-select-empresa {
     background: rgba(124, 58, 237, 0.15);
     border-color: rgba(124, 58, 237, 0.4);
-    color: #7c3aed;
+    color: #0ba5ec;
 }
 
 html.dark .filter-select-empresa {
@@ -531,7 +531,7 @@ html.dark .filter-select-role {
 .filter-select-action {
     background: rgba(124, 58, 237, 0.2);
     border-color: rgba(124, 58, 237, 0.5);
-    color: #8b5cf6;
+    color: #0ba5ec;
     font-weight: bold;
 }
 
@@ -1157,7 +1157,7 @@ body.app-loaded > *:not(style):not(script):not(link) {
 }
 
 .filter-select:focus {
-    border-color: #8b5cf6;
+    border-color: #0ba5ec;
     box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
 }
 
@@ -1166,11 +1166,11 @@ body.app-loaded > *:not(style):not(script):not(link) {
     color: #e2e8f0;
 }
 
-/* Acciones - estilo violeta */
+/* Acciones - estilo Portainer */
 .filter-select-action {
-    border: 1px solid rgba(124, 58, 237, 0.5);
-    background: rgba(124, 58, 237, 0.15);
-    color: #a78bfa;
+    border: 1px solid rgba(11, 165, 236, 0.5);
+    background: rgba(11, 165, 236, 0.15);
+    color: #0ba5ec;
 }
 
 .filter-select-action:hover {
@@ -1223,7 +1223,7 @@ html:not(.dark) .filter-select option {
 html:not(.dark) .filter-select-action {
     background: rgba(124, 58, 237, 0.08);
     border-color: rgba(124, 58, 237, 0.3);
-    color: #7c3aed;
+    color: #0ba5ec;
 }
 
 html:not(.dark) .filter-select-action option {
@@ -1245,7 +1245,7 @@ html:not(.dark) .filter-select-role option {
 html:not(.dark) .filter-select-empresa {
     background: rgba(124, 58, 237, 0.1);
     border-color: rgba(124, 58, 237, 0.3);
-    color: #7c3aed;
+    color: #0ba5ec;
 }
 
 html:not(.dark) .filter-select-empresa option {
@@ -1289,7 +1289,7 @@ html:not(.dark) #global-sidebar .nav-item {
 
 html:not(.dark) #global-sidebar .nav-item:hover {
     background: rgba(139, 92, 246, 0.08) !important;
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 html:not(.dark) #global-sidebar .nav-item .material-symbols-outlined {
@@ -1297,7 +1297,7 @@ html:not(.dark) #global-sidebar .nav-item .material-symbols-outlined {
 }
 
 html:not(.dark) #global-sidebar .nav-item:hover .material-symbols-outlined {
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 html:not(.dark) #global-sidebar .sidebar-text {
@@ -1332,17 +1332,13 @@ html:not(.dark) #global-sidebar .text-slate-400 {
     color: #64748b !important;
 }
 
-html:not(.dark) #global-sidebar .text-violet-400 {
-    color: #7c3aed !important;
-}
-
 /* Light theme: sidebar user info */
 html:not(.dark) #sidebar-username {
     color: #1e293b !important;
 }
 
 html:not(.dark) #sidebar-role {
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 /* Light theme: theme toggle and logout buttons */
@@ -1372,7 +1368,7 @@ html:not(.dark) #view-system .btn-secondary {
 html:not(.dark) #view-system .btn-secondary:hover {
     background: rgba(139, 92, 246, 0.1) !important;
     border-color: rgba(139, 92, 246, 0.4) !important;
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 html:not(.dark) #view-system .btn-secondary .material-symbols-outlined {
@@ -1380,7 +1376,7 @@ html:not(.dark) #view-system .btn-secondary .material-symbols-outlined {
 }
 
 html:not(.dark) #view-system .btn-secondary:hover .material-symbols-outlined {
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 /* ===== TEMAS: TABLAS DE DATOS ===== */
@@ -1433,11 +1429,11 @@ html:not(.dark) .sub-nav-btn {
 
 html:not(.dark) .sub-nav-btn:hover {
     background: rgba(139, 92, 246, 0.08) !important;
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 html:not(.dark) .sub-nav-btn.active {
-    background: #7c3aed !important;
+    background: #0ba5ec !important;
     color: #ffffff !important;
 }
 
@@ -1561,8 +1557,8 @@ html.dark #view-event-config .sub-nav-btn[data-tab="settings"].active {
 /* ===== SIDEBAR: Estilos activos para navegación - ALL THEMES */
 #global-sidebar .sub-nav-btn[data-tab="my-events"].active {
     background: rgba(139, 92, 246, 0.2) !important;
-    color: #8b5cf6 !important;
-    border-left: 3px solid #8b5cf6 !important;
+    color: #0ba5ec !important;
+    border-left: 3px solid #0ba5ec !important;
 }
 
 #global-sidebar .sub-nav-btn[data-tab="admin"].active {
@@ -1618,7 +1614,7 @@ html:not(.dark) .status-inactive {
 
 /* ===== TEMAS: BOTONES BASE ===== */
 html:not(.dark) .btn-primary {
-    background: #7c3aed !important;
+    background: #0ba5ec !important;
     color: #ffffff !important;
     border-color: #6d28d9 !important;
 }
@@ -1637,7 +1633,7 @@ html:not(.dark) .btn-secondary {
 html:not(.dark) .btn-secondary:hover {
     background: rgba(139, 92, 246, 0.1) !important;
     border-color: rgba(139, 92, 246, 0.4) !important;
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 html:not(.dark) .btn-secondary .material-symbols-outlined {
@@ -1645,7 +1641,7 @@ html:not(.dark) .btn-secondary .material-symbols-outlined {
 }
 
 html:not(.dark) .btn-secondary:hover .material-symbols-outlined {
-    color: #7c3aed !important;
+    color: #0ba5ec !important;
 }
 
 /* Dark mode active states for system tabs */
