@@ -529,9 +529,9 @@
                     <!-- CONTENIDO: PRE-REGISTROS -->
                     <div id="config-content-pre-registrations" class="config-tab-content hidden space-y-6">
                         <h2 class="text-2xl font-semibold tracking-tight">Pre-registros</h2>
-                        <div class="card !p-0 overflow-hidden">
+                        <div class="card card-table">
                             <table class="data-table">
-                                <tbody id="config-pre-reg-tbody"></tbody>
+                                <tbody id="config-pre-reg-tbody" class="table-tbody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -700,17 +700,17 @@
                             <h2 class="text-2xl font-semibold tracking-tight">Encuesta QR</h2>
                             <button id="btn-create-survey" class="btn-primary !px-5 !py-2.5">+ Nueva Encuesta</button>
                         </div>
-                        <div class="card !p-0 overflow-hidden">
+                        <div class="card card-table">
                             <div class="overflow-x-auto">
                                 <table class="data-table">
                                     <thead>
-                                        <tr>
-                                            <th class="px-5 py-4">Nombre</th>
-                                            <th class="px-5 py-4 text-center">Estado</th>
-                                            <th class="px-5 py-4 text-right">Acciones</th>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Nombre</th>
+                                            <th class="table-th text-center">Estado</th>
+                                            <th class="table-th text-right">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="survey-tbody" class="divide-y divide-[var(--border-light)]"></tbody>
+                                    <tbody id="survey-tbody" class="table-tbody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -962,24 +962,22 @@
                         </div>
                     </div>
 
-                    <div class="card !p-0 border-white/5 bg-white/[0.01]">
-                        <div class="">
-                            <table class="data-table">
-                                <thead>
-                                    <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
-                                            <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" class="checkbox-sm">
-                                        </th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Clientes</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groups-tbody" class="divide-y divide-white/[0.03]"></tbody>
-                            </table>
-                        </div>
+                    <div class="card card-table">
+                        <table class="data-table">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th class="table-th table-checkbox-cell">
+                                        <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" class="checkbox-sm">
+                                    </th>
+                                    <th class="table-th">Empresa</th>
+                                    <th class="table-th">Clientes</th>
+                                    <th class="table-th">Staff</th>
+                                    <th class="table-th">Eventos</th>
+                                    <th class="table-th">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groups-tbody" class="table-tbody"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -1153,19 +1151,19 @@
                         <div class="">
                             <table class="data-table">
                                 <thead>
-                                    <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                    <tr class="table-header-row">
+                                        <th class="table-th table-checkbox-cell">
                                             <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" class="checkbox-sm">
                                         </th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Clientes</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Eventos</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Rol</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="table-th">Staff</th>
+                                        <th class="table-th">Empresa</th>
+                                        <th class="table-th">Clientes</th>
+                                        <th class="table-th">Eventos</th>
+                                        <th class="table-th">Rol</th>
+                                        <th class="table-th">Estado</th>
                                     </tr>
                                 </thead>
-                                <tbody id="users-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                                <tbody id="users-tbody" class="table-tbody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1215,18 +1213,18 @@
                         <div class="">
                             <table class="data-table">
                                 <thead>
-                                    <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                    <tr class="table-header-row">
+                                        <th class="table-th table-checkbox-cell">
                                             <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" class="checkbox-sm">
                                         </th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cliente</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Evento</th>
-                                        <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Estado</th>
+                                        <th class="table-th">Cliente</th>
+                                        <th class="table-th">Empresa</th>
+                                        <th class="table-th">Staff</th>
+                                        <th class="table-th">Evento</th>
+                                        <th class="table-th">Estado</th>
                                     </tr>
                                 </thead>
-                                <tbody id="clients-tbody" class="divide-y divide-white/[0.03]"></tbody>
+                                <tbody id="clients-tbody" class="table-tbody"></tbody>
                             </table>
                         </div>
                     </div>
