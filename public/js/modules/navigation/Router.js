@@ -51,15 +51,15 @@ class Router {
         this._currentView = viewId;
         this._currentParams = params;
         
-        // IMPORTANTE: Llamar a App._showView directamente para evitar dependencia circular
+        // IMPORTANTE: Llamar a App.showView directamente para evitar dependencia circular
         // NO llamar a App.navigate porque crea ciclo: App.navigate -> Router.navigateTo -> App.navigate
-        if (window.App && typeof window.App._showView === 'function') {
-            window.App._showView(viewId, params);
+        if (window.App && typeof window.App.showView === 'function') {
+            window.App.showView(viewId);
         } else if (window.App && typeof window.App._showAdminView === 'function') {
             // Fallback para vistas de evento
             window.App._showAdminView(params.id);
         } else {
-            console.error('[ROUTER] No se encontró App._showView');
+            console.error('[ROUTER] No se encontró App.showView');
         }
         
         console.log(`[ROUTER] Navigated to: ${viewId}`, params);
