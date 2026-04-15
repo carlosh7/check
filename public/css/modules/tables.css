@@ -286,3 +286,71 @@
     display: flex;
     gap: 8px;
 }
+
+/* ================================================
+   TABLE SCROLL CONTAINER
+   ================================================ */
+
+.table-scroll-container {
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: calc(100vh - 300px);
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ================================================
+   STATUS PILLS
+   ================================================ */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #10b981;
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.status-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* ================================================
+   USER ROW PREMIUM
+   ================================================ */
+
+.user-row-premium {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.05) 0%, transparent 100%);
+}
+
+.user-row-premium:hover {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0.02) 100%);
+}

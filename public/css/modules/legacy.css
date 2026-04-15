@@ -344,3 +344,201 @@
 
 .tracking-wider { letter-spacing: 0.05em; }
 .tracking-widest { letter-spacing: 0.1em; }
+
+/* ================================================
+   SWEETALERT2 STYLES
+   ================================================ */
+
+.swal2-container,
+.swal2-popup,
+.swal2-modal,
+.swal2-overlay,
+.swal2-show,
+.swal2-hide,
+.swal2-animate,
+.swal2-fade,
+.swal2-content,
+.swal2-title,
+.swal2-icon,
+.swal2-actions,
+.swal2-backdrop-show,
+.swal2-backdrop-hide,
+.swal2-html-container,
+.swal2-header,
+.swal2-body,
+.swal2-footer {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-modal) !important;
+    color: var(--text-main) !important;
+}
+
+.swal2-html-container > * {
+    color: var(--text-main);
+}
+
+.swal2-popup.swal2-modal-left-aligned,
+.swal2-modal-left-aligned.swal2-popup {
+    left: 20%;
+}
+
+.swal2-popup {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2xl);
+    padding: 24px;
+}
+
+.swal2-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.swal2-html-container {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.swal2-confirm {
+    background: var(--primary) !important;
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 10px 24px;
+    font-weight: 600;
+}
+
+.swal2-cancel {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 24px;
+    color: var(--text-main);
+}
+
+.swal2-input,
+.swal2-textarea,
+.swal2-select {
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    color: var(--text-main) !important;
+}
+
+.swal2-input:focus,
+.swal2-textarea:focus,
+.swal2-select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(11, 165, 236, 0.15) !important;
+}
+
+.swal2-toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+}
+
+.swal2-icon.swal2-success {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.swal2-icon.swal2-error {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.swal2-icon.swal2-warning {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.swal2-icon.swal2-info {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+/* ================================================
+   SUB NAV BUTTONS
+   ================================================ */
+
+.sub-nav-btn {
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.sub-nav-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-focus);
+}
+
+.sub-nav-btn[data-tab="events"].active,
+.sub-nav-btn[data-tab="clients"].active,
+.sub-nav-btn[data-tab="groups"].active,
+.sub-nav-btn[data-tab="users"].active,
+.sub-nav-btn[data-tab="email"].active,
+.sub-nav-btn[data-tab="account"].active,
+.sub-nav-btn[data-tab="legal"].active {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* ================================================
+   STICKY HEADER CONTAINER
+   ================================================ */
+
+.sticky-header-container {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px 0;
+    margin: -12px 0 12px 0;
+    background: var(--bg-app);
+}
+
+/* ================================================
+   CARD LEGACY
+   ================================================ */
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+}
+
+.glass-card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark .glass-card,
+html.dark .card {
+    background: rgba(30, 41, 59, 0.6);
+}
+
+/* ================================================
+   BTN DANGER GLASS
+   ================================================ */
+
+.btn-danger-glass {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 10px 20px;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-danger-glass:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+}
