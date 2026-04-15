@@ -1,7 +1,7 @@
 {
   "name": "check",
-  "version": "12.44.483",
-  "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.398 - Tabla con tbody scrolleable, thead natural fijo.",
+  "version": "12.44.484",
+  "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')){fs.copyFileSync('.env.example','.env');console.log('.env created');}else{console.log('.env already exists');}if(!fs.existsSync('data')){fs.mkdirSync('data');console.log('data folder created');}else{console.log('data folder already exists');}\"",
@@ -51,14 +51,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@tailwindcss/container-queries": "^0.1.1",
-    "@tailwindcss/forms": "^0.5.11",
-    "@tailwindcss/postcss": "^4.2.2",
-    "autoprefixer": "^10.4.27",
     "jest": "^30.3.0",
-    "postcss": "^8.5.8",
-    "postcss-cli": "^11.0.1",
-    "supertest": "^7.2.2",
-    "tailwindcss": "^4.2.2"
+    "supertest": "^7.2.2"
   }
 }
