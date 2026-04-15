@@ -12993,7 +12993,6 @@ navigate(viewName, params = {}, push = true) {
         try { users = await this.fetchAPI('/users'); } catch(e) { users = []; }
         
         const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
-        const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
         const selectedIds = currentUsers.map(u => String(u.id));
         
         const html = `
