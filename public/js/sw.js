@@ -1,8 +1,15 @@
-const CACHE_NAME = 'check-v12.31.91-cache';
+const CACHE_NAME = 'check-v12.44.483-cache';
 const assets = [
   '/',
-  '/css/styles.css',
-  '/css/modern.css',
+  '/css/modules/base.css',
+  '/css/modules/layout.css',
+  '/css/modules/components.css',
+  '/css/modules/tables.css',
+  '/css/modules/forms.css',
+  '/css/modules/wheel.css',
+  '/css/modules/ticket.css',
+  '/css/modules/registro.css',
+  '/css/modules/survey.css',
   '/js/app.js',
   '/manifest.json',
   '/socket.io/socket.io.js'

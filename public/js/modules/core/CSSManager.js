@@ -14,13 +14,14 @@ export class CSSManager {
             forms: '/css/modules/forms.css',
             survey: '/css/modules/survey.css',
             wheel: '/css/modules/wheel.css',
-            legacy: '/css/modules/legacy.css'
+            ticket: '/css/modules/ticket.css',
+            registro: '/css/modules/registro.css'
         };
         this.linkId = 'dynamic-css-manager';
     }
 
     getVersion() {
-        return '12.44.469';
+        return '12.44.483';
     }
 
     async loadModule(moduleName) {

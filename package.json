@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.482",
+  "version": "12.44.483",
   "description": "Sistema de gestión de invitados (Regla de Oro). v12.44.398 - Tabla con tbody scrolleable, thead natural fijo.",
   "main": "script.js",
   "scripts": {
@@ -8,8 +8,6 @@
     "setup": "node setup.js",
     "start": "node server.js",
     "dev": "node setup.js",
-    "build:css": "npx postcss src/styles/main.css -o public/css/styles.css",
-    "watch:css": "npx postcss src/styles/main.css -o public/css/styles.css --watch",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch"
   },

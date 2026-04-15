@@ -9,19 +9,16 @@
     <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.481">
     <link rel="stylesheet" href="/css/modules/survey.css?v=12.44.481">
     <script>
-        // Inicializar tema - compatible con modern.css
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
             let theme = savedTheme || (prefersDark ? 'dark' : 'light');
             
-            // Asegurar que el tema sea válido
             if (theme !== 'dark' && theme !== 'light') {
                 theme = 'dark';
             }
             
-            // modern.css usa clase .dark en cualquier elemento
             document.documentElement.classList.remove('dark', 'light');
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
