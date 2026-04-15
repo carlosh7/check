@@ -944,8 +944,14 @@ const App = window.App = {
         await this.loadAppVersion();
     },
 
-    // ─── SIDEBAR COLAPSABLE (CHROME STYLE) ───
+    // ─── SIDEBAR COLAPSABLE - usar SidebarManager ───
     toggleSidebar() {
+        if (typeof SidebarManager !== 'undefined') {
+            SidebarManager.toggle();
+            return;
+        }
+        
+        // Fallback al código original
         const sidebar = document.getElementById('global-sidebar');
         if (!sidebar) {
             console.warn('[SIDEBAR] sidebar no encontrado!');
