@@ -6516,8 +6516,14 @@ const App = window.App = {
         }, 100);
     },
 
-    navigate(viewName, params = {}, push = true) {
+navigate(viewName, params = {}, push = true) {
+        // Usar RouterManager si está disponible
+        if (typeof RouterManager !== 'undefined') {
+            RouterManager.navigateTo(viewName, params, push);
+            return;
+        }
         
+        // Fallback al código original
         // Prevenir navegación múltiple simultánea
         if (this._navigating) {
             return;
