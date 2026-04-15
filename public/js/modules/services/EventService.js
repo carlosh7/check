@@ -240,6 +240,55 @@ class EventService {
         ToastManager.success('Exportado', `${events.length} eventos exportados`);
     }
     
+    // Filtrar eventos (lógica pura)
+    filterEvents(events, { searchTerm = '', clientFilter = '', statusFilter = '', userId = null, userRole = 'ADMIN', groups = [] }) {
+        let filtered = Array.isArray(events) ? [...events] : [];
+        
+        if (userRole === 'PRODUCTOR' && userId) {
+            filtered = filtered.filter(e => e.user_id === userId);
+        }
+        
+        if (searchTerm) {
+            const normalize = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const normalizedTerm = normalize(searchTerm);
+            
+            filtered = filtered.filter(ev => {
+                const clientNames = ev.client_names || '';
+                const groupName = (groups || []).find(g => g.id === ev.group_id)?.name || '';
+                const searchable = normalize(`${ev.name} ${ev.location || ''} ${ev.description || ''} ${clientNames} ${groupName}`);
+                return searchable.includes(normalizedTerm);
+            });
+        }
+        
+        if (clientFilter) {
+            filtered = filtered.filter(ev => {
+                const ids = ev.client_ids ? ev.client_ids.split(',').map(id => id.trim()) : [];
+                return ids.some(id => String(id) === String(clientFilter));
+            });
+        }
+        
+        if (statusFilter) {
+            filtered = filtered.filter(ev => this._getEventStatus(ev) === statusFilter);
+        }
+        
+        return filtered;
+    }
+    
+    // Estado del evento
+    _getEventStatus(event) {
+        if (!event) return 'draft';
+        const now = new Date();
+        const fecha = event.date ? new Date(event.date) : null;
+        if (!fecha) return 'draft';
+        if (event.status === 'cancelled') return 'cancelled';
+        if (event.status === 'inactive') return 'inactive';
+        if (now < fecha) return event.status === 'draft' ? 'draft' : 'upcoming';
+        const endDate = event.end_date ? new Date(event.end_date) : null;
+        if (endDate && now > endDate) return 'completed';
+        if (event.has_checkin === 1 || event.has_guests === 1) return 'active';
+        return 'completed';
+    }
+    
     // Limpiar cache
     clearCache() {
         this.cache.clear();

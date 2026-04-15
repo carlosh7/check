@@ -2,39 +2,40 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos con versión actualizada
-import { Config } from './modules/core/Config.js?v=12.44.464';
-import { AppStateManager } from './modules/core/State.js?v=12.44.464';
-import { Constants } from './modules/utils/Constants.js?v=12.44.464';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.464';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.464';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.464';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.464';
-import { TableManager } from './modules/components/Table.js?v=12.44.464';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.464';
-import { FormManager } from './modules/components/Form.js?v=12.44.464';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.464';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.464';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.464';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.464';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.464';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.464';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.464';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.464';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.464';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.464';
+import { Config } from './modules/core/Config.js?v=12.44.465';
+import { AppStateManager } from './modules/core/State.js?v=12.44.465';
+import { Constants } from './modules/utils/Constants.js?v=12.44.465';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.465';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.465';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.465';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.465';
+import { TableManager } from './modules/components/Table.js?v=12.44.465';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.465';
+import { FormManager } from './modules/components/Form.js?v=12.44.465';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.465';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.465';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.465';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.465';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.465';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.465';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.465';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.465';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// DEBUG V12.44.464 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.464 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.464');
+// DEBUG V12.44.465 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.465 loaded');
+console.log('[MODULES] Todos los módulos cargados v12.44.465');
 
 /**
 * MASTER SCRIPT
- * Version: V12.44.464 (Neutral Dark)
+ * Version: V12.44.465 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Feature V12.44.464: Migrar _normalize y _getEventStatus a Constants.Utils
+ * Feature V12.44.465: Agregar filterEvents y getEventStatus a EventService
+ * Feature V12.44.464: Agregar Utils a Constants.js con normalize y getEventStatus
  * Feature V12.44.463: Migrar loadGuests() para usar GuestService
  * Feature V12.44.462: Fix EventService para soportar array directo del API
  * Feature V12.44.461: Migrar loadEvents() para usar EventService
@@ -49,7 +50,7 @@ console.log('[MODULES] Todos los módulos cargados v12.44.464');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.464';
+const VERSION = '12.44.465';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
