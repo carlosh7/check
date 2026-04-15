@@ -1,0 +1,280 @@
+/**
+ * Ticket Page Styles
+ * Estilos para página de boleto digital
+ */
+
+.ticket-body {
+    background-color: #020617;
+    color: #f4f4f5;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+.ticket-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.ticket-loading-inner {
+    text-align: center;
+}
+
+.ticket-loading-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(124, 58, 237, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    animation: ticket-pulse 2s ease-in-out infinite;
+}
+
+.ticket-loading-icon .material-symbols-outlined {
+    color: #7c3aed;
+    font-size: 32px;
+}
+
+@keyframes ticket-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+.ticket-loading-text {
+    color: #64748b;
+}
+
+.ticket-main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 32px;
+}
+
+.ticket-card {
+    max-width: 448px;
+    width: 100%;
+    background: rgba(22, 27, 34, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.ticket-header {
+    background: linear-gradient(to bottom right, rgba(124, 58, 237, 0.2), rgba(2, 6, 23, 0.5));
+    padding: 32px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ticket-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 40px rgba(124, 58, 237, 0.1);
+}
+
+.ticket-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ticket-logo .material-symbols-outlined {
+    font-size: 32px;
+    color: #7c3aed;
+}
+
+.ticket-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.ticket-event-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #7c3aed;
+    margin-bottom: 4px;
+}
+
+.ticket-location {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.ticket-location .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.ticket-description {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.ticket-countdown {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+.ticket-countdown-timer {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: monospace;
+    color: #7c3aed;
+}
+
+.ticket-countdown-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+}
+
+.ticket-body-content {
+    padding: 32px;
+}
+
+.ticket-qr-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.ticket-qr-container canvas,
+.ticket-qr-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.ticket-info {
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-top: 24px;
+}
+
+.ticket-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.ticket-info-label {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.ticket-info-value {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ticket-id {
+    font-family: monospace;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.ticket-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.ticket-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.ticket-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.ticket-btn-download {
+    background: #7c3aed;
+    color: white;
+}
+
+.ticket-btn-download:hover {
+    background: #6d28d9;
+}
+
+.ticket-btn-share {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ticket-btn-share:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ticket-error {
+    text-align: center;
+}
+
+.ticket-error-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.ticket-error-icon .material-symbols-outlined {
+    color: #f87171;
+    font-size: 32px;
+}
+
+.ticket-error-message {
+    color: #f87171;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.ticket-error-hint {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.ticket-bg-pattern {
+    background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+}

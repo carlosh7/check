@@ -12,13 +12,10 @@
             --color-primary-dark: #5b21b6;
         }
     </style>
-    <script type="module" src="/js/app.js?v=12.34.30"></script>
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.472">
-    <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.472">
-    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.472">
-    <link rel="stylesheet" href="/css/modules/forms.css?v=12.44.472">
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.481">
+    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.481">
+    <link rel="stylesheet" href="/css/modules/registro.css?v=12.44.481">
     <style>
-        .bg-pattern { background-image: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); }
         input[type="radio"] { accent-color: #7c3aed; }
         #policy-text h2 { color: #f8fafc; font-weight: 800; font-size: 14px; margin-bottom: 8px; margin-top: 12px; }
         #policy-text p { margin-bottom: 8px; }
@@ -26,7 +23,6 @@
         #policy-text b, #policy-text strong { color: #a78bfa; font-weight: 700; }
     </style>
     <script>
-        // Inicializar tema basado en preferencia del sistema o guardado
         (function() {
             const saved = localStorage.getItem('theme');
             let theme = 'dark';
@@ -40,120 +36,116 @@
         })();
     </script>
 </head>
-<body class="bg-slate-950 text-slate-50 antialiased font-sans min-h-screen bg-pattern">
-    <div id="loading" class="flex items-center justify-center min-h-screen">
-        <div class="text-center">
-            <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <span class="material-symbols-outlined text-primary text-3xl">shield_checked</span>
+<body class="registro-body registro-bg-pattern">
+    <div id="loading" class="registro-loading">
+        <div class="registro-loading-inner">
+            <div class="registro-loading-icon">
+                <span class="material-symbols-outlined">shield_checked</span>
             </div>
-            <p class="text-slate-500">Cargando...</p>
+            <p class="registro-loading-text">Cargando...</p>
         </div>
     </div>
 
-    <div id="main-content" class="hidden min-h-screen flex items-center justify-center p-4 py-8">
-        <div class="max-w-lg w-full glass-card rounded-[32px] overflow-hidden shadow-2xl relative z-10 border border-white/10">
-            <!-- Header con info del evento -->
-            <div id="event-header" class="bg-gradient-to-br from-primary/20 to-slate-900/50 p-8 text-center border-b border-white/5">
-                <!-- Logo (Solo visible si existe) -->
-                <div id="event-logo" class="hidden w-20 h-20 mx-auto mb-6 rounded-2xl overflow-hidden bg-white/10 border border-white/20 flex items-center justify-center shadow-xl shadow-primary/10"></div>
-                <h2 id="page-title" class="text-xl font-black font-display mb-2">Registro de Invitados</h2>
-                <h3 id="event-name" class="text-lg font-black text-primary mb-1"></h3>
-                <div id="event-location-container" class="flex items-center justify-center gap-2 text-slate-400 text-xs mb-2">
-                    <span class="material-symbols-outlined text-xs">location_on</span>
+    <div id="main-content" class="registro-main hidden">
+        <div class="registro-card glass-card">
+            <div id="event-header" class="registro-header">
+                <div id="event-logo" class="registro-logo hidden">
+                    <img src="" alt="Logo">
+                </div>
+                <h2 id="page-title" class="registro-title">Registro de Invitados</h2>
+                <h3 id="event-name" class="registro-event-name"></h3>
+                <div id="event-location-container" class="registro-location">
+                    <span class="material-symbols-outlined">location_on</span>
                     <span id="event-location"></span>
                 </div>
-                <p id="event-description" class="text-slate-500 text-xs hidden"></p>
+                <p id="event-description" class="registro-description hidden"></p>
             </div>
 
-            <!-- Countdown -->
-            <div id="countdown-section" class="p-4 bg-white/[0.02] border-b border-white/5 text-center">
-                <div id="countdown-timer" class="text-3xl font-black text-primary font-mono">00:00:00</div>
-                <p class="text-[9px] uppercase tracking-[0.2em] font-bold text-slate-500 mt-1">Para el evento</p>
+            <div id="countdown-section" class="registro-countdown">
+                <div id="countdown-timer" class="registro-countdown-timer">00:00:00</div>
+                <p class="registro-countdown-label">Para el evento</p>
             </div>
 
-            <!-- Formulario -->
-            <div class="p-8">
-                <p id="welcome-text" class="text-slate-400 text-sm mb-6 text-center hidden"></p>
+            <div class="registro-form-body">
+                <p id="welcome-text" class="registro-welcome-text hidden"></p>
                 
-                <form id="event-registration-form" class="space-y-4">
-                    <div class="relative">
-                        <input type="text" id="reg-name" required placeholder="Nombre Completo *" class="input-field bg-slate-900/50">
+                <form id="event-registration-form" class="registro-form">
+                    <div class="registro-form-group">
+                        <input type="text" id="reg-name" required placeholder="Nombre Completo *" class="input-field">
                     </div>
-                    <div class="relative">
-                        <input type="email" id="reg-email" required placeholder="Correo Electrónico *" class="input-field bg-slate-900/50">
-                    </div>
-                    
-                    <!-- Campos dinámicos -->
-                    <div id="field-phone" class="relative">
-                        <input type="tel" id="reg-phone" placeholder="Teléfono" class="input-field bg-slate-900/50">
+                    <div class="registro-form-group">
+                        <input type="email" id="reg-email" required placeholder="Correo Electrónico *" class="input-field">
                     </div>
                     
-                    <div id="field-org" class="grid grid-cols-2 gap-4">
-                        <div class="relative">
-                            <input type="text" id="reg-org" placeholder="Empresa" class="input-field bg-slate-900/50">
+                    <div id="field-phone" class="registro-form-group">
+                        <input type="tel" id="reg-phone" placeholder="Teléfono" class="input-field">
+                    </div>
+                    
+                    <div id="field-org" class="registro-form-grid-2">
+                        <div class="registro-form-group">
+                            <input type="text" id="reg-org" placeholder="Empresa" class="input-field">
                         </div>
-                        <div id="field-position">
-                            <input type="text" id="reg-position" placeholder="Cargo/Puesto" class="input-field bg-slate-900/50">
+                        <div id="field-position" class="registro-form-group">
+                            <input type="text" id="reg-position" placeholder="Cargo/Puesto" class="input-field">
                         </div>
                     </div>
                     
-                    <div id="field-vegan" class="p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                        <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-3 block">¿Eres vegano?</label>
-                        <div class="flex gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="vegan" value="no" checked class="w-4 h-4">
-                                <span class="text-sm text-slate-300">No</span>
+                    <div id="field-vegan" class="registro-field-vegan">
+                        <span class="registro-field-vegan-label">¿Eres vegano?</span>
+                        <div class="registro-field-vegan-options">
+                            <label class="registro-radio-label">
+                                <input type="radio" name="vegan" value="no" checked>
+                                <span>No</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="vegan" value="si" class="w-4 h-4">
-                                <span class="text-sm text-slate-300">Sí</span>
+                            <label class="registro-radio-label">
+                                <input type="radio" name="vegan" value="si">
+                                <span>Sí</span>
                             </label>
                         </div>
                     </div>
                     
-                    <div id="field-gender" class="hidden">
-                        <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2 block">Sexo</label>
-                        <select id="reg-gender" class="input-field bg-slate-900/50">
+                    <div id="field-gender" class="hidden registro-form-group">
+                        <label class="form-label">Sexo</label>
+                        <select id="reg-gender" class="input-field">
                             <option value="O">Prefiero no decir</option>
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
                         </select>
                     </div>
                     
-                    <div id="field-dietary" class="relative">
-                        <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field bg-slate-900/50 h-16 resize-none"></textarea>
+                    <div id="field-dietary" class="registro-form-group">
+                        <textarea id="reg-diet" placeholder="Alergias o restricciones alimentarias" class="input-field registro-textarea"></textarea>
                     </div>
                     
-                    <!-- Política de datos -->
-                    <div id="policy-section" class="p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                        <div id="policy-text" class="text-xs text-slate-500 mb-4 max-h-24 overflow-y-auto"></div>
-                        <label id="agreement-label" class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" id="reg-agreement" required class="w-5 h-5 mt-0.5 accent-primary">
-                            <span class="text-xs text-slate-400">Acepto la política de tratamiento de datos personales</span>
+                    <div id="policy-section" class="registro-policy">
+                        <div id="policy-text" class="registro-policy-text"></div>
+                        <label id="agreement-label" class="registro-policy-label">
+                            <input type="checkbox" id="reg-agreement" required class="registro-policy-checkbox">
+                            <span class="registro-policy-text-small">Acepto la política de tratamiento de datos personales</span>
                         </label>
                     </div>
                     
-                    <button type="submit" id="submit-btn" class="btn-primary w-full py-4 uppercase font-extrabold tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-transform text-sm">
+                    <button type="submit" id="submit-btn" class="registro-submit">
                         Confirmar Registro
                     </button>
                 </form>
                 
-                <div id="success-message" class="hidden text-center py-16">
-                    <p id="success-text" class="text-4xl font-black text-emerald-400 mb-6 drop-shadow-lg">¡Registro Exitoso!</p>
-                    <p class="text-slate-200 text-2xl font-bold">Te esperamos en el evento.</p>
+                <div id="success-message" class="registro-success hidden">
+                    <p id="success-text" class="registro-success-text">¡Registro Exitoso!</p>
+                    <p class="registro-success-message">Te esperamos en el evento.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="error-content" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="text-center">
-            <span class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span class="material-symbols-outlined text-red-500 text-4xl">error</span>
-            </span>
-            <h2 class="text-2xl font-black mb-4">Evento no encontrado</h2>
-            <p class="text-slate-500 mb-6">El enlace de registro no es válido o ha expirado.</p>
-            <a href="/" class="btn-primary px-8 py-3 rounded-xl inline-block">Volver al inicio</a>
+    <div id="error-content" class="registro-error hidden">
+        <div class="registro-error-inner">
+            <div class="registro-error-icon">
+                <span class="material-symbols-outlined">error</span>
+            </div>
+            <h2 class="registro-error-title">Evento no encontrado</h2>
+            <p class="registro-error-text">El enlace de registro no es válido o ha expirado.</p>
+            <a href="/" class="registro-back-btn">Volver al inicio</a>
         </div>
     </div>
 
@@ -179,51 +171,43 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
 
-                // Título de la página
                 document.getElementById('page-title').innerText = eventData.reg_title || 'Registro de Invitados';
                 document.getElementById('event-name').innerText = eventData.name || 'Evento';
-                // Logo
+                
                 if (eventData.reg_logo_url && eventData.reg_logo_url.trim() !== "") {
                     const logoContainer = document.getElementById('event-logo');
                     logoContainer.classList.remove('hidden');
-                    logoContainer.innerHTML = `<img src="${eventData.reg_logo_url}" class="w-full h-full object-cover" alt="Logo">`;
+                    logoContainer.innerHTML = `<img src="${eventData.reg_logo_url}" alt="Logo">`;
                 }
 
-                // Ubicación
                 if (eventData.location && eventData.location.trim() !== "" && eventData.location !== "Por definir") {
                     document.getElementById('event-location').innerText = eventData.location;
                 } else {
                     document.getElementById('event-location-container').style.display = 'none';
                 }
 
-                // Descripción
                 if (eventData.description) {
                     document.getElementById('event-description').classList.remove('hidden');
                     document.getElementById('event-description').innerText = eventData.description;
                 }
 
-                // Texto de bienvenida
                 if (eventData.reg_welcome_text) {
                     document.getElementById('welcome-text').classList.remove('hidden');
                     document.getElementById('welcome-text').innerText = eventData.reg_welcome_text;
                 }
 
-                // Mensaje de éxito
                 if (eventData.reg_success_message) {
                     document.getElementById('success-text').innerText = eventData.reg_success_message;
                 }
 
-                // Política de datos
                 if (eventData.reg_policy) {
                     document.getElementById('policy-text').innerHTML = eventData.reg_policy;
                 } else {
                     document.getElementById('policy-text').innerHTML = 'Al registrarse, acepta que sus datos sean utilizados únicamente para la gestión del evento.';
                 }
 
-                // Requerir aceptación
                 document.getElementById('reg-agreement').required = eventData.reg_require_agreement !== 0;
 
-                // Mostrar/ocultar campos según configuración
                 document.getElementById('field-phone').style.display = eventData.reg_show_phone !== 0 ? 'block' : 'none';
                 document.getElementById('field-org').style.display = eventData.reg_show_org !== 0 ? 'grid' : 'none';
                 document.getElementById('field-position').style.display = eventData.reg_show_position === 1 ? 'block' : 'none';
@@ -231,7 +215,6 @@
                 document.getElementById('field-gender').style.display = eventData.reg_show_gender === 1 ? 'block' : 'none';
                 document.getElementById('field-dietary').style.display = eventData.reg_show_dietary !== 0 ? 'block' : 'none';
 
-                // Countdown
                 if (eventData.date) {
                     const eventDate = new Date(eventData.date);
                     const countdownSection = document.getElementById('countdown-section');
@@ -301,8 +284,6 @@
                 if (d.success) {
                     e.target.style.display = 'none';
                     document.getElementById('success-message').classList.remove('hidden');
-                    
-                    // Fase 11: Modo Kiosco v2 - Recarga automática tras 4 seg o al hacer clic
                     setTimeout(() => window.location.reload(), 4000);
                     document.body.onclick = () => window.location.reload();
                 } else {

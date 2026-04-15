@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boleto Digital | Check Pro</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.472">
-    <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.472">
-    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.472">
-    <script type="module" src="/js/app.js?v=12.34.30"></script>
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.481">
+    <link rel="stylesheet" href="/css/modules/components.css?v=12.44.481">
+    <link rel="stylesheet" href="/css/modules/ticket.css?v=12.44.481">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
@@ -28,7 +26,6 @@
             }
 
             try {
-                // Cargar datos del evento e invitado
                 const [eventRes, guestRes] = await Promise.all([
                     fetch(`${API_URL}/events/${eventId}`).then(r => r.json()),
                     fetch(`${API_URL}/guests/by-id/${guestId}`).then(r => r.json())
@@ -42,7 +39,6 @@
                 ticketData = { event: eventRes, guest: guestRes };
                 renderTicket();
                 
-                // Ocultar loading, mostrar contenido
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 
@@ -57,7 +53,6 @@
             
             const { event, guest } = ticketData;
             
-            // Datos textuales
             document.getElementById('ticket-event-name').textContent = event.name;
             document.getElementById('ticket-guest-name').textContent = guest.name;
             document.getElementById('ticket-date').textContent = new Date(event.date).toLocaleDateString('es-ES', { 
@@ -69,20 +64,17 @@
             document.getElementById('ticket-location').textContent = event.location;
             document.getElementById('ticket-guest-id').textContent = guest.id.substring(0, 8) + '...';
             
-            // Logo del evento
             const logoEl = document.getElementById('ticket-logo');
             if (event.logo_url) {
                 logoEl.src = event.logo_url;
                 logoEl.alt = `Logo ${event.name}`;
             } else {
-                logoEl.parentElement.innerHTML = '<span class="material-symbols-outlined text-3xl text-primary">event</span>';
+                logoEl.innerHTML = '<span class="material-symbols-outlined">event</span>';
             }
             
-            // Personalización de colores
             const accent = event.ticket_accent_color || '#7c3aed';
             document.getElementById('ticket-header-bg').style.backgroundColor = `${accent}20`;
             
-            // Generar QR
             generateQRCode();
         }
 
@@ -97,10 +89,9 @@
             const logoUrl = event.qr_logo_url;
             
             if (typeof qrcode === 'undefined') {
-                // Fallback a API externa
                 const qrImg = document.createElement('img');
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrContent)}&color=${dark.replace('#','')}&bgcolor=${light.replace('#','')}`;
-                qrImg.className = 'w-full h-auto';
+                qrImg.className = 'ticket-qr-img';
                 canvas.parentElement.appendChild(qrImg);
                 canvas.remove();
                 return;
@@ -198,22 +189,87 @@
 
         function showError(message) {
             document.getElementById('loading').innerHTML = `
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="material-symbols-outlined text-red-500 text-3xl">error</span>
+                <div class="ticket-error">
+                    <div class="ticket-error-icon">
+                        <span class="material-symbols-outlined">error</span>
                     </div>
-                    <p class="text-red-400 font-bold mb-2">${message}</p>
-                    <p class="text-slate-500 text-sm">Verifica el enlace o contacta al organizador.</p>
+                    <p class="ticket-error-message">${message}</p>
+                    <p class="ticket-error-hint">Verifica el enlace o contacta al organizador.</p>
                 </div>
             `;
         }
 
-        // Event Listeners
         document.getElementById('btn-download').addEventListener('click', downloadTicket);
         document.getElementById('btn-share').addEventListener('click', shareTicket);
 
-        // Inicializar
         loadTicket();
     </script>
+    <style>
+        .ticket-qr-img { width: 100%; height: auto; border-radius: 8px; }
+    </style>
+</head>
+<body class="ticket-body ticket-bg-pattern">
+    <div id="loading" class="ticket-loading">
+        <div class="ticket-loading-inner">
+            <div class="ticket-loading-icon">
+                <span class="material-symbols-outlined">shield_checked</span>
+            </div>
+            <p class="ticket-loading-text">Cargando...</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="ticket-main hidden">
+        <div id="ticket-container" class="ticket-card">
+            <div id="ticket-header-bg" class="ticket-header">
+                <div id="ticket-logo" class="ticket-logo">
+                    <img src="" alt="Logo">
+                </div>
+                <h2 id="ticket-event-name" class="ticket-title">Registro de Invitados</h2>
+                <h3 id="ticket-guest-name" class="ticket-event-name"></h3>
+                <div class="ticket-location">
+                    <span class="material-symbols-outlined">location_on</span>
+                    <span id="ticket-location"></span>
+                </div>
+                <p id="ticket-description" class="ticket-description hidden"></p>
+            </div>
+            
+            <div class="ticket-countdown">
+                <div id="countdown-timer" class="ticket-countdown-timer">00:00:00</div>
+                <p class="ticket-countdown-label">Para el evento</p>
+            </div>
+
+            <div class="ticket-body-content">
+                <div class="ticket-qr-container">
+                    <canvas id="ticket-qr-canvas"></canvas>
+                </div>
+
+                <div class="ticket-info">
+                    <div class="ticket-info-row">
+                        <span class="ticket-info-label">Fecha</span>
+                        <span id="ticket-date" class="ticket-info-value"></span>
+                    </div>
+                    <div class="ticket-info-row">
+                        <span class="ticket-info-label">Ubicación</span>
+                        <span id="ticket-location-detail" class="ticket-info-value"></span>
+                    </div>
+                    <div class="ticket-info-row">
+                        <span class="ticket-info-label">ID</span>
+                        <span id="ticket-guest-id" class="ticket-id"></span>
+                    </div>
+                </div>
+
+                <div class="ticket-actions">
+                    <button id="btn-download" class="ticket-btn ticket-btn-download">
+                        <span class="material-symbols-outlined">download</span>
+                        Descargar
+                    </button>
+                    <button id="btn-share" class="ticket-btn ticket-btn-share">
+                        <span class="material-symbols-outlined">share</span>
+                        Compartir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
