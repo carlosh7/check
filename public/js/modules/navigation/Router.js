@@ -50,6 +50,14 @@ class Router {
         this._currentView = viewId;
         this._currentParams = params;
         
+        // IMPORTANTE: Llamar a la función original de app.js para mostrar la vista
+        if (window.App && typeof window.App._showView === 'function') {
+            window.App._showView(viewId, params);
+        } else if (window.App && typeof window.App.navigate === 'function') {
+            // Fallback: usar navigate original
+            console.log('[ROUTER] Delegando a App.navigate original');
+        }
+        
         console.log(`[ROUTER] Navigated to: ${viewId}`, params);
     }
     
