@@ -59,7 +59,7 @@ CSSManagerInstance.loadAll().then(() => {
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.480';
+const VERSION = '12.44.481';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
