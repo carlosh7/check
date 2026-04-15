@@ -3627,7 +3627,7 @@ const App = window.App = {
                     method: 'PUT', body: JSON.stringify({ events: newEvents })
                 });
                 this.loadGroups();
-            
+            } catch(e) { console.error('Error removing event from company:', e); }
         }
     },
 
