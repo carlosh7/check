@@ -110,6 +110,13 @@ class Router {
         this._hasHandledInitialNav = value;
     }
     
+    // Guardar estado de vista
+    saveViewState(view, params, role) {
+        if (window.App && typeof window.App.saveViewState === 'function') {
+            window.App.saveViewState(view, params, role);
+        }
+    }
+    
     // Navegación programática a eventos específicos
     navigateToEvent(eventId, view = 'admin') {
         this.navigateTo(view, { id: eventId }, true);
