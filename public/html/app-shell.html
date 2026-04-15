@@ -130,15 +130,13 @@
                         </div>
 
                         <!-- Fila 3: Buscador -->
-                        <div style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="event-search" type="text" placeholder="Buscar por nombre, cliente, locación, estado..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="search-box-container">
+                            <input id="event-search" type="text" class="search-input" placeholder="Buscar por nombre, cliente, locación, estado..."
                                    oninput="App.filterEvents(); App.showEventSuggestions()" onfocus="App.showEventSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="event-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('event')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('event-search').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
-                            <!-- Dropdown de sugerencias -->
-                            <div id="event-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="event-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('event')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('event-search').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
+                            <div id="event-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
 
@@ -148,7 +146,7 @@
                             <thead>
                                 <tr class="bg-white/[0.01]">
                                     <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 !w-[40px] !px-3">
-                                        <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" class="checkbox-sm">
                                     </th>
                                     <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
                                     <th class="sortable !py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer hover:text-[#0ba5ec] transition-colors" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon text-xs ml-1 opacity-40">⇅</span></th>
@@ -254,15 +252,13 @@
                         </header>
 
                         <!-- Buscador de asistentes -->
-                        <div style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="attendance-search" type="text" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="search-box-container">
+                            <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
                                    oninput="App.filterAttendance(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="attendance-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
-                            <!-- Dropdown de sugerencias -->
-                            <div id="attendance-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
+                            <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
 
@@ -271,8 +267,8 @@
                     <table class="data-table">
                         <thead>
                             <tr class="bg-white/[0.01]">
-                                <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                    <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" style="width: 16px; height: 16px; cursor: pointer;">
+                                <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                    <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" class="checkbox-sm">
                                 </th>
                                 <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Asistente</th>
                                 <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Organización</th>
@@ -333,10 +329,9 @@
                             <span id="config-event-logo-placeholder" class="material-symbols-outlined text-4xl">event</span>
                         </div>
                         <div>
-                            <h1 id="config-event-title" class="text-4xl font-black tracking-tight !mb-2 leading-none" style="color: var(--text-main);">Cargando...</h1>
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm" style="color: var(--primary);">calendar_today</span>
-                                <span id="config-event-date" class="text-[10px] font-black uppercase tracking-widest" style="color: var(--text-secondary);">Cargando fecha...</span>
+<h1 id="config-event-title" class="text-4xl font-black tracking-tight !mb-2 leading-none event-title">Cargando...</h1>
+                                <span class="material-symbols-outlined text-sm event-icon">calendar_today</span>
+                                <span id="config-event-date" class="text-[10px] font-black uppercase tracking-widest event-date">Cargando fecha...</span>
                             </div>
                         </div>
                     </div>
@@ -347,20 +342,19 @@
                     <!-- CONTENIDO: PERSONAL ASIGNADO -->
                     <div id="config-content-staff" class="config-tab-content">
                         <!-- Fila 2: Buscador -->
-                        <div class="mt-4 mb-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="config-staff-search" type="text" placeholder="Buscar por nombre, email, rol..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="mt-4 mb-4 search-box-container">
+                            <input id="config-staff-search" type="text" class="search-input" placeholder="Buscar por nombre, email, rol..."
                                    oninput="App.filterConfigStaff()">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="config-staff-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('config-staff')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('config-staff-search').value=''; App.filterConfigStaff();">close</span>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="config-staff-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('config-staff')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('config-staff-search').value=''; App.filterConfigStaff();">close</span>
                         </div>
                         <div class="card !p-0 overflow-hidden border-white/5 bg-white/[0.01]">
                             <div class="overflow-x-auto">
                                 <table class="data-table">
                                     <thead>
                                         <tr class="bg-white/[0.01]">
-                                            <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
+                                            <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
                                                 <input type="checkbox" class="w-4 h-4 rounded border-slate-600 bg-transparent cursor-pointer" onchange="App.toggleAllConfigStaff(this.checked)">
                                             </th>
                                             <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
@@ -628,7 +622,7 @@
 
                                         <!-- Editor WYSIWYG (Quill) -->
                                         <div id="mailing-editor-container" class="bg-white rounded-lg overflow-hidden">
-                                            <div id="mailing-quill-editor" style="min-height: 250px;"></div>
+                                            <div id="mailing-quill-editor" class="quill-editor-min"></div>
                                         </div>
 
                                         <!-- Editor HTML (alternativo) -->
@@ -667,7 +661,7 @@
                                             </label>
                                         </div>
                                         <div id="mailing-preview" class="bg-white rounded-lg text-slate-800 flex-1 overflow-hidden">
-                                            <iframe id="mailing-preview-frame" class="w-full h-full border-none" style="min-height: 500px;"></iframe>
+                                            <iframe id="mailing-preview-frame" class="w-full h-full border-none preview-frame-min"></iframe>
                                         </div>
                                     </div>
                                 </div>
@@ -888,7 +882,7 @@
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
             <section id="view-system" class="hidden space-y-6 animate-fade-in">
-                    <div class="sticky-header-container" style="position: sticky; top: 0; z-index: 2; padding: 12px 0; margin: -12px 0 12px 0;">
+                    <div class="sticky-header-container sticky-header-custom">
                     <div class="flex flex-wrap items-center gap-2">
                         <button class="btn-secondary !px-4 !py-2.5 text-sm flex items-center gap-1.5 sub-nav-btn" data-tab="groups" onclick="App.switchSystemTab('groups')">
                             <span class="material-symbols-outlined text-base">business</span> Empresas
@@ -960,14 +954,13 @@
                                 <option value="">Eventos</option>
                             </select>
                         </div>
-                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="group-search" type="text" placeholder="Buscar por nombre, email, cliente, staff, evento..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="mt-4 search-box-container">
+                            <input id="group-search" type="text" class="search-input" placeholder="Buscar por nombre, email, cliente, staff, evento..."
                                    oninput="App.filterGroups(); App.showGroupSuggestions()" onfocus="App.showGroupSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="group-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('group')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; App.filterGroups(); App.hideGroupSuggestions();">close</span>
-                            <div id="group-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="group-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('group')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('group-search').value=''; document.getElementById('filter-group-client').value=''; document.getElementById('filter-group-user').value=''; document.getElementById('filter-group-event').value=''; App.filterGroups(); App.hideGroupSuggestions();">close</span>
+                            <div id="group-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
 
@@ -976,8 +969,8 @@
                             <table class="data-table">
                                 <thead>
                                     <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                            <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                            <input type="checkbox" id="select-all-groups" onchange="App.toggleSelectAllGroups()" class="checkbox-sm">
                                         </th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Clientes</th>
@@ -1148,14 +1141,13 @@
                                 <option value="CLIENTE">CLIENTE</option>
                             </select>
                         </div>
-                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="user-search" type="text" placeholder="Buscar por nombre, email, empresa, cliente, evento, rol..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="mt-4 search-box-container">
+                            <input id="user-search" type="text" class="search-input" placeholder="Buscar por nombre, email, empresa, cliente, evento, rol..."
                                    oninput="App.filterUsers(); App.showUserSuggestions()" onfocus="App.showUserSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="user-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('user')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-user-group').value=''; document.getElementById('filter-user-client').value=''; document.getElementById('filter-user-event').value=''; document.getElementById('filter-user-role').value=''; document.getElementById('filter-user-status').value=''; App.filterUsers(); App.hideUserSuggestions();">close</span>
-                            <div id="user-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="user-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('user')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('user-search').value=''; document.getElementById('filter-user-group').value=''; document.getElementById('filter-user-client').value=''; document.getElementById('filter-user-event').value=''; document.getElementById('filter-user-role').value=''; document.getElementById('filter-user-status').value=''; App.filterUsers(); App.hideUserSuggestions();">close</span>
+                            <div id="user-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
 
@@ -1164,8 +1156,8 @@
                             <table class="data-table">
                                 <thead>
                                     <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                            <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                            <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" class="checkbox-sm">
                                         </th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Staff</th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
@@ -1211,14 +1203,13 @@
                                 <option value="">Evento</option>
                             </select>
                         </div>
-                        <div class="mt-4" style="position: relative; min-height: 44px; box-sizing: border-box;">
-                            <input id="client-search" type="text" placeholder="Buscar por nombre, email, empresa, staff, evento..."
-                                   style="width: 100%; height: 44px; padding-right: 90px; padding-left: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; box-sizing: border-box; display: flex; align-items: center;"
+                        <div class="mt-4 search-box-container">
+                            <input id="client-search" type="text" class="search-input" placeholder="Buscar por nombre, email, empresa, staff, evento..."
                                    oninput="App.filterClients(); App.showClientSuggestions()" onfocus="App.showClientSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 20px;">search</span>
-                            <span id="client-voice-btn" class="material-symbols-outlined" style="position: absolute; right: 42px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px; transition: color 0.2s;" onclick="App.toggleVoiceSearch('client')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 18px;" onclick="document.getElementById('client-search').value=''; document.getElementById('filter-client-company').value=''; document.getElementById('filter-client-staff').value=''; document.getElementById('filter-client-event').value=''; document.getElementById('filter-client-status').value=''; App.filterClients(); App.hideClientSuggestions();">close</span>
-                            <div id="client-suggestions" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 280px; overflow-y: auto; z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);"></div>
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="client-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('client')" title="Búsqueda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('client-search').value=''; document.getElementById('filter-client-company').value=''; document.getElementById('filter-client-staff').value=''; document.getElementById('filter-client-event').value=''; document.getElementById('filter-client-status').value=''; App.filterClients(); App.hideClientSuggestions();">close</span>
+                            <div id="client-suggestions" class="hidden suggestions-dropdown"></div>
                         </div>
                     </div>
 
@@ -1227,8 +1218,8 @@
                             <table class="data-table">
                                 <thead>
                                     <tr class="bg-white/[0.01]">
-                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500" style="width: 40px;">
-                                            <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" style="width: 16px; height: 16px; cursor: pointer;">
+                                        <th class="!py-3 !px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 th-narrow">
+                                            <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" class="checkbox-sm">
                                         </th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Cliente</th>
                                         <th class="!py-3 !px-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Empresa</th>
@@ -1526,32 +1517,10 @@
         </div>
         <div class="p-5 overflow-y-auto flex-1">
             <div class="relative group mt-2 mb-4">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);">search</span>
-                <input type="text" id="assign-event-search" placeholder="Buscar evento..." style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: var(--text-main); outline: none;">
-            </div>
-            <div id="assign-event-list" class="max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Se llena dinamicamente -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: ASIGNAR EVENTO A STAFF -->
-<div id="modal-assign-event" class="hidden fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
-        <div class="premium-modal-header">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-purple-500 text-xl">event</span>
-                <h3 class="text-sm font-bold uppercase tracking-wider">Asignar Evento a Staff</h3>
-            </div>
-            <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
-            </button>
-        </div>
-        <div class="p-5 overflow-y-auto flex-1">
-            <div class="relative group mt-2 mb-4">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);">search</span>
-                <input type="text" id="assign-event-search" placeholder="Buscar evento..." style="width: 100%; padding: 10px 16px 10px 44px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; color: var(--text-main); outline: none;">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm search-icon-secondary">search</span>
+                <input type="text" id="assign-event-search" class="assign-search-input" placeholder="Buscar evento...">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sm search-icon"></span>
+                <input type="text" id="assign-event-search" class="assign-search-input" placeholder="Buscar evento...">
             </div>
             <div id="assign-event-list" class="max-h-72 overflow-y-auto pr-2 custom-scrollbar">
                 <!-- Se llena dinamicamente -->

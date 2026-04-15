@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encuesta de Satisfacción - Check</title>
-    <link rel="stylesheet" href="/css/styles.css?v=12.44.451">
-    <link rel="stylesheet" href="/css/modern.css?v=12.44.451">
+    <link rel="stylesheet" href="/css/styles.css?v=12.44.469">
+    <link rel="stylesheet" href="/css/modern.css?v=12.44.469">
     <script>
         // Inicializar tema - compatible con modern.css
         (function() {
@@ -28,28 +28,28 @@
         })();
     </script>
 </head>
-<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: var(--bg);">
-    <div class="card" style="width: 100%; max-width: 450px;">
-        <h1 style="text-align: center; margin-bottom: 2rem;">Tu Opinión Importa</h1>
+<body class="survey-body">
+    <div class="card survey-card">
+        <h1 class="survey-title">Tu Opinión Importa</h1>
         <form id="survey-form">
             <div class="form-group">
                 <label>¿Cómo calificarías tu experiencia? (1-5 ⭐)</label>
-                <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0;">
-                    <label style="cursor: pointer;"><input type="radio" name="rating" value="1" required> 1</label>
-                    <label style="cursor: pointer;"><input type="radio" name="rating" value="2"> 2</label>
-                    <label style="cursor: pointer;"><input type="radio" name="rating" value="3"> 3</label>
-                    <label style="cursor: pointer;"><input type="radio" name="rating" value="4"> 4</label>
-                    <label style="cursor: pointer;"><input type="radio" name="rating" value="5"> 5</label>
+                <div class="survey-rating-row">
+                    <label class="survey-label-click"><input type="radio" name="rating" value="1" required> 1</label>
+                    <label class="survey-label-click"><input type="radio" name="rating" value="2"> 2</label>
+                    <label class="survey-label-click"><input type="radio" name="rating" value="3"> 3</label>
+                    <label class="survey-label-click"><input type="radio" name="rating" value="4"> 4</label>
+                    <label class="survey-label-click"><input type="radio" name="rating" value="5"> 5</label>
                 </div>
             </div>
             <div class="form-group">
                 <label>Algún comentario adicional:</label>
-                <textarea id="survey-comment" placeholder="Cuéntanos más..." style="width: 100%; min-height: 100px; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--outline);"></textarea>
+                <textarea id="survey-comment" class="survey-textarea" placeholder="Cuéntanos más..."></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">Enviar Feedback</button>
+            <button type="submit" class="btn btn-primary survey-btn-full">Enviar Feedback</button>
         </form>
-        <div id="survey-thanks" class="hidden" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+        <div id="survey-thanks" class="hidden survey-thanks">
+            <div class="survey-emoji-large">🎉</div>
             <h2>¡Muchas gracias!</h2>
             <p>Tu respuesta nos ayuda a mejorar para próximos eventos.</p>
         </div>

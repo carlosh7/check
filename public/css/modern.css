@@ -1700,3 +1700,327 @@ html.dark .sub-nav-btn[data-tab="account"].active {
     border-color: rgba(139, 92, 246, 1) !important;
 }
 
+/* ================================================
+   CLASES PARA REEMPLAZAR ESTILOS INLINE (v12.44.469)
+   ================================================ */
+
+/* Search Input Base */
+.search-box-container {
+    position: relative;
+    min-height: 44px;
+    box-sizing: border-box;
+}
+
+.search-input {
+    width: 100%;
+    height: 44px;
+    padding-right: 90px;
+    padding-left: 40px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 20px;
+}
+
+.search-icon-btn {
+    position: absolute;
+    right: 42px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.2s;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Suggestions dropdown */
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Checkbox small */
+.checkbox-sm {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Th narrow */
+.th-narrow {
+    width: 40px;
+}
+
+/* Title styles */
+.event-title {
+    color: var(--text-main);
+}
+
+.event-date {
+    color: var(--text-secondary);
+}
+
+.event-icon {
+    color: var(--primary);
+}
+
+/* Assign search input */
+.assign-search-input {
+    width: 100%;
+    padding: 10px 16px 10px 44px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+}
+
+/* Progress bar fill */
+.progress-fill-primary {
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+}
+
+/* Form input base */
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    color: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+/* Quill editor */
+.quill-editor-min {
+    min-height: 250px;
+}
+
+.quill-editor-sm {
+    min-height: 200px;
+}
+
+/* Preview frame */
+.preview-frame-min {
+    min-height: 500px;
+}
+
+/* Sticky header container */
+.sticky-header-custom {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px 0;
+    margin: -12px 0 12px 0;
+}
+
+/* Search icon secondary */
+.search-icon-secondary {
+    color: var(--text-secondary);
+}
+
+/* Survey page styles */
+.survey-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: var(--bg);
+}
+
+.survey-card {
+    width: 100%;
+    max-width: 450px;
+}
+
+.survey-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.survey-rating-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.survey-label-click {
+    cursor: pointer;
+}
+
+.survey-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline);
+}
+
+.survey-btn-full {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.survey-thanks {
+    text-align: center;
+}
+
+.survey-emoji-large {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.survey-label-flex {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.survey-label-col {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.survey-star-small {
+    font-size: 0.8rem;
+}
+
+.survey-group-border {
+    margin-top: 2rem;
+    border-top: 1px solid var(--outline);
+    padding-top: 1.5rem;
+}
+
+.survey-label-center {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    display: block;
+}
+
+.survey-rating-center {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+/* Wheel styles */
+.wheel-container {
+    width: 340px;
+    height: 340px;
+}
+
+.wheel-pointer {
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.wheel-triangle {
+    width: 0;
+    height: 0;
+    border-top: 18px solid transparent;
+    border-bottom: 18px solid transparent;
+    border-right: 35px solid #7c3aed;
+}
+
+.projector-bg {
+    background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);
+}
+
+.wheel-container-projector {
+    width: 800px;
+    height: 800px;
+}
+
+.wheel-canvas-projector {
+    width: 800px;
+    height: 800px;
+    left: 0;
+    top: 0;
+    z-index: 5;
+}
+
+.wheel-pointer-projector {
+    right: -55px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+}
+
+.wheel-triangle-projector {
+    width: 0;
+    height: 0;
+    border-top: 35px solid transparent;
+    border-bottom: 35px solid transparent;
+    border-right: 60px solid #7c3aed;
+}
+
+.btn-spin-min {
+    min-height: 70px;
+    min-width: 300px;
+}
+
+.projector-panels-empty {
+    width: 0;
+    max-width: 600px;
+}
+
+.projector-footer {
+    bottom: 0;
+    height: 30px;
+    z-index: 100;
+}
+
