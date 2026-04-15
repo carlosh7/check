@@ -354,3 +354,63 @@
 .user-row-premium:hover {
     background: linear-gradient(90deg, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0.02) 100%);
 }
+
+/* ================================================
+   TABLE SCROLL WITH FIXED HEADER
+   ================================================ */
+
+#view-my-events .table-scroll-container .data-table tbody,
+#view-admin .table-scroll-container .data-table tbody,
+#config-content-staff .data-table tbody {
+    display: block;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+#config-content-staff .data-table tbody {
+    max-height: calc(100vh - 380px);
+}
+
+#config-content-staff .data-table thead tr,
+#config-content-staff .data-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.data-table thead tr,
+.data-table tbody tr {
+    display: table;
+    width: 100%;
+}
+
+.data-table thead {
+    display: table-header-group;
+}
+
+/* Config Evento - tabla wheel */
+#config-content-wheel .table-scroll-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#wheel-participants-tbody {
+    display: block;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Table with fixed layout */
+.table-fixed-layout {
+    table-layout: fixed;
+}
+
+/* Table hover effects */
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
