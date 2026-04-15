@@ -8,15 +8,15 @@
    ================================================ */
 
 :root, :host {
-    /* Background Colors */
-    --bg-app: #020617;
-    --bg-sidebar: rgba(15, 23, 42, 0.85);
+    /* Background Colors - Portainer Style */
+    --bg-app: #0d1117;
+    --bg-sidebar: #023959;
     --bg-card: rgba(30, 41, 59, 0.6);
     --bg-card-hover: rgba(30, 41, 59, 0.8);
     --bg-input: rgba(15, 23, 42, 0.5);
-    --bg-hover: rgba(11, 165, 236, 0.08);
-    --bg-active: rgba(11, 165, 236, 0.12);
-    --bg-modal: rgba(15, 23, 42, 0.95);
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --bg-active: rgba(255, 255, 255, 0.1);
+    --bg-modal: rgba(13, 17, 23, 0.95);
     
     /* Primary - Portainer Blue */
     --primary: #0ba5ec;
@@ -24,23 +24,23 @@
     --primary-light: rgba(11, 165, 236, 0.15);
     --primary-dark: #0369a1;
     
-    /* Text Colors */
-    --text-main: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --text-link: #38bdf8;
+    /* Text Colors - Portainer */
+    --text-main: #ffffff;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --text-link: #58a6ff;
     
-    /* Border Colors */
-    --border: rgba(255, 255, 255, 0.08);
-    --border-light: rgba(255, 255, 255, 0.04);
-    --border-focus: rgba(11, 165, 236, 0.4);
-    --border-card: rgba(255, 255, 255, 0.06);
+    /* Border Colors - Portainer */
+    --border: rgba(255, 255, 255, 0.12);
+    --border-light: rgba(255, 255, 255, 0.06);
+    --border-focus: rgba(11, 165, 236, 0.5);
+    --border-card: rgba(255, 255, 255, 0.08);
     
     /* Status Colors */
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
+    --success: #3fb950;
+    --warning: #d29922;
+    --error: #f85149;
+    --info: #58a6ff;
     
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
