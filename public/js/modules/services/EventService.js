@@ -13,11 +13,16 @@ class EventService {
     }
     
     // Obtener todos los eventos
-    async getAll() {
+    async getAll(force = false) {
         try {
+            if (!force && this.cache.has('all')) {
+                return this.cache.get('all');
+            }
+            
             const response = await ApiServiceInstance.getEvents();
             
             if (response.success) {
+                this.cache.set('all', response.events);
                 AppStateManager.set('events', response.events);
                 return response.events;
             } else {
@@ -28,6 +33,11 @@ class EventService {
             console.error('[EVENTS] Error:', error);
             return [];
         }
+    }
+    
+    // Limpiar cache
+    clearCache() {
+        this.cache.clear();
     }
     
     // Obtener evento por ID

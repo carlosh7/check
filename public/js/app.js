@@ -2,39 +2,40 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos con versión actualizada
-import { Config } from './modules/core/Config.js?v=12.44.460';
-import { AppStateManager } from './modules/core/State.js?v=12.44.460';
-import { Constants } from './modules/utils/Constants.js?v=12.44.460';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.460';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.460';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.460';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.460';
-import { TableManager } from './modules/components/Table.js?v=12.44.460';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.460';
-import { FormManager } from './modules/components/Form.js?v=12.44.460';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.460';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.460';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.460';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.460';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.460';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.460';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.460';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.460';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.460';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.460';
+import { Config } from './modules/core/Config.js?v=12.44.461';
+import { AppStateManager } from './modules/core/State.js?v=12.44.461';
+import { Constants } from './modules/utils/Constants.js?v=12.44.461';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.461';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.461';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.461';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.461';
+import { TableManager } from './modules/components/Table.js?v=12.44.461';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.461';
+import { FormManager } from './modules/components/Form.js?v=12.44.461';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.461';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.461';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.461';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.461';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.461';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.461';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.461';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.461';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.461';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.461';
 
-// DEBUG V12.44.460 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.460 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.460');
+// DEBUG V12.44.461 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.461 loaded');
+console.log('[MODULES] Todos los módulos cargados v12.44.461');
 
 /**
 * MASTER SCRIPT
- * Version: V12.44.460 (Neutral Dark)
+ * Version: V12.44.461 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
- * Feature V12.44.460: Agregar premium-toast-container al HTML para usar ToastManager nuevo
+ * Feature V12.44.461: Migrar loadEvents() para usar EventService
+ * Feature V12.44.460: Agregar premium-toast-container al HTML para ToastManager
  * Feature V12.44.459: Agregar saveViewState faltante en Router
  * Feature V12.44.458: Fix nombre de función showView (no _showView)
  * Feature V12.44.457: Fix dependencia circular Router -> App.navigate -> App._showView
@@ -45,7 +46,7 @@ console.log('[MODULES] Todos los módulos cargados v12.44.460');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.460';
+const VERSION = '12.44.461';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -7585,6 +7586,61 @@ navigate(viewName, params = {}, push = true) {
     _selectedEvents: new Set(),
     
     async loadEvents(force = false) {
+        // Usa EventService si está disponible (delegación)
+        if (typeof EventServiceInstance !== 'undefined') {
+            return this._loadEventsWithService(force);
+        }
+        // Fallback: código original
+        return this._loadEventsLegacy(force);
+    },
+    
+    async _loadEventsWithService(force = false) {
+        const now = Date.now();
+        const CACHE_DURATION = 30000;
+        
+        if (!force && this._eventsCache && (now - this._lastEventsLoad) < CACHE_DURATION) {
+            this.state.events = this._eventsCache;
+            this.renderEventsTable();
+            this.updateSidebarVisibility();
+            return;
+        }
+        
+        try {
+            // Usar EventService
+            const events = await EventServiceInstance.getAll(force);
+            
+            this.state.events = events || [];
+            this._eventsCache = this.state.events;
+            this._lastEventsLoad = now;
+            
+            // Cargar clientes y grupos adicionales
+            try {
+                const clients = await this.fetchAPI('/clients');
+                this.state.clients = Array.isArray(clients) ? clients : [];
+            } catch { this.state.clients = []; }
+            
+            try {
+                const groups = await this.fetchAPI('/groups');
+                this.state.allGroups = Array.isArray(groups) ? groups : [];
+            } catch { this.state.allGroups = []; }
+            
+            const btnAdminNav = document.getElementById('nav-btn-admin');
+            if (btnAdminNav) {
+                btnAdminNav.classList.toggle('hidden', !this.state.user || this.state.user.role !== 'ADMIN');
+            }
+            
+            this.renderEventsTable();
+            this.updateSidebarVisibility();
+            this.startCountdownTimers();
+        } catch (e) { 
+            console.warn('[EVENTS] Error:', e);
+            this.state.events = this._eventsCache || [];
+            this.renderEventsTable();
+        }
+    },
+    
+    // Código original para fallback
+    async _loadEventsLegacy(force = false) {
         const now = Date.now();
         const CACHE_DURATION = 30000;
         
