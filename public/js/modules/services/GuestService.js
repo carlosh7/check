@@ -14,7 +14,11 @@ class GuestService {
     
     // Obtener invitados de un evento
     async getByEvent(eventId) {
-        // Check cache first
+        return this.getGuests(eventId);
+    }
+    
+    // Alias para compatibilidad
+    async getGuests(eventId) {
         const cacheKey = `event_${eventId}`;
         if (this.cache.has(cacheKey)) {
             return this.cache.get(cacheKey);
@@ -23,14 +27,14 @@ class GuestService {
         try {
             const response = await ApiServiceInstance.getGuests(eventId);
             
-            if (response.success) {
-                // Cache and update state
-                this.cache.set(cacheKey, response.guests);
-                AppStateManager.set('guests', response.guests);
-                
-                return response.guests;
+            // Soporta array directo o {success, guests}
+            const guests = Array.isArray(response) ? response : (response.guests || []);
+            
+            if (guests.length > 0) {
+                this.cache.set(cacheKey, guests);
+                AppStateManager.set('guests', guests);
+                return guests;
             } else {
-                ToastManager.error('Error', response.error || 'No se pudieron cargar invitados');
                 return [];
             }
         } catch (error) {
