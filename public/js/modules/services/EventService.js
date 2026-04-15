@@ -21,12 +21,14 @@ class EventService {
             
             const response = await ApiServiceInstance.getEvents();
             
-            if (response.success) {
-                this.cache.set('all', response.events);
-                AppStateManager.set('events', response.events);
-                return response.events;
+            // fetchAPI devuelve array directamente o {success, events}
+            const events = Array.isArray(response) ? response : (response.events || []);
+            
+            if (events.length > 0) {
+                this.cache.set('all', events);
+                AppStateManager.set('events', events);
+                return events;
             } else {
-                ToastManager.error('Error', response.error || 'No se pudieron cargar eventos');
                 return [];
             }
         } catch (error) {
