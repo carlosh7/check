@@ -12990,9 +12990,9 @@ navigate(viewName, params = {}, push = true) {
     async showUserSelectorForGroup(groupId) {
         this.state._pendingUserGroupId = groupId;
         let users = [];
-        try { users = await this.fetchAPI('/users'); 
+        try { users = await this.fetchAPI('/users'); } catch(e) { users = []; }
         
-        // Calcular usuarios ya asignados a este grupo para mostrar checkmarks
+        const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
         const currentUsers = users.filter(u => u.groups && u.groups.some(g => String(g.id) === String(groupId)));
         const selectedIds = currentUsers.map(u => String(u.id));
         
@@ -13050,7 +13050,7 @@ navigate(viewName, params = {}, push = true) {
     async showUserSelectorForEvent(eventId) {
         this.state._pendingUserEventId = eventId;
         let users = [];
-        try { users = await this.fetchAPI('/users'); 
+        try { users = await this.fetchAPI('/users'); } catch(e) { users = []; }
 
         const html = `
             <div class="space-y-6">
@@ -13264,9 +13264,9 @@ navigate(viewName, params = {}, push = true) {
 
     async showEventSelectorForCompany(groupId) {
         let events = [];
-        try { events = await this.fetchAPI('/events'); 
+        try { events = await this.fetchAPI('/events'); } catch(e) { events = []; }
         
-        // Obtener eventos actuales de la empresa
+        const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
         const currentEvents = events.filter(e => String(e.group_id) === String(groupId));
         const selectedIds = currentEvents.map(e => String(e.id));
 
