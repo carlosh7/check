@@ -1,0 +1,240 @@
+/**
+ * CSS Modules - Wheel
+ * Estilos específicos para ruleta de sorteos
+ */
+
+/* ================================================
+   WHEEL CONTAINER
+   ================================================ */
+
+.wheel-container {
+    width: 340px;
+    height: 340px;
+    position: relative;
+}
+
+.wheel-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Wheel Pointer */
+.wheel-pointer {
+    position: absolute;
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    z-index: 10;
+}
+
+.wheel-triangle {
+    width: 0;
+    height: 0;
+    border-top: 18px solid transparent;
+    border-bottom: 18px solid transparent;
+    border-right: 35px solid #7c3aed;
+}
+
+/* ================================================
+   PROJECTOR MODE
+   ================================================ */
+
+.projector-bg {
+    background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, #020617 70%);
+}
+
+.wheel-container-projector {
+    width: 800px;
+    height: 800px;
+    position: relative;
+}
+
+.wheel-canvas-projector {
+    width: 800px;
+    height: 800px;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    position: absolute;
+}
+
+.wheel-pointer-projector {
+    position: absolute;
+    right: -55px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+}
+
+.wheel-triangle-projector {
+    width: 0;
+    height: 0;
+    border-top: 35px solid transparent;
+    border-bottom: 35px solid transparent;
+    border-right: 60px solid #7c3aed;
+}
+
+.btn-spin-min {
+    min-height: 70px;
+    min-width: 300px;
+}
+
+.projector-panels-empty {
+    width: 0;
+    max-width: 600px;
+}
+
+.projector-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ================================================
+   WHEEL CONTROLS
+   ================================================ */
+
+.wheel-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.wheel-btn {
+    padding: 14px 32px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wheel-spinning-text {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* ================================================
+   WHEEL ANIMATIONS
+   ================================================ */
+
+@keyframes wheel-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wheel-spinning {
+    animation: wheel-spin 0.1s linear infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); }
+    50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.8); }
+}
+
+.wheel-btn:active {
+    animation: pulse-glow 0.5s ease-in-out infinite;
+}
+
+/* ================================================
+   WINNER DISPLAY
+   ================================================ */
+
+.winner-display {
+    text-align: center;
+    padding: 24px;
+}
+
+.winner-badge {
+    width: 80px;
+    height: 80px;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.winner-icon {
+    font-size: 40px;
+    color: var(--success);
+}
+
+.winner-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.winner-prize {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ================================================
+   GLASS CARD WHEEL
+   ================================================ */
+
+.glass-card {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Projector winner */
+.projector-winner {
+    background: rgba(34, 197, 94, 0.1);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-2xl);
+}
+
+.projector-winner-name {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-main);
+    text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+}
+
+/* ================================================
+   WHEEL PARTICIPANTS LIST
+   ================================================ */
+
+.participants-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    transition: background var(--transition-fast);
+}
+
+.participant-item:hover {
+    background: var(--bg-hover);
+}
+
+.participant-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.participant-tickets {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}

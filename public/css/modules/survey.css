@@ -1,0 +1,140 @@
+/**
+ * CSS Modules - Survey
+ * Estilos específicos para página de encuestas
+ */
+
+/* ================================================
+   SURVEY PAGE
+   ================================================ */
+
+.survey-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: var(--bg-app);
+}
+
+.survey-card {
+    width: 100%;
+    max-width: 450px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-2xl);
+    padding: 32px;
+}
+
+.survey-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.survey-rating-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.survey-label-click {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.survey-label-click:hover {
+    background: var(--bg-hover);
+}
+
+.survey-label-click input:checked + * {
+    color: var(--primary);
+}
+
+.survey-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-main);
+    font-size: 0.875rem;
+    resize: vertical;
+    transition: all var(--transition-fast);
+}
+
+.survey-textarea:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(11, 165, 236, 0.15);
+}
+
+.survey-btn-full {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.survey-thanks {
+    text-align: center;
+}
+
+.survey-emoji-large {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.survey-label-flex {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.survey-label-col {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.survey-star-small {
+    font-size: 0.8rem;
+}
+
+.survey-group-border {
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+}
+
+.survey-label-center {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    display: block;
+}
+
+.survey-rating-center {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+/* Radio styling */
+input[type="radio"] {
+    accent-color: var(--primary);
+}
+
+.survey-label-click input[type="radio"] {
+    width: 20px;
+    height: 20px;
+}

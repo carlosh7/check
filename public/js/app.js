@@ -2,6 +2,7 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos con versión actualizada
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.470';
 import { Config } from './modules/core/Config.js?v=12.44.465';
 import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.467';
 import { AppStateManager } from './modules/core/State.js?v=12.44.465';
@@ -24,9 +25,13 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// DEBUG V12.44.468 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.468 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.468');
+// DEBUG V12.44.470 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.470 loaded');
+console.log('[MODULES] Todos los módulos cargados v12.44.470');
+console.log('[CSSManager] Cargando módulos CSS...');
+CSSManagerInstance.loadAll().then(() => {
+    console.log('[CSSManager] Módulos CSS cargados:', CSSManagerInstance.getLoadedModules());
+});
 
 /**
 * MASTER SCRIPT
