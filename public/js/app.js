@@ -98,13 +98,11 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // ─── NAVEGACIÓN V12.16.3 (MANTENIDA PARA COMPATIBILIDAD) ───
     navigate(viewId) {
         // Redirigir a la función navigate() completa con parámetros por defecto
         this.navigate(viewId, {}, true);
     },
 
-    // ─── PERSISTENCIA Y NAVEGACIÓN POR ROL (v12.34.96) ───
     
     // Obtener vista por defecto según rol
     getDefaultViewByRole(role) {
@@ -131,9 +129,8 @@ const App = window.App = {
     saveViewState(view, params = {}, role = null) {
         try {
             
-            // DEBUG: Registrar si params no tiene 'tab' pero estamos en vista 'system'
+
             if (view === 'system' && (!params || !params.tab)) {
-                console.warn('[PERSISTENCE WARNING] Saving system view without tab parameter! Stack:', new Error().stack);
             }
             
             const state = {
@@ -184,9 +181,8 @@ const App = window.App = {
             
             const state = JSON.parse(sessionData);
             
-            // DEBUG: Registrar si el estado cargado no tiene 'tab' pero es vista 'system'
+
             if (state.view === 'system' && (!state.params || !state.params.tab)) {
-                console.warn('[PERSISTENCE WARNING] Loaded system view without tab parameter!');
             }
             
             // Validar que el estado no sea demasiado viejo (24 horas)
@@ -214,7 +210,6 @@ const App = window.App = {
         }
     },
 
-    // ─── UI PREMIUM UTILS (v12.32.0) ───
     
     // Notificación Toast Premium
     showPremiumToast(title, message, type = 'success', duration = 4000) {
@@ -284,7 +279,6 @@ const App = window.App = {
                 osc.start(now);
                 osc.stop(now + 0.4);
             }
-        } catch (e) { console.warn('Audio not supported or blocked'); }
     },
 
     // Reemplazo de la función antigua de notificación - usar ToastManager
@@ -442,7 +436,6 @@ const App = window.App = {
         this.openCompanyModal();
     },
 
-    // ─── IMPORTAR / EXPORTAR DATOS V12.44.38 ───
     openImportModal: function(type) {
         this._importType = type; // 'groups' o 'staff'
         this._importData = null;
@@ -757,7 +750,6 @@ const App = window.App = {
         } catch(e) { console.error('Error selecting event:', e); }
     },
 
-    // ─── PERMISOS JERÁRQUICOS V10.5 ───
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -808,7 +800,6 @@ const App = window.App = {
         }
     },
 
-    // ─── TEMA OSCURO/CLARO MEJORADO ───
     
     // Obtener tema del sistema
     getSystemTheme: function() {
@@ -897,7 +888,6 @@ const App = window.App = {
         await this.loadAppVersion();
     },
 
-    // ─── SIDEBAR COLAPSABLE - usar SidebarManager ───
     toggleSidebar() {
         if (typeof SidebarManager !== 'undefined') {
             SidebarManager.toggle();
@@ -907,7 +897,6 @@ const App = window.App = {
         // Fallback al código original
         const sidebar = document.getElementById('global-sidebar');
         if (!sidebar) {
-            console.warn('[SIDEBAR] sidebar no encontrado!');
             return;
         }
         const isCollapsed = sidebar.classList.toggle('collapsed');
@@ -923,7 +912,6 @@ const App = window.App = {
         }
     },
 
-    // ─── ACTUALIZAR VISIBILIDAD DEL SIDEBAR ───
     updateSidebarVisibility() {
         const hasSelectedEvent = !!this.state.event?.id;
         const isAdmin = this.state.user?.role === 'ADMIN';
@@ -970,7 +958,6 @@ const App = window.App = {
         }
     },
 
-    // ──── NOTIFICACIONES PUSH (Web Push API) ────
     initPushNotifications: async function() {
         try {
             // Registrar service worker si no está registrado
@@ -4883,7 +4870,6 @@ const App = window.App = {
 
     assignEventToUsersFromModal: async function(userIdsStr, eventId, isAssigned) {
         const userIds = userIdsStr.split(',').filter(id => id && id.trim() !== '');
-        if (userIds.length === 0) { console.warn('[EVENT ASSIGN] No userIds'); return; }
         try {
             for (const userId of userIds) {
                 if (isAssigned) {
@@ -6230,7 +6216,6 @@ const App = window.App = {
                     await this.loadEvents();
                     await this.handleInitialNavigation();
                 } catch (err) {
-                    console.warn('[AUTH] Error loading events, navigating to my-events:', err);
                     this.navigate('my-events');
                 }
 
@@ -6252,7 +6237,6 @@ const App = window.App = {
             const agenda = await this.fetchAPI(`/events/${eventId}/agenda`);
             // Verificar que agenda sea un array válido
             if (!Array.isArray(agenda)) {
-                console.warn('Agenda response is not an array:', agenda);
                 this.state.eventAgenda = [];
                 this.renderEventAgenda([]);
                 return;
@@ -6391,7 +6375,6 @@ const App = window.App = {
         // Mostrar la vista objetivo, o my-events por defecto
         let viewToShow = target;
         if (!viewToShow) {
-            console.warn(`[VIEW] Vista "${viewName}" no encontrada, mostrando "my-events" por defecto`);
             viewToShow = document.getElementById('view-my-events');
         }
         
@@ -6582,12 +6565,10 @@ navigate(viewName, params = {}, push = true) {
                         if (foundEvent) {
                             this.state.event = foundEvent;
                         } else {
-                            console.warn('[NAV] Event not found in events list, redirecting to my-events');
                             this.navigate('my-events');
                             return;
                         }
                     } else {
-                        console.warn('[NAV] Events list not available, redirecting to my-events');
                         this.navigate('my-events');
                         return;
                     }
@@ -6643,7 +6624,6 @@ navigate(viewName, params = {}, push = true) {
                     this.navigate('my-events');
                 }
             } else {
-                console.warn('[NAV] No event id provided for event-config, redirecting to my-events');
                 this.navigate('my-events');
             }
         }
@@ -6715,12 +6695,10 @@ navigate(viewName, params = {}, push = true) {
             try {
                 await this.loadEvents(true); // true = forzar recarga
             } catch (e) {
-                console.warn('[ROUTER] Error loading events:', e);
                 // Si falla la carga, intentar usar cache
                 if (this._eventsCache && Array.isArray(this._eventsCache)) {
                     this.state.events = this._eventsCache;
                 } else {
-                    console.warn('[ROUTER] No cached events available, using empty array');
                     this.state.events = [];
                 }
             }
@@ -7941,7 +7919,6 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
-    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -8063,7 +8040,6 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -8149,7 +8125,6 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
-    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -8180,7 +8155,6 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
-    // ─── ACCIÓN DE EDICIÓN DE EVENTOS (CARRUSEL CON BARRA DE NAVEGACIÓN) ───
     openEventEditAction() {
         const selected = Array.from(this._selectedEvents);
         
@@ -8789,7 +8763,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
-    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9055,7 +9028,6 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
-    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -9171,7 +9143,6 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -9244,7 +9215,6 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
-    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9275,9 +9245,7 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
-    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
 
-    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -10235,7 +10203,6 @@ navigate(viewName, params = {}, push = true) {
 
 
 
-    // ─── PDF MEJORADOS CON DISEÑOS PROFESIONALES ───
     
     // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
@@ -10622,7 +10589,6 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
     
     // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
@@ -10865,9 +10831,7 @@ navigate(viewName, params = {}, push = true) {
         
     },
 
-    // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
     
-    // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings'];
         ALL_CONFIG_IDS.forEach(id => {
@@ -11068,7 +11032,6 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
-    // ==================== RULETA DE SORTEOS (FASE 1) ====================
     currentWheel: null,
     wheelParticipants: [],
     
@@ -11993,9 +11956,7 @@ navigate(viewName, params = {}, push = true) {
         this.editSelectedUsersConfig(selectedUserIds);
     },
     
-    // ==================================================
     // CARRUSEL INDEPENDIENTE PARA PERSONAL (CONFIGURACIÓN)
-    // ==================================================
     
     // Carrusel principal de Personal - 4 botones independientes
     editSelectedUsersConfig: function(userIds) {
@@ -13392,7 +13353,6 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error(e); }
     },
 
-    // ─── LEGAL Y QUILL (v12.31.22) ───
     async initQuill() {
         if (this.quillPolicy) return;
         if (typeof window.Quill === 'undefined') {
@@ -13421,7 +13381,6 @@ navigate(viewName, params = {}, push = true) {
         if (links) links.classList.toggle('hidden', settings.show_legal_login === '0');
     },
 
-    // ─── HANDLERS DE FORMULARIOS (v12.31.22) ───
     async handleCreateEvent(e) {
         const id = document.getElementById('ev-id-hidden').value;
         const data = {
@@ -13845,7 +13804,6 @@ async function initApp() {
         }
     }, 1000);
     
-    // ─── DISEÑO PREMIUM V11.6.1 Live Preview ───
     App.updateQRPreview = async () => {
         const img = document.getElementById('ev-qr-preview-img');
         const logo = document.getElementById('ev-qr-preview-logo');
@@ -14021,9 +13979,7 @@ window.copyTemplateVar = (varName) => {
 // Función global hideModal expuesta para onclick en HTML
 window.hideModal = function(id) { App.hideModal(id); };
 
-// ============================================================
 // ASISTENCIA AL EVENTO (ATTENDANCE) - V12.44.250
-// ============================================================
 
 App._attendanceLoaded = false;
 App._selectedAttendance = [];
