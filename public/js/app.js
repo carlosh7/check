@@ -5131,16 +5131,16 @@ const App = window.App = {
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Nombre de la empresa</label>
                         <input id="edit-group-name" type="text" value="${group.name || ''}" 
-                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#0ba5ec]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Email de contacto</label>
                         <input id="edit-group-email" type="email" value="${group.email || ''}" 
-                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                               class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#0ba5ec]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Estado</label>
-                        <select id="edit-group-status" class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <select id="edit-group-status" class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#0ba5ec]">
                             <option value="ACTIVE" ${group.status === 'ACTIVE' ? 'selected' : ''}>Activo</option>
                             <option value="INACTIVE" ${group.status === 'INACTIVE' ? 'selected' : ''}>Inactivo</option>
                         </select>
@@ -7715,11 +7715,11 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
+                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                                 <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
@@ -7736,7 +7736,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs">
-                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
                             <span class="font-bold text-emerald-400">${attended}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
@@ -7817,11 +7817,11 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
+                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                                 <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
@@ -7838,7 +7838,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs">
-                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
                             <span class="font-bold text-emerald-400">${attended}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
@@ -8070,11 +8070,11 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
+                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                             </div>
                         </div>
                     </td>
@@ -8090,7 +8090,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs">
-                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
                             <span class="font-bold text-emerald-400">${attended}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
@@ -8151,7 +8151,7 @@ const App = window.App = {
             return `
                 <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="material-symbols-outlined text-violet-400 text-sm flex-shrink-0">event</span>
+                        <span class="material-symbols-outlined text-[#0ba5ec] text-sm flex-shrink-0">event</span>
                         <div class="min-w-0">
                             <div class="text-xs font-bold text-white truncate">${this._highlightText(s.event.name, term)}</div>
                             <div class="text-[10px] text-slate-500">${s.matchType}${s.clientName ? ' · ' + s.clientName : ''}</div>
@@ -8186,7 +8186,7 @@ const App = window.App = {
     _highlightText(text, term) {
         if (!term) return text;
         const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<span class="text-violet-400 font-bold">$1</span>');
+        return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
     // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
@@ -8945,11 +8945,11 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
+                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                                 <span class="text-[10px] text-slate-500">${companyName !== '—' ? companyName : ''}</span>
                             </div>
                         </div>
@@ -8966,7 +8966,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs">
-                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
                             <span class="font-bold text-emerald-400">${attended}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
@@ -9187,11 +9187,11 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="flex items-center gap-3">
-<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/20">
-                                <span class="material-symbols-outlined text-[10px] text-violet-400">event</span>
+<div class="w-3 h-3 rounded-lg bg-gradient-to-br from-[#0ba5ec] to-blue-500/20 flex items-center justify-center flex-shrink-0 border border-[#0ba5ec]">
+                                <span class="material-symbols-outlined text-[10px] text-[#0ba5ec]">event</span>
                             </div>
                             <div class="min-w-0">
-                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-violet-400 transition-colors truncate block">${ev.name}</a>
+                                <a href="#" onclick="event.preventDefault(); App.openEvent('${ev.id}')" class="text-sm font-bold text-white hover:text-[#0ba5ec] transition-colors truncate block">${ev.name}</a>
                             </div>
                         </div>
                     </td>
@@ -9207,7 +9207,7 @@ const App = window.App = {
                     </td>
                     <td class="!py-3 !px-3">
                         <div class="text-xs">
-                            <span class="font-bold text-violet-400">${total}</span><span class="text-slate-500"> / </span>
+                            <span class="font-bold text-[#0ba5ec]">${total}</span><span class="text-slate-500"> / </span>
                             <span class="font-bold text-emerald-400">${attended}</span>
                         </div>
                         <div class="text-[10px] text-slate-500">Reg. / Asist.</div>
@@ -9268,7 +9268,7 @@ const App = window.App = {
             return `
                 <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="material-symbols-outlined text-violet-400 text-sm flex-shrink-0">event</span>
+                        <span class="material-symbols-outlined text-[#0ba5ec] text-sm flex-shrink-0">event</span>
                         <div class="min-w-0">
                             <div class="text-xs font-bold text-white truncate">${this._highlightText(s.event.name, term)}</div>
                             <div class="text-[10px] text-slate-500">${s.matchType}${s.clientName ? ' · ' + s.clientName : ''}</div>
@@ -9290,7 +9290,7 @@ const App = window.App = {
     _highlightText(text, term) {
         if (!term) return text;
         const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<span class="text-violet-400 font-bold">$1</span>');
+        return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
     // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
@@ -14643,7 +14643,7 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows, stats)
     // Actualizar el mensaje de cabecera del modal para mostrar el TOTAL real
     const statsDetail = document.getElementById('import-attendance-stats-detail');
     if (statsDetail) {
-        statsDetail.innerHTML = `<span class="text-violet-400 font-bold">${totalFound}</span> registros detectados en el archivo.`;
+        statsDetail.innerHTML = `<span class="text-[#0ba5ec] font-bold">${totalFound}</span> registros detectados en el archivo.`;
     }
 
     // Si tenemos estadísticas reales del servidor en el objeto 'stats', usarlas

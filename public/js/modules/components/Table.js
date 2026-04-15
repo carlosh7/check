@@ -60,8 +60,8 @@ class Table {
                 <td class="!py-3 !px-3 text-xs text-slate-500">${index + 1}</td>
                 <td class="!py-3 !px-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-violet-400 text-sm">event</span>
+                        <div class="w-8 h-8 rounded-lg bg-[#0ba5ec]/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[#0ba5ec] text-sm">event</span>
                         </div>
                         <span class="text-sm font-medium text-white">${event.name || 'Sin nombre'}</span>
                     </div>
