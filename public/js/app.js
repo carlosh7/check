@@ -331,9 +331,14 @@ const App = window.App = {
         } catch (e) { console.warn('Audio not supported or blocked'); }
     },
 
-    // Reemplazo de la función antigua de notificación
-    _notifyAction(title, message, type = 'success') {
-        this.showPremiumToast(title, message, type);
+    // Reemplazo de la función antigua de notificación - usar ToastManager
+    _notifyAction(title, message, type = 'success', duration = 4000) {
+        if (typeof ToastManager !== 'undefined') {
+            ToastManager.show(title, message, type, duration);
+        } else {
+            // Fallback
+            this.showPremiumToast(title, message, type, duration);
+        }
     },
 
     navigateToCreateEvent: function(type = 'short') {
