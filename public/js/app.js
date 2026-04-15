@@ -11389,12 +11389,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-    // Modal para entrada manual de participantes
     async showManualParticipantsModal() {
-            currentWheel: this.currentWheel,
-            wheelId: this.currentWheel?.id
-        });
-        
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             console.error('[DEBUG] currentWheel inválido');
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
