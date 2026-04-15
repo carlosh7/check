@@ -2,38 +2,39 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 // Imports de nuevos módulos con versión actualizada
-import { Config } from './modules/core/Config.js?v=12.44.466';
-import { AppStateManager } from './modules/core/State.js?v=12.44.466';
-import { Constants } from './modules/utils/Constants.js?v=12.44.466';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.466';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.466';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.466';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.466';
-import { TableManager } from './modules/components/Table.js?v=12.44.466';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.466';
-import { FormManager } from './modules/components/Form.js?v=12.44.466';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.466';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.466';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.466';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.466';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.466';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.466';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.466';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.466';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.466';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.466';
+import { Config } from './modules/core/Config.js?v=12.44.465';
+import { AppStateManager } from './modules/core/State.js?v=12.44.465';
+import { Constants } from './modules/utils/Constants.js?v=12.44.465';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.465';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.465';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.465';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.465';
+import { TableManager } from './modules/components/Table.js?v=12.44.465';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.465';
+import { FormManager } from './modules/components/Form.js?v=12.44.465';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.465';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.465';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.465';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.465';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.465';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.465';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.465';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.465';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// DEBUG V12.44.466 - Si ves esto, el código nuevo se cargó
-console.log('[INIT] app.js version 12.44.466 loaded');
-console.log('[MODULES] Todos los módulos cargados v12.44.466');
+// DEBUG V12.44.467 - Si ves esto, el código nuevo se cargó
+console.log('[INIT] app.js version 12.44.465 loaded');
+console.log('[MODULES] Todos los módulos cargados v12.44.465');
 
 /**
 * MASTER SCRIPT
- * Version: V12.44.466 (Neutral Dark)
+ * Version: V12.44.467 (Neutral Dark)
  * Author: Carlos
  * 
  * Description: Sistema modular de gestión de asistencia con diseño Chrome Style.
  * 
+ * Feature V12.44.467: Fix openEventEditFromAdmin - código corrupto restaurado
  * Feature V12.44.466: Agregar openEventEditFromAdmin faltante
  * Feature V12.44.465: Agregar filterEvents y getEventStatus a EventService
  * Feature V12.44.464: Agregar Utils a Constants.js con normalize y getEventStatus
@@ -51,7 +52,7 @@ console.log('[MODULES] Todos los módulos cargados v12.44.466');
  */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.466';
+const VERSION = '12.44.467';
 console.log(`CHECK V${VERSION}: Iniciando Sistema Modular...`);
 
 // --- VERIFICACIÓN INMEDIATA DE VERSIÓN CARGADA (SIMPLIFICADA) ---
@@ -9495,6 +9496,7 @@ navigate(viewName, params = {}, push = true) {
         const ev = this.state.events.find(e => String(e.id) === String(id));
         if (!ev) return;
         
+        // Función auxiliar para establecer valor solo si el elemento existe
         const setValue = (id, value) => {
             const el = document.getElementById(id);
             if (el) el.value = value;
@@ -9505,68 +9507,7 @@ navigate(viewName, params = {}, push = true) {
             if (el) el.checked = checked;
         };
         
-        setValue('evf-id-hidden', ev.id);
-        setValue('evf-name', ev.name || '');
-        setValue('evf-location', ev.location || '');
-        setValue('evf-desc', ev.description || '');
-        setValue('evf-date', ev.date ? ev.date.slice(0, 16) : '');
-        setValue('evf-end-date', ev.end_date ? ev.end_date.slice(0, 16) : '');
-        
-        setValue('evf-reg-title', ev.reg_title || '');
-        setValue('evf-reg-welcome', ev.reg_welcome_text || '');
-        setValue('evf-reg-success', ev.reg_success_message || '');
-        setValue('evf-reg-policy', ev.reg_policy || '');
-        setChecked('evf-reg-phone', ev.reg_show_phone !== 0);
-        setChecked('evf-reg-org', ev.reg_show_org !== 0);
-        setChecked('evf-reg-position', ev.reg_show_position === 1);
-        setChecked('evf-reg-vegan', ev.reg_show_vegan !== 0);
-        setChecked('evf-reg-dietary', ev.reg_show_dietary !== 0);
-        setChecked('evf-reg-gender', ev.reg_show_gender === 1);
-        setChecked('evf-reg-agreement', ev.reg_require_agreement !== 0);
-        
-        setValue('evf-qr-dark', ev.qr_color_dark || '#000000');
-        setValue('evf-qr-light', ev.qr_color_light || '#ffffff');
-        setValue('evf-qr-logo', ev.qr_logo_url || '');
-        setValue('evf-ticket-bg', ev.ticket_bg_url || '');
-        setValue('evf-ticket-accent', ev.ticket_accent_color || '#7c3aed');
-        
-        setValue('evf-reg-whitelist', ev.reg_email_whitelist || '');
-        setValue('evf-reg-blacklist', ev.reg_email_blacklist || '');
-        
-        const linkStr = `${window.location.origin}/registro.html?event=${ev.id}`;
-        ['evf-registration-link', 'evf-registration-link-modal'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = linkStr;
-        });
-        
-        const modalTitle = document.getElementById('modal-event-full-title');
-        if (modalTitle) {
-            modalTitle.textContent = 'Editar Evento - Configuración Completa';
-        }
-        
-        this.updateQRPreview();
-        
-        const form = document.getElementById('new-event-full-form');
-        if (form) {
-            const newForm = form.cloneNode(true);
-            form.parentNode.replaceChild(newForm, form);
-            
-            newForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await this.saveEventFull(e);
-            });
-        }
-        
-        const modal = document.getElementById('modal-event-full');
-        if (modal) modal.classList.remove('hidden');
-    },
-    
-    // Alias para compatibilidad HTML
-    openEventEditFromAdmin() {
-        if (this.state.event?.id) {
-            return this.editEvent(this.state.event.id);
-        }
-    },
+        // Usar formulario completo (modal-event-full) con prefijo evf-
         setValue('evf-id-hidden', ev.id);
         setValue('evf-name', ev.name || '');
         setValue('evf-location', ev.location || '');
@@ -9630,6 +9571,13 @@ navigate(viewName, params = {}, push = true) {
             modal.classList.remove('hidden');
             modal.style.display = 'flex';
             modal.removeAttribute('aria-hidden');
+        }
+    },
+
+    // Alias para compatibilidad HTML
+    openEventEditFromAdmin() {
+        if (this.state.event?.id) {
+            return this.editEvent(this.state.event.id);
         }
     },
 
