@@ -25,32 +25,23 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
 
-// Init - módulos CSS
-CSSManagerInstance.loadAll();
-
-/**
- * Check Pro - Sistema de gestión de asistencia
- * Versión: 12.44.484
- */
 window.LS = LS;
 window.lazyLoad = lazyLoad;
 const VERSION = '12.44.485';
 
-// --- AUTO-UPDATE CACHE ---
 if ('caches' in window) {
     const v = LS.get('check_app_version');
     if (v !== VERSION) {
         caches.keys().then(names => {
             for (let name of names) caches.delete(name);
         }).then(() => {
-            localStorage.clear(); 
+            localStorage.clear();
             sessionStorage.clear();
             LS.set('check_app_version', VERSION);
-            window.location.reload(true); 
+            window.location.reload(true);
         });
     }
 }
-
 
 const App = window.App = {
     // Referencia al State Manager (módulos)
@@ -107,11 +98,13 @@ const App = window.App = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
+    // ─── NAVEGACIÓN V12.16.3 (MANTENIDA PARA COMPATIBILIDAD) ───
     navigate(viewId) {
         // Redirigir a la función navigate() completa con parámetros por defecto
         this.navigate(viewId, {}, true);
     },
 
+    // ─── PERSISTENCIA Y NAVEGACIÓN POR ROL (v12.34.96) ───
     
     // Obtener vista por defecto según rol
     getDefaultViewByRole(role) {
@@ -183,7 +176,7 @@ const App = window.App = {
         }
     },
 
-    loadViewState() {
+    // Cargar estado de navegación desde sessionStorage
     loadViewState() {
         try {
             const sessionData = sessionStorage.getItem('check_current_view');
@@ -191,11 +184,13 @@ const App = window.App = {
             
             const state = JSON.parse(sessionData);
             
+            // DEBUG: Registrar si el estado cargado no tiene 'tab' pero es vista 'system'
             if (state.view === 'system' && (!state.params || !state.params.tab)) {
-                console.warn('[PERSISTENCE] Loaded system view without tab parameter!');
+                console.warn('[PERSISTENCE WARNING] Loaded system view without tab parameter!');
             }
             
-            const maxAge = 24 * 60 * 60 * 1000;
+            // Validar que el estado no sea demasiado viejo (24 horas)
+            const maxAge = 24 * 60 * 60 * 1000; // 24 horas
             if (Date.now() - state.timestamp > maxAge) {
                 return null;
             }
@@ -207,6 +202,7 @@ const App = window.App = {
         }
     },
 
+    // Limpiar estado de navegación
     clearViewState() {
         try {
             sessionStorage.removeItem('check_current_view');
@@ -218,6 +214,7 @@ const App = window.App = {
         }
     },
 
+    // ─── UI PREMIUM UTILS (v12.32.0) ───
     
     // Notificación Toast Premium
     showPremiumToast(title, message, type = 'success', duration = 4000) {
@@ -301,6 +298,8 @@ const App = window.App = {
     },
 
     navigateToCreateEvent: function(type = 'short') {
+        
+        // No navegar si ya estamos en una vista permitida (my-events, dashboard)
         const currentView = LS.get('current_view');
         if (currentView !== 'my-events' && currentView !== 'dashboard') {
             this.navigate('my-events');
@@ -443,6 +442,7 @@ const App = window.App = {
         this.openCompanyModal();
     },
 
+    // ─── IMPORTAR / EXPORTAR DATOS V12.44.38 ───
     openImportModal: function(type) {
         this._importType = type; // 'groups' o 'staff'
         this._importData = null;
@@ -757,6 +757,7 @@ const App = window.App = {
         } catch(e) { console.error('Error selecting event:', e); }
     },
 
+    // ─── PERMISOS JERÁRQUICOS V10.5 ───
     canAccess(permission) {
         const role = this.state.user?.role;
         if (role === 'ADMIN') return true;
@@ -807,6 +808,7 @@ const App = window.App = {
         }
     },
 
+    // ─── TEMA OSCURO/CLARO MEJORADO ───
     
     // Obtener tema del sistema
     getSystemTheme: function() {
@@ -829,7 +831,7 @@ const App = window.App = {
     applyThemeTransition: function() {
         // Agregar clase de transición
         document.documentElement.classList.add('theme-transition');
-
+        // Remover después de la transición
         setTimeout(() => {
             document.documentElement.classList.remove('theme-transition');
         }, 300);
@@ -895,6 +897,7 @@ const App = window.App = {
         await this.loadAppVersion();
     },
 
+    // ─── SIDEBAR COLAPSABLE - usar SidebarManager ───
     toggleSidebar() {
         if (typeof SidebarManager !== 'undefined') {
             SidebarManager.toggle();
@@ -920,6 +923,7 @@ const App = window.App = {
         }
     },
 
+    // ─── ACTUALIZAR VISIBILIDAD DEL SIDEBAR ───
     updateSidebarVisibility() {
         const hasSelectedEvent = !!this.state.event?.id;
         const isAdmin = this.state.user?.role === 'ADMIN';
@@ -966,15 +970,16 @@ const App = window.App = {
         }
     },
 
+    // ──── NOTIFICACIONES PUSH (Web Push API) ────
     initPushNotifications: async function() {
         try {
             // Registrar service worker si no está registrado
             const registration = await navigator.serviceWorker.register('/js/sw.js');
-                        
+            
             // Solicitar permiso para notificaciones
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
-                                return false;
+                return false;
             }
             
             // Obtener clave pública VAPID del servidor
@@ -993,7 +998,7 @@ const App = window.App = {
             // Enviar suscripción al servidor
             await this.sendPushSubscription(subscription);
             
-                        return true;
+            return true;
         } catch (error) {
             console.warn('[PUSH] Error al inicializar notificaciones push (no crítico):', error.message);
             return false;
@@ -1016,7 +1021,7 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify(subscription)
             });
-                    } catch (error) {
+        } catch (error) {
             console.error('Error al enviar suscripción:', error);
         }
     },
@@ -1031,7 +1036,7 @@ const App = window.App = {
                     method: 'POST',
                     body: JSON.stringify({ endpoint: subscription.endpoint })
                 });
-                            }
+            }
         } catch (error) {
             console.error('Error al eliminar suscripción:', error);
         }
@@ -1058,7 +1063,7 @@ const App = window.App = {
                 method: 'POST',
                 body: JSON.stringify({ title, body })
             });
-                    } catch (error) {
+        } catch (error) {
             console.error('Error al enviar notificación de prueba:', error);
         }
     },
@@ -1120,7 +1125,7 @@ const App = window.App = {
             const users = await this.fetchAPI('/users');
             const events = await this.fetchAPI('/events');
             const clients = await this.fetchAPI('/clients');
-                        if (!Array.isArray(groups) || !Array.isArray(users)) return;
+            if (!Array.isArray(groups) || !Array.isArray(users)) return;
             this.state.groups = groups;
             this.state.allUsers = users;
             this.state.allEvents = events;
@@ -6856,7 +6861,7 @@ navigate(viewName, params = {}, push = true) {
         this.clearViewState();
         this.state.user = null;
         this.state.event = null;
-
+        // Remover app-shell si existe
         const appShell = document.getElementById('app-container');
         if (appShell) appShell.remove();
         this.showView('login', true);
@@ -7936,6 +7941,7 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
+    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -8057,6 +8063,7 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
+    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -8142,6 +8149,7 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
+    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -8172,6 +8180,7 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
+    // ─── ACCIÓN DE EDICIÓN DE EVENTOS (CARRUSEL CON BARRA DE NAVEGACIÓN) ───
     openEventEditAction() {
         const selected = Array.from(this._selectedEvents);
         
@@ -8780,6 +8789,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
+    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9045,6 +9055,7 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
+    // ─── FILTRADO DE EVENTOS ───
     filterEvents() {
         const searchInput = document.getElementById('event-search');
         const searchTerm = (searchInput?.value || '').toLowerCase().trim();
@@ -9160,6 +9171,7 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
+    // ─── SUGERENCIAS DEL BUSCADOR ───
     showEventSuggestions() {
         const input = document.getElementById('event-search');
         const dropdown = document.getElementById('event-suggestions');
@@ -9232,6 +9244,7 @@ navigate(viewName, params = {}, push = true) {
         return text.replace(regex, '<span class="text-[#0ba5ec] font-bold">$1</span>');
     },
 
+    // ─── SELECCIÓN MÚLTIPLE DE EVENTOS ───
     toggleSelectAllEvents() {
         const checkbox = document.getElementById('select-all-events');
         const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -9262,7 +9275,9 @@ navigate(viewName, params = {}, push = true) {
         if (selectAllCheckbox) selectAllCheckbox.checked = allSelected;
     },
 
+    // ─── ACCIÓN DE EDICIÓN DE EVENTOS ───
 
+    // ─── EXPORTAR EVENTOS ───
     exportEvents: async function() {
         try {
             const events = this._eventsFiltered.length > 0 ? this._eventsFiltered : (Array.isArray(this.state.events) ? this.state.events : []);
@@ -10220,6 +10235,7 @@ navigate(viewName, params = {}, push = true) {
 
 
 
+    // ─── PDF MEJORADOS CON DISEÑOS PROFESIONALES ───
     
     // Asegurar que las librerías PDF estén cargadas
     async ensurePDFLibsLoaded() {
@@ -10606,6 +10622,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+    // ─── FUNCIONES PUENTE PARA COMPATIBILIDAD ───
     
     // Generar lista de invitados en PDF (compatibilidad con botón existente)
     async generateGuestListPdf() {
@@ -10848,7 +10865,9 @@ navigate(viewName, params = {}, push = true) {
         
     },
 
+    // ─── PESTAÑAS DE EVENTO (Fase 3: CRUD Personal) ───
     
+    // ─── PESTAÑAS DE CONFIGURACIÓN DEL EVENTO ───
     switchConfigTab(tabName) {
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings'];
         ALL_CONFIG_IDS.forEach(id => {
@@ -10856,11 +10875,11 @@ navigate(viewName, params = {}, push = true) {
             if (el) el.classList.add('hidden');
         });
 
-
+        // Update config navigation buttons - buscar por data-tab
         const configNavContainer = document.querySelector('#view-event-config');
         if (configNavContainer) {
             configNavContainer.querySelectorAll('.sub-nav-btn').forEach(b => {
-
+                // Remover todas las clases de estado activo
                 b.classList.remove('active');
                 
                 // Agregar clase de estado activo al botón correspondiente por data-tab
@@ -11049,6 +11068,7 @@ navigate(viewName, params = {}, push = true) {
     },
 
 
+    // ==================== RULETA DE SORTEOS (FASE 1) ====================
     currentWheel: null,
     wheelParticipants: [],
     
@@ -11060,7 +11080,7 @@ navigate(viewName, params = {}, push = true) {
             if (el) el.classList.add('hidden');
         });
 
-
+        // Update sub-navigation buttons
         const subNav = document.querySelector('#view-event-config .sub-nav-container');
         if (subNav) {
             subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
@@ -11369,7 +11389,12 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+    // Modal para entrada manual de participantes
     async showManualParticipantsModal() {
+            currentWheel: this.currentWheel,
+            wheelId: this.currentWheel?.id
+        });
+        
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
             console.error('[DEBUG] currentWheel inválido');
             this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
@@ -11435,7 +11460,7 @@ navigate(viewName, params = {}, push = true) {
         }
     },
     
-
+    // Remover participante
     async removeWheelParticipant(participantId) {
         if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') return;
         
@@ -11865,7 +11890,7 @@ navigate(viewName, params = {}, push = true) {
             if (el) el.classList.add('hidden');
         });
 
-
+        // Update sub-navigation buttons (V12.6.1)
         const subNav = document.querySelector('#view-admin .sub-nav-container');
         if (subNav) {
             subNav.querySelectorAll('.sub-nav-btn').forEach(b => {
@@ -11973,7 +11998,9 @@ navigate(viewName, params = {}, push = true) {
         this.editSelectedUsersConfig(selectedUserIds);
     },
     
+    // ==================================================
     // CARRUSEL INDEPENDIENTE PARA PERSONAL (CONFIGURACIÓN)
+    // ==================================================
     
     // Carrusel principal de Personal - 4 botones independientes
     editSelectedUsersConfig: function(userIds) {
@@ -13370,6 +13397,7 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error(e); }
     },
 
+    // ─── LEGAL Y QUILL (v12.31.22) ───
     async initQuill() {
         if (this.quillPolicy) return;
         if (typeof window.Quill === 'undefined') {
@@ -13398,6 +13426,7 @@ navigate(viewName, params = {}, push = true) {
         if (links) links.classList.toggle('hidden', settings.show_legal_login === '0');
     },
 
+    // ─── HANDLERS DE FORMULARIOS (v12.31.22) ───
     async handleCreateEvent(e) {
         const id = document.getElementById('ev-id-hidden').value;
         const data = {
@@ -13821,6 +13850,7 @@ async function initApp() {
         }
     }, 1000);
     
+    // ─── DISEÑO PREMIUM V11.6.1 Live Preview ───
     App.updateQRPreview = async () => {
         const img = document.getElementById('ev-qr-preview-img');
         const logo = document.getElementById('ev-qr-preview-logo');
@@ -13996,7 +14026,9 @@ window.copyTemplateVar = (varName) => {
 // Función global hideModal expuesta para onclick en HTML
 window.hideModal = function(id) { App.hideModal(id); };
 
+// ============================================================
 // ASISTENCIA AL EVENTO (ATTENDANCE) - V12.44.250
+// ============================================================
 
 App._attendanceLoaded = false;
 App._selectedAttendance = [];
