@@ -27,12 +27,14 @@ class Router {
     
     // Navegación completa con parámetros
     navigateTo(viewId, params = {}, saveState = true) {
-        // Verificar permisos
-        const user = AppStateManager.get('user');
+        // Obtener usuario desde App.state (fuente principal)
+        const user = window.App?.state?.user || AppStateManager.get('user');
         const role = user?.role || 'INVITADO';
         
+        console.log('[ROUTER] navigateTo:', viewId, 'role:', role, 'user:', user?.email);
+        
         if (!this.hasPermissionForView(role, viewId)) {
-            console.warn(`[ROUTER] No permission for view: ${viewId}`);
+            console.warn(`[ROUTER] No permission for view: ${viewId} (role: ${role})`);
             return;
         }
         
