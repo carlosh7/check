@@ -1,29 +1,29 @@
 import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
-// Imports de nuevos módulos con versión actualizada
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.470';
-import { Config } from './modules/core/Config.js?v=12.44.465';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.467';
-import { AppStateManager } from './modules/core/State.js?v=12.44.465';
-import { Constants } from './modules/utils/Constants.js?v=12.44.465';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.465';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.465';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.465';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.465';
-import { TableManager } from './modules/components/Table.js?v=12.44.465';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.465';
-import { FormManager } from './modules/components/Form.js?v=12.44.465';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.465';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.465';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.465';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.465';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.465';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.465';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.465';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.465';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.465';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.465';
+
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.487';
+import { Config } from './modules/core/Config.js?v=12.44.487';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.487';
+import { AppStateManager } from './modules/core/State.js?v=12.44.487';
+import { Constants } from './modules/utils/Constants.js?v=12.44.487';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.487';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.487';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.487';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.487';
+import { TableManager } from './modules/components/Table.js?v=12.44.487';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.487';
+import { FormManager } from './modules/components/Form.js?v=12.44.487';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.487';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.487';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.487';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.487';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.487';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.487';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.487';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.487';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.487';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.487';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
@@ -44,10 +44,10 @@ if ('caches' in window) {
 }
 
 const App = window.App = {
-    // Referencia al State Manager (módulos)
+
     stateManager: AppStateManager,
     
-    // Estado legacy (compatibilidad) - migrate gradually
+
     state: {
         event: null,
         events: [],
@@ -65,11 +65,11 @@ const App = window.App = {
         importSession: null,
         eventsViewMode: 'grid', // 'grid' o 'list'
     },
-    // Usar constants del módulo
+
     constants: { API_URL: Config.API_URL },
     fetchAPI(endpoint, options) { return API.fetchAPI(endpoint, options); },
     
-    // Referencia a nuevos módulos (Fase 2 + 3 + 4 + 5 - COMPLETO)
+
     router: RouterManager,
     persistence: PersistenceManager,
     toast: ToastManager,
@@ -99,33 +99,33 @@ const App = window.App = {
     },
 
     navigate(viewId) {
-        // Redirigir a la función navigate() completa con parámetros por defecto
+
         this.navigate(viewId, {}, true);
     },
 
     
-    // Obtener vista por defecto según rol
+
     getDefaultViewByRole(role) {
         // Todos los usuarios van a "Mis Eventos" después de login
         return { view: 'my-events', tab: null };
     },
 
-    // Validar permisos para una vista
+
     hasPermissionForView(role, view, tab) {
-        // ADMIN tiene acceso completo
+
         if (role === 'ADMIN') return true;
         
         // Todos pueden ver Mis Eventos
         if (view === 'my-events') return true;
         
-        // PRODUCTOR puede ver Sistema (con restricciones ya implementadas)
+
         if (view === 'system' && role === 'PRODUCTOR') return true;
         
-        // Otros roles no pueden ver Sistema
+
         return false;
     },
 
-    // Guardar estado de navegación en sessionStorage
+
     saveViewState(view, params = {}, role = null) {
         try {
             
@@ -140,13 +140,13 @@ const App = window.App = {
                 timestamp: Date.now()
             };
             
-            // Si estamos en una vista de evento, guardar información adicional
+
             if (view === 'admin' || view === 'event-config') {
-                // Guardar ID del evento actual si existe
+
                 if (this.state.event?.id) {
                     state.eventId = this.state.event.id;
                 }
-                // Si tenemos ID en params, también guardarlo
+
                 else if (params.id) {
                     state.eventId = params.id;
                 }
@@ -173,7 +173,7 @@ const App = window.App = {
         }
     },
 
-    // Cargar estado de navegación desde sessionStorage
+
     loadViewState() {
         try {
             const sessionData = sessionStorage.getItem('check_current_view');
@@ -5011,7 +5011,7 @@ const App = window.App = {
             return;
         }
         
-        // Validar permisos
+
         const currentUser = this.state.user;
         if (!currentUser) return;
         
@@ -6720,7 +6720,7 @@ navigate(viewName, params = {}, push = true) {
                 this.clearViewState();
                 useDefaultView = true;
             }
-            // Validar permisos para la vista guardada
+
             const hasPermission = this.hasPermissionForView(userRole, savedState.view, savedState.params?.tab);
             if (!hasPermission) {
                 useDefaultView = true;
@@ -8186,7 +8186,7 @@ navigate(viewName, params = {}, push = true) {
         const events = selectedIds.map(id => this.state.events.find(e => String(e.id) === String(id))).filter(Boolean);
         if (events.length === 0) return;
         
-        // Guardar estado del carrusel para navegación
+
         this._eventCarouselState = { 
             events, 
             currentIndex: 0, 
@@ -8737,7 +8737,7 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('ev-end-date').value = formatDate(ev.end_date);
         document.getElementById('ev-desc').value = ev.description || '';
         
-        // Cargar estado de base de datos propia
+
         const hasOwnDbCheck = document.getElementById('ev-has-own-db');
         if (hasOwnDbCheck) {
             hasOwnDbCheck.checked = Boolean(ev.has_own_db);
