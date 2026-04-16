@@ -25,13 +25,13 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.487';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.487';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.499';
-import PushModule from './modules/app-push.js?v=12.44.500';
-import ThemeModule from './modules/app-theme.js?v=12.44.500';
+import ImportExportModule from './modules/app-import.js?v=12.44.501';
+import PushModule from './modules/app-push.js?v=12.44.501';
+import ThemeModule from './modules/app-theme.js?v=12.44.501';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.500';
+const VERSION = '12.44.501';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');

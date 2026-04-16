@@ -2,7 +2,7 @@ import { LS, lazyLoad } from '../src/frontend/utils.js';
 import { API } from '../src/frontend/api.js';
 
 const ImportExportModule = window.ImportExportModule = {
-    VERSION: '12.44.499',
+    VERSION: '12.44.501',
     _importType: null,
     _importData: null,
     _importStats: null,
