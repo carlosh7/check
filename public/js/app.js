@@ -25,9 +25,13 @@ import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.4
 import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.487';
 import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.487';
 
+import ImportExportModule from './modules/app-import.js?v=12.44.499';
+import PushModule from './modules/app-push.js?v=12.44.500';
+import ThemeModule from './modules/app-theme.js?v=12.44.500';
+
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.485';
+const VERSION = '12.44.500';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');
@@ -87,6 +91,9 @@ const App = window.App = {
     auth: AuthServiceInstance,
     events: EventServiceInstance,
     guests: GuestServiceInstance,
+    importExport: ImportExportModule,
+    push: PushModule,
+    theme: ThemeModule,
     
     // --- NAVEGACIÓN CENTRALIZADA (MODERN PRO) ---
     _isPushingState: false,
@@ -435,26 +442,42 @@ const App = window.App = {
     },
 
     openImportModal: function(type) {
-        this._importType = type; // 'groups' o 'staff'
+        if (ImportExportModule && ImportExportModule.openImportModal) {
+            return ImportExportModule.openImportModal(type);
+        }
+        this._importType = type;
         this._importData = null;
         
-        // Resetear UI
         const progressContainer = document.getElementById('import-progress-container');
         if (progressContainer) progressContainer.classList.add('hidden');
-        document.getElementById('import-new-count').textContent = '0';
-        document.getElementById('import-update-count').textContent = '0';
-        document.getElementById('import-error-count').textContent = '0';
-        document.getElementById('import-status').textContent = 'Procesando...';
-        document.getElementById('import-progress-fill').style.width = '0%';
-        document.getElementById('btn-confirm-import').disabled = true;
+        
+        const newCount = document.getElementById('import-new-count');
+        const updateCount = document.getElementById('import-update-count');
+        const errorCount = document.getElementById('import-error-count');
+        const status = document.getElementById('import-status');
+        const progressFill = document.getElementById('import-progress-fill');
+        const confirmBtn = document.getElementById('btn-confirm-import');
+        
+        if (newCount) newCount.textContent = '0';
+        if (updateCount) updateCount.textContent = '0';
+        if (errorCount) errorCount.textContent = '0';
+        if (status) status.textContent = 'Procesando...';
+        if (progressFill) progressFill.style.width = '0%';
+        if (confirmBtn) confirmBtn.disabled = true;
         
         const modal = document.getElementById('modal-import');
         if (modal) modal.classList.remove('hidden');
     },
 
     openExportModal: function(type) {
-        this._exportType = type; // 'groups', 'staff', 'clients', 'all'
-        document.getElementById('export-progress-container').classList.add('hidden');
+        if (ImportExportModule && ImportExportModule.openExportModal) {
+            return ImportExportModule.openExportModal(type);
+        }
+        this._exportType = type;
+        
+        const progressContainer = document.getElementById('export-progress-container');
+        if (progressContainer) progressContainer.classList.add('hidden');
+        
         const modal = document.getElementById('modal-export');
         if (modal) modal.classList.remove('hidden');
     },
@@ -465,8 +488,10 @@ const App = window.App = {
     },
 
     downloadImportTemplate: async function() {
+        if (ImportExportModule && ImportExportModule.downloadImportTemplate) {
+            return ImportExportModule.downloadImportTemplate();
+        }
         try {
-            // Obtener token igual que API.fetchAPI
             let token = window.App?.state?.user?.token;
             if (!token) {
                 const userStr = LS.get('user');
@@ -501,14 +526,15 @@ const App = window.App = {
     },
 
     initImportHandlers: function() {
+        if (ImportExportModule && ImportExportModule.initImportHandlers) {
+            return ImportExportModule.initImportHandlers();
+        }
         const modal = document.getElementById('modal-import');
         if (!modal) return;
 
-        // Cerrar modal
         document.getElementById('btn-close-import')?.addEventListener('click', () => modal.classList.add('hidden'));
         document.getElementById('btn-cancel-import')?.addEventListener('click', () => modal.classList.add('hidden'));
 
-        // Drop zone
         const dropZone = document.getElementById('import-drop-zone');
         const fileInput = document.getElementById('import-file-input');
 
@@ -604,9 +630,11 @@ const App = window.App = {
     },
 
     executeImport: async function() {
+        if (ImportExportModule && ImportExportModule.executeImport) {
+            return ImportExportModule.executeImport();
+        }
         if (!this._importData) return;
         
-        // Obtener token igual que API.fetchAPI
         let token = window.App?.state?.user?.token;
         if (!token) {
             const userStr = LS.get('user');
@@ -615,6 +643,7 @@ const App = window.App = {
         }
         
         const btn = document.getElementById('btn-confirm-import');
+        if (!btn) return;
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Importando...';
 
@@ -630,12 +659,12 @@ const App = window.App = {
             const result = await response.json();
             
             if (result.success) {
-                document.getElementById('import-status').textContent = `Importación completada: ${result.imported} registros`;
+                const statusEl = document.getElementById('import-status');
+                if (statusEl) statusEl.textContent = `Importación completada: ${result.imported} registros`;
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({ icon: 'success', title: 'Importación exitosa', text: `${result.imported} registros importados, ${result.updated} actualizados`, timer: 3000, toast: true, position: 'top-end' });
                 }
                 
-                // Recargar datos según tipo
                 if (this._importType === 'groups') window.App.loadGroups();
                 else if (this._importType === 'staff') window.App.loadUsersTable();
                 else if (this._importType === 'clients') window.App.loadClients();
@@ -659,27 +688,33 @@ const App = window.App = {
     },
 
     initExportHandlers: function() {
+        if (ImportExportModule && ImportExportModule.initExportHandlers) {
+            return ImportExportModule.initExportHandlers();
+        }
         const modal = document.getElementById('modal-export');
         if (!modal) return;
 
-        // Cerrar modal
         document.getElementById('btn-close-export')?.addEventListener('click', () => modal.classList.add('hidden'));
         document.getElementById('btn-cancel-export')?.addEventListener('click', () => modal.classList.add('hidden'));
 
-        // Confirmar exportación
         document.getElementById('btn-confirm-export')?.addEventListener('click', () => this.executeExport());
     },
 
     executeExport: async function() {
+        if (ImportExportModule && ImportExportModule.executeExport) {
+            return ImportExportModule.executeExport();
+        }
         const format = document.querySelector('input[name="export-format"]:checked')?.value || 'excel';
         
         const btn = document.getElementById('btn-confirm-export');
+        if (!btn) return;
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Generando...';
-        document.getElementById('export-progress-container').classList.remove('hidden');
+        
+        const progressContainer = document.getElementById('export-progress-container');
+        if (progressContainer) progressContainer.classList.remove('hidden');
 
         try {
-            // Obtener token igual que API.fetchAPI
             let token = window.App?.state?.user?.token;
             if (!token) {
                 const userStr = LS.get('user');
