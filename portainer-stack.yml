@@ -5,6 +5,8 @@ services:
     image: node:20-slim
     container_name: check-app
     restart: always
+    ports:
+      - '3000:3000'
     expose:
       - '3000'
     volumes:
