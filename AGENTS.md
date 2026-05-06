@@ -311,3 +311,27 @@ runtime_config:
   - task_execution: autonomous
 
 ---
+
+## ENTORNO LINUX (PRUEBAS ACTUAL)
+
+Este repositorio también se usa en un entorno Linux para pruebas con Portainer.
+
+### Configuración
+
+- **Ruta local:** `/home/carlosh/Check`
+- **Portainer:** `https://localhost:9443`
+- **App URL:** `http://localhost:3000`
+- **Docker socket:** `/var/run/docker.sock`
+
+### Workflow Linux (resumido)
+
+1. Hacer cambios en `/home/carlosh/Check`
+2. Version bump → commit → push → tag
+3. Usuario hace Redeploy del stack en Portainer
+4. Usuario valida en `http://localhost:3000`
+
+### Para más detalles
+
+Leer `WORKFLOW.md` en la raíz del proyecto — contiene el flujo completo, diagrama y checklist detallado para el agente.
+
+---
