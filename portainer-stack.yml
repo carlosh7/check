@@ -5,8 +5,8 @@ services:
     image: node:20-slim
     container_name: check-app
     restart: always
-    ports:
-      - '3000:3000'
+    expose:
+      - '3000'
     volumes:
       - /home/data_check:/usr/src/app/persistence
     environment:
@@ -14,7 +14,7 @@ services:
       - PORT=3000
       - DATA_PATH=/usr/src/app/persistence
     networks:
-      - check-network
+      - proxy-network
     entrypoint: []
     command: >
       sh -c "
@@ -31,5 +31,5 @@ services:
       npm start"
 
 networks:
-  check-network:
-    driver: bridge
+  proxy-network:
+    external: true
