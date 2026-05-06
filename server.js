@@ -112,12 +112,8 @@ app.use(helmet({
             upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
         }
     },
-    // HSTS - Solo habilitar si hay HTTPS
-    hsts: process.env.NODE_ENV === 'production' ? {
-        maxAge: 31536000, // 1 año
-        includeSubDomains: true,
-        preload: true
-    } : false,
+    // HSTS - Deshabilitado (lo maneja nginx si aplica)
+    hsts: false,
     // Cross-Origin policies
     crossOriginEmbedderPolicy: false, // Deshabilitado por compatibilidad con fonts
     crossOriginResourcePolicy: { policy: "cross-origin" },
