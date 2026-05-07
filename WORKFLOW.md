@@ -52,6 +52,7 @@
       ```
 - [ ] **Informar al usuario** que los cambios están listos para Redeploy en Portainer
 - [ ] **Especificar** versión actual, cambios realizados, URL para pruebas
+- [ ] **(Opcional) Validar postura de seguridad IA** si el cambio involucra funcionalidad de IA: revisar `docs/SECURITY_IA.md` para verificar que no se introducen nuevas brechas
 
 ---
 

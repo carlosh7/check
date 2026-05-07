@@ -1,4 +1,4 @@
-# Arquitectura del Sistema Check Pro v12.31.86
+# Arquitectura del Sistema Check Pro v12.44.520
 
 ## Resumen del Proyecto
 
@@ -210,7 +210,7 @@ guests.routes.js → Llama getEventDb(eventId)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                        CHECK APP v12.31.86                      │
+│                        CHECK APP v12.44.520                     │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌─────────────┐      ┌─────────────────────────────────────┐  │
@@ -305,5 +305,46 @@ curl http://localhost:3000/api/events/{eventId}/database
 
 ---
 
+## ARQUITECTURA DE SEGURIDAD
+
+### Controles de Seguridad Implementados
+
+| Control | Componente | Estado |
+|---------|-----------|--------|
+| Autenticacion JWT | `src/security/jwt.js` | ✅ Tokens con expiracion |
+| RBAC (5 roles) | `src/middleware/auth.js` | ✅ ADMIN, PRODUCTOR, STAFF, CLIENTE, LOGISTICO |
+| CSRF Protection | `src/middleware/csrf.js` | ✅ Origin header + whitelist |
+| CORS | `server.js:130-149` | ✅ Whitelist configurable |
+| Rate Limiting | `server.js:167-206` | ✅ 4 niveles (general, auth, guests, uploads) |
+| Helmet Headers | `server.js:95-129` | ✅ CSP, HSTS, X-Frame-Options, etc. |
+| Validacion Zod | `src/security/validation.js` | ✅ Schemas para endpoints criticos |
+| Captcha | `src/security/captcha.js` | ✅ Matematico simple |
+| Webhooks HMAC | `src/utils/webhooks.js` | ✅ Firma HMAC-SHA256 |
+| Path Traversal | `src/routes/index.js:70-78` | ✅ Bloqueo `..`, `%2e%2e` |
+| Upload Seguro | `src/routes/index.js:33-55` | ✅ Multer + MIME whitelist |
+| Audit Logging | `src/security/audit.js` | ✅ 20+ tipos de eventos |
+| Logger Sanitizado | `src/utils/logger.js` | ✅ Redaccion de passwords/tokens |
+| Aislamiento BD x Evento | `src/utils/database-manager.js` | ✅ BD SQLite independiente por evento |
+| Backups | `src/utils/backup.js` | ✅ Cada 6h, retencion 7d |
+| Error Handler | `server.js:324-355` | ✅ Sin stack traces en produccion |
+
+### Brechas de Seguridad Identificadas
+
+Evaluacion basada en **"Proteger los Sistemas de IA: Manual para Responsables de Seguridad"** (CrowdStrike):
+
+| Area | Estado | Criticidad |
+|------|--------|------------|
+| Visibilidad y gobernanza de IA | ❌ No implementado | 🔴 Alta |
+| Cumplimiento normativo (GDPR) | 🟡 Parcial (40%) | 🟡 Media |
+| Gobernanza de datos (clasificacion, DLP) | 🟡 Parcial (50%) | 🟡 Media |
+| Deteccion y respuesta para IA | 🟡 Parcial (30%) | 🔴 Alta |
+| Red Teaming / Pruebas adversariales | 🟡 Parcial (25%) | 🟡 Media |
+
+**Hallazgo critico:** El proyecto tiene settings de IA pre-creadas en BD (`ai_enabled`, `ai_openrouter_key`, `ai_model`, `ai_system_prompt`) en `database.js:339-343` pero **no hay backend, frontend ni controles de seguridad que las respalden**. Si se activan, representan un riesgo sin los controles adecuados.
+
+Ver analisis completo en `docs/SECURITY_IA.md`.
+
+---
+
 *Documento generado el 29 de marzo de 2026*
-*Sistema Check Pro v12.31.86*
+*Sistema Check Pro v12.44.520*

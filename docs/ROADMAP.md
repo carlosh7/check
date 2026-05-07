@@ -8,10 +8,11 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.514 |
-| **Ultima feature completada** | Limpieza: saveEventShort migrado a App.form, duplicados eliminados + 10 sugerencias migradas a App.dropdown |
+| **Version** | v12.44.520 |
+| **Ultima feature completada** | Documentacion: evaluacion seguridad IA integrada (ver `docs/SECURITY_IA.md`) |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F0-02: Modulo Mailing por evento |
+| **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -56,6 +57,12 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 ## 🗺️ Mapa de Dependencias entre Features
 
 ```
+FASE S: Security & AI (postura de seguridad IA)
+  FS-01 Shadow AI Detection & Governance ← sin dependencias
+  FS-02 AI Compliance & Data Governance ← sin dependencias
+  FS-03 AI Detection & Response ← sin dependencias
+  FS-04 AI Red Teaming ← sin dependencias
+
 FASE 0: Foundation (saldar deuda tecnica previa)
   F0-01 Completar Form.js + Dropdown.js + tests frontend ← sin dependencias
   F0-02 Modulo Mailing por evento ← sin dependencias
@@ -284,6 +291,66 @@ Triggers configurables que envian emails automaticamente:
 - [ ] Robot automatico envia emails segun triggers
 - [ ] Logs de envio visibles
 - [ ] Al crear un evento, se copia la config de Email del sistema al Mailing del evento
+
+---
+
+## [FS-01] Shadow AI Detection & Governance
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🔴 Alta |
+| **Dependencias** | Ninguna |
+| **Inspiracion** | `docs/SECURITY_IA.md` + PDF CrowdStrike |
+| **Complejidad** | M |
+
+### Descripcion
+Detectar y gobernar el uso de IA no autorizada (Shadow AI). Ver especificacion completa en `docs/SECURITY_IA.md`.
+
+---
+
+## [FS-02] AI Compliance & Data Governance
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🟡 Media |
+| **Dependencias** | Ninguna |
+| **Inspiracion** | `docs/SECURITY_IA.md` + Ley de IA UE |
+| **Complejidad** | M |
+
+### Descripcion
+Implementar controles de cumplimiento normativo y gobernanza de datos para IA. Ver especificacion completa en `docs/SECURITY_IA.md`.
+
+---
+
+## [FS-03] AI Detection & Response (AIDR)
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🔴 Alta |
+| **Dependencias** | FS-01 |
+| **Inspiracion** | `docs/SECURITY_IA.md` |
+| **Complejidad** | XL |
+
+### Descripcion
+Sistema de deteccion y respuesta para interacciones con IA. Ver especificacion completa en `docs/SECURITY_IA.md`.
+
+---
+
+## [FS-04] AI Red Teaming
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🟡 Media |
+| **Dependencias** | FS-01, FS-03 |
+| **Inspiracion** | `docs/SECURITY_IA.md` + MITRE ATLAS + OWASP Top 10 LLM |
+| **Complejidad** | M |
+
+### Descripcion
+Pruebas de seguridad adversarial para sistemas de IA. Ver especificacion completa en `docs/SECURITY_IA.md`.
+
+---
+
+## [F1-01] Dashboard Analytics
 
 | Campo | Valor |
 |-------|-------|
@@ -785,6 +852,10 @@ Registro de espacios fisicos para eventos:
 | — | 10 sugerencias migradas a App.dropdown | ✅ | v12.44.514 | 2026-05-06 |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
+| FS-01 | Shadow AI Detection & Governance | ⏳ Pendiente | — | — |
+| FS-02 | AI Compliance & Data Governance | ⏳ Pendiente | — | — |
+| FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
+| FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics | ⏳ Pendiente | — | — |
 | F1-02 | Pipeline Invitados | ⏳ Pendiente | — | — |
 | F1-03 | Clone Events | ⏳ Pendiente | — | — |
@@ -836,7 +907,7 @@ Los siguientes documentos fueron eliminados porque su informacion esta integrada
 | `INFRAESTRUCTURA_DESPLIEGUE.md` | Cubierto por WORKFLOW.md |
 | `REPORTE_FINAL_AUDITORIA.md` | Historico, no relevante |
 
-Se mantienen los de **referencia**: `ARQUITECTURA_SISTEMA.md`, `ESTRUCTURA_UI_CHECK_PRO.md`, `repos-analysis.md`.
+Se mantienen los de **referencia**: `ARQUITECTURA_SISTEMA.md`, `ESTRUCTURA_UI_CHECK_PRO.md`, `repos-analysis.md`, `SECURITY_IA.md`.
 
 ---
 
@@ -849,5 +920,6 @@ Se mantienen los de **referencia**: `ARQUITECTURA_SISTEMA.md`, `ESTRUCTURA_UI_CH
 | `docs/repos-analysis.md` | Analisis completo de los 29 repos comparados |
 | `docs/ARQUITECTURA_SISTEMA.md` | Arquitectura de BD y sistema |
 | `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Vistas del frontend |
+| `docs/SECURITY_IA.md` | Postura de seguridad IA, brechas, plan de accion vs CrowdStrike |
 | `server.js` | Backend principal |
 | `src/utils/database-manager.js` | Gestion de BDs por evento |

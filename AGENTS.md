@@ -63,6 +63,7 @@ Cuando el usuario diga estas frases, responde asi:
 | "plan completo" o "roadmap" | Lee ROADMAP.md → muestra el roadmap con fases y prioridades |
 | "dame contexto" | Lee ROADMAP.md + AGENTS.md + ARQUITECTURA_SISTEMA.md → da resumen completo del proyecto |
 | "que sigue" o "siguiente feature" | Lee ROADMAP.md → muestra el proximo feature a implementar segun el orden de fases |
+| "evalua seguridad IA" | Lee docs/SECURITY_IA.md → muestra postura actual de seguridad IA, brechas y recomendaciones |
 
 Flujo diario recomendado:
 1. "retoma el trabajo" → yo presento plan
@@ -219,6 +220,7 @@ git tag --sort=-version:refname | head -5
 | `WORKFLOW.md` | Si necesitas entender el flujo de deploy completo |
 | `docs/repos-analysis.md` | Si vas a implementar una feature inspirada en otro repo |
 | `docs/ARQUITECTURA_SISTEMA.md` | Si necesitas entender BD, rutas, estructura del sistema |
+| `docs/SECURITY_IA.md` | Si trabajas en seguridad IA, brechas identificadas o plan de accion vs CrowdStrike |
 | `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Si trabajas en vistas del frontend |
 | `server.js` | Backend principal (rutas API, configuracion) |
 | `src/utils/database-manager.js` | Gestion de bases de datos por evento |
