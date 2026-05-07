@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.520 |
-| **Ultima feature completada** | Documentacion: evaluacion seguridad IA integrada (ver `docs/SECURITY_IA.md`) |
-| **Feature en curso** | Ninguna |
-| **Proximo feature** | F0-02: Modulo Mailing por evento |
+| **Version** | v12.44.526 |
+| **Ultima feature completada** | F0-02: Modulo Mailing por evento (backend completo + frontend restaurado) |
+| **Feature en curso** | F0-02: Ajustes post-implementacion (prueba de flujo + refactor emailQueue) |
+| **Proximo feature** | F1-03: Clone Events |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
