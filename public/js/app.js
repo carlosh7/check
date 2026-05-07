@@ -1112,10 +1112,15 @@ const App = window.App = {
             const healthEl = document.getElementById('analytics-health');
             if (healthEl) {
                 const alerts = res.healthAlerts || 0;
-                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="document.getElementById(\'analytics-restricted\')?.scrollIntoView({behavior:\'smooth\'})"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
+                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="var el=document.getElementById(\'analytics-restricted\');if(el){el.classList.remove(\'hidden\');setTimeout(function(){el.scrollIntoView({behavior:\'smooth\'})},100)}"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
                     (alerts > 0 ? '<span class="material-symbols-outlined text-sm">warning</span>' : '<span class="material-symbols-outlined text-sm">check_circle</span>') +
                     '</span><span class="font-bold text-white text-sm">' + alerts + '</span><span class="text-[var(--text-secondary)] text-xs">' + (alerts === 1 ? 'alerta' : 'alertas') + '</span></div>';
             }
+
+            // Veganos
+            const veganCount = (this.state.attendance || []).filter(g => g.vegano === 'SI').length;
+            const veganEl = document.getElementById('analytics-vegan');
+            if (veganEl) veganEl.textContent = veganCount;
 
             // Tabla de invitados con restricciones
             const restrictedSection = document.getElementById('analytics-restricted');
