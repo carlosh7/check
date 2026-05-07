@@ -34,6 +34,13 @@ Tomate tu tiempo para entender el proyecto y su funcionamiento. No te apresures 
 - Hacer commit/push
 - Crear tags
 
+**REGLA #1: NUNCA borrar ni simplificar funciones existentes**
+- Las funciones existentes funcionan y tienen comportamiento probado
+- Si necesitas refactorizar, crea la nueva función al lado, no reemplaces la original hasta que esté 100% verificada
+- Prefiero tener código duplicado funcional a código "limpio" que no funciona
+- Si ves código que parece "muerto", asume que está vivo hasta que demuestres lo contrario en producción
+- Cualquier cambio en funciones de app.js debe ser incremental, nunca sustitutivo
+
 
 ---
 

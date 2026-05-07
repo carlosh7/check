@@ -346,6 +346,7 @@ const App = window.App = {
         }, 100);
     },
 
+    // Guardar evento (formulario corto) - Creación y Edición
     saveEventShort: async function(e) {
         
         if (e && e.preventDefault) e.preventDefault();
@@ -353,16 +354,41 @@ const App = window.App = {
         const form = document.getElementById('new-event-form');
         if (!form) return;
         
-        const data = App.form.serialize(form);
+        const name = form.querySelector('#ev-name')?.value?.trim();
+        const date = form.querySelector('#ev-date')?.value?.trim();
         
-        if (!data.name || !data.date) {
-            if (!data.name) App.form.setFieldError(form, 'name', 'El nombre del evento es obligatorio');
-            if (!data.date) App.form.setFieldError(form, 'date', 'La fecha de inicio es obligatoria');
-            this._notifyAction('⚠️ Error', 'Completa los campos obligatorios', 'warning');
+        if (!name || !date) {
+            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
             return;
         }
         
-        App.form.clearAllErrors(form);
+        const fd = new FormData(form);
+        const data = {};
+        
+        fd.forEach((v, k) => {
+            const el = form.elements[k];
+            if (el && el.type === 'checkbox') {
+                data[k] = el.checked ? 1 : 0;
+            } else {
+                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
+            }
+        });
+        
+        const evName = form.querySelector('#ev-name')?.value?.trim();
+        const evDate = form.querySelector('#ev-date')?.value?.trim();
+        const evLocation = form.querySelector('#ev-location')?.value?.trim();
+        const evDesc = form.querySelector('#ev-desc')?.value?.trim();
+        const evGroup = form.querySelector('#ev-group')?.value?.trim();
+        const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
+        
+        if (evName) data.name = evName;
+        if (evDate) data.date = evDate;
+        if (evLocation) data.location = evLocation;
+        if (evDesc) data.description = evDesc;
+        if (evGroup) data.group_id = evGroup;
+        if (evEmailTemplate && evEmailTemplate !== '') {
+            data.email_template_id = evEmailTemplate;
+        }
         
         if (!data.group_id) data.group_id = '';
         if (!data.qr_color_dark) data.qr_color_dark = '#000000';
@@ -371,7 +397,7 @@ const App = window.App = {
         
         
         try {
-            if (data.email_template_id && data.email_template_id !== '') {
+            if (data.email_template_id) {
                 const processedData = await App.saveEventWithTemplate(data);
                 Object.assign(data, processedData);
             }
