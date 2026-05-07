@@ -109,7 +109,7 @@ app.use(helmet({
             frameSrc: ["'none'"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
-            upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
+            upgradeInsecureRequests: null
         }
     },
     // HSTS - Deshabilitado (lo maneja nginx si aplica)
