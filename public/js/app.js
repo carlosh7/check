@@ -14917,13 +14917,35 @@ if (document.readyState === 'loading') {
 
 // ── Observer de modales: asegura body.modal-open ante cualquier cambio directo ──
 (function() {
-    const modalObserver = new MutationObserver(() => {
+    function updateModalOpen() {
         const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
         document.body.classList.toggle('modal-open', !!visibleModal);
-    });
+    }
+
+    const modalObserver = new MutationObserver(updateModalOpen);
+
+    // Observar modales estáticos existentes
     document.querySelectorAll('[id^="modal-"]').forEach(m => {
         modalObserver.observe(m, { attributes: true, attributeFilter: ['class'] });
     });
+
+    // Observar el contenedor portal para modales dinámicos
+    const portal = document.getElementById('modal-container-portal');
+    if (portal) {
+        modalObserver.observe(portal, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Observar el body para detectar nuevos modales agregados al DOM
+    const bodyObserver = new MutationObserver(() => {
+        document.querySelectorAll('[id^="modal-"]').forEach(m => {
+            if (!modalObserver.takeRecords) { // avoid infinite loop
+                try { modalObserver.observe(m, { attributes: true, attributeFilter: ['class'] }); } catch(e) {}
+            }
+        });
+        // También actualizar estado por si un modal se agregó ya visible
+        updateModalOpen();
+    });
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
 })();
 
 // Retrocompatibilidad

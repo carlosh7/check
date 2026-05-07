@@ -2013,6 +2013,9 @@ body.modal-open {
     overflow: hidden;
     pointer-events: none;
 }
+body.modal-open [id^="modal-"]:not(.hidden) {
+    pointer-events: auto;
+}
 body.modal-open .card,
 body.modal-open .premium-modal-header,
 body.modal-open .modal-content {
