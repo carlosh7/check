@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.557</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.559</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -250,6 +250,46 @@
                         </thead>
                         <tbody id="attendance-tbody" class="table-tbody"></tbody>
                     </table>
+                </div>
+
+                <!-- SECCIÓN: ANALYTICS -->
+                <div id="admin-analytics" class="hidden space-y-4 mt-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-white">Analytics del Evento</h2>
+                        <select id="analytics-period" onchange="App.loadAnalytics()" class="input-field py-1.5 px-3 text-sm">
+                            <option value="7">7 d&iacute;as</option>
+                            <option value="30" selected>30 d&iacute;as</option>
+                            <option value="90">90 d&iacute;as</option>
+                            <option value="365">1 a&ntilde;o</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="card p-4 text-center">
+                            <p class="text-2xl font-bold text-white" id="analytics-total-events">-</p>
+                            <p class="text-xs text-[var(--text-secondary)]">Eventos totales</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <p class="text-2xl font-bold text-white" id="analytics-new-events">-</p>
+                            <p class="text-xs text-[var(--text-secondary)]">Eventos nuevos</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <p class="text-2xl font-bold text-white" id="analytics-total-guests">-</p>
+                            <p class="text-xs text-[var(--text-secondary)]">Invitados totales</p>
+                        </div>
+                        <div class="card p-4 text-center">
+                            <p class="text-2xl font-bold text-white" id="analytics-conversion">-</p>
+                            <p class="text-xs text-[var(--text-secondary)]">Tasa conversi&oacute;n</p>
+                        </div>
+                    </div>
+                    <div class="card p-4">
+                        <canvas id="analytics-chart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sub-navegación admin -->
+                <div class="flex gap-2 mt-4 border-t border-[var(--border)] pt-4">
+                    <button id="admin-tab-attendance" class="btn-secondary btn-standard text-sm" onclick="App.switchAdminTab('attendance')">Asistentes</button>
+                    <button id="admin-tab-analytics" class="btn-secondary btn-standard text-sm" onclick="App.switchAdminTab('analytics')">Analytics</button>
                 </div>
             </section>
 

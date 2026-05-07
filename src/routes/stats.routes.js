@@ -13,80 +13,35 @@ const router = express.Router();
  * Retorna métricas completas para el dashboard de analítica
  */
 router.get('/stats/:eventId', authMiddleware(), (req, res) => {
-    try {
-        const eId = castId('events', req.params.eventId);
-        
-        // --- MÉTRICAS GENERALES ---
-        const gen = db.prepare(`
-            SELECT 
-                COUNT(*) as total, 
-                SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END) as checkedIn, 
-                COUNT(DISTINCT organization) as orgs, 
-                SUM(CASE WHEN is_new_registration = 1 THEN 1 ELSE 0 END) as onsite 
-            FROM guests WHERE event_id = ?
-        `).get(eId);
-        
-        // --- ALERTAS DE SALUD ---
-        const health = db.prepare(`
-            SELECT COUNT(*) as count 
-            FROM guests 
-            WHERE event_id = ? 
-              AND (dietary_notes IS NOT NULL AND dietary_notes != '' AND LOWER(dietary_notes) != 'ninguna' AND LOWER(dietary_notes) != 'sin restricciones')
-        `).get(eId);
-        
-        // --- FLUJO POR HORA (Últimas 24h de actividad) ---
-        const flowData = db.prepare(`
-            SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count 
-            FROM guests 
-            WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL
-            GROUP BY hour ORDER BY hour
-        `).all(eId);
-        
-        // --- DISTRIBUCIÓN POR EMPRESA (Top 5 + Otros) ---
-        const orgsRaw = db.prepare(`
-            SELECT organization, COUNT(*) as count 
-            FROM guests 
-            WHERE event_id = ? AND organization IS NOT NULL AND organization != ''
-            GROUP BY organization ORDER BY count DESC
-        `).all(eId);
-        
-        let orgDistribution = orgsRaw.slice(0, 5);
-        if (orgsRaw.length > 5) {
-            const othersCount = orgsRaw.slice(5).reduce((acc, curr) => acc + curr.count, 0);
-            orgDistribution.push({ organization: 'Otros', count: othersCount });
-        }
-        
-        // --- DISTRIBUCIÓN POR GÉNERO ---
-        const genderDistribution = db.prepare(`
-            SELECT gender, COUNT(*) as count 
-            FROM guests WHERE event_id = ? AND gender IS NOT NULL
-            GROUP BY gender
-        `).all(eId);
+    // ... existing code ...
+});
 
-        // --- DISTRIBUCIÓN DIETÉTICA ---
-        const dietaryDistribution = db.prepare(`
-            SELECT 
-                CASE 
-                    WHEN dietary_notes LIKE '%vegano%' OR dietary_notes LIKE '%vegetariano%' THEN 'Vegano/Vegetariano'
-                    WHEN dietary_notes IS NOT NULL AND dietary_notes != '' THEN 'Otras dietas'
-                    ELSE 'Sin restricciones'
-                END as diet_type,
-                COUNT(*) as count
-            FROM guests 
-            WHERE event_id = ?
-            GROUP BY diet_type
-        `).all(eId);
-        
-        res.json({ 
-            healthAlerts: health.count || 0, 
-            flowData,
-            orgDistribution,
-            genderDistribution,
-            dietaryDistribution
+/**
+ * GET /api/stats/analytics?period=30
+ * Retorna metricas globales del dashboard admin
+ */
+router.get('/stats/analytics', authMiddleware(), (req, res) => {
+    try {
+        const period = parseInt(req.query.period) || 30;
+        const since = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
+
+        const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
+        const recentEvents = db.prepare("SELECT COUNT(*) as c FROM events WHERE created_at >= ?").get(since).c;
+        const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+
+        // Guests created in period
+        const guestsInPeriod = db.prepare("SELECT COUNT(*) as c FROM guests WHERE created_at >= ?").get(since).c;
+
+        res.json({
+            totalEvents,
+            recentEvents,
+            totalGuests,
+            guestsInPeriod,
+            conversionRate: totalGuests > 0 ? Math.round((guestsInPeriod / totalGuests) * 100) : 0
         });
     } catch (err) {
-        console.error('[STATS] Error:', err.message);
-        res.status(500).json({ error: 'Error al obtener estadísticas' });
+        console.error('[ANALYTICS] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener analytics' });
     }
 });
 

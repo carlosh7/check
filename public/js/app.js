@@ -990,6 +990,61 @@ const App = window.App = {
         }
     },
 
+    // ── Admin tab switching ──
+    switchAdminTab: function(tab) {
+        const el = document.getElementById('admin-analytics');
+        if (!el) return;
+        if (tab === 'analytics') {
+            el.classList.remove('hidden');
+            this.loadAnalytics();
+        } else {
+            el.classList.add('hidden');
+        }
+    },
+
+    // ── Analytics ──
+    analyticsChart: null,
+
+    loadAnalytics: async function() {
+        const period = document.getElementById('analytics-period')?.value || 30;
+        try {
+            const res = await this.fetchAPI('/stats/analytics?period=' + period);
+            if (!res) return;
+            const elTotal = document.getElementById('analytics-total-events');
+            const elNew = document.getElementById('analytics-new-events');
+            const elGuests = document.getElementById('analytics-total-guests');
+            const elConversion = document.getElementById('analytics-conversion');
+            if (elTotal) elTotal.textContent = res.totalEvents || 0;
+            if (elNew) elNew.textContent = res.recentEvents || 0;
+            if (elGuests) elGuests.textContent = res.totalGuests || 0;
+            if (elConversion) elConversion.textContent = (res.conversionRate || 0) + '%';
+
+            const canvas = document.getElementById('analytics-chart');
+            if (!canvas || typeof Chart === 'undefined') return;
+            if (this.analyticsChart) this.analyticsChart.destroy();
+            this.analyticsChart = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: ['Eventos totales', 'Eventos nuevos', 'Invitados'],
+                    datasets: [{
+                        label: 'Periodo (' + period + ' d&iacute;as)',
+                        data: [res.totalEvents || 0, res.recentEvents || 0, res.totalGuests || 0],
+                        backgroundColor: ['rgba(11,165,236,0.6)', 'rgba(16,185,129,0.6)', 'rgba(124,58,237,0.6)'],
+                        borderColor: ['#0ba5ec', '#10b981', '#7c3aed'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } }
+                }
+            });
+        } catch(e) {
+            console.error('[ANALYTICS] Error:', e);
+        }
+    },
+
     updateSidebarVisibility() {
         const hasSelectedEvent = !!this.state.event?.id;
         const isAdmin = this.state.user?.role === 'ADMIN';
