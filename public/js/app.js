@@ -16093,7 +16093,7 @@ App.executeAttendanceImport = async function() {
 
     try {
         // Obtener eventId
-        let eventId = this.state.currentEventId;
+        let eventId = window.App?.state?.event?.id || this.state?.currentEventId;
         if (!eventId) {
             const urlParts = window.location.pathname.split('/');
             eventId = urlParts[urlParts.length - 1];
