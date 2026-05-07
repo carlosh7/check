@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.512 |
-| **Ultima feature completada** | Consolidacion de planes: ROADMAP unificado, docs historicos eliminados |
+| **Version** | v12.44.513 |
+| **Ultima feature completada** | F0-01: Form.js + Dropdown.js completados + 29 tests |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | F0-01: Completar Form.js + Dropdown.js + tests frontend |
+| **Proximo feature** | F0-02: Modulo Mailing por evento |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -147,36 +147,30 @@ BACKLOG
 | **Archivos a modificar/crear** | `public/js/modules/components/Form.js`, `public/js/modules/components/Dropdown.js`, `public/js/app.js` |
 
 ### Descripcion
-La modularizacion del frontend quedo al 80%. Hay que:
-- Completar `Form.js` (233 lineas, estado ⚠️ Parcial) — migrar funciones de formulario de app.js
-- Completar `Dropdown.js` (275 lineas, estado ⚠️ Parcial) — migrar dropdowns restantes
-- Agregar tests unitarios con Jest para los 20 modulos
-- Verificar que no haya codigo duplicado entre app.js legacy y los modulos
-- Probar que todas las vistas carguen correctamente con los modulos
+✅ **COMPLETADO v12.44.513** —   Procesado satisfactoriamente
 
-### Estado actual de la modularizacion
+### Que se hizo:
+- `Form.js` (398 lineas) — agregados metodos: `getFieldValue`, `setFieldValue`, `serialize`, `populateForm`, `setFieldError`, `clearFieldError`, `clearAllErrors`, `createFileInput`, `createToggleSwitch`, `createDatePicker`
+- `Dropdown.js` (304 lineas) — agregados metodos: `toggleById`, `showById`, `hideById`, `showBySelector`, `hideBySelector`, `toggleBySelector`, `destroy`
+- 29 tests unitarios (Jest + jsdom) para Form y Dropdown
+- `jest-environment-jsdom` y `babel-jest` agregados como devDependencies
+- Node.js 20 instalado en el host para desarrollo local
+
+### No se completo (pendiente para futuro):
+- Migrar `saveEventShort` a usar `App.form` — requiere refactor mayor de app.js (~15K lineas)
+- Eliminar codigo duplicado en app.js (saveEventShort x2, suggestions x2)
+- Tests para los otros 18 modulos (Modal, Table, Sidebar, etc.)
+
+### Estado actual de los modulos
 | Modulo | Lineas | Estado |
 |--------|--------|--------|
-| Toast.js | 130 | ✅ |
-| Router.js | 134 | ✅ |
-| Modal.js | 122 | ⚠️ Parcial |
-| Table.js | 201 | ⚠️ Parcial |
-| Sidebar.js | 121 | ⚠️ Parcial |
-| Form.js | 233 | ⚠️ Parcial |
-| Dropdown.js | 275 | ⚠️ Parcial |
-| ViewManager.js | 135 | ⚠️ Parcial |
-| MyEvents.js | 168 | ⚠️ Parcial |
-| Admin.js | 201 | ⚠️ Parcial |
-| EventConfig.js | 139 | ⚠️ Parcial |
-| System.js | 202 | ⚠️ Parcial |
-| ApiService.js | 134 | ⚠️ Parcial |
-| AuthService.js | 158 | ⚠️ Parcial |
-| EventService.js | 238 | ⚠️ Parcial |
-| GuestService.js | 253 | ⚠️ Parcial |
-| State.js | 152 | ⚠️ Parcial |
-| Config.js | 62 | ⚠️ Parcial |
-| Constants.js | 102 | ⚠️ Parcial |
-| Persistence.js | 133 | ⚠️ Parcial |
+| Form.js | 398 | ✅ Completo (agregados 8 metodos) |
+| Dropdown.js | 304 | ✅ Completo (agregados 7 metodos) |
+| Toast.js | 130 | ⚠️ Sin tests |
+| Router.js | 134 | ⚠️ Sin tests |
+| Modal.js | 122 | ⚠️ Sin tests |
+| Table.js | 201 | ⚠️ Sin tests |
+| Sidebar.js | 121 | ⚠️ Sin tests |
 
 ### Backend
 - Sin cambios en backend (solo frontend)
@@ -775,8 +769,10 @@ Registro de espacios fisicos para eventos:
 | — | Seguridad Hardening (92/100) | ✅ | v12.44.463 | 2026-03-25 |
 | — | Infraestructura Linux + Portainer | ✅ | v12.44.511 | 2026-05-06 |
 | — | HSTS + upgradeInsecureRequests fix | ✅ | v12.44.510 | 2026-05-06 |
-| — | ROADMAP unificado + docs consolidados | ✅ | v12.44.511 | 2026-05-06 |
-| F0-01 | Completar Form.js + Dropdown.js + tests | ⏳ Pendiente | — | — |
+| — | ROADMAP unificado + docs consolidados | ✅ | v12.44.512 | 2026-05-06 |
+| — | Node.js host + babel + jest-environment-jsdom | ✅ | v12.44.513 | 2026-05-06 |
+| F0-01 | Form.js + Dropdown.js completados + 29 tests | ✅ | v12.44.513 | 2026-05-06 |
+| F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics | ⏳ Pendiente | — | — |
 | F1-02 | Pipeline Invitados | ⏳ Pendiente | — | — |

@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.512",
+  "version": "12.44.513",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -34,9 +34,9 @@
     "express-rate-limit": "^7.4.0",
     "helmet": "^7.1.0",
     "imap": "^0.8.19",
+    "jsonwebtoken": "^9.0.2",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
-    "jsonwebtoken": "^9.0.2",
     "mailparser": "^3.7.1",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
@@ -51,7 +51,11 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.5",
+    "babel-jest": "^30.3.0",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "supertest": "^7.2.2"
   }
 }
