@@ -2009,16 +2009,7 @@
 .bg-black-60 { background-color: rgba(0, 0, 0, 0.8); }
 .bg-black-70 { background-color: rgba(0, 0, 0, 0.85); }
 
-.premium-modal-header {
-    flex-shrink: 0;
-}
-[id^="modal-"] .border-t:last-child,
-[id^="modal-"] .shrink-0 {
-    flex-shrink: 0;
-}
-.bg-black-70 { background-color: rgba(0, 0, 0, 0.85); }
-
-/* ── Modales: solo scroll lock (el backdrop fixed inset-0 ya bloquea clicks) ── */
+/* ── Modales: solo scroll lock ── */
 body.modal-open {
     overflow: hidden;
 }
