@@ -4178,6 +4178,11 @@ const App = window.App = {
             App.dropdown.showById('user-suggestions');
     },
 
+    hideUserSuggestions: function() {
+        const container = document.getElementById('user-suggestions');
+        if (container) container.classList.add('hidden');
+    },
+
     // Toggle seleccionar todos los usuarios
     toggleSelectAllUsers: function() {
         const selectAll = document.getElementById('select-all-users');
