@@ -78,6 +78,16 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
             GROUP BY diet_type
         `).all(eId);
 
+        const restrictedGuests = targetDb.prepare(`
+            SELECT name, email, phone, organization, vegano,
+                   COALESCE(NULLIF(restricciones,''), dietary_notes) as restriccion
+            FROM guests WHERE event_id = ?
+              AND (COALESCE(NULLIF(restricciones,''), dietary_notes) IS NOT NULL
+                   AND COALESCE(NULLIF(restricciones,''), dietary_notes) != ''
+                   AND LOWER(COALESCE(NULLIF(restricciones,''), dietary_notes)) NOT IN ('ninguna','sin restricciones','no','n/a'))
+            ORDER BY name ASC
+        `).all(eId);
+
         const total = gen.total || 0;
         const checkedIn = gen.checkedIn || 0;
         const pending = total - checkedIn;
@@ -88,7 +98,8 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
             orgs: gen.orgs || 0,
             onsite: gen.onsite || 0,
             healthAlerts: health.count || 0,
-            flowData, orgDistribution, genderDistribution, dietaryDistribution
+            flowData, orgDistribution, genderDistribution, dietaryDistribution,
+            restrictedGuests
         });
     } catch (err) {
         console.error('[STATS] Error:', err.message);

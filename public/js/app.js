@@ -1131,25 +1131,18 @@ const App = window.App = {
             const restrictedTbody = document.getElementById('analytics-restricted-tbody');
             const restrictedCount = document.getElementById('analytics-restricted-count');
             if (restrictedSection && restrictedTbody) {
-                const headerLabels = ['nombre', 'name', 'asistente', 'email', 'telefono', 'teléfono', 'phone', 'organizaci', 'organization', 'cargo', 'vegano', 'restricci'];
-                const attData = this.state.attendance || [];
-                const restrictedGuests = attData.filter(g => {
-                    if (!g.restricciones && !g.dietary_notes) return false;
-                    const name = (g.client_name || g.name || '').toLowerCase().trim();
-                    if (!name || headerLabels.some(h => name.startsWith(h))) return false;
-                    return true;
-                });
+                const restrictedGuests = res.restrictedGuests || [];
                 if (restrictedGuests.length > 0) {
                     restrictedSection.classList.remove('hidden');
                     if (restrictedCount) restrictedCount.textContent = restrictedGuests.length + ' invitados';
                     restrictedTbody.innerHTML = restrictedGuests.map(g =>
                         '<tr class="hover:bg-[var(--bg-hover)] transition-colors">' +
-                        '<td class="table-td">' + (g.client_name || g.name || '-') + '</td>' +
+                        '<td class="table-td">' + (g.name || '-') + '</td>' +
                         '<td class="table-td">' + (g.organization || '-') + '</td>' +
-                        '<td class="table-td">' + (g.client_phone || g.phone || '-') + '</td>' +
-                        '<td class="table-td">' + (g.client_email || g.email || '-') + '</td>' +
+                        '<td class="table-td">' + (g.phone || '-') + '</td>' +
+                        '<td class="table-td">' + (g.email || '-') + '</td>' +
                         '<td class="table-td"><span class="' + (g.vegano === 'SI' ? 'text-green-400' : 'text-slate-500') + '">' + (g.vegano || 'NO') + '</span></td>' +
-                        '<td class="table-td text-amber-400">' + (g.restricciones || g.dietary_notes || '-') + '</td>' +
+                        '<td class="table-td text-amber-400">' + (g.restriccion || '-') + '</td>' +
                         '</tr>'
                     ).join('');
                 } else {
