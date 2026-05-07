@@ -64,6 +64,7 @@ Cuando el usuario diga estas frases, responde asi:
 | "dame contexto" | Lee ROADMAP.md + AGENTS.md + ARQUITECTURA_SISTEMA.md → da resumen completo del proyecto |
 | "que sigue" o "siguiente feature" | Lee ROADMAP.md → muestra el proximo feature a implementar segun el orden de fases |
 | "evalua seguridad IA" | Lee docs/SECURITY_IA.md → muestra postura actual de seguridad IA, brechas y recomendaciones |
+| "prioridades" | Lee ROADMAP.md → muestra la Matriz de Prioridad Real y el Orden de Ejecucion Sugerido para saber que feature implementar primero |
 
 Flujo diario recomendado:
 1. "retoma el trabajo" → yo presento plan

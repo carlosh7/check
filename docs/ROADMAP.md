@@ -105,37 +105,127 @@ BACKLOG
   BL-27 Carga masiva inteligente (dup detect, field mapping)
   BL-28 Portal asistente PWA (boleto, agenda, networking)
 ```
-FASE 1: Foundation
-  F1-01 Dashboard Analytics ← sin dependencias
-  F1-02 Pipeline Invitados ← sin dependencias
-  F1-03 Clone Events ← sin dependencias
 
-FASE 2: Core+
-  F2-04 PDF Export ← depende de: pipeline (usa datos de invitados)
-  F2-05 Guest Categories ← depende de: pipeline (usa sistema de estados)
-  F2-06 Activity Logs ← sin dependencias (ya existe audit.js, hay que expandir)
+---
 
-FASE 3: Monetizacion
-  F3-07 Stripe/PayPal ← depende de: categories (boletos por tipo)
-  F3-08 Waitlist ← depende de: categories (cupos por categoria)
-  F3-09 Export Google Sheets ← sin dependencias
+## 🎯 Matriz de Prioridad Real
 
-FASE 4: Colaboracion
-  F4-10 Rol Organizer ← sin dependencias
-  F4-11 Sesiones + Seat maps ← depende de: venues
-  F4-12 Venues / espacios ← sin dependencias
+Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias para determinar el orden de ejecucion optimo. Los Tiers indican la prioridad: **Tier 1 primero, Tier 5 al final**. FASE S corre en paralelo.
 
-BACKLOG
-  BL-13 SMS integration
-  BL-14 Reconocimiento facial / OTP
-  BL-15 Password recovery
-  BL-16 Site branding por cliente
-  BL-17 Landing invitacion digital
-  BL-18 Presupuesto por evento
-  BL-19 Speaker management
-  BL-20 Propuestas publicas
-  BL-21 Mapa interactivo (LeafletJS)
-```
+| Feature | Impacto | Esfuerzo | Dependencias | Tier |
+|---------|---------|----------|-------------|------|
+| **F0-02** Modulo Mailing | Alto | XL | Ninguna | **Tier 1** |
+| **F1-01** Dashboard Analytics | Alto | M | Ninguna | **Tier 1** |
+| **F1-03** Clone Events | Alto | S | Ninguna | **Tier 1** |
+| **F2-06** Activity Logs | Alto | S | Ninguna | **Tier 1** |
+| **F4-12** Venues / Espacios | Medio | S | Ninguna | **Tier 1** |
+| **FS-01** Shadow AI Detection | Alto | M | Ninguna | **Tier S (paralelo)** |
+| **FS-02** AI Compliance & Data Governance | Medio | M | Ninguna | **Tier S (paralelo)** |
+| **F1-02** Pipeline Estados Invitado | Alto | M | Ninguna | **Tier 2** |
+| **F2-04** PDF Export | Alto | M | Pipeline (F1-02) | **Tier 2** |
+| **F2-05** Guest Categories | Medio | M | Pipeline (F1-02) | **Tier 2** |
+| **FS-03** AI Detection & Response | Alto | XL | FS-01 | **Tier S (paralelo)** |
+| **F3-07** Stripe / PayPal | Medio | XL | Categories (F2-05) | **Tier 3** |
+| **F3-08** Waitlist | Medio | M | Categories (F2-05) | **Tier 3** |
+| **F3-09** Export Google Sheets | Medio | M | Ninguna | **Tier 3** |
+| **F4-10** Rol Organizer | Medio | M | Ninguna | **Tier 3** |
+| **FS-04** AI Red Teaming | Medio | M | FS-01, FS-03 | **Tier S (paralelo)** |
+| **F4-11** Sesiones + Seat Maps | Medio | XL | Venues (F4-12) | **Tier 4** |
+| BL-15 Password Recovery | Alto | S | Ninguna | **Backlog Priorizado** |
+| BL-22 Tests Automatizados | Alto | L | Ninguna | **Backlog Priorizado** |
+| BL-25 Webhooks | Alto | M | Ninguna | **Backlog Priorizado** |
+| BL-26 API Publica Swagger | Alto | M | Ninguna | **Backlog Priorizado** |
+| BL-27 Carga Masiva Inteligente | Alto | M | Ninguna | **Backlog Priorizado** |
+| BL-28 Portal Asistente PWA | Alto | XL | Ninguna | **Backlog Priorizado** |
+| BL-17 Landing Invitacion Digital | Medio | M | Ninguna | **Backlog Priorizado** |
+| BL-23 Migraciones de BD | Medio | M | Ninguna | **Backlog Priorizado** |
+| BL-13 SMS Integration | Medio | M | Ninguna | **Backlog** |
+| BL-16 Site Branding | Medio | M | Ninguna | **Backlog** |
+| BL-18 Presupuesto por Evento | Medio | M | Ninguna | **Backlog** |
+| BL-19 Speaker Management | Medio | M | Ninguna | **Backlog** |
+| BL-20 Propuestas Publicas | Bajo | S | Ninguna | **Backlog** |
+| BL-21 Mapa Interactivo | Bajo | S | Ninguna | **Backlog** |
+| BL-24 Musica de fondo | Bajo | S | Ninguna | **Backlog** |
+| BL-14 Reconocimiento facial / OTP | Bajo | XL | Ninguna | **Backlog** |
+
+**Criterios de priorizacion:**
+- **Tier 1:** Alta prioridad, sin dependencias, ejecutar primero.
+- **Tier 2:** Alta/media prioridad, requieren Pipeline de estados (F1-02).
+- **Tier 3:** Media prioridad, requieren Categories o sin dependencias pero menor urgencia.
+- **Tier 4:** Media prioridad, requieren Venues (F4-12).
+- **Tier S (paralelo):** Seguridad IA — corre en paralelo, no bloquea ni es bloqueado por otras fases.
+- **Backlog Priorizado:** Items del backlog con mayor impacto, ordenados por prioridad.
+- **Backlog:** Items de menor impacto, ejecutar cuando los Tiers superiores esten completos.
+
+---
+
+## 🚀 Orden de Ejecucion Sugerido
+
+### Tier 1 — Ahora mismo (sin dependencias, alto impacto)
+| Orden | Feature | Descripcion | Por que primero |
+|-------|---------|-------------|----------------|
+| 1 | **F0-02** Modulo Mailing | Sistema completo de email marketing por evento: cuentas SMTP, mailbox, compositor con 12 plantillas, campanas masivas, robot automatico | Es el proximo feature planificado, complejidad XL pero sin dependencias. Desbloquea comunicacion con invitados |
+| 2 | **F1-03** Clone Events | Duplicar eventos como plantilla con opciones de que copiar | Esfuerzo S, alta demanda, permite reutilizar configuraciones |
+| 3 | **F2-06** Activity Logs | Expandir auditoria existente con timeline visible en panel | Esfuerzo S, ya existe `audit.js`, solo hay que expandir y crear UI |
+| 4 | **F1-01** Dashboard Analytics | Panel de KPIs y graficos en dashboard admin con Chart.js | Visibilidad inmediata de metricas del negocio |
+| 5 | **F4-12** Venues / Espacios | Registro de espacios fisicos con capacidad y recursos | Desbloquea F4-11 (Sesiones) |
+
+### Tier S (paralelo) — Seguridad IA, corre simultaneo con otros Tiers
+| Orden | Feature | Descripcion |
+|-------|---------|-------------|
+| S1 | **FS-01** Shadow AI Detection | Inventario de sistemas IA, deteccion de Shadow AI, politicas de uso |
+| S2 | **FS-02** AI Compliance & Data Governance | Clasificacion de datos, derecho al olvido, portabilidad, auditoria de lecturas |
+| S3 | **FS-03** AI Detection & Response | Monitoreo de prompts, deteccion de inyeccion, alertas, DLP |
+| S4 | **FS-04** AI Red Teaming | Tests adversariales, dependency scanning, hardening |
+
+### Tier 2 — Despues de Tier 1 (requieren Pipeline)
+| Orden | Feature | Dependencia | Descripcion |
+|-------|---------|-------------|-------------|
+| 1 | **F1-02** Pipeline Estados | Ninguna directa (sienta base para F2-04, F2-05) | Sistema de estados lead → contacted → confirmed → attended con log |
+| 2 | **F2-04** PDF Export | Pipeline (F1-02) | Gafetes con QR, reportes, certificados |
+| 3 | **F2-05** Guest Categories | Pipeline (F1-02) | Categorias VIP, Regular, Staff con capacidad y campos personalizados |
+
+### Tier 3 — Pronto (categorias o independientes)
+| Orden | Feature | Dependencia | Descripcion |
+|-------|---------|-------------|-------------|
+| 1 | **F3-09** Export Google Sheets | Ninguna | Sincronizar invitados con Google Sheets via OAuth |
+| 2 | **F4-10** Rol Organizer | Ninguna | Rol intermedio con permisos limitados a eventos asignados |
+| 3 | **F3-07** Stripe / PayPal | Categories (F2-05) | Venta de boletos con planes y precios |
+| 4 | **F3-08** Waitlist | Categories (F2-05) | Lista de espera con auto-promocion al cancelar |
+
+### Tier 4 — Despues de Venues
+| Orden | Feature | Dependencia | Descripcion |
+|-------|---------|-------------|-------------|
+| 1 | **F4-11** Sesiones + Seat Maps | Venues (F4-12) | Multiples sesiones por evento con mapa de asientos |
+
+### Backlog Priorizado — Pendientes de planificar
+| Orden | Feature | Complejidad | Descripcion |
+|-------|---------|-------------|-------------|
+| 1 | **BL-15** Password Recovery | S | Recuperacion de contrasena por email |
+| 2 | **BL-25** Webhooks | M | Integraciones externas via webhooks |
+| 3 | **BL-27** Carga Masiva Inteligente | M | Importacion con deteccion de duplicados |
+| 4 | **BL-26** API Publica Swagger | M | Documentacion de API con Swagger |
+| 5 | **BL-22** Tests Automatizados | L | Suite de tests con Jest |
+| 6 | **BL-17** Landing Invitacion Digital | M | Landing page para invitacion |
+| 7 | **BL-23** Migraciones de BD | M | Sistema de migraciones estructuradas |
+| 8 | **BL-28** Portal Asistente PWA | XL | App progresiva para asistentes |
+
+---
+
+## 🔄 Flujo de Trabajo por Prioridad
+
+Este flujo complementa el flujo de trabajo general. El agente debe usarlo para determinar **que feature implementar** cuando no hay una instruccion especifica:
+
+1. **Leer** la Matriz de Prioridad Real (seccion anterior)
+2. **Identificar** el Tier activo mas alto con features pendientes
+3. **Seleccionar** el primer feature pendiente dentro de ese Tier
+4. **Leer** el plan detallado de ese feature
+5. **Presentar** plan al usuario y esperar confirmacion
+6. **Implementar** el feature
+7. **Actualizar** el Tablero de Progreso y la Matriz de Prioridad Real
+8. **Repetir** con el siguiente feature del mismo Tier
+
+**Regla de prioridad:** Si hay features en Tier 1 pendientes, NO saltar a Tier 2. Si hay features en Tier S (paralelo), se pueden intercalar con cualquier Tier sin afectar el orden.
 
 ---
 
@@ -851,7 +941,6 @@ Registro de espacios fisicos para eventos:
 | — | Limpieza: saveEventShort a App.form + duplicados | ✅ | v12.44.514 | 2026-05-06 |
 | — | 10 sugerencias migradas a App.dropdown | ✅ | v12.44.514 | 2026-05-06 |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
-| F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | FS-01 | Shadow AI Detection & Governance | ⏳ Pendiente | — | — |
 | FS-02 | AI Compliance & Data Governance | ⏳ Pendiente | — | — |
 | FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
@@ -875,15 +964,16 @@ Registro de espacios fisicos para eventos:
 ## 🔄 Flujo de Trabajo para el Agente
 
 1. **Leer ROADMAP.md** para saber estado actual
-2. **Buscar** el proximo feature pendiente (primer `⏳ Pendiente` en orden de fases)
-3. **Leer** el plan de ese feature en este documento
-4. **Explicar** plan al usuario y esperar confirmacion
-5. **Implementar** el feature
-6. **Version bump** (package.json + app-shell.html + index.html)
-7. **Documentar** en ROADMAP.md: cambiar estado a ✅ y agregar version/fecha
-8. **Commit + push + tag**
-9. **Informar** al usuario: "Feature X lista vX.Y.Z, Redeploy en Portainer y prueba"
-10. **Repetir** con el siguiente feature
+2. **Consultar** la `## 🎯 Matriz de Prioridad Real` para identificar el siguiente feature a implementar (primer feature pendiente del Tier activo mas alto)
+3. **Revisar** el `## 🚀 Orden de Ejecucion Sugerido` para entender el contexto y dependencias
+4. **Leer** el plan detallado del feature seleccionado en `## 📋 Plan por Feature`
+5. **Explicar** plan al usuario y esperar confirmacion
+6. **Implementar** el feature
+7. **Version bump** (package.json + app-shell.html + index.html)
+8. **Documentar** en ROADMAP.md: cambiar estado a ✅ y agregar version/fecha. Actualizar Matriz de Prioridad Real si cambio el estado del feature
+9. **Commit + push + tag**
+10. **Informar** al usuario: "Feature X lista vX.Y.Z, Redeploy en Portainer y prueba"
+11. **Repetir** con el siguiente feature del mismo Tier, o avanzar al siguiente Tier cuando el actual este completo
 
 ---
 

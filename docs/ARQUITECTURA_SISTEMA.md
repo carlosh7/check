@@ -63,7 +63,7 @@ data/
 
 ```
 C:\Users\carlo\OneDrive\Documentos\APP\Registro\
-├── package.json                    ← Versión actual: 12.31.86
+├── package.json                    ← Versión actual: 12.31.86 (doc historico — version real del proyecto: 12.44.520)
 ├── server.js                       ← Servidor principal
 ├── database.js                     ← Configuración de BD + funciones
 │
@@ -109,11 +109,11 @@ C:\Users\carlo\OneDrive\Documentos\APP\Registro\
 │   ├── html/
 │   │   ├── app-shell.html          ← Interfaz principal
 │   │   └── pages/
-│   │       ├── login.html          ← Versión: 12.31.86
-│   │       ├── registro.html       ← Versión: 12.31.86
-│   │       ├── survey.html         ← Versión: 12.31.86
-│   │       ├── ticket.html         ← Versión: 12.31.86
-│   │       └── wheel.html          ← Versión: 12.31.86
+│   │       ├── login.html          ← Versión: 12.31.86 (doc historico — version real actual: 12.44.520)
+│   │       ├── registro.html       ← Versión: 12.31.86 (doc historico — version real actual: 12.44.520)
+│   │       ├── survey.html         ← Versión: 12.31.86 (doc historico — version real actual: 12.44.520)
+│   │       ├── ticket.html         ← Versión: 12.31.86 (doc historico — version real actual: 12.44.520)
+│   │       └── wheel.html          ← Versión: 12.31.86 (doc historico — version real actual: 12.44.520)
 │   │
 │   └── css/
 │       ├── styles.css
