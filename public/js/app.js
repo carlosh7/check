@@ -1112,12 +1112,38 @@ const App = window.App = {
             const healthEl = document.getElementById('analytics-health');
             if (healthEl) {
                 const alerts = res.healthAlerts || 0;
-                healthEl.innerHTML = '<div class="flex items-center gap-2"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
+                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="App.showRestrictedGuests()"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
                     (alerts > 0 ? '<span class="material-symbols-outlined text-sm">warning</span>' : '<span class="material-symbols-outlined text-sm">check_circle</span>') +
                     '</span><span class="font-bold text-white text-sm">' + alerts + '</span><span class="text-[var(--text-secondary)] text-xs">' + (alerts === 1 ? 'alerta' : 'alertas') + '</span></div>';
             }
         } catch(e) {
             console.error('[ANALYTICS] Error:', e);
+        }
+    },
+
+    showRestrictedGuests: async function() {
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
+        try {
+            const guests = this.state.attendance || [];
+            const restricted = guests.filter(g => g.restricciones || g.dietary_notes);
+            if (restricted.length === 0) {
+                Swal.fire({ title: 'Sin alertas', text: 'No hay invitados con restricciones', icon: 'success', background: '#0f172a', color: '#fff' });
+                return;
+            }
+            const list = restricted.map(g =>
+                '<div class="flex justify-between items-center py-2 border-b border-white/5"><div><span class="text-sm font-bold text-white">' + (g.client_name || 'Sin nombre') + '</span><p class="text-xs text-[var(--text-secondary)]">' + (g.client_email || '') + '</p></div><span class="text-xs text-amber-400">' + (g.restricciones || g.dietary_notes || '') + '</span></div>'
+            ).join('');
+            Swal.fire({
+                title: 'Invitados con restricciones (' + restricted.length + ')',
+                html: '<div class="max-h-[400px] overflow-y-auto">' + list + '</div>',
+                width: '500px',
+                background: '#0f172a',
+                color: '#fff',
+                confirmButtonText: 'Cerrar'
+            });
+        } catch(e) {
+            console.error('[HEALTH] Error:', e);
         }
     },
 
