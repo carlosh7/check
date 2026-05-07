@@ -13853,6 +13853,66 @@ navigate(viewName, params = {}, push = true) {
         this.loadMailboxFolders();
     },
 
+    loadEmailTemplates: async function() {
+        const container = document.getElementById('email-templates-grid');
+        if (!container) return;
+        try {
+            const templates = await this.fetchAPI('/email/templates');
+            if (!templates || templates.length === 0) {
+                container.innerHTML = '<div class="col-span-3 text-center py-12 text-slate-500"><span class="material-symbols-outlined text-5xl mb-3 text-slate-600">description</span><p class="text-sm">No hay plantillas</p><p class="text-xs mt-1">Crea plantillas para tus comunicaciones</p></div>';
+                return;
+            }
+            container.innerHTML = templates.map(t => '<div class="card p-4 hover:border-violet-500/30 transition-all cursor-pointer" onclick="App.viewEmailTemplate(\'' + t.id + '\')"><div class="flex items-center justify-between mb-2"><h4 class="font-bold text-white text-sm">' + t.name + '</h4><span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">' + (t.category || 'general') + '</span></div><p class="text-xs text-slate-500 truncate">' + (t.subject || 'Sin asunto') + '</p>' + (t.is_system ? '<span class="text-[10px] text-violet-400 mt-2 block">Sistema</span>' : '') + '</div>').join('');
+            this.updateEmailTemplateSelects(templates);
+        } catch (e) {
+            console.error('[EMAIL] Error loading templates:', e);
+        }
+    },
+
+    updateEmailTemplateSelects: function(templates) {
+        const sel = document.getElementById('mailing-template-select');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Sin plantilla --</option>' + templates.map(t => '<option value="' + t.id + '">' + t.name + '</option>').join('');
+    },
+
+    viewEmailTemplate: async function(templateId) {
+        try {
+            const t = await this.fetchAPI('/email/templates/' + templateId);
+            Swal.fire({ title: t.name, html: '<div class="text-left"><p class="text-xs text-slate-500 mb-2">Asunto: ' + (t.subject || 'N/A') + '</p><div class="bg-white rounded-lg p-4 max-h-[400px] overflow-y-auto">' + (t.body_html || '<pre class="text-sm">' + (t.body_text || 'Sin contenido') + '</pre>') + '</div></div>', width: '800px', background: 'var(--bg-card)', color: 'var(--text-primary)', confirmButtonText: 'Cerrar' });
+        } catch (e) {
+            console.error('[EMAIL] Error viewing template:', e);
+        }
+    },
+
+    loadEmailCampaigns: async function() {
+        const container = document.getElementById('email-campaigns-list');
+        if (!container) return;
+        try {
+            const campaigns = await this.fetchAPI('/email/campaigns');
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-slate-500"><span class="material-symbols-outlined text-5xl mb-3 text-slate-600">campaign</span><p class="text-sm">No hay campa&ntilde;as</p></div>';
+                return;
+            }
+            const statusColors = { DRAFT: 'bg-slate-500/20 text-slate-400', SCHEDULED: 'bg-yellow-500/20 text-yellow-400', SENDING: 'bg-blue-500/20 text-blue-400', SENT: 'bg-green-500/20 text-green-400', PAUSED: 'bg-orange-500/20 text-orange-400', CANCELLED: 'bg-red-500/20 text-red-400' };
+            container.innerHTML = campaigns.map(c => '<div class="card p-4 flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center"><span class="material-symbols-outlined text-xl text-violet-400">campaign</span></div><div><h4 class="font-bold text-white">' + c.name + '</h4><p class="text-xs text-slate-500">' + (c.subject || 'Sin asunto') + '</p></div></div><div class="flex items-center gap-3"><span class="text-xs px-2 py-1 rounded-full ' + (statusColors[c.status] || 'bg-slate-500/20 text-slate-400') + '">' + c.status + '</span><span class="text-xs text-slate-500">' + (c.sent_count || 0) + '/' + (c.total_recipients || 0) + '</span>' + (c.status === 'DRAFT' ? '<button onclick="App.sendCampaign(\'' + c.id + '\')" class="btn-primary !px-3 !py-1 text-xs">Enviar</button>' : '') + '</div></div>').join('');
+        } catch (e) {
+            console.error('[EMAIL] Error loading campaigns:', e);
+        }
+    },
+
+    sendCampaign: async function(campaignId) {
+        const result = await Swal.fire({ title: 'Iniciar env&iacute;o?', text: 'La campa&ntilde;a se enviar&aacute; a todos los destinatarios', icon: 'question', showCancelButton: true, confirmButtonText: 'S&iacute;, enviar', cancelButtonText: 'Cancelar' });
+        if (result.isConfirmed) {
+            try {
+                await this.fetchAPI('/email/campaigns/' + campaignId + '/send', { method: 'POST' });
+                Swal.fire('&Eacute;xito', 'Env&iacute;o iniciado', 'success');
+                this.loadEmailCampaigns();
+            } catch (e) {
+                Swal.fire('Error', e.message || 'No se pudo iniciar el env&iacute;o', 'error');
+            }
+        }
+    },
+
     viewMailMessage: async function(uid, folder) {
         const accountId = document.getElementById('mailbox-account-select')?.value;
         if (!accountId) return;
