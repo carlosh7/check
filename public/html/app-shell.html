@@ -225,6 +225,15 @@
                         </div>
                     </div>
 
+                    <div class="search-box-container">
+                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
+                               oninput="App.filterAttendance(); App.loadAnalytics(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
+                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions(); App.loadAnalytics();">close</span>
+                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
+                    </div>
+
                 <!-- SECCIÓN: ANALYTICS -->
                 <div id="admin-analytics" class="hidden space-y-2 my-2">
                     <div class="flex justify-between items-center">
@@ -325,16 +334,6 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                    <div class="search-box-container">
-                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                                oninput="App.filterAttendance(); App.loadAnalytics(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined search-icon">search</span>
-                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions(); App.loadAnalytics();">close</span>
-                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
                     </div>
                 </div>
 
