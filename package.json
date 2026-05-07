@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.549",
+  "version": "12.44.550",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {

@@ -16088,6 +16088,58 @@ App.downloadAttendanceTemplate = function() {
     }
 };
 
+// ── FASE 2: Funciones del Sistema faltantes ──
+
+App.exportClients = function() {
+    if (ImportExportModule && ImportExportModule.openExportModal) {
+        ImportExportModule.openExportModal('clients');
+    } else {
+        App.openExportModal('clients');
+    }
+};
+
+App.handleContactsFile = function(input) {
+    if (!input || !input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(l => l.trim());
+        const preview = document.getElementById('csv-preview');
+        const list = document.getElementById('csv-preview-list');
+        if (preview) preview.classList.remove('hidden');
+        if (list) {
+            list.innerHTML = lines.slice(0, 5).map(l => '<div>' + l.replace(/</g, '&lt;') + '</div>').join('');
+        }
+        App._csvData = lines;
+    };
+    reader.readAsText(file);
+};
+
+App.importContacts = async function() {
+    const lines = App._csvData || [];
+    if (lines.length === 0) {
+        Swal.fire({ title: 'Atenci&oacute;n', text: 'No hay datos CSV para importar', icon: 'warning', background: '#0f172a', color: '#fff' });
+        return;
+    }
+    Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo - endpoint pendiente', icon: 'info', background: '#0f172a', color: '#fff' });
+};
+
+App.saveContact = function() {
+    const id = document.getElementById('contact-editor-id')?.value;
+    const name = document.getElementById('contact-editor-name')?.value;
+    const email = document.getElementById('contact-editor-email')?.value;
+    const phone = document.getElementById('contact-editor-phone')?.value;
+    if (!name) return Swal.fire({ title: 'Atenci&oacute;n', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
+    Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+};
+
+App.saveContactGroup = function() {
+    const name = document.getElementById('group-editor-name')?.value;
+    if (!name) return Swal.fire({ title: 'Atenci&oacute;n', text: 'El nombre del grupo es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
+    Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+};
+
 // Click outside para sugerencias de attendance
 document.addEventListener('click', (e) => {
     const attendanceSearch = document.getElementById('attendance-search');
