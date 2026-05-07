@@ -265,10 +265,11 @@
 
 .table-scroll-container {
     max-height: calc(100vh - 200px);
+    min-height: 100px;
     overflow-y: auto;
     overflow-x: auto;
-    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
 }
 
 .table-scroll-container table {

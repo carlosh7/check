@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.536</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.537</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -922,6 +922,7 @@
                             <tbody id="groups-tbody" class="table-tbody"></tbody>
                         </table>
                     </div>
+                </div>
 
                 <!-- SECCIÓN: EMAIL (SISTEMA) -->
                 <div id="sys-content-email" class="hidden space-y-6">
@@ -1089,23 +1090,25 @@
                         </div>
                     </div>
 
-                    <div class="table-scroll-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr class="table-header-row">
-                                    <th class="table-th table-checkbox-cell">
-                                        <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" class="checkbox-sm">
-                                    </th>
-                                    <th class="table-th">Staff</th>
-                                    <th class="table-th">Empresa</th>
-                                    <th class="table-th">Clientes</th>
-                                    <th class="table-th">Eventos</th>
-                                    <th class="table-th">Rol</th>
-                                    <th class="table-th">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-tbody" class="table-tbody"></tbody>
-                        </table>
+                    <div class="card !p-0 border-white-5 bg-white/[0.01]">
+                        <div class="table-scroll-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr class="table-header-row">
+                                        <th class="table-th table-checkbox-cell">
+                                            <input type="checkbox" id="select-all-users" onchange="App.toggleSelectAllUsers()" class="checkbox-sm">
+                                        </th>
+                                        <th class="table-th">Staff</th>
+                                        <th class="table-th">Empresa</th>
+                                        <th class="table-th">Clientes</th>
+                                        <th class="table-th">Eventos</th>
+                                        <th class="table-th">Rol</th>
+                                        <th class="table-th">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody" class="table-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1149,22 +1152,24 @@
                         </div>
                     </div>
 
-                    <div class="table-scroll-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr class="table-header-row">
-                                    <th class="table-th table-checkbox-cell">
-                                        <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" class="checkbox-sm">
-                                    </th>
-                                    <th class="table-th">Cliente</th>
-                                    <th class="table-th">Empresa</th>
-                                    <th class="table-th">Staff</th>
-                                    <th class="table-th">Evento</th>
-                                    <th class="table-th">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clients-tbody" class="table-tbody"></tbody>
-                        </table>
+                    <div class="card !p-0 border-white-5 bg-white/[0.01]">
+                        <div class="table-scroll-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr class="table-header-row">
+                                        <th class="table-th table-checkbox-cell">
+                                            <input type="checkbox" id="select-all-clients" onchange="App.toggleSelectAllClients()" class="checkbox-sm">
+                                        </th>
+                                        <th class="table-th">Cliente</th>
+                                        <th class="table-th">Empresa</th>
+                                        <th class="table-th">Staff</th>
+                                        <th class="table-th">Evento</th>
+                                        <th class="table-th">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-tbody" class="table-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
