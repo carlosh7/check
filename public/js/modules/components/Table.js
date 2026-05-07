@@ -77,9 +77,6 @@ class Table {
                         <button onclick="App.openEventConfig('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar">
                             <span class="material-symbols-outlined text-slate-400 text-sm">edit</span>
                         </button>
-                        <button onclick="App.cloneEvent('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-violet-500/20 transition-colors" title="Duplicar">
-                            <span class="material-symbols-outlined text-slate-400 text-sm">content_copy</span>
-                        </button>
                         <button onclick="App.deleteEvent('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar">
                             <span class="material-symbols-outlined text-slate-400 text-sm">delete</span>
                         </button>

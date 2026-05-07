@@ -8623,6 +8623,19 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+    cloneSelectedEvent: async function() {
+        // Buscar el primer evento seleccionado
+        const selectedCheckbox = document.querySelector('.event-checkbox:checked');
+        if (selectedCheckbox) {
+            await this.cloneEvent(selectedCheckbox.dataset.eventId);
+        } else {
+            // Si no hay seleccion, mostrar selector
+            const events = this.state.events || [];
+            const eventId = await this._selectFromList(events, 'Seleccionar evento a duplicar');
+            if (eventId) await this.cloneEvent(eventId);
+        }
+    },
+
     cloneEvent: async function(eventId) {
         if (!eventId) return;
         const result = await Swal.fire({
@@ -8656,6 +8669,22 @@ navigate(viewName, params = {}, push = true) {
         if (typeof Swal === 'undefined') return confirm(text);
         const result = await Swal.fire({ title, text, icon: 'warning', background: '#0f172a', color: '#fff', showCancelButton: true });
         return result.isConfirmed;
+    },
+
+    _selectFromList: async function(items, title) {
+        if (!items || items.length === 0) return null;
+        if (items.length === 1) return items[0].id;
+        const result = await Swal.fire({
+            title: title || 'Seleccionar',
+            input: 'select',
+            inputOptions: items.reduce((acc, item) => { acc[item.id] = item.name; return acc; }, {}),
+            showCancelButton: true,
+            confirmButtonText: 'Seleccionar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#fff'
+        });
+        return result.isConfirmed ? result.value : null;
     },
 
     openEventEditModal(eventId) {
