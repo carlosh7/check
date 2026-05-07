@@ -14405,6 +14405,113 @@ navigate(viewName, params = {}, push = true) {
     wizardCampaignId: null,
     wizardSelectedRecipients: 0,
 
+    closeCampaignWizard: function() {
+        document.getElementById('modal-campaign-wizard')?.classList.add('hidden');
+    },
+
+    cancelCampaign: function() {
+        this.closeCampaignWizard();
+    },
+
+    closeCampaignMonitor: function() {
+        document.getElementById('modal-campaign-monitor')?.classList.add('hidden');
+    },
+
+    wizardNextStep: function() {
+        if (this.wizardCurrentStep < 3) {
+            this.showWizardStep(this.wizardCurrentStep + 1);
+        }
+    },
+
+    wizardPrevStep: function() {
+        if (this.wizardCurrentStep > 1) {
+            this.showWizardStep(this.wizardCurrentStep - 1);
+        }
+    },
+
+    toggleWizardMode: function(mode) {
+        const visualBtn = document.getElementById('wizard-mode-visual');
+        const htmlBtn = document.getElementById('wizard-mode-html');
+        const editor = document.getElementById('wizard-composer-body');
+        if (!editor) return;
+        if (mode === 'visual') {
+            if (visualBtn) visualBtn.className = 'flex-1 py-2 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold';
+            if (htmlBtn) htmlBtn.className = 'flex-1 py-2 rounded-lg bg-white/5 text-slate-400 text-xs font-bold';
+            editor.classList.remove('hidden');
+        } else {
+            if (htmlBtn) htmlBtn.className = 'flex-1 py-2 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold';
+            if (visualBtn) visualBtn.className = 'flex-1 py-2 rounded-lg bg-white/5 text-slate-400 text-xs font-bold';
+            editor.classList.remove('hidden');
+        }
+    },
+
+    onWizardTemplateChange: function() {
+        const sel = document.getElementById('wizard-template-select');
+        if (!sel || !sel.value) return;
+        const templates = this.state.emailTemplates || [];
+        const t = templates.find(t => t.id === sel.value);
+        if (t) {
+            const subjectEl = document.getElementById('wizard-email-subject');
+            if (subjectEl && !subjectEl.value) subjectEl.value = t.subject || '';
+            const bodyEl = document.getElementById('wizard-composer-body');
+            if (bodyEl) bodyEl.value = t.body_html || t.body_text || '';
+        }
+    },
+
+    insertWizardVariable: function(varName) {
+        const bodyEl = document.getElementById('wizard-composer-body');
+        if (bodyEl) {
+            bodyEl.value += '{{' + varName + '}}';
+        }
+    },
+
+    saveCampaign: async function() {
+        const accountId = document.getElementById('wizard-account-select')?.value;
+        const subject = document.getElementById('wizard-email-subject')?.value;
+        const bodyHtml = document.getElementById('wizard-composer-body')?.value || '';
+        const eventId = this.state.event?.id;
+        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
+        if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
+        try {
+            const campaign = await this.fetchAPI('/email/campaigns', { method: 'POST', body: JSON.stringify({
+                event_id: eventId,
+                account_id: accountId,
+                name: subject.substring(0, 50),
+                subject: subject,
+                body_html: bodyHtml
+            }) });
+            if (campaign && campaign.id) {
+                Swal.fire('&Eacute;xito', 'Campa&ntilde;a creada', 'success');
+                this.closeCampaignWizard();
+                if (this.loadEmailCampaigns) this.loadEmailCampaigns();
+            }
+        } catch(e) {
+            Swal.fire('Error', e.message || 'No se pudo crear la campa&ntilde;a', 'error');
+        }
+    },
+
+    pauseCampaign: async function() {
+        const id = this.wizardCampaignId;
+        if (!id) return;
+        try {
+            await this.fetchAPI('/email/campaigns/' + id + '/pause', { method: 'POST' });
+            Swal.fire('Pausada', 'Campa&ntilde;a pausada', 'info');
+        } catch(e) {
+            Swal.fire('Error', 'No se pudo pausar', 'error');
+        }
+    },
+
+    resumeCampaign: async function() {
+        const id = this.wizardCampaignId;
+        if (!id) return;
+        try {
+            await this.fetchAPI('/email/campaigns/' + id + '/resume', { method: 'POST' });
+            Swal.fire('Reanudada', 'Campa&ntilde;a reanudada', 'success');
+        } catch(e) {
+            Swal.fire('Error', 'No se pudo reanudar', 'error');
+        }
+    },
+
     openCampaignWizard: function() {
         const eventId = this.state.event?.id;
         // Admin en sistema puede crear campa├▒as sin evento
