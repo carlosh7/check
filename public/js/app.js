@@ -9362,9 +9362,12 @@ navigate(viewName, params = {}, push = true) {
 
     // Alias para compatibilidad HTML
     openEventEditFromAdmin() {
-        if (this.state.event?.id) {
-            this.navigate('event-config', { id: this.state.event.id });
+        const selected = this._selectedAttendance || [];
+        if (selected.length === 0) {
+            Swal.fire({ title: 'Atenci&oacute;n', text: 'Selecciona al menos un asistente', icon: 'warning', background: '#0f172a', color: '#fff' });
+            return;
         }
+        this.editAttendance(selected);
     },
 
     // ── GUARDAR FORMULARIO COMPLETO DE EVENTO (v12.31.46) ──
