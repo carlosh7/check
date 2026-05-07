@@ -16006,48 +16006,31 @@ App.clearSelectedAttendanceClient = function() {
     document.getElementById('add-attendance-client-info').classList.add('hidden');
 };
 
-App.saveAddAttendance = async function() {
-    const name = document.getElementById('add-attendance-name').value.trim();
-    const email = document.getElementById('add-attendance-email').value.trim();
-    const phone = document.getElementById('add-attendance-phone').value.trim();
-    const eventId = this.state.currentEventId;
-    
-    if (!name) {
-        Swal.fire({ title: '⚠️ Atención', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
-        return;
-    }
-    
-    // Buscar cliente existente o crear nuevo
-    let clientId = null;
-    
-    try {
-        // Buscar cliente por email
-        const clients = await this.fetchAPI('/clients');
-        const existingClient = (clients || []).find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
-        
-        if (existingClient) {
-            clientId = existingClient.id;
-         } else if (email) {
-            // Crear nuevo cliente
-            const newClient = await this.fetchAPI('/clients', { method: 'POST', body: JSON.stringify({
-                name: name,
-                email: email,
-                phone: phone
-            }) });
-            clientId = newClient.id;
-        }
-        
-        // Agregar a asistencia
-        const data = {
-            client_id: clientId,
-            organization: document.getElementById('add-attendance-organization').value,
-            cargo: document.getElementById('add-attendance-cargo').value,
-            vegano: document.getElementById('add-attendance-vegano').value,
-            restricciones: document.getElementById('add-attendance-restricciones').value,
-            status: 'PENDIENTE'
-        };
-        
-        await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify(data) });
+ App.saveAddAttendance = async function() {
+     const name = document.getElementById('add-attendance-name').value.trim();
+     const email = document.getElementById('add-attendance-email').value.trim();
+     const phone = document.getElementById('add-attendance-phone').value.trim();
+     const eventId = window.App?.state?.event?.id || App.state?.currentEventId;
+     
+     if (!name) {
+         Swal.fire({ title: '⚠️ Atención', text: 'El nombre es requerido', icon: 'warning', background: '#0f172a', color: '#fff' });
+         return;
+     }
+     if (!eventId) {
+         Swal.fire({ title: '⚠️ Atención', text: 'No hay evento seleccionado', icon: 'warning', background: '#0f172a', color: '#fff' });
+         return;
+     }
+
+     try {
+         await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify({
+             name: name,
+             email: email,
+             phone: phone,
+             organization: document.getElementById('add-attendance-organization').value,
+             cargo: document.getElementById('add-attendance-cargo').value,
+             vegano: document.getElementById('add-attendance-vegano').value,
+             restricciones: document.getElementById('add-attendance-restricciones').value
+         }) });
         document.getElementById('modal-add-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Agregado', text: 'Asistente agregado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
