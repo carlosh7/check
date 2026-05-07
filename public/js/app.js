@@ -16027,13 +16027,13 @@ App.saveAddAttendance = async function() {
         
         if (existingClient) {
             clientId = existingClient.id;
-        } else if (email) {
+         } else if (email) {
             // Crear nuevo cliente
-            const newClient = await this.fetchAPI('/clients', 'POST', {
+            const newClient = await this.fetchAPI('/clients', { method: 'POST', body: JSON.stringify({
                 name: name,
                 email: email,
                 phone: phone
-            });
+            }) });
             clientId = newClient.id;
         }
         
@@ -16047,7 +16047,7 @@ App.saveAddAttendance = async function() {
             status: 'PENDIENTE'
         };
         
-        await this.fetchAPI(`/events/${eventId}/attendance`, 'POST', data);
+        await this.fetchAPI(`/events/${eventId}/attendance`, { method: 'POST', body: JSON.stringify(data) });
         document.getElementById('modal-add-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Agregado', text: 'Asistente agregado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
