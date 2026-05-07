@@ -1132,7 +1132,8 @@ const App = window.App = {
             const restrictedCount = document.getElementById('analytics-restricted-count');
             if (restrictedSection && restrictedTbody) {
                 const headerLabels = ['nombre', 'name', 'asistente', 'email', 'telefono', 'teléfono', 'phone', 'organizaci', 'organization', 'cargo', 'vegano', 'restricci'];
-                const restrictedGuests = (this.state.attendance || []).filter(g => {
+                const attData = this.state.attendance || [];
+                const restrictedGuests = attData.filter(g => {
                     if (!g.restricciones && !g.dietary_notes) return false;
                     const name = (g.client_name || g.name || '').toLowerCase().trim();
                     if (!name || headerLabels.some(h => name.startsWith(h))) return false;
@@ -1193,11 +1194,6 @@ const App = window.App = {
     scrollToRestricted: function() {
         const el = document.getElementById('analytics-restricted');
         if (!el) return;
-        const tbody = document.getElementById('analytics-restricted-tbody');
-        if (tbody && tbody.children.length === 0) {
-            Swal.fire({ title: 'Sin datos', text: 'No hay invitados con restricciones', icon: 'info', background: '#0f172a', color: '#fff' });
-            return;
-        }
         el.classList.remove('hidden');
         setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
     },
