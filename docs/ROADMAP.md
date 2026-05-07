@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.526 |
-| **Ultima feature completada** | F0-02: Modulo Mailing por evento (backend completo + frontend restaurado) |
-| **Feature en curso** | F0-02: Ajustes post-implementacion (prueba de flujo + refactor emailQueue) |
-| **Proximo feature** | F1-03: Clone Events |
+| **Version** | v12.44.558 |
+| **Ultima feature completada** | F2-06: Activity Logs (timeline en Sistema) |
+| **Feature en curso** | Ninguna |
+| **Proximo feature** | F1-01: Dashboard Analytics |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
@@ -940,17 +940,17 @@ Registro de espacios fisicos para eventos:
 | F0-01 | Form.js + Dropdown.js completados + 29 tests | ✅ | v12.44.513 | 2026-05-06 |
 | — | Limpieza: saveEventShort a App.form + duplicados | ✅ | v12.44.514 | 2026-05-06 |
 | — | 10 sugerencias migradas a App.dropdown | ✅ | v12.44.514 | 2026-05-06 |
-| F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
+| F0-02 | Modulo Mailing por evento | ✅ | v12.44.541 | 2026-05-07 |
 | FS-01 | Shadow AI Detection & Governance | ⏳ Pendiente | — | — |
 | FS-02 | AI Compliance & Data Governance | ⏳ Pendiente | — | — |
 | FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
 | FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics | ⏳ Pendiente | — | — |
 | F1-02 | Pipeline Invitados | ⏳ Pendiente | — | — |
-| F1-03 | Clone Events | ⏳ Pendiente | — | — |
+| F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
 | F2-04 | PDF Export | ⏳ Pendiente | — | — |
 | F2-05 | Guest Categories | ⏳ Pendiente | — | — |
-| F2-06 | Activity Logs | ⏳ Pendiente | — | — |
+| F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
 | F3-08 | Waitlist | ⏳ Pendiente | — | — |
 | F3-09 | Export Google Sheets | ⏳ Pendiente | — | — |
