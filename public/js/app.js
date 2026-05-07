@@ -991,14 +991,17 @@ const App = window.App = {
     },
 
     // ── Admin tab switching ──
-    switchAdminTab: function(tab) {
+    toggleAnalytics: function() {
         const el = document.getElementById('admin-analytics');
-        if (!el) return;
-        if (tab === 'analytics') {
+        const btn = document.getElementById('btn-toggle-analytics');
+        if (!el || !btn) return;
+        if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
+            btn.innerHTML = '<span class="material-symbols-outlined">insights</span> Ocultar Analytics';
             this.loadAnalytics();
         } else {
             el.classList.add('hidden');
+            btn.innerHTML = '<span class="material-symbols-outlined">insights</span> Analytics';
         }
     },
 

@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.566</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.567</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -172,6 +172,9 @@
                         <button class="btn-danger" onclick="App.clearAttendanceDatabase()">
                             <span class="material-symbols-outlined">delete_forever</span> Limpiar
                         </button>
+                        <button id="btn-toggle-analytics" class="btn-secondary" onclick="App.toggleAnalytics()">
+                            <span class="material-symbols-outlined">insights</span> Analytics
+                        </button>
                     </div>
 
                     <div class="filters-row">
@@ -222,38 +225,8 @@
                         </div>
                     </div>
 
-                    <div class="search-box-container">
-                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                               oninput="App.filterAttendance(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined search-icon">search</span>
-                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
-                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
-                    </div>
-                </div>
-
-                <div class="table-scroll-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr class="table-header-row">
-                                <th class="table-th table-checkbox-cell">
-                                    <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" class="checkbox-sm">
-                                </th>
-                                <th class="table-th">Asistente</th>
-                                <th class="table-th">Organización</th>
-                                <th class="table-th">Cargo</th>
-                                <th class="table-th">Vegano</th>
-                                <th class="table-th">Restricciones</th>
-                                <th class="table-th">Estado</th>
-                                <th class="table-th text-center">Validar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendance-tbody" class="table-tbody"></tbody>
-                    </table>
-                </div>
-
                 <!-- SECCIÓN: ANALYTICS -->
-                <div id="admin-analytics" class="hidden space-y-4 mt-6">
+                <div id="admin-analytics" class="hidden space-y-4 my-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-xl font-bold text-white">Analytics del Evento</h2>
                         <select id="analytics-period" onchange="App.loadAnalytics()" class="input-field py-1.5 px-3 text-sm">
@@ -286,10 +259,34 @@
                     </div>
                 </div>
 
-                <!-- Sub-navegación admin -->
-                <div class="flex gap-2 mt-4 border-t border-[var(--border)] pt-4">
-                    <button id="admin-tab-attendance" class="btn-secondary btn-standard text-sm" onclick="App.switchAdminTab('attendance')">Asistentes</button>
-                    <button id="admin-tab-analytics" class="btn-secondary btn-standard text-sm" onclick="App.switchAdminTab('analytics')">Analytics</button>
+                    <div class="search-box-container">
+                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
+                               oninput="App.filterAttendance(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
+                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
+                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
+                    </div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr class="table-header-row">
+                                <th class="table-th table-checkbox-cell">
+                                    <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" class="checkbox-sm">
+                                </th>
+                                <th class="table-th">Asistente</th>
+                                <th class="table-th">Organización</th>
+                                <th class="table-th">Cargo</th>
+                                <th class="table-th">Vegano</th>
+                                <th class="table-th">Restricciones</th>
+                                <th class="table-th">Estado</th>
+                                <th class="table-th text-center">Validar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-tbody" class="table-tbody"></tbody>
+                    </table>
                 </div>
             </section>
 

@@ -9,14 +9,6 @@ const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 
 /**
- * GET /api/stats/:eventId
- * Retorna métricas completas para el dashboard de analítica
- */
-router.get('/stats/:eventId', authMiddleware(), (req, res) => {
-    // ... existing code ...
-});
-
-/**
  * GET /api/stats/analytics?period=30
  * Retorna metricas globales del dashboard admin
  */
@@ -28,8 +20,6 @@ router.get('/stats/analytics', authMiddleware(), (req, res) => {
         const totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
         const recentEvents = db.prepare("SELECT COUNT(*) as c FROM events WHERE created_at >= ?").get(since).c;
         const totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
-
-        // Guests created in period
         const guestsInPeriod = db.prepare("SELECT COUNT(*) as c FROM guests WHERE created_at >= ?").get(since).c;
 
         res.json({
@@ -43,6 +33,14 @@ router.get('/stats/analytics', authMiddleware(), (req, res) => {
         console.error('[ANALYTICS] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener analytics' });
     }
+});
+
+/**
+ * GET /api/stats/:eventId
+ * Retorna métricas completas para el dashboard de analítica
+ */
+router.get('/stats/:eventId', authMiddleware(), (req, res) => {
+    // ... existing code ...
 });
 
 module.exports = router;
