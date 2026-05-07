@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.569</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.571</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -341,12 +341,12 @@
                                 <th class="table-th table-checkbox-cell">
                                     <input type="checkbox" id="select-all-attendance" onchange="App.toggleSelectAllAttendance()" class="checkbox-sm">
                                 </th>
-                                <th class="table-th">Asistente</th>
-                                <th class="table-th">Organización</th>
-                                <th class="table-th">Cargo</th>
-                                <th class="table-th">Vegano</th>
-                                <th class="table-th">Restricciones</th>
-                                <th class="table-th">Estado</th>
+                                <th class="table-th sortable" data-sort-att="name" onclick="App.sortAttendance('name')">Asistente <span class="sort-icon">⇅</span></th>
+                                <th class="table-th sortable" data-sort-att="org" onclick="App.sortAttendance('org')">Organizaci&oacute;n <span class="sort-icon">⇅</span></th>
+                                <th class="table-th sortable" data-sort-att="cargo" onclick="App.sortAttendance('cargo')">Cargo <span class="sort-icon">⇅</span></th>
+                                <th class="table-th sortable" data-sort-att="vegano" onclick="App.sortAttendance('vegano')">Vegano <span class="sort-icon">⇅</span></th>
+                                <th class="table-th sortable" data-sort-att="restricciones" onclick="App.sortAttendance('restricciones')">Restricciones <span class="sort-icon">⇅</span></th>
+                                <th class="table-th sortable" data-sort-att="status" onclick="App.sortAttendance('status')">Estado <span class="sort-icon">⇅</span></th>
                                 <th class="table-th text-center">Validar</th>
                             </tr>
                         </thead>
@@ -1826,13 +1826,13 @@
         </div>
         
         <!-- Progress Bar -->
-        <div class="px-6 py-4 border-b border-white-5 bg-slate-800-30">
-            <div class="flex items-center justify-between mb-2">
-                <span id="wizard-step-label" class="text-xs font-bold text-#0ba5ec uppercase">Paso 1 de 3</span>
-                <span class="text-xs text-slate-500">Destinatarios</span>
-            </div>
-            <div class="h-1-5 bg-slate-700 rounded-full overflow-hidden">
-                <div id="wizard-progress-bar" class="h-full bg-#0ba5ec transition-all duration-500 style="width: 33%"></div>
+            <div class="px-6 py-4 border-b border-white/5 bg-slate-800/30">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="wizard-step-label" class="text-xs font-bold text-[var(--primary)] uppercase">Paso 1 de 3</span>
+                    <span class="text-xs text-slate-500">Destinatarios</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="wizard-progress-bar" class="h-full bg-[var(--primary)] transition-all duration-500" style="width: 33%"></div>
             </div>
         </div>
         
@@ -1858,32 +1858,32 @@
                     <div>
                         <label class="text-xs font-bold uppercase text-slate-500 mb-2 block">Tipo de Destinatarios</label>
                         <div class="grid grid-cols-4 gap-3">
-                            <label class="flex items-center gap-2 p-3 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-recipient-type" value="all" checked class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-recipient-type" value="all" checked class="accent-[var(--primary)]" />
                                 <div>
                                     <span class="text-sm font-bold text-white">Todos</span>
-                                    <p class="text-10 text-slate-500" id="wizard-count-all">0 invitados</p>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-all">0 invitados</p>
                                 </div>
                             </label>
-                            <label class="flex items-center gap-2 p-3 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-recipient-type" value="confirmed" class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-recipient-type" value="confirmed" class="accent-[var(--primary)]" />
                                 <div>
                                     <span class="text-sm font-bold text-white">Confirmados</span>
-                                    <p class="text-10 text-slate-500" id="wizard-count-confirmed">0 confirmados</p>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-confirmed">0 confirmados</p>
                                 </div>
                             </label>
-                            <label class="flex items-center gap-2 p-3 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-recipient-type" value="pending" class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-recipient-type" value="pending" class="accent-[var(--primary)]" />
                                 <div>
                                     <span class="text-sm font-bold text-white">Pendientes</span>
-                                    <p class="text-10 text-slate-500" id="wizard-count-pending">0 pendientes</p>
+                                    <p class="text-[10px] text-slate-500" id="wizard-count-pending">0 pendientes</p>
                                 </div>
                             </label>
-                            <label class="flex items-center gap-2 p-3 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-recipient-type" value="group" class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-recipient-type" value="group" class="accent-[var(--primary)]" />
                                 <div>
                                     <span class="text-sm font-bold text-white">Por Grupo</span>
-                                    <p class="text-10 text-slate-500">Seleccionar</p>
+                                    <p class="text-[10px] text-slate-500">Seleccionar</p>
                                 </div>
                             </label>
                         </div>
@@ -1959,17 +1959,17 @@
                     <div>
                         <label class="text-xs font-bold uppercase text-slate-500 mb-3 block">Tipo de Envío</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="flex items-center gap-2 p-4 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-send-type" value="now" checked class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-4 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-send-type" value="now" checked class="accent-[var(--primary)]" />
                                 <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-#0ba5ec">send_now</span>
+                                    <span class="material-symbols-outlined text-[var(--primary)]">send_now</span>
                                     <span class="text-sm font-bold text-white">Enviar Ahora</span>
                                 </div>
                             </label>
-                            <label class="flex items-center gap-2 p-4 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
-                                <input type="radio" name="wizard-send-type" value="scheduled" class="accent-#0ba5ec>
+                            <label class="flex items-center gap-2 p-4 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent">
+                                <input type="radio" name="wizard-send-type" value="scheduled" class="accent-[var(--primary)]" />
                                 <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-#0ba5ec">schedule</span>
+                                    <span class="material-symbols-outlined text-[var(--primary)]">schedule</span>
                                     <span class="text-sm font-bold text-white">Programar</span>
                                 </div>
                             </label>

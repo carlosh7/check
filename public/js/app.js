@@ -1122,7 +1122,13 @@ const App = window.App = {
             const restrictedTbody = document.getElementById('analytics-restricted-tbody');
             const restrictedCount = document.getElementById('analytics-restricted-count');
             if (restrictedSection && restrictedTbody) {
-                const restrictedGuests = (this.state.attendance || []).filter(g => g.restricciones || g.dietary_notes);
+                const headerLabels = ['nombre', 'name', 'asistente', 'email', 'telefono', 'teléfono', 'phone', 'organizaci', 'organization', 'cargo', 'vegano', 'restricci'];
+                const restrictedGuests = (this.state.attendance || []).filter(g => {
+                    if (!g.restricciones && !g.dietary_notes) return false;
+                    const name = (g.client_name || g.name || '').toLowerCase().trim();
+                    if (!name || headerLabels.some(h => name.startsWith(h))) return false;
+                    return true;
+                });
                 if (restrictedGuests.length > 0) {
                     restrictedSection.classList.remove('hidden');
                     if (restrictedCount) restrictedCount.textContent = restrictedGuests.length + ' invitados';
@@ -1143,6 +1149,36 @@ const App = window.App = {
         } catch(e) {
             console.error('[ANALYTICS] Error:', e);
         }
+    },
+
+    // ── Sort Attendance Table ──
+    _attendanceSortDir: {},
+
+    sortAttendance: function(column) {
+        const tbody = document.getElementById('attendance-tbody');
+        if (!tbody) return;
+        const dir = this._attendanceSortDir[column] === 'asc' ? 'desc' : 'asc';
+        this._attendanceSortDir[column] = dir;
+
+        document.querySelectorAll('#view-admin th.sortable .sort-icon').forEach(el => el.textContent = '⇅');
+        const activeTh = document.querySelector(`#view-admin th[data-sort-att="${column}"] .sort-icon`);
+        if (activeTh) activeTh.textContent = dir === 'asc' ? '↑' : '↓';
+
+        const rows = Array.from(tbody.rows);
+        rows.sort((a, b) => {
+            const getVal = (row) => {
+                const cells = row.cells;
+                if (column === 'name') return cells[1]?.textContent?.trim() || '';
+                if (column === 'org') return cells[2]?.textContent?.trim() || '';
+                if (column === 'cargo') return cells[3]?.textContent?.trim() || '';
+                if (column === 'vegano') return cells[4]?.textContent?.trim() || '';
+                if (column === 'restricciones') return cells[5]?.textContent?.trim() || '';
+                if (column === 'status') return cells[6]?.textContent?.trim() || '';
+                return '';
+            };
+            return dir === 'asc' ? getVal(a).localeCompare(getVal(b)) : getVal(b).localeCompare(getVal(a));
+        });
+        rows.forEach(row => tbody.appendChild(row));
     },
 
     updateSidebarVisibility() {

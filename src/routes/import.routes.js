@@ -892,7 +892,8 @@ router.post('/execute', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res)
 
                 // Normalización de Vegano (V12.44.311)
                 const vRaw = (a.vegano || "").toString().trim().toUpperCase();
-                const vNorm = (vRaw === 'SI' || vRaw === 'SÍ' || vRaw === 'YES' || vRaw === 'TRUE' || vRaw === '1') ? 'SI' : 'NO';
+                const vNorm = (!vRaw || vRaw === 'NO' || vRaw === 'N' || vRaw === 'FALSE' || vRaw === '0') ? 'NO' :
+                             (vRaw === 'SI' || vRaw === 'SÍ' || vRaw === 'YES' || vRaw === 'TRUE' || vRaw === '1') ? 'SI' : 'NO';
 
                 // Fallback de nombre: usar email si no hay nombre
                 const cleanName = (a.name || "").trim();
