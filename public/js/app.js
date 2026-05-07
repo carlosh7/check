@@ -16247,6 +16247,97 @@ App.saveContactGroup = function() {
     Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
 };
 
+// ── FASE 4: Funciones para Modulos ──
+
+App.saveEventConfig = async function() {
+    const eventId = App.state?.event?.id;
+    if (!eventId) return;
+    const form = document.getElementById('new-event-full-form');
+    if (form) form.requestSubmit();
+};
+
+App.previewEvent = function() {
+    const eventId = App.state?.event?.id;
+    if (!eventId) return;
+    window.open('/registro.html?event=' + eventId, '_blank');
+};
+
+App.publishEvent = async function() {
+    const eventId = App.state?.event?.id;
+    if (!eventId) return;
+    try {
+        await App.fetchAPI('/events/' + eventId, { method: 'PUT', body: JSON.stringify({ status: 'ACTIVE' }) });
+        Swal.fire({ title: '&Eacute;xito', text: 'Evento publicado', icon: 'success', background: '#0f172a', color: '#fff' });
+        if (App.loadEvents) App.loadEvents();
+    } catch(e) {
+        Swal.fire({ title: 'Error', text: 'No se pudo publicar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.checkInGuest = async function(guestId) {
+    const eventId = App.state?.event?.id || App.state?.currentEventId;
+    if (!eventId || !guestId) return;
+    try {
+        await App.fetchAPI('/events/' + eventId + '/attendance/' + guestId, { method: 'PUT', body: JSON.stringify({ validated: 1 }) });
+        Swal.fire({ title: 'Check-in', text: 'Asistente registrado', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+        if (App.filterAttendance) App.filterAttendance();
+    } catch(e) {
+        Swal.fire({ title: 'Error', text: 'No se pudo hacer check-in', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.saveSMTPConfig = function(config) {
+    Swal.fire({ title: 'Info', text: 'Funci&oacute;n en desarrollo', icon: 'info', background: '#0f172a', color: '#fff' });
+};
+
+App.createUser = async function(userData) {
+    if (!userData) return;
+    try {
+        const res = await App.fetchAPI('/users', { method: 'POST', body: JSON.stringify(userData) });
+        if (res && res.success) {
+            Swal.fire({ title: '&Eacute;xito', text: 'Usuario creado', icon: 'success', background: '#0f172a', color: '#fff' });
+            if (App.loadUsersTable) App.loadUsersTable();
+        }
+    } catch(e) {
+        Swal.fire({ title: 'Error', text: e.message || 'No se pudo crear', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.deleteUser = async function(userId) {
+    if (!userId) return;
+    try {
+        await App.fetchAPI('/users/' + userId, { method: 'DELETE' });
+        Swal.fire({ title: 'Eliminado', text: 'Usuario eliminado', icon: 'success', background: '#0f172a', color: '#fff' });
+        if (App.loadUsersTable) App.loadUsersTable();
+    } catch(e) {
+        Swal.fire({ title: 'Error', text: 'No se pudo eliminar', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
+App.exportGuests = function() {
+    if (ImportExportModule && ImportExportModule.openExportModal) {
+        ImportExportModule.openExportModal('guests');
+    } else {
+        App.openExportModal('guests');
+    }
+};
+
+App.exportSystemData = function() {
+    App.openExportModal('all');
+};
+
+App.importSystemData = function() {
+    App.openImportModal('all');
+};
+
+App._showAdminView = function(eventId) {
+    if (eventId && App.openEvent) {
+        App.openEvent(eventId);
+    } else if (App.navigate) {
+        App.navigate('admin', { id: eventId });
+    }
+};
+
 // Click outside para sugerencias de attendance
 document.addEventListener('click', (e) => {
     const attendanceSearch = document.getElementById('attendance-search');
