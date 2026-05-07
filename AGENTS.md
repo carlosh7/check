@@ -57,7 +57,12 @@ Cuando el usuario diga estas frases, responde asi:
 | "dame contexto" | Lee ROADMAP.md + AGENTS.md + ARQUITECTURA_SISTEMA.md → da resumen completo del proyecto |
 | "que sigue" o "siguiente feature" | Lee ROADMAP.md → muestra el proximo feature a implementar segun el orden de fases |
 
-
+Flujo diario recomendado:
+1. "retoma el trabajo" → yo presento plan
+2. Tu confirmas o ajustas
+3. Yo implemento, version bump, push
+4. Tu Redeploy en Portainer y pruebas
+5. "status del proyecto" para ver progreso
 ---
 
 ## Entorno Actual
@@ -207,10 +212,7 @@ git tag --sort=-version:refname | head -5
 | `WORKFLOW.md` | Si necesitas entender el flujo de deploy completo |
 | `docs/repos-analysis.md` | Si vas a implementar una feature inspirada en otro repo |
 | `docs/ARQUITECTURA_SISTEMA.md` | Si necesitas entender BD, rutas, estructura del sistema |
-| `docs/PLAN_MODULARIZACION_FRONTEND.md` | Si tocas modulos del frontend |
-| `docs/CONTEXTO_RAPIDO.md` | Si necesitas un resumen ejecutivo del proyecto |
 | `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Si trabajas en vistas del frontend |
-| `docs/MIGRATION_STATUS.md` | Si ves errores de migracion de base de datos |
 | `server.js` | Backend principal (rutas API, configuracion) |
 | `src/utils/database-manager.js` | Gestion de bases de datos por evento |
 | `src/utils/backup.js` | Sistema de respaldos |

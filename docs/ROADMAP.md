@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.510 |
-| **Ultima feature completada** | Deshabilitar HSTS + upgradeInsecureRequests para HTTP directo |
+| **Version** | v12.44.512 |
+| **Ultima feature completada** | Consolidacion de planes: ROADMAP unificado, docs historicos eliminados |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | F1-01: Dashboard Analytics |
+| **Proximo feature** | F0-01: Completar Form.js + Dropdown.js + tests frontend |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
 
@@ -56,6 +56,48 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 ## 🗺️ Mapa de Dependencias entre Features
 
 ```
+FASE 0: Foundation (saldar deuda tecnica previa)
+  F0-01 Completar Form.js + Dropdown.js + tests frontend ← sin dependencias
+  F0-02 Modulo Mailing por evento ← sin dependencias
+
+FASE 1: Features nuevas
+  F1-01 Dashboard Analytics ← sin dependencias
+  F1-02 Pipeline Invitados ← sin dependencias
+  F1-03 Clone Events ← sin dependencias
+
+FASE 2: Core+
+  F2-04 PDF Export ← depende de: pipeline (usa datos de invitados)
+  F2-05 Guest Categories ← depende de: pipeline (usa sistema de estados)
+  F2-06 Activity Logs ← sin dependencias (ya existe audit.js, hay que expandir)
+
+FASE 3: Monetizacion
+  F3-07 Stripe/PayPal ← depende de: categories (boletos por tipo)
+  F3-08 Waitlist ← depende de: categories (cupos por categoria)
+  F3-09 Export Google Sheets ← sin dependencias
+
+FASE 4: Colaboracion
+  F4-10 Rol Organizer ← sin dependencias
+  F4-11 Sesiones + Seat maps ← depende de: venues
+  F4-12 Venues / espacios ← sin dependencias
+
+BACKLOG
+  BL-13 SMS integration
+  BL-14 Reconocimiento facial / OTP
+  BL-15 Password recovery
+  BL-16 Site branding por cliente
+  BL-17 Landing invitacion digital
+  BL-18 Presupuesto por evento
+  BL-19 Speaker management
+  BL-20 Propuestas publicas
+  BL-21 Mapa interactivo (LeafletJS)
+  BL-22 Tests automatizados (Jest)
+  BL-23 Migraciones de BD
+  BL-24 Musica de fondo en landing
+  BL-25 Webhooks para integraciones externas
+  BL-26 API REST publica documentada (Swagger)
+  BL-27 Carga masiva inteligente (dup detect, field mapping)
+  BL-28 Portal asistente PWA (boleto, agenda, networking)
+```
 FASE 1: Foundation
   F1-01 Dashboard Analytics ← sin dependencias
   F1-02 Pipeline Invitados ← sin dependencias
@@ -94,7 +136,151 @@ BACKLOG
 
 ---
 
-## [F1-01] Dashboard Analytics
+## [F0-01] Completar Form.js + Dropdown.js + Tests Frontend
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🔴 Alta |
+| **Dependencias** | Ninguna (deuda tecnica de modularizacion previa) |
+| **Inspiracion** | `docs/PLAN_MODULARIZACION_FRONTEND.md` (plan completado al 80%) |
+| **Complejidad** | M |
+| **Archivos a modificar/crear** | `public/js/modules/components/Form.js`, `public/js/modules/components/Dropdown.js`, `public/js/app.js` |
+
+### Descripcion
+La modularizacion del frontend quedo al 80%. Hay que:
+- Completar `Form.js` (233 lineas, estado ⚠️ Parcial) — migrar funciones de formulario de app.js
+- Completar `Dropdown.js` (275 lineas, estado ⚠️ Parcial) — migrar dropdowns restantes
+- Agregar tests unitarios con Jest para los 20 modulos
+- Verificar que no haya codigo duplicado entre app.js legacy y los modulos
+- Probar que todas las vistas carguen correctamente con los modulos
+
+### Estado actual de la modularizacion
+| Modulo | Lineas | Estado |
+|--------|--------|--------|
+| Toast.js | 130 | ✅ |
+| Router.js | 134 | ✅ |
+| Modal.js | 122 | ⚠️ Parcial |
+| Table.js | 201 | ⚠️ Parcial |
+| Sidebar.js | 121 | ⚠️ Parcial |
+| Form.js | 233 | ⚠️ Parcial |
+| Dropdown.js | 275 | ⚠️ Parcial |
+| ViewManager.js | 135 | ⚠️ Parcial |
+| MyEvents.js | 168 | ⚠️ Parcial |
+| Admin.js | 201 | ⚠️ Parcial |
+| EventConfig.js | 139 | ⚠️ Parcial |
+| System.js | 202 | ⚠️ Parcial |
+| ApiService.js | 134 | ⚠️ Parcial |
+| AuthService.js | 158 | ⚠️ Parcial |
+| EventService.js | 238 | ⚠️ Parcial |
+| GuestService.js | 253 | ⚠️ Parcial |
+| State.js | 152 | ⚠️ Parcial |
+| Config.js | 62 | ⚠️ Parcial |
+| Constants.js | 102 | ⚠️ Parcial |
+| Persistence.js | 133 | ⚠️ Parcial |
+
+### Backend
+- Sin cambios en backend (solo frontend)
+
+### Frontend
+- Completar migracion de funciones de app.js a Form.js
+- Completar Dropdown.js
+- Eliminar codigo legacy duplicado en app.js
+- Verificar que `App.form`, `App.dropdown` funcionen correctamente
+
+### Dependencias NPM
+- `jest` — ya existe en package.json, hay que crear tests
+
+### Criterios de Aceptacion
+- [ ] Form.js exporta todas las funciones de formulario
+- [ ] Dropdown.js exporta todos los dropdowns
+- [ ] app.js no tiene funciones duplicadas con los modulos
+- [ ] Tests unitarios pasan (minimo 1 test por modulo)
+- [ ] La app carga sin errores en consola
+
+---
+
+## [F0-02] Modulo Mailing por Evento
+
+| Campo | Valor |
+|-------|-------|
+| **Prioridad** | 🔴 Alta |
+| **Dependencias** | Ninguna |
+| **Inspiracion** | `docs/GUIA_MODULO_MAILING.md` (854 lineas de especificacion, borrado - ver esta entrada) |
+| **Complejidad** | XL |
+| **Archivos a modificar/crear** | `src/routes/email.routes.js`, `public/js/modules/views/EventConfig.js`, BD migracion |
+
+### Descripcion
+Sistema completo de email marketing por evento con:
+- **Cuentas SMTP/IMAP** — crear, editar, probar conexion, limite diario
+- **Mailbox** — visor IMAP (recibidos, enviados, spam), responder, reenviar
+- **Compositor de email** — editor WYSIWYG, plantillas, variables {{guest_name}}, adjuntos
+- **12 plantillas predefinidas** (Invitacion, Recordatorios 7/3/1/horas, Confirmacion, Rechazo, Cambio fecha/lugar, Cancelacion, Post-evento, Encuesta)
+- **Campañas** — envio masivo con filtros, programacion, monitoreo en vivo
+- **Robot automatico** — activar/desactivar triggers que envian emails segun accion del invitado (confirma → envio plantilla 6; cancela → plantilla 7)
+- **Logs** — seguimiento de envios, reintentos, fallos
+
+### Estructura del modulo
+```
+EMAIL (en Admin/Sistema) / MAILING (en cada Evento) — misma estructura:
+├── 1. CUENTAS SMTP/IMAP
+├── 2. MAILBOX (visor IMAP)
+├── 3. COMPOSITOR (editor + plantillas)
+└── 4. CAMPAÑAS (envio masivo + robot automatico)
+```
+
+### 12 Plantillas de Email predefinidas
+1. Invitacion — primera comunicacion
+2. Recordatorio 7 dias — una semana antes
+3. Recordatorio 3 dias — tres dias antes
+4. Recordatorio 1 dia — un dia antes
+5. Recordatorio horas — horas antes (incluye QR)
+6. Confirmacion asistencia — cuando confirma
+7. Rechazo asistencia — cuando decline
+8. Cambio de fecha — notificacion
+9. Cambio de ubicacion — notificacion
+10. Cancelacion evento — notificacion
+11. Agradecimiento post-evento — despues del evento
+12. Encuesta post-evento — para feedback
+
+Cada plantilla incluye: asunto, cuerpo predefinido, diseno HTML corporativo (gradiente morado/gris), variables {{guest_name}}, {{event_name}}, {{event_date}}, {{qr_code}}, {{boton_confirmar}}.
+
+### Robot Automatico
+Triggers configurables que envian emails automaticamente:
+- Invitado confirma → envio de plantilla 6
+- Invitado rechaza → envio de plantilla 7
+- X dias antes del evento → envio de plantilla 2/3/4
+- Despues del evento → envio de plantilla 11/12
+- Se puede activar/desactivar cada trigger
+
+### Backend
+- `src/routes/email.routes.js` — expandir con endpoints de mailing (ya existe base)
+- Cuentas SMTP: CRUD + test connection
+- Campañas: CRUD + send + schedule + pause + retry
+- Logs: GET logs con filtros
+- Robot: config de triggers + worker de envio automatico
+
+### Frontend
+- Pestana "Mailing" en config de evento (misma logica que "Email" en admin)
+- UI de cuentas SMTP (tabla + modal crear/editar)
+- Compositor con editor WYSIWYG (usar libreria como Quill o TinyMCE)
+- Selector de plantillas con preview
+- Vista de campanas con progreso
+- Configuracion de robot automatico
+
+### Dependencias NPM
+- `nodemailer` — ya existe
+- `imap` o `node-imap` — lectura de bandeja
+- `quill` o `tinymce` — editor WYSIWYG
+- `html-to-text` — version texto plano de emails
+
+### Criterios de Aceptacion
+- [ ] Crear/editar/probar cuenta SMTP desde el panel
+- [ ] Compositor permite elegir plantilla, editar, previsualizar
+- [ ] Envio individual funciona
+- [ ] Campanas masivas con filtros funcionan
+- [ ] Robot automatico envia emails segun triggers
+- [ ] Logs de envio visibles
+- [ ] Al crear un evento, se copia la config de Email del sistema al Mailing del evento
 
 | Campo | Valor |
 |-------|-------|
@@ -557,7 +743,7 @@ Registro de espacios fisicos para eventos:
 
 ---
 
-## BACKLOG (Priorizar despues de Fases 1-4)
+## BACKLOG (Priorizar despues de Fases 0-4)
 
 | ID | Feature | Inspiracion | Complejidad |
 |----|---------|-------------|-------------|
@@ -573,6 +759,10 @@ Registro de espacios fisicos para eventos:
 | BL-22 | **Tests automatizados (Jest)** | `Pedrosandoval2/Event-Register-System` | L |
 | BL-23 | **Migraciones de BD** | `Neriiiii/ems-event-management-system` | M |
 | BL-24 | **Musica de fondo en landing** | `Hans-developer/tarjeta-boda` | S |
+| BL-25 | **Webhooks para integraciones externas** | `docs/RECOMENDACIONES.md` | M |
+| BL-26 | **API REST publica documentada (Swagger)** | `docs/RECOMENDACIONES.md` | M |
+| BL-27 | **Carga masiva inteligente** | `docs/RECOMENDACIONES.md` | M |
+| BL-28 | **Portal asistente PWA** | `docs/RECOMENDACIONES.md` | XL |
 
 ---
 
@@ -580,8 +770,14 @@ Registro de espacios fisicos para eventos:
 
 | ID | Feature | Estado | Version | Fecha |
 |----|---------|--------|---------|-------|
-| — | Infraestructura Linux + Portainer | ✅ | v12.44.510 | 2026-05-06 |
+| — | Modularizacion Frontend (20 modulos) | ✅ | v12.44.463 | 2026-04-14 |
+| — | Migracion Backend (72/72 rutas) | ✅ | v12.44.463 | 2026-03-21 |
+| — | Seguridad Hardening (92/100) | ✅ | v12.44.463 | 2026-03-25 |
+| — | Infraestructura Linux + Portainer | ✅ | v12.44.511 | 2026-05-06 |
 | — | HSTS + upgradeInsecureRequests fix | ✅ | v12.44.510 | 2026-05-06 |
+| — | ROADMAP unificado + docs consolidados | ✅ | v12.44.511 | 2026-05-06 |
+| F0-01 | Completar Form.js + Dropdown.js + tests | ⏳ Pendiente | — | — |
+| F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics | ⏳ Pendiente | — | — |
 | F1-02 | Pipeline Invitados | ⏳ Pendiente | — | — |
 | F1-03 | Clone Events | ⏳ Pendiente | — | — |
@@ -594,7 +790,7 @@ Registro de espacios fisicos para eventos:
 | F4-10 | Rol Organizer | ⏳ Pendiente | — | — |
 | F4-11 | Sesiones + Seat Maps | ⏳ Pendiente | — | — |
 | F4-12 | Venues | ⏳ Pendiente | — | — |
-| BL-13..24 | Backlog | ⏳ Pendiente | — | — |
+| BL-13..28 | Backlog | ⏳ Pendiente | — | — |
 
 ---
 
@@ -613,7 +809,31 @@ Registro de espacios fisicos para eventos:
 
 ---
 
-## 📚 Documentacion Relacionada
+## 🤖 Planes Anteriores (Consolidados en este ROADMAP)
+
+Los siguientes documentos fueron eliminados porque su informacion esta integrada aqui:
+
+| Documento Eliminado | Motivo |
+|---------------------|--------|
+| `PLAN_MODULARIZACION_FRONTEND.md` | Completado al 80%, restante en F0-01 |
+| `PLAN_MIGRACION.md` | Completado 100%, info en Arquitectura |
+| `GUIA_MODULO_MAILING.md` | Especificacion de 854 lineas migrada a F0-02 |
+| `RECOMENDACIONES.md` | Features priorizadas integradas al Backlog |
+| `CONTEXTO_RAPIDO.md` | Reemplazado por seccion Estado Actual |
+| `REPORTE_ESTATUS_GLOBAL.md` | Datos migrados a tabla de progreso |
+| `MIGRATION_STATUS.md` | Completado, logica en codigo activo |
+| `COSTOS.md` | No relevante para roadmap |
+| `GUIA_EMAIL_DELIVERABILITY.md` | No relevante para roadmap |
+| `DOCKER_CLONE_GUIDE.md` | Cubierto por WORKFLOW.md |
+| `DOCKER_INSTALL.md` | Cubierto por WORKFLOW.md |
+| `INFRAESTRUCTURA_DESPLIEGUE.md` | Cubierto por WORKFLOW.md |
+| `REPORTE_FINAL_AUDITORIA.md` | Historico, no relevante |
+
+Se mantienen los de **referencia**: `ARQUITECTURA_SISTEMA.md`, `ESTRUCTURA_UI_CHECK_PRO.md`, `repos-analysis.md`.
+
+---
+
+## 📚 Documentacion Referenciada
 
 | Archivo | Contenido |
 |---------|-----------|
@@ -621,8 +841,6 @@ Registro de espacios fisicos para eventos:
 | `WORKFLOW.md` | Guia de deploy en Portainer |
 | `docs/repos-analysis.md` | Analisis completo de los 29 repos comparados |
 | `docs/ARQUITECTURA_SISTEMA.md` | Arquitectura de BD y sistema |
-| `docs/PLAN_MODULARIZACION_FRONTEND.md` | Migracion de app.js legacy a modulos |
 | `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Vistas del frontend |
-| `docs/CONTEXTO_RAPIDO.md` | Resumen ejecutivo del proyecto |
 | `server.js` | Backend principal |
 | `src/utils/database-manager.js` | Gestion de BDs por evento |
