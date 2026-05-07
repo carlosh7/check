@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.531</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.532</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -928,9 +928,9 @@
                 <div id="sys-content-email" class="hidden space-y-6">
                     <!-- Sub-tabs para Email -->
                     <div class="flex gap-2 mb-6">
-                        <button id="email-tab-accounts" class="px-4 py-2 rounded-xl bg-#0ba5ec-20 text-#0ba5ec text-xs font-bold uppercase tracking-wider onclick=App.switchEmailSubTab('accounts')">Cuentas</button>
-                        <button id="email-tab-mailbox" class="px-4 py-2 rounded-xl bg-white-5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white-10" onclick="App.switchEmailSubTab('mailbox')">Buzón</button>
-                        <button id="email-tab-campaigns" class="px-4 py-2 rounded-xl bg-white-5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white-10" onclick="App.switchEmailSubTab('campaigns')">Campañas</button>
+                        <button id="email-tab-accounts" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchEmailSubTab('accounts')">Cuentas</button>
+                        <button id="email-tab-mailbox" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('mailbox')">Buz&oacute;n</button>
+                        <button id="email-tab-campaigns" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchEmailSubTab('campaigns')">Campa&ntilde;as</button>
                     </div>
 
                     <!-- SUBTAB: CUENTAS SMTP/IMAP -->
@@ -976,20 +976,20 @@
 
                         <!-- Barra de progreso -->
                         <div id="mailbox-progress" class="hidden">
-                            <div id="mailbox-progress-track" class="w-full bg- rounded-full h-1 overflow-hidden>
+                            <div id="mailbox-progress-track" class="w-full bg-[var(--bg-secondary)] rounded-full h-1 overflow-hidden">
                                 <div id="mailbox-progress-fill" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-light))"></div>
                             </div>
                         </div>
 
                         <!-- Layout principal: Carpetas + Mensajes -->
-                        <div class="grid grid-cols-12 gap-4 min-h-min-h-520>
+                        <div class="grid grid-cols-12 gap-4 min-h-[520px]">
                             <!-- Panel de Carpetas -->
                             <div class="col-span-3 card p-0 overflow-hidden">
-                                <div class="p-4 border-b border->
-                                    <h4 class="text-xs font-bold uppercase tracking-wider text-">Carpetas</h4>
+                                <div class="p-4 border-b border-[var(--border)]">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Carpetas</h4>
                                 </div>
-                                <div id="mailbox-folders" class="p-2 space-y-0-5 max-h-max-h-480 overflow-y-auto>
-                                    <div class="text-center py-8 text- text-sm>
+                                <div id="mailbox-folders" class="p-2 space-y-0.5 max-h-[480px] overflow-y-auto">
+                                    <div class="text-center py-8 text-[var(--text-secondary)] text-sm">
                                         <span class="material-symbols-outlined text-3xl mb-2 block opacity-50">folder</span>
                                         <p>Selecciona una cuenta</p>
                                     </div>
@@ -999,17 +999,17 @@
                             <!-- Panel de Mensajes -->
                             <div class="col-span-9 card p-0 overflow-hidden flex flex-col">
                                 <!-- Toolbar -->
-                                <div class="p-3 border-b border- flex items-center justify-between>
+                                <div class="p-3 border-b border-[var(--border)] flex items-center justify-between">
                                     <div class="flex items-center gap-2">
-                                        <span id="mailbox-current-folder" class="text-sm font-medium text-">Bandeja de Entrada</span>
-                                        <span class="text-10 font-black opacity-30 mt-1 block tracking-wider uppercase">Versión 12.44.310</span>
-                                        <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg- px-2 py-0.5 rounded-full"></span>
+                                        <span id="mailbox-current-folder" class="text-sm font-medium text-[var(--text-main)]">Bandeja de Entrada</span>
+                                        <span class="text-[10px] font-black opacity-30 mt-1 block tracking-wider uppercase">Versi&oacute;n 12.44.310</span>
+                                        <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full"></span>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <input type="text" id="mailbox-search" placeholder="Buscar mensajes..." oninput="App.filterMailboxMessages(this.value)" class="input-field !py-1-5 !px-3 text-sm !w-56" />
-                                        <select id="mailbox-sort" onchange="App.sortMailboxMessages(this.value)" class="input-field !py-1-5 !px-3 text-sm">
-                                            <option value="date-desc">Más recientes</option>
-                                            <option value="date-asc">Más antiguos</option>
+                                        <input type="text" id="mailbox-search" placeholder="Buscar mensajes..." oninput="App.filterMailboxMessages(this.value)" class="input-field py-1.5 px-3 text-sm w-56" />
+                                        <select id="mailbox-sort" onchange="App.sortMailboxMessages(this.value)" class="input-field py-1.5 px-3 text-sm">
+                                            <option value="date-desc">M&aacute;s recientes</option>
+                                            <option value="date-asc">M&aacute;s antiguos</option>
                                             <option value="sender">Remitente A-Z</option>
                                             <option value="subject">Asunto A-Z</option>
                                         </select>
@@ -1018,7 +1018,7 @@
 
                                 <!-- Lista de mensajes -->
                                 <div id="mailbox-messages" class="flex-1 overflow-y-auto">
-                                    <div class="flex flex-col items-center justify-center h-full py-16 text->
+                                    <div class="flex flex-col items-center justify-center h-full py-16 text-[var(--text-secondary)]">
                                         <span class="material-symbols-outlined text-5xl mb-3 opacity-50">inbox</span>
                                         <p class="text-sm">Selecciona una carpeta para ver los mensajes</p>
                                     </div>
