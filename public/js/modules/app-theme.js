@@ -1,7 +1,7 @@
 import { LS } from '../src/frontend/utils.js';
 
 const ThemeModule = window.ThemeModule = {
-    VERSION: '12.44.501',
+    VERSION: '12.44.516',
     
     getSystemTheme() {
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

@@ -2,36 +2,36 @@ import { LS, lazyLoad } from './src/frontend/utils.js';
 import { API } from './src/frontend/api.js';
 
 
-import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.487';
-import { Config } from './modules/core/Config.js?v=12.44.487';
-import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.487';
-import { AppStateManager } from './modules/core/State.js?v=12.44.487';
-import { Constants } from './modules/utils/Constants.js?v=12.44.487';
-import { RouterManager } from './modules/navigation/Router.js?v=12.44.487';
-import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.487';
-import { ToastManager } from './modules/components/Toast.js?v=12.44.487';
-import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.487';
-import { TableManager } from './modules/components/Table.js?v=12.44.487';
-import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.487';
-import { FormManager } from './modules/components/Form.js?v=12.44.487';
-import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.487';
-import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.487';
-import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.487';
-import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.487';
-import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.487';
-import { SystemViewInstance } from './modules/views/System.js?v=12.44.487';
-import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.487';
-import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.487';
-import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.487';
-import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.487';
+import { CSSManagerInstance } from './modules/core/CSSManager.js?v=12.44.516';
+import { Config } from './modules/core/Config.js?v=12.44.516';
+import { ThemeManagerInstance } from './modules/core/Theme.js?v=12.44.516';
+import { AppStateManager } from './modules/core/State.js?v=12.44.516';
+import { Constants } from './modules/utils/Constants.js?v=12.44.516';
+import { RouterManager } from './modules/navigation/Router.js?v=12.44.516';
+import { PersistenceManager } from './modules/navigation/Persistence.js?v=12.44.516';
+import { ToastManager } from './modules/components/Toast.js?v=12.44.516';
+import { ModalManager, hideModal } from './modules/components/Modal.js?v=12.44.516';
+import { TableManager } from './modules/components/Table.js?v=12.44.516';
+import { SidebarManager } from './modules/components/Sidebar.js?v=12.44.516';
+import { FormManager } from './modules/components/Form.js?v=12.44.516';
+import { DropdownManager } from './modules/components/Dropdown.js?v=12.44.516';
+import { ViewManagerInstance } from './modules/views/ViewManager.js?v=12.44.516';
+import { MyEventsViewInstance } from './modules/views/MyEvents.js?v=12.44.516';
+import { AdminViewInstance } from './modules/views/Admin.js?v=12.44.516';
+import { EventConfigViewInstance } from './modules/views/EventConfig.js?v=12.44.516';
+import { SystemViewInstance } from './modules/views/System.js?v=12.44.516';
+import { ApiServiceInstance } from './modules/services/ApiService.js?v=12.44.516';
+import { AuthServiceInstance } from './modules/services/AuthService.js?v=12.44.516';
+import { EventServiceInstance } from './modules/services/EventService.js?v=12.44.516';
+import { GuestServiceInstance } from './modules/services/GuestService.js?v=12.44.516';
 
-import ImportExportModule from './modules/app-import.js?v=12.44.501';
-import PushModule from './modules/app-push.js?v=12.44.501';
-import ThemeModule from './modules/app-theme.js?v=12.44.501';
+import ImportExportModule from './modules/app-import.js?v=12.44.516';
+import PushModule from './modules/app-push.js?v=12.44.516';
+import ThemeModule from './modules/app-theme.js?v=12.44.516';
 
 window.LS = LS;
 window.lazyLoad = lazyLoad;
-const VERSION = '12.44.501';
+const VERSION = '12.44.516';
 
 if ('caches' in window) {
     const v = LS.get('check_app_version');

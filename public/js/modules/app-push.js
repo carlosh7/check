@@ -2,7 +2,7 @@ import { LS } from '../src/frontend/utils.js';
 import { API } from '../src/frontend/api.js';
 
 const PushModule = window.PushModule = {
-    VERSION: '12.44.501',
+    VERSION: '12.44.516',
     async initPushNotifications() {
         try {
             const registration = await navigator.serviceWorker.register('/js/sw.js');
