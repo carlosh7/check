@@ -15871,20 +15871,21 @@ App.editAttendance = function(clientIds) {
     document.getElementById('modal-edit-attendance').classList.remove('hidden');
 };
 
-App.saveEditAttendance = async function() {
-    const clientId = document.getElementById('edit-attendance-client-id').value;
-    const eventId = this.state.currentEventId;
-    
-    const data = {
-        organization: document.getElementById('edit-attendance-organization').value,
-        cargo: document.getElementById('edit-attendance-cargo').value,
-        vegano: document.getElementById('edit-attendance-vegano').value,
-        restricciones: document.getElementById('edit-attendance-restricciones').value,
-        status: document.getElementById('edit-attendance-status').value
-    };
-    
-    try {
-        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'PUT', data);
+ App.saveEditAttendance = async function() {
+     const clientId = document.getElementById('edit-attendance-client-id').value;
+     const eventId = this.state.event?.id || this.state.currentEventId;
+     if (!eventId) return Swal.fire({ title: 'Error', text: 'No hay evento seleccionado', icon: 'error', background: '#0f172a', color: '#fff' });
+     
+     const data = {
+         organization: document.getElementById('edit-attendance-organization').value,
+         cargo: document.getElementById('edit-attendance-cargo').value,
+         vegano: document.getElementById('edit-attendance-vegano').value,
+         restricciones: document.getElementById('edit-attendance-restricciones').value,
+         status: document.getElementById('edit-attendance-status').value
+     };
+     
+     try {
+         await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, { method: 'PUT', body: JSON.stringify(data) });
         document.getElementById('modal-edit-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Guardado', text: 'Asistente actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
