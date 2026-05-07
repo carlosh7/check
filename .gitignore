@@ -80,3 +80,5 @@ docker-compose.override.yml
 # --- Build output ---
 dist/
 build/
+data/
+*.pdf
