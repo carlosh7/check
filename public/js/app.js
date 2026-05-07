@@ -8627,22 +8627,28 @@ navigate(viewName, params = {}, push = true) {
         if (!eventId) return;
         const result = await Swal.fire({
             title: 'Duplicar evento',
-            text: 'Se crear&aacute; una copia del evento en estado borrador',
+            html: '<p>Se crear&aacute; una copia del evento en estado borrador.</p>' +
+                  '<label class="flex items-center gap-2 mt-3 p-3 bg-white/5 rounded-lg cursor-pointer">' +
+                  '<input type="checkbox" id="swal-copy-guests" class="accent-violet-500 w-4 h-4">' +
+                  '<span class="text-sm">Copiar lista de invitados</span></label>',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'S&iacute;, duplicar',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: 'Duplicar',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => ({
+                copyGuests: document.getElementById('swal-copy-guests')?.checked || false
+            })
         });
         if (!result.isConfirmed) return;
 
         try {
-            const res = await this.fetchAPI(`/events/${eventId}/clone`, { method: 'POST' });
+            const res = await this.fetchAPI(`/events/${eventId}/clone`, { method: 'POST', body: { copyGuests: result.value?.copyGuests || false } });
             if (res.success) {
                 await this.loadEvents();
-                Swal.fire({ title: '✓ Duplicado', text: `Evento "${res.name}" creado`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+                Swal.fire({ title: '&check; Duplicado', text: res.name + ' creado', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
             }
         } catch(e) {
-            Swal.fire({ title: '✗ Error', text: e.message || 'No se pudo duplicar', icon: 'error', background: '#0f172a', color: '#fff' });
+            Swal.fire({ title: '&times; Error', text: e.message || 'No se pudo duplicar', icon: 'error', background: '#0f172a', color: '#fff' });
         }
     },
 

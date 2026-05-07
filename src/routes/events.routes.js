@@ -1142,6 +1142,38 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
             createEventDatabase(newId);
         }
 
+        // Copiar invitados si se solicita
+        if (req.body.copyGuests && original.has_own_db) {
+            try {
+                const sourceDb = getEventConnection(eventId);
+                if (sourceDb) {
+                    const guests = sourceDb.prepare("SELECT * FROM guests WHERE event_id = ?").all(eventId);
+                    const targetDb = getEventConnection(newId);
+                    if (targetDb && guests.length > 0) {
+                        let copied = 0;
+                        for (const g of guests) {
+                            const newGuestId = getValidId('guests');
+                            const newQrToken = uuidv4();
+                            targetDb.prepare(`
+                                INSERT INTO guests (id, event_id, name, email, phone, organization, position, cargo,
+                                    dietary_notes, restricciones, vegano, status, group_id, checked_in, validated,
+                                    checkin_time, qr_token, created_at, client_id)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)
+                            `).run(
+                                newGuestId, newId, g.name, g.email, g.phone, g.organization, g.position, g.cargo,
+                                g.dietary_notes, g.restricciones, g.vegano, g.status || 'lead', g.group_id,
+                                g.checkin_time || null, newQrToken, g.created_at || now, g.client_id || null
+                            );
+                            copied++;
+                        }
+                        console.log(`[CLONE] ${copied} invitados copiados al evento ${newId}`);
+                    }
+                }
+            } catch (guestErr) {
+                console.error('[CLONE] Error copiando invitados:', guestErr.message);
+            }
+        }
+
         const userEventId = getValidId('user_events');
         db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
             .run(userEventId, req.userId, newId, now);
