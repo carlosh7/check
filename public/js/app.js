@@ -1228,10 +1228,10 @@ const App = window.App = {
                     
                     return `
                     <tr class="user-row-premium">
-                        <td class="px-2 py-3 align-middle" style="width: 40px;">
+                        <td class="px-4 py-3" style="width: 40px;">
                             <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                                 <div class="flex flex-col">
@@ -1240,16 +1240,16 @@ const App = window.App = {
                                 </div>
                             </div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col max-w-[200px]">${clientRows}</div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col max-w-[200px]">${userRows}</div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
-                        <td class="px-2 py-3 align-middle text-left">
+                        <td class="px-4 py-3 text-left">
                             <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                                 ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                             </span>
@@ -1301,10 +1301,10 @@ const App = window.App = {
                     
                     return `
                     <tr class="user-row-premium">
-                        <td class="px-2 py-3 align-middle" style="width: 40px;">
+                        <td class="px-4 py-3" style="width: 40px;">
                             <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                                 <div>
@@ -1314,19 +1314,19 @@ const App = window.App = {
                                 </div>
                             </div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                                 <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">domain</span>
                                 <span class="text-xs font-medium text-[var(--text-main)]">${c.company_name || 'Sin empresa'}</span>
                             </div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col max-w-[200px]">${staffRows}</div>
                         </td>
-                        <td class="px-2 py-3 align-middle">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                         </td>
-                        <td class="px-2 py-3 align-middle text-left">
+                        <td class="px-4 py-3 text-left">
                             <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                                 ${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                             </span>
@@ -1424,10 +1424,10 @@ const App = window.App = {
                 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                    <td class="px-4 py-3" style="width: 40px;">
                         <input type="checkbox" class="client-checkbox" data-client-id="${c.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleClientSelection('${c.id}')">
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #10b981; background: rgba(16,185,129,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
@@ -1436,7 +1436,7 @@ const App = window.App = {
                             </div>
                         </div>
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         ${c.company_name ? `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">corporate_fare</span>
@@ -1447,21 +1447,21 @@ const App = window.App = {
                             <span class="text-xs text-slate-500 italic">Sin empresa</span>
                         </div>`}
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         ${clientStaff.length > 0 ? clientStaff.map(u => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${(u.display_name || u.username).length > 15 ? (u.display_name || u.username).substring(0, 15) + '...' : (u.display_name || u.username)}</span>
                         </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">person</span><span class="text-xs text-slate-500 italic">Sin staff</span></div>`}
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         ${clientEvents.length > 0 ? clientEvents.map(e => `
                         <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/5 mb-1">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #ec4899; background: rgba(236,72,153,0.15); border-radius: 6px;">event</span>
                             <span class="text-xs font-medium text-[var(--text-main)]">${e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name}</span>
                         </div>`).join('') : `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg"><span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #475569; background: rgba(71,85,105,0.15); border-radius: 6px;">event</span><span class="text-xs text-slate-500 italic">Sin eventos</span></div>`}
                     </td>
-                    <td class="px-2 py-3 align-middle text-left">
+                    <td class="px-4 py-3 text-left">
                         <span class="status-pill ${c.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                             ${c.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                         </span>
@@ -1758,10 +1758,10 @@ const App = window.App = {
 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                    <td class="px-4 py-3" style="width: 40px;">
                         <input type="checkbox" class="group-checkbox" data-group-id="${g.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="App.toggleGroupSelection('${g.id}')">
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #7c3aed; background: rgba(124,58,237,0.15); border-radius: 6px;">business</span>
                             <div class="flex flex-col">
@@ -1770,16 +1770,16 @@ const App = window.App = {
                             </div>
                         </div>
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex flex-col max-w-[200px]">${clientRows}</div>
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex flex-col max-w-[200px]">${userRows}</div>
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex flex-col max-w-[200px]">${eventRows}</div>
                     </td>
-                    <td class="px-2 py-3 align-middle text-left">
+                    <td class="px-4 py-3 text-left">
                         <span class="status-pill ${g.status === 'ACTIVE' ? 'status-active' : 'status-pending'}">
                             ${g.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                         </span>
@@ -4038,13 +4038,13 @@ const App = window.App = {
 
                 return `
                 <tr class="user-row-premium">
-                    <td class="px-2 py-3 align-middle">${checkbox}</td>
-                    <td class="px-2 py-3 align-middle">${colStaff}</td>
-                    <td class="px-2 py-3 align-middle">${colEmpresa}</td>
-                    <td class="px-2 py-3 align-middle">${colClientes}</td>
-                    <td class="px-2 py-3 align-middle">${colEventos}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colRol}</td>
-                    <td class="px-2 py-3 align-middle text-left">${colEstado}</td>
+                    <td class="px-4 py-3">${checkbox}</td>
+                    <td class="px-4 py-3">${colStaff}</td>
+                    <td class="px-4 py-3">${colEmpresa}</td>
+                    <td class="px-4 py-3">${colClientes}</td>
+                    <td class="px-4 py-3">${colEventos}</td>
+                    <td class="px-4 py-3 text-left">${colRol}</td>
+                    <td class="px-4 py-3 text-left">${colEstado}</td>
                 </tr>`;
             }).join('');
         }
@@ -11824,10 +11824,10 @@ navigate(viewName, params = {}, push = true) {
             
             tbody.innerHTML = users.map(u => `
                 <tr class="user-row-premium">
-                    <td class="px-2 py-3 align-middle" style="width: 40px;">
+                    <td class="px-4 py-3" style="width: 40px;">
                         <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                             <div class="flex flex-col">
@@ -11836,7 +11836,7 @@ navigate(viewName, params = {}, push = true) {
                             </div>
                         </div>
                     </td>
-                    <td class="px-2 py-3 align-middle">
+                    <td class="px-4 py-3">
                         <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
                     </td>
                 </tr>
@@ -12510,10 +12510,10 @@ navigate(viewName, params = {}, push = true) {
         
         tbody.innerHTML = filtered.map(u => `
             <tr class="user-row-premium">
-                <td class="px-2 py-3 align-middle" style="width: 40px;">
+                <td class="px-4 py-3" style="width: 40px;">
                     <input type="checkbox" class="config-staff-checkbox" data-user-id="${u.id}" style="width: 16px; height: 16px; cursor: pointer;">
                 </td>
-                <td class="px-2 py-3 align-middle">
+                <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[10px] w-3 h-3 flex items-center justify-center flex-shrink-0" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px;">person</span>
                         <div class="flex flex-col">
@@ -12522,7 +12522,7 @@ navigate(viewName, params = {}, push = true) {
                         </div>
                     </div>
                 </td>
-                <td class="px-2 py-3 align-middle">
+                <td class="px-4 py-3">
                     <span class="text-xs font-bold" style="color: #3b82f6; background: rgba(59,130,246,0.15); border-radius: 6px; padding: 2px 8px;">${u.role}</span>
                 </td>
             </tr>
