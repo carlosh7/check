@@ -2005,8 +2005,19 @@
 .bg-black-20 { background-color: rgba(0, 0, 0, 0.2); }
 .bg-black-30 { background-color: rgba(0, 0, 0, 0.3); }
 .bg-black-40 { background-color: rgba(0, 0, 0, 0.4); }
-.bg-black-60 { background-color: rgba(0, 0, 0, 0.6); }
-.bg-black-70 { background-color: rgba(0, 0, 0, 0.7); }
+.bg-black-60 { background-color: rgba(0, 0, 0, 0.8); }
+.bg-black-70 { background-color: rgba(0, 0, 0, 0.85); }
+
+/* ── Modales: bloqueo de interacción ── */
+body.modal-open {
+    overflow: hidden;
+    pointer-events: none;
+}
+body.modal-open .card,
+body.modal-open .premium-modal-header,
+body.modal-open .modal-content {
+    pointer-events: auto;
+}
 
 .border-white-5 { border-color: rgba(255, 255, 255, 0.05); }
 .border-white-10 { border-color: rgba(255, 255, 255, 0.10); }

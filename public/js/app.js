@@ -3815,6 +3815,11 @@ const App = window.App = {
             m.classList.add('hidden');
             m.style.display = '';
             m.removeAttribute('aria-hidden');
+            // Remover bloqueo del body si no hay más modales visibles
+            const activeModals = document.querySelectorAll('[id^="modal-"]:not(.hidden)');
+            if (activeModals.length === 0) {
+                document.body.classList.remove('modal-open');
+            }
         }
     },
     
@@ -14909,6 +14914,17 @@ if (document.readyState === 'loading') {
     // El DOM ya está listo, ejecutar inmediatamente
     initApp();
 }
+
+// ── Observer de modales: asegura body.modal-open ante cualquier cambio directo ──
+(function() {
+    const modalObserver = new MutationObserver(() => {
+        const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
+        document.body.classList.toggle('modal-open', !!visibleModal);
+    });
+    document.querySelectorAll('[id^="modal-"]').forEach(m => {
+        modalObserver.observe(m, { attributes: true, attributeFilter: ['class'] });
+    });
+})();
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);

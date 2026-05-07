@@ -19,8 +19,7 @@ class Modal {
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
         this.activeModals.add(modalId);
-        
-        
+        document.body.classList.add('modal-open');
     }
     
     // Ocultar un modal
@@ -34,8 +33,9 @@ class Modal {
         modal.classList.add('hidden');
         modal.setAttribute('aria-hidden', 'true');
         this.activeModals.delete(modalId);
-        
-        
+        if (this.activeModals.size === 0) {
+            document.body.classList.remove('modal-open');
+        }
     }
     
     // Toggle modal
