@@ -1,256 +1,189 @@
-No se de donde vienes ni lo que tubiste que pasar para llegar hasta aqui, pero ahora estas aqui y tienes que hacer tu trabajo lo mejor posible. 
+No se de donde vienes ni lo que tubiste que pasar para llegar hasta aqui, pero ahora estas aqui y tienes que hacer tu trabajo lo mejor posible.
 Tomate un momento has una pausa, respira y luego continua.
-Tomate tu tiempo para entender el proyecto y su funcionamiento. No te apresures a hacer cambios sin entender completamente el código.
+Tomate tu tiempo para entender el proyecto y su funcionamiento. No te apresures a hacer cambios sin entender completamente el codigo.
 
-   
 
 # Directivas para el Agente
 
 ## COMPROMISO DEL AGENTE (LEER PRIMERO)
 
-**Yo, como agente de IA, me comprometo a seguir TODAS estas reglas sin excepción. Si violo alguna, el usuario tiene derecho a reclamarme.**
+**Yo, como agente de IA, me comprometo a seguir TODAS estas reglas sin excepcion. Si violo alguna, el usuario tiene derecho a reclamarme.**
 
 ### Reglas Inquebrantables:
 
-1. **Idioma:** Siempre respondo en español
-2. **Razonamiento:** Siempre explico mi pensamiento en español (qué busco, por qué, qué encontré)
-3. **Versionado:** SIEMPRE incrementamos versión y query strings después de cambio significativo
+1. **Idioma:** Siempre respondo en espanol
+2. **Razonamiento:** Siempre explico mi pensamiento en espanol (que busco, por que, que encontre)
+3. **Versionado:** SIEMPRE incrementamos version y query strings despues de cambio significativo
 4. **Flujo de Trabajo:** SIEMPRE sigo el checklist completo al final de cada tarea
 
-### Comunicación y Trabajo en Equipo (OBLIGATORIO)
+### Comunicacion y Trabajo en Equipo (OBLIGATORIO)
 
-**ANTES de hacer cualquier cambio de código:**
-1. **EXPLICAR** qué voy a hacer (plan)
-2. **ESPERAR** tu confirmación antes de actuar
+**ANTES de hacer cualquier cambio de codigo:**
+1. **EXPLICAR** que voy a hacer (plan)
+2. **ESPERAR** tu confirmacion antes de actuar
 3. **NO actuar solo** - trabajamos juntos paso a paso
 
 **NUNCA:**
 - Hacer cambios sin explicar primero
-- Crear versiones sin confirmación
-- Asumir que sé lo que necesitas
+- Crear versiones sin confirmacion
+- Asumir que se lo que necesitas
 
 **Siempre pregunta antes de:**
-- Modificar archivos de código
-- Incrementar versión
+- Modificar archivos de codigo
+- Incrementar version
 - Hacer commit/push
 - Crear tags
 
----
-
-## Ubicación del Proyecto
-```
-C:\Users\carlo\OneDrive\Documentos\APP\Registro
-```
 
 ---
 
-## Docker (Entorno de Producción/Pruebas)
+## LECTURA OBLIGATORIA AL INICIAR
 
-El proyecto usa Docker con dos modalidades:
-1. **docker-compose.yml** - Entorno local de desarrollo
-2. **portainer-stack.yml** - Despliegue en Portainer (producción)
+Cuando llegues a este proyecto por primera vez o retomes el trabajo:
 
-### Estructura de Persistencia de Datos
+1. **LEE** `docs/ROADMAP.md` — contiene el plan maestro, el estado actual y el proximo feature a implementar
+2. **LEE** esta seccion de abajo para comandos rapidos
+3. **VERIFICA** la version actual en `package.json` antes de asumir cualquier numero
 
-**IMPORTANTE:** Todas las bases de datos se almacenan en `/home/data_check` (host) que se mapea a `/usr/src/app/persistence` (contenedor).
+### Comandos Rapidos
 
-```
-/home/data_check/
-├── system/          # Base de datos del sistema (usuarios, eventos, grupos, clientes, etc.)
-├── events/         # Bases de datos independientes por evento
-│   ├── {eventId1}.db   # DB del evento 1 (guests, pre_registrations, surveys, wheels, etc.)
-│   └── {eventId2}.db   # DB del evento 2
-└── uploads/        # Archivos subidos (logos, imágenes, etc.)
-```
+Cuando el usuario diga estas frases, responde asi:
 
-**Cada evento tiene su propia base de datos independiente** con las siguientes tablas:
-- `guests` - Asistentes/importados
-- `pre_registrations` - Registros desde la página pública
-- `event_wheels` / `wheel_participants` / `wheel_spins` / `wheel_leads` - Ruletas de sorteos
-- `surveys` / `survey_responses` - Encuestas
-- `event_agenda` - Agenda del evento
-- `guest_suggestions` - Sugerencias de invitados
+| El usuario dice | Tu accion |
+|----------------|-----------|
+| "status del proyecto" | Lee ROADMAP.md + package.json → muestra version, feature en curso, ultimas completadas |
+| "retoma el trabajo" | Lee ROADMAP.md → encuentra proximo feature pendiente → presenta plan para empezar |
+| "plan completo" o "roadmap" | Lee ROADMAP.md → muestra el roadmap con fases y prioridades |
+| "dame contexto" | Lee ROADMAP.md + AGENTS.md + ARQUITECTURA_SISTEMA.md → da resumen completo del proyecto |
+| "que sigue" o "siguiente feature" | Lee ROADMAP.md → muestra el proximo feature a implementar segun el orden de fases |
 
-### Portainer (Producción)
-
-**El archivo `portainer-stack.yml` está en el repositorio y se puede editar si hay necesidades específicas.** Portainer tiene el stack configurado para usar este archivo; al hacer "Redeploy", el contenedor ejecuta `git clone` automáticamente para obtener los últimos cambios.
-
-**Características del stack:**
-- Crea automáticamente las carpetas `/system`, `/events`, `/uploads` al iniciar
-- Ejecuta `git clone --depth 1` desde GitHub al iniciar/recrear el contenedor
-- Monta `/home/data_check` del host a `/usr/src/app/persistence` del contenedor
-
-**Para actualizar en Portainer:**
-1. Hacer push de los cambios al repositorio GitHub
-2. En Portainer, hacer "Redeploy" del stack (no copiar archivos, Portainer usa el archivo del repositorio)
-3. Los datos persistentes se mantienen en `/home/data_check`
-
-### docker-compose.yml (Desarrollo Local)
-
-Ubicación del contenedor: `C:\Users\carlo\check`
-No escribas en el Clon
-### Comandos Docker:
-
-```bash
-# 1. Detener contenedor
-docker-compose down
-
-# 2. Reiniciar con los últimos cambios (rebuild)
-docker-compose up --build -d
-
-# 3. Ver logs
-docker-compose logs -f
-
-# 4. Ver estado
-docker-compose ps
-```
-
-### Flujo de Actualización Completo (docker-compose local):
-```bash
-cd C:\Users\carlo\check
-
-# Hacer pull de últimos cambios
-git pull origin --tags
-
-# Rebuild del contenedor
-docker-compose down
-docker-compose up --build -d
-
-# Validar que funciona
-curl -s http://localhost:3000/api/health
-```
 
 ---
 
-## CHECKLIST PARA CADA TAREA
+## Entorno Actual
 
-Antes de comenzar cualquier tarea:
-- [ ] Leer y entender el objetivo
-- [ ] Si hay múltiples pasos, fraccionarlos en partes pequeñas
-- [ ] Explicar el plan de acción en español
+### Configuracion del Servidor (Linux)
 
-Durante la tarea:
-- [ ] Informar progreso: qué estoy haciendo, qué completé, qué sigue
+- **Sistema:** Ubuntu Linux
+- **Ruta del repositorio:** `/home/carlosh/Check`
+- **Docker:** Instalado (socket `/var/run/docker.sock`)
+- **Portainer:** `https://localhost:9443`
+- **App URL directa:** `http://192.168.2.17:3000`
+- **Nginx Proxy Admin:** `http://192.168.2.17:81`
+- **Dolibarr:** `http://192.168.2.17:8080`
 
-Al completar cualquier cambio de código:
-- [ ] **INCREMENTAR VERSIÓN** en `package.json` (X.Y.Z)
-- [ ] **ACTUALIZAR** `app-shell.html` → `?v=X.Y.Z`
-- [ ] **ACTUALIZAR** `index.html` → `?v=X.Y.Z`
-- [ ] **COMMIT** con mensaje descriptivo
-- [ ] **PUSH** a origin main
-- [ ] **PULL** en `C:\Users\carlo\check`
-- [ ] **VALIDAR** con `curl -s http://localhost:3000/api/health`
-- [ ] **CONFIRMAR** qué se hizo al usuario
+### Credenciales
+
+- **Check App:** admin@check.com / admin123
+- **Nginx Proxy Manager:** admin@example.com / changeme (cambiar al primer login)
+- **Portainer:** las que configuro el usuario
+
+### Stack Docker
+
+- `check-app` — contenedor Node.js con la app
+- `nginx-proxy-manager` — reverse proxy
+- Red compartida: `proxy-network`
+
 
 ---
 
-## Flujo de Trabajo (Regla de Oro - ACTUALIZADO)
+## Flujo de Trabajo (Linux + Portainer)
 
-### ESTRUCTURA DE DIRECTORIOS:
-- **REPOSITORIO ORIGINAL:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro` (aquí se hacen los cambios)
-- **CONTENEDOR DE PRUEBAS:** `C:\Users\carlo\check` (git clone solo para validación) No escribas en el contenedor 
+### Ciclo Completo
 
-### Pasos obligatorios después de CADA tarea (Modo Puerto/Local):
-
-```bash
-# 1. DESDE REPOSITORIO ORIGINAL (C:\Users\carlo\OneDrive\Documentos\APP\Registro)
-#    - Hacer cambios en el código
-#    - Incrementar versión en package.json si es cambio significativo
-#    - Actualizar referencias de versión en index.html y app-shell.html
-git add . && git commit -m "mensaje descriptivo" && git push origin main
-
-# 2. CREAR TAG si fue version bump (desde repositorio original)
-git tag v${VERSION} HEAD && git push origin v${VERSION}
-
-# 3. DESDE CONTENEDOR DE PRUEBAS (C:\Users\carlo\check)
-#    - Sincronizar con cambios del repositorio
-git pull origin --tags
-
-# 4. VERIFICAR si server.js cambió
-git diff --name-only HEAD~1 | grep -q server.js && echo "SERVER CAMBIÓ - REINICIAR" || echo "OK"
-
-# 5. Si server.js cambió o hay cambios en archivos del servidor:
-#    - Matar procesos node existentes
-#    - Reiniciar servidor node server.js
-
-# 6. VALIDAR que servidor está funcionando
-curl -s http://localhost:3000/api/health
-
-# 7. INFORMAR al usuario que cambios están listos para validación
-#    - Especificar versión actual
-#    - Enumerar cambios realizados
-#    - Proporcionar URL para pruebas: http://localhost:3000
+```
+TU explicas plan → YO explico plan y espero confirmacion
+→ TU confirmas → YO implemento cambios
+→ YO version bump + commit + push + tag
+→ YO informo "listo para Redeploy"
+→ TU haces Redeploy del stack check en Portainer
+→ TU validas en http://192.168.2.17:3000
+→ TU dices si funciona o si hay que ajustar
 ```
 
-### Modo Portainer (Producción):
+### Pasos detallados para el agente:
+
+**Antes de codificar:**
+- [ ] Leer ROADMAP.md para saber el estado actual
+- [ ] Entender el objetivo del cambio
+- [ ] Explicar plan al usuario en espanol
+- [ ] Esperar confirmacion explicita del usuario
+
+**Durante la implementacion:**
+- [ ] Seguir convenciones del codigo existente
+- [ ] Revisar codigo de referencia en repos analizados (si aplica)
+- [ ] Informar progreso al usuario
+
+**Al completar cambios (OBLIGATORIO):**
+
 ```bash
-# 1. DESDE REPOSITORIO ORIGINAL
-#    - Hacer cambios en el código
-#    - Incrementar versión en package.json si es cambio significativo
-git add . && git commit -m "mensaje descriptivo" && git push origin main
+# 1. LEER version actual desde package.json
+#    NUNCA asumir la version - siempre verificar con lectura directa
 
-# 2. CREAR TAG si fue version bump
-git tag v${VERSION} HEAD && git push origin v${VERSION}
+# 2. INCREMENTAR solo el ultimo digito (Z): 12.44.510 → 12.44.511
+#    NUNCA incrementar el digito medio (Y)
 
-# 3. ACTUALIZAR STACK EN PORTAINER
-#    - En Portainer, hacer "Redeploy" del stack
-#    - El contenedor ejecuta git clone automáticamente
+# 3. ACTUALIZAR referencias de version:
+#    - package.json → "version": "X.Y.Z"
+#    - public/html/app-shell.html → "Check Pro vX.Y.Z"
+#    - index.html → "vX.Y.Z"
 
-# 4. VALIDAR que el contenedor está funcionando
-curl -s http://localhost:3000/api/health
+# 4. HACER commit + push + tag
+git add .
+git commit -m "tipo: descripcion del cambio (vX.Y.Z)"
+git push origin main
+git tag vX.Y.Z HEAD
+git push origin vX.Y.Z
 ```
 
-**CRÍTICO:** El contenedor de pruebas (`C:\Users\carlo\check`) es solo para validación. Todos los cambios se hacen en el repositorio original. 
-Si el sistema del Agente devuelve error de "fuera de workspace" al intentar operar en `C:\Users\carlo\check`, **DEBE** usar el parámetro `-C` desde el repositorio original:
-- Ejemplo: `git -C C:\Users\carlo\check pull origin main`
-
-**NOTA SOBRE POWERSHELL:** No uses `&&` para encadenar comandos; usa `;` (punto y coma) o ejecútalos por separado.
-
-**VALIDACIÓN POR USUARIO:** Después de que el agente complete los pasos 1-6, el usuario valida manualmente en `http://localhost:3000`.
-
+**Despues del push:**
+- [ ] Informar al usuario que los cambios estan listos
+- [ ] Especificar version actual
+- [ ] Enumerar los cambios realizados
+- [ ] Indicar "Redeploy del stack check en Portainer y prueba en http://192.168.2.17:3000"
 
 
 ---
 
 ## Versionado del Proyecto (OBLIGATORIO)
 
-La versión actual está en `package.json` campo `version` (formato: X.Y.Z)
+La version actual esta en `package.json` campo `version` (formato: X.Y.Z)
 
 **PROCEDIMIENTO OBLIGATORIO ANTES DE INCREMENTAR:**
-1. **LEER** la versión actual desde `package.json` usando la herramienta Read
-2. **NUNCA asumir la versión** - siempre verificar con lectura directa
-3. **INCREMENTAR solo el último dígito (Z)**: si está en 12.31.9 → 12.31.10
-4. **NUNCA incrementar el dígito medio (Y)**: NO hacer 12.31.9 → 12.32.0
-5. **ACTUALIZAR** todos los archivos relevantes con la nueva versión
+1. **LEER** la version actual desde `package.json` usando la herramienta Read
+2. **NUNCA asumir la version** - siempre verificar con lectura directa
+3. **INCREMENTAR solo el ultimo digito (Z)**: si esta en 12.31.9 → 12.31.10
+4. **NUNCA incrementar el digito medio (Y)**: NO hacer 12.31.9 → 12.32.0
+5. **ACTUALIZAR** todos los archivos relevantes con la nueva version
 
-| Archivo | Qué cambiar | Ejemplo |
-|---------|--------------|---------|
+| Archivo | Que cambiar | Ejemplo |
+|---------|-------------|---------|
 | `package.json` | `"version": "X.Y.Z"` | `"version": "12.16.8"` |
-| `app-shell.html` | Texto versión visible | `Check Pro v12.16.8` |
-| `index.html` | `?v=X.Y.Z` en CSS | `?v=12.16.8` |
-| `script_v12_XX_X.js` | `const VERSION = 'X.Y.Z'` | `const VERSION = '12.16.8'` |
+| `app-shell.html` | Texto version visible | `Check Pro v12.16.8` |
+| `index.html` | `v=X.Y.Z` en CSS / texto version | `v=12.16.8` |
 
-**NOTA:** `portainer-stack.yml` se modifica solo cuando hay necesidades específicas del stack (cambios en puertos, volúmenes, variables de entorno, etc.). Para cambios de código normales NO se toca.
+**NOTA:** `portainer-stack.yml` se modifica solo cuando hay necesidades especificas del stack.
 
-**SIN este version bump, el navegador usa caché y NO ve los cambios.**
+**SIN este version bump, el navegador usa cache y NO ve los cambios.**
 
 **EJEMPLO CORRECTO:**
-- Versión actual: 12.31.9
-- Siguiente versión: 12.31.10 ✅
+- Version actual: 12.31.9
+- Siguiente version: 12.31.10 ✅
 - NO: 12.32.0 ❌
+
 
 ---
 
 ## Tags de Git (OBLIGATORIO)
 
-**Cada vez que se incrementa la versión en `package.json`, DEBE crearse un tag git:**
+**Cada vez que se incrementa la version en `package.json`, DEBE crearse un tag git:**
 
 ```bash
 git tag v${VERSION} HEAD
 git push origin v${VERSION}
 ```
 
-**Ejemplo:** Si la versión sube a 12.18.1:
+**Ejemplo:** Si la version sube a 12.18.1:
 ```bash
 git tag v12.18.1
 git push origin v12.18.1
@@ -263,75 +196,40 @@ git tag --sort=-version:refname | head -5
 
 **NUNCA saltar versiones en el sequencial de tags.**
 
----
-
-## Formato de Respuestas
-- Respuestas cortas y directas
-- Si hay múltiples problemas, enumerarlos
-- Si arreglas algo, confirmar qué fue
 
 ---
 
-## Credenciales
-- **Login:** admin@check.com / admin123
-- **Puerto validación:** 3000
+## Documentacion Referenciada
+
+| Archivo | Cuando leerlo |
+|---------|---------------|
+| `docs/ROADMAP.md` | **SIEMPRE primero** — plan maestro, estado actual, proximo feature |
+| `WORKFLOW.md` | Si necesitas entender el flujo de deploy completo |
+| `docs/repos-analysis.md` | Si vas a implementar una feature inspirada en otro repo |
+| `docs/ARQUITECTURA_SISTEMA.md` | Si necesitas entender BD, rutas, estructura del sistema |
+| `docs/PLAN_MODULARIZACION_FRONTEND.md` | Si tocas modulos del frontend |
+| `docs/CONTEXTO_RAPIDO.md` | Si necesitas un resumen ejecutivo del proyecto |
+| `docs/ESTRUCTURA_UI_CHECK_PRO.md` | Si trabajas en vistas del frontend |
+| `docs/MIGRATION_STATUS.md` | Si ves errores de migracion de base de datos |
+| `server.js` | Backend principal (rutas API, configuracion) |
+| `src/utils/database-manager.js` | Gestion de bases de datos por evento |
+| `src/utils/backup.js` | Sistema de respaldos |
+| `src/security/audit.js` | Logging de auditoria |
+| `src/routes/*.routes.js` | Endpoints de la API |
+
+**Regla:** No leas todo de golpe. Lee solo lo necesario para la tarea actual.
+
+
 ---
 
-## AGENTE PUENTE (BRIDGE) - Sincronización en Windows
+## Historial: Entorno Windows (Referencia)
 
-Debido a restricciones de sandboxing y permisos en Windows 11, se utiliza un agente puente externo (opencode-cli) para ejecutar comandos de terminal y sincronización Docker.
+Este proyecto tambien se desarrollo originalmente en Windows con el siguiente setup.
+Se mantiene como referencia historica, pero **no es el entorno activo**.
 
-**Entorno:**
-- **OS:** Windows 11
 - **Repositorio Original:** `C:\Users\carlo\OneDrive\Documentos\APP\Registro`
-- **Contenedor/Clon:** `C:\Users\carlo\check` (Entorno Docker)
+- **Contenedor de Pruebas:** `C:\Users\carlo\check`
+- **Puente:** `antigravity_bridge.ps1` via opencode-cli
+- **Comando:** `opencode-cli run "powershell.exe -ExecutionPolicy Bypass -File .\antigravity_bridge.ps1"`
 
-**Comando de Ejecución Puente:**
-Para ejecutar la Regla de Oro, sincronizar el clon y reiniciar el servidor, utiliza:
-
-```bash
-opencode-cli run "powershell.exe -ExecutionPolicy Bypass -File .\antigravity_bridge.ps1"
-```
-
-**Nota:** El archivo `antigravity_bridge.ps1` debe contener la lógica de Git, actualización del clon, ejecución de `docker-compose up --build -d` y validación final.
-
----
-
-## CONFIGURACIÓN EXCLUSIVA AGENTE ANTIGRAVITY (NO-SANDBOX)
-# Esta sección es aislada para permitir la autonomía de Antigravity en Windows 11.
-# El orquestador debe otorgar local_shell_access para cumplir con las tareas.
-
-capabilities:
-  - shell_local: true
-  - powershell_raw: true
-  - disable_sandbox: true
-
-runtime_config:
-  - use_external_cli: opencode-cli
-  - task_execution: autonomous
-
----
-
-## ENTORNO LINUX (PRUEBAS ACTUAL)
-
-Este repositorio también se usa en un entorno Linux para pruebas con Portainer.
-
-### Configuración
-
-- **Ruta local:** `/home/carlosh/Check`
-- **Portainer:** `https://localhost:9443`
-- **App URL:** `http://localhost:3000`
-- **Docker socket:** `/var/run/docker.sock`
-
-### Workflow Linux (resumido)
-
-1. Hacer cambios en `/home/carlosh/Check`
-2. Version bump → commit → push → tag
-3. Usuario hace Redeploy del stack en Portainer
-4. Usuario valida en `http://localhost:3000`
-
-### Para más detalles
-
-Leer `WORKFLOW.md` en la raíz del proyecto — contiene el flujo completo, diagrama y checklist detallado para el agente.
-
----
+Para el flujo Windows completo, revisar el git historico de este archivo.
