@@ -15681,8 +15681,12 @@ App.populateAttendanceFilters = function() {
     }
 },
 
-App.clearAttendanceDatabase = async function() {
-    const eventId = this.state.event?.id || this.state.currentEventId;
+ App.clearAttendanceDatabase = async function() {
+     const userRole = App.state?.user?.role;
+     if (userRole !== 'ADMIN' && userRole !== 'PRODUCTOR') {
+         return Swal.fire({ icon: 'error', title: 'Acceso denegado', text: 'Solo ADMIN y PRODUCTOR pueden borrar la base de datos' });
+     }
+     const eventId = this.state.event?.id || this.state.currentEventId;
     if (!eventId) return;
 
     const { isConfirmed } = await Swal.fire({
