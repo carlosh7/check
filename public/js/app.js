@@ -1006,43 +1006,116 @@ const App = window.App = {
     },
 
     // ── Analytics ──
-    analyticsChart: null,
+    analyticsFlowChart: null,
 
     loadAnalytics: async function() {
-        const period = document.getElementById('analytics-period')?.value || 30;
+        const eventId = this.state.event?.id;
+        if (!eventId) return;
         try {
-            const res = await this.fetchAPI('/stats/analytics?period=' + period);
+            const res = await this.fetchAPI('/stats/' + eventId);
             if (!res) return;
-            const elTotal = document.getElementById('analytics-total-events');
-            const elNew = document.getElementById('analytics-new-events');
-            const elGuests = document.getElementById('analytics-total-guests');
-            const elConversion = document.getElementById('analytics-conversion');
-            if (elTotal) elTotal.textContent = res.totalEvents || 0;
-            if (elNew) elNew.textContent = res.recentEvents || 0;
-            if (elGuests) elGuests.textContent = res.totalGuests || 0;
-            if (elConversion) elConversion.textContent = (res.conversionRate || 0) + '%';
 
-            const canvas = document.getElementById('analytics-chart');
-            if (!canvas || typeof Chart === 'undefined') return;
-            if (this.analyticsChart) this.analyticsChart.destroy();
-            this.analyticsChart = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels: ['Eventos totales', 'Eventos nuevos', 'Invitados'],
-                    datasets: [{
-                        label: 'Periodo (' + period + ' d&iacute;as)',
-                        data: [res.totalEvents || 0, res.recentEvents || 0, res.totalGuests || 0],
-                        backgroundColor: ['rgba(11,165,236,0.6)', 'rgba(16,185,129,0.6)', 'rgba(124,58,237,0.6)'],
-                        borderColor: ['#0ba5ec', '#10b981', '#7c3aed'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } }
+            const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? '-'; };
+
+            setText('analytics-total', res.total || 0);
+            setText('analytics-checkedin', res.checkedIn || 0);
+            setText('analytics-pending', res.pending || 0);
+            setText('analytics-rate', (res.conversionRate || 0) + '%');
+            setText('analytics-orgs', res.orgs || 0);
+            setText('analytics-onsite', res.onsite || 0);
+
+            // Flow chart (check-ins por hora)
+            const flowCanvas = document.getElementById('analytics-flow-chart');
+            if (flowCanvas && typeof Chart !== 'undefined') {
+                if (this.analyticsFlowChart) this.analyticsFlowChart.destroy();
+                const flowData = res.flowData || [];
+                const hours = [];
+                const counts = [];
+                for (let h = 0; h < 24; h++) {
+                    const hh = String(h).padStart(2, '0');
+                    hours.push(hh + ':00');
+                    const found = flowData.find(f => f.hour === hh);
+                    counts.push(found ? found.count : 0);
                 }
-            });
+                this.analyticsFlowChart = new Chart(flowCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: hours,
+                        datasets: [{
+                            label: 'Check-ins',
+                            data: counts,
+                            borderColor: '#0ba5ec',
+                            backgroundColor: 'rgba(11,165,236,0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: counts.map(c => c > 0 ? '#0ba5ec' : 'transparent'),
+                            pointRadius: counts.map(c => c > 0 ? 3 : 0)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 9 } } },
+                            y: { beginAtZero: true, ticks: { color: '#94a3b8', font: { size: 9 } } }
+                        }
+                    }
+                });
+            }
+
+            // Top organizaciones
+            const orgsList = document.getElementById('analytics-orgs-list');
+            if (orgsList) {
+                const orgs = res.orgDistribution || [];
+                if (orgs.length === 0) {
+                    orgsList.innerHTML = '<p class="text-[var(--text-secondary)] italic">Sin datos</p>';
+                } else {
+                    const maxCount = Math.max(...orgs.map(o => o.count));
+                    orgsList.innerHTML = orgs.map(o =>
+                        '<div class="flex items-center gap-2">' +
+                        '<span class="w-20 truncate text-[var(--text-secondary)]">' + (o.organization || '-') + '</span>' +
+                        '<div class="flex-1 h-3 rounded-full bg-[var(--bg-secondary)] overflow-hidden">' +
+                        '<div class="h-full rounded-full bg-[var(--primary)]" style="width:' + Math.round((o.count / maxCount) * 100) + '%"></div></div>' +
+                        '<span class="w-6 text-right font-bold text-white text-[10px]">' + o.count + '</span></div>'
+                    ).join('');
+                }
+            }
+
+            // Dieta
+            const dietEl = document.getElementById('analytics-diet');
+            if (dietEl) {
+                const diet = res.dietaryDistribution || [];
+                if (diet.length === 0) {
+                    dietEl.innerHTML = '<p class="text-[var(--text-secondary)] italic">Sin datos</p>';
+                } else {
+                    const total = diet.reduce((a, d) => a + d.count, 0);
+                    dietEl.innerHTML = diet.map(d =>
+                        '<div class="flex justify-between text-xs"><span>' + (d.diet_type || '-') + '</span><span class="font-bold text-white">' + d.count + ' <span class="text-[var(--text-muted)]">(' + Math.round((d.count / total) * 100) + '%)</span></span></div>'
+                    ).join('');
+                }
+            }
+
+            // Género
+            const genderEl = document.getElementById('analytics-gender');
+            if (genderEl) {
+                const gender = res.genderDistribution || [];
+                if (gender.length === 0) {
+                    genderEl.innerHTML = '<p class="text-[var(--text-secondary)] italic">Sin datos</p>';
+                } else {
+                    genderEl.innerHTML = gender.map(g =>
+                        '<div class="flex justify-between text-xs"><span>' + (g.gender || '-') + '</span><span class="font-bold text-white">' + g.count + '</span></div>'
+                    ).join('');
+                }
+            }
+
+            // Alertas de salud
+            const healthEl = document.getElementById('analytics-health');
+            if (healthEl) {
+                const alerts = res.healthAlerts || 0;
+                healthEl.innerHTML = '<div class="flex items-center gap-2"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
+                    (alerts > 0 ? '<span class="material-symbols-outlined text-sm">warning</span>' : '<span class="material-symbols-outlined text-sm">check_circle</span>') +
+                    '</span><span class="font-bold text-white text-sm">' + alerts + '</span><span class="text-[var(--text-secondary)] text-xs">' + (alerts === 1 ? 'alerta' : 'alertas') + '</span></div>';
+            }
         } catch(e) {
             console.error('[ANALYTICS] Error:', e);
         }
