@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.578</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.580</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -225,15 +225,6 @@
                         </div>
                     </div>
 
-                    <div class="search-box-container">
-                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                               oninput="App.filterAttendance(); App.loadAnalytics()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
-                        <span class="material-symbols-outlined search-icon">search</span>
-                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions(); App.loadAnalytics();">close</span>
-                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
-                    </div>
-
                 <!-- SECCIÓN: ANALYTICS -->
                 <div id="admin-analytics" class="hidden space-y-2 my-2">
                     <div class="flex justify-between items-center">
@@ -280,7 +271,7 @@
                     <div class="grid grid-cols-12 gap-2">
                         <div class="card p-2 col-span-7">
                             <h4 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">Check-ins por hora</h4>
-                            <canvas id="analytics-flow-chart" height="120"></canvas>
+                            <canvas id="analytics-flow-chart" height="100"></canvas>
                         </div>
                         <div class="card p-2 col-span-5">
                             <h4 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">Top Organizaciones</h4>
@@ -339,10 +330,10 @@
 
                     <div class="search-box-container">
                         <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
-                               oninput="App.filterAttendance(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
+                                oninput="App.filterAttendance(); App.loadAnalytics(); App.showAttendanceSuggestions()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
                         <span class="material-symbols-outlined search-icon">search</span>
                         <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
-                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions();">close</span>
+                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions(); App.loadAnalytics();">close</span>
                         <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
                     </div>
                 </div>
