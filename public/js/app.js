@@ -14102,19 +14102,20 @@ navigate(viewName, params = {}, push = true) {
             this.updateEmailTemplateSelects(templates);
             
             // Cargar guests para conteo
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`);
-            const total = guests?.length || 0;
-            const confirmed = guests?.filter(g => g.checked_in)?.length || 0;
+            const guestsRes = await this.fetchAPI(`/events/${eventId}/guests`);
+            const guests = Array.isArray(guestsRes) ? guestsRes : (guestsRes.data || []);
+            const total = guests.length || 0;
+            const confirmed = guests.filter(g => g.checked_in).length || 0;
             const pending = total - confirmed;
             
             const countEl = document.getElementById('mailing-recipient-count');
             if (countEl) countEl.textContent = `${total} invitados (${confirmed} confirmados, ${pending} pendientes)`;
             
             // Guardar guests en estado
-            this.state.mailingGuests = guests || [];
+            this.state.mailingGuests = guests;
             
             // Cargar grupos
-            const groups = [...new Set((guests || []).filter(g => g.group_name).map(g => g.group_name))];
+            const groups = [...new Set(guests.filter(g => g.group_name).map(g => g.group_name))];
             const groupSel = document.getElementById('mailing-recipient-group');
             if (groupSel) {
                 groupSel.innerHTML = '<option value="">-- Seleccionar grupo --</option>' +
@@ -14131,9 +14132,6 @@ navigate(viewName, params = {}, push = true) {
                     this.updateMailingRecipientCount();
                 });
             });
-            
-            // Inicializar editor Quill
-            setTimeout(() => this.initMailingQuillEditor(), 100);
             
         } catch (e) {
             console.error('[MAILING] Error loading data:', e);
@@ -14168,21 +14166,12 @@ navigate(viewName, params = {}, push = true) {
         if (template) {
             const subjectEl = document.getElementById('mailing-subject');
             
-            if (subjectEl && !subjectEl.value) subjectEl.value = template.subject || '';
-            
-            // Inicializar editor visual
-            this.switchMailingEditorMode('visual');
-            this.initMailingQuillEditor();
-            
             // Cargar contenido de la plantilla
-            if (template.body_html) {
-                this.setMailingContent(template.body_html);
-            } else if (template.body_text) {
-                this.setMailingContent(`<p>${template.body_text}</p>`);
+            const bodyEl = document.getElementById('mailing-composer-body');
+            if (bodyEl) {
+                bodyEl.value = template.body_html || template.body_text || '';
             }
-            
-            // Actualizar preview
-            this.updateMailingPreview();
+            if (subjectEl && !subjectEl.value) subjectEl.value = template.subject || '';
         }
     },
 
@@ -14205,11 +14194,11 @@ navigate(viewName, params = {}, push = true) {
                         account_id: accountId,
                         to: email,
                         subject: document.getElementById('mailing-subject')?.value || 'Test',
-                        body_html: this.getMailingContent(),
+                        body_html: document.getElementById('mailing-composer-body')?.value || '',
                         variables: { guest_name: 'Test User' }
                     }
                 });
-                Swal.fire('Ô£ô ├ëxito', 'Email de prueba enviado', 'success');
+                Swal.fire('&Eacute;xito', 'Email de prueba enviado', 'success');
             } catch (e) {
                 Swal.fire('Error', e.message || 'No se pudo enviar', 'error');
             }
@@ -14219,7 +14208,7 @@ navigate(viewName, params = {}, push = true) {
     sendMailing: async function() {
         const accountId = document.getElementById('mailing-account-select')?.value;
         const subject = document.getElementById('mailing-subject')?.value;
-        const bodyHtml = this.getMailingContent();
+        const bodyHtml = document.getElementById('mailing-composer-body')?.value || '';
         
         if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta', 'error');
         if (!subject) return Swal.fire('Error', 'Ingresa un asunto', 'error');
@@ -14231,7 +14220,7 @@ navigate(viewName, params = {}, push = true) {
         if (!eventId) return Swal.fire('Error', 'No hay evento seleccionado', 'error');
         
         try {
-            // Crear campa├▒a
+            // Crear campa&ntilde;a
             const campaign = await this.fetchAPI('/email/campaigns', {
                 method: 'POST',
                 body: {
