@@ -406,7 +406,7 @@
                                 <h3 class="card-title">Participantes</h3>
                                 
                                 <!-- Fuente de datos -->
-                                <div class="mb-4 p-4 bg- rounded-xl>
+                                <div class="mb-4 p-4 bg-[var(--bg-secondary)] rounded-xl">
                                     <p class="text-sm font-bold mb-2">Agregar participantes desde:</p>
                                     <div class="flex flex-wrap gap-2">
                                         <button id="btn-add-from-guests" class="btn-secondary btn-compact">Todos los invitados</button>
@@ -519,16 +519,10 @@
                                             <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Destinatarios</label>
                                             <div class="space-y-2">
                                                 <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="all" checked class="accent-#0ba5ec> Todos los invitados
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="confirmed" class="accent-#0ba5ec> Solo confirmados
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="pending" class="accent-#0ba5ec> Solo pendientes
-                                                </label>
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
-                                                    <input type="radio" name="mailing-recipient-type" value="group" class="accent-#0ba5ec> Por grupo específico
+                                                    <input type="radio" name="mailing-recipient-type" value="all" checked class="accent-[var(--primary)]" /> Todos los invitados
+                                                    <input type="radio" name="mailing-recipient-type" value="confirmed" class="accent-[var(--primary)]" /> Solo confirmados
+                                                    <input type="radio" name="mailing-recipient-type" value="pending" class="accent-[var(--primary)]" /> Solo pendientes
+                                                    <input type="radio" name="mailing-recipient-type" value="group" class="accent-[var(--primary)]" /> Por grupo espec&iacute;fico
                                                 </label>
                                             </div>
                                             <div id="mailing-group-selector" class="hidden mt-2">
@@ -674,7 +668,7 @@
                             <input type="hidden" id="evs-id-hidden">
                             
                             <!-- Link de Registro -->
-                            <div class="bg-#0ba5ec-10 border border-#0ba5ec-20 rounded-xl p-4>
+                            <div class="bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl p-4">
                                 <h3 class=text-sm font-bold text-#0ba5ec mb-3 flex items-center gap-2>
                                     <span class="material-symbols-outlined text-sm">link</span> Enlace de Registro Público
                                 </h3>
@@ -1215,7 +1209,7 @@
                 <!-- SECCIÓN: PERFIL -->
                 <div id="sys-content-account" class="hidden space-y-6">
                     <!-- Notificaciones Push -->
-                    <div class="card p-6 border-l-4 border-l-#0ba5ec border-white-5 bg-white/[0.01]>
+                    <div class="card p-6 border-l-4 border-l-[var(--primary)] border-white/5 bg-white/[0.01]">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-xl font-black text-white">Notificaciones Push</h3>
