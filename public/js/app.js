@@ -347,47 +347,66 @@ const App = window.App = {
     },
 
     saveEventShort: async function(e) {
+        
+        if (e && e.preventDefault) e.preventDefault();
+        
+        const form = document.getElementById('new-event-form');
+        if (!form) return;
+        
+        const data = App.form.serialize(form);
+        
+        if (!data.name || !data.date) {
+            if (!data.name) App.form.setFieldError(form, 'name', 'El nombre del evento es obligatorio');
+            if (!data.date) App.form.setFieldError(form, 'date', 'La fecha de inicio es obligatoria');
+            this._notifyAction('⚠️ Error', 'Completa los campos obligatorios', 'warning');
+            return;
+        }
+        
+        App.form.clearAllErrors(form);
+        
+        if (!data.group_id) data.group_id = '';
+        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
+        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
+        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
+        
+        
         try {
-            const name = document.getElementById('ev-name')?.value;
-            const location = document.getElementById('ev-location')?.value;
-            const date = document.getElementById('ev-date')?.value;
-            const description = document.getElementById('ev-desc')?.value;
-            const clientId = document.getElementById('ev-client')?.value;
-
-            if (!name) return this._notifyAction('⚠️ Error', 'El nombre es obligatorio', 'warning');
-
-            this._notifyAction('Guardando...', 'Creando evento', 'info', 0);
-
-            const res = await this.fetchAPI('/events', {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    name, 
-                    location: location || '', 
-                    date: date || new Date().toISOString(),
-                    description: description || '',
-                    client_id: clientId || null,
-                    status: 'PUBLISHED'
-                })
-            });
-
-            if (res && (res.id || res.success)) {
-                const modal = document.getElementById('modal-event');
-                if (modal) modal.classList.add('hidden');
-                
-                this._notifyAction('✓ Éxito', 'Evento creado', 'success');
-                
-                this._lastEventsLoad = 0;
-                await this.loadEvents();
-                
-                if (LS.get('current_view') === 'my-events') {
-                    this.renderEventsTable();
-                }
+            if (data.email_template_id && data.email_template_id !== '') {
+                const processedData = await App.saveEventWithTemplate(data);
+                Object.assign(data, processedData);
+            }
+            
+            const eventId = form.querySelector('#ev-id-hidden')?.value?.trim();
+            
+            let res;
+            if (eventId) {
+                res = await this.fetchAPI(`/events/${eventId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
             } else {
-                throw new Error(res?.error || 'Error al guardar');
+                res = await this.fetchAPI('/events', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+            
+            if (res && res.success === false) {
+                await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
+                return;
+            }
+            
+            hideModal('modal-event');
+            await this.loadEvents(true);
+            
+            if (eventId) {
+                await this._notifyAction('✓ Actualizado', 'Evento actualizado correctamente.', 'success');
+            } else {
+                await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
             }
         } catch (err) {
-            console.error('[SAVE EVENT SHORT] Error:', err);
-            this._notifyAction('Error', 'No se pudo guardar: ' + err.message, 'error');
+            console.error('[saveEventShort] Error:', err);
+            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
         }
     },
 
@@ -1583,7 +1602,7 @@ const App = window.App = {
             </div>
         `).join('');
 
-        container.classList.remove('hidden');
+        App.dropdown.showById('group-suggestions');
     },
 
     // Resaltar coincidencia en el texto
@@ -1618,8 +1637,7 @@ const App = window.App = {
 
     // Ocultar sugerencias
     hideGroupSuggestions: function() {
-        const container = document.getElementById('group-suggestions');
-        if (container) container.classList.add('hidden');
+        App.dropdown.hideById('group-suggestions');
     },
 
     // Filtrar empresas por búsqueda y filtros
@@ -2114,13 +2132,12 @@ const App = window.App = {
             </div>
         `).join('');
 
-        container.classList.remove('hidden');
+        App.dropdown.showById('client-suggestions');
     },
 
-    // Ocultar sugerencias de clientes
+    // ====== SUGERENCIAS DE CLIENTES (Dropdown) ======
     hideClientSuggestions: function() {
-        const container = document.getElementById('client-suggestions');
-        if (container) container.classList.add('hidden');
+        App.dropdown.hideById('client-suggestions');
     },
 
     // Seleccionar sugerencia de cliente
@@ -4132,18 +4149,7 @@ const App = window.App = {
                 <span style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 600; flex-shrink: 0;">${s.type}</span>
             </div>
         `).join('');
-        container.classList.remove('hidden');
-    },
-
-    selectUserSuggestion: function(text) {
-        const input = document.getElementById('user-search');
-        if (input) { input.value = text; this.filterUsers(); }
-        this.hideUserSuggestions();
-    },
-
-    hideUserSuggestions: function() {
-        const container = document.getElementById('user-suggestions');
-        if (container) container.classList.add('hidden');
+            App.dropdown.showById('user-suggestions');
     },
 
     // Toggle seleccionar todos los usuarios
@@ -5676,96 +5682,6 @@ const App = window.App = {
         } catch { alert('Error de conexión'); }
     },
 
-    // Guardar evento (formulario corto) - Creación y Edición
-    saveEventShort: async function(e) {
-        
-        if (e && e.preventDefault) e.preventDefault();
-        
-        const form = document.getElementById('new-event-form');
-        if (!form) return;
-        
-        const name = form.querySelector('#ev-name')?.value?.trim();
-        const date = form.querySelector('#ev-date')?.value?.trim();
-        
-        if (!name || !date) {
-            alert('Por favor completa los campos obligatorios: Nombre del Evento y Fecha de Inicio');
-            return;
-        }
-        
-        const fd = new FormData(form);
-        const data = {};
-        
-        fd.forEach((v, k) => {
-            const el = form.elements[k];
-            if (el && el.type === 'checkbox') {
-                data[k] = el.checked ? 1 : 0;
-            } else {
-                data[k] = v === null || v === undefined || v === 'null' ? '' : v;
-            }
-        });
-        
-        const evName = form.querySelector('#ev-name')?.value?.trim();
-        const evDate = form.querySelector('#ev-date')?.value?.trim();
-        const evLocation = form.querySelector('#ev-location')?.value?.trim();
-        const evDesc = form.querySelector('#ev-desc')?.value?.trim();
-        const evGroup = form.querySelector('#ev-group')?.value?.trim();
-        const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
-        
-        if (evName) data.name = evName;
-        if (evDate) data.date = evDate;
-        if (evLocation) data.location = evLocation;
-        if (evDesc) data.description = evDesc;
-        if (evGroup) data.group_id = evGroup;
-        if (evEmailTemplate && evEmailTemplate !== '') {
-            data.email_template_id = evEmailTemplate;
-        }
-        
-        if (!data.group_id) data.group_id = '';
-        if (!data.qr_color_dark) data.qr_color_dark = '#000000';
-        if (!data.qr_color_light) data.qr_color_light = '#ffffff';
-        if (!data.ticket_accent_color) data.ticket_accent_color = '#7c3aed';
-        
-        
-        try {
-            if (data.email_template_id) {
-                const processedData = await App.saveEventWithTemplate(data);
-                Object.assign(data, processedData);
-            }
-            
-            const eventId = form.querySelector('#ev-id-hidden')?.value?.trim();
-            
-            let res;
-            if (eventId) {
-                res = await this.fetchAPI(`/events/${eventId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify(data)
-                });
-            } else {
-                res = await this.fetchAPI('/events', {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-            }
-            
-            if (res && res.success === false) {
-                await this._notifyAction('Error', res.error || 'No se pudo guardar el evento.', 'error', 0);
-                return;
-            }
-            
-            hideModal('modal-event');
-            await this.loadEvents(true);
-            
-            if (eventId) {
-                await this._notifyAction('✓ Actualizado', 'Evento actualizado correctamente.', 'success');
-            } else {
-                await this._notifyAction('✓ Guardado', 'Evento creado correctamente.', 'success');
-            }
-        } catch (err) {
-            console.error('[saveEventShort] Error:', err);
-            await this._notifyAction('Error', 'Error al guardar el evento: ' + err.message, 'error', 0);
-        }
-    },
-     
     async updateEvent(id, data) {
         try {
             const res = await this.fetchAPI(`/events/${id}`, { 
@@ -8073,72 +7989,6 @@ navigate(viewName, params = {}, push = true) {
         }).join('');
     },
 
-    showEventSuggestions() {
-        const input = document.getElementById('event-search');
-        const dropdown = document.getElementById('event-suggestions');
-        if (!input || !dropdown) return;
-        
-        const term = input.value.toLowerCase().trim();
-        if (!term) { this.hideEventSuggestions(); return; }
-        
-        let events = Array.isArray(this.state.events) ? this.state.events : [];
-        if (this.state.user?.role === 'PRODUCTOR') {
-            events = events.filter(e => e.user_id === this.state.user.userId);
-        }
-        
-        const clientsMap = {};
-        (this.state.clients || []).forEach(c => { clientsMap[c.id] = c.name; });
-        
-        const suggestions = [];
-        
-        events.forEach(ev => {
-            const clientName = ev.client_names || '';
-            let score = 0;
-            let matchType = '';
-            
-            if (ev.name.toLowerCase().includes(term)) { score = 100; matchType = 'Evento'; }
-            else if (clientName.toLowerCase().includes(term)) { score = 80; matchType = 'Cliente'; }
-            else if ((ev.location || '').toLowerCase().includes(term)) { score = 60; matchType = 'Locación'; }
-            
-            if (score > 0) {
-                suggestions.push({ event: ev, score, matchType, clientName });
-            }
-        });
-        
-        suggestions.sort((a, b) => b.score - a.score);
-        const top = suggestions.slice(0, 8);
-        
-        if (top.length === 0) {
-            dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-500">Sin resultados</div>';
-            dropdown.classList.remove('hidden');
-            return;
-        }
-        
-        dropdown.innerHTML = top.map(s => {
-            const status = this._getEventStatus(s.event);
-            const statusColor = status === 'active' ? 'text-emerald-400' : status === 'upcoming' ? 'text-blue-400' : 'text-slate-400';
-            return `
-                <div class="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors" onclick="App.openEvent('${s.event.id}'); App.hideEventSuggestions();">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="material-symbols-outlined text-[#0ba5ec] text-sm flex-shrink-0">event</span>
-                        <div class="min-w-0">
-                            <div class="text-xs font-bold text-white truncate">${this._highlightText(s.event.name, term)}</div>
-                            <div class="text-[10px] text-slate-500">${s.matchType}${s.clientName ? ' · ' + s.clientName : ''}</div>
-                        </div>
-                    </div>
-                    <span class="text-[10px] font-bold ${statusColor} flex-shrink-0 ml-2">${status === 'active' ? 'Activo' : status === 'upcoming' ? 'Próximo' : 'Finalizado'}</span>
-                </div>
-            `;
-        }).join('');
-        
-        dropdown.classList.remove('hidden');
-    },
-
-    hideEventSuggestions() {
-        const dropdown = document.getElementById('event-suggestions');
-        if (dropdown) dropdown.classList.add('hidden');
-    },
-
     clearEventSearch() {
         const searchInput = document.getElementById('event-search');
         const clientFilter = document.getElementById('filter-event-client');
@@ -9213,7 +9063,7 @@ navigate(viewName, params = {}, push = true) {
         
         if (top.length === 0) {
             dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-500">Sin resultados</div>';
-            dropdown.classList.remove('hidden');
+            App.dropdown.showById('event-suggestions');
             return;
         }
         
@@ -9234,12 +9084,11 @@ navigate(viewName, params = {}, push = true) {
             `;
         }).join('');
         
-        dropdown.classList.remove('hidden');
+        App.dropdown.showById('event-suggestions');
     },
 
     hideEventSuggestions() {
-        const dropdown = document.getElementById('event-suggestions');
-        if (dropdown) dropdown.classList.add('hidden');
+        App.dropdown.hideById('event-suggestions');
     },
 
     _highlightText(text, term) {
@@ -14065,7 +13914,7 @@ App.showAttendanceSuggestions = function() {
     
     const term = input.value.toLowerCase();
     if (term.length < 2) {
-        container.classList.add('hidden');
+        App.dropdown.hideById('attendance-suggestions');
         return;
     }
     
@@ -14077,7 +13926,7 @@ App.showAttendanceSuggestions = function() {
     ).slice(0, 8);
     
     if (matches.length === 0) {
-        container.classList.add('hidden');
+        App.dropdown.hideById('attendance-suggestions');
         return;
     }
     
@@ -14088,12 +13937,11 @@ App.showAttendanceSuggestions = function() {
         </div>
     `).join('');
     
-    container.classList.remove('hidden');
-},
+        App.dropdown.showById('group-suggestions');
+    },
 
 App.hideAttendanceSuggestions = function() {
-    const container = document.getElementById('attendance-suggestions');
-    if (container) container.classList.add('hidden');
+    App.dropdown.hideById('attendance-suggestions');
 },
 
 App.selectAttendanceSuggestion = function(clientId) {
@@ -14726,7 +14574,7 @@ App.deleteAttendance = async function() {
 App.searchClientsForAttendance = async function(term) {
     const container = document.getElementById('add-attendance-client-suggestions');
     if (!term || term.length < 2) {
-        container.classList.add('hidden');
+        App.dropdown.hideById('add-attendance-client-suggestions');
         return;
     }
     
@@ -14738,7 +14586,7 @@ App.searchClientsForAttendance = async function(term) {
         ).slice(0, 8);
         
         if (matches.length === 0) {
-            container.classList.add('hidden');
+            App.dropdown.hideById('add-attendance-client-suggestions');
             return;
         }
         
@@ -14749,7 +14597,7 @@ App.searchClientsForAttendance = async function(term) {
             </div>
         `).join('');
         
-        container.classList.remove('hidden');
+        App.dropdown.showById('add-attendance-client-suggestions');
     } catch(e) {
         console.error('[SEARCH] Error:', e);
     }

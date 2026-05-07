@@ -324,7 +324,8 @@ class Form {
                 data[el.name] = Array.from(el.selectedOptions).map(o => o.value);
             } else {
                 const val = el.value;
-                data[el.name] = (val === null || val === undefined || val === 'null') ? '' : val;
+                const cleaned = (val === null || val === undefined || val === 'null') ? '' : val;
+                data[el.name] = typeof cleaned === 'string' ? cleaned.trim() : cleaned;
             }
         }
 

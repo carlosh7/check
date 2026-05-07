@@ -8,8 +8,8 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.513 |
-| **Ultima feature completada** | F0-01: Form.js + Dropdown.js completados + 29 tests |
+| **Version** | v12.44.514 |
+| **Ultima feature completada** | Limpieza: saveEventShort migrado a App.form, duplicados eliminados + 10 sugerencias migradas a App.dropdown |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F0-02: Modulo Mailing por evento |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
@@ -157,9 +157,18 @@ BACKLOG
 - Node.js 20 instalado en el host para desarrollo local
 
 ### No se completo (pendiente para futuro):
-- Migrar `saveEventShort` a usar `App.form` — requiere refactor mayor de app.js (~15K lineas)
-- Eliminar codigo duplicado en app.js (saveEventShort x2, suggestions x2)
 - Tests para los otros 18 modulos (Modal, Table, Sidebar, etc.)
+
+### Nota sobre lo que se migro:
+- `saveEventShort` — ahora usa `App.form.serialize()` en vez de leer campos manualmente
+- `showEventSuggestions` / `hideEventSuggestions` — ahora usan `App.dropdown.showById/hideById`
+- `showGroupSuggestions` / `hideGroupSuggestions` — migradas a `App.dropdown`
+- `showClientSuggestions` / `hideClientSuggestions` — migradas a `App.dropdown`
+- `showUserSuggestions` / `hideUserSuggestions` — migradas a `App.dropdown`
+- `App.showAttendanceSuggestions` / `App.hideAttendanceSuggestions` — migradas a `App.dropdown`
+- `App.searchClientsForAttendance` — migrada a `App.dropdown`
+- Codigo duplicado eliminado: `saveEventShort` (x2), `showEventSuggestions` (x2), `hideEventSuggestions` (x2)
+- Inputs del formulario de eventos ahora tienen atributos `name` para que `serialize()` funcione
 
 ### Estado actual de los modulos
 | Modulo | Lineas | Estado |
@@ -772,6 +781,8 @@ Registro de espacios fisicos para eventos:
 | — | ROADMAP unificado + docs consolidados | ✅ | v12.44.512 | 2026-05-06 |
 | — | Node.js host + babel + jest-environment-jsdom | ✅ | v12.44.513 | 2026-05-06 |
 | F0-01 | Form.js + Dropdown.js completados + 29 tests | ✅ | v12.44.513 | 2026-05-06 |
+| — | Limpieza: saveEventShort a App.form + duplicados | ✅ | v12.44.514 | 2026-05-06 |
+| — | 10 sugerencias migradas a App.dropdown | ✅ | v12.44.514 | 2026-05-06 |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F0-02 | Modulo Mailing por evento | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics | ⏳ Pendiente | — | — |
