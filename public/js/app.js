@@ -1011,6 +1011,10 @@ const App = window.App = {
     loadAnalytics: async function() {
         const eventId = this.state.event?.id;
         if (!eventId) return;
+        // Ensure attendance data is loaded
+        if (!this._attendanceLoaded && typeof this.loadAttendance === 'function') {
+            await this.loadAttendance(eventId);
+        }
         try {
             const res = await this.fetchAPI('/stats/' + eventId);
             if (!res) return;
@@ -1112,7 +1116,7 @@ const App = window.App = {
             const healthEl = document.getElementById('analytics-health');
             if (healthEl) {
                 const alerts = res.healthAlerts || 0;
-                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="var el=document.getElementById(\'analytics-restricted\');if(el){el.classList.remove(\'hidden\');setTimeout(function(){el.scrollIntoView({behavior:\'smooth\'})},100)}"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
+                healthEl.innerHTML = '<div class="flex items-center gap-2 cursor-pointer hover:opacity-80" onclick="App.scrollToRestricted()"><span class="text-sm ' + (alerts > 0 ? 'text-amber-400' : 'text-green-400') + '">' +
                     (alerts > 0 ? '<span class="material-symbols-outlined text-sm">warning</span>' : '<span class="material-symbols-outlined text-sm">check_circle</span>') +
                     '</span><span class="font-bold text-white text-sm">' + alerts + '</span><span class="text-[var(--text-secondary)] text-xs">' + (alerts === 1 ? 'alerta' : 'alertas') + '</span></div>';
             }
@@ -1184,6 +1188,18 @@ const App = window.App = {
             return dir === 'asc' ? getVal(a).localeCompare(getVal(b)) : getVal(b).localeCompare(getVal(a));
         });
         rows.forEach(row => tbody.appendChild(row));
+    },
+
+    scrollToRestricted: function() {
+        const el = document.getElementById('analytics-restricted');
+        if (!el) return;
+        const tbody = document.getElementById('analytics-restricted-tbody');
+        if (tbody && tbody.children.length === 0) {
+            Swal.fire({ title: 'Sin datos', text: 'No hay invitados con restricciones', icon: 'info', background: '#0f172a', color: '#fff' });
+            return;
+        }
+        el.classList.remove('hidden');
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
     },
 
     updateSidebarVisibility() {
