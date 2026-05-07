@@ -10722,7 +10722,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10759,9 +10759,79 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'clients') this.loadClients();
         if (tabName === 'legal') this.loadLegalTexts();
         if (tabName === 'email') this.loadEmailModuleData();
+        if (tabName === 'activity') this.loadActivityLogs();
 
 
         if (tabName === 'account') this.loadUserProfile();
+    },
+
+    activityPage: 1,
+
+    loadActivityLogs: async function(direction) {
+        if (!this.activityPage) this.activityPage = 1;
+        if (direction === -1 && this.activityPage > 1) this.activityPage--;
+        if (direction === 1) this.activityPage++;
+        const page = this.activityPage;
+        const action = document.getElementById('filter-activity-action')?.value || '';
+
+        try {
+            const res = await this.fetchAPI('/audit-logs?page=' + page + '&limit=50&action=' + action);
+            const logs = res?.data || [];
+            const total = res?.pagination?.total || 0;
+
+            const container = document.getElementById('activity-timeline');
+            const countEl = document.getElementById('activity-count');
+            const prevBtn = document.getElementById('btn-activity-prev');
+
+            if (countEl) countEl.textContent = total + ' registros';
+            if (prevBtn) prevBtn.disabled = page <= 1;
+
+            if (!container) return;
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-[var(--text-secondary)]"><span class="material-symbols-outlined text-4xl mb-3 opacity-50">history</span><p class="text-sm">No hay actividad registrada</p></div>';
+                return;
+            }
+
+            const labels = {
+                LOGIN: 'Inicio de sesi&oacute;n', LOGIN_FAILED: 'Inicio fallido', LOGOUT: 'Cierre de sesi&oacute;n',
+                USER_CREATED: 'Usuario creado', USER_UPDATED: 'Usuario actualizado', USER_DELETED: 'Usuario eliminado', USER_PASSWORD_CHANGED: 'Contrase&ntilde;a cambiada',
+                EVENT_CREATED: 'Evento creado', EVENT_UPDATED: 'Evento actualizado', EVENT_DELETED: 'Evento eliminado',
+                GUEST_IMPORTED: 'Invitados importados', GUEST_CHECKIN: 'Check-in', GUEST_UNCHECKIN: 'Check-in cancelado',
+                EMAIL_SENT: 'Email enviado', EMAIL_BROADCAST: 'Campa&ntilde;a enviada',
+                SETTINGS_UPDATED: 'Configuraci&oacute;n actualizada',
+                WEBHOOK_CREATED: 'Webhook creado', WEBHOOK_UPDATED: 'Webhook actualizado', WEBHOOK_DELETED: 'Webhook eliminado', WEBHOOK_TRIGGERED: 'Webhook ejecutado',
+                PUSH_SUBSCRIBE: 'Notificaciones activadas', PUSH_UNSUBSCRIBE: 'Notificaciones desactivadas', PUSH_SEND_TEST: 'Notificaci&oacute;n de prueba'
+            };
+            const icons = {
+                LOGIN: 'login', LOGOUT: 'logout', USER_CREATED: 'person_add', USER_DELETED: 'person_remove',
+                EVENT_CREATED: 'add_circle', EVENT_UPDATED: 'edit', EVENT_DELETED: 'delete',
+                GUEST_CHECKIN: 'check_circle', EMAIL_SENT: 'mail', EMAIL_BROADCAST: 'campaign',
+                WEBHOOK_TRIGGERED: 'sync', SETTINGS_UPDATED: 'settings'
+            };
+
+            container.innerHTML = logs.map(log => {
+                const details = typeof log.details === 'string' ? (() => { try { return JSON.parse(log.details); } catch(e) { return {}; } })() : (log.details || {});
+                const label = labels[log.action] || log.action;
+                const icon = icons[log.action] || 'circle';
+                const desc = details.eventId || details.name || details.username || '';
+                const time = log.created_at ? new Date(log.created_at).toLocaleString('es-CO') : '';
+                return '<div class="flex items-start gap-4 p-4 hover:bg-[var(--bg-hover)] transition-colors">' +
+                    '<div class="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-sm text-[var(--primary)]">' + icon + '</span></div>' +
+                    '<div class="flex-1 min-w-0"><div class="flex justify-between items-baseline"><p class="text-sm font-medium text-[var(--text-main)]">' + label + '</p><span class="text-[10px] text-[var(--text-muted)] shrink-0 ml-2">' + time + '</span></div>' +
+                    (desc ? '<p class="text-xs text-[var(--text-secondary)] mt-0.5 truncate">' + desc + '</p>' : '') +
+                    (details.ip ? '<p class="text-[10px] text-[var(--text-muted)] mt-0.5">IP: ' + details.ip + '</p>' : '') +
+                    '</div></div>';
+            }).join('');
+
+            // Populate action filter on first load
+            const filter = document.getElementById('filter-activity-action');
+            if (filter && filter.options.length <= 1) {
+                const actionKeys = Object.keys(labels);
+                filter.innerHTML = '<option value="">Todas las acciones</option>' + actionKeys.map(k => '<option value="' + k + '">' + labels[k] + '</option>').join('');
+            }
+        } catch(e) {
+            console.error('[ACTIVITY] Error loading logs:', e);
+        }
     },
 
     // Ocultar pestañas restringidas según el rol del usuario

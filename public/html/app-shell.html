@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.556</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.557</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -849,6 +849,9 @@
                         <button id="sys-nav-db" class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="db" onclick="App.switchSystemTab('db')">
                             <span class="material-symbols-outlined text-base">storage</span> DB
                         </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="activity" onclick="App.switchSystemTab('activity')">
+                            <span class="material-symbols-outlined text-base">history</span> Actividad
+                        </button>
                     </div>
                     </div>
 
@@ -1172,6 +1175,39 @@
                                 </thead>
                                 <tbody id="clients-tbody" class="table-tbody"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ACTIVIDAD -->
+                <div id="sys-content-activity" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Registro de <span class="text-[var(--primary)]">Actividad</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Todas las acciones realizadas en el sistema.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="filter-activity-action" onchange="App.loadActivityLogs()" class="input-field py-1.5 px-3 text-sm">
+                                <option value="">Todas las acciones</option>
+                            </select>
+                            <button onclick="App.loadActivityLogs()" class="btn-secondary btn-standard text-sm">
+                                <span class="material-symbols-outlined text-sm">refresh</span> Actualizar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card p-0 overflow-hidden">
+                        <div id="activity-timeline" class="divide-y divide-[var(--border)]">
+                            <div class="text-center py-12 text-[var(--text-secondary)]">
+                                <span class="material-symbols-outlined text-4xl mb-3 opacity-50">history</span>
+                                <p class="text-sm">Cargando actividad...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="activity-pagination" class="flex justify-between items-center text-sm text-[var(--text-secondary)]">
+                        <span id="activity-count">0 registros</span>
+                        <div class="flex gap-2">
+                            <button id="btn-activity-prev" onclick="App.loadActivityLogs(-1)" class="btn-secondary !px-3 !py-1 text-xs" disabled>Anterior</button>
+                            <button id="btn-activity-next" onclick="App.loadActivityLogs(1)" class="btn-secondary !px-3 !py-1 text-xs">Siguiente</button>
                         </div>
                     </div>
                 </div>
