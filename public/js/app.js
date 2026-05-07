@@ -3818,7 +3818,7 @@ const App = window.App = {
             // Remover bloqueo del body si no hay más modales visibles
             const activeModals = document.querySelectorAll('[id^="modal-"]:not(.hidden)');
             if (activeModals.length === 0) {
-                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
             }
         }
     },
@@ -14915,35 +14915,23 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-// ── Observer de modales: asegura body.modal-open ante cualquier cambio directo ──
+// ── Observer de modales: scroll lock ante cualquier cambio directo ──
 (function() {
-    function updateModalOpen() {
+    function updateScrollLock() {
         const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
-        document.body.classList.toggle('modal-open', !!visibleModal);
+        document.body.style.overflow = visibleModal ? 'hidden' : '';
     }
-
-    const modalObserver = new MutationObserver(updateModalOpen);
-
-    // Observar modales estáticos existentes
+    const observer = new MutationObserver(updateScrollLock);
     document.querySelectorAll('[id^="modal-"]').forEach(m => {
-        modalObserver.observe(m, { attributes: true, attributeFilter: ['class'] });
+        observer.observe(m, { attributes: true, attributeFilter: ['class'] });
     });
-
-    // Observar el contenedor portal para modales dinámicos
     const portal = document.getElementById('modal-container-portal');
-    if (portal) {
-        modalObserver.observe(portal, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    }
-
-    // Observar el body para detectar nuevos modales agregados al DOM
+    if (portal) observer.observe(portal, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     const bodyObserver = new MutationObserver(() => {
         document.querySelectorAll('[id^="modal-"]').forEach(m => {
-            if (!modalObserver.takeRecords) { // avoid infinite loop
-                try { modalObserver.observe(m, { attributes: true, attributeFilter: ['class'] }); } catch(e) {}
-            }
+            try { observer.observe(m, { attributes: true, attributeFilter: ['class'] }); } catch(e) {}
         });
-        // También actualizar estado por si un modal se agregó ya visible
-        updateModalOpen();
+        updateScrollLock();
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 })();
