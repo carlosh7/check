@@ -14500,6 +14500,62 @@ navigate(viewName, params = {}, push = true) {
         }, 100);
     },
 
+    // ==================== FASE 6: MISCELÁNEO ====================
+
+    selectUserSuggestion: function(text) {
+        const input = document.getElementById('user-search');
+        if (input) input.value = text;
+        this.hideUserSuggestions();
+        this.filterUsers();
+    },
+
+    assignUserToEvent: async function(userId, eventId) {
+        if (!userId || !eventId) return;
+        try {
+            const res = await this.fetchAPI('/events/' + eventId + '/users', { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+            if (res && res.success !== false) {
+                Swal.fire({ title: 'Asignado', text: 'Usuario asignado al evento', icon: 'success', background: '#0f172a', color: '#fff', timer: 1500 });
+                if (this.loadUsersTable) this.loadUsersTable();
+            }
+        } catch(e) {
+            // Silencio - puede ser duplicado
+        }
+    },
+
+    openCampaignMonitor: function(campaignId) {
+        this.wizardCampaignId = campaignId;
+        const modal = document.getElementById('modal-campaign-monitor');
+        if (modal) modal.classList.remove('hidden');
+        // Cargar datos de la campaña
+        (async () => {
+            try {
+                const c = await this.fetchAPI('/email/campaigns/' + campaignId);
+                if (!c) return;
+                const nameEl = document.getElementById('monitor-campaign-name');
+                const statusEl = document.getElementById('monitor-campaign-status');
+                const badgeEl = document.getElementById('monitor-status-badge');
+                const progressBar = document.getElementById('monitor-progress-bar');
+                const progressText = document.getElementById('monitor-progress-text');
+                const sentEl = document.getElementById('monitor-sent');
+                const failedEl = document.getElementById('monitor-failed');
+                const pendingEl = document.getElementById('monitor-pending');
+                if (nameEl) nameEl.textContent = c.name || '-';
+                if (statusEl) statusEl.textContent = c.subject || '-';
+                if (badgeEl) badgeEl.textContent = c.status || 'DRAFT';
+                const total = c.total_recipients || 1;
+                const sent = c.sent_count || 0;
+                const pct = Math.round((sent / total) * 100);
+                if (progressBar) progressBar.style.width = pct + '%';
+                if (progressText) progressText.textContent = sent + ' / ' + total;
+                if (sentEl) sentEl.textContent = sent;
+                if (failedEl) failedEl.textContent = c.failed_count || 0;
+                if (pendingEl) pendingEl.textContent = (total - sent - (c.failed_count || 0));
+            } catch(e) {
+                console.error('[MONITOR] Error:', e);
+            }
+        })();
+    },
+
     // ==================== WIZARD DE CAMPAÑAS (V12.45) ====================
     
     wizardCurrentStep: 1,
