@@ -15304,7 +15304,30 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-// ── Observer de modales: scroll lock ante cualquier cambio directo ──
+// ── Global: cerrar modal al hacer clic fuera (backdrop) ──
+document.addEventListener('click', (e) => {
+    const backdrop = e.target.closest('[id^="modal-"]:not(.hidden)');
+    if (backdrop && e.target === backdrop) {
+        backdrop.classList.add('hidden');
+        document.body.style.overflow = '';
+        if (backdrop.closest('#modal-container-portal')) backdrop.remove();
+    }
+});
+
+// ── Global: cerrar modal con Escape ──
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const visible = document.querySelector('[id^="modal-"]:not(.hidden)');
+        if (visible) {
+            visible.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        const portal = document.querySelector('#modal-container-portal > [id^="modal-"]');
+        if (portal) portal.remove();
+    }
+});
+
+// ── Observer de modales: scroll lock ──
 (function() {
     function updateScrollLock() {
         const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
@@ -15324,19 +15347,6 @@ if (document.readyState === 'loading') {
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 })();
-
-// ── Escape global: cierra cualquier modal visible ──
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
-        if (visibleModal) {
-            visibleModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-        const portalModal = document.querySelector('#modal-container-portal > [id^="modal-"]');
-        if (portalModal) portalModal.remove();
-    }
-});
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);
