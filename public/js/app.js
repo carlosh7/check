@@ -14700,48 +14700,7 @@ App.saveAddAttendance = async function() {
         console.error('[ADD ATTENDANCE] Error:', e);
         Swal.fire({ title: '❌ Error', text: e.message || 'No se pudo agregar', icon: 'error', background: '#0f172a', color: '#fff' });
     }
-};
 
-App.downloadAttendanceTemplate = function() {
-    try {
-        // Obtener token igual que downloadImportTemplate
-        let token = window.App?.state?.user?.token;
-        if (!token) {
-            const userStr = LS.get('user');
-            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
-            token = user.token || LS.get('token');
-        }
-        
-        fetch('/api/import/template/attendance', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Error en respuesta');
-            return response.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'plantilla_asistentes.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
-        })
-        .catch(err => {
-            console.error('[TEMPLATE] Error:', err);
-            Swal.fire({ title: '❌ Error', text: 'No se pudo descargar la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
-        });
-    } catch(e) {
-        console.error('[TEMPLATE] Error:', e);
-        Swal.fire({ title: '❌ Error', text: 'Error al descargar plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
-    },
-
-    // ==================== M├ôDULO DE EMAIL (V12.45) ====================
-    
     loadEmailModuleData: async function() {
         await Promise.all([
             this.loadEmailAccounts(),
@@ -15961,7 +15920,49 @@ App.downloadAttendanceTemplate = function() {
         }
     },
 
+
 };
+
+
+App.downloadAttendanceTemplate = function() {
+    try {
+        // Obtener token igual que downloadImportTemplate
+        let token = window.App?.state?.user?.token;
+        if (!token) {
+            const userStr = LS.get('user');
+            const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+            token = user.token || LS.get('token');
+        }
+        
+        fetch('/api/import/template/attendance', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en respuesta');
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla_asistentes.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            Swal.fire({ title: '✅ Descargado', text: 'Plantilla descargada correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+        })
+        .catch(err => {
+            console.error('[TEMPLATE] Error:', err);
+            Swal.fire({ title: '❌ Error', text: 'No se pudo descargar la plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
+        });
+    } catch(e) {
+        console.error('[TEMPLATE] Error:', e);
+        Swal.fire({ title: '❌ Error', text: 'Error al descargar plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
+    }
+};
+
 // Click outside para sugerencias de attendance
 document.addEventListener('click', (e) => {
     const attendanceSearch = document.getElementById('attendance-search');
