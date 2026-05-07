@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.518</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.519</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -438,7 +438,7 @@
                             <!-- Publicación -->
                             <div class="card p-6">
                                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text->share</span>
+                                    <span class="material-symbols-outlined text-">share</span>
                                     Compartir
                                 </h3>
                                 <div class="flex gap-4">
@@ -451,7 +451,7 @@
                             <!-- Resultados guardados -->
                             <div class="card p-6">
                                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text->emoji_events</span>
+                                    <span class="material-symbols-outlined text-">emoji_events</span>
                                     Resultados
                                 </h3>
                                 <div id="wheel-results-list" class="space-y-2 mb-4 min-h-20 max-h-96 overflow-y-auto transition-all duration-300">
@@ -483,8 +483,8 @@
                     <div id="config-content-email" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text->Mailing</span></h2>
-                                <p class="text- text-sm>Gestiona el envío de emails a los invitados de este evento.</p>
+                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text-">Mailing</span></h2>
+                                <p class="text- text-sm">Gestiona el envío de emails a los invitados de este evento.</p>
                             </div>
                         </div>
 
@@ -557,7 +557,7 @@
 
                                         <!-- Toggle Modo Visual/HTML -->
                                         <div class="flex gap-2">
-                                            <button id="btn-mode-visual" onclick="App.switchMailingEditorMode('visual')" class="flex-1 py-2 rounded-lg bg-#0ba5ec-20 text-#0ba5ec text-xs font-bold>Visual</button>
+                                            <button id="btn-mode-visual" onclick="App.switchMailingEditorMode('visual')" class="flex-1 py-2 rounded-lg bg-#0ba5ec-20 text-#0ba5ec text-xs font-bold">Visual</button>
                                             <button id=btn-mode-html" onclick="App.switchMailingEditorMode('html')" class="flex-1 py-2 rounded-lg bg-white-5 text-slate-400 text-xs font-bold hover:bg-white-10">HTML</button>
                                         </div>
 
@@ -663,7 +663,7 @@
                     <!-- CONTENIDO: AJUSTES -->
                     <div id="config-content-settings" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-semibold">⚙️ Ajustes del <span class="text->Evento</span></h2>
+                            <h2 class="text-2xl font-semibold">⚙️ Ajustes del <span class="text-">Evento</span></h2>
                             <button id="btn-config-save-settings" class="btn-primary btn-lg">💾 Guardar Cambios</button>
                         </div>
                         
@@ -693,23 +693,23 @@
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text->Nombre del Evento</label>
+                                        <label class="text-xs font-bold uppercase text-">Nombre del Evento</label>
                                         <input type="text" id="evs-name" class="input-field w-full" placeholder="Nombre del evento">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Ubicación</label>
+                                        <label class="text-xs font-bold uppercase text-">Ubicación</label>
                                         <input type="text" id="evs-location" class="input-field w-full" placeholder="Ciudad, Hotel o Virtual">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Descripción</label>
+                                        <label class="text-xs font-bold uppercase text-">Descripción</label>
                                         <input type="text" id="evs-desc" class="input-field w-full" placeholder="Breve descripción">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Fecha Inicio</label>
+                                        <label class="text-xs font-bold uppercase text-">Fecha Inicio</label>
                                         <input type="datetime-local" id="evs-date" class="input-field w-full">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Fecha Fin</label>
+                                        <label class="text-xs font-bold uppercase text-">Fecha Fin</label>
                                         <input type="datetime-local" id="evs-end-date" class="input-field w-full">
                                     </div>
                                 </div>
@@ -722,19 +722,19 @@
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Título del Formulario</label>
+                                        <label class="text-xs font-bold uppercase text-">Título del Formulario</label>
                                         <input type="text" id="evs-reg-title" class="input-field w-full" placeholder="Registro de Asistencia">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Mensaje Bienvenida</label>
+                                        <label class="text-xs font-bold uppercase text-">Mensaje Bienvenida</label>
                                         <input type="text" id="evs-reg-welcome" class="input-field w-full" placeholder="¡Bienvenido!">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Mensaje de Éxito</label>
+                                        <label class="text-xs font-bold uppercase text-">Mensaje de Éxito</label>
                                         <input type="text" id="evs-reg-success" class="input-field w-full" placeholder="¡Registrado exitosamente!">
                                     </div>
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text->Política de Privacidad</label>
+                                        <label class="text-xs font-bold uppercase text-">Política de Privacidad</label>
                                         <textarea id="evs-reg-policy" class="input-field w-full" rows="2" placeholder="Política de privacidad..."></textarea>
                                     </div>
                                 </div>
@@ -778,23 +778,23 @@
                                 </h3>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->QR Oscuro</label>
+                                        <label class="text-xs font-bold uppercase text-">QR Oscuro</label>
                                         <input type="color" id="evs-qr-dark" class="w-full h-10 rounded-lg cursor-pointer" value="#000000">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->QR Claro</label>
+                                        <label class="text-xs font-bold uppercase text-">QR Claro</label>
                                         <input type="color" id="evs-qr-light" class="w-full h-10 rounded-lg cursor-pointer" value="#ffffff">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Color Acento Ticket</label>
+                                        <label class="text-xs font-bold uppercase text-">Color Acento Ticket</label>
                                         <input type="color" id="evs-ticket-accent" class="w-full h-10 rounded-lg cursor-pointer" value="#7c3aed">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Logo QR (URL)</label>
+                                        <label class="text-xs font-bold uppercase text-">Logo QR (URL)</label>
                                         <input type="text" id="evs-qr-logo" class="input-field w-full" placeholder="https://...">
                                     </div>
                                     <div class="space-y-2 md:col-span-2">
-                                        <label class="text-xs font-bold uppercase text->Logo Ticket (URL)</label>
+                                        <label class="text-xs font-bold uppercase text-">Logo Ticket (URL)</label>
                                         <input type="text" id="evs-ticket-bg" class="input-field w-full" placeholder="https://...">
                                     </div>
                                 </div>
@@ -807,11 +807,11 @@
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Emails Permitidos (whitelist)</label>
+                                        <label class="text-xs font-bold uppercase text-">Emails Permitidos (whitelist)</label>
                                         <textarea id="evs-reg-whitelist" class="input-field w-full" rows="2" placeholder="uno@email.com, dos@email.com (vacío = todos)"></textarea>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text->Emails Bloqueados (blacklist)</label>
+                                        <label class="text-xs font-bold uppercase text-">Emails Bloqueados (blacklist)</label>
                                         <textarea id="evs-reg-blacklist" class="input-field w-full" rows="2" placeholder="spam@email.com, etc."></textarea>
                                     </div>
                                 </div>
@@ -854,12 +854,12 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="card p-6">
                             <h4 class="text-sm font-semibold mb-4">Política de Privacidad</h4>
-                            <div id="editor-policy" class="bg- rounded-lg min-h-min-h-300></div>
+                            <div id="editor-policy" class="bg- rounded-lg min-h-min-h-300"></div>
                             <button id=btn-save-policy" class="btn-primary mt-4 w-full">Guardar Política</button>
                         </div>
                         <div class="card p-6">
                             <h4 class="text-sm font-semibold mb-4">Términos del Servicio</h4>
-                            <div id="editor-terms" class="bg- rounded-lg min-h-min-h-300></div>
+                            <div id="editor-terms" class="bg- rounded-lg min-h-min-h-300"></div>
                             <button id=btn-save-terms" class="btn-primary mt-4 w-full">Guardar Términos</button>
                         </div>
                     </div>
@@ -937,8 +937,8 @@
                     <div id="email-subtab-accounts" class="space-y-4">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Cuentas de <span class="text->Email</span></h2>
-                                <p class="text- text-sm>Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
+                                <h2 class="text-2xl font-semibold tracking-tight">Cuentas de <span class="text-">Email</span></h2>
+                                <p class="text- text-sm">Configura tus cuentas SMTP/IMAP para enviar y recibir emails.</p>
                             </div>
                             <button onclick="App.openEmailAccountModal()" class="btn-primary btn-lg">+ Nueva Cuenta</button>
                         </div>
@@ -956,8 +956,8 @@
                         <!-- Header -->
                         <div class="flex justify-between items-center">
                             <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Mail<span class="text->box</span></h2>
-                                <p class="text- text-sm>Gestiona tus emails recibidos y enviados.</p>
+                                <h2 class="text-2xl font-semibold tracking-tight">Mail<span class="text-">box</span></h2>
+                                <p class="text- text-sm">Gestiona tus emails recibidos y enviados.</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <select id="mailbox-account-select" onchange="App.loadMailboxFolders()" class="input-field btn-py2 btn-px4 text-sm">
@@ -986,7 +986,7 @@
                             <!-- Panel de Carpetas -->
                             <div class="col-span-3 card p-0 overflow-hidden">
                                 <div class="p-4 border-b border->
-                                    <h4 class="text-xs font-bold uppercase tracking-wider text->Carpetas</h4>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-">Carpetas</h4>
                                 </div>
                                 <div id="mailbox-folders" class="p-2 space-y-0-5 max-h-max-h-480 overflow-y-auto>
                                     <div class="text-center py-8 text- text-sm>
@@ -1001,9 +1001,9 @@
                                 <!-- Toolbar -->
                                 <div class="p-3 border-b border- flex items-center justify-between>
                                     <div class="flex items-center gap-2">
-                                        <span id="mailbox-current-folder" class="text-sm font-medium text->Bandeja de Entrada</span>
+                                        <span id="mailbox-current-folder" class="text-sm font-medium text-">Bandeja de Entrada</span>
                                         <span class="text-10 font-black opacity-30 mt-1 block tracking-wider uppercase">Versión 12.44.310</span>
-                                        <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg- px-2 py-0.5 rounded-full></span>
+                                        <span id="mailbox-message-count" class="text-xs text-[var(--text-secondary)] bg- px-2 py-0.5 rounded-full"></span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <input type="text" id="mailbox-search" placeholder="Buscar mensajes..." oninput="App.filterMailboxMessages(this.value)" class="input-field !py-1-5 !px-3 text-sm !w-56" />
@@ -1031,8 +1031,8 @@
                     <div id="email-subtab-campaigns" class="hidden space-y-4">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Campañas de <span class="text->Email</span></h2>
-                                <p class="text- text-sm>Crea y gestiona campañas de email marketing.</p>
+                                <h2 class="text-2xl font-semibold tracking-tight">Campañas de <span class="text-">Email</span></h2>
+                                <p class="text- text-sm">Crea y gestiona campañas de email marketing.</p>
                             </div>
                             <button onclick="App.openCampaignWizard()" class="btn-primary btn-lg">+ Nueva Campaña</button>
                         </div>
@@ -1249,45 +1249,45 @@
     <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>event</span>
+                <span class="material-symbols-outlined text- text-xl">event</span>
                 <h3 id="modal-event-title" class="text-sm font-bold uppercase tracking-wider">Nuevo Evento</h3>
             </div>
             <button id="btn-close-event-modal" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="new-event-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="ev-id-hidden" value="">
             
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Nombre del Evento</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre del Evento</label>
                 <input type="text" id="ev-name" required placeholder="Nombre del evento" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Ubicación</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Ubicación</label>
                 <input type="text" id="ev-location" placeholder="Ubicación" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Cliente / Cuenta</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Cliente / Cuenta</label>
                 <select id="ev-client" class="input-field w-full">
                     <option value="">Seleccionar cliente</option>
                 </select>
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Fecha Inicio</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Fecha Inicio</label>
                 <input type="datetime-local" id="ev-date" required class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Fecha Fin</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Fecha Fin</label>
                 <input type="datetime-local" id="ev-end-date" class="input-field w-full">
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Descripción</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Descripción</label>
                 <textarea id="ev-desc" rows="3" placeholder="Descripción del evento" class="input-field w-full"></textarea>
             </div>
 
@@ -1296,14 +1296,14 @@
                     <input type="checkbox" id="ev-has-own-db" checked name="has_own_db" class="w-5 h-5 rounded accent->
                     <div>
                         <p class="text-sm font-bold text-white">Base de Datos Propia</p>
-                        <p class="text-10 text->Aislamiento total de datos para este evento (Recomendado)</p>
+                        <p class="text-10 text-">Aislamiento total de datos para este evento (Recomendado)</p>
                     </div>
                 </label>
             </div>
 
             
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+                <button type="button" id="btn-cancel-event" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar</button>
             </div>
         </form>
@@ -1315,29 +1315,29 @@
     <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>corporate_fare</span>
+                <span class="material-symbols-outlined text- text-xl">corporate_fare</span>
                 <h3 id="modal-company-title" class="text-sm font-bold uppercase tracking-wider">Nueva Organización</h3>
             </div>
             <button id="btn-close-company" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="company-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="company-id-hidden" value="">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Nombre de la Organización</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre de la Organización</label>
                 <input type="text" id="company-name" required placeholder="Ej: Tech Solutions Inc" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Email de Contacto</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Email de Contacto</label>
                 <input type="email" id="company-email" placeholder="contacto@empresa.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Teléfono</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="company-phone" placeholder="+57 300 123 4567" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Estado</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Estado</label>
                 <select id="company-status" class="input-field w-full">
                     <option value="ACTIVE">Activo</option>
                     <option value="INACTIVE">Inactivo</option>
@@ -1345,11 +1345,11 @@
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Descripción</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Descripción</label>
                 <textarea id="company-description" rows="3" placeholder="Breve descripción de la empresa o grupo..." class="input-field w-full"></textarea>
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-company" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+                <button type="button" id="btn-cancel-company" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar Organización</button>
             </div>
         </form>
@@ -1365,24 +1365,24 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Cliente</h3>
             </div>
             <button id="btn-close-create-client" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="create-client-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Nombre del Cliente</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre del Cliente</label>
                 <input type="text" id="create-client-name" required placeholder="Ej: Juan Pérez" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Email</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
                 <input type="email" id="create-client-email" placeholder="cliente@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Teléfono</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="create-client-phone" placeholder="+57 300 123 4567" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Empresa</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Empresa</label>
                 <select id="create-client-company" class="input-field w-full">
                     <option value="">Sin empresa</option>
                 </select>
@@ -1403,24 +1403,24 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Staff</h3>
             </div>
             <button id="btn-close-create-staff" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="create-staff-form" class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Nombre Completo</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre Completo</label>
                 <input type="text" id="create-staff-name" required placeholder="Nombre completo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Email</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
                 <input type="email" id="create-staff-email" required placeholder="staff@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Contraseña</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Contraseña</label>
                 <input type="password" id="create-staff-password" required placeholder="Mínimo 6 caracteres" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Rol</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Rol</label>
                 <select id="create-staff-role" class="input-field w-full">
                     <option value="STAFF">STAFF</option>
                     <option value="LOGISTICO">LOGÍSTICO</option>
@@ -1429,7 +1429,7 @@
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Empresa</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Empresa</label>
                 <select id="create-staff-company" class="input-field w-full">
                     <option value="">Sin empresa</option>
                 </select>
@@ -1451,7 +1451,7 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Asignar Evento a Staff</h3>
             </div>
             <button id="btn-close-assign-event" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-5 overflow-y-auto flex-1">
@@ -1473,21 +1473,21 @@
     <div class="card w-full max-w-sm max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>person_add</span>
+                <span class="material-symbols-outlined text- text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Añadir Colaborador</h3>
             </div>
             <button id="btn-close-invite" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="invite-user-form" class="p-5 space-y-4">
             <div>
                 <input type="text" id="invite-display-name" required placeholder="Nombre completo" class="input-field w-full">
-                <p class="text-xs text- mt-1 ml-1>Nombre que verá el usuario en el sistema</p>
+                <p class="text-xs text- mt-1 ml-1">Nombre que verá el usuario en el sistema</p>
             </div>
             <div>
                 <input type="email" id="invite-username" required placeholder="email@empresa.com" class="input-field w-full">
-                <p class="text-xs text- mt-1 ml-1>Debe ser un email válido (ej: usuario@empresa.com)</p>
+                <p class="text-xs text- mt-1 ml-1">Debe ser un email válido (ej: usuario@empresa.com)</p>
             </div>
             <div class="relative">
                 <input type="password" id="invite-password" required placeholder="Contraseña" class="input-field w-full pr-10">
@@ -1495,7 +1495,7 @@
                     <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
             </div>
-            <p class="text-xs text- -mt-2 ml-1>Mínimo 6 caracteres</p>
+            <p class="text-xs text- -mt-2 ml-1">Mínimo 6 caracteres</p>
             <div>
                 <select id="invite-role" class="input-field w-full">
                     <option value="ADMIN">Administrador</option>
@@ -1504,10 +1504,10 @@
                     <option value="CLIENTE">Cliente</option>
                     <option value="LOGISTICO">Logístico</option>
                 </select>
-                <p class="text-xs text- mt-1 ml-1>Selecciona el rol según el acceso necesario</p>
+                <p class="text-xs text- mt-1 ml-1">Selecciona el rol según el acceso necesario</p>
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg->Cancelar</button>
+                <button type="button" id="btn-cancel-invite" class="px-4 py-2 rounded-lg bg-">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Crear</button>
             </div>
         </form>
@@ -1519,11 +1519,11 @@
     <div class="card w-full max-w-lg max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>quiz</span>
+                <span class="material-symbols-outlined text- text-xl">quiz</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nueva Pregunta</h3>
             </div>
             <button id="btn-close-survey-editor" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <form id="survey-question-form" class="p-5 space-y-4">
@@ -1546,7 +1546,7 @@
                 <input type="text" id="survey-question-options" placeholder="Opción 1, Opción 2, Opción 3" class="input-field w-full">
             </div>
             <div class="flex justify-end gap-3 pt-3">
-                <button type="button" id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg->Cancelar</button>
+                <button type="button" id="btn-cancel-survey" class="px-4 py-2 rounded-lg bg-">Cancelar</button>
                 <button type="submit" class="btn-primary !px-5 btn-py2">Guardar</button>
             </div>
         </form>
@@ -1562,7 +1562,7 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Contacto</h3>
             </div>
             <button onclick="document.getElementById('modal-contact-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4 overflow-y-auto flex-1">
@@ -1620,7 +1620,7 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Grupo de Contactos</h3>
             </div>
             <button onclick="document.getElementById('modal-group-editor').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4">
@@ -1653,7 +1653,7 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Contactos</h3>
             </div>
             <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4">
@@ -1682,7 +1682,7 @@
     <div class="bg-slate-900 rounded-2xl border border-white-10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <div class="p-6 border-b border-white-10 flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl>campaign</span>
+                <span class="material-symbols-outlined text-#0ba5ec text-xl">campaign</span>
                 <h3 class="text-lg font-bold text-white">Nueva Campaña de Email</h3>
             </div>
             <button onclick="App.closeCampaignWizard()" class="w-8 h-8 rounded-lg hover:bg-white-10 flex items-center justify-center">
@@ -1693,7 +1693,7 @@
         <!-- Progress Bar -->
         <div class="px-6 py-4 border-b border-white-5 bg-slate-800-30">
             <div class="flex items-center justify-between mb-2">
-                <span id="wizard-step-label" class="text-xs font-bold text-#0ba5ec uppercase>Paso 1 de 3</span>
+                <span id="wizard-step-label" class="text-xs font-bold text-#0ba5ec uppercase">Paso 1 de 3</span>
                 <span class="text-xs text-slate-500">Destinatarios</span>
             </div>
             <div class="h-1-5 bg-slate-700 rounded-full overflow-hidden">
@@ -1795,7 +1795,7 @@
                             <div id="wizard-quill-editor" style="min-height: 200px;"></div>
                         </div>
                         <div class="flex items-center gap-2 mb-2">
-                            <button onclick="App.toggleWizardMode('visual')" id="btn-wizard-visual" class="px-3 py-1 rounded text-xs font-medium bg-#0ba5ec text-white>Visual</button>
+                            <button onclick="App.toggleWizardMode('visual')" id="btn-wizard-visual" class="px-3 py-1 rounded text-xs font-medium bg-#0ba5ec text-white">Visual</button>
                             <button onclick="App.toggleWizardMode('html')" id="btn-wizard-html" class="px-3 py-1 rounded text-xs font-medium bg-slate-700 text-slate-300">HTML</button>
                         </div>
                         
@@ -1827,14 +1827,14 @@
                             <label class="flex items-center gap-2 p-4 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
                                 <input type="radio" name="wizard-send-type" value="now" checked class="accent-#0ba5ec>
                                 <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-#0ba5ec>send_now</span>
+                                    <span class="material-symbols-outlined text-#0ba5ec">send_now</span>
                                     <span class="text-sm font-bold text-white">Enviar Ahora</span>
                                 </div>
                             </label>
                             <label class="flex items-center gap-2 p-4 bg-slate-800-50 rounded-xl cursor-pointer hover:bg-slate-700-50 transition-colors border border-transparent has-[:checked]:border-#0ba5ec/50>
                                 <input type="radio" name="wizard-send-type" value="scheduled" class="accent-#0ba5ec>
                                 <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-#0ba5ec>schedule</span>
+                                    <span class="material-symbols-outlined text-#0ba5ec">schedule</span>
                                     <span class="text-sm font-bold text-white">Programar</span>
                                 </div>
                             </label>
@@ -1881,7 +1881,7 @@
     <div class="bg-slate-900 rounded-2xl border border-white-10 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div class="p-6 border-b border-white-10 flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl>monitoring</span>
+                <span class="material-symbols-outlined text-#0ba5ec text-xl">monitoring</span>
                 <h3 class="text-lg font-bold text-white">Monitorear Campaña</h3>
             </div>
             <button onclick="App.closeCampaignMonitor()" class="w-8 h-8 rounded-lg hover:bg-white-10 flex items-center justify-center">
@@ -1949,20 +1949,20 @@
         <!-- Header -->
         <div class="p-6 border-b border- flex justify-between items-center shrink-0>
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-#0ba5ec text-xl>gavel</span>
-                <h3 id="modal-legal-title" class="text-lg font-bold text->Documento Legal</h3>
+                <span class="material-symbols-outlined text-#0ba5ec text-xl">gavel</span>
+                <h3 id="modal-legal-title" class="text-lg font-bold text-">Documento Legal</h3>
             </div>
             <button id="btn-close-legal" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <!-- Content -->
         <div id="modal-legal-content" class="p-6 overflow-y-auto flex-1 text- prose prose-invert max-w-none>
-            <p class="text->Cargando documento...</p>
+            <p class="text-">Cargando documento...</p>
         </div>
         <!-- Footer -->
         <div class="p-4 border-t border- shrink-0 flex justify-end>
-            <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text- text-sm font-medium hover:bg-white-10 transition-colors>Cerrar</button>
+            <button id="btn-close-legal-footer" class="px-6 py-2 rounded-lg bg-[var(--bg-hover)] text- text-sm font-medium hover:bg-white-10 transition-colors">Cerrar</button>
         </div>
     </div>
 </div>
@@ -1972,11 +1972,11 @@
     <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>upload</span>
+                <span class="material-symbols-outlined text- text-xl">upload</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Datos</h3>
             </div>
             <button id="btn-close-import" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1">
@@ -1986,7 +1986,7 @@
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                    <p class="text-xs text- mb-3>Descarga la plantilla Excel con las 3 secciones a completar:</p>
+                    <p class="text-xs text- mb-3">Descarga la plantilla Excel con las 3 secciones a completar:</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2 text-sm">
                             <span class="material-symbols-outlined text-green-400 text-lg">corporate_fare</span>
@@ -2014,9 +2014,9 @@
                 </h4>
                 <div id="import-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border- transition-colors cursor-pointer>
                     <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" class="hidden">
-                    <span class="material-symbols-outlined text-4xl text- mb-2>upload_file</span>
-                    <p class="text-sm text->Arrastra el archivo aquí o <span class="text- font-medium>haz clic para seleccionar</span></p>
-                    <p class="text-xs text- mt-1>Formato: .xlsx, .xls, .csv</p>
+                    <span class="material-symbols-outlined text-4xl text- mb-2">upload_file</span>
+                    <p class="text-sm text-">Arrastra el archivo aquí o <span class="text- font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text- mt-1">Formato: .xlsx, .xls, .csv</p>
                 </div>
             </div>
             
@@ -2029,7 +2029,7 @@
                     <div id="import-progress-bar" class="w-full bg- rounded-full h-2 mb-3 overflow-hidden>
                         <div id="import-progress-fill" class="h-full bg-#0ba5ec rounded-full transition-all duration-300 style="width: 0%"></div>
                     </div>
-                    <div id="import-status" class="text-sm text- mb-3>Procesando...</div>
+                    <div id="import-status" class="text-sm text- mb-3">Procesando...</div>
                     <div id="import-stats" class="grid grid-cols-3 gap-3">
                         <div class="text-center p-2 bg-green-10 rounded-lg border border-green-20">
                             <p class="text-lg font-bold text-green-400" id="import-new-count">0</p>
@@ -2044,12 +2044,12 @@
                             <p class="text-10 uppercase tracking-wider text-red-70">Errores</p>
                         </div>
                     </div>
-                    <div id="import-details" class="mt-3 max-h-32 overflow-y-auto text-xs text- hidden></div>
+                    <div id="import-details" class="mt-3 max-h-32 overflow-y-auto text-xs text- hidden"></div>
                 </div>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button id="btn-cancel-import" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+            <button id="btn-cancel-import" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
             <button id="btn-confirm-import" class="btn-primary !px-5 btn-py2" disabled>
                 <span class="material-symbols-outlined text-sm mr-1">system_update</span> Importar Datos
             </button>
@@ -2062,22 +2062,22 @@
     <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>download</span>
+                <span class="material-symbols-outlined text- text-xl">download</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Datos</h3>
             </div>
             <button id="btn-close-export" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1">
-            <p class="text-sm text- mb-4>Selecciona el formato de exportación:</p>
+            <p class="text-sm text- mb-4">Selecciona el formato de exportación:</p>
             <div class="space-y-3">
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-format-option data-format="excel">
                     <input type="radio" name="export-format" value="excel" checked class="w-5 h-5 accent->
                     <span class="material-symbols-outlined text-green-400 text-xl">table_chart</span>
                     <div>
                         <p class="font-medium text-sm">Archivo Excel (.xlsx)</p>
-                        <p class="text-xs text->Ideal para editar y analizar datos</p>
+                        <p class="text-xs text-">Ideal para editar y analizar datos</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-format-option data-format="pdf">
@@ -2085,7 +2085,7 @@
                     <span class="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
                     <div>
                         <p class="font-medium text-sm">Archivo PDF (.pdf)</p>
-                        <p class="text-xs text->Ideal para imprimir y compartir</p>
+                        <p class="text-xs text-">Ideal para imprimir y compartir</p>
                     </div>
                 </label>
             </div>
@@ -2093,11 +2093,11 @@
                 <div class="w-full bg- rounded-full h-2 overflow-hidden>
                     <div id="export-progress-fill" class="h-full bg-#0ba5ec rounded-full animate-pulse style="width: 100%"></div>
                 </div>
-                <p class="text-xs text- mt-2 text-center>Generando archivo...</p>
+                <p class="text-xs text- mt-2 text-center">Generando archivo...</p>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button id="btn-cancel-export" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cerrar</button>
+            <button id="btn-cancel-export" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cerrar</button>
             <button id="btn-confirm-export" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
             </button>
@@ -2110,11 +2110,11 @@
     <div class="card w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>upload</span>
+                <span class="material-symbols-outlined text- text-xl">upload</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Asistentes</h3>
             </div>
             <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1">
@@ -2124,7 +2124,7 @@
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                    <p class="text-xs text- mb-3>Descarga la plantilla Excel con los campos a completar:</p>
+                    <p class="text-xs text- mb-3">Descarga la plantilla Excel con los campos a completar:</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2 text-sm">
                             <span class="material-symbols-outlined text-blue-400 text-lg">person</span>
@@ -2160,9 +2160,9 @@
                 </h4>
                 <div id="import-attendance-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border- transition-colors cursor-pointer>
                     <input type="file" id="import-attendance-file-input" accept=".xlsx,.xls,.csv,.pdf" class="hidden">
-                    <span class="material-symbols-outlined text-4xl text- mb-2>upload_file</span>
-                    <p class="text-sm text->Arrastra el archivo aquí o <span class="text- font-medium>haz clic para seleccionar</span></p>
-                    <p class="text-xs text- mt-1>Formato: .xlsx, .xls, .csv, .pdf</p>
+                    <span class="material-symbols-outlined text-4xl text- mb-2">upload_file</span>
+                    <p class="text-sm text-">Arrastra el archivo aquí o <span class="text- font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text- mt-1">Formato: .xlsx, .xls, .csv, .pdf</p>
                 </div>
             </div>
 
@@ -2172,7 +2172,7 @@
                     <span class="material-symbols-outlined text-sm">Alt_Route</span> Mapeo de Columnas
                 </h4>
                 <div class="bg-[var(--bg-hover)] rounded-xl p-5 border border-/30>
-                    <p class="text-xs text- mb-4>Asocia las columnas de tu archivo con los campos del sistema:</p>
+                    <p class="text-xs text- mb-4">Asocia las columnas de tu archivo con los campos del sistema:</p>
                     <div id="mapping-fields-list" class="space-y-4">
                         <!-- Se poblará dinámicamente desde JS -->
                     </div>
@@ -2188,7 +2188,7 @@
                     <div id="import-attendance-progress-bar" class="w-full bg- rounded-full h-2 mb-3 overflow-hidden>
                         <div id="import-attendance-progress-fill" class="h-full bg-#0ba5ec rounded-full transition-all duration-300 style="width: 0%"></div>
                     </div>
-                    <div id="import-attendance-status" class="text-sm text- mb-3>Procesando...</div>
+                    <div id="import-attendance-status" class="text-sm text- mb-3">Procesando...</div>
                     <div id="import-attendance-stats" class="grid grid-cols-3 gap-3">
                         <div class="text-center p-2 bg-green-10 rounded-lg border border-green-20">
                             <p class="text-lg font-bold text-green-400" id="import-attendance-new-count">0</p>
@@ -2214,14 +2214,14 @@
                     
                     <!-- Detalles de errores -->
                     <div id="import-attendance-details" class="hidden mt-4 pt-4 border-t border->
-                        <p class="text-xs font-bold uppercase tracking-wider text- mb-2>Errores encontrados:</p>
-                        <div class="text-xs text- max-h-24 overflow-y-auto></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text- mb-2">Errores encontrados:</p>
+                        <div class="text-xs text- max-h-24 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+            <button onclick="document.getElementById('modal-import-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
             <button id="btn-confirm-import-attendance" class="btn-primary !px-5 btn-py2" disabled>
                 <span class="material-symbols-outlined text-sm mr-1">check</span> Importar
             </button>
@@ -2234,22 +2234,22 @@
     <div class="card w-full max-w-md max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>download</span>
+                <span class="material-symbols-outlined text- text-xl">download</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Exportar Asistentes</h3>
             </div>
             <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1">
-            <p class="text-sm text- mb-4>Selecciona el formato de exportación:</p>
+            <p class="text-sm text- mb-4">Selecciona el formato de exportación:</p>
             <div class="space-y-3">
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-attendance-format-option data-format="excel">
                     <input type="radio" name="export-attendance-format" value="excel" checked class="w-5 h-5 accent->
                     <span class="material-symbols-outlined text-green-400 text-xl">table_chart</span>
                     <div>
                         <p class="font-medium text-sm">Archivo Excel (.xlsx)</p>
-                        <p class="text-xs text->Ideal para editar y analizar datos</p>
+                        <p class="text-xs text-">Ideal para editar y analizar datos</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-attendance-format-option data-format="pdf">
@@ -2257,7 +2257,7 @@
                     <span class="material-symbols-outlined text-red-400 text-xl">picture_as_pdf</span>
                     <div>
                         <p class="font-medium text-sm">Archivo PDF (.pdf)</p>
-                        <p class="text-xs text->Ideal para imprimir y compartir</p>
+                        <p class="text-xs text-">Ideal para imprimir y compartir</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 p-4 rounded-xl border border-[var(--border)] hover:border- cursor-pointer transition-colors export-attendance-format-option data-format="csv">
@@ -2265,7 +2265,7 @@
                     <span class="material-symbols-outlined text-blue-400 text-xl">code</span>
                     <div>
                         <p class="font-medium text-sm">Archivo CSV (.csv)</p>
-                        <p class="text-xs text->Compatible con cualquier editor de texto</p>
+                        <p class="text-xs text-">Compatible con cualquier editor de texto</p>
                     </div>
                 </label>
             </div>
@@ -2273,11 +2273,11 @@
                 <div class="w-full bg- rounded-full h-2 overflow-hidden>
                     <div id="export-attendance-progress-fill" class="h-full bg-#0ba5ec rounded-full animate-pulse style="width: 100%"></div>
                 </div>
-                <p class="text-xs text- mt-2 text-center>Generando archivo...</p>
+                <p class="text-xs text- mt-2 text-center">Generando archivo...</p>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cerrar</button>
+            <button onclick="document.getElementById('modal-export-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cerrar</button>
             <button onclick="App.confirmExportAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">download</span> Exportar
             </button>
@@ -2290,43 +2290,43 @@
     <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>edit</span>
+                <span class="material-symbols-outlined text- text-xl">edit</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Editar Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="edit-attendance-client-id">
             <!-- Nombre -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Nombre</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Nombre</label>
                 <input type="text" id="edit-attendance-name" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Nombre completo">
             </div>
             <!-- Email -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Email</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Email</label>
                 <input type="email" id="edit-attendance-email" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="correo@ejemplo.com">
             </div>
             <!-- Teléfono -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Teléfono</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Teléfono</label>
                 <input type="tel" id="edit-attendance-phone" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="+52 123 456 7890">
             </div>
             <!-- Organización -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Organización</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Organización</label>
                 <input type="text" id="edit-attendance-organization" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Empresa u organización">
             </div>
             <!-- Cargo -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Cargo</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Cargo</label>
                 <input type="text" id="edit-attendance-cargo" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Puesto o cargo">
             </div>
             <!-- Vegano -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Vegano</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Vegano</label>
                 <select id="edit-attendance-vegano" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none>
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
@@ -2334,12 +2334,12 @@
             </div>
             <!-- Restricciones -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Restricciones Alimentarias</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Restricciones Alimentarias</label>
                 <textarea id="edit-attendance-restricciones" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none rows="2" placeholder="Alergias o restricciones alimentaires"></textarea>
             </div>
             <!-- Estado -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block>Estado</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Estado</label>
                 <select id="edit-attendance-status" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none>
                     <option value="PENDIENTE">Pendiente</option>
                     <option value="CONFIRMADO">Confirmado</option>
@@ -2348,7 +2348,7 @@
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
             <button onclick="App.saveEditAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar
             </button>
@@ -2365,14 +2365,14 @@
                 <h3 class="text-sm font-bold uppercase tracking-wider">Gestionar Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 space-y-6">
             <input type="hidden" id="manage-attendance-client-id">
             <!-- Cambiar Estado -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-3 block>Cambiar Estado</label>
+                <label class="text-xs font-bold uppercase tracking-wider text- mb-3 block">Cambiar Estado</label>
                 <div class="space-y-2">
                     <label class="flex items-center gap-3 p-3 rounded-xl border border- hover:border-amber-500 cursor-pointer transition-colors manage-status-option data-status="PENDIENTE">
                         <input type="radio" name="manage-attendance-status" value="PENDIENTE" class="w-5 h-5 accent-amber-500">
@@ -2394,9 +2394,9 @@
             
             <!-- Información del asistente -->
             <div id="manage-attendance-info" class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                <p class="text-xs font-bold uppercase tracking-wider text- mb-2>Asistente</p>
+                <p class="text-xs font-bold uppercase tracking-wider text- mb-2">Asistente</p>
                 <p id="manage-attendance-name" class="text-sm font-medium text-white">-</p>
-                <p id="manage-attendance-email" class="text-xs text->-</p>
+                <p id="manage-attendance-email" class="text-xs text-">-</p>
             </div>
             
             <!-- Eliminar -->
@@ -2407,7 +2407,7 @@
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cerrar</button>
+            <button onclick="document.getElementById('modal-manage-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cerrar</button>
             <button onclick="App.saveManageAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar Cambios
             </button>
@@ -2420,48 +2420,48 @@
     <div class="card w-full max-w-md max-h-[85vh] overflow-hidden rounded-xl m-6 flex flex-col scale-in">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl>person_add</span>
+                <span class="material-symbols-outlined text- text-xl">person_add</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Nuevo Asistente</h3>
             </div>
             <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text->close</span>
+                <span class="material-symbols-outlined text-sm text-">close</span>
             </button>
         </div>
         <div class="p-5 overflow-y-auto flex-1 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Nombre</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Nombre</label>
                 <input type="text" id="add-attendance-name" placeholder="Nombre completo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Email</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Email</label>
                 <input type="email" id="add-attendance-email" placeholder="correo@ejemplo.com" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Teléfono</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Teléfono</label>
                 <input type="text" id="add-attendance-phone" placeholder="+52 123 456 7890" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Organización</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Organización</label>
                 <input type="text" id="add-attendance-organization" placeholder="Empresa u organización" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Cargo</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Cargo</label>
                 <input type="text" id="add-attendance-cargo" placeholder="Puesto o cargo" class="input-field w-full">
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Vegano</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Vegano</label>
                 <select id="add-attendance-vegano" class="input-field w-full">
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="text-10 font-medium text- uppercase tracking-wider>Restricciones Alimentarias</label>
+                <label class="text-10 font-medium text- uppercase tracking-wider">Restricciones Alimentarias</label>
                 <textarea id="add-attendance-restricciones" placeholder="Alergias o restricciones" class="input-field w-full" rows="2"></textarea>
             </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium>Cancelar</button>
+            <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
             <button onclick="App.saveAddAttendance()" class="btn-primary !px-5 btn-py2">
                 <span class="material-symbols-outlined text-sm mr-1">add</span> Agregar
             </button>
