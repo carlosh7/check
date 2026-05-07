@@ -6378,9 +6378,9 @@ const App = window.App = {
 
         // OCULTAR SIDEBAR DE EVENTO si no es admin o event-config
         if (viewName !== 'admin' && viewName !== 'event-config') {
-            const navSectionEvent = document.getElementById('nav-section-event');
-            if (navSectionEvent) navSectionEvent.classList.add('hidden');
+            this.state.event = null;
         }
+        this.updateSidebarVisibility();
 
         // UI Sidebar - actualizar estado activo para sub-nav-btns
         document.querySelectorAll('#global-sidebar .sub-nav-btn').forEach(b => {
@@ -9461,7 +9461,11 @@ navigate(viewName, params = {}, push = true) {
         // Actualizar visibilidad del sidebar
         this.updateSidebarVisibility();
     },
-    
+
+    openEventConfig: function(eventId) {
+        this.openEvent(eventId);
+    },
+
     // Restaurar evento desde localStorage
     restoreSelectedEvent() {
         const savedEventId = LS.get('selected_event_id');

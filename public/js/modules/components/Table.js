@@ -71,7 +71,7 @@ class Table {
                 <td class="!py-3 !px-3">
                     <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase ${estadoClass}">${estadoLabel}</span>
                 </td>
-                <td class="!py-3 !px-3 text-sm text-slate-400">${event.guestCount || 0}</td>
+                <td class="!py-3 !px-3 text-sm text-slate-400">${event.total_guests || event.guestCount || 0}</td>
                 <td class="!py-3 !px-3">
                     <div class="flex gap-1">
                         <button onclick="App.openEventConfig('${event.id}')" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar">
