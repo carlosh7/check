@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.526</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.527</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2009,27 +2009,27 @@
             
             <!-- Subida de archivo -->
             <div class="mb-6">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">attach_file</span> Subir Archivo
                 </h4>
-                <div id="import-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border- transition-colors cursor-pointer>
+                <div id="import-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
                     <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" class="hidden">
-                    <span class="material-symbols-outlined text-4xl text- mb-2">upload_file</span>
-                    <p class="text-sm text-">Arrastra el archivo aquí o <span class="text- font-medium">haz clic para seleccionar</span></p>
-                    <p class="text-xs text- mt-1">Formato: .xlsx, .xls, .csv</p>
+                    <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)] mb-2">upload_file</span>
+                    <p class="text-sm text-[var(--text-secondary)]">Arrastra el archivo aqu&iacute; o <span class="text-[var(--primary)] font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv</p>
                 </div>
             </div>
             
             <!-- Progreso de validación -->
             <div id="import-progress-container" class="hidden">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">fact_check</span> Validación de Datos
                 </h4>
-                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border->
-                    <div id="import-progress-bar" class="w-full bg- rounded-full h-2 mb-3 overflow-hidden>
-                        <div id="import-progress-fill" class="h-full bg-#0ba5ec rounded-full transition-all duration-300 style="width: 0%"></div>
+                <div class="bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border)]">
+                    <div id="import-progress-bar" class="w-full bg-[var(--bg-secondary)] rounded-full h-2 mb-3 overflow-hidden">
+                        <div id="import-progress-fill" class="h-full bg-[var(--primary)] rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
-                    <div id="import-status" class="text-sm text- mb-3">Procesando...</div>
+                    <div id="import-status" class="text-sm text-[var(--text-secondary)] mb-3">Procesando...</div>
                     <div id="import-stats" class="grid grid-cols-3 gap-3">
                         <div class="text-center p-2 bg-green-10 rounded-lg border border-green-20">
                             <p class="text-lg font-bold text-green-400" id="import-new-count">0</p>
@@ -2044,12 +2044,12 @@
                             <p class="text-10 uppercase tracking-wider text-red-70">Errores</p>
                         </div>
                     </div>
-                    <div id="import-details" class="mt-3 max-h-32 overflow-y-auto text-xs text- hidden"></div>
+                    <div id="import-details" class="mt-3 max-h-32 overflow-y-auto text-xs text-[var(--text-secondary)] hidden"></div>
                 </div>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button id="btn-cancel-import" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-end gap-3">
+            <button id="btn-cancel-import" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
             <button id="btn-confirm-import" class="btn-primary !px-5 btn-py2" disabled>
                 <span class="material-symbols-outlined text-sm mr-1">system_update</span> Importar Datos
             </button>
