@@ -8655,7 +8655,7 @@ navigate(viewName, params = {}, push = true) {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await this.fetchAPI(`/events/${eventId}/clone`, { method: 'POST', body: { copyGuests: result.value?.copyGuests || false } });
+            const res = await this.fetchAPI(`/events/${eventId}/clone`, { method: 'POST', body: JSON.stringify({ copyGuests: result.value?.copyGuests || false }) });
             if (res.success) {
                 await this.loadEvents();
                 Swal.fire({ title: '&check; Duplicado', text: res.name + ' creado', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
