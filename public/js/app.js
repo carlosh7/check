@@ -14738,8 +14738,6 @@ App.downloadAttendanceTemplate = function() {
     } catch(e) {
         console.error('[TEMPLATE] Error:', e);
         Swal.fire({ title: '❌ Error', text: 'Error al descargar plantilla', icon: 'error', background: '#0f172a', color: '#fff' });
-    }
-
     },
 
     // ==================== M├ôDULO DE EMAIL (V12.45) ====================
@@ -15952,6 +15950,16 @@ App.downloadAttendanceTemplate = function() {
         
         // Cambiar texto del bot├│n siguiente
         const nextBtn = document.getElementById('wizard-btn-next');
+        if (nextBtn) {
+            if (step < 3) {
+                nextBtn.textContent = 'Siguiente';
+                nextBtn.onclick = () => this.showWizardStep(step + 1);
+            } else {
+                nextBtn.textContent = 'Finalizar';
+                nextBtn.onclick = () => this.saveCampaign();
+            }
+        }
+    },
 
 };
 // Click outside para sugerencias de attendance
