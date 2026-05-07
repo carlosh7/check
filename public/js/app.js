@@ -15353,6 +15353,8 @@ App.openAddAssistantModal = function() {
     document.getElementById('modal-add-attendance').classList.remove('hidden');
 },
 
+App.toggleAddAttendanceModal = function() { App.openAddAssistantModal(); },
+
 App.openAttendanceCarousel = function() {
     const selected = this._selectedAttendance || [];
     if (selected.length === 0) {
