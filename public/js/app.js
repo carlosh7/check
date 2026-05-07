@@ -13514,6 +13514,12 @@ navigate(viewName, params = {}, push = true) {
         
         document.getElementById('modal-container-portal').innerHTML = modalContent;
         document.getElementById('modal-email-account').classList.remove('hidden');
+        const accountModal = document.getElementById('modal-email-account');
+        if (accountModal) {
+            accountModal.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) accountModal.classList.add('hidden');
+            });
+        }
     },
 
     showEmailSetupHelp: function() {
@@ -14415,6 +14421,10 @@ navigate(viewName, params = {}, push = true) {
             '<div class="p-6 border-t border-[var(--border)] flex justify-end gap-3">' +
             '<button onclick="document.getElementById(\'modal-email-composer\')?.remove()" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold">Cancelar</button>' +
             '<button onclick="App.sendComposedEmail()" class="btn-primary">Enviar</button></div></div></div>';
+        const el = document.getElementById('modal-email-composer');
+        if (el) {
+            el.addEventListener('click', (e) => { if (e.target === e.currentTarget) el.remove(); });
+        }
     },
 
     sendComposedEmail: async function() {
@@ -15314,6 +15324,19 @@ if (document.readyState === 'loading') {
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 })();
+
+// ── Escape global: cierra cualquier modal visible ──
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const visibleModal = document.querySelector('[id^="modal-"]:not(.hidden)');
+        if (visibleModal) {
+            visibleModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        const portalModal = document.querySelector('#modal-container-portal > [id^="modal-"]');
+        if (portalModal) portalModal.remove();
+    }
+});
 
 // Retrocompatibilidad
 window.showView = (v) => App.showView(v);

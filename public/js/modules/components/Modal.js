@@ -6,6 +6,17 @@
 class Modal {
     constructor() {
         this.activeModals = new Set();
+        this._clickHandler = (e) => {
+            if (e.target === e.currentTarget) {
+                this.hide(e.currentTarget.id);
+            }
+        };
+        this._keyHandler = (e) => {
+            if (e.key === 'Escape' && this.activeModals.size > 0) {
+                const lastId = Array.from(this.activeModals).pop();
+                this.hide(lastId);
+            }
+        };
     }
     
     // Mostrar un modal
@@ -20,6 +31,11 @@ class Modal {
         modal.setAttribute('aria-hidden', 'false');
         this.activeModals.add(modalId);
         document.body.style.overflow = 'hidden';
+        
+        modal.addEventListener('click', this._clickHandler);
+        if (this.activeModals.size === 1) {
+            document.addEventListener('keydown', this._keyHandler);
+        }
     }
     
     // Ocultar un modal
@@ -32,9 +48,12 @@ class Modal {
         
         modal.classList.add('hidden');
         modal.setAttribute('aria-hidden', 'true');
+        modal.removeEventListener('click', this._clickHandler);
         this.activeModals.delete(modalId);
+        
         if (this.activeModals.size === 0) {
             document.body.style.overflow = '';
+            document.removeEventListener('keydown', this._keyHandler);
         }
     }
     
