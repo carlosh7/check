@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.571</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.577</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2397,11 +2397,16 @@
                 </select>
             </div>
         </div>
-        <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
-            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
-            <button onclick="App.saveEditAttendance()" class="btn-primary !px-5 btn-py2">
-                <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar
+        <div class="p-4 border-t border-[var(--border)] shrink-0 flex justify-between gap-3">
+            <button onclick="App.deleteAttendance(document.getElementById('edit-attendance-client-id')?.value)" class="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">delete</span> Eliminar
             </button>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-[var(--bg-hover)] text-sm font-medium">Cancelar</button>
+                <button onclick="App.saveEditAttendance()" class="btn-primary !px-5 btn-py2">
+                    <span class="material-symbols-outlined text-sm mr-1">save</span> Guardar
+                </button>
+            </div>
         </div>
     </div>
 </div>

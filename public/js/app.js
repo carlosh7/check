@@ -16508,9 +16508,10 @@ App.saveManageAttendance = async function() {
     }
 };
 
-App.deleteAttendance = async function() {
-    const clientId = document.getElementById('manage-attendance-client-id').value;
-    const eventId = this.state.currentEventId;
+ App.deleteAttendance = async function(clientId) {
+     if (!clientId) clientId = document.getElementById('manage-attendance-client-id')?.value || document.getElementById('edit-attendance-client-id')?.value;
+     const eventId = this.state?.event?.id || this.state?.currentEventId;
+     if (!eventId || !clientId) return;
     
     const result = await Swal.fire({
         title: '⚠️ Confirmar',
@@ -16526,8 +16527,9 @@ App.deleteAttendance = async function() {
     if (!result.isConfirmed) return;
     
     try {
-        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, 'DELETE');
-        document.getElementById('modal-manage-attendance').classList.add('hidden');
+        await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, { method: 'DELETE' });
+        document.getElementById('modal-manage-attendance')?.classList.add('hidden');
+        document.getElementById('modal-edit-attendance')?.classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Eliminado', text: 'Asistente eliminado', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
     } catch(e) {
