@@ -9363,7 +9363,7 @@ navigate(viewName, params = {}, push = true) {
     // Alias para compatibilidad HTML
     openEventEditFromAdmin() {
         if (this.state.event?.id) {
-            return this.editEvent(this.state.event.id);
+            this.navigate('event-config', { id: this.state.event.id });
         }
     },
 

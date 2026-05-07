@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.546</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.547</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1655,12 +1655,12 @@
                 <span class="material-symbols-outlined text-cyan-400 text-xl">upload_file</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Importar Contactos</h3>
             </div>
-            <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
             </button>
         </div>
         <div class="p-5 space-y-4">
-            <div class="p-6 border-2 border-dashed border-white-10 rounded-xl text-center">
+            <div class="p-6 border-2 border-dashed border-white/10 rounded-xl text-center">
                 <span class="material-symbols-outlined text-4xl text-slate-500 mb-2">cloud_upload</span>
                 <p class="text-sm text-slate-400 mb-4">Arrastra un archivo CSV o haz clic para seleccionar</p>
                 <input type="file" id="contacts-csv-file" accept=".csv" class="hidden" onchange="App.handleContactsFile(this)">
@@ -1672,8 +1672,8 @@
                 <div id="csv-preview-list" class="bg-black-40 rounded-lg p-3 text-xs font-mono max-h-40 overflow-y-auto"></div>
             </div>
             
-            <div class="flex gap-2 pt-4 border-t border->
-                <button onclick="App.importContacts()" class="btn-primary flex-1">📥 Importar</button>
+            <div class="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onclick="App.importContacts()" class="btn-primary flex-1">Importar</button>
                 <button onclick="document.getElementById('modal-import-contacts').classList.add('hidden')" class="btn-secondary">Cancelar</button>
             </div>
         </div>
@@ -2158,14 +2158,14 @@
             
             <!-- Subida de archivo -->
             <div class="mb-6">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">attach_file</span> Subir Archivo
                 </h4>
-                <div id="import-attendance-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border- transition-colors cursor-pointer>
+                <div id="import-attendance-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer">
                     <input type="file" id="import-attendance-file-input" accept=".xlsx,.xls,.csv,.pdf" class="hidden">
-                    <span class="material-symbols-outlined text-4xl text- mb-2">upload_file</span>
-                    <p class="text-sm text-">Arrastra el archivo aquí o <span class="text- font-medium">haz clic para seleccionar</span></p>
-                    <p class="text-xs text- mt-1">Formato: .xlsx, .xls, .csv, .pdf</p>
+                    <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)] mb-2">upload_file</span>
+                    <p class="text-sm text-[var(--text-secondary)]">Arrastra el archivo aqu&iacute; o <span class="text-[var(--primary)] font-medium">haz clic para seleccionar</span></p>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Formato: .xlsx, .xls, .csv, .pdf</p>
                 </div>
             </div>
 
@@ -2293,57 +2293,49 @@
     <div class="card w-full max-w-lg max-h-[90vh] overflow-hidden rounded-xl m-6 flex flex-col">
         <div class="premium-modal-header">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text- text-xl">edit</span>
+                <span class="material-symbols-outlined text-[var(--text-secondary)] text-xl">edit</span>
                 <h3 class="text-sm font-bold uppercase tracking-wider">Editar Asistente</h3>
             </div>
-            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg- flex items-center justify-center transition-colors>
-                <span class="material-symbols-outlined text-sm text-">close</span>
+            <button onclick="document.getElementById('modal-edit-attendance').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">close</span>
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 space-y-4">
             <input type="hidden" id="edit-attendance-client-id">
-            <!-- Nombre -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Nombre</label>
-                <input type="text" id="edit-attendance-name" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Nombre completo">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Nombre</label>
+                <input type="text" id="edit-attendance-name" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Nombre completo">
             </div>
-            <!-- Email -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Email</label>
-                <input type="email" id="edit-attendance-email" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="correo@ejemplo.com">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Email</label>
+                <input type="email" id="edit-attendance-email" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="correo@ejemplo.com">
             </div>
-            <!-- Teléfono -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Teléfono</label>
-                <input type="tel" id="edit-attendance-phone" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="+52 123 456 7890">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Tel&eacute;fono</label>
+                <input type="tel" id="edit-attendance-phone" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="+52 123 456 7890">
             </div>
-            <!-- Organización -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Organización</label>
-                <input type="text" id="edit-attendance-organization" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Empresa u organización">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Organizaci&oacute;n</label>
+                <input type="text" id="edit-attendance-organization" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Empresa u organizaci&oacute;n">
             </div>
-            <!-- Cargo -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Cargo</label>
-                <input type="text" id="edit-attendance-cargo" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none placeholder="Puesto o cargo">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Cargo</label>
+                <input type="text" id="edit-attendance-cargo" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" placeholder="Puesto o cargo">
             </div>
-            <!-- Vegano -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Vegano</label>
-                <select id="edit-attendance-vegano" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Vegano</label>
+                <select id="edit-attendance-vegano" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
                     <option value="NO">No</option>
-                    <option value="SI">Sí</option>
+                    <option value="SI">S&iacute;</option>
                 </select>
             </div>
-            <!-- Restricciones -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Restricciones Alimentarias</label>
-                <textarea id="edit-attendance-restricciones" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none rows="2" placeholder="Alergias o restricciones alimentaires"></textarea>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Restricciones Alimentarias</label>
+                <textarea id="edit-attendance-restricciones" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none" rows="2" placeholder="Alergias o restricciones alimentarias"></textarea>
             </div>
-            <!-- Estado -->
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text- mb-2 block">Estado</label>
-                <select id="edit-attendance-status" class="w-full px-4 py-2-5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border- focus:outline-none>
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2 block">Estado</label>
+                <select id="edit-attendance-status" class="w-full px-4 py-2.5 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-sm focus:border-[var(--primary)] focus:outline-none">
                     <option value="PENDIENTE">Pendiente</option>
                     <option value="CONFIRMADO">Confirmado</option>
                     <option value="CANCELADO">Cancelado</option>
