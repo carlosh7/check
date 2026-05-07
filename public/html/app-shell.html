@@ -178,18 +178,18 @@
                     </div>
 
                     <div class="filters-row">
-                        <select id="filter-attendance-org" onchange="App.filterAttendance()" class="filter-select filter-select-empresa">
-                            <option value="">Organización</option>
+                        <select id="filter-attendance-org" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-empresa">
+                            <option value="">Organizaci&oacute;n</option>
                         </select>
-                        <select id="filter-attendance-cargo" onchange="App.filterAttendance()" class="filter-select filter-select-staff">
+                        <select id="filter-attendance-cargo" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-staff">
                             <option value="">Cargo</option>
                         </select>
-                        <select id="filter-attendance-vegano" onchange="App.filterAttendance()" class="filter-select filter-select-cliente">
+                        <select id="filter-attendance-vegano" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-cliente">
                             <option value="">Vegano</option>
-                            <option value="SI">Sí</option>
+                            <option value="SI">S&iacute;</option>
                             <option value="NO">No</option>
                         </select>
-                        <select id="filter-attendance-status" onchange="App.filterAttendance()" class="filter-select filter-select-evento">
+                        <select id="filter-attendance-status" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-evento">
                             <option value="">Estado</option>
                             <option value="PENDIENTE">Pendiente</option>
                             <option value="CONFIRMADO">Confirmado</option>
@@ -223,6 +223,15 @@
                         <div class="stats-bar-item">
                             <p id="admin-clock-countdown" class="stats-bar-value countdown">00:00:00</p>
                         </div>
+                    </div>
+
+                    <div class="search-box-container">
+                        <input id="attendance-search" type="text" class="search-input" placeholder="Buscar asistente por nombre, email, teléfono, organización, cargo..."
+                               oninput="App.filterAttendance(); App.loadAnalytics()" onfocus="App.showAttendanceSuggestions()" autocomplete="off">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <span id="attendance-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('attendance')" title="Búsqueda por voz">mic</span>
+                        <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('attendance-search').value=''; document.getElementById('filter-attendance-org').value=''; document.getElementById('filter-attendance-cargo').value=''; document.getElementById('filter-attendance-vegano').value=''; document.getElementById('filter-attendance-status').value=''; App.filterAttendance(); App.hideAttendanceSuggestions(); App.loadAnalytics();">close</span>
+                        <div id="attendance-suggestions" class="hidden suggestions-dropdown"></div>
                     </div>
 
                 <!-- SECCIÓN: ANALYTICS -->

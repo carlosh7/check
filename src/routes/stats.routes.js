@@ -8,7 +8,6 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-/** Helper: obtiene todas las BD que pueden tener invitados de este evento */
 function getDbsForEvent(eventId) {
     const dbs = [db];
     try {
@@ -21,7 +20,6 @@ function getDbsForEvent(eventId) {
     return dbs;
 }
 
-/** Helper: ejecuta una query en todas las BD y combina resultados (arrays) */
 function queryAll(dbs, sql, params) {
     const all = [];
     for (const targetDb of dbs) {
@@ -33,7 +31,6 @@ function queryAll(dbs, sql, params) {
     return all;
 }
 
-/** Helper: ejecuta una query escalar en todas las BD y suma resultados */
 function querySum(dbs, sql, params) {
     let total = 0;
     for (const targetDb of dbs) {
@@ -45,33 +42,46 @@ function querySum(dbs, sql, params) {
     return total;
 }
 
-/**
- * GET /api/stats/:eventId
- * Retorna métricas completas de un evento
- */
 router.get('/stats/:eventId', authMiddleware(), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID inválido' });
 
+        const org = (req.query.org || '').trim();
+        const cargo = (req.query.cargo || '').trim();
+        const vegano = (req.query.vegano || '').trim();
+        const status = (req.query.status || '').trim();
+        const q = (req.query.q || '').trim();
+
+        const wheres = ['event_id = ?'];
+        const params = [eId];
+        if (org) { wheres.push('organization = ?'); params.push(org); }
+        if (cargo) { wheres.push('cargo = ?'); params.push(cargo); }
+        if (vegano) { wheres.push('vegano = ?'); params.push(vegano); }
+        if (status) { wheres.push('status = ?'); params.push(status); }
+        if (q) {
+            wheres.push("(name LIKE ? OR email LIKE ? OR phone LIKE ? OR organization LIKE ? OR cargo LIKE ?)");
+            const like = '%' + q + '%';
+            params.push(like, like, like, like, like);
+        }
+        const where = wheres.join(' AND ');
+
         const dbs = getDbsForEvent(eId);
 
-        const total = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ?", [eId]);
-        const checkedIn = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND checked_in = 1", [eId]);
+        const total = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE " + where, params);
+        const checkedIn = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE " + where + " AND checked_in = 1", params);
         const pending = total - checkedIn;
-        const orgs = querySum(dbs, "SELECT COUNT(DISTINCT organization) as c FROM guests WHERE event_id = ? AND organization IS NOT NULL AND organization != ''", [eId]);
-        const onsite = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND is_new_registration = 1", [eId]);
+        const orgsCount = querySum(dbs, "SELECT COUNT(DISTINCT organization) as c FROM guests WHERE " + where + " AND organization IS NOT NULL AND organization != ''", params);
+        const onsite = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE " + where + " AND is_new_registration = 1", params);
 
-        const health = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND (dietary_notes IS NOT NULL AND dietary_notes != '' AND LOWER(dietary_notes) != 'ninguna' AND LOWER(dietary_notes) != 'sin restricciones')", [eId]);
+        const health = querySum(dbs, "SELECT COUNT(*) as c FROM guests WHERE " + where + " AND (dietary_notes IS NOT NULL AND dietary_notes != '' AND LOWER(dietary_notes) != 'ninguna' AND LOWER(dietary_notes) != 'sin restricciones')", params);
 
-        const flowData = queryAll(dbs, "SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE event_id = ? AND checked_in = 1 AND checkin_time IS NOT NULL GROUP BY hour ORDER BY hour", [eId]);
-
-        // Merge flow data by hour
+        const flowData = queryAll(dbs, "SELECT strftime('%H', checkin_time) as hour, COUNT(*) as count FROM guests WHERE " + where + " AND checked_in = 1 AND checkin_time IS NOT NULL GROUP BY hour ORDER BY hour", params);
         const flowMap = {};
         flowData.forEach(f => { flowMap[f.hour] = (flowMap[f.hour] || 0) + f.count; });
         const mergedFlow = Object.entries(flowMap).sort().map(([hour, count]) => ({ hour, count }));
 
-        const orgsRaw = queryAll(dbs, "SELECT organization, COUNT(*) as count FROM guests WHERE event_id = ? AND organization IS NOT NULL AND organization != '' GROUP BY organization ORDER BY count DESC", [eId]);
+        const orgsRaw = queryAll(dbs, "SELECT organization, COUNT(*) as count FROM guests WHERE " + where + " AND organization IS NOT NULL AND organization != '' GROUP BY organization ORDER BY count DESC", params);
         const orgMap = {};
         orgsRaw.forEach(o => { orgMap[o.organization] = (orgMap[o.organization] || 0) + o.count; });
         let mergedOrgs = Object.entries(orgMap).sort((a, b) => b[1] - a[1]).map(([organization, count]) => ({ organization, count }));
@@ -81,18 +91,18 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
             orgDistribution.push({ organization: 'Otros', count: othersCount });
         }
 
-        const genderRaw = queryAll(dbs, "SELECT gender, COUNT(*) as count FROM guests WHERE event_id = ? AND gender IS NOT NULL GROUP BY gender", [eId]);
+        const genderRaw = queryAll(dbs, "SELECT gender, COUNT(*) as count FROM guests WHERE " + where + " AND gender IS NOT NULL GROUP BY gender", params);
         const genderMap = {};
         genderRaw.forEach(g => { genderMap[g.gender] = (genderMap[g.gender] || 0) + g.count; });
         const genderDistribution = Object.entries(genderMap).map(([gender, count]) => ({ gender, count }));
 
-        const dietRaw = queryAll(dbs, `SELECT CASE WHEN dietary_notes LIKE '%vegano%' OR dietary_notes LIKE '%vegetariano%' THEN 'Vegano/Vegetariano' WHEN dietary_notes IS NOT NULL AND dietary_notes != '' THEN 'Otras dietas' ELSE 'Sin restricciones' END as diet_type, COUNT(*) as count FROM guests WHERE event_id = ? GROUP BY diet_type`, [eId]);
+        const dietRaw = queryAll(dbs, `SELECT CASE WHEN dietary_notes LIKE '%vegano%' OR dietary_notes LIKE '%vegetariano%' THEN 'Vegano/Vegetariano' WHEN dietary_notes IS NOT NULL AND dietary_notes != '' THEN 'Otras dietas' ELSE 'Sin restricciones' END as diet_type, COUNT(*) as count FROM guests WHERE ` + where + ` GROUP BY diet_type`, params);
         const dietMap = {};
         dietRaw.forEach(d => { dietMap[d.diet_type] = (dietMap[d.diet_type] || 0) + d.count; });
         const dietaryDistribution = Object.entries(dietMap).map(([diet_type, count]) => ({ diet_type, count }));
 
         const headerNames = ['nombre', 'name', 'asistente', 'email', 'telefono', 'teléfono', 'phone', 'organizaci', 'organization', 'cargo', 'vegano', 'restricci', 'restricciones', 'dietary_notes', 'observaciones', 'comentarios'];
-        const restrictedRaw = queryAll(dbs, `SELECT name, email, phone, organization, vegano, COALESCE(NULLIF(restricciones,''), dietary_notes) as restriccion FROM guests WHERE event_id = ? AND (COALESCE(NULLIF(restricciones,''), dietary_notes) IS NOT NULL AND COALESCE(NULLIF(restricciones,''), dietary_notes) != '' AND LOWER(COALESCE(NULLIF(restricciones,''), dietary_notes)) NOT IN ('ninguna','sin restricciones','no','n/a')) ORDER BY name ASC`, [eId]);
+        const restrictedRaw = queryAll(dbs, `SELECT name, email, phone, organization, vegano, COALESCE(NULLIF(restricciones,''), dietary_notes) as restriccion FROM guests WHERE ` + where + ` AND (COALESCE(NULLIF(restricciones,''), dietary_notes) IS NOT NULL AND COALESCE(NULLIF(restricciones,''), dietary_notes) != '' AND LOWER(COALESCE(NULLIF(restricciones,''), dietary_notes)) NOT IN ('ninguna','sin restricciones','no','n/a')) ORDER BY name ASC`, params);
         const restrictedGuests = restrictedRaw.filter(g => {
             const n = (g.name || '').toLowerCase().trim();
             return n && !headerNames.some(h => n.startsWith(h));
@@ -101,7 +111,7 @@ router.get('/stats/:eventId', authMiddleware(), (req, res) => {
         res.json({
             total, checkedIn, pending,
             conversionRate: total > 0 ? Math.round((checkedIn / total) * 100) : 0,
-            orgs, onsite,
+            orgs: orgsCount, onsite,
             healthAlerts: health,
             flowData: mergedFlow,
             orgDistribution, genderDistribution, dietaryDistribution,

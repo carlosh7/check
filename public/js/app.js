@@ -1011,12 +1011,17 @@ const App = window.App = {
     loadAnalytics: async function() {
         const eventId = this.state.event?.id;
         if (!eventId) return;
-        // Ensure attendance data is loaded
         if (!this._attendanceLoaded && typeof this.loadAttendance === 'function') {
             await this.loadAttendance(eventId);
         }
         try {
-            const res = await this.fetchAPI('/stats/' + eventId);
+            const org = document.getElementById('filter-attendance-org')?.value || '';
+            const cargo = document.getElementById('filter-attendance-cargo')?.value || '';
+            const vegano = document.getElementById('filter-attendance-vegano')?.value || '';
+            const status = document.getElementById('filter-attendance-status')?.value || '';
+            const q = document.getElementById('attendance-search')?.value || '';
+            const params = new URLSearchParams({ org, cargo, vegano, status, q }).toString();
+            const res = await this.fetchAPI('/stats/' + eventId + '?' + params);
             if (!res) return;
 
             const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? '-'; };
