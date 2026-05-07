@@ -8623,6 +8623,29 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+    cloneEvent: async function(eventId) {
+        if (!eventId) return;
+        const result = await Swal.fire({
+            title: 'Duplicar evento',
+            text: 'Se crear&aacute; una copia del evento en estado borrador',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'S&iacute;, duplicar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await this.fetchAPI(`/events/${eventId}/clone`, { method: 'POST' });
+            if (res.success) {
+                await this.loadEvents();
+                Swal.fire({ title: '✓ Duplicado', text: `Evento "${res.name}" creado`, icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
+            }
+        } catch(e) {
+            Swal.fire({ title: '✗ Error', text: e.message || 'No se pudo duplicar', icon: 'error', background: '#0f172a', color: '#fff' });
+        }
+    },
+
     _confirmAction: async function(title, text) {
         if (typeof Swal === 'undefined') return confirm(text);
         const result = await Swal.fire({ title, text, icon: 'warning', background: '#0f172a', color: '#fff', showCancelButton: true });

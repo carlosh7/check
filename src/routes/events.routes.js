@@ -1105,4 +1105,55 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
     }
 });
 
+// ══════════════════════════════════════════════════════════════
+// CLONAR EVENTO
+// ══════════════════════════════════════════════════════════════
+router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+    try {
+        const eventId = castId('events', req.params.id);
+        if (!eventId) return res.status(400).json({ error: 'ID de evento inválido' });
+
+        const original = db.prepare("SELECT * FROM events WHERE id = ?").get(eventId);
+        if (!original) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        const newId = getValidId('events');
+        const now = new Date().toISOString();
+        const newName = `${original.name} (copia)`;
+
+        db.prepare(`
+            INSERT INTO events (
+                id, user_id, name, date, location, logo_url, description, status, created_at, group_id, end_date,
+                reg_title, reg_welcome_text, reg_success_message, reg_policy,
+                reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
+                reg_show_dietary, reg_show_gender, reg_require_agreement,
+                qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
+                reg_email_whitelist, reg_email_blacklist, has_own_db, has_wheel
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            newId, req.userId, newName, original.date, original.location, original.logo_url, original.description, now, original.group_id, original.end_date,
+            original.reg_title, original.reg_welcome_text, original.reg_success_message, original.reg_policy,
+            original.reg_show_phone, original.reg_show_org, original.reg_show_position, original.reg_show_vegan,
+            original.reg_show_dietary, original.reg_show_gender, original.reg_require_agreement,
+            original.qr_color_dark, original.qr_color_light, original.qr_logo_url, original.ticket_bg_url, original.ticket_accent_color,
+            original.reg_email_whitelist, original.reg_email_blacklist, original.has_own_db || 1, original.has_wheel || 0
+        );
+
+        if (original.has_own_db) {
+            createEventDatabase(newId);
+        }
+
+        const userEventId = getValidId('user_events');
+        db.prepare("INSERT OR IGNORE INTO user_events (id, user_id, event_id, created_at) VALUES (?, ?, ?, ?)")
+            .run(userEventId, req.userId, newId, now);
+
+        await del(CACHE_KEYS.EVENT_LIST);
+        logAction(req, AUDIT_ACTIONS.EVENT_CREATED, { eventId: newId, name: newName, clonedFrom: eventId });
+
+        res.json({ success: true, eventId: newId, name: newName });
+    } catch (e) {
+        console.error('[CLONE] Error clonando evento:', e);
+        res.status(500).json({ error: 'Error al clonar el evento: ' + e.message });
+    }
+});
+
 module.exports = router;
