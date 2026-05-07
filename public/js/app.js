@@ -14398,7 +14398,109 @@ navigate(viewName, params = {}, push = true) {
         this.switchMailingSubTab('composer');
     },
 
-    // ==================== WIZARD DE CAMPA├æAS (V12.45) ====================
+    // ==================== FASE 5: EMAIL / MAILING ====================
+
+    openEmailComposer: function() {
+        const container = document.getElementById('modal-container-portal');
+        if (!container) return;
+        container.innerHTML = '<div id="modal-email-composer" class="fixed inset-0 z-[999999] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);">' +
+            '<div class="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">' +
+            '<div class="p-6 border-b border-[var(--border)] flex justify-between items-center"><h3 class="text-lg font-bold text-[var(--text-main)]">Nuevo Email</h3>' +
+            '<button onclick="document.getElementById(\'modal-email-composer\')?.remove()" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg"><span class="material-symbols-outlined text-[var(--text-secondary)]">close</span></button></div>' +
+            '<div class="p-6 overflow-y-auto flex-1 space-y-4">' +
+            '<input type="text" id="composer-to" placeholder="Para:" class="input-field w-full" />' +
+            '<input type="text" id="composer-subject" placeholder="Asunto:" class="input-field w-full" />' +
+            '<textarea id="composer-body" class="input-field w-full min-h-[200px]" placeholder="Escribe tu mensaje..."></textarea>' +
+            '</div>' +
+            '<div class="p-6 border-t border-[var(--border)] flex justify-end gap-3">' +
+            '<button onclick="document.getElementById(\'modal-email-composer\')?.remove()" class="px-4 py-2 rounded-xl bg-[var(--bg-hover)] text-[var(--text-main)] font-bold">Cancelar</button>' +
+            '<button onclick="App.sendComposedEmail()" class="btn-primary">Enviar</button></div></div></div>';
+    },
+
+    sendComposedEmail: async function() {
+        const to = document.getElementById('composer-to')?.value;
+        const subject = document.getElementById('composer-subject')?.value;
+        const body = document.getElementById('composer-body')?.value;
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!to || !subject) return Swal.fire('Error', 'Destinatario y asunto requeridos', 'error');
+        try {
+            await this.fetchAPI('/email/send', { method: 'POST', body: JSON.stringify({
+                account_id: accountId, to: to, subject: subject, body_html: body
+            }) });
+            Swal.fire('Enviado', 'Email enviado correctamente', 'success');
+            document.getElementById('modal-email-composer')?.remove();
+        } catch(e) {
+            Swal.fire('Error', e.message || 'No se pudo enviar', 'error');
+        }
+    },
+
+    sortMailboxMessages: function(criteria) {
+        const container = document.getElementById('mailbox-messages');
+        if (!container) return;
+        const messages = Array.from(container.querySelectorAll('[onclick*="viewMailMessage"]'));
+        messages.sort((a, b) => {
+            const textA = a.textContent.trim();
+            const textB = b.textContent.trim();
+            if (criteria === 'date-desc' || criteria === 'date-asc') {
+                const dateA = a.querySelector('.text-\\[10px\\]:last-child')?.textContent || '';
+                const dateB = b.querySelector('.text-\\[10px\\]:last-child')?.textContent || '';
+                return criteria === 'date-desc' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB);
+            }
+            return criteria === 'sender' ? textA.localeCompare(textB) : textB.localeCompare(textA);
+        });
+        messages.forEach(m => container.appendChild(m.parentElement || m));
+    },
+
+    switchMailingEditorMode: function(mode) {
+        const visualBtn = document.getElementById('btn-mode-visual');
+        const htmlBtn = document.getElementById('btn-mode-html');
+        const bodyField = document.getElementById('mailing-composer-body');
+        if (!bodyField) return;
+        if (mode === 'visual') {
+            if (visualBtn) visualBtn.className = 'flex-1 py-2 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold';
+            if (htmlBtn) htmlBtn.className = 'flex-1 py-2 rounded-lg bg-white/5 text-slate-400 text-xs font-bold hover:bg-white/10';
+        } else {
+            if (htmlBtn) htmlBtn.className = 'flex-1 py-2 rounded-lg bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold';
+            if (visualBtn) visualBtn.className = 'flex-1 py-2 rounded-lg bg-white/5 text-slate-400 text-xs font-bold hover:bg-white/10';
+        }
+    },
+
+    toggleMailingPreview: function() {
+        const toggle = document.getElementById('mailing-preview-toggle');
+        const preview = document.getElementById('mailing-preview');
+        if (toggle && preview) {
+            preview.classList.toggle('hidden', !toggle.checked);
+        }
+    },
+
+    showTemplateLibrary: function() {
+        const container = document.getElementById('mailing-templates-grid') || document.getElementById('email-templates-grid');
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            this.switchMailingSubTab('templates');
+        }
+    },
+
+    insertMailingVariable: function(varName) {
+        const field = document.getElementById('mailing-composer-body');
+        if (field) {
+            field.value += '{{' + varName + '}}';
+            field.focus();
+        }
+    },
+
+    replyToEmail: function(uid, folder) {
+        const accountId = document.getElementById('mailbox-account-select')?.value;
+        if (!accountId) return Swal.fire('Error', 'Selecciona una cuenta primero', 'error');
+        this.openEmailComposer();
+        setTimeout(() => {
+            const subjectEl = document.getElementById('composer-subject');
+            if (subjectEl) subjectEl.value = 'Re: ' + (document.getElementById('mail-view-subject')?.textContent || '');
+        }, 100);
+    },
+
+    // ==================== WIZARD DE CAMPAÑAS (V12.45) ====================
     
     wizardCurrentStep: 1,
     wizardQuillEditor: null,
