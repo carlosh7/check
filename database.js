@@ -198,6 +198,36 @@ db.exec(`CREATE TABLE IF NOT EXISTS guest_categories (
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)"); } catch (_) {}
 
+// Tabla de sesiones
+db.exec(`CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    date TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    capacity INTEGER DEFAULT 0,
+    location TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)"); } catch (_) {}
+
+// Tabla de registro de invitados a sesiones
+db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    guest_id TEXT,
+    event_id TEXT,
+    checked_in INTEGER DEFAULT 0,
+    checkin_time TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(session_id, guest_id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)"); } catch (_) {}
+
 // 3.1 Pre-Registros (Inscripción previa)
 db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
     id TEXT PRIMARY KEY,

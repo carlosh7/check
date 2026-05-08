@@ -28,6 +28,7 @@ const webhooksRoutes = require('./webhooks.routes');
 const pushRoutes = require('./push.routes');
 const statsRoutes = require('./stats.routes');
 const importRoutes = require('./import.routes');
+const sessionsRoutes = require('./sessions.routes');
 const venuesRoutes = require('./venues.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
@@ -134,8 +135,11 @@ function registerRoutes(app, rootDir) {
     // Email (Módulo de Mailing V12.45)
     app.use('/api/email', emailRoutes);
     
-    // Settings
-    app.use('/api/settings', settingsRoutes);
+// Settings
+app.use('/api/settings', settingsRoutes);
+
+// Sessions
+app.use('/api/sessions', sessionsRoutes);
     
     // Webhooks (integraciones externas)
     app.use('/api/webhooks', webhooksRoutes);
