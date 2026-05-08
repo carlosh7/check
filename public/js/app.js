@@ -314,13 +314,28 @@ const App = window.App = {
                 // Poblar selector de clientes
                 const clientSelect = document.getElementById('ev-client');
                 if (clientSelect) {
-                    // Asegurar que los clientes estén cargados en el estado
                     if (!this.state.clients || this.state.clients.length === 0) {
                         try {
                             const clientsRes = await this.fetchAPI('/clients');
                             this.state.clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes.data || []);
                         } catch(e) { console.error('Error cargando clientes:', e); }
                     }
+                    const clients = this.state.clients || [];
+                    clientSelect.innerHTML = '<option value="">Seleccionar cliente</option>' + 
+                        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                }
+
+                // Poblar selector de venues
+                const venueSelect = document.getElementById('ev-venue');
+                if (venueSelect) {
+                    try {
+                        const venues = await this.fetchAPI('/venues');
+                        if (Array.isArray(venues)) {
+                            venueSelect.innerHTML = '<option value="">-- Sin espacio --</option>' +
+                                venues.map(v => '<option value="' + v.id + '">' + v.name + '</option>').join('');
+                        }
+                    } catch(e) {}
+                }
                     
                     const clients = this.state.clients || [];
                     clientSelect.innerHTML = '<option value="">Seleccionar cliente</option>' + 
@@ -380,6 +395,7 @@ const App = window.App = {
         const evDesc = form.querySelector('#ev-desc')?.value?.trim();
         const evGroup = form.querySelector('#ev-group')?.value?.trim();
         const evEmailTemplate = form.querySelector('#ev-email-template')?.value?.trim();
+        const evVenue = document.getElementById('ev-venue')?.value;
         
         if (evName) data.name = evName;
         if (evDate) data.date = evDate;
@@ -389,6 +405,7 @@ const App = window.App = {
         if (evEmailTemplate && evEmailTemplate !== '') {
             data.email_template_id = evEmailTemplate;
         }
+        if (evVenue) data.venue_id = evVenue;
         
         if (!data.group_id) data.group_id = '';
         if (!data.qr_color_dark) data.qr_color_dark = '#000000';

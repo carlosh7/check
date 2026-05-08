@@ -109,14 +109,14 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         return res.status(400).json({ errors: v.errors });
     }
 
-    const { 
+    const {
         name, date, location, description, group_id, end_date,
         reg_title, reg_welcome_text, reg_success_message, reg_policy,
         reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
         reg_show_dietary, reg_show_gender, reg_require_agreement,
         qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
         reg_email_whitelist, reg_email_blacklist,
-        has_own_db
+        has_own_db, venue_id
     } = v.data;
     
     // logo_url no viene del formulario, se maneja por separado
@@ -134,15 +134,15 @@ router.post('/', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             reg_show_phone, reg_show_org, reg_show_position, reg_show_vegan,
             reg_show_dietary, reg_show_gender, reg_require_agreement,
             qr_color_dark, qr_color_light, qr_logo_url, ticket_bg_url, ticket_accent_color,
-            reg_email_whitelist, reg_email_blacklist, has_own_db
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reg_email_whitelist, reg_email_blacklist, has_own_db, venue_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         id, req.userId, name, date, location, logo_url || '', description || '', 'ACTIVE', new Date().toISOString(), eventGroupId, end_date || null,
         reg_title || '', reg_welcome_text || '', reg_success_message || '', reg_policy || '',
         reg_show_phone ? 1 : 0, reg_show_org ? 1 : 0, reg_show_position ? 1 : 0, reg_show_vegan ? 1 : 0,
         reg_show_dietary ? 1 : 0, reg_show_gender ? 1 : 0, reg_require_agreement ? 1 : 0,
         qr_color_dark || '#000000', qr_color_light || '#ffffff', qr_logo_url || '', ticket_bg_url || '', ticket_accent_color || '#7c3aed',
-        reg_email_whitelist || '', reg_email_blacklist || '', hasOwnDb
+        reg_email_whitelist || '', reg_email_blacklist || '', hasOwnDb, venue_id || null
     );
 
     // Crear base de datos independiente si se solicita

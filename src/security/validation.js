@@ -82,7 +82,8 @@ const schemas = {
         ticket_bg_url: z.string().optional().or(z.literal('')),
         ticket_accent_color: z.string().optional(),
         reg_email_whitelist: z.string().optional().or(z.literal('')),
-        reg_email_blacklist: z.string().optional().or(z.literal(''))
+        reg_email_blacklist: z.string().optional().or(z.literal('')),
+        venue_id: z.string().optional().nullable()
     }),
 
     updateEvent: z.object({
