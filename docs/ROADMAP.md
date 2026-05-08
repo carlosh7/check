@@ -953,7 +953,7 @@ Registro de espacios fisicos para eventos:
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
 | F3-08 | Waitlist (cupo por categoria, promocion, auditoria) | ✅ | v12.44.615 | 2026-05-08 |
-| F3-09 | Export Google Sheets | ✅ | v12.44.630 | 2026-05-08 |
+| F3-09 | Export Google Sheets | ✅ | v12.44.631 | 2026-05-08 |
 | F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
 | F4-11 | Sesiones (CRUD, registro invitados, modal editar) | ✅ | v12.44.619 | 2026-05-08 |
 | F4-12 | Venues | ✅ | v12.44.584 | 2026-05-07 |

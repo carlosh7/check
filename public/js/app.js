@@ -14646,10 +14646,56 @@ navigate(viewName, params = {}, push = true) {
                 if (dn) dn.value = user.name || '';
                 if (ph) ph.value = user.phone || '';
                 if (em) em.value = user.email || '';
-            } else {
-                console.warn('[PROFILE] No se pudo cargar el perfil:', res.error);
             }
+            // Cargar estado de cuenta Google personal
+            this.loadUserGoogleStatus();
         } catch(e) { console.error('Error loading profile:', e); }
+    },
+
+    loadUserGoogleStatus: async function() {
+        try {
+            var status = await this.fetchAPI('/google/user/status');
+            var statusEl = document.getElementById('profile-google-status');
+            var connectBtn = document.getElementById('btn-connect-google');
+            var disconnectBtn = document.getElementById('btn-disconnect-google');
+            if (!statusEl) return;
+            if (status && status.connected) {
+                statusEl.innerHTML = '<p class="text-sm"><span class="text-green-400 font-bold">✅ Conectada:</span> <span class="text-white">' + (status.email || '') + '</span></p><p class="text-xs text-slate-500 mt-1">Vinculada desde ' + (status.connectedAt ? new Date(status.connectedAt).toLocaleDateString() : 'siempre') + '</p>';
+                if (connectBtn) connectBtn.classList.add('hidden');
+                if (disconnectBtn) disconnectBtn.classList.remove('hidden');
+            } else {
+                statusEl.innerHTML = '<p class="text-sm text-slate-400">❌ No conectada</p><p class="text-xs text-slate-500 mt-1">Conecta tu cuenta para sincronizar eventos autom&aacute;ticamente.</p>';
+                if (connectBtn) connectBtn.classList.remove('hidden');
+                if (disconnectBtn) disconnectBtn.classList.add('hidden');
+            }
+        } catch(e) { console.error('[GOOGLE] Profile status error:', e.message); }
+    },
+
+    connectUserGoogleAccount: async function() {
+        try {
+            var res = await this.fetchAPI('/google/user/auth');
+            if (res && res.url) {
+                window.addEventListener('focus', function handler() {
+                    window.removeEventListener('focus', handler);
+                    setTimeout(function() { App.loadUserGoogleStatus(); }, 2000);
+                });
+                window.open(res.url, 'google-oauth', 'width=600,height=700');
+            }
+        } catch(e) { console.error('[GOOGLE] Connect error:', e.message); }
+    },
+
+    disconnectUserGoogleAccount: async function() {
+        var confirm = await Swal.fire({
+            icon: 'warning', title: 'Desconectar cuenta Google?',
+            text: 'Los eventos sin cuenta asignada dejar&aacute;n de sincronizarse.',
+            showCancelButton: true, confirmButtonText: 'Desconectar', background: '#0f172a', color: '#fff'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/google/user/disconnect', { method: 'DELETE' });
+            this.loadUserGoogleStatus();
+            Swal.fire({ icon: 'success', title: 'Cuenta desconectada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        } catch(e) { console.error('[GOOGLE] Disconnect error:', e.message); }
     },
 
     async handleEmailChange(e) {
@@ -16962,19 +17008,30 @@ navigate(viewName, params = {}, push = true) {
         try {
             var event = await this.fetchAPI('/events/' + eventId);
             if (!event) return;
-            var groupId = event.group_id;
-            if (!groupId) {
-                var sel = document.getElementById('evs-google-account');
-                if (sel) { sel.innerHTML = '<option value="">El evento no tiene empresa asignada</option>'; }
-                return;
-            }
-            var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
             var sel = document.getElementById('evs-google-account');
-            if (sel) {
-                sel.innerHTML = '<option value="">-- Sin conexi&oacute;n --</option>' +
-                    accounts.map(function(a) { return '<option value="' + a.id + '">' + (a.label || 'Sin etiqueta') + (a.google_email ? ' (' + a.google_email + ')' : '') + '</option>'; }).join('');
-                sel.value = event.google_account_id || '';
+            if (!sel) return;
+
+            var options = '<option value="">-- Sin conexi&oacute;n --</option>';
+
+            // Agregar cuenta personal del usuario logueado
+            try {
+                var userStatus = await this.fetchAPI('/google/user/status');
+                if (userStatus && userStatus.connected) {
+                    options += '<option value="__user__">🙋 Mi cuenta (' + (userStatus.email || 'personal') + ')</option>';
+                }
+            } catch(e) {}
+
+            // Agregar cuentas del grupo
+            var groupId = event.group_id;
+            if (groupId) {
+                var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
+                options += accounts.map(function(a) {
+                    return '<option value="' + a.id + '">' + (a.label || 'Sin etiqueta') + (a.google_email ? ' (' + a.google_email + ')' : '') + '</option>';
+                }).join('');
             }
+
+            sel.innerHTML = options;
+            sel.value = event.google_account_id || '';
             this.loadGoogleEventConfig(eventId);
         } catch(e) { console.error('[GOOGLE] Error:', e.message); }
     },
@@ -17009,7 +17066,8 @@ navigate(viewName, params = {}, push = true) {
     saveGoogleEventConfig: async function() {
         var eventId = this.state?.event?.id;
         if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento', background: '#0f172a', color: '#fff' }); return; }
-        var accountId = document.getElementById('evs-google-account')?.value || null;
+        var rawId = document.getElementById('evs-google-account')?.value || null;
+        var accountId = rawId === '__user__' ? null : rawId;
         var mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value || 'manual';
         var interval = parseInt(document.getElementById('evs-google-interval')?.value) || 60;
         try {
@@ -17029,7 +17087,7 @@ navigate(viewName, params = {}, push = true) {
             if (res && res.success) {
                 Swal.fire({
                     icon: 'success', title: 'Exportado correctamente',
-                    html: '<p class="text-sm text-slate-400 mb-3">' + res.guestCount + ' invitados exportados.</p><a href="' + res.spreadsheetUrl + '" target="_blank" class="btn-primary text-xs px-4 py-2">Abrir en Google Sheets</a>',
+                    html: '<p class="text-sm text-slate-400 mb-3">' + res.guestCount + ' invitados sincronizados. Reporte PDF y gafetes generados.</p><a href="' + res.folderUrl + '" target="_blank" class="btn-primary text-xs px-4 py-2">Abrir carpeta en Drive</a>',
                     background: '#0f172a', color: '#fff', showConfirmButton: false
                 });
                 var status = document.getElementById('evs-google-status');

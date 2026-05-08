@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.630</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.631</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1973,6 +1973,30 @@
                                 <input type="password" id="pass-new" placeholder="Nueva contraseña" class="input-field w-full !bg-black-40 !rounded-xl !border-white-5 btn-py4 !px-5">
                                 <button type="submit" class="btn-primary w-full btn-py4 uppercase tracking-widest text-10 font-black">Cambiar Contraseña</button>
                             </form>
+                        </div>
+                    </div>
+
+                    <!-- Google Account (Personal) -->
+                    <div class="card p-6 border-l-4 border-l-[#34a853] border-white/5 bg-white/[0.01]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-black text-white mb-1">
+                                    <span class="material-symbols-outlined text-[#34a853] align-middle mr-1">table_chart</span>
+                                    Mi cuenta Google
+                                </h3>
+                                <p class="text-sm text-slate-400">Conecta tu cuenta personal para sincronizar autom&aacute;ticamente los eventos que administres.</p>
+                                <div id="profile-google-status" class="mt-3">
+                                    <p class="text-xs text-slate-500 italic">Verificando conexi&oacute;n...</p>
+                                </div>
+                            </div>
+                            <div id="profile-google-actions" class="flex flex-col gap-2">
+                                <button id="btn-connect-google" onclick="App.connectUserGoogleAccount()" class="btn-primary !px-6 btn-py4 uppercase tracking-widest text-10 font-black hidden">
+                                    <span class="material-symbols-outlined text-sm mr-1">add</span> Conectar Google
+                                </button>
+                                <button id="btn-disconnect-google" onclick="App.disconnectUserGoogleAccount()" class="btn-secondary !px-6 btn-py4 uppercase tracking-widest text-10 font-black hidden">
+                                    <span class="material-symbols-outlined text-sm mr-1">link_off</span> Desconectar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

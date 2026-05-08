@@ -956,6 +956,20 @@ db.exec(`CREATE TABLE IF NOT EXISTS group_google_accounts (
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_gga_group ON group_google_accounts(group_id)"); } catch (_) {}
 try { db.exec("ALTER TABLE group_google_accounts ADD COLUMN spreadsheet_id TEXT"); } catch (_) {}
 
+// Tabla de cuentas Google personales por usuario (Parte 1 - F3-09)
+db.exec(`CREATE TABLE IF NOT EXISTS user_google_accounts (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    google_email TEXT,
+    refresh_token TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_uga_user ON user_google_accounts(user_id)"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_folder_id TEXT"); } catch (_) {}
+
 // ═══ NUEVAS TABLAS V12.45: CLIENTES ═══
 
 // Tabla de clientes (pertenecen a una empresa/group)
