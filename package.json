@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.637",
+  "version": "12.44.638",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -9,7 +9,9 @@
     "start": "node server.js",
     "dev": "node setup.js",
     "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:ai": "jest tests/ai/ --passWithNoTests",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -55,8 +57,10 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.5",
     "babel-jest": "^30.3.0",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "lint-staged": "^15.5.2",
     "supertest": "^7.2.2"
   }
 }

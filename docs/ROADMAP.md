@@ -9,7 +9,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 | Item | Valor |
 |------|-------|
 | **Version** | v12.44.628 |
-| **Ultima feature completada** | F3-09: Export Google Sheets - OAuth multi-cuenta, export/import, 3 modos sync, worker programado |
+| **Ultima feature completada** | FS-04: AI Red Teaming - 39 tests de inyeccion, DLP, hardening, auditoria + pre-commit hook Husky |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | FS-03: AI Detection & Response |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
@@ -944,7 +944,7 @@ Registro de espacios fisicos para eventos:
 | FS-01 | Shadow AI Detection & Governance | ✅ | v12.44.623 | 2026-05-08 |
 | FS-02 | AI Compliance & Data Governance | ✅ | v12.44.628 | 2026-05-08 |
 | FS-03 | AI Detection & Response (AIDR) | ✅ | v12.44.629 | 2026-05-08 |
-| FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
+| FS-04 | AI Red Teaming (39 tests + Husky pre-commit) | ✅ | v12.44.638 | 2026-05-08 |
 | F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |
 | F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.594 | 2026-05-07 |
 | F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
