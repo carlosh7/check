@@ -9,7 +9,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 | Item | Valor |
 |------|-------|
 | **Version** | v12.44.628 |
-| **Ultima feature completada** | FS-02: AI Compliance & Data Governance - frontend panel + portabilidad + derecho al olvido |
+| **Ultima feature completada** | FS-03: AI Detection & Response - chat IA, deteccion inyeccion, DLP, alertas, logs, estadisticas |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | FS-03: AI Detection & Response |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
@@ -943,7 +943,7 @@ Registro de espacios fisicos para eventos:
 | F0-02 | Modulo Mailing por evento | ✅ | v12.44.541 | 2026-05-07 |
 | FS-01 | Shadow AI Detection & Governance | ✅ | v12.44.623 | 2026-05-08 |
 | FS-02 | AI Compliance & Data Governance | ✅ | v12.44.628 | 2026-05-08 |
-| FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
+| FS-03 | AI Detection & Response (AIDR) | ✅ | v12.44.629 | 2026-05-08 |
 | FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |
 | F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.594 | 2026-05-07 |

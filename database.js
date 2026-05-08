@@ -741,6 +741,48 @@ db.exec(`CREATE TABLE IF NOT EXISTS ai_policies (
     updated_at TEXT
 )`);
 
+// Tabla de logs de consultas IA (FS-03 AIDR)
+db.exec(`CREATE TABLE IF NOT EXISTS ai_prompt_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    user_name TEXT,
+    prompt TEXT NOT NULL,
+    response TEXT,
+    model TEXT,
+    risk_score REAL DEFAULT 0,
+    injection_detected INTEGER DEFAULT 0,
+    injection_pattern TEXT,
+    masked_prompt TEXT,
+    masked_response TEXT,
+    tokens_used INTEGER DEFAULT 0,
+    duration_ms INTEGER DEFAULT 0,
+    ip_address TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_prompt_logs_user ON ai_prompt_logs(user_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_prompt_logs_risk ON ai_prompt_logs(risk_score)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_prompt_logs_created ON ai_prompt_logs(created_at DESC)"); } catch (_) {}
+
+// Tabla de alertas de seguridad IA (FS-03 AIDR)
+db.exec(`CREATE TABLE IF NOT EXISTS ai_alerts (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    severity TEXT NOT NULL DEFAULT 'medium',
+    title TEXT NOT NULL,
+    description TEXT,
+    source TEXT,
+    user_id TEXT,
+    user_name TEXT,
+    metadata TEXT,
+    acknowledged_by TEXT,
+    acknowledged_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_ai_alerts_severity ON ai_alerts(severity)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_ai_alerts_created ON ai_alerts(created_at DESC)"); } catch (_) {}
+
 // 8. Logs de Auditoría (V10)
 db.exec(`CREATE TABLE IF NOT EXISTS logs (
     id TEXT PRIMARY KEY,

@@ -11157,6 +11157,11 @@ navigate(viewName, params = {}, push = true) {
     // ── AI Security ──
 
     loadAiSecurity: async function() {
+        this.switchAiSubTab('overview');
+        this.loadAiLogs();
+        this.loadAiAlerts();
+        this.loadAiStats();
+        this.loadAiSettings();
         try {
             var inventory = await this.fetchAPI('/security/ai/inventory') || [];
             var tbody = document.getElementById('ai-inventory-tbody');
@@ -11299,6 +11304,210 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/security/ai/policies/' + id, { method: 'DELETE' });
             this.loadAiSecurity();
         } catch(e) { console.error('[AI] Error:', e.message); }
+    },
+
+    // ── FS-03: AI Detection & Response (AIDR) ──
+
+    aiLogsPage: 1,
+    aiAlertsPage: 1,
+
+    switchAiSubTab: function(subTabName) {
+        var tabs = ['overview', 'logs', 'alerts', 'stats', 'settings'];
+        tabs.forEach(function(t) {
+            var btn = document.getElementById('ai-tab-' + t);
+            var content = document.getElementById('ai-subtab-' + t);
+            if (btn) {
+                btn.className = 'px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ' + (t === subTabName ? 'bg-[var(--primary)]/20 text-[var(--primary)]' : 'bg-white/5 text-slate-400 hover:bg-white/10');
+            }
+            if (content) {
+                content.classList.toggle('hidden', t !== subTabName);
+            }
+        });
+        if (subTabName === 'logs') this.loadAiLogs();
+        if (subTabName === 'alerts') this.loadAiAlerts();
+        if (subTabName === 'stats') this.loadAiStats();
+        if (subTabName === 'settings') this.loadAiSettings();
+    },
+
+    loadAiLogs: async function(direction) {
+        if (!this.aiLogsPage) this.aiLogsPage = 1;
+        if (direction === -1 && this.aiLogsPage > 1) this.aiLogsPage--;
+        if (direction === 1) this.aiLogsPage++;
+        var page = this.aiLogsPage;
+        var userId = document.getElementById('filter-ai-log-user')?.value || '';
+        var injectionOnly = document.getElementById('filter-ai-log-injection')?.value || '';
+        try {
+            var res = await this.fetchAPI('/security/ai/logs?page=' + page + '&limit=30&user_id=' + userId + '&injection_only=' + injectionOnly);
+            var logs = res?.data || [];
+            var total = res?.pagination?.total || 0;
+            var tbody = document.getElementById('ai-logs-tbody');
+            var countEl = document.getElementById('ai-logs-count');
+            var prevBtn = document.getElementById('btn-ai-logs-prev');
+            var nextBtn = document.getElementById('btn-ai-logs-next');
+            if (countEl) countEl.textContent = total + ' registros';
+            if (prevBtn) prevBtn.disabled = page <= 1;
+            if (nextBtn) nextBtn.disabled = (page * 30) >= total;
+            if (!tbody) return;
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin consultas registradas</td></tr>';
+            } else {
+                tbody.innerHTML = logs.map(function(l) {
+                    var riskColor = l.risk_score >= 0.9 ? '#ef4444' : l.risk_score >= 0.7 ? '#f59e0b' : l.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
+                    var snippet = (l.masked_prompt || l.prompt || '').substring(0, 80);
+                    return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="table-td text-xs text-slate-300">' + (l.user_name || l.user_id || '-') + '</td>' +
+                        '<td class="table-td text-xs text-slate-400 max-w-[200px] truncate" title="' + (l.masked_prompt || l.prompt || '') + '">' + snippet + (snippet.length >= 80 ? '...' : '') + '</td>' +
+                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:' + riskColor + '30;color:' + riskColor + '">' + (l.risk_score || 0).toFixed(2) + '</span></td>' +
+                        '<td class="table-td">' + (l.injection_detected ? '<span class="text-red-400 text-xs font-bold">SI</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
+                        '<td class="table-td text-xs text-slate-500">' + (l.duration_ms ? l.duration_ms + 'ms' : '-') + '</td>' +
+                        '<td class="table-td text-xs text-slate-500">' + (l.created_at ? new Date(l.created_at).toLocaleString() : '-') + '</td>' +
+                        '<td class="table-td"><button class="btn-icon" onclick="App.viewAiLogDetail(\'' + l.id + '\')" title="Ver detalle"><span class="material-symbols-outlined text-sm text-slate-400">visibility</span></button></td></tr>';
+                }).join('');
+            }
+        } catch(e) { console.error('[AI_LOGS] Error:', e.message); }
+    },
+
+    viewAiLogDetail: async function(logId) {
+        try {
+            var log = await this.fetchAPI('/security/ai/logs/' + logId);
+            if (!log) { Swal.fire({ icon: 'error', title: 'Error', text: 'Log no encontrado', background: '#0f172a', color: '#fff' }); return; }
+            var riskColor = log.risk_score >= 0.9 ? '#ef4444' : log.risk_score >= 0.7 ? '#f59e0b' : log.risk_score >= 0.3 ? '#3b82f6' : '#10b981';
+            Swal.fire({
+                title: 'Detalle de consulta IA',
+                html:
+                    '<div class="text-left space-y-2 text-xs">' +
+                    '<div><span class="font-bold text-slate-400">Usuario:</span> <span class="text-white">' + (log.user_name || log.user_id || '-') + '</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Modelo:</span> <span class="text-white">' + (log.model || '-') + '</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Riesgo:</span> <span class="font-bold" style="color:' + riskColor + '">' + (log.risk_score || 0).toFixed(2) + '</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Inyecci&oacute;n:</span> <span class="text-' + (log.injection_detected ? 'red-400' : 'green-400') + '">' + (log.injection_detected ? 'SI - ' + (log.injection_pattern || '') : 'NO') + '</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Duraci&oacute;n:</span> <span class="text-white">' + (log.duration_ms || 0) + 'ms</span></div>' +
+                    '<div><span class="font-bold text-slate-400">Fecha:</span> <span class="text-slate-300">' + (log.created_at ? new Date(log.created_at).toLocaleString() : '-') + '</span></div>' +
+                    '<hr class="border-slate-700">' +
+                    '<div><span class="font-bold text-slate-400 block mb-1">Prompt:</span><div class="bg-slate-800 rounded p-2 text-slate-300 max-h-[150px] overflow-y-auto">' + (log.masked_prompt || log.prompt || '-') + '</div></div>' +
+                    (log.masked_response ? '<div><span class="font-bold text-slate-400 block mb-1">Respuesta:</span><div class="bg-slate-800 rounded p-2 text-slate-300 max-h-[200px] overflow-y-auto">' + log.masked_response + '</div></div>' : '') +
+                    '</div>',
+                width: '600px',
+                background: '#0f172a', color: '#fff',
+                confirmButtonText: 'Cerrar'
+            });
+        } catch(e) { console.error('[AI_LOGS] Error:', e.message); }
+    },
+
+    loadAiAlerts: async function(direction) {
+        if (!this.aiAlertsPage) this.aiAlertsPage = 1;
+        if (direction === -1 && this.aiAlertsPage > 1) this.aiAlertsPage--;
+        if (direction === 1) this.aiAlertsPage++;
+        var page = this.aiAlertsPage;
+        var severity = document.getElementById('filter-ai-alert-severity')?.value || '';
+        try {
+            var res = await this.fetchAPI('/security/ai/alerts?page=' + page + '&limit=30&severity=' + severity + '&acknowledged=0');
+            var alerts = res?.data || [];
+            var total = res?.pagination?.total || 0;
+            var tbody = document.getElementById('ai-alerts-tbody');
+            var countEl = document.getElementById('ai-alerts-count');
+            var prevBtn = document.getElementById('btn-ai-alerts-prev');
+            var nextBtn = document.getElementById('btn-ai-alerts-next');
+            if (countEl) countEl.textContent = total + ' alertas';
+            if (prevBtn) prevBtn.disabled = page <= 1;
+            if (nextBtn) nextBtn.disabled = (page * 30) >= total;
+            if (!tbody) return;
+            if (alerts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin alertas registradas</td></tr>';
+            } else {
+                var severityColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
+                var severityLabels = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
+                tbody.innerHTML = alerts.map(function(a) {
+                    var sev = a.severity || 'medium';
+                    var isAcknowledged = !!a.acknowledged_at;
+                    return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="table-td text-xs text-slate-400">' + (a.type || '-') + '</td>' +
+                        '<td class="table-td"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold" style="background:' + (severityColors[sev] || '#64748b') + '30;color:' + (severityColors[sev] || '#64748b') + '">' + (severityLabels[sev] || sev) + '</span></td>' +
+                        '<td class="table-td text-xs text-slate-300 max-w-[200px] truncate" title="' + (a.description || '') + '">' + (a.title || '-') + '</td>' +
+                        '<td class="table-td text-xs text-slate-400">' + (a.user_name || a.user_id || '-') + '</td>' +
+                        '<td class="table-td">' + (isAcknowledged ? '<span class="text-green-400 text-xs">Atendida</span>' : '<span class="text-amber-400 text-xs font-bold">Pendiente</span>') + '</td>' +
+                        '<td class="table-td text-xs text-slate-500">' + (a.created_at ? new Date(a.created_at).toLocaleString() : '-') + '</td>' +
+                        '<td class="table-td">' + (!isAcknowledged ? '<button class="btn-icon text-green-400" onclick="App.acknowledgeAiAlert(\'' + a.id + '\')" title="Marcar como atendida"><span class="material-symbols-outlined text-sm">check_circle</span></button>' : '<span class="text-xs text-slate-600">-</span>') + '</td></tr>';
+                }).join('');
+            }
+        } catch(e) { console.error('[AI_ALERTS] Error:', e.message); }
+    },
+
+    acknowledgeAiAlert: async function(alertId) {
+        try {
+            await this.fetchAPI('/security/ai/alerts/' + alertId + '/acknowledge', { method: 'POST' });
+            this.loadAiAlerts();
+            this.loadAiStats();
+        } catch(e) { console.error('[AI_ALERTS] Error:', e.message); }
+    },
+
+    loadAiStats: async function() {
+        try {
+            var stats = await this.fetchAPI('/security/ai/stats');
+            if (!stats) return;
+            var qEl = document.getElementById('ai-stat-queries');
+            var iEl = document.getElementById('ai-stat-injections');
+            var aEl = document.getElementById('ai-stat-alerts');
+            var pEl = document.getElementById('ai-stat-pending');
+            var rEl = document.getElementById('ai-stat-risk');
+            var uEl = document.getElementById('ai-stats-users');
+            var tEl = document.getElementById('ai-stats-trend');
+            if (qEl) qEl.textContent = stats.totalQueries || 0;
+            if (iEl) iEl.textContent = stats.totalInjections || 0;
+            if (aEl) aEl.textContent = stats.totalAlerts || 0;
+            if (pEl) pEl.textContent = stats.pendingAlerts || 0;
+            if (rEl) rEl.textContent = (stats.avgRiskScore || 0).toFixed(2);
+            if (uEl) {
+                var users = stats.byUser || [];
+                if (users.length === 0) {
+                    uEl.innerHTML = '<p class="text-xs text-slate-500 italic">Sin datos</p>';
+                } else {
+                    uEl.innerHTML = users.map(function(u) {
+                        return '<div class="flex justify-between items-center text-xs"><span class="text-slate-300">' + (u.user_name || u.user_id || 'Desconocido') + '</span><span class="text-white font-bold">' + u.cnt + '</span></div>';
+                    }).join('');
+                }
+            }
+            if (tEl) {
+                var trend = stats.dailyTrend || [];
+                if (trend.length === 0) {
+                    tEl.innerHTML = '<p class="text-xs text-slate-500 italic">Sin datos en los ultimos 30 días</p>';
+                } else {
+                    var maxVal = Math.max.apply(null, trend.map(function(d) { return d.cnt; })) || 1;
+                    tEl.innerHTML = trend.map(function(d) {
+                        var pct = (d.cnt / maxVal) * 100;
+                        return '<div class="flex items-center gap-2 text-xs"><span class="text-slate-500 w-24 text-right">' + d.date + '</span><div class="flex-1 bg-slate-700 rounded h-3 overflow-hidden"><div class="bg-[var(--primary)] h-3 rounded transition-all" style="width:' + pct + '%"></div></div><span class="text-slate-300 w-6 text-left font-bold">' + d.cnt + '</span></div>';
+                    }).join('');
+                }
+            }
+        } catch(e) { console.error('[AI_STATS] Error:', e.message); }
+    },
+
+    loadAiSettings: async function() {
+        try {
+            var settings = await this.fetchAPI('/security/ai/settings');
+            if (!settings) return;
+            var enabledEl = document.getElementById('ai-setting-enabled');
+            var keyEl = document.getElementById('ai-setting-key');
+            var modelEl = document.getElementById('ai-setting-model');
+            var promptEl = document.getElementById('ai-setting-prompt');
+            if (enabledEl) enabledEl.checked = settings.ai_enabled === '1';
+            if (keyEl) keyEl.value = settings.ai_openrouter_key || '';
+            if (modelEl) modelEl.value = settings.ai_model || '';
+            if (promptEl) promptEl.value = settings.ai_system_prompt || '';
+        } catch(e) { console.error('[AI_SETTINGS] Error:', e.message); }
+    },
+
+    saveAiSettings: async function() {
+        var enabled = document.getElementById('ai-setting-enabled')?.checked || false;
+        var apiKey = document.getElementById('ai-setting-key')?.value || '';
+        var model = document.getElementById('ai-setting-model')?.value || '';
+        var prompt = document.getElementById('ai-setting-prompt')?.value || '';
+        try {
+            await this.fetchAPI('/security/ai/settings', {
+                method: 'PUT',
+                body: JSON.stringify({ ai_enabled: enabled ? '1' : '0', ai_openrouter_key: apiKey, ai_model: model, ai_system_prompt: prompt })
+            });
+            Swal.fire({ icon: 'success', title: 'Configuraci&oacute;n guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        } catch(e) { console.error('[AI_SETTINGS] Error:', e.message); }
     },
 
     // ── Compliance / Data Governance (FS-02) ──

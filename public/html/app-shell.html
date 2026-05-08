@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.628</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.629</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1523,44 +1523,206 @@
 
                 <!-- SECCIÓN: SEGURIDAD IA -->
                 <div id="sys-content-ai-security" class="hidden space-y-4">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight">Seguridad <span class="text-[var(--primary)]">IA</span></h2>
-                            <p class="text-[var(--text-secondary)] text-sm">Inventario de sistemas de IA y politicas de uso.</p>
-                        </div>
-                        <button class="btn-primary" onclick="App.openAiInventoryModal()">
-                            <span class="material-symbols-outlined">add</span> Agregar Sistema
-                        </button>
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">Seguridad <span class="text-[var(--primary)]">IA</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm">Monitoreo, detección de inyección y respuesta para interacciones con IA.</p>
                     </div>
-                    <div class="card p-0 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="data-table w-full">
-                                <thead>
-                                    <tr class="table-header-row">
-                                        <th class="table-th">Nombre</th>
-                                        <th class="table-th">Tipo</th>
-                                        <th class="table-th">Proveedor</th>
-                                        <th class="table-th">Riesgo</th>
-                                        <th class="table-th">Estado</th>
-                                        <th class="table-th">Detectado</th>
-                                        <th class="table-th">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ai-inventory-tbody">
-                                    <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="flex gap-2 mb-2 flex-wrap">
+                        <button id="ai-tab-overview" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchAiSubTab('overview')">General</button>
+                        <button id="ai-tab-logs" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchAiSubTab('logs')">Consultas</button>
+                        <button id="ai-tab-alerts" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchAiSubTab('alerts')">Alertas</button>
+                        <button id="ai-tab-stats" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchAiSubTab('stats')">Estad&iacute;sticas</button>
+                        <button id="ai-tab-settings" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchAiSubTab('settings')">Configuraci&oacute;n</button>
                     </div>
-                    <div class="card p-4 space-y-3">
+
+                    <!-- Sub-tab: Overview (inventario + politicas) -->
+                    <div id="ai-subtab-overview" class="space-y-4">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white">Pol&iacute;ticas de uso de IA</h3>
-                            <button class="btn-secondary text-xs" onclick="App.openAiPolicyModal()">
-                                <span class="material-symbols-outlined text-sm">add</span> Nueva Pol&iacute;tica
+                            <h3 class="text-sm font-bold text-white">Inventario de sistemas IA</h3>
+                            <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openAiInventoryModal()">
+                                <span class="material-symbols-outlined text-sm">add</span> Agregar Sistema
                             </button>
                         </div>
-                        <div id="ai-policies-list" class="space-y-2">
-                            <p class="text-xs text-slate-500 italic">Cargando...</p>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Nombre</th>
+                                            <th class="table-th">Tipo</th>
+                                            <th class="table-th">Proveedor</th>
+                                            <th class="table-th">Riesgo</th>
+                                            <th class="table-th">Estado</th>
+                                            <th class="table-th">Detectado</th>
+                                            <th class="table-th">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-inventory-tbody">
+                                        <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card p-4 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-sm font-bold text-white">Pol&iacute;ticas de uso de IA</h3>
+                                <button class="btn-secondary text-xs" onclick="App.openAiPolicyModal()">
+                                    <span class="material-symbols-outlined text-sm">add</span> Nueva Pol&iacute;tica
+                                </button>
+                            </div>
+                            <div id="ai-policies-list" class="space-y-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab: Logs de consultas IA -->
+                    <div id="ai-subtab-logs" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-500">Registro de consultas realizadas a la IA.</p>
+                            <div class="flex gap-2">
+                                <select id="filter-ai-log-user" onchange="App.loadAiLogs()" class="input-field text-xs py-1 px-2">
+                                    <option value="">Todos los usuarios</option>
+                                </select>
+                                <select id="filter-ai-log-injection" onchange="App.loadAiLogs()" class="input-field text-xs py-1 px-2">
+                                    <option value="">Todas</option>
+                                    <option value="1">Solo inyecciones</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Usuario</th>
+                                            <th class="table-th">Prompt</th>
+                                            <th class="table-th">Riesgo</th>
+                                            <th class="table-th">Inyecci&oacute;n</th>
+                                            <th class="table-th">Duraci&oacute;n</th>
+                                            <th class="table-th">Fecha</th>
+                                            <th class="table-th">Acci&oacute;n</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-logs-tbody">
+                                        <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span id="ai-logs-count">0 registros</span>
+                            <div class="flex gap-2">
+                                <button id="btn-ai-logs-prev" class="btn-secondary text-xs px-3 py-1" onclick="App.loadAiLogs(-1)" disabled>Anterior</button>
+                                <button id="btn-ai-logs-next" class="btn-secondary text-xs px-3 py-1" onclick="App.loadAiLogs(1)">Siguiente</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab: Alertas IA -->
+                    <div id="ai-subtab-alerts" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-500">Alertas de seguridad generadas por interacciones con IA.</p>
+                            <select id="filter-ai-alert-severity" onchange="App.loadAiAlerts()" class="input-field text-xs py-1 px-2">
+                                <option value="">Todas las severidades</option>
+                                <option value="low">Baja</option>
+                                <option value="medium">Media</option>
+                                <option value="high">Alta</option>
+                                <option value="critical">Cr&iacute;tica</option>
+                            </select>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Tipo</th>
+                                            <th class="table-th">Severidad</th>
+                                            <th class="table-th">T&iacute;tulo</th>
+                                            <th class="table-th">Usuario</th>
+                                            <th class="table-th">Estado</th>
+                                            <th class="table-th">Fecha</th>
+                                            <th class="table-th">Acci&oacute;n</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-alerts-tbody">
+                                        <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span id="ai-alerts-count">0 alertas</span>
+                            <div class="flex gap-2">
+                                <button id="btn-ai-alerts-prev" class="btn-secondary text-xs px-3 py-1" onclick="App.loadAiAlerts(-1)" disabled>Anterior</button>
+                                <button id="btn-ai-alerts-next" class="btn-secondary text-xs px-3 py-1" onclick="App.loadAiAlerts(1)">Siguiente</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab: Estadisticas IA -->
+                    <div id="ai-subtab-stats" class="hidden space-y-4">
+                        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                            <div class="card p-4 text-center">
+                                <p class="text-2xl font-bold text-white" id="ai-stat-queries">0</p>
+                                <p class="text-xs text-slate-500">Consultas totales</p>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <p class="text-2xl font-bold text-red-400" id="ai-stat-injections">0</p>
+                                <p class="text-xs text-slate-500">Inyecciones detectadas</p>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <p class="text-2xl font-bold text-amber-400" id="ai-stat-alerts">0</p>
+                                <p class="text-xs text-slate-500">Alertas totales</p>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <p class="text-2xl font-bold text-orange-400" id="ai-stat-pending">0</p>
+                                <p class="text-xs text-slate-500">Alertas pendientes</p>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <p class="text-2xl font-bold text-emerald-400" id="ai-stat-risk">0</p>
+                                <p class="text-xs text-slate-500">Riesgo promedio</p>
+                            </div>
+                        </div>
+                        <div class="card p-4">
+                            <h3 class="text-sm font-bold text-white mb-3">Top usuarios por consultas</h3>
+                            <div id="ai-stats-users" class="space-y-2">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+                        <div class="card p-4">
+                            <h3 class="text-sm font-bold text-white mb-3">Tendencia diaria (30 d&iacute;as)</h3>
+                            <div id="ai-stats-trend" class="space-y-1">
+                                <p class="text-xs text-slate-500 italic">Cargando...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab: Configuracion IA -->
+                    <div id="ai-subtab-settings" class="hidden space-y-4">
+                        <div class="card p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-white">Configuraci&oacute;n del servicio de IA</h3>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Estado</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="ai-setting-enabled" class="checkbox-sm"> IA Habilitada
+                                </label>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">API Key (OpenRouter)</label>
+                                <input id="ai-setting-key" type="password" class="input-field w-full" placeholder="sk-or-...">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Modelo</label>
+                                <input id="ai-setting-model" class="input-field w-full" placeholder="google/gemini-2.0-flash-lite-preview-02-05:free">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">System Prompt</label>
+                                <textarea id="ai-setting-prompt" class="input-field w-full" rows="4" placeholder="Eres un asistente experto..."></textarea>
+                            </div>
+                            <button class="btn-primary w-full" onclick="App.saveAiSettings()">
+                                <span class="material-symbols-outlined text-sm">save</span> Guardar Configuraci&oacute;n
+                            </button>
                         </div>
                     </div>
                 </div>
