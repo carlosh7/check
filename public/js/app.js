@@ -16017,6 +16017,13 @@ App.toggleValidateAttendance = async function(clientId) {
     try {
         // Optimismo UI: cambiar estado localmente antes de la petición
         current.validated = newValidated;
+        if (newValidated === 1 && current.status !== 'attended') {
+            current._prevStatus = current.status;
+            current.status = 'attended';
+        } else if (newValidated === 0 && current._prevStatus) {
+            current.status = current._prevStatus;
+            delete current._prevStatus;
+        }
         this.filterAttendance();
 
         const response = await fetch(`/api/events/${eventId}/attendance/${clientId}`, {
@@ -16035,6 +16042,10 @@ App.toggleValidateAttendance = async function(clientId) {
         console.error('[ATTENDANCE] Fallo al validar:', e.message);
         // Revertir cambio en caso de error
         current.validated = newValidated ? 0 : 1;
+        if (current._prevStatus) {
+            current.status = current._prevStatus;
+            delete current._prevStatus;
+        }
         this.filterAttendance();
         Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo actualizar la asistencia: ' + e.message });
     }

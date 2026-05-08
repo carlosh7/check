@@ -292,7 +292,13 @@ router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTIC
         return res.json({ success: true, action: 'uncheckin' });
     }
     
-    targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ? WHERE id = ?").run(new Date().toISOString(), gId);
+    const currentStatus = guest.status || 'lead';
+    targetDb.prepare("UPDATE guests SET checked_in = 1, checkin_time = ?, status = 'attended' WHERE id = ?").run(new Date().toISOString(), gId);
+    if (currentStatus !== 'attended') {
+        targetDb.prepare("INSERT INTO guest_status_log (guest_id, event_id, from_status, to_status, changed_by) VALUES (?, ?, ?, ?, ?)").run(
+            gId, guest.event_id, currentStatus, 'attended', req.userId
+        );
+    }
     if (io) io.to(guest.event_id).emit('update_stats', guest.event_id);
     
     // Trigger webhook for check-in

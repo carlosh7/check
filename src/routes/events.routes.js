@@ -1071,6 +1071,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
         targetDb.prepare(`
             UPDATE guests 
             SET checked_in = ?, checkin_time = ?,
+                status = CASE WHEN ? = 1 THEN 'attended' ELSE status END,
                 organization = COALESCE(?, organization),
                 cargo = COALESCE(?, cargo),
                 position = COALESCE(?, position),
@@ -1080,9 +1081,20 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
             WHERE event_id = ? AND id = ?
         `).run(
             validated || 0, validated === 1 ? now : null,
+            validated,
             organization, cargo, cargo, vegano, restricciones, restricciones,
             eventId, attendanceId
         );
+        
+        // Si se valido, registrar en guest_status_log si no estaba ya en attended
+        if (validated === 1) {
+            const guest = targetDb.prepare("SELECT status FROM guests WHERE id = ? AND event_id = ?").get(attendanceId, eventId);
+            if (guest && guest.status !== 'attended') {
+                targetDb.prepare("INSERT INTO guest_status_log (guest_id, event_id, from_status, to_status, changed_by) VALUES (?, ?, ?, ?, ?)").run(
+                    attendanceId, eventId, guest.status || 'lead', 'attended', req.userId || 'system'
+                );
+            }
+        }
         
         res.json({ success: true });
     } catch (e) {

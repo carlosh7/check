@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.594 |
+| **Version** | v12.44.595 |
 | **Ultima feature completada** | F1-02: Pipeline Estados - columna status, log, dropdown en tabla, filtro |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F2-04: PDF Export |
