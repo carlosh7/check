@@ -259,7 +259,7 @@ router.get('/export-excel/:eventId', authMiddleware(), async (req, res) => {
 });
 
 // Check-in
-router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+router.post('/checkin/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), (req, res) => {
     const gId = castId('guests', req.params.guestId);
     const guest = db.prepare("SELECT * FROM guests WHERE id = ?").get(gId);
     if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
@@ -333,7 +333,7 @@ router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
 });
 
 // Cambiar estado de invitado (Pipeline)
-router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const gId = castId('guests', req.params.guestId);
@@ -464,7 +464,7 @@ router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR
 });
 
 // Cambiar categoria de un invitado
-router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         const gId = castId('guests', req.params.guestId);

@@ -856,11 +856,15 @@ const App = window.App = {
             const staffPerms = [ 'view_events', 'view_guests', 'create_guest', 'edit_guest', 'delete_guest', 'export_guests' ];
             return staffPerms.includes(permission);
         }
-        if (role === 'CLIENTE') {
-            const clientPerms = ['view_events', 'view_guests'];
-            return clientPerms.includes(permission);
-        }
-        return false;
+    if (role === 'CLIENTE') {
+        const clientPerms = ['view_events', 'view_guests'];
+        return clientPerms.includes(permission);
+    }
+    if (role === 'ORGANIZER') {
+        const orgPerms = ['view_events', 'view_guests', 'create_guest', 'edit_guest', 'delete_guest', 'export_guests'];
+        return orgPerms.includes(permission);
+    }
+    return false;
     },
 
     updateRoleOptions() {
@@ -873,12 +877,14 @@ const App = window.App = {
             roleSelect.innerHTML = `
                 <option value="ADMIN">ADMIN (Super Administrador)</option>
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="ORGANIZER">ORGANIZER (Organizador de Eventos)</option>
                 <option value="LOGISTICO">LOGISTICO (Logística)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
         } else if (role === 'PRODUCTOR') {
             roleSelect.innerHTML = `
                 <option value="PRODUCTOR" selected>PRODUCTOR (Gestión de Eventos)</option>
+                <option value="ORGANIZER">ORGANIZER (Organizador de Eventos)</option>
                 <option value="LOGISTICO">LOGISTICO (Logística)</option>
                 <option value="STAFF">STAFF (Check-in en Sitio)</option>
                 <option value="CLIENTE">CLIENTE (Acceso de Cliente)</option>`;
@@ -4307,7 +4313,7 @@ const App = window.App = {
                 const colEventos = `<div class="flex flex-col max-w-[200px]">${eventRows}</div>`;
 
                 // --- COLUMNA 5: ROL ---
-                const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                 const roleColor = roleColors[u.role] || '#64748b';
                 const colRol = `<span class="text-xs font-bold" style="color: ${roleColor}; background: ${roleColor}22; border-radius: 6px; padding: 2px 8px;">${u.role}</span>`;
 
@@ -4702,7 +4708,7 @@ const App = window.App = {
                 <!-- Lista de staff seleccionado -->
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedUsers.map(u => {
-                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[u.role] || '#64748b';
                         return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
@@ -13060,7 +13066,7 @@ navigate(viewName, params = {}, push = true) {
                 <!-- Lista de staff seleccionado -->
                 <div class="max-h-72 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${selectedUsers.map(u => {
-                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[u.role] || '#64748b';
                         return `<div class="flex items-center gap-4 p-4 rounded-2xl mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: rgba(59,130,246,0.2); color: #3b82f6;">${(u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div>
@@ -13558,9 +13564,9 @@ navigate(viewName, params = {}, push = true) {
                 <!-- Lista de roles -->
                 <div class="max-h-80 overflow-y-auto pr-2 custom-scrollbar" style="margin: 0 -8px; padding: 0 8px;">
                     ${roles.map(role => {
-                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
+                        const roleColors = { ADMIN: '#ef4444', PRODUCTOR: '#f59e0b', ORGANIZER: '#06b6d4', LOGISTICO: '#3b82f6', STAFF: '#10b981', CLIENTE: '#8b5cf6' };
                         const roleColor = roleColors[role] || '#64748b';
-                        const roleIcons = { ADMIN: 'admin_panel_settings', PRODUCTOR: 'movie', LOGISTICO: 'inventory', STAFF: 'person', CLIENTE: 'person' };
+                        const roleIcons = { ADMIN: 'admin_panel_settings', PRODUCTOR: 'movie', ORGANIZER: 'event', LOGISTICO: 'inventory', STAFF: 'person', CLIENTE: 'person' };
                         return `
                         <div onclick="App.assignRoleToUsersConfig('${ids.join(',')}', '${role}')" class="flex items-center gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:scale-[1.02] transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid ${borderColor};">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: ${roleColor}20; color: ${roleColor};">

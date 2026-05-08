@@ -145,7 +145,7 @@ router.post('/', (req, res) => {
     }
     
     // Validar rol
-    const validRoles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
+    const validRoles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE', 'ORGANIZER'];
     const userRole = role && validRoles.includes(role) ? role : 'PRODUCTOR';
     
     const id = getValidId('users');
@@ -356,7 +356,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 // Cambiar rol de usuario (ADMIN y PRODUCTOR)
 router.put('/:id/role', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
-    const roleSchema = z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS', 'LOGISTICO']);
+    const roleSchema = z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'OTROS', 'LOGISTICO', 'ORGANIZER']);
     const result = roleSchema.safeParse(req.body.role);
     if (!result.success) return res.status(400).json({ errors: result.error.issues });
 

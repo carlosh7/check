@@ -63,6 +63,8 @@ router.get('/', authMiddleware(), async (req, res) => {
         let events;
         if (req.userRole === 'ADMIN') {
             events = db.prepare("SELECT * FROM events ORDER BY created_at DESC").all();
+        } else if (req.userRole === 'ORGANIZER') {
+            events = db.prepare("SELECT e.* FROM events e INNER JOIN user_events ue ON e.id = ue.event_id WHERE ue.user_id = ? ORDER BY e.created_at DESC").all(req.userId);
         } else {
             events = db.prepare("SELECT * FROM events WHERE group_id IN (SELECT group_id FROM group_users WHERE user_id = ?) ORDER BY created_at DESC").all(req.userId);
         }
@@ -1030,7 +1032,7 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
 });
 
 // POST /api/events/:id/attendance - Agregar asistente manual
-router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const { name, email, phone, organization, cargo, vegano, restricciones, category_id } = req.body;
     
@@ -1113,7 +1115,7 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
 });
 
 // DELETE /api/events/:id/attendance/:attendanceId - Eliminar asistente
-router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
+router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
     

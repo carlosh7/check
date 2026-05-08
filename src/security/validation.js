@@ -34,21 +34,21 @@ const schemas = {
         username: emailSchema,
         password: passwordSchema,
         display_name: z.string().min(1, 'Nombre requerido').max(100),
-        role: z.enum(['ADMIN', 'PRODUCTOR', 'LOGISTICO']).optional()
+        role: z.enum(['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'ORGANIZER']).optional()
     }),
 
     createUser: z.object({
         username: emailSchema,
         password: passwordSchema,
         display_name: z.string().min(1, 'Nombre requerido').max(100),
-        role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO']),
+        role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER']),
         phone: z.string().max(20).optional(),
         group_id: z.union([z.string(), z.number()]).optional()
     }),
 
     updateUser: z.object({
         display_name: z.string().max(100).optional(),
-        role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO']).optional(),
+        role: z.enum(['ADMIN', 'PRODUCTOR', 'STAFF', 'CLIENTE', 'LOGISTICO', 'ORGANIZER']).optional(),
         group_id: z.union([z.string(), z.number(), z.null()]).optional(),
         status: z.enum(['APPROVED', 'PENDING', 'SUSPENDED']).optional()
     }),

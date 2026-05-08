@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.612 |
-| **Ultima feature completada** | Badge Designer: pestana Gafete con editor (logo, color, fuentes, campos, preview) |
+| **Version** | v12.44.613 |
+| **Ultima feature completada** | F4-10: Rol Organizer - permisos, eventos asignados, frontend |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | Print-on-Checkin (modal/batch segun config) |
+| **Proximo feature** | F3-08: Waitlist |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
