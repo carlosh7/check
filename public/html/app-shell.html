@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.653</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.654</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -592,7 +592,7 @@
                                             <div class="flex items-center justify-between text-xs text-slate-300 mt-1">
                                                 <span>Duración giro</span>
                                                 <select id="wheel-duration" class="input-field w-16 text-xs" onchange="App.onWheelConfigChange()">
-                                                    <option value="6">6s</option><option value="10">10s</option><option value="14">14s</option>
+                                                    <option value="6">6s</option><option value="10" selected>10s</option><option value="14">14s</option>
                                                 </select>
                                             </div>
                                             <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mt-1">
@@ -652,8 +652,8 @@
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Fondo página</span>
                                                 <div class="color-input-pill">
-                                                    <span id="wheel-bg-color-val">#FFFFFF</span>
-                                                    <input type="color" id="wheel-bg-color" value="#FFFFFF" onchange="App.onWheelDesignChange()">
+                                                    <span id="wheel-bg-color-val">#D1E4FF</span>
+                                                    <input type="color" id="wheel-bg-color" value="#D1E4FF" onchange="App.onWheelDesignChange()">
                                                 </div>
                                             </div>
                                             <label class="text-xs text-slate-500 mb-1">Colores segmentos</label>
@@ -661,34 +661,34 @@
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Color texto</span>
                                                 <div class="color-input-pill">
-                                                    <span id="wheel-txt-color-val">#FFFFFF</span>
-                                                    <input type="color" id="wheel-txt-color" value="#FFFFFF" onchange="App.onWheelDesignChange()">
+                                                    <span id="wheel-txt-color-val">#000000</span>
+                                                    <input type="color" id="wheel-txt-color" value="#000000" onchange="App.onWheelDesignChange()">
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Color borde</span>
                                                 <div class="color-input-pill">
-                                                    <span id="wheel-border-color-val">#333333</span>
-                                                    <input type="color" id="wheel-border-color" value="#333333" onchange="App.onWheelDesignChange()">
+                                                    <span id="wheel-border-color-val">#111111</span>
+                                                    <input type="color" id="wheel-border-color" value="#111111" onchange="App.onWheelDesignChange()">
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Color puntero</span>
                                                 <div class="color-input-pill">
-                                                    <span id="wheel-pointer-color-val">#FF0000</span>
-                                                    <input type="color" id="wheel-pointer-color" value="#FF0000" onchange="App.onWheelDesignChange()">
+                                                    <span id="wheel-pointer-color-val">#ff7878</span>
+                                                    <input type="color" id="wheel-pointer-color" value="#ff7878" onchange="App.onWheelDesignChange()">
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between text-xs mb-1">
                                                 <span class="text-slate-300">Color texto gral</span>
                                                 <div class="color-input-pill">
-                                                    <span id="wheel-main-color-val">#333333</span>
-                                                    <input type="color" id="wheel-main-color" value="#333333" onchange="App.onWheelDesignChange()">
+                                                    <span id="wheel-main-color-val">#1a1a1a</span>
+                                                    <input type="color" id="wheel-main-color" value="#1a1a1a" onchange="App.onWheelDesignChange()">
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between text-xs">
                                                 <span class="text-slate-300">Tamaño líneas</span>
-                                                <input type="range" id="wheel-lines-size" min="0" max="6" step="2" value="2" oninput="App.onWheelDesignChange()" class="w-20">
+                                                <input type="range" id="wheel-lines-size" min="0" max="6" step="2" value="0" oninput="App.onWheelDesignChange()" class="w-20">
                                             </div>
                                         </div>
                                     </div>
@@ -712,48 +712,35 @@
                                 </div>
 
                                 <!-- PREVIEW -->
-                                <div id="wheel-preview" class="flex-1 preview-card">
-                                    <!-- Winner -->
-                                    <div id="wheel-preview-winner" class="hidden text-center mb-3" style="min-height:40px">
-                                        <div class="text-lg font-bold" id="wheel-preview-winner-name" style="color:#333">🏆 Ganador</div>
-                                    </div>
-
-                                    <!-- Texts -->
-                                    <div id="wheel-preview-texts" class="text-center mb-3 px-4">
-                                        <h3 id="wheel-preview-title" class="text-lg font-bold" style="color:#333">Mi Ruleta</h3>
-                                        <p id="wheel-preview-desc" class="text-xs" style="color:#666">Descripción del sorteo</p>
-                                    </div>
-
-                                    <!-- Wheel -->
-                                    <div class="relative" style="width:340px;height:340px">
-                                        <canvas id="wheel-canvas" width="500" height="500" style="width:100%;height:100%"></canvas>
-                                        <div class="wheel-pointer" style="position:absolute;top:50%;right:-30px;transform:translateY(-50%);z-index:10">
-                                            <svg width="50" height="34" viewBox="0 0 273 147">
-                                                <path id="wheel-pointer-path" d="M261.4 73.5L0 0l25.9 73.5L0 147z" fill="#FF0000"/>
-                                            </svg>
+                                <div id="wheel-preview" class="flex-1 flex flex-col items-center justify-center relative overflow-hidden rounded-2xl" style="background:#D1E4FF;min-height:600px;color:#1a1a1a">
+                                    <div class="flex flex-col items-center" style="zoom:.7">
+                                        <div id="wheel-preview-winner" style="display:none;font-size:28px;font-weight:600;margin-bottom:8px;text-align:center;color:#1a1a1a">
+                                            <span id="wheel-preview-winner-name"></span>
                                         </div>
-                                        <div id="wheel-preview-logo" class="hidden absolute rounded-full overflow-hidden" style="top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border:4px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.3)">
-                                            <img id="wheel-preview-logo-img" class="w-full h-full object-cover">
+                                        <div class="relative" style="width:350px;height:350px;-webkit-transform:rotate(-55deg);transform:rotate(-55deg);padding:8px">
+                                            <img id="wheel-preview-logo-img" class="wof__wheel__logo" style="width:60px;height:60px;object-fit:cover;object-position:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(55deg);border-radius:50%;border:4px solid rgba(255,255,255,.4);z-index:5">
+                                            <canvas id="wheel-canvas" width="500" height="500" style="width:100%;height:100%"></canvas>
+                                            <div style="position:absolute;top:50%;right:-30px;margin-top:-18px;z-index:1000;width:46px;height:34px">
+                                                <svg viewBox="0 0 273 147" style="width:100%;height:100%">
+                                                    <g>
+                                                        <path id="wheel-pointer-path" fill="#ff7878" d="M196.3 0h10.5l1 .25c10.06 1.9 19.63 5.06 28.1 10.93 11.28 7.55 19.66 18.43 25.12 30.78 1.9 6.4 4.06 12.23 4 19.04-.1 5.3.3 10.7-.34 15.97-2.18 14.1-9.08 27.46-19.38 37.33-10.03 10-23.32 16.4-37.33 18.4-4.95.54-10 .3-14.97.3-6.4-.02-13.06-2.82-19.2-4.68-54.98-17.5-109.95-35.08-164.96-52.5C4.7 74.7 2.14 73.33 0 69.5v-6.26c1.47-1.93 2.94-3.95 5.34-4.77C64.47 39.78 123.84 20.77 183 2c4.3-1.15 8.9-1.2 13.3-2z"></path>
+                                                        <path opacity=".2" d="M261.02 41.96c6.74 9.2 10.54 20.04 11.98 31.3V88c-1.9 14.78-8.25 28.63-18.78 39.24-11 11.34-25.83 18.16-41.52 19.78h-12.65c-3.8-.6-7.57-1.4-11.22-2.63C132.4 126.43 76 108.37 19.55 90.5c-3.4-1.22-8.1-1.62-10.12-4.94-2.2-3.14-1.5-6.3-.6-9.73 55.02 17.4 110 35 164.97 52.5 6.14 1.85 12.8 4.65 19.2 4.66 4.97 0 10.02.24 14.97-.3 14-2 27.3-8.4 37.33-18.4 10.3-9.87 17.2-23.24 19.38-37.33.63-5.27.23-10.66.34-15.97.06-6.8-2.1-12.64-4-19.04v.01z"></path>
+                                                        <ellipse stroke="none" ry="18" rx="18" cy="65" cx="199.124" fill="#fff"></ellipse>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                            <div style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;border:6px solid #111;box-shadow:rgba(50,50,93,0.05)0 30px 60px -12px inset,rgba(0,0,0,0.16)5px 5px 0 0 inset"></div>
+                                        </div>
+                                        <button id="wheel-preview-btn" class="wof__main__btn" style="background:#1a1a1a;color:#fff;max-width:260px;margin-top:16px;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer" onclick="App.spinWheelPreview()" disabled>🎡 GIRAR</button>
+                                        <div id="wheel-preview-winners" style="display:none;margin-top:12px;font-size:12px;text-align:center;color:#1a1a1a;opacity:.7"></div>
+                                        <div id="wheel-quick-themes" class="flex gap-1.5 mt-3" style="display:none"></div>
+                                        <div class="flex gap-3 mt-3">
+                                            <button onclick="App.toggleWheelWinners()" title="Resultados" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);cursor:pointer;font-size:15px;opacity:.6">🏆</button>
+                                            <button onclick="App.resetWheelPreview()" title="Reiniciar" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);cursor:pointer;font-size:15px;opacity:.6">↻</button>
+                                            <button onclick="App.toggleWheelSound()" title="Sonido" id="wheel-sound-btn" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);cursor:pointer;font-size:15px;opacity:.6">🔊</button>
                                         </div>
                                     </div>
-
-                                    <!-- Spin btn -->
-                                    <button id="wheel-preview-btn" class="wheel-spin-btn mt-3 px-8 py-2.5 rounded-lg text-white font-bold text-sm border-none cursor-pointer" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)" onclick="App.spinWheelPreview()" disabled>🎡 GIRAR</button>
-
-                                    <!-- Winners list -->
-                                    <div id="wheel-preview-winners" class="hidden mt-2 text-xs text-center max-w-xs" style="color:#475569"></div>
-
-                                    <!-- Quick themes -->
-                                    <div id="wheel-quick-themes" class="flex gap-1.5 mt-3"></div>
-
-                                    <!-- Toolbar -->
-                                    <div class="wheel-toolbar mt-3">
-                                        <button onclick="App.toggleWheelWinners()" title="Resultados">🏆</button>
-                                        <button onclick="App.resetWheelPreview()" title="Reiniciar">↻</button>
-                                        <button onclick="App.toggleWheelSound()" title="Sonido" id="wheel-sound-btn">🔊</button>
-                                    </div>
-
-                                    <div class="watermark">Powered by Check Pro</div>
+                                    <div style="position:absolute;bottom:8px;left:12px;font-size:10px;color:rgba(255,255,255,0.3);pointer-events:none">Powered by Check Pro</div>
                                 </div>
                             </div>
                         </div>
