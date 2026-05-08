@@ -11891,8 +11891,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'staff') this.loadConfigStaff();
         if (tabName === 'email') this.loadMailingData();
         if (tabName === 'agenda') this.loadConfigAgenda();
-        if (tabName === 'wheel') this.loadWheels();
-        if (tabName === 'pre-registrations') this.loadPreRegistrations();
+        if (tabName === 'wheel') this.loadRaffles();
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
