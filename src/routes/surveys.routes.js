@@ -49,6 +49,14 @@ router.post('/:eventId/templates', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.get('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    try {
+        var template = db.prepare("SELECT * FROM survey_templates WHERE id = ?").get(req.params.id);
+        if (!template) return res.status(404).json({ error: 'Encuesta no encontrada' });
+        res.json(template);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.put('/templates/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         var { title, description, status } = req.body;
