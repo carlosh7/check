@@ -1,6 +1,6 @@
 {
   "name": "check",
-  "version": "12.44.638",
+  "version": "12.44.639",
   "description": "Sistema de gestión de invitados - CSS Modular sin dependencias legacy.",
   "main": "script.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:ai": "jest tests/ai/ --passWithNoTests",
-    "prepare": "husky"
+    "prepare": "npx husky || true"
   },
   "repository": {
     "type": "git",
