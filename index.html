@@ -78,7 +78,7 @@
             } catch(e) {}
         })();
     </script>
-    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.651">
+    <link rel="stylesheet" href="/css/modules/base.css?v=12.44.652">
     <link rel="stylesheet" href="/css/modules/layout.css?v=12.44.589">
     <link rel="stylesheet" href="/css/modules/components.css?v=12.44.589">
     <link rel="stylesheet" href="/css/modules/tables.css?v=12.44.589">
@@ -88,6 +88,15 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <!-- Anti-bfcache: evitar que el navegador sirva páginas en caché al navegar atrás/adelante -->
+    <script>
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                console.warn('[CACHE] Page restored from bfcache, reloading...');
+                window.location.reload();
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
@@ -270,6 +279,16 @@
                 currentVersion = data.version || currentVersion;
             } catch(e) {
                 console.warn('No se pudo leer la versión de la API, usando fallback');
+            }
+            
+            // 0. VERIFICAR VERSIÓN vs CACHE - Si la versión guardada no coincide, forzar recarga
+            var cachedVersion = localStorage.getItem('check_version');
+            if (cachedVersion && cachedVersion !== currentVersion && cachedVersion !== '0.0.0') {
+                console.warn('[VERSION] Cache mismatch: ' + cachedVersion + ' → ' + currentVersion + ', reloading...');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/?force_reload=' + Date.now() + '&v=' + currentVersion;
+                return;
             }
             
             // 1. FORZAR recarga si hay cualquier parámetro de cache bust
