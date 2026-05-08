@@ -11537,7 +11537,7 @@ navigate(viewName, params = {}, push = true) {
                 <div class="badge-handle badge-handle-b"></div>
                 <div class="badge-handle badge-handle-bl"></div>
                 <div class="badge-handle badge-handle-l"></div>` : '';
-            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;' + this._getElementStyle(el) + '">' + content + handles + '</div>';
+            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + this._getElementStyle(el) + '">' + content + handles + '</div>';
         }).join('');
         // Attach event listeners
         elLayer.querySelectorAll('.badge-element').forEach(el => {
@@ -11595,7 +11595,9 @@ navigate(viewName, params = {}, push = true) {
             html += '<label class="flex items-center gap-2 text-xs"><input type="checkbox" ' + (el.bold ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'bold\',this.checked)" class="checkbox-sm"> Negrita</label>';
         }
         if (el.type === 'logo') {
+            const isBack = (el.zIndex || 10) < 5;
             html += '<div class="space-y-1"><button class="btn-secondary text-xs" onclick="document.getElementById(\'badge-logo-input-' + elId + '\').click()">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" onchange="App.uploadBadgeElementLogo(\'' + elId + '\',this)"></div>';
+            html += '<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" ' + (isBack ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'zIndex\',this.checked?1:10)" class="checkbox-sm"> Al fondo</label>';
         }
         html += '<hr class="border-[var(--border)] my-2">';
         html += '<div class="grid grid-cols-2 gap-1 text-[10px]"><label class="text-slate-400">X:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.x || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'x\',parseFloat(this.value)||0)"><label class="text-slate-400">Y:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.y || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'y\',parseFloat(this.value)||0)"><label class="text-slate-400">W:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.w || 20) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'w\',parseFloat(this.value)||20)"><label class="text-slate-400">H:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.h || 10) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'h\',parseFloat(this.value)||10)"></div>';
@@ -11627,6 +11629,36 @@ navigate(viewName, params = {}, push = true) {
         this._badgeElements = (this._badgeElements || []).filter(e => e.id !== elId);
         if (this._selectedBadgeElement === elId) this._selectedBadgeElement = null;
         this.renderBadgeEditor();
+    },
+
+    addBadgeLogoElement: async function(input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        const data = await this._uploadImage(file);
+        if (!data || !data.url) return;
+        const bw = parseInt(document.getElementById('badge-width-mm').value) || 90;
+        const el = { id: 'el_' + Date.now(), type: 'logo', url: data.url, x: Math.round(bw * 0.3), y: 5, w: Math.round(bw * 0.4), h: Math.round(bw * 0.4 * 0.6), zIndex: 10 };
+        this._badgeElements.push(el);
+        this.renderBadgeEditor();
+        this.selectBadgeElement(el.id);
+        input.value = '';
+    },
+
+    _uploadImage: async function(file) {
+        const eId = this.state.event?.id;
+        if (!eId) return null;
+        const formData = new FormData();
+        formData.append('logo', file);
+        try {
+            const token = this.state.user?.token;
+            const userId = this.state.user?.userId;
+            const res = await fetch('/api/events/' + eId + '/badge-logo', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' },
+                body: formData
+            });
+            return await res.json();
+        } catch(e) { console.error('[BADGE] Error subiendo imagen:', e.message); return null; }
     },
 
     _startDragBadgeElement: function(elDiv, e) {
