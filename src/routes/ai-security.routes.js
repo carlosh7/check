@@ -76,11 +76,11 @@ router.get('/ai/policies', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) =>
 // POST /api/security/ai/policies — Crear/actualizar politica
 router.post('/ai/policies', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        const { name, description, content } = req.body;
+        const { name, description, content, is_active } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
         const id = uuidv4();
         const now = new Date().toISOString();
-        db.prepare("INSERT INTO ai_policies (id, name, description, content, updated_at) VALUES (?, ?, ?, ?, ?)").run(id, name.trim(), description || '', content || '', now);
+        db.prepare("INSERT INTO ai_policies (id, name, description, content, is_active, updated_at) VALUES (?, ?, ?, ?, ?, ?)").run(id, name.trim(), description || '', content || '', is_active !== false ? 1 : 0, now);
         res.json({ success: true, id });
     } catch (err) {
         console.error('[AI_SECURITY] Error:', err.message);

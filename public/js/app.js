@@ -11185,12 +11185,18 @@ navigate(viewName, params = {}, push = true) {
                     pList.innerHTML = '<p class="text-xs text-slate-500 italic">Sin politicas definidas</p>';
                 } else {
                     pList.innerHTML = policies.map(function(p) {
-                        return '<div class="flex justify-between items-center p-2 rounded-lg bg-[var(--bg-hover)]">' +
-                            '<div><p class="text-sm font-medium text-white">' + (p.name || '') + '</p>' +
+                        var isActive = p.is_active === 1 || p.is_active === true;
+                        return '<div class="flex justify-between items-start p-3 rounded-lg bg-[var(--bg-hover)]">' +
+                            '<div class="flex-1 min-w-0">' +
+                            '<div class="flex items-center gap-2 mb-1">' +
+                            '<span class="text-sm font-medium text-white truncate">' + (p.name || '') + '</span>' +
+                            '<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase ' + (isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400') + '">' + (isActive ? 'Activa' : 'Inactiva') + '</span></div>' +
                             (p.description ? '<p class="text-xs text-slate-500">' + p.description + '</p>' : '') +
-                            (p.content ? '<p class="text-xs text-slate-600 mt-1 italic">' + p.content.substring(0, 120) + (p.content.length > 120 ? '...' : '') + '</p>' : '') + '</div>' +
+                            (p.content ? '<p class="text-[10px] text-slate-600 mt-1 italic">' + p.content.substring(0, 120) + (p.content.length > 120 ? '...' : '') + '</p>' : '') + '</div>' +
+                            '<div class="flex flex-col items-center gap-1 ml-2">' +
+                            '<label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ' + (isActive ? 'checked' : '') + ' onchange="App.toggleAiPolicy(\'' + p.id + '\', this.checked)"><div class="w-8 h-4 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full after:content-[] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all" style="background:#475569"></div></label>' +
                             '<div class="flex gap-1"><button class="btn-icon" onclick="App.editAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                            '<button class="btn-icon text-red-400" onclick="App.deleteAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                            '<button class="btn-icon text-red-400" onclick="App.deleteAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
                     }).join('');
                 }
             }
@@ -11238,19 +11244,33 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) { console.error('[AI] Error:', e.message); }
     },
 
+    toggleAiPolicy: async function(id, isActive) {
+        try {
+            await this.fetchAPI('/security/ai/policies/' + id, { method: 'PUT', body: JSON.stringify({ is_active: isActive }) });
+            this.loadAiSecurity();
+        } catch(e) { console.error('[AI] Error:', e.message); }
+    },
+
     openAiPolicyModal: function(policy) {
+        var isActive = policy ? (policy.is_active === 1 || policy.is_active === true) : true;
         Swal.fire({
             title: policy ? 'Editar politica' : 'Nueva politica',
             html: '<input id="swal-pol-name" class="swal2-input" placeholder="Nombre" value="' + (policy ? (policy.name || '') : '') + '">' +
                   '<input id="swal-pol-desc" class="swal2-input" placeholder="Descripcion" value="' + (policy ? (policy.description || '') : '') + '">' +
-                  '<textarea id="swal-pol-content" class="swal2-textarea" placeholder="Contenido de la politica..." rows="6">' + (policy ? (policy.content || '') : '') + '</textarea>',
+                  '<textarea id="swal-pol-content" class="swal2-textarea" placeholder="Contenido de la politica..." rows="6">' + (policy ? (policy.content || '') : '') + '</textarea>' +
+                  '<label class="flex items-center gap-2 mt-2 text-sm" style="color:#fff"><input type="checkbox" id="swal-pol-active" ' + (isActive ? 'checked' : '') + ' class="checkbox-sm"> Politica activa</label>',
             background: '#0f172a', color: '#fff',
             confirmButtonText: policy ? 'Guardar' : 'Crear',
             showCancelButton: true,
             preConfirm: function() {
                 var name = document.getElementById('swal-pol-name')?.value.trim();
                 if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
-                return { name: name, description: document.getElementById('swal-pol-desc')?.value || '', content: document.getElementById('swal-pol-content')?.value || '' };
+                return {
+                    name: name,
+                    description: document.getElementById('swal-pol-desc')?.value || '',
+                    content: document.getElementById('swal-pol-content')?.value || '',
+                    is_active: document.getElementById('swal-pol-active')?.checked || false
+                };
             }
         }).then(async function(result) {
             if (result.isConfirmed && result.value) {

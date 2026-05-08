@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.624 |
+| **Version** | v12.44.625 |
 | **Ultima feature completada** | BL-15: Password Recovery - codigo 6 digitos, email, modal login |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F4-11: Sesiones + Seat Maps |
