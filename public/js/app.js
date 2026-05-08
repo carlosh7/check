@@ -11024,7 +11024,7 @@ navigate(viewName, params = {}, push = true) {
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
+            if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
         });
 
         // Configuración de botones de sub-navegación (V12.6.1)
@@ -11048,7 +11048,7 @@ navigate(viewName, params = {}, push = true) {
 
         // Mostrar panel activo
         const panel = document.getElementById('sys-content-' + tabName);
-        if (panel) panel.classList.remove('hidden');
+        if (panel) { panel.classList.remove('hidden'); panel.style.display = ''; }
 
         // Carga de datos específicos
         if (tabName === 'users') this.loadUsersTable();
@@ -11847,7 +11847,7 @@ navigate(viewName, params = {}, push = true) {
         const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
+            if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
         });
 
         // Update config navigation buttons - buscar por data-tab

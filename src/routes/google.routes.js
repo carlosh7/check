@@ -9,8 +9,13 @@ const { google } = require('googleapis');
 const router = express.Router();
 
 function getSetting(key) {
-    var val = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").pluck();
-    return val.get() || '';
+    try {
+        var row = db.prepare("SELECT setting_value FROM settings WHERE setting_key = ?").get(key);
+        return row ? row.setting_value : '';
+    } catch (e) {
+        console.error('[GOOGLE] getSetting error:', e.message);
+        return '';
+    }
 }
 
 function getOAuth2Client() {
@@ -22,8 +27,8 @@ function getOAuth2Client() {
 }
 
 function getUserRefreshToken(userId) {
-    var token = db.prepare("SELECT refresh_token FROM user_google_accounts WHERE user_id = ?").pluck();
-    return token.get(userId) || null;
+    var row = db.prepare("SELECT refresh_token FROM user_google_accounts WHERE user_id = ?").get(userId);
+    return row ? row.refresh_token : null;
 }
 
 function getOAuthWithToken(refreshToken) {
@@ -149,6 +154,7 @@ router.get('/', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         var clientId = getSetting('google_client_id');
         res.json({ configured: !!clientId });
     } catch (err) {
+        console.error('[GOOGLE] Status error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
