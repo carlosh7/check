@@ -8,8 +8,8 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.615 |
-| **Ultima feature completada** | F3-08: Waitlist - cupo por categoria, promocion automatica, auditoria |
+| **Version** | v12.44.616 |
+| **Ultima feature completada** | BL-15: Password Recovery - codigo 6 digitos, email, modal login |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F4-11: Sesiones + Seat Maps |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
@@ -909,7 +909,7 @@ Registro de espacios fisicos para eventos:
 |----|---------|-------------|-------------|
 | BL-13 | **SMS integration** | `Rose-of-Sharon-Management-System` | M |
 | BL-14 | **Reconocimiento facial / OTP** | `cos301-2019-se/A-Recognition` | XL |
-| BL-15 | **Password recovery** | `Event-Registration-System` (SirOsborn) | S |
+| BL-15 | Password Recovery (codigo 6 digitos, email, modal login) | ✅ | v12.44.616 | 2026-05-08 |
 | BL-16 | **Site branding por cliente** | `eventuraofficials/event-registration-system` | M |
 | BL-17 | **Landing invitacion digital** | `Hans-developer/tarjeta-boda` | M |
 | BL-18 | **Presupuesto por evento** | `2300032206/EVENT-MANGEMENT-SYSTEM` | M |
