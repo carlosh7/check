@@ -11915,7 +11915,7 @@ navigate(viewName, params = {}, push = true) {
 
     loadSurveyTemplates: async function() {
         var eId = this.state.event?.id;
-        if (!eId) return;
+        if (!eId) { console.warn('[SURVEY] No hay evento seleccionado'); return; }
         try {
             var list = document.getElementById('survey-templates-list');
             if (!list) return;
@@ -11942,208 +11942,7 @@ navigate(viewName, params = {}, push = true) {
                         '<button class="btn-icon text-red-400" onclick="App.deleteSurveyTemplate(\'' + t.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
                 }).join('');
             }
-        } catch(e) { console.error('[SURVEY] Error:', e.message); }
-    },
-
-    openSurveyBuilder: async function(templateId) {
-        var list = document.getElementById('survey-templates-list');
-        var builder = document.getElementById('survey-builder');
-        var dashboard = document.getElementById('survey-dashboard');
-        var titleInput = document.getElementById('survey-builder-title');
-        var container = document.getElementById('survey-questions-container');
-        if (list) list.classList.add('hidden');
-        if (builder) builder.classList.remove('hidden');
-        if (dashboard) dashboard.classList.add('hidden');
-        this.surveyBuilderQuestions = [];
-
-        if (templateId) {
-            try {
-                var tRes = await this.fetchAPI('/events/templates/' + templateId);
-                if (tRes) {
-                    if (titleInput) titleInput.value = tRes.title || '';
-                }
-                var qRes = await this.fetchAPI('/events/templates/' + templateId + '/questions');
-                if (Array.isArray(qRes)) this.surveyBuilderQuestions = qRes;
-            } catch(e) {}
-        } else {
-            if (titleInput) titleInput.value = '';
-        }
-        this._currentSurveyTemplateId = templateId;
-        this.renderSurveyBuilderQuestions();
-    },
-
-    renderSurveyBuilderQuestions: function() {
-        var container = document.getElementById('survey-questions-container');
-        if (!container) return;
-        if (this.surveyBuilderQuestions.length === 0) {
-            container.innerHTML = '<div class="text-center py-8 text-slate-500 border-2 border-dashed border-slate-700 rounded-xl"><p class="text-sm">Haz clic en un tipo de pregunta para agregarla</p></div>';
-            return;
-        }
-        container.innerHTML = this.surveyBuilderQuestions.map(function(q, i) {
-            var typeLabels = { short_text: '📝 Texto corto', paragraph: '📄 Párrafo', multiple_choice: '🔘 Opción múltiple', checkboxes: '✅ Casillas', dropdown: '🔽 Lista', linear_scale: '⭐ Escala', date: '📅 Fecha', time: '⏱ Hora' };
-            var preview = '';
-            if (q.type === 'short_text') preview = '<input type="text" class="input-field w-full mt-2" placeholder="Respuesta corta" disabled>';
-            else if (q.type === 'paragraph') preview = '<textarea class="input-field w-full mt-2" rows="2" placeholder="Respuesta larga" disabled></textarea>';
-            else if (q.type === 'multiple_choice' && q.options) preview = q.options.map(function(o) { return '<label class="flex items-center gap-2 text-sm text-slate-300 mt-1"><input type="radio" disabled>' + o + '</label>'; }).join('');
-            else if (q.type === 'checkboxes' && q.options) preview = q.options.map(function(o) { return '<label class="flex items-center gap-2 text-sm text-slate-300 mt-1"><input type="checkbox" disabled>' + o + '</label>'; }).join('');
-            else if (q.type === 'dropdown' && q.options) preview = '<select class="input-field w-full mt-2" disabled>' + q.options.map(function(o) { return '<option>' + o + '</option>'; }).join('') + '</select>';
-            else if (q.type === 'linear_scale') preview = '<div class="flex gap-2 mt-2">' + [1,2,3,4,5].map(function(n) { return '<span class="text-xs text-slate-500">' + n + '</span>'; }).join('') + '</div>';
-            return '<div class="card p-4 border-l-4 border-l-[var(--primary)]" data-qid="' + q.id + '">' +
-                '<div class="flex justify-between items-start">' +
-                '<div class="flex-1"><div class="flex items-center gap-2">' +
-                '<span class="text-xs text-slate-500 font-mono">' + (typeLabels[q.type] || q.type) + '</span>' +
-                (q.required ? '<span class="text-xs text-red-400">*</span>' : '') +
-                '</div>' +
-                '<p class="text-sm font-bold text-white mt-1">' + (q.title || 'Pregunta sin título') + '</p>' +
-                (q.description ? '<p class="text-xs text-slate-500">' + q.description + '</p>' : '') +
-                preview + '</div>' +
-                '<div class="flex gap-1 ml-2">' +
-                '<button class="btn-icon" onclick="App.editSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                '<button class="btn-icon text-red-400" onclick="App.deleteSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
-        }).join('');
-    },
-
-    addSurveyQuestion: async function(type) {
-        var defaultTitles = { short_text: 'Nueva pregunta de texto', paragraph: 'Nueva pregunta de párrafo', multiple_choice: 'Nueva opción múltiple', checkboxes: 'Nuevas casillas', dropdown: 'Nueva lista', linear_scale: 'Nueva escala', date: 'Nueva fecha', time: 'Nueva hora' };
-        var defaultOptions = { multiple_choice: ['Opción 1', 'Opción 2', 'Opción 3'], checkboxes: ['Opción 1', 'Opción 2', 'Opción 3'], dropdown: ['Opción 1', 'Opción 2', 'Opción 3'] };
-        var q = { type: type, title: defaultTitles[type] || 'Nueva pregunta', description: '', options: defaultOptions[type] || null, required: true, order_index: this.surveyBuilderQuestions.length };
-        if (this._currentSurveyTemplateId) {
-            try {
-                var res = await this.fetchAPI('/events/templates/' + this._currentSurveyTemplateId + '/questions', {
-                    method: 'POST', body: JSON.stringify(q)
-                });
-                if (res && res.id) q.id = res.id;
-            } catch(e) { console.error('[SURVEY] Error adding question:', e); }
-        }
-        if (!q.id) q.id = 'tmp_' + Date.now();
-        this.surveyBuilderQuestions.push(q);
-        this.renderSurveyBuilderQuestions();
-    },
-
-    editSurveyQuestion: function(questionId) {
-        var q = this.surveyBuilderQuestions.find(function(x) { return x.id === questionId; });
-        if (!q) return;
-        var typeLabels = { short_text: 'Texto corto', paragraph: 'Párrafo', multiple_choice: 'Opción múltiple', checkboxes: 'Casillas', dropdown: 'Lista', linear_scale: 'Escala lineal', date: 'Fecha', time: 'Hora' };
-        Swal.fire({
-            title: 'Editar pregunta', width: '500px', background: '#0f172a', color: '#fff',
-            html: '<div class="text-left space-y-3">' +
-                '<div><label class="text-xs font-bold text-slate-400">Tipo</label><select id="swal-q-type" class="input-field w-full">' + Object.keys(typeLabels).map(function(k) { return '<option value="' + k + '" ' + (q.type === k ? 'selected' : '') + '>' + typeLabels[k] + '</option>'; }).join('') + '</select></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Título</label><input id="swal-q-title" class="input-field w-full" value="' + (q.title || '') + '"></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Descripción</label><input id="swal-q-desc" class="input-field w-full" value="' + (q.description || '') + '"></div>' +
-                '<div id="swal-q-options-group" class="' + (['multiple_choice','checkboxes','dropdown'].includes(q.type) ? '' : 'hidden') + '"><label class="text-xs font-bold text-slate-400">Opciones (una por línea)</label><textarea id="swal-q-options" class="input-field w-full" rows="4">' + ((q.options || []).join('\n')) + '</textarea></div>' +
-                '<label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" id="swal-q-required" ' + (q.required ? 'checked' : '') + '> Requerido</label></div>',
-            showCancelButton: true, confirmButtonText: 'Guardar',
-            preConfirm: function() {
-                return {
-                    type: document.getElementById('swal-q-type')?.value || 'short_text',
-                    title: document.getElementById('swal-q-title')?.value || 'Pregunta',
-                    description: document.getElementById('swal-q-desc')?.value || '',
-                    options: (document.getElementById('swal-q-options')?.value || '').split('\n').filter(Boolean),
-                    required: document.getElementById('swal-q-required')?.checked || false
-                };
-            }
-        }).then(async function(result) {
-            if (!result.isConfirmed) return;
-            var data = result.value;
-            q.type = data.type;
-            q.title = data.title;
-            q.description = data.description;
-            q.options = data.options;
-            q.required = data.required;
-            if (q.id && !q.id.startsWith('tmp_')) {
-                try {
-                    await App.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
-                } catch(e) {}
-            }
-            App.renderSurveyBuilderQuestions();
-        });
-    },
-
-    deleteSurveyQuestion: async function(questionId) {
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar pregunta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
-        if (!confirm.isConfirmed) return;
-        this.surveyBuilderQuestions = this.surveyBuilderQuestions.filter(function(q) { return q.id !== questionId; });
-        if (questionId && !questionId.startsWith('tmp_')) {
-            try { await this.fetchAPI('/events/questions/' + questionId, { method: 'DELETE' }); } catch(e) {}
-        }
-        this.renderSurveyBuilderQuestions();
-    },
-
-    saveSurveyTemplate: async function() {
-        var eId = this.state.event?.id;
-        var title = document.getElementById('survey-builder-title')?.value?.trim();
-        if (!title) { Swal.fire({ icon: 'warning', title: 'Título requerido', background: '#0f172a', color: '#fff' }); return; }
-        try {
-            var templateId = this._currentSurveyTemplateId;
-            if (templateId) {
-                await this.fetchAPI('/events/templates/' + templateId, { method: 'PUT', body: JSON.stringify({ title: title }) });
-            } else {
-                var res = await this.fetchAPI('/events/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
-                if (res && res.id) templateId = res.id;
-            }
-            if (templateId) {
-                this._currentSurveyTemplateId = templateId;
-                for (var i = 0; i < this.surveyBuilderQuestions.length; i++) {
-                    var q = this.surveyBuilderQuestions[i];
-                    if (!q.id || q.id.startsWith('tmp_')) {
-                        var res2 = await this.fetchAPI('/events/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
-                        if (res2 && res2.id) q.id = res2.id;
-                    } else {
-                        await this.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
-                    }
-                }
-            }
-            Swal.fire({ icon: 'success', title: 'Encuesta guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-        } catch(e) { console.error('[SURVEY] Error saving:', e.message); }
-    },
-
-    backToSurveyTemplates: function() {
-        document.getElementById('survey-templates-list').classList.remove('hidden');
-        document.getElementById('survey-builder').classList.add('hidden');
-        document.getElementById('survey-dashboard').classList.add('hidden');
-        this.loadSurveyTemplates();
-    },
-
-    openSurveyDashboard: async function(templateId) {
-        var list = document.getElementById('survey-templates-list');
-        var builder = document.getElementById('survey-builder');
-        var dashboard = document.getElementById('survey-dashboard');
-        if (list) list.classList.add('hidden');
-        if (builder) builder.classList.add('hidden');
-        if (dashboard) dashboard.classList.remove('hidden');
-        this._currentSurveyTemplateId = templateId;
-        try {
-            var stats = await this.fetchAPI('/events/templates/' + templateId + '/stats');
-            if (!stats) return;
-            var titleEl = document.getElementById('survey-dashboard-title');
-            if (titleEl) titleEl.textContent = stats.template?.title || 'Dashboard';
-
-            var kpis = document.getElementById('survey-kpis');
-            if (kpis) {
-                kpis.innerHTML = '<div class="card p-4 text-center"><p class="text-2xl font-bold text-white">' + (stats.kpis?.total || 0) + '</p><p class="text-xs text-slate-500">Total respuestas</p></div>' +
-                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-green-400">' + (stats.kpis?.completed || 0) + '</p><p class="text-xs text-slate-500">Completadas</p></div>' +
-                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-amber-400">' + (stats.kpis?.completionRate || 0) + '%</p><p class="text-xs text-slate-500">Tasa de completitud</p></div>' +
-                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-blue-400">' + (stats.kpis?.today || 0) + '</p><p class="text-xs text-slate-500">Hoy</p></div>' +
-                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-purple-400">' + (stats.questionStats?.length || 0) + '</p><p class="text-xs text-slate-500">Preguntas</p></div>';
-            }
-
-            if (window.Chart && stats.dailyTrend) {
-                var ctx = document.getElementById('survey-chart-trend');
-                if (ctx && window._surveyTrendChart) window._surveyTrendChart.destroy();
-                if (ctx) {
-                    window._surveyTrendChart = new Chart(ctx, {
-                        type: 'line',
-                        data: { labels: stats.dailyTrend.map(function(d) { return d.date; }), datasets: [{ label: 'Respuestas', data: stats.dailyTrend.map(function(d) { return d.count; }), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', fill: true }] },
-                        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
-                    });
-                }
-            }
-
-            var respTbody = document.getElementById('survey-responses-tbody');
-            if (respTbody) {
-                var responses = await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
-            }
-        } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
+        } catch(e) { console.error('[SURVEY] Error:', e.message); Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 
     exportSurveyCsv: function() {
@@ -13338,7 +13137,7 @@ navigate(viewName, params = {}, push = true) {
         }).then(async function(result) {
             if (!result.isConfirmed) return;
             var eventId = App.state.event?.id;
-            if (!eventId) return;
+            if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento primero', background: '#0f172a', color: '#fff' }); return; }
             try {
                 var res = await App.fetchAPI('/raffles/events/' + eventId + '/raffles', { method: 'POST', body: JSON.stringify(result.value) });
                 if (res && res.id) App.openRaffleEditor(res.id);
@@ -13403,7 +13202,7 @@ navigate(viewName, params = {}, push = true) {
 
     populateRaffle: async function() {
         var raffleId = this._currentRaffleId;
-        if (!raffleId) return;
+        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'Primero guarda el sorteo', background: '#0f172a', color: '#fff' }); return; }
         var source = document.getElementById('raffle-data-source')?.value || 'guests';
         try {
             if (source === 'manual') {
@@ -13449,7 +13248,7 @@ navigate(viewName, params = {}, push = true) {
 
     drawRaffle: async function() {
         var raffleId = this._currentRaffleId;
-        if (!raffleId) return;
+        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'Primero guarda el sorteo', background: '#0f172a', color: '#fff' }); return; }
         try {
             var result = await this.fetchAPI('/raffles/' + raffleId + '/draw', { method: 'POST' });
             if (result && result.winners) {
@@ -13493,14 +13292,14 @@ navigate(viewName, params = {}, push = true) {
 
     saveRaffle: async function() {
         var raffleId = this._currentRaffleId;
-        if (!raffleId) return;
+        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'No hay sorteo activo', background: '#0f172a', color: '#fff' }); return; }
         var name = document.getElementById('raffle-name')?.value?.trim();
         if (!name) { Swal.fire({ icon: 'warning', title: 'Nombre requerido', background: '#0f172a', color: '#fff' }); return; }
         try {
             await this.fetchAPI('/raffles/' + raffleId, { method: 'PUT', body: JSON.stringify({ name: name, type: document.getElementById('raffle-type')?.value, winner_count: parseInt(document.getElementById('raffle-winner-count')?.value) || 1, data_source: document.getElementById('raffle-data-source')?.value }) });
             Swal.fire({ icon: 'success', title: 'Guardado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
             this.loadRaffles();
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); Swal.fire({ icon: 'error', title: 'Error al guardar', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 
     deleteRaffle: async function(raffleId) {
