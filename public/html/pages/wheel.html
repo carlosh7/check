@@ -10,755 +10,446 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
     <link rel="stylesheet" href="/css/modules/base.css?v=12.44.501">
     <link rel="stylesheet" href="/css/modules/wheel.css?v=12.44.496">
-    <script>
-        (function() {
-            const saved = localStorage.getItem('theme');
-            let theme = 'dark';
-            if (saved === 'dark' || saved === 'light') theme = saved;
-            else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
-            document.documentElement.classList.remove('dark', 'light');
-            document.documentElement.classList.add(theme);
-        })();
-    </script>
+    <style>
+        :root { --primary: #7c3aed; }
+        .wheel-pro { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%); overflow:hidden; }
+        .wheel-pro::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.15) 0%, transparent 70%); pointer-events:none; }
+        .wheel-pro-card { position:relative; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:32px; max-width:520px; width:100%; margin:20px; backdrop-filter:blur(20px); }
+        .wheel-pro-title { font-size:24px; font-weight:800; text-align:center; color:#fff; margin-bottom:4px; }
+        .wheel-pro-event { font-size:13px; color:rgba(255,255,255,0.4); text-align:center; margin-bottom:24px; font-weight:500; }
+        .wheel-pro-canvas-wrap { position:relative; width:340px; height:340px; margin:0 auto 24px; }
+        .wheel-pro-canvas { width:340px; height:340px; display:block; }
+        .wheel-pro-pointer { position:absolute; top:-18px; left:50%; transform:translateX(-50%); z-index:10; width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent; border-top:28px solid var(--pointer-color,#ef4444); filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+        .wheel-pro-spin { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:14px; font-size:16px; font-weight:700; color:#fff; cursor:pointer; background:linear-gradient(135deg,#7c3aed,#a78bfa); transition:all 0.3s; position:relative; overflow:hidden; }
+        .wheel-pro-spin:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 25px rgba(124,58,237,0.4); }
+        .wheel-pro-spin:disabled { opacity:0.5; cursor:not-allowed; }
+        .wheel-pro-spin::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,0.1) 50%,transparent 70%); animation:shimmer 2s infinite; transform:translateX(-100%); }
+        @keyframes shimmer { to { transform:translateX(100%); } }
+        .wheel-pro-winner { text-align:center; padding:20px; margin-top:20px; background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(251,191,36,0.05)); border:1px solid rgba(251,191,36,0.2); border-radius:16px; display:none; }
+        .wheel-pro-winner.show { display:block; animation:fadeInUp 0.5s; }
+        .wheel-pro-winner-icon { font-size:48px; margin-bottom:8px; }
+        .wheel-pro-winner-name { font-size:22px; font-weight:800; color:#fbbf24; }
+        .wheel-pro-winner-sub { font-size:13px; color:rgba(255,255,255,0.5); margin-top:4px; }
+        .wheel-pro-share { display:flex; gap:8px; margin-top:16px; }
+        .wheel-pro-share input { flex:1; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); color:#fff; font-size:12px; outline:none; }
+        .wheel-pro-share input:focus { border-color:var(--primary); }
+        .wheel-pro-share button { padding:10px 16px; border:none; border-radius:10px; background:var(--primary); color:#fff; cursor:pointer; font-size:12px; font-weight:600; white-space:nowrap; }
+        .wheel-pro-share button:hover { background:#6d28d9; }
+        .wheel-pro-stats { display:flex; gap:16px; justify-content:center; margin-top:16px; }
+        .wheel-pro-stat { text-align:center; }
+        .wheel-pro-stat-num { font-size:20px; font-weight:800; color:#fff; }
+        .wheel-pro-stat-label { font-size:11px; color:rgba(255,255,255,0.4); }
+        .wheel-pro-winners { margin-top:20px; display:none; }
+        .wheel-pro-winners.show { display:block; }
+        .wheel-pro-winners-title { font-size:14px; font-weight:700; color:#fff; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+        .wheel-pro-winner-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.03); margin-bottom:4px; font-size:13px; }
+        .wheel-pro-winner-medal { font-size:18px; }
+        .wheel-pro-winner-name-item { color:#fff; font-weight:500; flex:1; }
+        .wheel-pro-winner-time { color:rgba(255,255,255,0.3); font-size:11px; }
+        .wheel-pro-toolbar { display:flex; gap:8px; justify-content:flex-end; margin-bottom:16px; }
+        .wheel-pro-toolbar button { width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:18px; }
+        .wheel-pro-toolbar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
+        .wheel-pro-toolbar button.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .wheel-pro-loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#0f172a; z-index:9999; }
+        .wheel-pro-loading.hidden { display:none; }
+        .wheel-pro-loading-inner { text-align:center; }
+        .wheel-pro-loading-spinner { width:48px; height:48px; border:4px solid rgba(255,255,255,0.1); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .wheel-pro-loading-text { color:rgba(255,255,255,0.5); font-size:14px; }
+        .wheel-pro-error { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#0f172a; z-index:9999; }
+        .wheel-pro-error.show { display:flex; }
+        .wheel-pro-error-inner { text-align:center; }
+        .wheel-pro-error-icon { font-size:64px; margin-bottom:16px; }
+        .wheel-pro-error-title { font-size:20px; font-weight:700; color:#fff; margin-bottom:8px; }
+        .wheel-pro-error-text { color:rgba(255,255,255,0.5); font-size:14px; margin-bottom:24px; }
+        .wheel-pro-error-btn { padding:10px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; cursor:pointer; font-weight:600; }
+        .wheel-pro-save-feedback { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; z-index:9999; display:none; animation:fadeInUp 0.3s; }
+        .wheel-pro-save-feedback.success { background:#065f46; color:#6ee7b7; border:1px solid rgba(110,231,183,0.2); }
+        .wheel-pro-save-feedback.error { background:#7f1d1d; color:#fca5a5; border:1px solid rgba(252,165,165,0.2); }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px) translateX(-50%); } to { opacity:1; transform:translateY(0) translateX(-50%); } }
+        .wheel-pro-confetti { position:fixed; pointer-events:none; z-index:9998; }
+        .wheel-pro-projector { position:fixed; inset:0; background:#000; display:none; z-index:9997; }
+        .wheel-pro-projector.show { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .wheel-pro-projector-canvas { width:min(80vw,80vh); height:min(80vw,80vh); }
+        .wheel-pro-projector-pointer { position:absolute; top:calc(50% - 50vh); left:50%; transform:translateX(-50%); z-index:10; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-top:36px solid var(--pointer-color,#ef4444); filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+        .wheel-pro-projector-wrap { position:relative; display:flex; align-items:center; justify-content:center; }
+        .wheel-pro-projector-btn-close { position:absolute; top:20px; right:20px; z-index:9998; width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.5); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:24px; }
+        .wheel-pro-projector-btn-close:hover { background:rgba(255,255,255,0.1); }
+        .wheel-pro-projector-spin { margin-top:24px; padding:16px 40px; border:none; border-radius:14px; background:linear-gradient(135deg,#7c3aed,#a78bfa); color:#fff; font-size:18px; font-weight:700; cursor:pointer; }
+        .wheel-pro-projector-spin:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(124,58,237,0.4); }
+        .wheel-pro-projector-spin:disabled { opacity:0.5; cursor:not-allowed; }
+    </style>
 </head>
-<body class="wheel-body wheel-bg-pattern">
-    <div id="loading" class="wheel-loading">
-        <div class="wheel-loading-inner">
-            <div class="wheel-loading-icon">
-                <span class="material-symbols-outlined">casino</span>
-            </div>
-            <p class="wheel-loading-text">Cargando ruleta...</p>
+<body>
+    <!-- Loading -->
+    <div id="loading" class="wheel-pro-loading">
+        <div class="wheel-pro-loading-inner">
+            <div class="wheel-pro-loading-spinner"></div>
+            <p class="wheel-pro-loading-text">Cargando ruleta...</p>
         </div>
     </div>
 
-    <div id="main-content" class="wheel-main hidden">
-        <div id="normal-layout" class="wheel-normal-layout">
-            <div class="wheel-card glass-card">
-                <div class="wheel-header">
-                    <button id="btn-fullscreen" class="wheel-header-btn-fullscreen" title="Pantalla completa">
-                        <span class="material-symbols-outlined" style="color: rgba(255,255,255,0.7)">fullscreen</span>
-                    </button>
-                    <div class="wheel-header-icon">
-                        <span class="material-symbols-outlined">casino</span>
-                    </div>
-                    <h2 id="wheel-name" class="wheel-title">Ruleta de Sorteo</h2>
-                    <h3 id="event-name" class="wheel-event-name"></h3>
-                </div>
-
-                <div class="wheel-body-content">
-                    <div class="wheel-canvas-container">
-                        <div id="pointer" class="wheel-pointer">
-                            <div class="wheel-triangle"></div>
-                        </div>
-                        <canvas id="wheel-canvas" width="340" height="340" class="wheel-canvas"></canvas>
-                    </div>
-
-                    <button id="btn-spin" class="wheel-spin-btn">
-                        <span class="material-symbols-outlined">rotate_right</span>
-                        GIRAR RULETA
-                    </button>
-
-                    <p id="spinning-text" class="wheel-spinning-text hidden">La ruleta está girando...</p>
-                </div>
-
-                <div id="winner-section" class="wheel-winner-section hidden">
-                    <div class="wheel-winner-icon">
-                        <span class="material-symbols-outlined">emoji_events</span>
-                    </div>
-                    <p class="wheel-winner-text">¡Felicidades!</p>
-                    <p id="winner-name" class="wheel-winner-name"></p>
-                    <p class="wheel-winner-hint">Ha sido seleccionado como el ganador del sorteo</p>
-                </div>
-
-                <div id="winners-section" class="wheel-winners-section hidden">
-                    <div class="wheel-winners-header">
-                        <h4 class="wheel-winners-title">
-                            <span class="material-symbols-outlined">emoji_events</span>
-                            Ganadores Anteriores
-                        </h4>
-                        <div class="wheel-winners-actions">
-                            <button id="btn-save" onclick="saveResults()" class="wheel-winners-action-btn">
-                                <span class="material-symbols-outlined">save</span>
-                                Guardar
-                            </button>
-                            <button id="btn-reset" class="wheel-winners-action-btn reset">
-                                <span class="material-symbols-outlined">restart_alt</span>
-                                Restablecer
-                            </button>
-                        </div>
-                    </div>
-                    <div id="winners-list" class="wheel-winners-list"></div>
-                    <div id="winners-controls" class="wheel-winners-controls hidden">
-                        <button id="btn-toggle-winners" class="wheel-toggle-btn" onclick="toggleWinnersView()">
-                            <span class="material-symbols-outlined">expand_more</span>
-                            Ver todos
-                        </button>
-                    </div>
-                    <p id="no-more-participants" class="wheel-no-more hidden">
-                        ¡No quedan más participantes! Todos han ganado.
-                    </p>
-                </div>
-
-                <div id="lead-form-section" class="wheel-lead-section hidden">
-                    <h4 class="wheel-lead-title">Ingresa tus datos para participar</h4>
-                    <form id="lead-form" class="wheel-lead-form">
-                        <div class="wheel-lead-input-wrapper">
-                            <span class="material-symbols-outlined">person</span>
-                            <input type="text" id="lead-name" required placeholder="Nombre completo *" class="wheel-lead-input">
-                        </div>
-                        <div class="wheel-lead-input-wrapper">
-                            <span class="material-symbols-outlined">mail</span>
-                            <input type="email" id="lead-email" required placeholder="Correo electrónico *" class="wheel-lead-input">
-                        </div>
-                        <div class="wheel-lead-input-wrapper">
-                            <span class="material-symbols-outlined">call</span>
-                            <input type="tel" id="lead-phone" placeholder="Teléfono (opcional)" class="wheel-lead-input">
-                        </div>
-                        <button type="submit" class="wheel-lead-submit">PARTICIPAR</button>
-                    </form>
-                    <p id="lead-success" class="wheel-lead-success hidden">¡Datos guardados! Ahora puedes girar la ruleta.</p>
-                </div>
-
-                <div class="wheel-footer">
-                    <a href="/" class="wheel-footer-link">Powered By Smart Eventos</a>
-                </div>
-            </div>
+    <!-- Error -->
+    <div id="error-content" class="wheel-pro-error">
+        <div class="wheel-pro-error-inner">
+            <div class="wheel-pro-error-icon">🎰</div>
+            <h2 class="wheel-pro-error-title">Ruleta no disponible</h2>
+            <p id="error-message" class="wheel-pro-error-text">Esta ruleta no existe o ha sido desactivada.</p>
+            <button class="wheel-pro-error-btn" onclick="window.location.href='/'">Volver al inicio</button>
         </div>
+    </div>
 
-        <div id="projector-layout" class="wheel-projector-layout hidden">
-            <button id="btn-fullscreen-exit" class="wheel-projector-btn-exit" title="Salir de pantalla completa">
-                <span class="material-symbols-outlined">fullscreen_exit</span>
+    <!-- Main Content -->
+    <div id="main-content" class="wheel-pro" style="display:none">
+        <div class="wheel-pro-card">
+            <div class="wheel-pro-toolbar">
+                <button id="btn-sound" onclick="toggleSound()" title="Sonido">🔊</button>
+                <button id="btn-fullscreen" onclick="toggleProjector()" title="Pantalla completa">⛶</button>
+                <button onclick="shareWheel()" title="Compartir">🔗</button>
+            </div>
+            <h1 id="wheel-name" class="wheel-pro-title">Ruleta</h1>
+            <p id="event-name" class="wheel-pro-event"></p>
+
+            <div class="wheel-pro-canvas-wrap">
+                <div class="wheel-pro-pointer" id="wheel-pointer"></div>
+                <canvas id="wheel-canvas" class="wheel-pro-canvas" width="340" height="340"></canvas>
+            </div>
+
+            <button id="btn-spin" class="wheel-pro-spin" onclick="spinWheel()">
+                <span>🎡</span> GIRAR RULETA
             </button>
-            
-            <div class="wheel-projector-wrapper">
-                <div id="wheel-container-projector" class="wheel-container-projector">
-                    <canvas id="wheel-canvas-projector" class="wheel-canvas-projector"></canvas>
-                    <div id="pointer-projector" class="wheel-pointer-projector">
-                        <div class="wheel-triangle-projector"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="wheel-projector-footer">
-                <button id="btn-spin-projector" class="wheel-projector-spin-btn btn-spin-min">
-                    <span class="material-symbols-outlined">rotate_right</span>
-                    GIRAR RULETA
-                </button>
-                <p id="spinning-text-projector" class="wheel-projector-spinning-text hidden">La ruleta está girando...</p>
+
+            <div id="winner-section" class="wheel-pro-winner">
+                <div class="wheel-pro-winner-icon">🏆</div>
+                <div class="wheel-pro-winner-name" id="winner-name"></div>
+                <div class="wheel-pro-winner-sub">¡Felicidades! Has sido seleccionado</div>
             </div>
 
-            <div class="wheel-projector-panels flex flex-col gap-6 justify-center projector-panels-empty">
-                <div id="winner-section-projector" class="wheel-projector-winner hidden">
-                    <div class="wheel-projector-winner-icon">
-                        <span class="material-symbols-outlined">emoji_events</span>
-                    </div>
-                    <p class="wheel-projector-winner-text">¡Felicidades!</p>
-                    <p id="winner-name-projector" class="wheel-projector-winner-name"></p>
-                    <p class="wheel-projector-winner-hint">Ha sido seleccionado como el ganador del sorteo</p>
-                </div>
-
-                <div id="winners-section-projector" class="wheel-projector-winners hidden">
-                    <div class="wheel-projector-winners-header">
-                        <h4 class="wheel-projector-winners-title">
-                            <span class="material-symbols-outlined">emoji_events</span>
-                            Ganadores Anteriores
-                        </h4>
-                        <div class="wheel-projector-winners-actions">
-                            <button id="btn-save-projector" onclick="saveResults()" class="wheel-projector-winners-action-btn">
-                                <span class="material-symbols-outlined">save</span>
-                                Guardar
-                            </button>
-                            <button id="btn-reset-projector" class="wheel-projector-winners-action-btn reset">
-                                <span class="material-symbols-outlined">restart_alt</span>
-                                Restablecer
-                            </button>
-                        </div>
-                    </div>
-                    <div id="winners-list-projector" class="wheel-projector-winners-list"></div>
-                    <div id="winners-controls-projector" class="wheel-projector-winners-controls hidden">
-                        <button id="btn-toggle-winners-projector" class="wheel-projector-toggle-btn" onclick="toggleWinnersViewProjector()">
-                            <span class="material-symbols-outlined">expand_more</span>
-                            Ver todos
-                        </button>
-                    </div>
-                    <p id="no-more-participants-projector" class="wheel-projector-no-more hidden">
-                        ¡No quedan más participantes!
-                    </p>
-                </div>
-
-                <div class="wheel-projector-info">
-                    <h2 id="wheel-name-projector" class="wheel-projector-wheel-name"></h2>
-                    <h3 id="event-name-projector" class="wheel-projector-event-name"></h3>
-                </div>
+            <div id="winners-section" class="wheel-pro-winners">
+                <div class="wheel-pro-winners-title">🏆 Ganadores</div>
+                <div id="winners-list"></div>
             </div>
-        </div>
 
-        <div class="wheel-projector-footer-fixed">
-            <a href="/" class="wheel-projector-footer-link">Powered By Smart Eventos</a>
+            <div class="wheel-pro-stats">
+                <div class="wheel-pro-stat"><div class="wheel-pro-stat-num" id="stat-spins">0</div><div class="wheel-pro-stat-label">Giros</div></div>
+                <div class="wheel-pro-stat"><div class="wheel-pro-stat-num" id="stat-winners">0</div><div class="wheel-pro-stat-label">Ganadores</div></div>
+                <div class="wheel-pro-stat"><div class="wheel-pro-stat-num" id="stat-participants">0</div><div class="wheel-pro-stat-label">Participantes</div></div>
+            </div>
+
+            <div class="wheel-pro-share">
+                <input type="text" id="share-url" readonly placeholder="Cargando...">
+                <button onclick="copyUrl()">Copiar link</button>
+            </div>
         </div>
     </div>
 
-    <div id="error-content" class="wheel-error hidden">
-        <div class="wheel-error-inner">
-            <div class="wheel-error-icon">
-                <span class="material-symbols-outlined">error</span>
+    <!-- Projector Mode -->
+    <div id="projector-mode" class="wheel-pro-projector">
+        <button class="wheel-pro-projector-btn-close" onclick="exitProjector()">✕</button>
+        <div class="wheel-pro-projector-wrap">
+            <div style="position:relative;display:flex;align-items:center;justify-content:center">
+                <div class="wheel-pro-projector-pointer" id="pointer-projector" style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:10;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:36px solid var(--pointer-color,#ef4444);filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5))"></div>
+                <canvas id="canvas-projector" class="wheel-pro-projector-canvas" width="800" height="800"></canvas>
             </div>
-            <h2 class="wheel-error-title">Ruleta no disponible</h2>
-            <p id="error-message" class="wheel-error-text">Esta ruleta no existe o ha sido desactivada.</p>
-            <a href="/" class="wheel-back-btn">Volver al inicio</a>
+            <button id="btn-spin-projector" class="wheel-pro-projector-spin" onclick="spinWheel()">🎡 GIRAR RULETA</button>
+            <div id="winner-section-projector" class="wheel-pro-winner" style="margin-top:16px;max-width:500px"></div>
         </div>
     </div>
+
+    <!-- Save Feedback -->
+    <div id="save-feedback" class="wheel-pro-save-feedback"></div>
 
     <script>
         const API_URL = '/api';
-        let wheelData = null;
-        let participants = [];
-        let originalParticipants = [];
-        let winners = [];
-        let isSpinning = false;
-        let currentRotation = 0;
-        let hasParticipated = false;
-        let projectorState = 'large';
+        let wheelData = null, participants = [], originalParticipants = [], winners = [];
+        let isSpinning = false, currentRotation = 0, soundEnabled = true;
 
         const canvas = document.getElementById('wheel-canvas');
         const ctx = canvas.getContext('2d');
-        const canvasProjector = document.getElementById('wheel-canvas-projector');
-        const ctxProjector = canvasProjector.getContext('2d');
+        const canvasP = document.getElementById('canvas-projector');
+        const ctxP = canvasP.getContext('2d');
 
-        function setProjectorStateLarge() {
-            projectorState = 'large';
-            const layout = document.getElementById('projector-layout');
-            const wheelCanvas = document.getElementById('wheel-canvas-projector');
-            const wheelContainer = document.getElementById('wheel-container-projector');
-            
-            layout.classList.remove('projector-state-small');
-            layout.classList.add('projector-state-large');
-            
-            wheelContainer.style.width = '800px';
-            wheelContainer.style.height = '800px';
-            wheelCanvas.style.width = '800px';
-            wheelCanvas.style.height = '800px';
-            wheelCanvas.width = 800;
-            wheelCanvas.height = 800;
-            
-            drawWheel(currentRotation);
-        }
-        
-        function setProjectorStateSmall() {
-            projectorState = 'small';
-            const layout = document.getElementById('projector-layout');
-            const wheelCanvas = document.getElementById('wheel-canvas-projector');
-            const wheelContainer = document.getElementById('wheel-container-projector');
-            
-            layout.classList.remove('projector-state-large');
-            layout.classList.add('projector-state-small');
-            
-            wheelContainer.style.width = '700px';
-            wheelContainer.style.height = '700px';
-            wheelCanvas.style.width = '700px';
-            wheelCanvas.style.height = '700px';
-            wheelCanvas.width = 800;
-            wheelCanvas.height = 800;
-            
-            drawWheel(currentRotation);
+        function getColors() {
+            var c = (wheelData && wheelData.config) || {};
+            return {
+                wheelColors: c.wheel_colors || ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F'],
+                textColor: c.wheel_text_color || '#FFFFFF',
+                pointerColor: c.pointer_color || '#ef4444',
+                soundEnabled: c.sound_enabled !== false,
+                confettiEnabled: c.confetti_on_win !== false
+            };
         }
 
-        function getWheelColors() {
-            if (wheelData?.config?.visual?.wheel_colors) {
-                return wheelData.config.visual.wheel_colors;
-            }
-            return ['#FF6B6B', '#4ECDC4'];
-        }
-
-        function drawWheelOnContext(targetCtx, targetCanvas, rotation = 0) {
-            targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+        function drawWheelOnCtx(targetCtx, targetCanvas, rotation) {
+            var colors = getColors();
+            var w = targetCanvas.width, h = targetCanvas.height;
+            targetCtx.clearRect(0,0,w,h);
             targetCtx.save();
-            targetCtx.translate(targetCanvas.width / 2, targetCanvas.height / 2);
+            targetCtx.translate(w/2, h/2);
             targetCtx.rotate(rotation);
 
-            const colors = getWheelColors();
-            const numParticipants = participants.length;
-            const arcSize = (2 * Math.PI) / numParticipants;
-            const textColor = wheelData?.config?.visual?.wheel_text_color || '#FFFFFF';
-            const fontSize = targetCanvas.width >= 700 ? 32 : 16;
+            var num = participants.length;
+            if (num === 0) { targetCtx.restore(); return; }
+            var arc = (2 * Math.PI) / num;
 
-            participants.forEach((name, i) => {
-                const startAngle = i * arcSize;
-                const endAngle = (i + 1) * arcSize;
-
+            participants.forEach(function(name, i) {
+                var sa = i * arc, ea = (i+1) * arc;
                 targetCtx.beginPath();
-                targetCtx.moveTo(0, 0);
-                targetCtx.arc(0, 0, targetCanvas.width / 2 - 5, startAngle, endAngle);
+                targetCtx.moveTo(0,0);
+                targetCtx.arc(0,0,w/2-4,sa,ea);
                 targetCtx.closePath();
-                targetCtx.fillStyle = colors[i % colors.length];
+                targetCtx.fillStyle = colors.wheelColors[i % colors.wheelColors.length];
                 targetCtx.fill();
-                targetCtx.strokeStyle = 'rgba(255,255,255,0.2)';
-                targetCtx.lineWidth = targetCanvas.width >= 700 ? 4 : 2;
+                targetCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+                targetCtx.lineWidth = 2;
                 targetCtx.stroke();
 
                 targetCtx.save();
-                targetCtx.rotate(startAngle + arcSize / 2);
+                targetCtx.rotate(sa + arc/2);
                 targetCtx.textAlign = 'right';
-                targetCtx.fillStyle = textColor;
-                targetCtx.font = `bold ${fontSize}px Plus Jakarta Sans`;
-                targetCtx.shadowColor = 'rgba(0,0,0,0.5)';
+                targetCtx.fillStyle = colors.textColor;
+                var fs = w >= 700 ? 28 : 13;
+                targetCtx.font = 'bold ' + fs + 'px Plus Jakarta Sans';
+                targetCtx.shadowColor = 'rgba(0,0,0,0.6)';
                 targetCtx.shadowBlur = 3;
-                
-                const displayName = name.length > 12 ? name.substring(0, 10) + '...' : name;
-                const textOffset = targetCanvas.width >= 700 ? 80 : 20;
-                targetCtx.fillText(displayName, targetCanvas.width / 2 - textOffset, 5);
+                var display = name.length > 14 ? name.substring(0,12) + '..' : name;
+                targetCtx.fillText(display, w/2 - (w >= 700 ? 60 : 12), 5);
                 targetCtx.restore();
             });
 
-            const centerSize = targetCanvas.width >= 700 ? 50 : 30;
+            var cs = w >= 700 ? 50 : 28;
             targetCtx.beginPath();
-            targetCtx.arc(0, 0, centerSize, 0, 2 * Math.PI);
+            targetCtx.arc(0,0,cs,0,2*Math.PI);
             targetCtx.fillStyle = '#1e293b';
             targetCtx.fill();
-            targetCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            targetCtx.strokeStyle = 'rgba(255,255,255,0.2)';
             targetCtx.lineWidth = 3;
             targetCtx.stroke();
-
             targetCtx.beginPath();
-            targetCtx.arc(0, 0, centerSize / 2, 0, 2 * Math.PI);
+            targetCtx.arc(0,0,cs/2,0,2*Math.PI);
             targetCtx.fillStyle = '#7c3aed';
             targetCtx.fill();
-
             targetCtx.restore();
         }
 
-        function drawWheel(rotation = 0) {
-            drawWheelOnContext(ctx, canvas, rotation);
-            drawWheelOnContext(ctxProjector, canvasProjector, rotation);
+        function drawWheel(rotation) {
+            drawWheelOnCtx(ctx, canvas, rotation);
+            drawWheelOnCtx(ctxP, canvasP, rotation);
+            var colors = getColors();
+            document.getElementById('wheel-pointer').style.setProperty('--pointer-color', colors.pointerColor);
+            var pp = document.getElementById('pointer-projector');
+            if (pp) pp.style.setProperty('--pointer-color', colors.pointerColor);
         }
-        
+
         function spinWheel() {
             if (isSpinning || participants.length === 0) return;
-            
-            const requireLeadCapture = wheelData?.config?.settings?.require_lead_capture === true;
-            
-            if (!hasParticipated && requireLeadCapture) {
-                document.getElementById('lead-form-section').classList.remove('hidden');
-                return;
-            }
-
-            if (projectorState === 'small') {
-                setProjectorStateLarge();
-            }
-            document.getElementById('winner-section').classList.add('hidden');
-            document.getElementById('winners-section').classList.add('hidden');
-
             isSpinning = true;
             document.getElementById('btn-spin').disabled = true;
-            document.getElementById('spinning-text').classList.remove('hidden');
             document.getElementById('btn-spin-projector').disabled = true;
-            document.getElementById('spinning-text-projector').classList.remove('hidden');
+            document.getElementById('winner-section').classList.remove('show');
+            document.getElementById('winner-section').style.display = 'none';
 
-            const spinDuration = 4000 + Math.random() * 2000;
-            const extraSpins = 5 + Math.random() * 3;
-            const targetRotation = currentRotation + (extraSpins * 2 * Math.PI);
+            var duration = 4000 + Math.random() * 2000;
+            var extra = 5 + Math.random() * 3;
+            var target = currentRotation + (extra * 2 * Math.PI);
+            var startTime = Date.now();
+            var startRot = currentRotation;
 
-            const startTime = Date.now();
-            const startRotation = currentRotation;
+            if (soundEnabled) playTick();
 
             function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / spinDuration, 1);
-                
-                const easeOut = 1 - Math.pow(1 - progress, 4);
-                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
-                
+                var elapsed = Date.now() - startTime;
+                var progress = Math.min(elapsed / duration, 1);
+                var ease = 1 - Math.pow(1 - progress, 4);
+                currentRotation = startRot + (target - startRot) * ease;
                 drawWheel(currentRotation);
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
+                if (progress < 1) { requestAnimationFrame(animate); }
+                else {
                     isSpinning = false;
                     document.getElementById('btn-spin').disabled = false;
-                    document.getElementById('spinning-text').classList.add('hidden');
                     document.getElementById('btn-spin-projector').disabled = false;
-                    document.getElementById('spinning-text-projector').classList.add('hidden');
-                    
-                    const arcSize = (2 * Math.PI) / participants.length;
-                    let angleUnderPointer = (-currentRotation) % (2 * Math.PI);
-                    if (angleUnderPointer < 0) angleUnderPointer += 2 * Math.PI;
-                    const winnerIndex = Math.floor(angleUnderPointer / arcSize) % participants.length;
-                    
-                    const winner = participants[winnerIndex];
+                    var arc = (2 * Math.PI) / participants.length;
+                    var angle = (-currentRotation) % (2 * Math.PI);
+                    if (angle < 0) angle += 2 * Math.PI;
+                    var idx = Math.floor(angle / arc) % participants.length;
+                    var winner = participants[idx];
                     showWinner(winner);
                     recordSpin(winner);
                 }
             }
-
             animate();
         }
 
+        var tickAudioCtx = null;
+        function playTick() {
+            try {
+                if (!tickAudioCtx) tickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = tickAudioCtx.createOscillator();
+                var gain = tickAudioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(tickAudioCtx.destination);
+                osc.frequency.value = 800 + Math.random() * 400;
+                gain.gain.value = 0.1;
+                osc.start();
+                osc.stop(tickAudioCtx.currentTime + 0.05);
+            } catch(e) {}
+        }
+
         function showWinner(winner) {
-            const winnerSection = document.getElementById('winner-section');
-            const winnerSectionProjector = document.getElementById('winner-section-projector');
-            
-            document.getElementById('winner-name').textContent = winner;
-            document.getElementById('winner-name-projector').textContent = winner;
-            
             winners.push(winner);
-            participants = participants.filter(p => p !== winner);
-            
+            participants = participants.filter(function(p) { return p !== winner; });
             drawWheel(currentRotation);
-            
-            showWinnersList();
-            
-            if (projectorState === 'large') {
-                setTimeout(() => {
-                    setProjectorStateSmall();
-                    winnerSectionProjector.classList.remove('hidden');
-                }, 100);
-            } else {
-                winnerSectionProjector.classList.remove('hidden');
-            }
-            
-            winnerSection.classList.remove('hidden');
-            
-            if (wheelData?.config?.visual?.confetti_on_win !== false) {
-                createConfetti();
-            }
+
+            var ws = document.getElementById('winner-section');
+            document.getElementById('winner-name').textContent = winner;
+            ws.style.display = 'block';
+            ws.classList.add('show');
+
+            var wsP = document.getElementById('winner-section-projector');
+            if (wsP) { wsP.innerHTML = '<div class="wheel-pro-winner-icon">🏆</div><div class="wheel-pro-winner-name">' + winner + '</div><div class="wheel-pro-winner-sub">¡Felicidades!</div>'; }
+
+            var colors = getColors();
+            if (colors.confettiEnabled) createConfetti();
+            updateStats();
         }
-        
-        function showWinnersList() {
-            const winnersSection = document.getElementById('winners-section');
-            const winnersList = document.getElementById('winners-list');
-            const noMoreMsg = document.getElementById('no-more-participants');
-            
-            const winnersSectionP = document.getElementById('winners-section-projector');
-            const winnersListP = document.getElementById('winners-list-projector');
-            const noMoreMsgP = document.getElementById('no-more-participants-projector');
-            
-            if (winners.length === 0) {
-                winnersSection.classList.add('hidden');
-                winnersSectionP.classList.add('hidden');
-                return;
+
+        function updateStats() {
+            document.getElementById('stat-spins').textContent = winners.length;
+            document.getElementById('stat-winners').textContent = winners.length;
+            document.getElementById('stat-participants').textContent = participants.length;
+
+            var ws = document.getElementById('winners-section');
+            var wl = document.getElementById('winners-list');
+            if (winners.length > 0) {
+                ws.classList.add('show');
+                wl.innerHTML = winners.map(function(w, i) {
+                    var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎁';
+                    return '<div class="wheel-pro-winner-item"><span class="wheel-pro-winner-medal">' + medal + '</span><span class="wheel-pro-winner-name-item">' + w + '</span></div>';
+                }).join('');
             }
-            
-            winnersSection.classList.remove('hidden');
-            winnersSectionP.classList.remove('hidden');
-            
-            const html = winners.map((w, i) => `
-                <div class="wheel-winner-item">
-                    <span class="wheel-winner-number">${i + 1}</span>
-                    <span class="wheel-winner-item-name">${w}</span>
-                    <span class="wheel-winner-check">✓</span>
-                </div>
-            `).join('');
-            
-            winnersList.innerHTML = html;
-            winnersListP.innerHTML = html;
-            
-            const winnersControls = document.getElementById('winners-controls');
-            const winnersControlsP = document.getElementById('winners-controls-projector');
-            
-            if (winners.length > 5) {
-                if (winnersControls) winnersControls.classList.remove('hidden');
-                if (winnersControlsP) winnersControlsP.classList.remove('hidden');
-                if (winnersList) winnersList.style.maxHeight = '15rem';
-                if (winnersListP) winnersListP.style.maxHeight = '20rem';
-            } else {
-                if (winnersControls) winnersControls.classList.add('hidden');
-                if (winnersControlsP) winnersControlsP.classList.add('hidden');
-                if (winnersList) winnersList.style.maxHeight = 'none';
-                if (winnersListP) winnersListP.style.maxHeight = 'none';
-            }
-            
-            if (participants.length === 0) {
-                noMoreMsg.classList.remove('hidden');
-                noMoreMsgP.classList.remove('hidden');
-            } else {
-                noMoreMsg.classList.add('hidden');
-                noMoreMsgP.classList.add('hidden');
-            }
-        }
-        
-        function toggleWinnersView() {
-            const winnersList = document.getElementById('winners-list');
-            const toggleBtn = document.getElementById('btn-toggle-winners');
-            const icon = toggleBtn.querySelector('.material-symbols-outlined');
-            
-            if (winnersList.style.maxHeight === 'none' || winnersList.style.maxHeight === '') {
-                winnersList.style.maxHeight = 'none';
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                winnersList.style.maxHeight = '15rem';
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
-        
-        function toggleWinnersViewProjector() {
-            const winnersList = document.getElementById('winners-list-projector');
-            const toggleBtn = document.getElementById('btn-toggle-winners-projector');
-            const icon = toggleBtn.querySelector('.material-symbols-outlined');
-            
-            if (winnersList.style.maxHeight === 'none' || winnersList.style.maxHeight === '') {
-                winnersList.style.maxHeight = 'none';
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                winnersList.style.maxHeight = '20rem';
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
-        
-        function resetWheel() {
-            participants = [...originalParticipants];
-            winners = [];
-            currentRotation = 0;
-            hasParticipated = false;
-            
-            setProjectorStateLarge();
-            
-            document.getElementById('winner-section').classList.add('hidden');
-            document.getElementById('winners-section').classList.add('hidden');
-            document.getElementById('no-more-participants').classList.add('hidden');
-            document.getElementById('winner-name').textContent = '';
-            document.getElementById('winners-list').innerHTML = '';
-            
-            document.getElementById('winner-section-projector').classList.add('hidden');
-            document.getElementById('winners-section-projector').classList.add('hidden');
-            document.getElementById('no-more-participants-projector').classList.add('hidden');
-            document.getElementById('winner-name-projector').textContent = '';
-            document.getElementById('winners-list-projector').innerHTML = '';
-            
-            document.getElementById('lead-form-section').classList.add('hidden');
-            document.getElementById('lead-success').classList.add('hidden');
-            document.getElementById('lead-form').reset();
-            
-            drawWheel(0);
         }
 
         function createConfetti() {
-            const colors = ['#FF6B6B', '#4ECDC4', '#7c3aed', '#fbbf24', '#34d399'];
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.style.cssText = `
-                    position: fixed;
-                    width: ${Math.random() * 10 + 5}px;
-                    height: ${Math.random() * 10 + 5}px;
-                    background: ${colors[Math.floor(Math.random() * colors.length)]};
-                    left: ${Math.random() * 100}vw;
-                    top: -20px;
-                    opacity: ${Math.random() * 0.7 + 0.3};
-                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-                    animation: fall ${Math.random() * 2 + 2}s linear forwards;
-                    z-index: 1000;
-                `;
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 4000);
-            }
-
-            if (!document.getElementById('confetti-style')) {
-                const style = document.createElement('style');
-                style.id = 'confetti-style';
-                style.textContent = `
-                    @keyframes fall {
-                        to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-                    }
-                `;
+            var colors = ['#FF6B6B','#4ECDC4','#7c3aed','#fbbf24','#34d399','#f472b6','#60a5fa'];
+            for (var i = 0; i < 80; i++) {
+                var el = document.createElement('div');
+                el.className = 'wheel-pro-confetti';
+                el.style.cssText = 'left:' + Math.random()*100 + 'vw;top:-10px;width:' + (Math.random()*8+4) + 'px;height:' + (Math.random()*8+4) + 'px;background:' + colors[Math.floor(Math.random()*colors.length)] + ';border-radius:' + (Math.random()>0.5?'50%':'2px') + ';animation:fall' + i + ' ' + (Math.random()*2+1.5) + 's linear forwards;';
+                document.body.appendChild(el);
+                var style = document.createElement('style');
+                style.textContent = '@keyframes fall' + i + '{to{transform:translateY(100vh) rotate(' + (Math.random()*720) + 'deg);opacity:0;}}';
                 document.head.appendChild(style);
+                setTimeout(function() { el.remove(); style.remove(); }, 4000);
             }
         }
 
         async function recordSpin(winner) {
-            if (!wheelData?.id) return;
+            if (!wheelData || !wheelData.id) return;
             try {
-                await fetch(`${API_URL}/events/wheels/${wheelData.id}/spin`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ winnerName: winner })
-                });
-            } catch (e) {
-                console.error('Error recording spin:', e);
-            }
+                await fetch(API_URL + '/raffles/' + wheelData.id + '/spin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ winnerName:winner }) });
+            } catch(e) {}
         }
 
-        async function saveResults() {
-            if (!wheelData?.id || winners.length === 0) {
-                showSaveFeedback('No hay ganadores', false);
-                return;
-            }
-            
-            const name = `Sorteo ${new Date().toLocaleString('es-ES')}`;
-            
-            try {
-                const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/results`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        winners: winners,
-                        total_participants: originalParticipants.length,
-                        notes: ''
-                    })
-                });
-                
-                if (res.ok) {
-                    showSaveFeedback('¡Resultado guardado!', true);
-                } else {
-                    const err = await res.json().catch(() => ({}));
-                    showSaveFeedback(err.error || 'Error al guardar', false);
-                }
-            } catch (e) {
-                showSaveFeedback('Error de conexión', false);
-            }
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
         }
-        
-        let saveFeedbackTimeout;
-        function showSaveFeedback(message, success) {
-            let el = document.getElementById('save-feedback');
-            if (!el) {
-                el = document.createElement('div');
-                el.id = 'save-feedback';
-                el.className = 'wheel-save-feedback';
-                document.body.appendChild(el);
-            }
-            el.textContent = message;
-            el.className = `wheel-save-feedback ${success ? 'success' : 'error'}`;
+
+        function toggleProjector() {
+            var p = document.getElementById('projector-mode');
+            var show = p.classList.contains('show');
+            if (show) { p.classList.remove('show'); p.style.display = 'none'; } 
+            else { p.classList.add('show'); p.style.display = 'flex'; try { document.body.requestFullscreen(); } catch(e) {} }
+        }
+
+        function exitProjector() {
+            var p = document.getElementById('projector-mode');
+            p.classList.remove('show'); p.style.display = 'none';
+            try { document.exitFullscreen(); } catch(e) {}
+        }
+
+        function shareWheel() {
+            var url = document.getElementById('share-url');
+            if (url && url.value && navigator.share) {
+                navigator.share({ title: 'Ruleta | Check Pro', url: url.value }).catch(function() {});
+            } else if (url && url.value) { copyUrl(); }
+        }
+
+        function copyUrl() {
+            var url = document.getElementById('share-url');
+            if (!url || !url.value) return;
+            navigator.clipboard.writeText(url.value).then(function() {
+                showFeedback('✅ Link copiado', true);
+            }).catch(function() { url.select(); document.execCommand('copy'); });
+        }
+
+        var feedbackTimeout;
+        function showFeedback(msg, ok) {
+            var el = document.getElementById('save-feedback');
+            el.textContent = msg;
+            el.className = 'wheel-pro-save-feedback ' + (ok ? 'success' : 'error');
             el.style.display = 'block';
-            clearTimeout(saveFeedbackTimeout);
-            saveFeedbackTimeout = setTimeout(() => { el.style.display = 'none'; }, 3000);
+            clearTimeout(feedbackTimeout);
+            feedbackTimeout = setTimeout(function() { el.style.display = 'none'; }, 2500);
         }
+
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                var p = document.getElementById('projector-mode');
+                p.classList.remove('show');
+                p.style.display = 'none';
+            }
+        });
 
         async function loadWheel() {
-            const pathParts = window.location.pathname.split('/');
-            let wheelId = null;
-            
-            if (pathParts.includes('wheel')) {
-                const wheelIndex = pathParts.indexOf('wheel');
-                wheelId = pathParts[wheelIndex + 1];
+            var parts = window.location.pathname.split('/');
+            var raffleId = null;
+            if (parts.includes('raffle')) {
+                var idx = parts.indexOf('raffle');
+                raffleId = parts[idx + 1];
             }
 
-            if (!wheelId || wheelId === 'undefined') {
+            if (!raffleId || raffleId === 'undefined') {
                 document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error-content').classList.remove('hidden');
+                document.getElementById('error-content').classList.add('show');
                 document.getElementById('error-message').textContent = 'Ruleta no válida';
                 return;
             }
 
             try {
-                const res = await fetch(`${API_URL}/events/wheels/${wheelId}/public`);
+                var res = await fetch(API_URL + '/raffles/' + raffleId + '/public');
                 if (!res.ok) throw new Error('Ruleta no encontrada');
-
                 wheelData = await res.json();
                 participants = wheelData.participants || [];
-                originalParticipants = [...participants];
+                originalParticipants = participants.slice();
                 winners = [];
 
                 if (participants.length === 0) {
                     document.getElementById('loading').classList.add('hidden');
-                    document.getElementById('error-content').classList.remove('hidden');
+                    document.getElementById('error-content').classList.add('show');
                     document.getElementById('error-message').textContent = 'Esta ruleta no tiene participantes';
                     return;
                 }
 
                 document.getElementById('loading').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('main-content').style.display = 'flex';
 
-                const wheelName = wheelData.name || 'Ruleta de Sorteo';
-                const eventName = wheelData.event_name || '';
-                
-                document.getElementById('wheel-name').textContent = wheelName;
-                document.getElementById('event-name').textContent = eventName;
-                
-                document.getElementById('wheel-name-projector').textContent = wheelName;
-                document.getElementById('event-name-projector').textContent = eventName;
-                
-                document.title = `${wheelName} | Check Pro`;
+                document.getElementById('wheel-name').textContent = wheelData.name || 'Ruleta';
+                document.getElementById('event-name').textContent = wheelData.event_name || '';
+                document.title = (wheelData.name || 'Ruleta') + ' | Check Pro';
+                document.getElementById('share-url').value = window.location.href;
+                document.getElementById('stat-participants').textContent = participants.length;
 
-                setProjectorStateLarge();
+                var colors = getColors();
+                soundEnabled = colors.soundEnabled;
+                document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
+
                 drawWheel(0);
-
-            } catch (e) {
+            } catch(e) {
                 document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error-content').classList.remove('hidden');
+                document.getElementById('error-content').classList.add('show');
             }
         }
-
-        document.getElementById('lead-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!wheelData?.id) return;
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const origText = btn.textContent;
-            btn.textContent = 'Guardando...';
-            btn.disabled = true;
-
-            const body = {
-                name: document.getElementById('lead-name').value.trim(),
-                email: document.getElementById('lead-email').value.trim().toLowerCase(),
-                phone: document.getElementById('lead-phone').value.trim()
-            };
-
-            try {
-                const res = await fetch(`${API_URL}/events/wheels/${wheelData.id}/capture-lead`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                if (res.ok) {
-                    hasParticipated = true;
-                    e.target.classList.add('hidden');
-                    document.getElementById('lead-success').classList.remove('hidden');
-                } else {
-                    alert('Error al guardar. Intenta de nuevo.');
-                }
-            } catch (e) {
-                alert('Error de conexión. Intenta de nuevo.');
-            } finally {
-                btn.textContent = origText;
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('btn-spin').addEventListener('click', spinWheel);
-        document.getElementById('btn-reset').addEventListener('click', resetWheel);
-
-        document.getElementById('btn-fullscreen').addEventListener('click', () => {
-            const normalLayout = document.getElementById('normal-layout');
-            const projectorLayout = document.getElementById('projector-layout');
-            
-            if (projectorLayout.classList.contains('hidden')) {
-                normalLayout.classList.add('hidden');
-                projectorLayout.classList.remove('hidden');
-                projectorLayout.classList.add('flex');
-                document.body.requestFullscreen?.().catch?.(() => {});
-            } else {
-                projectorLayout.classList.add('hidden');
-                projectorLayout.classList.remove('flex');
-                normalLayout.classList.remove('hidden');
-                document.exitFullscreen?.().catch?.(() => {});
-            }
-        });
-
-        document.getElementById('btn-fullscreen-exit').addEventListener('click', () => {
-            const normalLayout = document.getElementById('normal-layout');
-            const projectorLayout = document.getElementById('projector-layout');
-            
-            projectorLayout.classList.add('hidden');
-            projectorLayout.classList.remove('flex');
-            normalLayout.classList.remove('hidden');
-            document.exitFullscreen?.().catch?.(() => {});
-        });
-
-        document.getElementById('btn-spin-projector').addEventListener('click', spinWheel);
-        document.getElementById('btn-reset-projector').addEventListener('click', resetWheel);
-
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                const normalLayout = document.getElementById('normal-layout');
-                const projectorLayout = document.getElementById('projector-layout');
-                if (!projectorLayout.classList.contains('hidden')) {
-                    projectorLayout.classList.add('hidden');
-                    projectorLayout.classList.remove('flex');
-                    normalLayout.classList.remove('hidden');
-                }
-            }
-        });
 
         loadWheel();
     </script>

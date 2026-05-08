@@ -536,7 +536,8 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_survey_templates_event ON survey_templates(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
-        "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)"
+        "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)"
     ];
     
     for (const sql of indices) {

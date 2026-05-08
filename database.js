@@ -404,6 +404,18 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)"); } catch (_) {}
 
+db.exec(`CREATE TABLE IF NOT EXISTS raffle_spins (
+    id TEXT PRIMARY KEY,
+    raffle_id TEXT,
+    winner_name TEXT,
+    ip_address TEXT,
+    created_at TEXT,
+    FOREIGN KEY (raffle_id) REFERENCES raffles(id)
+)`);
+
+try { db.exec("ALTER TABLE raffle_results ADD COLUMN notes TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {}
+
 // 7. Configuración Global (Legales V10)
 db.exec(`CREATE TABLE IF NOT EXISTS settings (
     setting_key TEXT PRIMARY KEY,

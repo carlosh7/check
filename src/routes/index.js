@@ -176,6 +176,14 @@ app.use('/api/compliance', complianceRoutes);
     app.use('/api/import', upload.single('file'), importRoutes);
     app.use('/api/export', importRoutes);
     
+    // Rutas públicas para páginas standalone
+    app.get('/:slug/raffle/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/wheel.html'));
+    });
+    app.get('/:slug/survey/:id', (req, res) => {
+        res.sendFile(path.join(rootDir, 'public/html/pages/survey.html'));
+    });
+
     // SPA Catch-all: Cualquier ruta que no sea API sirve index.html
     // Esto permite que las rutas como /system/email, /event-config/123 funcionen
     app.use((req, res, next) => {

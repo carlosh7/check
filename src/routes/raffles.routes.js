@@ -119,6 +119,30 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── Registrar giro (público) ──
+
+router.post('/:id/spin', (req, res) => {
+    try {
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        var { winnerName } = req.body;
+        db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, created_at) VALUES (?, ?, ?, ?, ?)").run(
+            require('uuid').v4(), raffle.id, winnerName || 'Anónimo', req.ip || '', new Date().toISOString()
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Estadísticas (público) ──
+
+router.get('/:id/stats', (req, res) => {
+    try {
+        var total = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ?").get(req.params.id).c;
+        var participants = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
+        res.json({ spins: total, participants: participants });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Sortear (draw) ──
 
 router.post('/:id/draw', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
