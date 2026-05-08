@@ -1064,7 +1064,7 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
 router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) => {
     const eventId = castId('events', req.params.id);
     const attendanceId = req.params.attendanceId;
-    const { validated, organization, cargo, vegano, restricciones } = req.body;
+    const { validated, organization, cargo, vegano, restricciones, category_id } = req.body;
     
     if (!eventId) return res.status(400).json({ error: 'ID de evento no válido' });
     
@@ -1081,13 +1081,14 @@ router.put('/:id/attendance/:attendanceId', authMiddleware(), async (req, res) =
                 position = COALESCE(?, position),
                 vegano = COALESCE(?, vegano),
                 restricciones = COALESCE(?, restricciones),
-                dietary_notes = COALESCE(?, dietary_notes)
+                dietary_notes = COALESCE(?, dietary_notes),
+                category_id = ?
             WHERE event_id = ? AND id = ?
         `).run(
             validated || 0, validated === 1 ? now : null,
             validated,
             organization, cargo, cargo, vegano, restricciones, restricciones,
-            eventId, attendanceId
+            category_id || null, eventId, attendanceId
         );
         
         // Si se valido, registrar en guest_status_log si no estaba ya en attended

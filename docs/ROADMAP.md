@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.597 |
+| **Version** | v12.44.598 |
 | **Ultima feature completada** | F2-05: Guest Categories - CRUD, columna en tabla, filtro, modal |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | Fase 2 Badge Config (diseno gafete + print-on-checkin) |
@@ -949,7 +949,7 @@ Registro de espacios fisicos para eventos:
 | F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.594 | 2026-05-07 |
 | F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
 | F2-04 | PDF Export (gafetes QR + reporte) | ✅ | v12.44.596 | 2026-05-07 |
-| F2-05 | Guest Categories (CRUD, columna, filtro, modal) | ✅ | v12.44.597 | 2026-05-07 |
+| F2-05 | Guest Categories (CRUD, columna, filtro, modal) | ✅ | v12.44.598 | 2026-05-07 |
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
 | F3-08 | Waitlist | ⏳ Pendiente | — | — |

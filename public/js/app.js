@@ -16834,6 +16834,19 @@ App.editAttendance = function(clientIds) {
     document.getElementById('edit-attendance-restricciones').value = a.restricciones || '';
     document.getElementById('edit-attendance-status').value = a.status || 'PENDIENTE';
     
+    // Poblar selector de categorias
+    const eId = this.state.event?.id || this.state.currentEventId;
+    if (eId) {
+        this.fetchAPI(`/guests/${eId}/categories`).then(cats => {
+            const sel = document.getElementById('edit-attendance-category');
+            if (sel && cats) {
+                const cur = a.category_id || '';
+                sel.innerHTML = '<option value="">Sin categoría</option>' + 
+                    cats.map(c => `<option value="${c.id}" ${c.id === cur ? 'selected' : ''}>${c.name}</option>`).join('');
+            }
+        }).catch(() => {});
+    }
+    
     document.getElementById('modal-edit-attendance').classList.remove('hidden');
 };
 
@@ -16847,7 +16860,8 @@ App.editAttendance = function(clientIds) {
          cargo: document.getElementById('edit-attendance-cargo').value,
          vegano: document.getElementById('edit-attendance-vegano').value,
          restricciones: document.getElementById('edit-attendance-restricciones').value,
-         status: document.getElementById('edit-attendance-status').value
+         status: document.getElementById('edit-attendance-status').value,
+         category_id: document.getElementById('edit-attendance-category')?.value || null
      };
      
      try {
