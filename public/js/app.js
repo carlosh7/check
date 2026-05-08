@@ -10001,7 +10001,6 @@ navigate(viewName, params = {}, push = true) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
                     legend: {
@@ -10033,7 +10032,6 @@ navigate(viewName, params = {}, push = true) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -10102,7 +10100,6 @@ navigate(viewName, params = {}, push = true) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
                     legend: {
@@ -10135,7 +10132,6 @@ navigate(viewName, params = {}, push = true) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom',
