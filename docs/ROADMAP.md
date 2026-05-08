@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.591 |
+| **Version** | v12.44.592 |
 | **Ultima feature completada** | F1-01: Dashboard Analytics - graficas visuales integradas en panel existente |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | FS-01: Shadow AI Detection & Governance |
@@ -167,7 +167,7 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 | 1 | **F0-02** Modulo Mailing | Sistema completo de email marketing por evento: cuentas SMTP, mailbox, compositor con 12 plantillas, campanas masivas, robot automatico | Es el proximo feature planificado, complejidad XL pero sin dependencias. Desbloquea comunicacion con invitados |
 | 2 | **F1-03** Clone Events | Duplicar eventos como plantilla con opciones de que copiar | Esfuerzo S, alta demanda, permite reutilizar configuraciones |
 | 3 | **F2-06** Activity Logs | Expandir auditoria existente con timeline visible en panel | Esfuerzo S, ya existe `audit.js`, solo hay que expandir y crear UI |
-| 4 | **F1-01** Dashboard Analytics | Panel de KPIs y graficos en dashboard admin con Chart.js | ✅ Completado v12.44.591 — graficas visuales integradas en panel existente |
+| 4 | **F1-01** Dashboard Analytics | Panel de KPIs y graficos en dashboard admin con Chart.js | ✅ Completado v12.44.592 — graficas visuales integradas en panel existente |
 | 5 | **F4-12** Venues / Espacios | Registro de espacios fisicos con capacidad y recursos | Desbloquea F4-11 (Sesiones) |
 
 ### Tier S (paralelo) — Seguridad IA, corre simultaneo con otros Tiers
@@ -945,7 +945,7 @@ Registro de espacios fisicos para eventos:
 | FS-02 | AI Compliance & Data Governance | ⏳ Pendiente | — | — |
 | FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
 | FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
-| F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.591 | 2026-05-07 |
+| F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |
 | F1-02 | Pipeline Invitados | ⏳ Pendiente | — | — |
 | F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
 | F2-04 | PDF Export | ⏳ Pendiente | — | — |
