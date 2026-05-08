@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.593 |
+| **Version** | v12.44.594 |
 | **Ultima feature completada** | F1-02: Pipeline Estados - columna status, log, dropdown en tabla, filtro |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F2-04: PDF Export |
@@ -181,7 +181,7 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 ### Tier 2 — Despues de Tier 1 (requieren Pipeline)
 | Orden | Feature | Dependencia | Descripcion |
 |-------|---------|-------------|-------------|
-| 1 | **F1-02** Pipeline Estados | Ninguna directa (sienta base para F2-04, F2-05) | ✅ Completado v12.44.593 — status en BD, log, dropdown en tabla |
+| 1 | **F1-02** Pipeline Estados | Ninguna directa (sienta base para F2-04, F2-05) | ✅ Completado v12.44.594 — status en BD, log, dropdown en tabla |
 | 2 | **F2-04** PDF Export | Pipeline (F1-02) | Gafetes con QR, reportes, certificados |
 | 3 | **F2-05** Guest Categories | Pipeline (F1-02) | Categorias VIP, Regular, Staff con capacidad y campos personalizados |
 
@@ -946,7 +946,7 @@ Registro de espacios fisicos para eventos:
 | FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
 | FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |
-| F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.593 | 2026-05-07 |
+| F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.594 | 2026-05-07 |
 | F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
 | F2-04 | PDF Export | ⏳ Pendiente | — | — |
 | F2-05 | Guest Categories | ⏳ Pendiente | — | — |

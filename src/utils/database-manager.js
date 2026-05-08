@@ -91,6 +91,27 @@ function getEventConnection(eventId) {
         // --- AUTO-REPARACIÓN (V12.44.335) ---
         repairEventDatabase(db, eventId);
         
+        // --- MIGRACIONES GLOBALES (se ejecutan siempre al abrir BD de evento) ---
+        try {
+            const cols = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
+            if (!cols.includes('status')) {
+                db.exec("ALTER TABLE guests ADD COLUMN status TEXT DEFAULT 'lead'");
+            }
+        } catch (_) {}
+        try {
+            db.exec(`CREATE TABLE IF NOT EXISTS guest_status_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guest_id TEXT,
+                event_id TEXT,
+                from_status TEXT,
+                to_status TEXT,
+                changed_by TEXT,
+                notes TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )`);
+            db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)");
+        } catch (_) {}
+        
         console.log('✓ Conexión a base de datos del evento:', eventId);
         return db;
     } catch (error) {
@@ -181,6 +202,14 @@ function createEventTables(db, eventId) {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     `);
+    
+    // Migracion: agregar columna status si no existe (eventos pre-existentes)
+    try {
+        const columns = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
+        if (!columns.includes('status')) {
+            db.exec("ALTER TABLE guests ADD COLUMN status TEXT DEFAULT 'lead'");
+        }
+    } catch (_) {}
     
     // Tabla de log de cambios de estado del pipeline
     db.exec(`

@@ -151,6 +151,7 @@ try {
     required.forEach(col => {
         if (!columns.includes(col)) {
             let def = "TEXT";
+            if (col === 'status') def = "TEXT DEFAULT 'lead'";
             if (col === 'vegano') def = "TEXT DEFAULT 'NO'";
             if (col === 'validated') def = "INTEGER DEFAULT 0";
             if (col.includes('unsubscribed')) def = "INTEGER DEFAULT 0";
