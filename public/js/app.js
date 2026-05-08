@@ -11022,7 +11022,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
