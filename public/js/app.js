@@ -11330,6 +11330,10 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
         if (tabName === 'badge') this.loadBadgeConfig();
+        
+        // Mostrar action-bar solo en tab Personal
+        const actionBar = document.getElementById('config-action-bar');
+        if (actionBar) actionBar.style.display = tabName === 'staff' ? 'flex' : 'none';
     },
     
     // Cargar encuestas (v12.34.2)
