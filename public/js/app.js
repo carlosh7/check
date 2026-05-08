@@ -11847,7 +11847,7 @@ navigate(viewName, params = {}, push = true) {
             }
             html += '">';
             if (el.type === 'text') html += typeLabels.text(el);
-            else if (el.type === 'qr') html += typeLabels.qr();
+            else if (el.type === 'qr') html += typeLabels.qr(el);
             else if (el.type === 'logo') html += typeLabels.logo(el);
             else html += typeLabels[el.type] || el.text || '';
             html += '</div>';
