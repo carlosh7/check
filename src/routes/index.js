@@ -29,6 +29,7 @@ const pushRoutes = require('./push.routes');
 const statsRoutes = require('./stats.routes');
 const importRoutes = require('./import.routes');
 const sessionsRoutes = require('./sessions.routes');
+const seatLayoutsRoutes = require('./seat-layouts.routes');
 const venuesRoutes = require('./venues.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
@@ -140,6 +141,9 @@ app.use('/api/settings', settingsRoutes);
 
 // Sessions
 app.use('/api/sessions', sessionsRoutes);
+
+// Seat layouts
+app.use('/api/seat-layouts', seatLayoutsRoutes);
     
     // Webhooks (integraciones externas)
     app.use('/api/webhooks', webhooksRoutes);

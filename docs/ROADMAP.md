@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.619 |
+| **Version** | v12.44.620 |
 | **Ultima feature completada** | BL-15: Password Recovery - codigo 6 digitos, email, modal login |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F4-11: Sesiones + Seat Maps |
@@ -955,8 +955,10 @@ Registro de espacios fisicos para eventos:
 | F3-08 | Waitlist (cupo por categoria, promocion, auditoria) | ✅ | v12.44.615 | 2026-05-08 |
 | F3-09 | Export Google Sheets | ⏳ Pendiente | — | — |
 | F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
-| F4-11 | Sesiones + Seat Maps | ⏳ Pendiente | — | — |
+| F4-11 | Sesiones (CRUD, registro invitados, modal editar) | ✅ | v12.44.619 | 2026-05-08 |
 | F4-12 | Venues | ✅ | v12.44.584 | 2026-05-07 |
+| — | Badge Designer (editor drag-drop, QR real, print-on-checkin) | ✅ | v12.44.612 | 2026-05-08 |
+| — | Password Recovery (codigo 6 digitos, email, modal login) | ✅ | v12.44.616 | 2026-05-08 |
 | BL-13..28 | Backlog | ⏳ Pendiente | — | — |
 
 ---

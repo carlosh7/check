@@ -149,6 +149,13 @@ function getEventConnection(eventId) {
             db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)");
             db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)");
         } catch (_) {}
+        try {
+            db.exec(`CREATE TABLE IF NOT EXISTS seat_layouts (
+                id TEXT PRIMARY KEY, event_id TEXT, name TEXT NOT NULL,
+                config TEXT NOT NULL DEFAULT '{}', created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )`);
+            db.exec("CREATE INDEX IF NOT EXISTS idx_seat_layouts_event ON seat_layouts(event_id)");
+        } catch (_) {}
         
         console.log('✓ Conexión a base de datos del evento:', eventId);
         return db;
@@ -315,6 +322,18 @@ function createEventTables(db, eventId) {
     `);
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)"); } catch (_) {}
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)"); } catch (_) {}
+    
+    // Tabla de planos de sala (seat maps)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS seat_layouts (
+            id TEXT PRIMARY KEY,
+            event_id TEXT,
+            name TEXT NOT NULL,
+            config TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_seat_layouts_event ON seat_layouts(event_id)"); } catch (_) {}
     
     // Tabla de pre-registros
     db.exec(`

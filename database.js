@@ -228,6 +228,16 @@ db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)"); } catch (_) {}
 
+// Tabla de planos de sala (seat maps)
+db.exec(`CREATE TABLE IF NOT EXISTS seat_layouts (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    config TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_seat_layouts_event ON seat_layouts(event_id)"); } catch (_) {}
+
 // 3.1 Pre-Registros (Inscripción previa)
 db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (
     id TEXT PRIMARY KEY,

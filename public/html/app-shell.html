@@ -8,147 +8,71 @@
                 <div class="app-sidebar-brand-text">
                     <span class="app-sidebar-brand-title">Check<span>.</span>Pro</span>
                     <span class="app-sidebar-brand-subtitle">Ecosistema Elite</span>
-                </div>
-            </div>
-        </div>
-        
-        <div id="premium-toast-container" class="toast-container"></div>
-
-        <nav class="app-nav">
-            <button id="nav-btn-my-events" class="nav-item app-nav-item" data-tab="my-events">
-                <span class="material-symbols-outlined">event</span>
-                <span class="app-nav-item-text">Mis Eventos</span>
-            </button>
-
-            <button id="nav-btn-admin" class="nav-item app-nav-item" data-tab="admin" data-view="admin">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span class="app-nav-item-text">Dashboard</span>
-            </button>
-
-            <button id="nav-btn-event-config" class="nav-item app-nav-item" data-tab="event-config" data-view="event-config">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="app-nav-item-text">Configuración</span>
-            </button>
-
-            <button id="nav-btn-system" class="nav-item app-nav-item" data-tab="system" data-view="system">
-                <span class="material-symbols-outlined">tune</span>
-                <span class="app-nav-item-text">Sistema</span>
-            </button>
-            
-            <div class="sidebar-user-section">
-                <div class="sidebar-user-info">
-                    <div class="sidebar-user-avatar">
-                        <span class="material-symbols-outlined">person</span>
-                    </div>
-                    <div class="sidebar-user-details">
-                        <span id="sidebar-username" class="sidebar-user-name">admin@check.com</span>
-                        <span id="sidebar-role" class="sidebar-user-role">ADMIN</span>
                     </div>
                 </div>
-                
-                <div class="sidebar-user-actions">
-                    <button id="btn-toggle-theme" class="sidebar-action-btn" title="Cambiar tema">
-                        <span class="material-symbols-outlined">dark_mode</span>
-                    </button>
-                    
-                    <button id="btn-logout" class="sidebar-action-btn logout-btn" title="Cerrar sesión">
-                        <span class="material-symbols-outlined">logout</span>
-                    </button>
-                </div>
-                
-                <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.619</p>
-                    <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
-                        Powered By Smart Eventos
-                    </a>
-                </div>
-            </div>
-        </nav>
-    </aside>
 
-    <main id="app-main-content" class="app-main-content">
-        <div class="app-scroll-area">
-            <!-- VIEW: MY EVENTS (TABLA DE EVENTOS) -->
-            <section id="view-my-events" class="view-section hidden" data-section="my-events">
-                <div class="w-full">
-                    <div class="sticky-header">
-                        <div class="action-bar">
-                            <div class="action-bar-group">
-                                <button id="btn-new-event-full" class="btn-primary">
-                                    <span class="material-symbols-outlined">add</span> Evento
-                                </button>
-                                <button id="btn-edit-events" class="btn-secondary" onclick="App.openEventEditAction()">
-                                    <span class="material-symbols-outlined">edit</span> Editar
-                                </button>
-                                <button id="btn-import-events" class="btn-secondary" onclick="App.openImportModal('events')">
-                                    <span class="material-symbols-outlined">upload</span> Importar
-                                </button>
-                                <button id="btn-export-events" class="btn-secondary" onclick="App.exportEvents()">
-                                    <span class="material-symbols-outlined">download</span> Exportar
-                                </button>
-                                <button id="btn-clone-event" class="btn-secondary" onclick="App.cloneSelectedEvent()">
-                                    <span class="material-symbols-outlined">content_copy</span> Duplicar
-                                </button>
+                    <!-- CONTENIDO: PLANOS DE SALA -->
+                    <div id="config-content-seatmaps" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Planos de Sala</h2>
+                            <button class="btn-primary" onclick="App.openSeatLayoutModal()">
+                                <span class="material-symbols-outlined">add</span> Nuevo Plano
+                            </button>
+                        </div>
+                        <div id="seat-layouts-list" class="grid grid-cols-3 gap-3"></div>
+                        <div id="seat-layout-editor" class="hidden">
+                            <div class="card p-4 space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <h3 id="seat-editor-title" class="text-lg font-bold text-white">Editor</h3>
+                                    <button class="btn-secondary text-xs" onclick="App.closeSeatEditor()">Cerrar editor</button>
+                                </div>
+                                <div class="grid grid-cols-12 gap-4">
+                                    <div class="col-span-3 space-y-3">
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Ancho sala (m)</label>
+                                            <input id="seat-room-width" type="number" class="input-field w-full" value="10" step="0.5" min="2" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Largo sala (m)</label>
+                                            <input id="seat-room-length" type="number" class="input-field w-full" value="8" step="0.5" min="2" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Filas</label>
+                                            <input id="seat-rows" type="number" class="input-field w-full" value="5" min="1" max="26" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Columnas</label>
+                                            <input id="seat-cols" type="number" class="input-field w-full" value="8" min="1" max="50" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Pasillo despues de columna</label>
+                                            <input id="seat-aisle" type="number" class="input-field w-full" value="4" min="0" max="49" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Escenario</label>
+                                            <select id="seat-stage" class="input-field w-full" onchange="App.renderSeatPreview()">
+                                                <option value="front">Al frente</option>
+                                                <option value="back">Atras</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Tamano asiento (m)</label>
+                                            <input id="seat-size" type="number" class="input-field w-full" value="0.5" step="0.05" min="0.2" max="1" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <button class="btn-primary w-full" onclick="App.saveSeatLayout()">
+                                            <span class="material-symbols-outlined text-sm">save</span> Guardar Plano
+                                        </button>
+                                    </div>
+                                    <div class="col-span-9">
+                                        <div class="card p-0 overflow-hidden" style="background:#1e293b; min-height:400px;">
+                                            <div id="seat-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:400px; padding:20px;">
+                                                <div id="seat-canvas" class="relative" style="background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.3);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="filters-row">
-                            <select id="filter-event-client" onchange="App.filterEvents()" class="filter-select filter-select-cliente">
-                                <option value="">Cliente</option>
-                            </select>
-                            <select id="filter-event-status" onchange="App.filterEvents()" class="filter-select">
-                                <option value="">Estado</option>
-                                <option value="active">Activo</option>
-                                <option value="upcoming">Próximo</option>
-                                <option value="completed">Finalizado</option>
-                                <option value="draft">Borrador</option>
-                                <option value="cancelled">Cancelado</option>
-                                <option value="inactive">Inactivo</option>
-                            </select>
-                        </div>
-
-                        <div class="page-header">
-                            <div>
-                                <h1 class="page-title">Mis <span class="page-title-accent">Eventos</span></h1>
-                            </div>
-                        </div>
-
-                        <div class="search-box-container">
-                            <input id="event-search" type="text" class="search-input" placeholder="Buscar por nombre, cliente, locación, estado..."
-                                   oninput="App.filterEvents(); App.showEventSuggestions()" onfocus="App.showEventSuggestions()" autocomplete="off">
-                            <span class="material-symbols-outlined search-icon">search</span>
-                            <span id="event-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('event')" title="Búsqueda por voz">mic</span>
-                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('event-search').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
-                            <div id="event-suggestions" class="hidden suggestions-dropdown"></div>
-                        </div>
-                    </div>
-
-                    <div class="table-scroll-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr class="table-header-row">
-                                    <th class="table-th table-checkbox-cell">
-                                        <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" class="checkbox-sm">
-                                    </th>
-                                    <th class="table-th sortable" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon">⇅</span></th>
-                                    <th class="table-th sortable" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon">⇅</span></th>
-                                    <th class="table-th sortable" data-sort="client" data-type="text" onclick="App.sortEventsTable('client')">Cliente <span class="sort-icon">⇅</span></th>
-                                    <th class="table-th sortable" data-sort="location" data-type="text" onclick="App.sortEventsTable('location')">Locación <span class="sort-icon">⇅</span></th>
-                                    <th class="table-th sortable" data-sort="guests" data-type="number" onclick="App.sortEventsTable('guests')">Asistentes <span class="sort-icon">⇅</span></th>
-                                    <th class="table-th sortable" data-sort="status" data-type="text" onclick="App.sortEventsTable('status')">Estado <span class="sort-icon">⇅</span></th>
-                                </tr>
-                            </thead>
-                            <tbody id="events-tbody" class="table-tbody"></tbody>
-                        </table>
-                    </div>
-
-                    <div id="events-empty-state" class="empty-state hidden">
-                        <div class="empty-state-icon">
-                            <span class="material-symbols-outlined">event</span>
-                        </div>
-                        <h3 class="empty-state-title">Sin eventos activos</h3>
-                        <p class="empty-state-text">Comienza creando tu primer evento</p>
-                        <button id="btn-new-event-full-empty" class="btn-primary">Crear Evento</button>
                     </div>
                 </div>
             </section>
@@ -424,6 +348,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="sessions" onclick="App.switchConfigTab('sessions')">
                             <span class="material-symbols-outlined">live_help</span> Sesiones
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="seatmaps" onclick="App.switchConfigTab('seatmaps')">
+                            <span class="material-symbols-outlined">event_seat</span> Planos
                         </button>
                     </div>
 
