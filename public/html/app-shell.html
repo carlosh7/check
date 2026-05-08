@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.626</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.627</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -301,6 +301,7 @@
                                 <th class="table-th">Categor&iacute;a</th>
                                 <th class="table-th sortable" data-sort-att="status" onclick="App.sortAttendance('status')">Estado <span class="sort-icon">⇅</span></th>
                                 <th class="table-th text-center">Validar</th>
+                                <th class="table-th text-center">Compliance</th>
                             </tr>
                         </thead>
                         <tbody id="attendance-tbody" class="table-tbody"></tbody>
@@ -1153,6 +1154,9 @@
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="ai-security" onclick="App.switchSystemTab('ai-security')">
                             <span class="material-symbols-outlined text-base">security</span> Seguridad IA
                         </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="compliance" onclick="App.switchSystemTab('compliance')">
+                            <span class="material-symbols-outlined text-base">verified_user</span> Compliance
+                        </button>
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
                             <span class="material-symbols-outlined text-base">location_on</span> Espacios
                         </button>
@@ -1557,6 +1561,84 @@
                         </div>
                         <div id="ai-policies-list" class="space-y-2">
                             <p class="text-xs text-slate-500 italic">Cargando...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: COMPLIANCE (FS-02) -->
+                <div id="sys-content-compliance" class="hidden space-y-4">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">Data <span class="text-[var(--primary)]">Compliance</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm">Clasificación de datos, portabilidad y derecho al olvido.</p>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <button id="compliance-tab-classification" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchComplianceSubTab('classification')">Clasificación</button>
+                        <button id="compliance-tab-access" class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10" onclick="App.switchComplianceSubTab('access')">Logs de Acceso</button>
+                    </div>
+                    <div id="compliance-subtab-classification" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-500">Campos clasificados por nivel de sensibilidad.</p>
+                            <button class="btn-secondary text-xs" onclick="App.openComplianceClassModal()">
+                                <span class="material-symbols-outlined text-sm">add</span> Nueva Clasificación
+                            </button>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Tabla</th>
+                                            <th class="table-th">Columna</th>
+                                            <th class="table-th">Clasificación</th>
+                                            <th class="table-th">Categoría</th>
+                                            <th class="table-th">PII</th>
+                                            <th class="table-th">SPI</th>
+                                            <th class="table-th">Descripción</th>
+                                            <th class="table-th">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compliance-class-tbody">
+                                        <tr><td colspan="8" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="compliance-subtab-access" class="hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-500">Registro de accesos a datos sensibles.</p>
+                            <select id="filter-access-action" onchange="App.loadComplianceAccessLogs()" class="input-field text-xs py-1 px-2">
+                                <option value="">Todas las acciones</option>
+                                <option value="read">Lectura</option>
+                                <option value="export">Exportación</option>
+                                <option value="erasure">Eliminación</option>
+                            </select>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Usuario</th>
+                                            <th class="table-th">Tabla</th>
+                                            <th class="table-th">Acción</th>
+                                            <th class="table-th">Sensibilidad</th>
+                                            <th class="table-th">IP</th>
+                                            <th class="table-th">Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compliance-access-tbody">
+                                        <tr><td colspan="6" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span id="compliance-access-count">0 registros</span>
+                            <div class="flex gap-2">
+                                <button id="btn-access-prev" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(-1)" disabled>Anterior</button>
+                                <button id="btn-access-next" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(1)">Siguiente</button>
+                            </div>
                         </div>
                     </div>
                 </div>

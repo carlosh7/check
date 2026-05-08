@@ -9,7 +9,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 | Item | Valor |
 |------|-------|
 | **Version** | v12.44.626 |
-| **Ultima feature completada** | BL-15: Password Recovery - codigo 6 digitos, email, modal login |
+| **Ultima feature completada** | FS-02: AI Compliance & Data Governance - frontend panel + portabilidad + derecho al olvido |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F4-11: Sesiones + Seat Maps |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
@@ -942,7 +942,7 @@ Registro de espacios fisicos para eventos:
 | — | 10 sugerencias migradas a App.dropdown | ✅ | v12.44.514 | 2026-05-06 |
 | F0-02 | Modulo Mailing por evento | ✅ | v12.44.541 | 2026-05-07 |
 | FS-01 | Shadow AI Detection & Governance | ✅ | v12.44.623 | 2026-05-08 |
-| FS-02 | AI Compliance & Data Governance | ⏳ Pendiente | — | — |
+| FS-02 | AI Compliance & Data Governance | ✅ | v12.44.627 | 2026-05-08 |
 | FS-03 | AI Detection & Response (AIDR) | ⏳ Pendiente | — | — |
 | FS-04 | AI Red Teaming | ⏳ Pendiente | — | — |
 | F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |

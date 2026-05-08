@@ -31,6 +31,7 @@ const importRoutes = require('./import.routes');
 const sessionsRoutes = require('./sessions.routes');
 const seatLayoutsRoutes = require('./seat-layouts.routes');
 const aiSecurityRoutes = require('./ai-security.routes');
+const complianceRoutes = require('./compliance.routes');
 const venuesRoutes = require('./venues.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
@@ -148,6 +149,10 @@ app.use('/api/seat-layouts', seatLayoutsRoutes);
 
 // AI Security
 app.use('/api/security', aiSecurityRoutes);
+
+// Compliance & Data Governance (FS-02)
+app.use('/api/compliance', complianceRoutes);
+
     // Webhooks (integraciones externas)
     app.use('/api/webhooks', webhooksRoutes);
     

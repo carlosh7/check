@@ -11019,7 +11019,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -11059,7 +11059,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'activity') this.loadActivityLogs();
         if (tabName === 'venues') this.loadVenues();
         if (tabName === 'ai-security') this.loadAiSecurity();
-
+        if (tabName === 'compliance') this.loadCompliance();
 
         if (tabName === 'account') this.loadUserProfile();
     },
@@ -11299,6 +11299,203 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/security/ai/policies/' + id, { method: 'DELETE' });
             this.loadAiSecurity();
         } catch(e) { console.error('[AI] Error:', e.message); }
+    },
+
+    // ── Compliance / Data Governance (FS-02) ──
+
+    loadCompliance: async function() {
+        this.switchComplianceSubTab('classification');
+        this.loadComplianceClassification();
+        this.loadComplianceAccessLogs();
+    },
+
+    switchComplianceSubTab: function(tab) {
+        var tabs = ['classification', 'access'];
+        tabs.forEach(function(t) {
+            var btn = document.getElementById('compliance-tab-' + t);
+            var content = document.getElementById('compliance-subtab-' + t);
+            if (btn) {
+                if (t === tab) {
+                    btn.className = 'px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider';
+                } else {
+                    btn.className = 'px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/10';
+                }
+            }
+            if (content) {
+                if (t === tab) content.classList.remove('hidden');
+                else content.classList.add('hidden');
+            }
+        });
+        if (tab === 'classification') this.loadComplianceClassification();
+        if (tab === 'access') this.loadComplianceAccessLogs();
+    },
+
+    loadComplianceClassification: async function() {
+        try {
+            var items = await this.fetchAPI('/compliance/classification') || [];
+            var tbody = document.getElementById('compliance-class-tbody');
+            if (!tbody) return;
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Sin clasificaciones definidas</td></tr>';
+                return;
+            }
+            var classLabels = { public: 'Público', internal: 'Interno', confidential: 'Confidencial', restricted: 'Restringido' };
+            var classColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
+            tbody.innerHTML = items.map(function(item) {
+                var cl = item.classification || 'internal';
+                return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                    '<td class="table-td text-slate-300">' + (item.table_name || '-') + '</td>' +
+                    '<td class="table-td text-white font-mono text-xs">' + (item.column_name || '-') + '</td>' +
+                    '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:' + (classColors[cl] || '#64748b') + '30;color:' + (classColors[cl] || '#64748b') + '">' + (classLabels[cl] || cl) + '</span></td>' +
+                    '<td class="table-td text-slate-400 text-xs capitalize">' + (item.category || '-') + '</td>' +
+                    '<td class="table-td">' + (item.is_pii ? '<span class="text-green-400 text-xs font-bold">PII</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
+                    '<td class="table-td">' + (item.is_spi ? '<span class="text-yellow-400 text-xs font-bold">SPI</span>' : '<span class="text-slate-600 text-xs">-</span>') + '</td>' +
+                    '<td class="table-td text-xs text-slate-500 max-w-[200px] truncate">' + (item.description || '') + '</td>' +
+                    '<td class="table-td"><div class="flex gap-1"><button class="btn-icon" onclick="App.editComplianceClass(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button><button class="btn-icon text-red-400" onclick="App.deleteComplianceClass(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></td></tr>';
+            }).join('');
+        } catch(e) { console.error('[COMPLIANCE] Error:', e.message); }
+    },
+
+    openComplianceClassModal: function(item) {
+        var isEdit = !!item;
+        Swal.fire({
+            title: isEdit ? 'Editar clasificación' : 'Nueva clasificación',
+            html: '<div class="space-y-2">' +
+                '<input id="swal-cc-table" class="swal2-input" placeholder="Nombre de tabla" value="' + (item ? (item.table_name || '') : '') + '" ' + (isEdit ? 'readonly' : '') + '>' +
+                '<input id="swal-cc-column" class="swal2-input" placeholder="Nombre de columna" value="' + (item ? (item.column_name || '') : '') + '" ' + (isEdit ? 'readonly' : '') + '>' +
+                '<select id="swal-cc-class" class="swal2-input"><option value="public"' + (item && item.classification === 'public' ? ' selected' : '') + '>Público</option><option value="internal"' + (item && item.classification === 'internal' ? ' selected' : '') + '>Interno</option><option value="confidential"' + (item && item.classification === 'confidential' ? ' selected' : '') + '>Confidencial</option><option value="restricted"' + (item && item.classification === 'restricted' ? ' selected' : '') + '>Restringido</option></select>' +
+                '<select id="swal-cc-cat" class="swal2-input"><option value="general"' + (item && item.category === 'general' ? ' selected' : '') + '>General</option><option value="identidad"' + (item && item.category === 'identidad' ? ' selected' : '') + '>Identidad</option><option value="contacto"' + (item && item.category === 'contacto' ? ' selected' : '') + '>Contacto</option><option value="laboral"' + (item && item.category === 'laboral' ? ' selected' : '') + '>Laboral</option><option value="salud"' + (item && item.category === 'salud' ? ' selected' : '') + '>Salud</option><option value="fiscal"' + (item && item.category === 'fiscal' ? ' selected' : '') + '>Fiscal</option></select>' +
+                '<textarea id="swal-cc-desc" class="swal2-textarea" placeholder="Descripción" rows="2">' + (item ? (item.description || '') : '') + '</textarea>' +
+                '<label class="flex items-center gap-2 mt-1 text-sm" style="color:#fff"><input type="checkbox" id="swal-cc-pii" ' + (item && item.is_pii ? 'checked' : '') + ' class="checkbox-sm"> Es PII (Información Personal Identificable)</label>' +
+                '<label class="flex items-center gap-2 text-sm" style="color:#fff"><input type="checkbox" id="swal-cc-spi" ' + (item && item.is_spi ? 'checked' : '') + ' class="checkbox-sm"> Es SPI (Información Sensible Personal)</label></div>',
+            background: '#0f172a', color: '#fff',
+            confirmButtonText: isEdit ? 'Guardar' : 'Crear',
+            showCancelButton: true,
+            width: 520,
+            preConfirm: function() {
+                var table = document.getElementById('swal-cc-table')?.value.trim();
+                var column = document.getElementById('swal-cc-column')?.value.trim();
+                if (!table || !column) { Swal.showValidationMessage('Tabla y columna requeridos'); return; }
+                return {
+                    table_name: table,
+                    column_name: column,
+                    classification: document.getElementById('swal-cc-class')?.value || 'internal',
+                    category: document.getElementById('swal-cc-cat')?.value || 'general',
+                    description: document.getElementById('swal-cc-desc')?.value || '',
+                    is_pii: document.getElementById('swal-cc-pii')?.checked || false,
+                    is_spi: document.getElementById('swal-cc-spi')?.checked || false
+                };
+            }
+        }).then(async function(result) {
+            if (result.isConfirmed && result.value) {
+                try {
+                    if (isEdit) {
+                        await App.fetchAPI('/compliance/classification/' + item.id, { method: 'PUT', body: JSON.stringify(result.value) });
+                    } else {
+                        await App.fetchAPI('/compliance/classification', { method: 'POST', body: JSON.stringify(result.value) });
+                    }
+                    App.loadComplianceClassification();
+                } catch(e) { console.error('[COMPLIANCE] Error:', e.message); }
+            }
+        });
+    },
+
+    editComplianceClass: async function(id) {
+        var items = await this.fetchAPI('/compliance/classification') || [];
+        var item = items.find(function(x) { return x.id === id; });
+        if (item) this.openComplianceClassModal(item);
+    },
+
+    deleteComplianceClass: async function(id) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar clasificación?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/compliance/classification/' + id, { method: 'DELETE' });
+            this.loadComplianceClassification();
+        } catch(e) { console.error('[COMPLIANCE] Error:', e.message); }
+    },
+
+    complianceAccessPage: 1,
+
+    loadComplianceAccessLogs: async function(direction) {
+        if (!this.complianceAccessPage) this.complianceAccessPage = 1;
+        if (direction === -1 && this.complianceAccessPage > 1) this.complianceAccessPage--;
+        if (direction === 1) this.complianceAccessPage++;
+        var page = this.complianceAccessPage;
+        var action = document.getElementById('filter-access-action')?.value || '';
+        try {
+            var res = await this.fetchAPI('/compliance/access-logs?page=' + page + '&limit=30&action=' + action);
+            var logs = res?.data || [];
+            var total = res?.pagination?.total || 0;
+            var tbody = document.getElementById('compliance-access-tbody');
+            var countEl = document.getElementById('compliance-access-count');
+            var prevBtn = document.getElementById('btn-access-prev');
+            var nextBtn = document.getElementById('btn-access-next');
+            if (countEl) countEl.textContent = total + ' registros';
+            if (prevBtn) prevBtn.disabled = page <= 1;
+            if (!tbody) return;
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Sin registros de acceso</td></tr>';
+                return;
+            }
+            var actionLabels = { read: 'Lectura', export: 'Exportación', erasure: 'Eliminación' };
+            var sensitivityColors = { public: '#10b981', internal: '#3b82f6', confidential: '#f59e0b', restricted: '#ef4444' };
+            tbody.innerHTML = logs.map(function(log) {
+                var sensColor = sensitivityColors[log.sensitivity] || '#64748b';
+                return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                    '<td class="table-td text-slate-300">' + (log.user_name || log.user_id || '-') + '</td>' +
+                    '<td class="table-td text-slate-400 text-xs">' + (log.table_name || '-') + '</td>' +
+                    '<td class="table-td"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (log.action === 'erasure' ? 'bg-red-500/20 text-red-400' : log.action === 'export' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-500/20 text-slate-300') + '">' + (actionLabels[log.action] || log.action) + '</span></td>' +
+                    '<td class="table-td"><span class="text-[10px] font-bold" style="color:' + sensColor + '">' + (log.sensitivity || '-') + '</span></td>' +
+                    '<td class="table-td text-xs text-slate-500">' + (log.ip_address || '-') + '</td>' +
+                    '<td class="table-td text-xs text-slate-500">' + (log.created_at ? new Date(log.created_at).toLocaleString('es-CO') : '-') + '</td></tr>';
+            }).join('');
+        } catch(e) { console.error('[COMPLIANCE] Access logs error:', e.message); }
+    },
+
+    // Portabilidad de datos - exportar datos del invitado
+    exportGuestData: async function(eventId, guestId) {
+        try {
+            var data = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/export');
+            if (!data) { Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron exportar los datos', background: '#0f172a', color: '#fff' }); return; }
+            Swal.fire({
+                icon: 'info', title: 'Datos exportados',
+                html: '<p class="text-sm text-slate-400 mb-3">Datos del invitado exportados en formato JSON compatible con GDPR.</p><button class="btn-primary text-xs px-4 py-2" onclick="App.downloadJsonFile(' + JSON.stringify(JSON.stringify(data)) + ', \'guest-' + guestId.substring(0, 8) + '-data.json\')">Descargar JSON</button>',
+                background: '#0f172a', color: '#fff', showConfirmButton: false
+            });
+        } catch(e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Error al exportar', background: '#0f172a', color: '#fff' });
+        }
+    },
+
+    downloadJsonFile: function(jsonStr, filename) {
+        var blob = new Blob([jsonStr], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    // Derecho al olvido - anonimizar datos del invitado
+    eraseGuestData: async function(eventId, guestId, guestName) {
+        var confirm = await Swal.fire({
+            icon: 'warning', title: '¿Eliminar datos personales?',
+            html: '<p class="text-sm text-slate-400">Se anonimizarán los datos de <strong>' + (guestName || 'este invitado') + '</strong>.<br>Esta acción <strong class="text-red-400">NO se puede deshacer</strong>.</p>',
+            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Sí, eliminar datos',
+            cancelButtonText: 'Cancelar', background: '#0f172a', color: '#fff'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+            var result = await this.fetchAPI('/compliance/events/' + eventId + '/guests/' + guestId + '/personal-data', { method: 'DELETE' });
+            Swal.fire({ icon: 'success', title: 'Datos eliminados', text: result?.message || 'Datos personales anonimizados', background: '#0f172a', color: '#fff', timer: 2000 });
+            if (typeof this.loadGuests === 'function') this.loadGuests();
+        } catch(e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Error al eliminar datos', background: '#0f172a', color: '#fff' });
+        }
     },
 
     loadVenuesSelect: async function() {
@@ -17093,7 +17290,7 @@ App.renderAttendanceTable = function(attendance) {
     if (!tbody) return;
     
     if (!attendance || attendance.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-500">No hay asistentes registrados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500">No hay asistentes registrados</td></tr>`;
         return;
     }
     

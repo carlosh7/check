@@ -765,6 +765,79 @@ try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id)"
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC)"); } catch (_) {}
 
+// 9. Clasificacion de Datos (FS-02 Compliance)
+db.exec(`CREATE TABLE IF NOT EXISTS data_classification (
+    id TEXT PRIMARY KEY,
+    table_name TEXT NOT NULL,
+    column_name TEXT NOT NULL,
+    classification TEXT NOT NULL DEFAULT 'internal',
+    category TEXT DEFAULT 'general',
+    description TEXT,
+    is_pii INTEGER DEFAULT 0,
+    is_spi INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT,
+    UNIQUE(table_name, column_name)
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_data_class_table ON data_classification(table_name)"); } catch (_) {}
+
+// 10. Logs de Acceso a Datos (FS-02 Compliance - auditoria de lecturas)
+db.exec(`CREATE TABLE IF NOT EXISTS data_access_log (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    user_name TEXT,
+    table_name TEXT,
+    record_id TEXT,
+    action TEXT NOT NULL DEFAULT 'read',
+    sensitivity TEXT,
+    ip_address TEXT,
+    details TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_access_log_user ON data_access_log(user_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_access_log_table ON data_access_log(table_name)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_access_log_created ON data_access_log(created_at DESC)"); } catch (_) {}
+
+// Seed classifications (PII fields)
+(function() {
+    var existing = db.prepare("SELECT COUNT(*) as cnt FROM data_classification").get();
+    if (existing.cnt === 0) {
+        var piiFields = [
+            ['guests', 'name', 'confidential', 'identidad', 'Nombre completo del invitado', 1, 0],
+            ['guests', 'email', 'confidential', 'contacto', 'Correo electronico del invitado', 1, 0],
+            ['guests', 'phone', 'confidential', 'contacto', 'Telefono del invitado', 1, 0],
+            ['guests', 'company', 'internal', 'laboral', 'Empresa del invitado', 0, 1],
+            ['guests', 'position', 'internal', 'laboral', 'Cargo del invitado', 0, 1],
+            ['guests', 'dietary_restrictions', 'internal', 'salud', 'Restricciones alimentarias', 0, 1],
+            ['guests', 'special_needs', 'confidential', 'salud', 'Necesidades especiales', 0, 1],
+            ['guests', 'notes', 'internal', 'general', 'Notas internas del invitado', 0, 0],
+            ['pre_registrations', 'name', 'confidential', 'identidad', 'Nombre del pre-registro', 1, 0],
+            ['pre_registrations', 'email', 'confidential', 'contacto', 'Email del pre-registro', 1, 0],
+            ['pre_registrations', 'phone', 'confidential', 'contacto', 'Telefono del pre-registro', 1, 0],
+            ['users', 'name', 'confidential', 'identidad', 'Nombre del usuario', 1, 0],
+            ['users', 'email', 'confidential', 'contacto', 'Email del usuario', 1, 0],
+            ['users', 'phone', 'internal', 'contacto', 'Telefono del usuario', 0, 0],
+            ['clients', 'name', 'confidential', 'identidad', 'Nombre del cliente', 1, 0],
+            ['clients', 'email', 'confidential', 'contacto', 'Email del cliente', 1, 0],
+            ['clients', 'phone', 'confidential', 'contacto', 'Telefono del cliente', 1, 0],
+            ['clients', 'rfc', 'confidential', 'fiscal', 'RFC del cliente', 0, 1],
+            ['groups', 'name', 'internal', 'general', 'Nombre del grupo/empresa', 0, 0],
+            ['groups', 'notes', 'internal', 'general', 'Notas del grupo', 0, 0],
+            ['groups', 'internal_notes', 'confidential', 'general', 'Notas internas del grupo', 0, 1],
+            ['events', 'name', 'public', 'general', 'Nombre del evento', 0, 0],
+            ['events', 'location', 'public', 'general', 'Ubicacion del evento', 0, 0],
+            ['events', 'notes', 'internal', 'general', 'Notas del evento', 0, 0]
+        ];
+        var insert = db.prepare("INSERT INTO data_classification (id, table_name, column_name, classification, category, description, is_pii, is_spi) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        piiFields.forEach(function(f) {
+            insert.run(require('uuid').v4(), f[0], f[1], f[2], f[3], f[4], f[5], f[6]);
+        });
+        console.log('[COMPLIANCE] Seed classifications: ' + piiFields.length + ' fields');
+    }
+})();
+
 // ═══ NUEVAS TABLAS V10.5.3: GRUPOS Y PERMISOS JERÁRQUICOS ═══
 
 // 9. Grupos (cada grupo tiene su propio Producer(es))
