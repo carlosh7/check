@@ -356,63 +356,6 @@ function createEventTables(db, eventId) {
         )
     `);
 
-    // Tabla de ruletas
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS event_wheels (
-            id TEXT PRIMARY KEY,
-            event_id TEXT,
-            name TEXT NOT NULL,
-            config TEXT,
-            is_active INTEGER DEFAULT 1,
-            created_at TEXT,
-            updated_at TEXT
-        )
-    `);
-    
-    // Tabla de participantes de ruleta
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS wheel_participants (
-            id TEXT PRIMARY KEY,
-            wheel_id TEXT,
-            guest_id TEXT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            source TEXT DEFAULT 'manual',
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
-        )
-    `);
-    
-    // Tabla de giros de ruleta
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS wheel_spins (
-            id TEXT PRIMARY KEY,
-            wheel_id TEXT,
-            participant_id TEXT,
-            winner_name TEXT,
-            winner_email TEXT,
-            ip_address TEXT,
-            created_at TEXT,
-            FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
-        )
-    `);
-    
-    // Tabla de leads de ruleta
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS wheel_leads (
-            id TEXT PRIMARY KEY,
-            wheel_id TEXT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            company TEXT,
-            source_url TEXT,
-            created_at TEXT,
-            FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
-        )
-    `);
-    
     // Tabla de encuestas
     db.exec(`
         CREATE TABLE IF NOT EXISTS surveys (
@@ -525,7 +468,7 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_guests_qr_token ON guests(qr_token)",
         "CREATE INDEX IF NOT EXISTS idx_guests_checked_in ON guests(checked_in)",
         "CREATE INDEX IF NOT EXISTS idx_pre_registrations_event ON pre_registrations(event_id)",
-        "CREATE INDEX IF NOT EXISTS idx_event_wheels_event ON event_wheels(event_id)",
+
         "CREATE INDEX IF NOT EXISTS idx_surveys_event ON surveys(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_survey_responses_event ON survey_responses(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_survey_responses_template ON survey_responses(template_id)",

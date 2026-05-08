@@ -1,12 +1,8 @@
-/**
- * Rutas de Sorteos (Ruleta, Grupos, Lista)
- */
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db, getEventConnection, eventDatabaseExists } = require('../../database');
 const { authMiddleware } = require('../middleware/auth');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
-const QRCode = require('qrcode');
 
 const router = express.Router();
 
@@ -19,23 +15,28 @@ function getEventGuestDb(eventId) {
     return db;
 }
 
-// ── CRUD Raffles ──
+// ── CRUD ──
 
 router.get('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         var raffles = db.prepare("SELECT * FROM raffles WHERE event_id = ? ORDER BY created_at DESC").all(req.params.eventId);
+        raffles.forEach(function(r) {
+            if (r.config_json) try { r.config = JSON.parse(r.config_json); } catch(e) {}
+            var spins = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ?").get(r.id);
+            r.stats = { spins: spins ? spins.c : 0 };
+        });
         res.json(raffles);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { type, name, winner_count, data_source, source_template_id, config } = req.body;
+        var { name, data_source, source_template_id, config } = req.body;
         if (!name) return res.status(400).json({ error: 'Nombre requerido' });
         var id = uuidv4();
         db.prepare("INSERT INTO raffles (id, event_id, type, name, config_json, data_source, source_template_id, winner_count, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)").run(
-            id, req.params.eventId, type || 'wheel', name, config ? JSON.stringify(config) : null,
-            data_source || 'guests', source_template_id || null, parseInt(winner_count) || 1,
+            id, req.params.eventId, 'wheel', name, config ? JSON.stringify(config) : null,
+            data_source || 'guests', source_template_id || null, 1,
             new Date().toISOString(), new Date().toISOString()
         );
         res.json({ success: true, id: id });
@@ -45,7 +46,7 @@ router.post('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR']), 
 router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         if (raffle.config_json) try { raffle.config = JSON.parse(raffle.config_json); } catch(e) {}
         res.json(raffle);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -53,9 +54,9 @@ router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, re
 
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
-        var { type, name, winner_count, data_source, source_template_id, config, status } = req.body;
-        db.prepare("UPDATE raffles SET type = COALESCE(?, type), name = COALESCE(?, name), winner_count = COALESCE(?, winner_count), data_source = COALESCE(?, data_source), source_template_id = COALESCE(?, source_template_id), config_json = COALESCE(?, config_json), status = COALESCE(?, status), updated_at = ? WHERE id = ?").run(
-            type || null, name || null, winner_count != null ? parseInt(winner_count) : null, data_source || null,
+        var { name, data_source, source_template_id, config, status, winner_count } = req.body;
+        db.prepare("UPDATE raffles SET name = COALESCE(?, name), winner_count = COALESCE(?, winner_count), data_source = COALESCE(?, data_source), source_template_id = COALESCE(?, source_template_id), config_json = COALESCE(?, config_json), status = COALESCE(?, status), updated_at = ? WHERE id = ?").run(
+            name || null, winner_count != null ? parseInt(winner_count) : null, data_source || null,
             source_template_id || null, config ? JSON.stringify(config) : null, status || null,
             new Date().toISOString(), req.params.id
         );
@@ -65,6 +66,7 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 
 router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
+        db.prepare("DELETE FROM raffle_spins WHERE raffle_id = ?").run(req.params.id);
         db.prepare("DELETE FROM raffle_results WHERE raffle_id = ?").run(req.params.id);
         db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(req.params.id);
         db.prepare("DELETE FROM raffles WHERE id = ?").run(req.params.id);
@@ -77,7 +79,7 @@ router.delete('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
 router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
 
         var eventDb = getEventGuestDb(raffle.event_id);
         var sourceSql = '';
@@ -92,17 +94,19 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             if (!sTemplate) return res.status(400).json({ error: 'Template de encuesta no encontrado' });
             var respondents = db.prepare("SELECT guest_id, answers_json FROM survey_responses WHERE template_id = ? AND guest_id IS NOT NULL").all(raffle.source_template_id);
             var guestIds = respondents.map(function(r) { return r.guest_id; }).filter(Boolean);
-            if (guestIds.length === 0) return res.json({ added: 0, message: 'No hay invitados que respondieron la encuesta' });
+            if (guestIds.length === 0) return res.json({ added: 0, participants: [], message: 'No hay invitados que respondieron la encuesta' });
             var placeholders = guestIds.map(function() { return '?'; }).join(',');
-            var guests = db.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")").all.apply(null, [raffle.event_id].concat(guestIds));
+            var guests = eventDb.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")").all.apply(null, [raffle.event_id].concat(guestIds));
             sourceSql = null;
-            var insert = db.prepare("INSERT OR IGNORE INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(raffle.id);
+            var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
             var count = 0;
+            var names = [];
             guests.forEach(function(g) {
-                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name, g.email, g.phone, 'survey'); count++; } catch(e) {}
+                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name, g.email, g.phone, 'survey'); count++; names.push(g.name || g.email); } catch(e) {}
             });
             db.prepare("UPDATE raffles SET total_participants = ?, updated_at = ? WHERE id = ?").run(count, new Date().toISOString(), raffle.id);
-            return res.json({ added: count });
+            return res.json({ added: count, participants: names });
         }
 
         if (sourceSql) {
@@ -110,11 +114,12 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(raffle.id);
             var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
             var count = 0;
+            var names = [];
             guests.forEach(function(g) {
-                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name || '', g.email || '', g.phone || '', raffle.data_source); count++; } catch(e) {}
+                try { insert.run(uuidv4(), raffle.id, g.guest_id, g.name || '', g.email || '', g.phone || '', raffle.data_source); count++; names.push(g.name || g.email); } catch(e) {}
             });
             db.prepare("UPDATE raffles SET total_participants = ?, updated_at = ? WHERE id = ?").run(count, new Date().toISOString(), raffle.id);
-            res.json({ added: count });
+            res.json({ added: count, participants: names });
         }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -124,31 +129,62 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
 router.post('/:id/spin', (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         var { winnerName } = req.body;
         db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, created_at) VALUES (?, ?, ?, ?, ?)").run(
-            require('uuid').v4(), raffle.id, winnerName || 'Anónimo', req.ip || '', new Date().toISOString()
+            uuidv4(), raffle.id, winnerName || 'Anónimo', req.ip || '', new Date().toISOString()
         );
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Estadísticas (público) ──
+// ── Registrar giro con captura de lead ──
 
-router.get('/:id/stats', (req, res) => {
+router.post('/:id/spin-with-lead', (req, res) => {
     try {
-        var total = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ?").get(req.params.id).c;
-        var participants = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
-        res.json({ spins: total, participants: participants });
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        var { winnerName, name, email, phone } = req.body;
+        if (!name || !email) return res.status(400).json({ error: 'Nombre y email requeridos' });
+        var leadInfo = JSON.stringify({ name: name, email: email, phone: phone || '' });
+        db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, lead_json, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+            uuidv4(), raffle.id, winnerName || 'Anónimo', req.ip || '', leadInfo, new Date().toISOString()
+        );
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Sortear (draw) ──
+// ── Track visita (público) ──
+
+router.post('/:id/track-visit', (req, res) => {
+    try {
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
+        db.prepare("INSERT INTO raffle_spins (id, raffle_id, winner_name, ip_address, created_at) VALUES (?, ?, '___visit___', ?, ?)").run(
+            uuidv4(), raffle.id, req.ip || '', new Date().toISOString()
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Estadísticas ──
+
+router.get('/:id/stats', (req, res) => {
+    try {
+        var totalSpins = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ?").get(req.params.id).c;
+        var visits = db.prepare("SELECT COUNT(*) as c FROM raffle_spins WHERE raffle_id = ? AND winner_name = '___visit___'").get(req.params.id).c;
+        var realSpins = totalSpins - visits;
+        var participants = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
+        res.json({ spins: realSpins, visits: visits, participants: participants });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Sortear ──
 
 router.post('/:id/draw', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
 
         var participants = db.prepare("SELECT * FROM raffle_participants WHERE raffle_id = ?").all(raffle.id);
         if (participants.length === 0) return res.status(400).json({ error: 'No hay participantes. Pobla la lista primero.' });
@@ -166,7 +202,7 @@ router.post('/:id/draw', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
         var resultId = uuidv4();
         db.prepare("INSERT INTO raffle_results (id, raffle_id, round, winners_json, total_participants) VALUES (?, ?, ?, ?, ?)").run(resultId, raffle.id, round, JSON.stringify(winnersData), participants.length);
 
-        try { logAction(req, 'RAFFLE_DRAW', { raffleId: raffle.id, name: raffle.name, type: raffle.type, winners: winnersData.length }); } catch(e) {}
+        try { logAction(req, 'RAFFLE_DRAW', { raffleId: raffle.id, name: raffle.name, winners: winnersData.length }); } catch(e) {}
 
         res.json({ success: true, round: round, winners: winnersData, totalParticipants: participants.length });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -189,6 +225,21 @@ router.post('/:id/participants', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, r
         var count = db.prepare("SELECT COUNT(*) as c FROM raffle_participants WHERE raffle_id = ?").get(req.params.id).c;
         db.prepare("UPDATE raffles SET total_participants = ? WHERE id = ?").run(count, req.params.id);
         res.json({ success: true, id: id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:id/participants/batch', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        var { participants } = req.body;
+        if (!Array.isArray(participants)) return res.status(400).json({ error: 'participants debe ser un array' });
+        db.prepare("DELETE FROM raffle_participants WHERE raffle_id = ?").run(req.params.id);
+        var insert = db.prepare("INSERT INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, 'manual')");
+        var count = 0;
+        participants.forEach(function(p) {
+            try { insert.run(uuidv4(), req.params.id, null, p.name || '', p.email || '', p.phone || ''); count++; } catch(e) {}
+        });
+        db.prepare("UPDATE raffles SET total_participants = ? WHERE id = ?").run(count, req.params.id);
+        res.json({ success: true, added: count });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -232,7 +283,7 @@ router.delete('/:id/results', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res)
 router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         var event = db.prepare("SELECT * FROM events WHERE id = ?").get(raffle.event_id);
         var participants = db.prepare("SELECT * FROM raffle_participants WHERE raffle_id = ? ORDER BY name ASC").all(req.params.id);
         var results = db.prepare("SELECT * FROM raffle_results WHERE raffle_id = ? ORDER BY round DESC").all(req.params.id);
@@ -243,12 +294,12 @@ router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
         var doc = new jsPDF();
 
         doc.setFontSize(22); doc.setTextColor(124, 58, 237);
-        doc.text('Reporte de Sorteo', 14, 30);
+        doc.text('Reporte de Ruleta', 14, 30);
         doc.setFontSize(14); doc.setTextColor(60);
         doc.text(raffle.name, 14, 40);
         doc.setFontSize(10); doc.setTextColor(100);
         doc.text('Evento: ' + (event ? event.name : 'N/A'), 14, 48);
-        doc.text('Tipo: ' + raffle.type + ' | Fuente: ' + raffle.data_source, 14, 55);
+        doc.text('Fuente: ' + raffle.data_source, 14, 55);
         doc.text('Generado: ' + new Date().toLocaleString(), 14, 62);
 
         doc.setFontSize(16); doc.setTextColor(0);
@@ -291,7 +342,7 @@ router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
 router.get('/:id/public', (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         var event = db.prepare("SELECT id, name, date, location FROM events WHERE id = ?").get(raffle.event_id);
         var participants = db.prepare("SELECT id, name, email FROM raffle_participants WHERE raffle_id = ?").all(raffle.id);
         var results = db.prepare("SELECT * FROM raffle_results WHERE raffle_id = ? ORDER BY round DESC").all(raffle.id);
@@ -303,7 +354,6 @@ router.get('/:id/public', (req, res) => {
         var participantNames = participants.map(function(p) { return p.name || p.email || 'Participante'; });
         res.json({
             id: raffle.id,
-            type: raffle.type,
             name: raffle.name,
             config: config,
             is_active: raffle.status === 'published' || raffle.status === 'active',
@@ -318,22 +368,34 @@ router.get('/:id/public', (req, res) => {
     }
 });
 
-// ── Configuración pública para wheel (compatible con wheel.html legacy) ──
+// ── Configuración visual para wheel.html ──
 
 router.get('/:id/wheel-config', (req, res) => {
     try {
         var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
-        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (!raffle) return res.status(404).json({ error: 'Ruleta no encontrada' });
         var config = {};
         if (raffle.config_json) try { config = JSON.parse(raffle.config_json); } catch(e) {}
         var defaultConfig = {
-            visual: {
-                wheel_colors: config.wheel_colors || ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'],
-                wheel_text_color: config.wheel_text_color || '#FFFFFF',
-                pointer_color: config.pointer_color || '#FF0000',
-                sound_enabled: config.sound_enabled !== false,
-                confetti_on_win: config.confetti_on_win !== false
-            }
+            wheel_colors: config.wheel_colors || ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'],
+            wheel_text_color: config.wheel_text_color || '#FFFFFF',
+            pointer_color: config.pointer_color || '#FF0000',
+            sound_enabled: config.sound_enabled !== false,
+            confetti_on_win: config.confetti_on_win !== false,
+            wheel_border_color: config.wheel_border_color || '#333333',
+            wheel_lines_size: config.wheel_lines_size || 2,
+            page_background_color: config.page_background_color || '#FFFFFF',
+            main_color: config.main_color || '#333333',
+            logo: config.logo || null,
+            show_title: config.show_title !== false,
+            title: config.title || '',
+            show_desc: config.show_desc !== false,
+            description: config.description || '',
+            show_start_button: config.show_start_button !== false,
+            start_button: config.start_button || 'Girar',
+            wheel_spin_duration: config.wheel_spin_duration || 6,
+            capture_leads: config.capture_leads === true,
+            wheel_auto_remove: config.wheel_auto_remove === true
         };
         res.json(defaultConfig);
     } catch (err) {

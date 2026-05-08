@@ -7316,26 +7316,6 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('wizard-campaign-name')?.addEventListener('input', () => this.updateWizardSummary());
         document.getElementById('wizard-email-subject')?.addEventListener('input', () => this.updateWizardSummary());
         
-        // Ruleta de Sorteos - botones
-        cl('btn-new-wheel', () => this.createNewWheel()); // Unificado (antes btn-create-wheel)
-        cl('btn-back-to-wheels', () => this.backToWheelsList());
-        cl('btn-save-wheel', () => this.saveWheel());
-        cl('btn-delete-wheel', () => this.deleteWheel());
-        cl('btn-add-from-guests', () => this.showAddParticipantsModal());
-        cl('btn-add-from-checkedin', () => this.showAddParticipantsModal());
-        cl('btn-add-from-preregistered', () => this.showAddParticipantsModal());
-        cl('btn-add-manual', () => this.showManualParticipantsModal());
-        cl('btn-preview-wheel', () => this.previewWheel());
-        cl('btn-copy-wheel-url', () => {
-            const url = document.getElementById('wheel-share-url')?.value;
-            if (url) {
-                navigator.clipboard.writeText(url).then(() => {
-                    this._notifyAction('Copiado', 'URL copiada al portapapeles', 'success');
-                });
-            }
-        });
-        cl('btn-delete-all-results', () => this.deleteAllWheelResults());
-        
         // Pre-registros
         cl('btn-import-pre-registrations', () => {
             const input = document.getElementById('input-import-file-prereg');
@@ -11891,7 +11871,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'staff') this.loadConfigStaff();
         if (tabName === 'email') this.loadMailingData();
         if (tabName === 'agenda') this.loadConfigAgenda();
-        if (tabName === 'wheel') this.loadRaffles();
+        if (tabName === 'wheel') this.loadWheelList();
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
@@ -13291,1123 +13271,549 @@ navigate(viewName, params = {}, push = true) {
         if (panel) panel.classList.remove('hidden');
 
         // Load specific data
-        if (tabName === 'wheel') this.loadRaffles();
+        if (tabName === 'wheel') this.loadWheelList();
     },
     
-    async loadRaffles() {
-        var eventId = this.state.event?.id;
-        if (!eventId) return;
-        try {
-            var raffles = await this.fetchAPI('/raffles/events/' + eventId + '/raffles');
-            var list = document.getElementById('raffles-list');
-            var editor = document.getElementById('raffle-editor');
-            if (editor) editor.classList.add('hidden');
-            if (!list) return;
-            if (!raffles || raffles.length === 0) {
-                list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay sorteos. Crea uno nuevo.</p></div>';
-            } else {
-                var typeLabels = { wheel: '🎡 Ruleta', group_raffle: '👥 Grupos', list_raffle: '🎯 Lista' };
-                var typeColors = { wheel: '#7c3aed', group_raffle: '#0ba5ec', list_raffle: '#10b981' };
-                list.innerHTML = raffles.map(function(r) {
-                    return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">' +
-                        '<div class="flex items-center gap-3">' +
-                        '<span class="text-lg">' + (typeLabels[r.type] || '🎡') + '</span>' +
-                        '<div><p class="text-sm font-bold text-white">' + (r.name || 'Sin nombre') + '</p>' +
-                        '<p class="text-xs text-slate-500">' + (r.total_participants || 0) + ' participantes | ' + (typeLabels[r.type] || r.type) + '</p></div></div>' +
-                        '<div class="flex gap-1">' +
-                        '<button class="btn-icon" onclick="App.openRaffleEditor(\'' + r.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
-                        '<button class="btn-icon text-red-400" onclick="App.deleteRaffle(\'' + r.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
-                }).join('');
-            }
-        } catch(e) { console.error('[RAFFLE] Error loading:', e.message); }
+    // ═══ SISTEMA DE RULETA (v12.44.653) ═══
+
+    _wheelState: {
+        currentId: null, participants: [], winners: [], results: [],
+        isSpinning: false, rotation: 0, soundEnabled: true, logoDataUrl: null,
+        segColors: ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD']
     },
 
-    openRaffleModal: function() {
+    _wheelThemes: [
+        { name:'Clásico', colors:['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD'] },
+        { name:'Océano', colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A'] },
+        { name:'Naturaleza', colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332'] },
+        { name:'Fuego', colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C'] },
+        { name:'Pastel', colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF'] },
+        { name:'Neón', colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600'] }
+    ],
+
+    newWheel: function() {
         Swal.fire({
-            title: 'Nuevo sorteo', width: '450px', background: '#0f172a', color: '#fff',
-            html: '<div class="text-left space-y-3">' +
-                '<div><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-raffle-name" class="input-field w-full" placeholder="Nombre del sorteo"></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Tipo</label><select id="swal-raffle-type" class="input-field w-full"><option value="wheel">🎡 Ruleta</option><option value="group_raffle">👥 Sorteo de grupos</option><option value="list_raffle">🎯 Sorteo de lista</option></select></div>' +
-                '<div><label class="text-xs font-bold text-slate-400">Ganadores</label><input type="number" id="swal-raffle-winners" class="input-field w-24" value="1" min="1"></div></div>',
-            showCancelButton: true, confirmButtonText: 'Crear',
-            preConfirm: function() {
-                var name = document.getElementById('swal-raffle-name')?.value?.trim();
-                if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
-                return { name: name, type: document.getElementById('swal-raffle-type')?.value || 'wheel', winner_count: parseInt(document.getElementById('swal-raffle-winners')?.value) || 1 };
-            }
-        }).then(async function(result) {
-            if (!result.isConfirmed) return;
-            var eventId = App.state.event?.id;
-            if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento primero', background: '#0f172a', color: '#fff' }); return; }
-            try {
-                var res = await App.fetchAPI('/raffles/events/' + eventId + '/raffles', { method: 'POST', body: JSON.stringify(result.value) });
-                if (res && res.id) { await App.openRaffleEditor(res.id); return; }
-                App.loadRaffles();
-            } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+            title:'Nueva Ruleta', width:'400px', background:'#0f172a', color:'#fff',
+            html:'<div class="text-left"><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-wheel-name" class="input-field w-full" placeholder="Ej: Sorteo Principal"></div>',
+            showCancelButton:true, confirmButtonText:'Crear',
+            preConfirm:function(){var n=document.getElementById('swal-wheel-name')?.value?.trim();if(!n){Swal.showValidationMessage('Nombre requerido');return}return n}
+        }).then(async function(r){
+            if(!r.isConfirmed)return;
+            var eId=App.state.event?.id;if(!eId)return;
+            try{
+                var res=await App.fetchAPI('/raffles/events/'+eId+'/raffles',{method:'POST',body:JSON.stringify({name:r.value})});
+                if(res&&res.id){App.openWheelEditor(res.id);App.loadWheelList()}
+            }catch(e){console.error(e)}
         });
     },
 
-    openRaffleEditor: async function(raffleId) {
-        var list = document.getElementById('raffles-list');
-        var editor = document.getElementById('raffle-editor');
-        if (list) list.classList.add('hidden');
-        if (editor) editor.classList.remove('hidden');
-        this._currentRaffleId = raffleId;
-        this._raffleAllParticipants = [];
-        this._raffleFilteredParticipants = [];
-        this._raffleParticipantPage = 1;
-        try {
-            var raffle = await this.fetchAPI('/raffles/' + raffleId);
-            if (!raffle) return;
-            var nameEl = document.getElementById('raffle-name');
-            var typeEl = document.getElementById('raffle-type');
-            var sourceEl = document.getElementById('raffle-data-source');
-            var winnersEl = document.getElementById('raffle-winner-count');
-            if (nameEl) nameEl.value = raffle.name || '';
-            if (typeEl) typeEl.value = raffle.type || 'wheel';
-            if (sourceEl) sourceEl.value = raffle.data_source || 'guests';
-            if (winnersEl) winnersEl.value = raffle.winner_count || 1;
-            this.onRaffleTypeChange();
-            this.onRaffleSourceChange();
-
-            // Generar URL única
-            var eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            var shareUrl = window.location.origin + '/' + eventName + '/raffle/' + raffleId;
-            var urlEl = document.getElementById('raffle-share-url');
-            if (urlEl) urlEl.value = shareUrl;
-
-            // Cargar configuración visual
-            var config = raffle.config || {};
-            var c1 = document.getElementById('raffle-color-1');
-            var c2 = document.getElementById('raffle-color-2');
-            var ct = document.getElementById('raffle-text-color');
-            var cp = document.getElementById('raffle-pointer-color');
-            var ss = document.getElementById('raffle-sound');
-            var cf = document.getElementById('raffle-confetti');
-            if (c1) c1.value = config.wheel_colors?.[0] || '#FF6B6B';
-            if (c2) c2.value = config.wheel_colors?.[1] || '#4ECDC4';
-            if (ct) ct.value = config.wheel_text_color || '#FFFFFF';
-            if (cp) cp.value = config.pointer_color || '#FF0000';
-            if (ss) ss.checked = config.sound_enabled !== false;
-            if (cf) cf.checked = config.confetti_on_win !== false;
-
-            this.loadRaffleParticipants(raffleId);
-            this.loadRaffleResults(raffleId);
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    backToWheelList: function() {
+        document.getElementById('wheel-editor-view')?.classList.add('hidden');
+        document.getElementById('wheel-list-view')?.classList.remove('hidden');
+        this.loadWheelList();
     },
 
-    onRaffleTypeChange: function() {
-        var type = document.getElementById('raffle-type')?.value || 'wheel';
-        var winnerConfig = document.getElementById('raffle-winner-config');
-        var groupConfig = document.getElementById('raffle-group-config');
-        var visualConfig = document.getElementById('raffle-visual-config');
-        if (winnerConfig) winnerConfig.classList.toggle('hidden', type === 'group_raffle');
-        if (groupConfig) groupConfig.classList.toggle('hidden', type !== 'group_raffle');
-        if (visualConfig) visualConfig.classList.toggle('hidden', type !== 'wheel');
+    loadWheelList: function() {
+        var eId=this.state.event?.id;if(!eId)return;
+        var list=document.getElementById('wheel-list-view');if(!list)return;
+        list.innerHTML='<p class="text-xs text-slate-500 italic">Cargando...</p>';
+        this.fetchAPI('/raffles/events/'+eId+'/raffles').then(function(raffles){
+            if(!raffles||!raffles.length){list.innerHTML='<div class="text-center py-8 text-slate-500"><p>No hay ruletas. Crea una nueva.</p></div>';return}
+            list.innerHTML=raffles.map(function(r){
+                var cfg=r.config||{},stats=r.stats||{};
+                return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors cursor-pointer" onclick="App.openWheelEditor(\''+r.id+'\')">'+
+                    '<div class="flex items-center gap-3"><span class="text-lg">🎡</span>'+
+                    '<div><p class="text-sm font-bold text-white">'+(r.name||'Sin nombre')+'</p>'+
+                    '<p class="text-xs text-slate-500">'+(r.total_participants||0)+' participantes | '+stats.spins+' giros</p></div></div>'+
+                    '<div class="flex gap-1"><button class="btn-icon text-red-400" onclick="event.stopPropagation();App.deleteCurrentWheel(\''+r.id+'\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>'
+            }).join('')
+        }).catch(function(e){list.innerHTML='<p class="text-red-500 text-xs">Error al cargar</p>';console.error(e)})
     },
 
-    onRaffleSourceChange: function() {
-        var source = document.getElementById('raffle-data-source')?.value || 'guests';
-        var templateGroup = document.getElementById('raffle-source-template-group');
-        var manualGroup = document.getElementById('raffle-manual-input');
-        if (templateGroup) templateGroup.classList.toggle('hidden', source !== 'survey');
-        if (manualGroup) manualGroup.classList.toggle('hidden', source !== 'manual');
-        if (source === 'survey') this.loadSurveyTemplatesDropdown();
+    openWheelEditor: async function(id) {
+        document.getElementById('wheel-list-view')?.classList.add('hidden');
+        var ed=document.getElementById('wheel-editor-view');if(ed)ed.classList.remove('hidden');
+        this._wheelState.currentId=id;this._wheelState.participants=[];this._wheelState.winners=[];this._wheelState.rotation=0;
+        try{
+            var r=await this.fetchAPI('/raffles/'+id);if(!r)return;
+            var cfg=r.config||{};
+            this.setWheelFormValues(r.name||'',cfg);
+            this._wheelState.segColors=cfg.wheel_colors||['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD'];
+            this.renderWheelThemes();
+            this.renderWheelSegColorInputs();
+            // Load participants
+            var parts=await this.fetchAPI('/raffles/'+id+'/participants');
+            var names=(parts||[]).map(function(p){return p.name||p.email}).filter(Boolean);
+            var ta=document.getElementById('wheel-participants-text');
+            if(ta){ta.value=names.join('\n')}
+            this._wheelState.participants=names;
+            this.updateWheelParticipantCount();
+            // Load results
+            var results=await this.fetchAPI('/raffles/'+id+'/results');
+            this._wheelState.results=results||[];
+            this.renderWheelCanvas(0);
+            this.onWheelConfigChange();
+            this.loadWheelSurveyTemplates();
+        }catch(e){console.error('[WHEEL]',e)}
     },
 
-    loadSurveyTemplatesDropdown: async function() {
-        var eId = this.state.event?.id;
-        if (!eId) return;
-        try {
-            var templates = await this.fetchAPI('/events/' + eId + '/templates');
-            var sel = document.getElementById('raffle-source-template');
-            if (sel) {
-                sel.innerHTML = '<option value="">Seleccionar encuesta...</option>' +
-                    templates.map(function(t) { return '<option value="' + t.id + '">' + (t.title || 'Sin título') + '</option>'; }).join('');
-            }
-        } catch(e) {}
+    setWheelFormValues: function(name,cfg){
+        var s=function(id,val){var el=document.getElementById(id);if(el)el.value=val};
+        var c=function(id,val){var el=document.getElementById(id);if(el)el.checked=val!==false};
+        s('wheel-name',name);
+        s('wheel-title',cfg.title||'');
+        s('wheel-desc',cfg.description||'');
+        s('wheel-btn-text',cfg.start_button||'Girar');
+        s('wheel-duration',String(cfg.wheel_spin_duration||6));
+        c('wheel-show-title',cfg.show_title!==false);
+        c('wheel-show-desc',cfg.show_desc!==false);
+        c('wheel-show-btn',cfg.show_start_button!==false);
+        c('wheel-sound',cfg.play_sounds!==false);
+        c('wheel-confetti',cfg.show_confettis!==false);
+        c('wheel-auto-remove',cfg.wheel_auto_remove===true);
+        c('wheel-capture-leads',cfg.capture_leads===true);
+        this._wheelState.soundEnabled=cfg.play_sounds!==false;
+
+        var s2=function(id,val){var el=document.getElementById(id);if(el)el.value=val};
+        s2('wheel-bg-color',cfg.page_background_color||'#FFFFFF');
+        s2('wheel-txt-color',cfg.wheel_slices_text_color||'#FFFFFF');
+        s2('wheel-border-color',cfg.wheel_border_color||'#333333');
+        s2('wheel-pointer-color',cfg.pointer_color||'#FF0000');
+        s2('wheel-main-color',cfg.main_color||'#333333');
+        s2('wheel-lines-size',String(cfg.wheel_lines_size||2));
+
+        // Source selector
+        var srcEl=document.getElementById('wheel-source');
+        if(srcEl)srcEl.value=cfg.data_source||'manual';
+        this.onWheelSourceChange();
+
+        // Logo
+        this._wheelState.logoDataUrl=cfg.logo||null;
+        var li=document.getElementById('wheel-logo-img');
+        var lp=document.getElementById('wheel-logo-preview');
+        var rb=document.getElementById('wheel-btn-remove-logo');
+        if(cfg.logo){li.src=cfg.logo;li.classList.remove('hidden');lp.classList.add('hidden');if(rb)rb.classList.remove('hidden')}
+        else{li.classList.add('hidden');lp.classList.remove('hidden');if(rb)rb.classList.add('hidden')}
     },
 
-    populateRaffle: async function() {
-        var raffleId = this._currentRaffleId;
-        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'Primero guarda el sorteo', background: '#0f172a', color: '#fff' }); return; }
-        var source = document.getElementById('raffle-data-source')?.value || 'guests';
-        try {
-            if (source === 'manual') {
-                var text = document.getElementById('raffle-manual-list')?.value || '';
-                var lines = text.split('\n').filter(Boolean);
-                for (var i = 0; i < lines.length; i++) {
-                    var parts = lines[i].split(',').map(function(s) { return s.trim(); });
-                    await this.fetchAPI('/raffles/' + raffleId + '/participants', { method: 'POST', body: JSON.stringify({ name: parts[0] || '', email: parts[1] || '' }) });
-                }
-            } else {
-                await this.fetchAPI('/raffles/' + raffleId + '/populate', { method: 'POST' });
-            }
-            this.loadRaffleParticipants(raffleId);
-        } catch(e) { console.error('[RAFFLE] Error populating:', e.message); }
+    loadWheelSurveyTemplates: function(){
+        var eId=this.state.event?.id;if(!eId)return;
+        this.fetchAPI('/events/'+eId+'/templates').then(function(t){
+            var sel=document.getElementById('wheel-survey-template');
+            if(sel)sel.innerHTML='<option value="">Seleccionar encuesta...</option>'+(t||[]).map(function(t){return '<option value="'+t.id+'">'+(t.title||'Sin título')+'</option>'}).join('')
+        }).catch(function(){})
     },
 
-    loadRaffleParticipants: async function(raffleId) {
-        if (!raffleId) return;
-        try {
-            var participants = await this.fetchAPI('/raffles/' + raffleId + '/participants');
-            this._raffleAllParticipants = participants || [];
-            this._raffleFilteredParticipants = this._raffleAllParticipants;
-            this._raffleParticipantPage = 1;
-            this.renderRaffleParticipants();
-            var countEl = document.getElementById('raffle-participant-count');
-            var infoEl = document.getElementById('raffle-participant-info');
-            if (countEl) countEl.textContent = participants ? participants.length : 0;
-            if (infoEl) infoEl.textContent = (participants ? participants.length : 0) + ' participantes';
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    toggleWheelSection: function(s){
+        var b=document.getElementById('wheel-sec-'+s);if(!b)return;
+        b.classList.toggle('hidden');
+        var h=b.closest('.wheel-section')?.querySelector('.wheel-section-header');
+        if(h)h.classList.toggle('collapsed')
     },
 
-    renderRaffleParticipants: function() {
-        var tbody = document.getElementById('raffle-participants-tbody');
-        if (!tbody) return;
-        var search = (document.getElementById('raffle-participant-search')?.value || '').toLowerCase().trim();
-        if (search) {
-            this._raffleFilteredParticipants = this._raffleAllParticipants.filter(function(p) {
-                return (p.name || '').toLowerCase().includes(search) || (p.email || '').toLowerCase().includes(search);
-            });
-        } else {
-            this._raffleFilteredParticipants = this._raffleAllParticipants;
-        }
-        var page = this._raffleParticipantPage || 1;
-        var perPage = 50;
-        var total = this._raffleFilteredParticipants.length;
-        var totalPages = Math.ceil(total / perPage) || 1;
-        if (page > totalPages) page = totalPages;
-        var start = (page - 1) * perPage;
-        var pageItems = this._raffleFilteredParticipants.slice(start, start + perPage);
-        var prevBtn = document.getElementById('btn-participant-prev');
-        var nextBtn = document.getElementById('btn-participant-next');
-        var infoEl = document.getElementById('raffle-participant-info');
-        if (prevBtn) prevBtn.disabled = page <= 1;
-        if (nextBtn) nextBtn.disabled = page >= totalPages;
-        if (infoEl) infoEl.textContent = total + ' participantes' + (search ? ' (filtrados)' : '');
-        if (total === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">' + (search ? 'Sin resultados de búsqueda' : 'Sin participantes. Pobla la lista primero.') + '</td></tr>';
-            return;
-        }
-        tbody.innerHTML = pageItems.map(function(p) {
-            return '<tr class="hover:bg-white/[0.02]"><td class="table-td text-xs">' + (p.name || '-') + '</td><td class="table-td text-xs text-slate-400">' + (p.email || '-') + '</td><td class="table-td text-xs text-slate-500">' + (p.source || '-') + '</td><td class="table-td"><button class="btn-icon text-red-400" onclick="App.removeRaffleParticipant(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
-        }).join('');
+    onWheelConfigChange: function(){
+        var title=document.getElementById('wheel-preview-title');
+        var desc=document.getElementById('wheel-preview-desc');
+        var btn=document.getElementById('wheel-preview-btn');
+        var texts=document.getElementById('wheel-preview-texts');
+
+        var showTitle=document.getElementById('wheel-show-title')?.checked!==false;
+        var showDesc=document.getElementById('wheel-show-desc')?.checked!==false;
+        var showBtn=document.getElementById('wheel-show-btn')?.checked!==false;
+        var titleVal=document.getElementById('wheel-title')?.value||'Mi Ruleta';
+        var descVal=document.getElementById('wheel-desc')?.value||'';
+        var btnVal=document.getElementById('wheel-btn-text')?.value||'Girar';
+
+        if(texts)texts.style.display=(showTitle||showDesc)?'block':'none';
+        if(title){title.textContent=titleVal;title.style.display=showTitle?'block':'none'}
+        if(desc){desc.textContent=descVal;desc.style.display=showDesc?'block':'none'}
+        if(btn){btn.textContent='🎡 '+btnVal.toUpperCase();btn.style.display=showBtn?'block':'none'}
+        this.updateWheelPreviewColors();
+        this.renderWheelCanvas(this._wheelState.rotation);
     },
 
-    filterRaffleParticipants: function() {
-        this._raffleParticipantPage = 1;
-        this.renderRaffleParticipants();
+    onWheelSourceChange: function(){
+        var src=document.getElementById('wheel-source')?.value||'manual';
+        var btn=document.getElementById('wheel-btn-import');
+        var st=document.getElementById('wheel-survey-template');
+        if(btn)btn.classList.toggle('hidden',src==='manual');
+        if(st)st.classList.toggle('hidden',src!=='survey');
+        if(src==='survey')this.loadWheelSurveyTemplates();
     },
 
-    pageRaffleParticipants: function(dir) {
-        var total = this._raffleFilteredParticipants.length;
-        var totalPages = Math.ceil(total / 50) || 1;
-        var page = (this._raffleParticipantPage || 1) + dir;
-        if (page < 1) page = 1;
-        if (page > totalPages) page = totalPages;
-        this._raffleParticipantPage = page;
-        this.renderRaffleParticipants();
-    },
-
-    removeRaffleParticipant: async function(participantId) {
-        var raffleId = this._currentRaffleId;
-        if (!raffleId) return;
-        try {
-            await this.fetchAPI('/raffles/' + raffleId + '/participants/' + participantId, { method: 'DELETE' });
-            this.loadRaffleParticipants(raffleId);
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
-    },
-
-    drawRaffle: async function() {
-        var raffleId = this._currentRaffleId;
-        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'Primero guarda el sorteo', background: '#0f172a', color: '#fff' }); return; }
-        try {
-            var result = await this.fetchAPI('/raffles/' + raffleId + '/draw', { method: 'POST' });
-            if (result && result.winners) {
-                var winnersHtml = result.winners.map(function(w, i) { return '<div class="flex items-center gap-2 p-2 rounded-lg bg-green-500/10"><span class="text-lg">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><span class="text-sm font-bold text-white">' + (w.name || '-') + '</span><span class="text-xs text-slate-400">' + (w.email || '') + '</span></div>'; }).join('');
-                Swal.fire({ icon: 'success', title: '¡Sorteo completado!', html: winnersHtml, background: '#0f172a', color: '#fff', confirmButtonText: 'OK' });
-                this.loadRaffleResults(raffleId);
-            } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: result?.error || 'Error al sortear', background: '#0f172a', color: '#fff' });
-            }
-        } catch(e) { console.error('[RAFFLE] Error drawing:', e.message); }
-    },
-
-    loadRaffleResults: async function(raffleId) {
-        if (!raffleId) return;
-        try {
-            var results = await this.fetchAPI('/raffles/' + raffleId + '/results');
-            var list = document.getElementById('raffle-results-list');
-            var countEl = document.getElementById('raffle-results-count');
-            if (countEl) countEl.textContent = results ? results.length : 0;
-            if (!list) return;
-            if (!results || results.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin resultados aún. Haz clic en "¡Sortear!" para generar.</p>';
-            } else {
-                list.innerHTML = results.map(function(r) {
-                    var winners = r.winners || [];
-                    var dateStr = r.created_at ? new Date(r.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                    return '<div class="p-3 rounded-lg bg-slate-800/50 border-l-4 border-l-amber-500">' +
-                        '<div class="flex justify-between items-center mb-2">' +
-                        '<div><span class="text-xs font-bold text-white">Ronda ' + r.round + '</span>' +
-                        (dateStr ? '<span class="text-[10px] text-slate-500 ml-2">' + dateStr + '</span>' : '') + '</div>' +
-                        '<span class="text-xs text-slate-500">' + r.total_participants + ' participantes</span></div>' +
-                        winners.map(function(w, i) {
-                            var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
-                            return '<div class="flex items-center gap-2 py-1 text-xs text-slate-300"><span>' + medal + '</span><span class="font-bold text-white">' + (w.name || '-') + '</span><span class="text-slate-500">' + (w.email || '') + '</span></div>';
-                        }).join('') + '</div>';
-                }).join('');
-            }
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
-    },
-
-    clearRaffleResults: async function() {
-        var raffleId = this._currentRaffleId;
-        if (!raffleId) return;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Borrar resultados?', showCancelButton: true, background: '#0f172a', color: '#fff' });
-        if (!confirm.isConfirmed) return;
-        try {
-            await this.fetchAPI('/raffles/' + raffleId + '/results', { method: 'DELETE' });
-            this.loadRaffleResults(raffleId);
-        } catch(e) {}
-    },
-
-    saveRaffle: async function() {
-        var raffleId = this._currentRaffleId;
-        if (!raffleId) { Swal.fire({ icon: 'warning', title: 'No hay sorteo activo', background: '#0f172a', color: '#fff' }); return; }
-        var name = document.getElementById('raffle-name')?.value?.trim();
-        if (!name) { Swal.fire({ icon: 'warning', title: 'Nombre requerido', background: '#0f172a', color: '#fff' }); return; }
-        var config = {
-            wheel_colors: [document.getElementById('raffle-color-1')?.value || '#FF6B6B', document.getElementById('raffle-color-2')?.value || '#4ECDC4'],
-            wheel_text_color: document.getElementById('raffle-text-color')?.value || '#FFFFFF',
-            pointer_color: document.getElementById('raffle-pointer-color')?.value || '#FF0000',
-            sound_enabled: document.getElementById('raffle-sound')?.checked !== false,
-            confetti_on_win: document.getElementById('raffle-confetti')?.checked !== false
-        };
-        try {
-            await this.fetchAPI('/raffles/' + raffleId, { method: 'PUT', body: JSON.stringify({ name: name, type: document.getElementById('raffle-type')?.value, winner_count: parseInt(document.getElementById('raffle-winner-count')?.value) || 1, data_source: document.getElementById('raffle-data-source')?.value, config: config }) });
-            Swal.fire({ icon: 'success', title: 'Guardado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-            this.loadRaffles();
-            this.openRaffleEditor(raffleId);
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); Swal.fire({ icon: 'error', title: 'Error al guardar', text: e.message, background: '#0f172a', color: '#fff' }); }
-    },
-
-    openRafflePublic: function() {
-        var urlEl = document.getElementById('raffle-share-url');
-        if (urlEl && urlEl.value) window.open(urlEl.value, '_blank');
-        else Swal.fire({ icon: 'warning', title: 'Guarda el sorteo primero', background: '#0f172a', color: '#fff' });
-    },
-
-    copyRaffleUrl: function() {
-        var urlEl = document.getElementById('raffle-share-url');
-        if (!urlEl || !urlEl.value) { Swal.fire({ icon: 'warning', title: 'Guarda el sorteo primero', background: '#0f172a', color: '#fff' }); return; }
-        navigator.clipboard.writeText(urlEl.value).then(function() {
-            Swal.fire({ icon: 'success', title: 'Link copiado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-        }).catch(function() {
-            urlEl.select();
-            document.execCommand('copy');
-        });
-    },
-
-    deleteRaffle: async function(raffleId) {
-        var id = raffleId || this._currentRaffleId;
-        if (!id) return;
-        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sorteo?', showCancelButton: true, background: '#0f172a', color: '#fff' });
-        if (!confirm.isConfirmed) return;
-        try {
-            await this.fetchAPI('/raffles/' + id, { method: 'DELETE' });
-            this._currentRaffleId = null;
-            this.loadRaffles();
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
-    },
-
-    backToRafflesList: function() {
-        document.getElementById('raffles-list').classList.remove('hidden');
-        document.getElementById('raffle-editor').classList.add('hidden');
-        this.loadRaffles();
-    },
-
-    generateRaffleReport: function() {
-        var raffleId = this._currentRaffleId;
-        if (raffleId) window.open('/api/raffles/' + raffleId + '/report', '_blank');
-    },
-
-    async loadWheels() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        try {
-            const wheels = await this.fetchAPI(`/events/${eventId}/wheels`);
-            this.renderWheelsList(wheels);
-        } catch (e) {
-            console.error('Error loading wheels:', e);
-            document.getElementById('wheels-list').innerHTML = '<p class="text-red-500">Error al cargar ruletas</p>';
-        }
-    },
-    
-    // Renderizar lista de ruletas
-    renderWheelsList(wheels) {
-        const container = document.getElementById('wheels-list');
-        if (!container) return;
-        
-        if (!wheels || wheels.length === 0) {
-            container.innerHTML = '<p class="text-slate-500 text-sm py-4">No hay ruletas. Crea una nueva para comenzar.</p>';
-            return;
-        }
-        
-        container.innerHTML = wheels.map(w => `
-            <div class="flex items-center justify-between p-4 bg-[var(--bg-hover)] rounded-xl hover:bg-[var(--bg-active)] cursor-pointer transition-colors" data-wheel-id="${w.id}">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[var(--primary)] text-2xl">casino</span>
-                    <div>
-                        <p class="font-bold">${w.name}</p>
-                        <p class="text-xs text-slate-500">${new Date(w.created_at).toLocaleDateString()}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 text-xs font-bold rounded ${w.is_active ? 'bg-green-500/20 text-green-500' : 'bg-slate-500/20 text-slate-500'}">
-                        ${w.is_active ? 'Activa' : 'Inactiva'}
-                    </span>
-                    <button class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="event.stopPropagation(); App.deleteWheel('${w.id}')">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                    <button class="p-2 hover:bg-[var(--bg-card)] rounded-lg" onclick="event.stopPropagation(); App.editWheel('${w.id}')">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-        
-        // Agregar event listeners
-        container.querySelectorAll('[data-wheel-id]').forEach(el => {
-            el.addEventListener('click', () => this.editWheel(el.dataset.wheelId));
-        });
-    },
-    
-    // Editar ruleta
-    async editWheel(wheelId) {
-        // Validación: wheelId debe ser un UUID válido (no null, undefined, "null", "undefined" o vacío)
-        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
-            console.error('editWheel called with invalid wheelId:', wheelId);
-            this._notifyAction('Error', 'Selecciona una ruleta válida', 'error');
-            return;
-        }
-        
-        try {
-            const wheel = await this.fetchAPI(`/events/wheels/${wheelId}`);
-            this.currentWheel = wheel;
-            
-            // Mostrar editor, ocultar lista
-            const wheelsListEl = document.getElementById('wheels-list');
-            const wheelEditorEl = document.getElementById('wheel-editor');
-            if (wheelsListEl) wheelsListEl.closest('.card')?.classList.add('hidden');
-            if (wheelEditorEl) wheelEditorEl.classList.remove('hidden');
-            
-            // Llenar datos
-            const wheelNameEl = document.getElementById('wheel-name');
-            const wheelColor1El = document.getElementById('wheel-color-1');
-            const wheelColor2El = document.getElementById('wheel-color-2');
-            const wheelTextColorEl = document.getElementById('wheel-text-color');
-            const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
-            const wheelSoundEl = document.getElementById('wheel-sound');
-            const wheelConfettiEl = document.getElementById('wheel-confetti');
-            const wheelShareUrlEl = document.getElementById('wheel-share-url');
-            
-            if (wheelNameEl) wheelNameEl.value = wheel.name || '';
-            
-            // Cargar configuración visual
-            const config = wheel.config || {};
-            if (config.visual) {
-                if (wheelColor1El) wheelColor1El.value = config.visual.wheel_colors?.[0] || '#FF6B6B';
-                if (wheelColor2El) wheelColor2El.value = config.visual.wheel_colors?.[1] || '#4ECDC4';
-                if (wheelTextColorEl) wheelTextColorEl.value = config.visual.wheel_text_color || '#FFFFFF';
-                if (wheelPointerColorEl) wheelPointerColorEl.value = config.visual.pointer_color || '#FF0000';
-                if (wheelSoundEl) wheelSoundEl.checked = config.visual.sound_enabled !== false;
-                if (wheelConfettiEl) wheelConfettiEl.checked = config.visual.confetti_on_win !== false;
-            }
-            
-            // Cargar participantes
-            await this.loadWheelParticipants(wheelId);
-            
-            // Cargar resultados guardados
-            await this.loadWheelResults(wheelId);
-            
-            // Generar URL pública
-            const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-            if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
-            
-        } catch (e) {
-            console.error('Error loading wheel:', e);
-            this._notifyAction('Error', 'No se pudo cargar la ruleta', 'error');
-        }
-    },
-    
-    // Cargar participantes de una ruleta
-    async loadWheelParticipants(wheelId) {
-        // Validación: wheelId debe ser un UUID válido (no null, undefined, "null", "undefined" o vacío)
-        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
-            console.error('loadWheelParticipants called with invalid wheelId:', wheelId);
-            this.wheelParticipants = [];
-            this.renderWheelParticipants();
-            return;
-        }
-        
-        try {
-            const participants = await this.fetchAPI(`/events/wheels/${wheelId}/participants`);
-            this.wheelParticipants = participants || [];
-            this.renderWheelParticipants();
-        } catch (e) {
-            console.error('Error loading participants:', e);
-        }
-    },
-    
-    // Renderizar tabla de participantes
-    renderWheelParticipants() {
-        const tbody = document.getElementById('wheel-participants-tbody');
-        if (!tbody) return;
-        
-        if (this.wheelParticipants.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = this.wheelParticipants.map(p => `
-            <tr class="hover:bg-[var(--bg-hover)]">
-                <td class="py-3">${p.name}</td>
-                <td class="py-3 text-slate-500">${p.email || '-'}</td>
-                <td class="py-3"><span class="px-2 py-1 text-xs rounded bg-[var(--bg-card)]">${p.source}</span></td>
-                <td class="py-3 text-right">
-                    <button data-id="${p.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.removeWheelParticipant('${p.id}')">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    },
-    
-    // Agregar participantes desde guests - muestra modal de selección
-    async showAddParticipantsModal() {
-        
-        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
-            console.error('[DEBUG] currentWheel inválido');
-            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
-            return;
-        }
-
-        const eventId = this.state.event?.id;
-        if (!eventId) {
-            console.error('[DEBUG] No hay eventId');
-            this._notifyAction('Error', 'No hay evento seleccionado', 'error');
-            return;
-        }
-
-        // Consultar guests del evento para ver qué hay disponible
-        let guestsCount = { all: 0, checked_in: 0, pre_registered: 0 };
-        try {
-            const guests = await this.fetchAPI(`/events/${eventId}/guests`) || [];
-            guestsCount.all = guests.length;
-            guestsCount.checked_in = guests.filter(g => g.status === 'checked_in' || g.check_in_time).length;
-            guestsCount.pre_registered = guests.filter(g => g.status === 'pre_registered' || g.registered_at).length;
-        } catch (e) {
-            console.error('Error fetching guests:', e);
-        }
-
-        // Construir opciones del modal
-        const options = [
-            {
-                id: 'all',
-                label: 'Todos los invitados',
-                count: guestsCount.all,
-                icon: 'group'
-            },
-            {
-                id: 'checked_in',
-                label: 'Asistentes (check-in)',
-                count: guestsCount.checked_in,
-                icon: 'check_circle'
-            },
-            {
-                id: 'pre_registered',
-                label: 'Pre-registrados',
-                count: guestsCount.pre_registered,
-                icon: 'person_add'
-            }
-        ];
-
-        const optionsHtml = options.map((opt, idx) => `
-            <div class="opt-participant flex items-center justify-between p-4 rounded-xl ${opt.count === 0 ? 'opacity-50 bg-slate-500/10' : 'bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer'}" 
-                 data-filter="${opt.id}"
-                 style="${opt.count === 0 ? 'cursor: not-allowed;' : ''}">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-xl">${opt.icon}</span>
-                    <span>${opt.label}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm ${opt.count > 0 ? 'text-green-500' : 'text-slate-500'}">${opt.count} disponibles</span>
-                    ${opt.count > 0 ? '<span class="material-symbols-outlined text-green-500">arrow_forward</span>' : '<span class="text-xs text-slate-500">Sin datos</span>'}
-                </div>
-            </div>
-        `).join('');
-
-        // Agregar opción de entrada manual
-        const manualHtml = `
-            <div id="btn-manual-entry" class="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-hover)] hover:bg-[var(--bg-active)] cursor-pointer">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-xl">edit_note</span>
-                    <span>Entrada manual</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-slate-500">Pegar datos</span>
-                    <span class="material-symbols-outlined text-slate-400">arrow_forward</span>
-                </div>
-            </div>
-        `;
-
-        await Swal.fire({
-            title: 'Agregar participantes',
-            text: 'Selecciona la fuente de participantes',
-            html: `<div class="space-y-3 text-left">${optionsHtml}${manualHtml}</div>`,
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            confirmButtonText: 'Cerrar',
-            confirmButtonColor: '#6b7280',
-            width: '450px',
-            customClass: {
-                popup: 'rounded-[1.5rem] border border-white/10',
-                confirmButton: 'btn-secondary !px-6 !py-3'
-            },
-            didOpen: () => {
-                // Listener para opción manual
-                document.getElementById('btn-manual-entry').addEventListener('click', () => {
-                    Swal.close();
-                    setTimeout(() => this.showManualParticipantsModal(), 150);
-                });
-                
-                // Listener para opciones de participantes
-                document.querySelectorAll('.opt-participant').forEach(el => {
-                    el.addEventListener('click', () => {
-                        const filter = el.dataset.filter;
-                        if (filter) {
-                            Swal.close();
-                            setTimeout(() => this.addParticipantsFromGuests(filter), 150);
-                        }
-                    });
-                });
-            }
-        });
-    },
-
-    // Agregar participantes desde guests (llamado desde modal)
-    async addParticipantsFromGuests(filter = 'all') {
-        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
-            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
-            return;
-        }
-
-        try {
+    importWheelParticipants: function(){
+        var id=this._wheelState.currentId;if(!id)return;
+        var src=document.getElementById('wheel-source')?.value||'guests';
+        Swal.fire({title:'Importando...',text:'Cargando participantes',allowOutsideClick:false,background:'#0f172a',color:'#fff',didOpen:function(){Swal.showLoading()}});
+        this.fetchAPI('/raffles/'+id+'/populate',{method:'POST'}).then(function(r){
             Swal.close();
-            const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/from-guests`, {
-                method: 'POST',
-                body: JSON.stringify({ filter })
-            });
-            
-            this._notifyAction('Éxito', `${result.added} participantes agregados`, 'success');
-            await this.loadWheelParticipants(this.currentWheel.id);
-        } catch (e) {
-            console.error('Error adding participants:', e);
-            this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
+            if(r&&r.participants&&r.participants.length){
+                var ta=document.getElementById('wheel-participants-text');
+                if(ta){ta.value=r.participants.join('\n')}
+                App._wheelState.participants=r.participants;
+                App.updateWheelParticipantCount();
+                App.renderWheelCanvas(0);
+                Swal.fire({icon:'success',title:r.added+' participantes importados',timer:1500,showConfirmButton:false,background:'#0f172a',color:'#fff'})
+            }else{
+                Swal.fire({icon:'info',title:'Sin participantes',text:'No se encontraron participantes en esa fuente',background:'#0f172a',color:'#fff'})
+            }
+        }).catch(function(e){Swal.close();console.error(e)})
+    },
+
+    onWheelParticipantsChange: function(){
+        var ta=document.getElementById('wheel-participants-text');
+        var names=(ta?.value||'').split('\n').map(function(s){return s.trim()}).filter(Boolean);
+        this._wheelState.participants=names;
+        this.updateWheelParticipantCount();
+        if(!document.getElementById('wheel-advanced-mode')?.checked){
+            this.renderWheelCanvas(this._wheelState.rotation)
         }
     },
 
-    async showManualParticipantsModal() {
-        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') {
-            console.error('[DEBUG] currentWheel inválido');
-            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
-            return;
-        }
+    updateWheelParticipantCount: function(){
+        var el=document.getElementById('wheel-participant-count');
+        if(el)el.textContent=this._wheelState.participants.length+' participantes';
+        var btn=document.getElementById('wheel-preview-btn');
+        if(btn)btn.disabled=this._wheelState.participants.length<2;
+    },
 
+    sortWheelParticipants: function(){
+        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        var lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean).sort();
+        ta.value=lines.join('\n');
+        this.onWheelParticipantsChange()
+    },
 
-        const { value: text, isConfirmed } = await Swal.fire({
-            title: 'Entrada manual de participantes',
-            text: 'Ingresa los datos (uno por línea): Nombre, Email, Teléfono',
-            input: 'textarea',
-            inputPlaceholder: 'Juan Pérez, juan@email.com, +1234567890\nMaría López, maria@email.com, +0987654321',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            confirmButtonText: 'Agregar',
-            confirmButtonColor: '#7c3aed',
-            cancelButtonText: 'Cancelar',
-            showCancelButton: true,
-            inputValidator: (value) => {
-                if (!value || !value.trim()) return 'Ingresa al menos un participante';
-            },
-            customClass: {
-                popup: 'rounded-[1.5rem] border border-white/10',
-                confirmButton: 'btn-primary !px-6 !py-3',
-                cancelButton: 'btn-secondary !px-6 !py-3'
-            }
+    shuffleWheelParticipants: function(){
+        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        var lines=ta.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+        for(var i=lines.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=lines[i];lines[i]=lines[j];lines[j]=t}
+        ta.value=lines.join('\n');
+        this.onWheelParticipantsChange()
+    },
+
+    clearWheelParticipants: function(){
+        var ta=document.getElementById('wheel-participants-text');if(!ta)return;
+        ta.value='';this.onWheelParticipantsChange()
+    },
+
+    toggleWheelAdvancedMode: function(){
+        var adv=document.getElementById('wheel-advanced-mode')?.checked;
+        var list=document.getElementById('wheel-advanced-list');
+        var btn=document.getElementById('wheel-add-entry-btn');
+        if(!list||!btn)return;
+        if(adv){
+            list.classList.remove('hidden');btn.classList.remove('hidden');
+            this.renderWheelAdvancedList()
+        }else{list.classList.add('hidden');btn.classList.add('hidden')}
+    },
+
+    renderWheelAdvancedList: function(){
+        var list=document.getElementById('wheel-advanced-list');if(!list)return;
+        list.innerHTML=this._wheelState.participants.map(function(n,i){
+            var chance=Math.round(100/App._wheelState.participants.length);
+            return '<div class="wheel-adv-row" data-idx="'+i+'">'+
+                '<input type="text" class="input-field text-xs" value="'+n+'" onchange="App._wheelState.participants['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)">'+
+                '<select class="input-field text-xs" onchange="console.log(\'chance\')"><option value="-1">Auto</option><option value="5">5%</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select>'+
+                '<button class="btn-icon text-red-400 text-xs" onclick="App.removeWheelAdvEntry('+i+')">🗑️</button></div>'
+        }).join('')
+    },
+
+    removeWheelAdvEntry: function(idx){
+        this._wheelState.participants.splice(idx,1);
+        this.renderWheelAdvancedList();
+        this.updateWheelParticipantCount();
+        var ta=document.getElementById('wheel-participants-text');
+        if(ta)ta.value=this._wheelState.participants.join('\n');
+        this.renderWheelCanvas(this._wheelState.rotation)
+    },
+
+    addWheelEntry: function(){
+        this._wheelState.participants.push('');
+        this.renderWheelAdvancedList();
+        var ta=document.getElementById('wheel-participants-text');
+        if(ta)ta.value=this._wheelState.participants.join('\n');
+        this.updateWheelParticipantCount()
+    },
+
+    renderWheelThemes: function(){
+        var c=document.getElementById('wheel-themes');var q=document.getElementById('wheel-quick-themes');if(!c&&!q)return;
+        var html='';var qhtml='';
+        this._wheelThemes.forEach(function(t,i){
+            var s=t.colors.map(function(c){return '<span style="background:'+c+'"></span>'}).join('');
+            html+='<div class="wheel-palette" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s+'</div>';
+            qhtml+='<div class="quick-theme" onclick="App.useWheelTheme('+i+')" title="'+t.name+'">'+s.slice(0,2)+'</div>'
         });
+        if(c)c.innerHTML=html;
+        if(q)q.innerHTML=qhtml
+    },
 
-        if (!isConfirmed || !text) {
-            return;
-        }
+    useWheelTheme: function(idx){
+        var t=this._wheelThemes[idx];if(!t)return;
+        this._wheelState.segColors=t.colors.slice();
+        this.renderWheelSegColorInputs();
+        this.renderWheelCanvas(this._wheelState.rotation)
+    },
 
-        // Parsear datos
-        const lines = text.trim().split('\n').filter(l => l.trim());
-        const participants = lines.map(line => {
-            const parts = line.split(',').map(p => p.trim());
-            return {
-                name: parts[0] || '',
-                email: parts[1] || '',
-                phone: parts[2] || ''
+    renderWheelSegColorInputs: function(){
+        var c=document.getElementById('wheel-seg-colors');if(!c)return;
+        c.innerHTML=this._wheelState.segColors.map(function(cl,i){
+            return '<div class="color-input-pill"><span>'+cl+'</span><input type="color" value="'+cl+'" onchange="App._wheelState.segColors['+i+']=this.value;App.renderWheelCanvas(App._wheelState.rotation)"></div>'
+        }).join('')
+    },
+
+    onWheelDesignChange: function(){
+        this.updateWheelPreviewColors();
+        this.renderWheelCanvas(this._wheelState.rotation)
+    },
+
+    updateWheelPreviewColors: function(){
+        var p=document.getElementById('wheel-preview');
+        if(!p)return;
+        var bg=document.getElementById('wheel-bg-color')?.value||'#FFFFFF';
+        var mc=document.getElementById('wheel-main-color')?.value||'#333333';
+        p.style.background=bg;
+        // Update pointer color
+        var pp=document.querySelector('.wheel-pointer path');
+        if(pp)pp.setAttribute('fill',document.getElementById('wheel-pointer-color')?.value||'#FF0000');
+        // Update title/desc colors
+        var t=document.getElementById('wheel-preview-title');if(t)t.style.color=mc;
+        var d=document.getElementById('wheel-preview-desc');if(d)d.style.color=mc+'99';
+        var w=document.getElementById('wheel-preview-winner-name');if(w)w.style.color=mc;
+        var bl=document.getElementById('wheel-preview-btn');
+        if(bl)bl.style.background='linear-gradient(135deg,'+mc+','+this.lightenColor(mc,30)+')'
+    },
+
+    lightenColor: function(hex,pct){
+        var num=parseInt(hex.replace('#',''),16);
+        var r=(num>>16)+Math.round((255-(num>>16))*pct/100);
+        var g=((num>>8)&0x00FF)+Math.round((255-((num>>8)&0x00FF))*pct/100);
+        var b=(num&0x0000FF)+Math.round((255-(num&0x0000FF))*pct/100);
+        return '#'+(0x1000000+(r<255?r:255)*0x10000+(g<255?g:255)*0x100+(b<255?b:255)).toString(16).slice(1)
+    },
+
+    uploadWheelLogo: function(){
+        var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+        inp.onchange=function(e){
+            var file=e.target.files[0];if(!file)return;
+            var reader=new FileReader();
+            reader.onload=function(ev){
+                App._wheelState.logoDataUrl=ev.target.result;
+                var img=document.getElementById('wheel-logo-img');
+                var ph=document.getElementById('wheel-logo-preview');
+                var rb=document.getElementById('wheel-btn-remove-logo');
+                if(img){img.src=ev.target.result;img.classList.remove('hidden')}
+                if(ph)ph.classList.add('hidden');
+                if(rb)rb.classList.remove('hidden');
+                App.renderWheelCanvas(App._wheelState.rotation)
             };
-        }).filter(p => p.name);
-
-        if (participants.length === 0) {
-            this._notifyAction('Error', 'No se pudieron parsear los datos', 'error');
-            return;
-        }
-
-
-        try {
-            const result = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants`, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    participants: participants.map(p => ({ ...p, source: 'manual' }))
-                })
-            });
-            
-            this._notifyAction('Éxito', `${participants.length} participantes agregados`, 'success');
-            await this.loadWheelParticipants(this.currentWheel.id);
-        } catch (e) {
-            console.error('Error adding manual participants:', e);
-            this._notifyAction('Error', 'No se pudieron agregar participantes', 'error');
-        }
-    },
-    
-    // Remover participante
-    async removeWheelParticipant(participantId) {
-        if (!this.currentWheel || !this.currentWheel.id || this.currentWheel.id === 'null' || this.currentWheel.id === 'undefined') return;
-        
-        try {
-            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/participants/${participantId}`, {
-                method: 'DELETE'
-            });
-            await this.loadWheelParticipants(this.currentWheel.id);
-        } catch (e) {
-            console.error('Error removing participant:', e);
-        }
-    },
-    
-    // Guardar ruleta
-    async saveWheel() {
-        const eventId = this.state.event?.id;
-        if (!eventId) return;
-        
-        const wheelNameEl = document.getElementById('wheel-name');
-        const wheelColor1El = document.getElementById('wheel-color-1');
-        const wheelColor2El = document.getElementById('wheel-color-2');
-        const wheelTextColorEl = document.getElementById('wheel-text-color');
-        const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
-        const wheelSoundEl = document.getElementById('wheel-sound');
-        const wheelConfettiEl = document.getElementById('wheel-confetti');
-        const wheelShareUrlEl = document.getElementById('wheel-share-url');
-        
-        const name = wheelNameEl?.value;
-        if (!name) {
-            this._notifyAction('Error', 'El nombre es requerido', 'error');
-            return;
-        }
-        
-        const config = {
-            visual: {
-                wheel_colors: [
-                    wheelColor1El?.value || '#FF6B6B',
-                    wheelColor2El?.value || '#4ECDC4'
-                ],
-                wheel_text_color: wheelTextColorEl?.value || '#FFFFFF',
-                pointer_color: wheelPointerColorEl?.value || '#FF0000',
-                sound_enabled: wheelSoundEl?.checked || false,
-                confetti_on_win: wheelConfettiEl?.checked || false
-            }
+            reader.readAsDataURL(file)
         };
-        
-        try {
-            let wheel;
-            if (this.currentWheel) {
-                // Actualizar
-                wheel = await this.fetchAPI(`/events/wheels/${this.currentWheel.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ name, config })
-                });
-            } else {
-                // Crear nueva
-                wheel = await this.fetchAPI(`/events/${eventId}/wheels`, {
-                    method: 'POST',
-                    body: JSON.stringify({ name, config })
-                });
-            }
-            
-            this.currentWheel = wheel;
-            
-            // Generar URL pública con nombre del evento
-            if (wheel.id) {
-                const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-                if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
-            }
-            
-            this._notifyAction('Éxito', 'Ruleta guardada', 'success');
-            await this.loadWheels();
-            
-        } catch (e) {
-            console.error('Error saving wheel:', e);
-            this._notifyAction('Error', 'No se pudo guardar la ruleta', 'error');
-        }
+        inp.click()
     },
-    
-    // Cargar resultados de una ruleta
-    async loadWheelResults(wheelId) {
-        if (!wheelId || typeof wheelId !== 'string' || wheelId === 'null' || wheelId === 'undefined' || wheelId.trim() === '') {
-            document.getElementById('wheel-results-list').innerHTML = '<p class="text-slate-500 text-sm">No hay resultados</p>';
-            return;
-        }
-        
-        try {
-            const results = await this.fetchAPI(`/events/wheels/${wheelId}/results`);
-            this.renderWheelResults(results);
-        } catch (e) {
-            console.error('Error loading wheel results:', e);
-            document.getElementById('wheel-results-list').innerHTML = '<p class="text-red-500 text-sm">Error al cargar</p>';
-        }
-    },
-    
-    // Renderizar lista de resultados
-    renderWheelResults(results) {
-        const container = document.getElementById('wheel-results-list');
-        if (!container) return;
-        
-        if (!results || results.length === 0) {
-            container.innerHTML = '<p class="text-slate-500 text-sm">No hay resultados guardados</p>';
-            return;
-        }
-        
-        container.innerHTML = results.map(r => {
-            const winners = r.winners || [];
-            const showAll = winners.length <= 5; // Mostrar todos si son 5 o menos
-            const visibleWinners = showAll ? winners : winners.slice(0, 3);
-            const hiddenCount = winners.length - visibleWinners.length;
-            const resultId = `result-${r.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
-            
-            return `
-                <div class="result-item p-3 bg-[var(--bg-hover)] rounded-lg" data-result-id="${r.id}">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex-1">
-                            <p class="font-bold text-sm">${r.name}</p>
-                            <p class="text-xs text-slate-500">${new Date(r.created_at).toLocaleString()}</p>
-                            <p class="text-xs text-emerald-400 mt-1">${winners.length} ganador(es)</p>
-                        </div>
-                        <button data-id="${r.id}" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg" onclick="App.deleteWheelResult('${r.id}')">
-                            <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                    </div>
-                    
-                    <!-- Lista de ganadores -->
-                    <div class="winner-list mt-2 space-y-1" id="${resultId}-list">
-                        ${winners.map((winner, index) => `
-                            <div class="flex items-center gap-2 text-sm pl-2 ${index >= 3 && !showAll ? 'hidden' : ''}">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">${index + 1}</span>
-                                <span class="text-white break-words min-w-0">${winner}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    ${winners.length > 3 ? `
-                        <div class="mt-2 pt-2 border-t border-white/10">
-                            <button class="toggle-winners text-xs text-primary hover:underline flex items-center gap-1" 
-                                    onclick="App.toggleWinnersList('${resultId}')"
-                                    data-expanded="false">
-                                <span class="material-symbols-outlined text-sm transition-transform">expand_more</span>
-                                ${winners.length > 5 ? `Ver todos (${winners.length})` : 'Ver más'}
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-        
-        // Agregar event listeners para los botones de toggle
-        setTimeout(() => {
-            document.querySelectorAll('.toggle-winners').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const resultItem = this.closest('.result-item');
-                    const listId = this.getAttribute('onclick').match(/'([^']+)'/)[1] + '-list';
-                    const winnerList = document.getElementById(listId);
-                    const isExpanded = this.getAttribute('data-expanded') === 'true';
-                    
-                    if (isExpanded) {
-                        // Colapsar: mostrar solo primeros 3
-                        winnerList.querySelectorAll('.flex.items-center').forEach((item, index) => {
-                            if (index >= 3) item.classList.add('hidden');
-                        });
-                        this.querySelector('.material-symbols-outlined').style.transform = 'rotate(0deg)';
-                        this.setAttribute('data-expanded', 'false');
-                        this.innerHTML = this.innerHTML.replace('Ver menos', 'Ver más');
-                    } else {
-                        // Expandir: mostrar todos
-                        winnerList.querySelectorAll('.flex.items-center').forEach(item => {
-                            item.classList.remove('hidden');
-                        });
-                        this.querySelector('.material-symbols-outlined').style.transform = 'rotate(180deg)';
-                        this.setAttribute('data-expanded', 'true');
-                        this.innerHTML = this.innerHTML.replace('Ver más', 'Ver menos');
-                    }
-                });
-            });
-        }, 100);
-    },
-    
-    // Alternar visibilidad de lista de ganadores
-    toggleWinnersList(resultId) {
-        const listId = `${resultId}-list`;
-        const winnerList = document.getElementById(listId);
-        const toggleBtn = document.querySelector(`[onclick*="${resultId}"]`);
-        
-        if (!winnerList || !toggleBtn) return;
-        
-        const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true';
-        const icon = toggleBtn.querySelector('.material-symbols-outlined');
-        
-        if (isExpanded) {
-            // Colapsar: mostrar solo primeros 3
-            winnerList.querySelectorAll('.flex.items-center').forEach((item, index) => {
-                if (index >= 3) item.classList.add('hidden');
-            });
-            if (icon) icon.style.transform = 'rotate(0deg)';
-            toggleBtn.setAttribute('data-expanded', 'false');
-            toggleBtn.innerHTML = toggleBtn.innerHTML.replace('Ver menos', 'Ver más');
-        } else {
-            // Expandir: mostrar todos
-            winnerList.querySelectorAll('.flex.items-center').forEach(item => {
-                item.classList.remove('hidden');
-            });
-            if (icon) icon.style.transform = 'rotate(180deg)';
-            toggleBtn.setAttribute('data-expanded', 'true');
-            toggleBtn.innerHTML = toggleBtn.innerHTML.replace('Ver más', 'Ver menos');
-        }
-    },
-    
-    // Eliminar un resultado
-    async deleteWheelResult(resultId) {
-        if (!this.currentWheel?.id) return;
-        
-        if (!confirm('¿Eliminar este resultado?')) return;
-        
-        try {
-            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/results/${resultId}`, { method: 'DELETE' });
-            this._notifyAction('Éxito', 'Resultado eliminado', 'success');
-            await this.loadWheelResults(this.currentWheel.id);
-        } catch (e) {
-            console.error('Error deleting wheel result:', e);
-            this._notifyAction('Error', 'No se pudo eliminar', 'error');
-        }
-    },
-    
-    // Eliminar todos los resultados
-    async deleteAllWheelResults() {
-        if (!this.currentWheel?.id) return;
-        
-        if (!confirm('¿Eliminar TODOS los resultados?')) return;
-        
-        try {
-            await this.fetchAPI(`/events/wheels/${this.currentWheel.id}/results`, { method: 'DELETE' });
-            this._notifyAction('Éxito', 'Resultados eliminados', 'success');
-            await this.loadWheelResults(this.currentWheel.id);
-        } catch (e) {
-            console.error('Error deleting all wheel results:', e);
-            this._notifyAction('Error', 'No se pudieron eliminar', 'error');
-        }
-    },
-    
-    // Crear nueva ruleta
-    async createNewWheel() {
-        const eventId = this.state.event?.id;
-        if (!eventId) {
-            this._notifyAction('Error', 'No hay evento seleccionado', 'error');
-            return;
-        }
 
-        // Pedir nombre con modal
-        const { value: name, isConfirmed } = await Swal.fire({
-            title: 'Nueva Ruleta',
-            text: 'Ingresa el nombre para esta ruleta',
-            input: 'text',
-            inputPlaceholder: 'Ej: Sorteo Principal',
-            inputValue: '',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            confirmButtonText: 'Crear',
-            confirmButtonColor: '#7c3aed',
-            cancelButtonText: 'Cancelar',
-            showCancelButton: true,
-            inputValidator: (value) => {
-                if (!value || !value.trim()) {
-                    return 'El nombre es requerido';
+    removeWheelLogo: function(){
+        this._wheelState.logoDataUrl=null;
+        var img=document.getElementById('wheel-logo-img');if(img)img.classList.add('hidden');
+        var ph=document.getElementById('wheel-logo-preview');if(ph)ph.classList.remove('hidden');
+        var rb=document.getElementById('wheel-btn-remove-logo');if(rb)rb.classList.add('hidden');
+        this.renderWheelCanvas(this._wheelState.rotation)
+    },
+
+    renderWheelCanvas: function(rotation){
+        var cv=document.getElementById('wheel-canvas');if(!cv)return;
+        var cx=cv.getContext('2d');var w=cv.width,h=cv.height;
+        cx.clearRect(0,0,w,h);cx.save();cx.translate(w/2,h/2);cx.rotate(rotation||0);
+        var parts=this._wheelState.participants;var n=parts.length;
+        if(!n){cx.restore();this.drawWheelCenter(cx,w,h);return}
+        var a=2*Math.PI/n;var cols=this._wheelState.segColors;
+        var tc=document.getElementById('wheel-txt-color')?.value||'#FFFFFF';
+        var lw=parseInt(document.getElementById('wheel-lines-size')?.value)||2;
+        parts.forEach(function(nm,i){
+            var s=i*a,e=(i+1)*a;
+            cx.beginPath();cx.moveTo(0,0);cx.arc(0,0,w/2-10,s,e);cx.closePath();
+            cx.fillStyle=cols[i%cols.length];cx.fill();
+            if(lw>0){cx.strokeStyle='rgba(255,255,255,0.2)';cx.lineWidth=lw;cx.stroke()}
+            cx.save();cx.rotate(s+a/2);cx.textAlign='right';cx.fillStyle=tc;
+            cx.font='bold 14px Inter, sans-serif';
+            cx.shadowColor='rgba(0,0,0,0.4)';cx.shadowBlur=2;
+            var d=nm.length>14?nm.slice(0,12)+'..':nm;
+            cx.fillText(d,w/2-18,5);cx.restore()
+        });
+        this.drawWheelCenter(cx,w,h);
+        cx.restore()
+    },
+
+    drawWheelCenter: function(cx,w,h){
+        var r=w>=500?55:28;
+        cx.beginPath();cx.arc(0,0,r,0,2*Math.PI);cx.fillStyle='#1e293b';cx.fill();
+        cx.strokeStyle='rgba(255,255,255,0.15)';cx.lineWidth=3;cx.stroke();
+        cx.beginPath();cx.arc(0,0,r/2,0,2*Math.PI);cx.fillStyle='#7c3aed';cx.fill();
+        // Logo
+        if(this._wheelState.logoDataUrl){
+            try{
+                var limg=new Image();limg.src=this._wheelState.logoDataUrl;
+                cx.save();cx.beginPath();cx.arc(0,0,r-8,0,2*Math.PI);cx.clip();
+                cx.drawImage(limg,-r+8,-r+8,(r-8)*2,(r-8)*2);cx.restore()
+            }catch(e){}
+        }
+    },
+
+    spinWheelPreview: function(){
+        if(this._wheelState.isSpinning||this._wheelState.participants.length<2)return;
+        this._wheelState.isSpinning=true;
+        var btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=true;
+        document.getElementById('wheel-preview-winner')?.classList.add('hidden');
+        var dur=parseInt(document.getElementById('wheel-duration')?.value||6)*1000;
+        var extra=4+Math.random()*3;
+        var target=this._wheelState.rotation+extra*2*Math.PI;
+        var start=Date.now();var startRot=this._wheelState.rotation;
+
+        if(this._wheelState.soundEnabled)this.playWheelTick();
+
+        var self=this;
+        function animate(){
+            var p=Math.min((Date.now()-start)/dur,1);
+            var ease=1-Math.pow(1-p,4);
+            self._wheelState.rotation=startRot+(target-startRot)*ease;
+            self.renderWheelCanvas(self._wheelState.rotation);
+            if(p<1)requestAnimationFrame(animate);
+            else{
+                self._wheelState.isSpinning=false;if(btn)btn.disabled=false;
+                var segAngle=2*Math.PI/self._wheelState.participants.length;
+                var f=(-self._wheelState.rotation)%(2*Math.PI);if(f<0)f+=2*Math.PI;
+                var idx=Math.floor(f/segAngle)%self._wheelState.participants.length;
+                var win=self._wheelState.participants[idx];
+                self.showWheelWinner(win);
+                if(document.getElementById('wheel-auto-remove')?.checked){
+                    self._wheelState.participants.splice(idx,1);
+                    var ta=document.getElementById('wheel-participants-text');
+                    if(ta)ta.value=self._wheelState.participants.join('\n');
+                    self.updateWheelParticipantCount()
                 }
-            },
-            customClass: {
-                popup: 'rounded-[1.5rem] border border-white/10',
-                confirmButton: 'btn-primary !px-6 !py-3',
-                cancelButton: 'btn-secondary !px-6 !py-3'
+                self._wheelState.winners.push(win);
+                self.updateWheelWinnersList();
+                // Register spin
+                self.fetchAPI('/raffles/'+self._wheelState.currentId+'/spin',{method:'POST',body:JSON.stringify({winnerName:win})}).catch(function(){})
             }
-        });
-
-        if (!isConfirmed || !name) return;
-
-        try {
-            // Guardar ruleta inmediatamente con el nombre
-            const config = {
-                visual: {
-                    wheel_colors: ['#FF6B6B', '#4ECDC4'],
-                    wheel_text_color: '#FFFFFF',
-                    pointer_color: '#FF0000',
-                    sound_enabled: true,
-                    confetti_on_win: true
-                }
-            };
-
-            const wheel = await this.fetchAPI(`/events/${eventId}/wheels`, {
-                method: 'POST',
-                body: JSON.stringify({ name: name.trim(), config })
-            });
-
-            if (!wheel || !wheel.id) {
-                throw new Error('No se pudo crear la ruleta');
-            }
-
-            this.currentWheel = wheel;
-            
-            // Limpiar formulario y establecer valores
-            const wheelNameEl = document.getElementById('wheel-name');
-            const wheelColor1El = document.getElementById('wheel-color-1');
-            const wheelColor2El = document.getElementById('wheel-color-2');
-            const wheelTextColorEl = document.getElementById('wheel-text-color');
-            const wheelPointerColorEl = document.getElementById('wheel-pointer-color');
-            const wheelSoundEl = document.getElementById('wheel-sound');
-            const wheelConfettiEl = document.getElementById('wheel-confetti');
-            const wheelShareUrlEl = document.getElementById('wheel-share-url');
-            const wheelParticipantsTbodyEl = document.getElementById('wheel-participants-tbody');
-            const wheelsListEl = document.getElementById('wheels-list');
-            const wheelEditorEl = document.getElementById('wheel-editor');
-            
-            if (wheelNameEl) wheelNameEl.value = wheel.name || name;
-            if (wheelColor1El) wheelColor1El.value = '#FF6B6B';
-            if (wheelColor2El) wheelColor2El.value = '#4ECDC4';
-            if (wheelTextColorEl) wheelTextColorEl.value = '#FFFFFF';
-            if (wheelPointerColorEl) wheelPointerColorEl.value = '#FF0000';
-            if (wheelSoundEl) wheelSoundEl.checked = true;
-            if (wheelConfettiEl) wheelConfettiEl.checked = true;
-            
-            // Generar URL pública
-            const eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const shareUrl = `/${eventName}/wheel/${wheel.id}/public`;
-            if (wheelShareUrlEl) wheelShareUrlEl.value = window.location.origin + shareUrl;
-            
-            // Limpiar participantes
-            this.wheelParticipants = [];
-            if (wheelParticipantsTbodyEl) wheelParticipantsTbodyEl.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">No hay participantes</td></tr>';
-            
-            // Mostrar editor, ocultar lista
-            if (wheelsListEl) wheelsListEl.closest('.card')?.classList.add('hidden');
-            if (wheelEditorEl) wheelEditorEl.classList.remove('hidden');
-            
-            // Recargar lista de ruletas
-            await this.loadWheels();
-            
-            this._notifyAction('Éxito', 'Ruleta creada', 'success');
-            
-        } catch (e) {
-            console.error('Error creating wheel:', e);
-            this._notifyAction('Error', 'No se pudo crear la ruleta', 'error');
         }
-    },
-    
-    // Volver a lista de ruletas
-    backToWheelsList() {
-        const wheelsListEl = document.getElementById('wheels-list');
-        const wheelEditorEl = document.getElementById('wheel-editor');
-        if (wheelsListEl) wheelsListEl.closest('.card')?.classList.remove('hidden');
-        if (wheelEditorEl) wheelEditorEl.classList.add('hidden');
-        this.currentWheel = null;
-        this.loadWheels();
+        animate()
     },
 
-    // Eliminar ruleta
-    async deleteWheel(wheelId) {
-        if (!wheelId || wheelId === 'null' || wheelId === 'undefined') {
-            this._notifyAction('Error', 'ID de ruleta inválido', 'error');
-            return;
-        }
+    playWheelTick: function(){
+        try{
+            var actx=new(window.AudioContext||window.webkitAudioContext)();
+            var o=actx.createOscillator(),g=actx.createGain();
+            o.connect(g);g.connect(actx.destination);
+            o.frequency.value=800+Math.random()*400;g.gain.value=0.08;
+            o.start();o.stop(actx.currentTime+0.04)
+        }catch(e){}
+    },
 
-        const { isConfirmed } = await Swal.fire({
-            title: '¿Eliminar ruleta?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
-            background: 'var(--bg-card)',
-            color: 'var(--text-main)',
-            confirmButtonText: 'Eliminar',
-            confirmButtonColor: '#ef4444',
-            cancelButtonText: 'Cancelar',
-            showCancelButton: true,
-            customClass: {
-                popup: 'rounded-[1.5rem] border border-white/10',
-                confirmButton: 'btn-primary !px-6 !py-3',
-                cancelButton: 'btn-secondary !px-6 !py-3'
-            }
-        });
+    showWheelWinner: function(name){
+        var w=document.getElementById('wheel-preview-winner');
+        var wn=document.getElementById('wheel-preview-winner-name');
+        if(wn)wn.textContent='🏆 '+name;
+        if(w){w.classList.remove('hidden');w.style.display='block'}
+        if(document.getElementById('wheel-confetti')?.checked)this.fireConfetti()
+    },
 
-        if (!isConfirmed) return;
-
-        try {
-            await this.fetchAPI(`/events/wheels/${wheelId}`, { method: 'DELETE' });
-            this._notifyAction('Éxito', 'Ruleta eliminada', 'success');
-            this.currentWheel = null;
-            await this.loadWheels();
-        } catch (e) {
-            console.error('Error deleting wheel:', e);
-            this._notifyAction('Error', 'No se pudo eliminar la ruleta', 'error');
+    fireConfetti: function(){
+        var cl=['#FF6B6B','#4ECDC4','#7c3aed','#fbbf24','#34d399','#f472b6','#60a5fa'];
+        for(var i=0;i<50;i++){
+            var e=document.createElement('div');
+            e.className='fixed pointer-events-none z-50';
+            e.style.cssText='left:'+Math.random()*100+'vw;top:-10px;width:'+(Math.random()*6+3)+'px;height:'+(Math.random()*6+3)+'px;background:'+cl[Math.floor(Math.random()*cl.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px');
+            document.body.appendChild(e);
+            e.animate([{transform:'translateY(0) rotate(0deg)',opacity:1},{transform:'translateY(100vh) rotate('+(Math.random()*720)+'deg)',opacity:0}],{duration:1500+Math.random()*1500,easing:'linear'}).onfinish=function(){e.remove()}
         }
     },
 
-    // Copiar URL de la ruleta
-    copyWheelUrl() {
-        const urlInput = document.getElementById('wheel-share-url');
-        if (!urlInput || !urlInput.value) {
-            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
-            return;
-        }
-        
-        navigator.clipboard.writeText(urlInput.value).then(() => {
-            this._notifyAction('Éxito', 'URL copiada al portapapeles', 'success');
-        }).catch(() => {
-            // Fallback para navegadores antiguos
-            urlInput.select();
-            document.execCommand('copy');
-            this._notifyAction('Éxito', 'URL copiada', 'success');
-        });
+    resetWheelPreview: function(){
+        this._wheelState.rotation=0;
+        this._wheelState.isSpinning=false;
+        this.renderWheelCanvas(0);
+        document.getElementById('wheel-preview-winner')?.classList.add('hidden');
+        var btn=document.getElementById('wheel-preview-btn');if(btn)btn.disabled=false
     },
 
-    // Vista previa de la ruleta
-    previewWheel() {
-        const urlInput = document.getElementById('wheel-share-url');
-        if (!urlInput || !urlInput.value) {
-            this._notifyAction('Error', 'Primero guarda la ruleta', 'error');
-            return;
-        }
-        window.open(urlInput.value, '_blank');
+    toggleWheelWinners: function(){
+        var el=document.getElementById('wheel-preview-winners');
+        if(!el)return;
+        el.classList.toggle('hidden');
+        if(!el.classList.contains('hidden'))this.updateWheelWinnersList()
+    },
+
+    updateWheelWinnersList: function(){
+        var el=document.getElementById('wheel-preview-winners');if(!el)return;
+        if(!this._wheelState.winners.length){el.classList.add('hidden');return}
+        el.innerHTML='<div class="font-bold mb-1 text-xs">🏆 Ganadores</div>'+
+            this._wheelState.winners.map(function(w,i){
+                var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'🎁';
+                return '<div class="py-0.5 text-xs">'+m+' '+w+'</div>'
+            }).join('')
+    },
+
+    toggleWheelSound: function(){
+        this._wheelState.soundEnabled=!this._wheelState.soundEnabled;
+        var btn=document.getElementById('wheel-sound-btn');
+        if(btn)btn.textContent=this._wheelState.soundEnabled?'🔊':'🔇'
+    },
+
+    saveWheel: async function(){
+        var id=this._wheelState.currentId;
+        if(!id){Swal.fire({icon:'warning',title:'Primero crea la ruleta',background:'#0f172a',color:'#fff'});return}
+        var name=document.getElementById('wheel-name')?.value?.trim();
+        if(!name){Swal.fire({icon:'warning',title:'Nombre requerido',background:'#0f172a',color:'#fff'});return}
+        var cfg={
+            title:document.getElementById('wheel-title')?.value||'',
+            description:document.getElementById('wheel-desc')?.value||'',
+            start_button:document.getElementById('wheel-btn-text')?.value||'Girar',
+            show_title:document.getElementById('wheel-show-title')?.checked!==false,
+            show_desc:document.getElementById('wheel-show-desc')?.checked!==false,
+            show_start_button:document.getElementById('wheel-show-btn')?.checked!==false,
+            play_sounds:document.getElementById('wheel-sound')?.checked!==false,
+            show_confettis:document.getElementById('wheel-confetti')?.checked!==false,
+            wheel_auto_remove:document.getElementById('wheel-auto-remove')?.checked===true,
+            capture_leads:document.getElementById('wheel-capture-leads')?.checked===true,
+            wheel_spin_duration:parseInt(document.getElementById('wheel-duration')?.value)||6,
+            wheel_colors:this._wheelState.segColors,
+            wheel_slices_text_color:document.getElementById('wheel-txt-color')?.value||'#FFFFFF',
+            wheel_border_color:document.getElementById('wheel-border-color')?.value||'#333333',
+            pointer_color:document.getElementById('wheel-pointer-color')?.value||'#FF0000',
+            main_color:document.getElementById('wheel-main-color')?.value||'#333333',
+            page_background_color:document.getElementById('wheel-bg-color')?.value||'#FFFFFF',
+            wheel_lines_size:parseInt(document.getElementById('wheel-lines-size')?.value)||2,
+            logo:this._wheelState.logoDataUrl||null,
+            data_source:document.getElementById('wheel-source')?.value||'manual'
+        };
+        try{
+            await this.fetchAPI('/raffles/'+id,{method:'PUT',body:JSON.stringify({name:name,config:cfg})});
+            // Save participants
+            var names=this._wheelState.participants.map(function(n){return{name:n}});
+            await this.fetchAPI('/raffles/'+id+'/participants/batch',{method:'POST',body:JSON.stringify({participants:names})});
+            Swal.fire({icon:'success',title:'Guardado',timer:1500,showConfirmButton:false,background:'#0f172a',color:'#fff'});
+            this.loadWheelList()
+        }catch(e){console.error(e);Swal.fire({icon:'error',title:'Error',text:e.message,background:'#0f172a',color:'#fff'})}
+    },
+
+    deleteCurrentWheel: function(id){
+        var wid=id||this._wheelState.currentId;if(!wid)return;
+        Swal.fire({icon:'warning',title:'Eliminar ruleta?',showCancelButton:true,background:'#0f172a',color:'#fff'}).then(async function(r){
+            if(!r.isConfirmed)return;
+            try{
+                await App.fetchAPI('/raffles/'+wid,{method:'DELETE'});
+                App._wheelState.currentId=null;
+                App.backToWheelList()
+            }catch(e){console.error(e)}
+        })
+    },
+
+    playWheel: function(){
+        var id=this._wheelState.currentId;
+        if(!id){Swal.fire({icon:'warning',title:'Guarda la ruleta primero',background:'#0f172a',color:'#fff'});return}
+        var name=(this.state.event?.name||'evento').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        window.open('/'+name+'/raffle/'+id,'_blank')
     },
 
     switchEventTab(tabName) {
@@ -17695,15 +17101,6 @@ navigate(viewName, params = {}, push = true) {
         try {
             var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
             Swal.fire({ icon: 'success', title: 'Encuestas exportadas', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
-    },
-
-    exportRaffleToDrive: async function() {
-        var eventId = this.state?.event?.id;
-        if (!eventId) return;
-        try {
-            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_raffles: true }) });
-            Swal.fire({ icon: 'success', title: 'Sorteos exportados', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 

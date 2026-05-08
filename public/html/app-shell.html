@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.652</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.653</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -504,278 +504,257 @@
                         </div>
                     </div>
 
-                    <div id="config-content-wheel" class="config-tab-content hidden space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-bold text-white">Sorteos</h2>
-                            <button id="btn-new-raffle" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openRaffleModal()">
-                                <span class="material-symbols-outlined text-sm">add</span> Nuevo Sorteo
+                    <div id="config-content-wheel" class="config-tab-content hidden">
+                        <style>
+                        .wheel-section{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;margin-bottom:4px}
+                        .wheel-section-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;user-select:none}
+                        .wheel-section-header:hover{background:rgba(255,255,255,0.03)}
+                        .wheel-section-header .chevron{transition:transform .2s;font-size:10px;color:#64748b}
+                        .wheel-section-header.collapsed .chevron{transform:rotate(-90deg)}
+                        .wheel-section-body{padding:8px 14px 14px}
+                        .wheel-section-body.hidden{display:none}
+                        .color-input-pill{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:2px 6px;border-radius:6px;font-size:10px;text-transform:uppercase;color:#94a3b8}
+                        .color-input-pill input[type=color]{width:28px;height:28px;border:none;border-radius:4px;padding:0;cursor:pointer;background:none}
+                        .color-input-pill input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+                        .color-input-pill input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
+                        .wheel-palette{display:flex;height:36px;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);cursor:pointer;min-width:36px}
+                        .wheel-palette span{flex:1}
+                        .wheel-palette:hover{opacity:.8}
+                        .wheel-spin-btn{transition:all .2s}
+                        .wheel-spin-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 25px rgba(124,58,237,0.35)}
+                        .wheel-spin-btn:disabled{opacity:.5;cursor:not-allowed}
+                        .wheel-adv-row{display:flex;gap:4px;align-items:center}
+                        .wheel-adv-row input[type=text]{flex:1}
+                        .wheel-adv-row select{width:64px;font-size:11px}
+                        .preview-card{background:#f1f5f9;border-radius:16px;min-height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background-size:cover;background-position:center}
+                        .preview-card.dark{background:#1e293b}
+                        .wheel-toolbar{display:flex;gap:8px;padding:8px 12px;background:rgba(0,0,0,0.06);border-radius:10px}
+                        .wheel-toolbar button{width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,0.08);color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+                        .wheel-toolbar button:hover{background:rgba(0,0,0,0.15);color:#1e293b}
+                        .watermark{position:absolute;bottom:8px;left:12px;font-size:10px;color:#94a3b8;opacity:.5;pointer-events:none}
+                        .quick-theme{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);cursor:pointer;transition:all .2s;overflow:hidden;display:flex}
+                        .quick-theme:hover{border-color:#7c3aed;transform:scale(1.15)}
+                        .quick-theme span{flex:1}
+                        .wheel-participant-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+                        .wheel-participant-row:last-child{border:none}
+                        </style>
+
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-white">Ruleta</h2>
+                            <button id="btn-new-wheel" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.newWheel()">
+                                <span class="material-symbols-outlined text-sm">add</span> Nueva Ruleta
                             </button>
                         </div>
 
-                        <!-- Lista de sorteos -->
-                        <div id="raffles-list" class="space-y-2">
-                            <p class="text-xs text-slate-500 italic">Cargando sorteos...</p>
+                        <!-- LIST VIEW -->
+                        <div id="wheel-list-view" class="space-y-2">
+                            <p class="text-xs text-slate-500 italic">Cargando...</p>
                         </div>
 
-                        <!-- Editor de sorteo (oculto) -->
-                        <div id="raffle-editor" class="hidden space-y-4">
-                            <div class="flex items-center gap-3">
-                                <button class="btn-secondary btn-standard" onclick="App.backToRafflesList()">
-                                    <span class="material-symbols-outlined text-sm">arrow_back</span>
-                                </button>
-                                <input id="raffle-name" class="input-field text-lg font-bold w-80" placeholder="Nombre del sorteo">
-                                <select id="raffle-type" class="input-field" onchange="App.onRaffleTypeChange()">
-                                    <option value="wheel">🎡 Ruleta</option>
-                                    <option value="group_raffle">👥 Sorteo de grupos</option>
-                                    <option value="list_raffle">🎯 Sorteo de lista</option>
-                                </select>
-                            </div>
+                        <!-- EDITOR VIEW -->
+                        <div id="wheel-editor-view" class="hidden">
+                            <div class="flex gap-4" style="min-height:650px">
+                                <!-- SIDEBAR -->
+                                <div class="w-80 flex-shrink-0 space-y-1 overflow-y-auto" style="max-height:700px">
 
-                            <!-- Config fuente de datos -->
-                            <div class="card p-4 space-y-3">
-                                <h3 class="text-sm font-bold text-white">Fuente de participantes</h3>
-                                <select id="raffle-data-source" class="input-field w-full" onchange="App.onRaffleSourceChange()">
-                                    <option value="guests">Todos los invitados</option>
-                                    <option value="checked_in">Asistentes (check-in)</option>
-                                    <option value="pre_registered">Pre-registrados</option>
-                                    <option value="survey">Respondieron encuesta</option>
-                                    <option value="manual">Lista manual</option>
-                                </select>
-                                <div id="raffle-source-template-group" class="hidden">
-                                    <label class="text-xs font-bold text-slate-400 block mb-1">Encuesta:</label>
-                                    <select id="raffle-source-template" class="input-field w-full"></select>
-                                </div>
-                                <div id="raffle-manual-input" class="hidden">
-                                    <label class="text-xs font-bold text-slate-400 block mb-1">Participantes (Nombre, Email uno por línea):</label>
-                                    <textarea id="raffle-manual-list" class="input-field w-full" rows="5" placeholder="Juan Pérez, juan@email.com&#10;María García, maria@email.com"></textarea>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="btn-secondary text-xs" onclick="App.populateRaffle()"><span class="material-symbols-outlined text-sm">group_add</span> Poblar participantes</button>
-                                    <span id="raffle-participant-count" class="text-xs text-slate-500 self-center">0 participantes</span>
-                                </div>
-                            </div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <button class="btn-secondary btn-standard" onclick="App.backToWheelList()"><span class="material-symbols-outlined text-sm">arrow_back</span></button>
+                                        <input id="wheel-name" class="input-field text-sm font-bold flex-1" placeholder="Nombre de la ruleta">
+                                    </div>
 
-                            <!-- Link del sorteo -->
-                            <div class="card p-4 space-y-3 border-l-4 border-l-[var(--primary)]">
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[var(--primary)]">link</span> Link del sorteo
-                                </h3>
-                                <div class="flex gap-2">
-                                    <input id="raffle-share-url" type="text" readonly class="input-field flex-1 text-xs" placeholder="Guarda el sorteo para generar el link...">
-                                    <button id="btn-copy-raffle-url" class="btn-secondary btn-standard" onclick="App.copyRaffleUrl()" title="Copiar link">
-                                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                                    </button>
-                                    <button id="btn-open-raffle" class="btn-primary btn-standard" onclick="App.openRafflePublic()" title="Abrir en nueva pestaña">
-                                        <span class="material-symbols-outlined text-sm">open_in_new</span> Abrir
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Config de sorteo -->
-                            <div class="card p-4 space-y-3">
-                                <h3 class="text-sm font-bold text-white">Configuración del sorteo</h3>
-                                <div id="raffle-winner-config">
-                                    <label class="text-xs font-bold text-slate-400 block mb-1">Cantidad de ganadores</label>
-                                    <input type="number" id="raffle-winner-count" class="input-field w-24" value="1" min="1" max="999">
-                                </div>
-                                <div id="raffle-group-config" class="hidden">
-                                    <label class="text-xs font-bold text-slate-400 block mb-1">Cantidad de grupos</label>
-                                    <input type="number" id="raffle-group-count" class="input-field w-24" value="2" min="2" max="100">
-                                </div>
-
-                                <!-- Personalización visual (ruleta) -->
-                                <div id="raffle-visual-config" class="space-y-3">
-                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Personalización visual</h4>
-                                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                        <div>
-                                            <label class="text-xs text-slate-500 block mb-1">Color 1</label>
-                                            <input type="color" id="raffle-color-1" class="input-field w-full h-10 p-1" value="#FF6B6B">
+                                    <!-- CONFIG -->
+                                    <div class="wheel-section">
+                                        <div class="wheel-section-header" onclick="App.toggleWheelSection('config')">
+                                            <span>⚙️ Configuración</span><span class="chevron">▼</span>
                                         </div>
-                                        <div>
-                                            <label class="text-xs text-slate-500 block mb-1">Color 2</label>
-                                            <input type="color" id="raffle-color-2" class="input-field w-full h-10 p-1" value="#4ECDC4">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs text-slate-500 block mb-1">Color texto</label>
-                                            <input type="color" id="raffle-text-color" class="input-field w-full h-10 p-1" value="#FFFFFF">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs text-slate-500 block mb-1">Color puntero</label>
-                                            <input type="color" id="raffle-pointer-color" class="input-field w-full h-10 p-1" value="#FF0000">
+                                        <div id="wheel-sec-config" class="wheel-section-body">
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-1">
+                                                <input type="checkbox" id="wheel-show-title" onchange="App.onWheelConfigChange()" checked> Título
+                                            </label>
+                                            <input type="text" id="wheel-title" class="input-field w-full text-xs mb-1" placeholder="Título" oninput="App.onWheelConfigChange()">
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-1">
+                                                <input type="checkbox" id="wheel-show-desc" onchange="App.onWheelConfigChange()" checked> Descripción
+                                            </label>
+                                            <textarea id="wheel-desc" class="input-field w-full text-xs mb-1" rows="2" placeholder="Descripción..." oninput="App.onWheelConfigChange()"></textarea>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-1">
+                                                <input type="checkbox" id="wheel-show-btn" onchange="App.onWheelConfigChange()" checked> Botón girar
+                                            </label>
+                                            <input type="text" id="wheel-btn-text" class="input-field w-full text-xs mb-1" value="Girar" maxlength="24" oninput="App.onWheelConfigChange()">
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                                <input type="checkbox" id="wheel-sound" onchange="App.onWheelConfigChange()" checked> 🔊 Sonido
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                                <input type="checkbox" id="wheel-confetti" onchange="App.onWheelConfigChange()" checked> 🎊 Confeti
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                                <input type="checkbox" id="wheel-auto-remove" onchange="App.onWheelConfigChange()"> Auto-remover ganador
+                                            </label>
+                                            <div class="flex items-center justify-between text-xs text-slate-300 mt-1">
+                                                <span>Duración giro</span>
+                                                <select id="wheel-duration" class="input-field w-16 text-xs" onchange="App.onWheelConfigChange()">
+                                                    <option value="6">6s</option><option value="10">10s</option><option value="14">14s</option>
+                                                </select>
+                                            </div>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mt-1">
+                                                <input type="checkbox" id="wheel-capture-leads" onchange="App.onWheelConfigChange()"> 📋 Captura Leads
+                                            </label>
                                         </div>
                                     </div>
-                                    <div class="flex gap-4">
-                                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                            <input type="checkbox" id="raffle-sound" class="checkbox-sm" checked> Sonido al girar
-                                        </label>
-                                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                            <input type="checkbox" id="raffle-confetti" class="checkbox-sm" checked> Confeti al ganar
-                                        </label>
+
+                                    <!-- PARTICIPANTS -->
+                                    <div class="wheel-section">
+                                        <div class="wheel-section-header" onclick="App.toggleWheelSection('participants')">
+                                            <span>👥 Participantes</span><span class="chevron">▼</span>
+                                        </div>
+                                        <div id="wheel-sec-participants" class="wheel-section-body">
+                                            <label class="text-xs text-slate-500 mb-1">Fuente de datos:</label>
+                                            <select id="wheel-source" class="input-field w-full text-xs mb-1" onchange="App.onWheelSourceChange()">
+                                                <option value="manual">✍️ Escribir manualmente</option>
+                                                <option value="guests">📋 Todos los invitados</option>
+                                                <option value="checked_in">✅ Asistentes (check-in)</option>
+                                                <option value="pre_registered">📝 Pre-registrados</option>
+                                                <option value="survey">📊 Respondieron encuesta</option>
+                                            </select>
+                                            <select id="wheel-survey-template" class="input-field w-full text-xs mb-1 hidden"></select>
+                                            <button id="wheel-btn-import" class="btn-secondary text-xs w-full mb-2 hidden" onclick="App.importWheelParticipants()">🔄 Importar</button>
+                                            <div class="text-center text-[10px] text-slate-600 my-1">— o escribe manual —</div>
+                                            <textarea id="wheel-participants-text" class="input-field w-full text-xs" rows="6" placeholder="Un nombre por línea&#10;Juan Pérez&#10;María García" oninput="App.onWheelParticipantsChange()"></textarea>
+                                            <div class="flex gap-1 mt-1">
+                                                <button class="btn-secondary text-[10px] px-2 py-0.5" onclick="App.sortWheelParticipants()">🔤 Ordenar</button>
+                                                <button class="btn-secondary text-[10px] px-2 py-0.5" onclick="App.shuffleWheelParticipants()">🎲 Aleatorio</button>
+                                                <button class="btn-secondary text-[10px] px-2 py-0.5 text-red-400" onclick="App.clearWheelParticipants()">🗑️ Limpiar</button>
+                                            </div>
+                                            <p id="wheel-participant-count" class="text-xs text-slate-500 mt-1">0 participantes</p>
+                                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mt-2">
+                                                <input type="checkbox" id="wheel-advanced-mode" onchange="App.toggleWheelAdvancedMode()"> ⚡ Modo avanzado (% probabilidad)
+                                            </label>
+                                            <div id="wheel-advanced-list" class="hidden mt-2 space-y-1 max-h-40 overflow-y-auto"></div>
+                                            <button id="wheel-add-entry-btn" class="btn-secondary text-xs w-full mt-1 hidden" onclick="App.addWheelEntry()">+ Añadir entrada</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- DESIGN -->
+                                    <div class="wheel-section">
+                                        <div class="wheel-section-header" onclick="App.toggleWheelSection('design')">
+                                            <span>🎨 Diseño</span><span class="chevron">▼</span>
+                                        </div>
+                                        <div id="wheel-sec-design" class="wheel-section-body">
+                                            <label class="text-xs text-slate-500 mb-1">Temas</label>
+                                            <div id="wheel-themes" class="flex gap-1 mb-2 overflow-x-auto"></div>
+                                            <label class="text-xs text-slate-500 mb-1">Logo</label>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div id="wheel-logo-preview" class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-slate-500 overflow-hidden flex-shrink-0">
+                                                    <img id="wheel-logo-img" class="hidden w-full h-full object-cover">
+                                                </div>
+                                                <button class="btn-secondary text-[10px]" onclick="App.uploadWheelLogo()">Subir</button>
+                                                <button id="wheel-btn-remove-logo" class="btn-secondary text-[10px] text-red-400 hidden" onclick="App.removeWheelLogo()">Eliminar</button>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-slate-300">Fondo página</span>
+                                                <div class="color-input-pill">
+                                                    <span id="wheel-bg-color-val">#FFFFFF</span>
+                                                    <input type="color" id="wheel-bg-color" value="#FFFFFF" onchange="App.onWheelDesignChange()">
+                                                </div>
+                                            </div>
+                                            <label class="text-xs text-slate-500 mb-1">Colores segmentos</label>
+                                            <div id="wheel-seg-colors" class="grid grid-cols-3 gap-1 mb-2"></div>
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-slate-300">Color texto</span>
+                                                <div class="color-input-pill">
+                                                    <span id="wheel-txt-color-val">#FFFFFF</span>
+                                                    <input type="color" id="wheel-txt-color" value="#FFFFFF" onchange="App.onWheelDesignChange()">
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-slate-300">Color borde</span>
+                                                <div class="color-input-pill">
+                                                    <span id="wheel-border-color-val">#333333</span>
+                                                    <input type="color" id="wheel-border-color" value="#333333" onchange="App.onWheelDesignChange()">
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-slate-300">Color puntero</span>
+                                                <div class="color-input-pill">
+                                                    <span id="wheel-pointer-color-val">#FF0000</span>
+                                                    <input type="color" id="wheel-pointer-color" value="#FF0000" onchange="App.onWheelDesignChange()">
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-slate-300">Color texto gral</span>
+                                                <div class="color-input-pill">
+                                                    <span id="wheel-main-color-val">#333333</span>
+                                                    <input type="color" id="wheel-main-color" value="#333333" onchange="App.onWheelDesignChange()">
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs">
+                                                <span class="text-slate-300">Tamaño líneas</span>
+                                                <input type="range" id="wheel-lines-size" min="0" max="6" step="2" value="2" oninput="App.onWheelDesignChange()" class="w-20">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SAVED WHEELS -->
+                                    <div class="wheel-section">
+                                        <div class="wheel-section-header" onclick="App.toggleWheelSection('saved')">
+                                            <span>💾 Mis Ruletas</span><span class="chevron">▼</span>
+                                        </div>
+                                        <div id="wheel-sec-saved" class="wheel-section-body">
+                                            <div id="wheel-saved-list"><p class="text-xs text-slate-500 italic">No hay ruletas guardadas</p></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- BOTTOM BUTTONS -->
+                                    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700/50">
+                                        <button class="btn-primary flex-1 text-xs" onclick="App.saveWheel()">💾 Guardar</button>
+                                        <button class="btn-success flex-1 text-xs" onclick="App.playWheel()">▶️ Jugar</button>
+                                        <button class="btn-danger text-xs" onclick="App.deleteCurrentWheel()">🗑️</button>
                                     </div>
                                 </div>
 
-                                <div class="flex gap-2 flex-wrap">
-                                    <button class="btn-primary" onclick="App.drawRaffle()"><span class="material-symbols-outlined text-sm">casino</span> ¡Sortear!</button>
-                                    <button class="btn-secondary" onclick="App.generateRaffleReport()"><span class="material-symbols-outlined text-sm">assessment</span> Reporte PDF</button>
-                                    <button class="btn-secondary" onclick="App.exportRaffleToDrive()"><span class="material-symbols-outlined text-sm">table_chart</span> Exportar a Drive</button>
-                                </div>
-                            </div>
+                                <!-- PREVIEW -->
+                                <div id="wheel-preview" class="flex-1 preview-card">
+                                    <!-- Winner -->
+                                    <div id="wheel-preview-winner" class="hidden text-center mb-3" style="min-height:40px">
+                                        <div class="text-lg font-bold" id="wheel-preview-winner-name" style="color:#333">🏆 Ganador</div>
+                                    </div>
 
-                            <!-- Participantes -->
-                            <div class="card p-4 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="text-sm font-bold text-white">Participantes <span id="raffle-participant-count" class="text-xs text-slate-500 font-normal">0</span></h3>
-                                </div>
-                                <div class="flex gap-2">
-                                    <input id="raffle-participant-search" type="text" class="input-field flex-1 text-xs" placeholder="Buscar por nombre o email..." oninput="App.filterRaffleParticipants()">
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table class="data-table w-full">
-                                        <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Email</th><th class="table-th">Fuente</th><th class="table-th">Acción</th></tr></thead>
-                                        <tbody id="raffle-participants-tbody"></tbody>
-                                    </table>
-                                </div>
-                                <div class="flex justify-between items-center text-xs text-slate-500">
-                                    <span id="raffle-participant-info">0 participantes</span>
-                                    <div class="flex gap-2">
-                                        <button id="btn-participant-prev" class="btn-secondary text-xs px-2 py-1" onclick="App.pageRaffleParticipants(-1)" disabled>Anterior</button>
-                                        <button id="btn-participant-next" class="btn-secondary text-xs px-2 py-1" onclick="App.pageRaffleParticipants(1)">Siguiente</button>
+                                    <!-- Texts -->
+                                    <div id="wheel-preview-texts" class="text-center mb-3 px-4">
+                                        <h3 id="wheel-preview-title" class="text-lg font-bold" style="color:#333">Mi Ruleta</h3>
+                                        <p id="wheel-preview-desc" class="text-xs" style="color:#666">Descripción del sorteo</p>
                                     </div>
-                                </div>
-                            </div>
 
-                            <!-- Resultados -->
-                            <div class="card p-4 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="text-sm font-bold text-white">
-                                        Resultados
-                                        <span id="raffle-results-count" class="text-xs text-slate-500 font-normal ml-2">0</span>
-                                    </h3>
-                                    <button class="btn-secondary text-xs" onclick="App.clearRaffleResults()">
-                                        <span class="material-symbols-outlined text-sm">delete_sweep</span> Borrar todo
-                                    </button>
-                                </div>
-                                <div id="raffle-results-list" class="space-y-2"></div>
-                                <div id="raffle-all-participants" class="hidden">
-                                    <hr class="border-slate-700">
-                                    <h4 class="text-sm font-bold text-white mt-3 mb-2">Todos los participantes</h4>
-                                    <div id="raffle-all-participants-list" class="text-xs text-slate-400 max-h-40 overflow-y-auto"></div>
-                                </div>
-                            </div>
+                                    <!-- Wheel -->
+                                    <div class="relative" style="width:340px;height:340px">
+                                        <canvas id="wheel-canvas" width="500" height="500" style="width:100%;height:100%"></canvas>
+                                        <div class="wheel-pointer" style="position:absolute;top:50%;right:-30px;transform:translateY(-50%);z-index:10">
+                                            <svg width="50" height="34" viewBox="0 0 273 147">
+                                                <path id="wheel-pointer-path" d="M261.4 73.5L0 0l25.9 73.5L0 147z" fill="#FF0000"/>
+                                            </svg>
+                                        </div>
+                                        <div id="wheel-preview-logo" class="hidden absolute rounded-full overflow-hidden" style="top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border:4px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.3)">
+                                            <img id="wheel-preview-logo-img" class="w-full h-full object-cover">
+                                        </div>
+                                    </div>
 
-                            <div class="flex gap-2">
-                                <button class="btn-primary" onclick="App.saveRaffle()">Guardar sorteo</button>
-                                <button class="btn-danger" onclick="App.deleteRaffle()">Eliminar</button>
-                            </div>
-                        </div>
+                                    <!-- Spin btn -->
+                                    <button id="wheel-preview-btn" class="wheel-spin-btn mt-3 px-8 py-2.5 rounded-lg text-white font-bold text-sm border-none cursor-pointer" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)" onclick="App.spinWheelPreview()" disabled>🎡 GIRAR</button>
 
-                        <!-- Legacy wheel editor (mantener compatibilidad) -->
-                        <div id="wheel-editor" class="hidden">
-                            <div class="action-bar">
-                                <button id="btn-back-to-wheels" class="btn-secondary">
-                                    <span class="material-symbols-outlined">arrow_back</span>
-                                </button>
-                                <input type="text" id="wheel-name" placeholder="Nombre de la ruleta" class="input-field flex-1">
-                            </div>
-                            
-                            <div class="card">
-                                <h3 class="card-title">Personalización Visual</h3>
-                                <div class="grid-4">
-                                    <div class="form-group">
-                                        <label class="form-label">Color 1</label>
-                                        <input type="color" id="wheel-color-1" value="#FF6B6B" class="input-color">
+                                    <!-- Winners list -->
+                                    <div id="wheel-preview-winners" class="hidden mt-2 text-xs text-center max-w-xs" style="color:#475569"></div>
+
+                                    <!-- Quick themes -->
+                                    <div id="wheel-quick-themes" class="flex gap-1.5 mt-3"></div>
+
+                                    <!-- Toolbar -->
+                                    <div class="wheel-toolbar mt-3">
+                                        <button onclick="App.toggleWheelWinners()" title="Resultados">🏆</button>
+                                        <button onclick="App.resetWheelPreview()" title="Reiniciar">↻</button>
+                                        <button onclick="App.toggleWheelSound()" title="Sonido" id="wheel-sound-btn">🔊</button>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Color 2</label>
-                                        <input type="color" id="wheel-color-2" value="#4ECDC4" class="input-color">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Color texto</label>
-                                        <input type="color" id="wheel-text-color" value="#FFFFFF" class="input-color">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Color puntero</label>
-                                        <input type="color" id="wheel-pointer-color" value="#FF0000" class="input-color">
-                                    </div>
+
+                                    <div class="watermark">Powered by Check Pro</div>
                                 </div>
-                                <div class="action-bar mt-4">
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="wheel-sound" checked>
-                                        <span>Sonido al girar</span>
-                                    </label>
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="wheel-confetti" checked>
-                                        <span>Confeti al ganar</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="card">
-                                <h3 class="card-title">Participantes</h3>
-                                
-                                <!-- Fuente de datos -->
-                                <div class="mb-4 p-4 bg-[var(--bg-secondary)] rounded-xl">
-                                    <p class="text-sm font-bold mb-2">Agregar participantes desde:</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <button id="btn-add-from-guests" class="btn-secondary btn-compact">Todos los invitados</button>
-                                        <button id="btn-add-from-checkedin" class="btn-secondary btn-compact">Asistentes (check-in)</button>
-                                        <button id="btn-add-from-preregistered" class="btn-secondary btn-compact">Pre-registrados</button>
-                                        <button id="btn-add-manual" class="btn-secondary btn-compact">Entrada manual</button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Lista de participantes -->
-                                <div class="overflow-x-auto">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr class="table-header-row">
-                                                <th class="table-th">Nombre</th>
-                                                <th class="table-th">Email</th>
-                                                <th class="table-th">Fuente</th>
-                                                <th class="table-th text-right">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="wheel-participants-tbody" class="table-tbody">
-                                            <tr><td colspan="4" class="table-td text-center">No hay participantes</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <button id="btn-preview-wheel" class="btn-primary btn-lg">Vista Previa</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Publicación -->
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-">share</span>
-                                    Compartir
-                                </h3>
-                                <div class="flex gap-4">
-                                    <input type="text" id="wheel-share-url" readonly class="input-field flex-1" placeholder="Aún no generado">
-                                    <button id="btn-copy-wheel-url" class="btn-secondary btn-px4">Copiar</button>
-                                </div>
-                                <p class="text-xs text-slate-500 mt-2">Comparte este enlace para que los participantes giren la ruleta</p>
-                            </div>
-                            
-                            <!-- Resultados guardados -->
-                            <div class="card p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-">emoji_events</span>
-                                    Resultados
-                                </h3>
-                                <div id="wheel-results-list" class="space-y-2 mb-4 min-h-20 max-h-96 overflow-y-auto transition-all duration-300">
-                                    <p class="text-slate-500 text-sm">Cargando...</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="btn-delete-all-results" class="px-4 py-2 bg-red-20 text-red-500 rounded-lg hover:bg-red-30 font-bold text-sm">Borrar Todos</button>
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-3">
-                                <button id="btn-save-wheel" class="btn-primary btn-xl-lg">Guardar Ruleta</button>
-                                <button id="btn-delete-wheel" class="px-6 py-3 bg-red text-white rounded-xl hover:bg-red-600 font-bold">Eliminar</button>
                             </div>
                         </div>
                     </div>

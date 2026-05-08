@@ -413,6 +413,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS raffle_spins (
     FOREIGN KEY (raffle_id) REFERENCES raffles(id)
 )`);
 
+try { db.exec("ALTER TABLE raffle_spins ADD COLUMN lead_json TEXT"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)"); } catch (_) {}
 try { db.exec("ALTER TABLE raffle_results ADD COLUMN notes TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {}
 
@@ -420,53 +422,6 @@ try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {
 db.exec(`CREATE TABLE IF NOT EXISTS settings (
     setting_key TEXT PRIMARY KEY,
     setting_value TEXT
-)`);
-
-// ═══ TABLAS DE RULETA (V12) ═══
-db.exec(`CREATE TABLE IF NOT EXISTS event_wheels (
-    id TEXT PRIMARY KEY,
-    event_id TEXT,
-    name TEXT NOT NULL,
-    config TEXT, -- JSON config
-    is_active INTEGER DEFAULT 1,
-    created_at TEXT,
-    updated_at TEXT,
-    FOREIGN KEY (event_id) REFERENCES events(id)
-)`);
-
-db.exec(`CREATE TABLE IF NOT EXISTS wheel_participants (
-    id TEXT PRIMARY KEY,
-    wheel_id TEXT,
-    guest_id TEXT,
-    name TEXT,
-    email TEXT,
-    phone TEXT,
-    source TEXT DEFAULT 'manual', -- manual, guests, leads
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
-)`);
-
-db.exec(`CREATE TABLE IF NOT EXISTS wheel_spins (
-    id TEXT PRIMARY KEY,
-    wheel_id TEXT,
-    participant_id TEXT,
-    winner_name TEXT,
-    winner_email TEXT,
-    ip_address TEXT,
-    created_at TEXT,
-    FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
-)`);
-
-db.exec(`CREATE TABLE IF NOT EXISTS wheel_leads (
-    id TEXT PRIMARY KEY,
-    wheel_id TEXT,
-    name TEXT,
-    email TEXT,
-    phone TEXT,
-    company TEXT,
-    source_url TEXT,
-    created_at TEXT,
-    FOREIGN KEY (wheel_id) REFERENCES event_wheels(id)
 )`);
 
 // Semilla de textos legales (V12.1.1 - Profesional)
@@ -1197,22 +1152,6 @@ db.exec(`CREATE TABLE IF NOT EXISTS push_subscriptions (
     created_at TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )`);
-
-// 19. Resultados guardados de sorteos (Ruleta V12.26.0)
-db.exec(`CREATE TABLE IF NOT EXISTS wheel_results (
-    id TEXT PRIMARY KEY,
-    wheel_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    winners_json TEXT NOT NULL DEFAULT '[]',
-    total_participants INTEGER DEFAULT 0,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (wheel_id) REFERENCES event_wheels(id) ON DELETE CASCADE
-)`);
-
-// Índices para wheel_results
-try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_wheel ON wheel_results(wheel_id)"); } catch (_) {}
-try { db.exec("CREATE INDEX IF NOT EXISTS idx_wheel_results_created ON wheel_results(wheel_id DESC)"); } catch (_) {}
 
 // ═══ MÓDULO DE MAILING (V12.45 - Nuevo) ═══
 
