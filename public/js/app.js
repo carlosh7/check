@@ -1166,6 +1166,12 @@ const App = window.App = {
                     restrictedSection.classList.add('hidden');
                 }
             }
+            // Render charts visuales (reusing dashboard code)
+            if (!this.state.charts) this.state.charts = {};
+            this.renderOrgChart(res.orgDistribution);
+            this.renderStatusChart(res);
+            this.renderGenderChart(res.genderDistribution);
+            this.renderDietaryChart(res.dietaryDistribution);
         } catch(e) {
             console.error('[ANALYTICS] Error:', e);
         }
