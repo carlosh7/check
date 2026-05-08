@@ -111,21 +111,42 @@ router.post('/public-register', async (req, res) => {
         
         const guestId = getValidId('guests');
         const qrToken = uuidv4();
+        const now = new Date().toISOString();
         
-        targetDb.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
-          .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken);
+        // Verificar cupo por categoria para waitlist
+        let isWaitlisted = false;
+        let waitlistPosition = null;
+        const catId = req.body.category_id || null;
+        if (catId) {
+            try {
+                const cat = targetDb.prepare("SELECT capacity FROM guest_categories WHERE id = ? AND event_id = ?").get(catId, eId);
+                if (cat && cat.capacity > 0) {
+                    const activeCount = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND category_id = ? AND (status IS NULL OR status != 'waitlisted')").get(eId, catId);
+                    if (activeCount.c >= cat.capacity) {
+                        isWaitlisted = true;
+                        const maxPos = targetDb.prepare("SELECT MAX(waitlist_position) as m FROM guests WHERE event_id = ? AND category_id = ? AND status = 'waitlisted'").get(eId, catId);
+                        waitlistPosition = (maxPos.m || 0) + 1;
+                    }
+                }
+            } catch(_) {}
+        }
         
-        // Si usa BD del evento, también registrar en BD maestra (para compatibilidad)
+        targetDb.prepare(`INSERT INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, category_id, status, waitlist_position, waitlisted_at, is_new_registration, checked_in)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
+          .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken, catId,
+               isWaitlisted ? 'waitlisted' : null, isWaitlisted ? waitlistPosition : null, isWaitlisted ? now : null);
+        
+        // Si usa BD del evento, también registrar en BD maestra
         if (useEventDb && targetDb !== db) {
             try {
-                db.prepare(`INSERT OR IGNORE INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, is_new_registration, checked_in)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
-                  .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken);
+                db.prepare(`INSERT OR IGNORE INTO guests (id, event_id, name, email, phone, organization, position, gender, dietary_notes, qr_token, category_id, status, waitlist_position, waitlisted_at, is_new_registration, checked_in)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`)
+                  .run(guestId, eId, name, email, phone || '', organization || '', position || '', gender || 'O', dietary_notes || '', qrToken, catId,
+                       isWaitlisted ? 'waitlisted' : null, isWaitlisted ? waitlistPosition : null, isWaitlisted ? now : null);
             } catch (_) {}
         }
         
-        res.json({ success: true, message: 'Registro exitoso', guestId, qrToken });
+        res.json({ success: true, message: isWaitlisted ? 'Registrado en lista de espera' : 'Registro exitoso', guestId, qrToken, waitlisted: isWaitlisted, waitlistPosition });
     } catch (err) {
         console.error('[public-register] CRITICAL ERROR:', err);
         res.status(500).json({ success: false, error: 'Error al procesar registro: ' + err.message });

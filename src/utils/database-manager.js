@@ -100,6 +100,11 @@ function getEventConnection(eventId) {
             if (!cols.includes('category_id')) {
                 db.exec("ALTER TABLE guests ADD COLUMN category_id TEXT");
             }
+            if (!cols.includes('waitlist_position')) {
+                db.exec("ALTER TABLE guests ADD COLUMN waitlist_position INTEGER");
+                db.exec("ALTER TABLE guests ADD COLUMN promoted_at TEXT");
+                db.exec("ALTER TABLE guests ADD COLUMN waitlisted_at TEXT");
+            }
         } catch (_) {}
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS guest_status_log (
@@ -208,6 +213,9 @@ function createEventTables(db, eventId) {
             vegano TEXT DEFAULT 'NO',
             status TEXT DEFAULT 'lead',
             category_id TEXT,
+            waitlist_position INTEGER,
+            promoted_at TEXT,
+            waitlisted_at TEXT,
             is_new_registration INTEGER DEFAULT 0,
             checked_in INTEGER DEFAULT 0,
             checkin_time TEXT,

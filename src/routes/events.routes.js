@@ -1044,19 +1044,38 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER'
         const id = uuidv4();
         const now = new Date().toISOString();
         
+        // Verificar cupo por categoria para waitlist
+        let isWaitlisted = false;
+        let waitlistPosition = null;
+        if (category_id) {
+            const cat = targetDb.prepare("SELECT capacity FROM guest_categories WHERE id = ? AND event_id = ?").get(category_id, eventId);
+            if (cat && cat.capacity > 0) {
+                const activeCount = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND category_id = ? AND (status IS NULL OR status != 'waitlisted')").get(eventId, category_id);
+                if (activeCount.c >= cat.capacity) {
+                    isWaitlisted = true;
+                    const maxPos = targetDb.prepare("SELECT MAX(waitlist_position) as m FROM guests WHERE event_id = ? AND category_id = ? AND status = 'waitlisted'").get(eventId, category_id);
+                    waitlistPosition = (maxPos.m || 0) + 1;
+                }
+            }
+        }
+        
         targetDb.prepare(`
             INSERT INTO guests (
                 id, event_id, name, email, phone, organization, position, cargo, 
-                vegano, dietary_notes, restricciones, category_id, created_at
+                vegano, dietary_notes, restricciones, category_id, status, waitlist_position, waitlisted_at, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             id, eventId, name, email || null, phone || null, organization || null, 
             cargo || null, cargo || null, vegano || 'NO', 
-            restricciones || null, restricciones || null, category_id || null, now
+            restricciones || null, restricciones || null, category_id || null,
+            isWaitlisted ? 'waitlisted' : null,
+            isWaitlisted ? waitlistPosition : null,
+            isWaitlisted ? now : null,
+            now
         );
         
-        res.json({ success: true, id });
+        res.json({ success: true, id, waitlisted: isWaitlisted, waitlistPosition });
     } catch (e) {
         if (e.message.includes('UNIQUE constraint failed')) {
             return res.status(400).json({ error: 'El email ya está registrado para este evento' });
@@ -1123,7 +1142,29 @@ router.delete('/:id/attendance/:attendanceId', authMiddleware(['ADMIN', 'PRODUCT
     
     try {
         const targetDb = getEventDbForAttendance(eventId);
+        
+        // Obtener datos del invitado antes de eliminar
+        const deleted = targetDb.prepare("SELECT id, name, email, category_id, status, waitlist_position FROM guests WHERE id = ? AND event_id = ?").get(attendanceId, eventId);
+        
         targetDb.prepare('DELETE FROM guests WHERE event_id = ? AND id = ?').run(eventId, attendanceId);
+        
+        // Si se elimino un invitado activo (no waitlisted), promover al primero en waitlist de esa categoria
+        if (deleted && deleted.status !== 'waitlisted') {
+            const catId = deleted.category_id;
+            const next = targetDb.prepare("SELECT id, name, email, category_id FROM guests WHERE event_id = ? AND category_id = ? AND status = 'waitlisted' ORDER BY waitlist_position ASC LIMIT 1").get(eventId, catId);
+            if (next) {
+                const now = new Date().toISOString();
+                targetDb.prepare("UPDATE guests SET status = 'lead', waitlist_position = NULL, promoted_at = ? WHERE id = ?").run(now, next.id);
+                // Re-numerar los waitlisted restantes
+                const remaining = targetDb.prepare("SELECT id FROM guests WHERE event_id = ? AND category_id = ? AND status = 'waitlisted' ORDER BY waitlist_position ASC").all(eventId, catId);
+                remaining.forEach(function(g, idx) {
+                    targetDb.prepare("UPDATE guests SET waitlist_position = ? WHERE id = ?").run(idx + 1, g.id);
+                });
+                // Registrar en auditoria
+                logAction(req, AUDIT_ACTIONS.WAITLIST_PROMOTED, { guestId: next.id, name: next.name, email: next.email, categoryId: catId, eventId });
+            }
+        }
+        
         res.json({ success: true });
     } catch (e) {
         console.error('[ATTENDANCE] Error eliminando:', e.message);

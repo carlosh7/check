@@ -11202,12 +11202,13 @@ navigate(viewName, params = {}, push = true) {
                 EMAIL_SENT: 'Email enviado', EMAIL_BROADCAST: 'Campa&ntilde;a enviada',
                 SETTINGS_UPDATED: 'Configuraci&oacute;n actualizada',
                 WEBHOOK_CREATED: 'Webhook creado', WEBHOOK_UPDATED: 'Webhook actualizado', WEBHOOK_DELETED: 'Webhook eliminado', WEBHOOK_TRIGGERED: 'Webhook ejecutado',
+                WAITLIST_PROMOTED: 'Promocion de waitlist',
                 PUSH_SUBSCRIBE: 'Notificaciones activadas', PUSH_UNSUBSCRIBE: 'Notificaciones desactivadas', PUSH_SEND_TEST: 'Notificaci&oacute;n de prueba'
             };
             const icons = {
                 LOGIN: 'login', LOGOUT: 'logout', USER_CREATED: 'person_add', USER_DELETED: 'person_remove',
                 EVENT_CREATED: 'add_circle', EVENT_UPDATED: 'edit', EVENT_DELETED: 'delete',
-                GUEST_CHECKIN: 'check_circle', EMAIL_SENT: 'mail', EMAIL_BROADCAST: 'campaign',
+                GUEST_CHECKIN: 'check_circle', WAITLIST_PROMOTED: 'upgrade', EMAIL_SENT: 'mail', EMAIL_BROADCAST: 'campaign',
                 WEBHOOK_TRIGGERED: 'sync', SETTINGS_UPDATED: 'settings'
             };
 
@@ -16600,8 +16601,8 @@ App.renderAttendanceTable = function(attendance) {
     
     tbody.innerHTML = attendance.map(a => {
         const isSelected = selectedIds.includes(a.client_id);
-    const statusColors = { lead: '#64748b', contacted: '#3b82f6', confirmed: '#10b981', attended: '#8b5cf6', not_interested: '#ef4444' };
-    const statusLabels = { lead: 'Lead', contacted: 'Contactado', confirmed: 'Confirmado', attended: 'Asistió', not_interested: 'No interesado' };
+    const statusColors = { lead: '#64748b', contacted: '#3b82f6', confirmed: '#10b981', attended: '#8b5cf6', not_interested: '#ef4444', waitlisted: '#f59e0b' };
+    const statusLabels = { lead: 'Lead', contacted: 'Contactado', confirmed: 'Confirmado', attended: 'Asistió', not_interested: 'No interesado', waitlisted: 'En espera' };
     const currentStatus = a.status || 'lead';
     const statusColor = statusColors[currentStatus] || '#64748b';
         const veganoBadge = a.vegano === 'SI' 
@@ -16644,6 +16645,7 @@ App.renderAttendanceTable = function(attendance) {
                     <option value="confirmed" ${currentStatus === 'confirmed' ? 'selected' : ''}>Confirmado</option>
                     <option value="attended" ${currentStatus === 'attended' ? 'selected' : ''}>Asistió</option>
                     <option value="not_interested" ${currentStatus === 'not_interested' ? 'selected' : ''}>No interesado</option>
+                    <option value="waitlisted" ${currentStatus === 'waitlisted' ? 'selected' : ''}>En espera</option>
                 </select>
             </td>
             <td class="!py-3 !px-3 text-center">

@@ -135,6 +135,9 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
     vegano TEXT DEFAULT 'NO',
     status TEXT DEFAULT 'lead',
     category_id TEXT,
+    waitlist_position INTEGER,
+    promoted_at TEXT,
+    waitlisted_at TEXT,
     is_new_registration INTEGER DEFAULT 0,
     checked_in INTEGER DEFAULT 0,
     checkin_time TEXT,
@@ -149,7 +152,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
 // Migración V12.44.301: Asegurar columnas unificadas en la tabla guests
 try {
     const columns = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
-    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status', 'category_id'];
+    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status', 'category_id', 'waitlist_position', 'promoted_at', 'waitlisted_at'];
     required.forEach(col => {
         if (!columns.includes(col)) {
             let def = "TEXT";

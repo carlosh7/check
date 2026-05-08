@@ -478,6 +478,27 @@ router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PROD
     }
 });
 
+// GET /:eventId/availability - Cupos disponibles por categoria
+router.get('/:eventId/availability', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const targetDb = getEventDb(eId);
+        const cats = targetDb.prepare("SELECT * FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC").all(eId);
+        const categories = cats.map(function(c) {
+            const active = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND category_id = ? AND (status IS NULL OR status != 'waitlisted')").get(eId, c.id);
+            const waitlisted = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND category_id = ? AND status = 'waitlisted'").get(eId, c.id);
+            return { id: c.id, name: c.name, capacity: c.capacity, active: active.c, remaining: Math.max(0, c.capacity - active.c), waitlist: waitlisted.c };
+        });
+        const totalActive = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND (status IS NULL OR status != 'waitlisted')").get(eId);
+        const totalWaitlist = targetDb.prepare("SELECT COUNT(*) as c FROM guests WHERE event_id = ? AND status = 'waitlisted'").get(eId);
+        res.json({ categories, totalActive: totalActive.c, totalWaitlist: totalWaitlist.c });
+    } catch (err) {
+        console.error('[AVAILABILITY] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener disponibilidad' });
+    }
+});
+
 // PDF: Descargar gafetes (badges) con QR
 router.get('/:eventId/badges', authMiddleware(), async (req, res) => {
     try {

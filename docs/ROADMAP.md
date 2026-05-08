@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.614 |
-| **Ultima feature completada** | F4-10: Rol Organizer - permisos, eventos asignados, frontend |
+| **Version** | v12.44.615 |
+| **Ultima feature completada** | F3-08: Waitlist - cupo por categoria, promocion automatica, auditoria |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | F3-08: Waitlist |
+| **Proximo feature** | F4-11: Sesiones + Seat Maps |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
@@ -952,7 +952,7 @@ Registro de espacios fisicos para eventos:
 | F2-05 | Guest Categories (CRUD, columna, filtro, modal) | ✅ | v12.44.598 | 2026-05-07 |
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
-| F3-08 | Waitlist | ⏳ Pendiente | — | — |
+| F3-08 | Waitlist (cupo por categoria, promocion, auditoria) | ✅ | v12.44.615 | 2026-05-08 |
 | F3-09 | Export Google Sheets | ⏳ Pendiente | — | — |
 | F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
 | F4-11 | Sesiones + Seat Maps | ⏳ Pendiente | — | — |
