@@ -17460,6 +17460,31 @@ App.editAttendance = function(clientIds) {
         }).catch(() => {});
     }
     
+    // Cargar sesiones y sesiones del invitado
+    if (eId) {
+        Promise.all([
+            this.fetchAPI('/sessions/' + eId),
+            this.fetchAPI('/sessions/' + eId + '/my-sessions/' + clientId)
+        ]).then(function(results) {
+            var sessions = results[0] || [];
+            var mySessions = results[1] || [];
+            var myIds = {};
+            (mySessions || []).forEach(function(s) { myIds[s.id] = true; });
+            var container = document.getElementById('edit-attendance-sessions');
+            if (!container) return;
+            if (sessions.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay sesiones disponibles</p>';
+                return;
+            }
+            container.innerHTML = sessions.map(function(s) {
+                var checked = myIds[s.id] ? 'checked' : '';
+                return '<label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-[var(--bg-hover)] px-1 py-0.5 rounded">' +
+                    '<input type="checkbox" class="session-checkbox checkbox-sm" data-session="' + s.id + '" ' + checked + '> ' +
+                    (s.title || '') + ' <span class="text-slate-500">(' + (s.start_time || '') + ')</span></label>';
+            }).join('');
+        }).catch(function() {});
+    }
+    
     document.getElementById('modal-edit-attendance').classList.remove('hidden');
 };
 
@@ -17479,6 +17504,27 @@ App.editAttendance = function(clientIds) {
      
      try {
          await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, { method: 'PUT', body: JSON.stringify(data) });
+         
+         // Sincronizar sesiones del invitado
+         var sessionCheckboxes = document.querySelectorAll('#edit-attendance-sessions .session-checkbox');
+         var sessionOps = [];
+         sessionCheckboxes.forEach(function(cb) {
+             var sId = cb.dataset.session;
+             sessionOps.push({ sessionId: sId, register: cb.checked });
+         });
+         // Obtener sesiones actuales del invitado
+         var currentSessions = await this.fetchAPI('/sessions/' + eventId + '/my-sessions/' + clientId) || [];
+         var currentIds = {};
+         (currentSessions || []).forEach(function(s) { currentIds[s.id] = true; });
+         for (var i = 0; i < sessionOps.length; i++) {
+             var op = sessionOps[i];
+             if (op.register && !currentIds[op.sessionId]) {
+                 await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register', { method: 'POST', body: JSON.stringify({ guest_id: clientId }) });
+             } else if (!op.register && currentIds[op.sessionId]) {
+                 await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register/' + clientId, { method: 'DELETE' });
+             }
+         }
+         
         document.getElementById('modal-edit-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);
         Swal.fire({ title: '✅ Guardado', text: 'Asistente actualizado correctamente', icon: 'success', background: '#0f172a', color: '#fff', timer: 2000 });
