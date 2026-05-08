@@ -13341,7 +13341,7 @@ navigate(viewName, params = {}, push = true) {
             if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento primero', background: '#0f172a', color: '#fff' }); return; }
             try {
                 var res = await App.fetchAPI('/raffles/events/' + eventId + '/raffles', { method: 'POST', body: JSON.stringify(result.value) });
-                if (res && res.id) await App.openRaffleEditor(res.id);
+                if (res && res.id) { await App.openRaffleEditor(res.id); return; }
                 App.loadRaffles();
             } catch(e) { console.error('[RAFFLE] Error:', e.message); }
         });
