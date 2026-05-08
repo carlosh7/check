@@ -607,7 +607,8 @@
     cursor: move;
     user-select: none;
     box-sizing: border-box;
-    border: 2px solid transparent;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 2px;
     overflow: hidden;
 }
 .badge-element:hover { border-color: rgba(124, 58, 237, 0.4); }

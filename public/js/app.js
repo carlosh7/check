@@ -11469,8 +11469,8 @@ navigate(viewName, params = {}, push = true) {
 
     _getDefaultBadgeElements: function() {
         return [
-            { id: 'el_' + Date.now() + '_1', type: 'name', x: 5, y: 18, w: 80, h: 12, fontSize: 16, color: '#ffffff', align: 'center', bold: true },
-            { id: 'el_' + Date.now() + '_2', type: 'org', x: 5, y: 32, w: 80, h: 8, fontSize: 11, color: 'rgba(255,255,255,0.85)', align: 'center', bold: false },
+            { id: 'el_' + Date.now() + '_1', type: 'name', x: 5, y: 18, w: 80, h: 12, fontSize: 16, color: '#333333', align: 'center', bold: true },
+            { id: 'el_' + Date.now() + '_2', type: 'org', x: 5, y: 32, w: 80, h: 8, fontSize: 11, color: '#555555', align: 'center', bold: false },
             { id: 'el_' + Date.now() + '_3', type: 'qr', x: 35, y: 42, w: 20, h: 20 }
         ];
     },
@@ -11569,7 +11569,7 @@ navigate(viewName, params = {}, push = true) {
 
     _getElementStyle: function(el) {
         if (el.type === 'qr' || el.type === 'logo') return '';
-        return 'font-size:' + (el.fontSize || 12) + 'px;color:' + (el.color || '#ffffff') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';overflow:hidden;';
+        return 'font-size:' + (el.fontSize || 12) + 'px;color:' + (el.color || '#333333') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';overflow:hidden;';
     },
 
     selectBadgeElement: function(elId) {
@@ -11590,7 +11590,7 @@ navigate(viewName, params = {}, push = true) {
         }
         if (el.type !== 'qr' && el.type !== 'logo') {
             html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Tamaño</label><input type="number" class="input-field w-full text-xs py-1" value="' + (el.fontSize || 12) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'fontSize\',parseFloat(this.value)||12)"></div>';
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Color</label><input type="color" class="input-field w-full h-8 p-0.5" value="' + (el.color || '#ffffff') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'color\',this.value)"></div>';
+            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Color</label><input type="color" class="input-field w-full h-8 p-0.5" value="' + (typeof el.color === 'string' && el.color.startsWith('#') ? el.color : '#333333') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'color\',this.value)"></div>';
             html += '<div class="flex items-center gap-2 text-xs"><label class="text-slate-400">Alinear:</label><select class="input-field py-1 text-xs" style="width:auto" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'align\',this.value)"><option value="left"' + (el.align === 'left' ? ' selected' : '') + '>Izq</option><option value="center"' + (el.align === 'center' ? ' selected' : '') + '>Centro</option><option value="right"' + (el.align === 'right' ? ' selected' : '') + '>Der</option></select></div>';
             html += '<label class="flex items-center gap-2 text-xs"><input type="checkbox" ' + (el.bold ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'bold\',this.checked)" class="checkbox-sm"> Negrita</label>';
         }
