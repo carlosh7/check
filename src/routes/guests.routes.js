@@ -11,6 +11,7 @@ const { authMiddleware } = require('../middleware/auth');
 const { getIO: socketGetIO } = require('../socket');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
 const { sendPushToEventUsers } = require('./push.routes');
+const QRCode = require('qrcode');
 
 const router = express.Router();
 
@@ -395,6 +396,166 @@ router.get('/:eventId/pipeline', authMiddleware(), (req, res) => {
     } catch (err) {
         console.error('[PIPELINE] Error:', err.message);
         res.status(500).json({ error: 'Error al obtener pipeline' });
+    }
+});
+
+// PDF: Descargar gafetes (badges) con QR
+router.get('/:eventId/badges', authMiddleware(), async (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        const targetDb = getEventDb(eId);
+        const guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+
+        const { jsPDF } = require('jspdf');
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageW = 210;
+        const margin = 10;
+        const cols = 2;
+        const rows = 3;
+        const cardW = (pageW - margin * 3) / cols;
+        const cardH = 85;
+
+        for (let i = 0; i < guests.length; i++) {
+            const g = guests[i];
+            if (i > 0 && i % (cols * rows) === 0) doc.addPage();
+
+            const pos = i % (cols * rows);
+            const col = pos % cols;
+            const row = Math.floor(pos / cols);
+            const x = margin + col * (cardW + margin);
+            const y = margin + row * (cardH + margin);
+
+            // Borde de la tarjeta
+            doc.setDrawColor(124, 58, 237);
+            doc.setLineWidth(0.5);
+            doc.rect(x, y, cardW, cardH);
+
+            // Nombre del evento
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text(event.name || '', x + 3, y + 6);
+
+            // Nombre del invitado
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text(g.name || 'Sin nombre', x + 3, y + 18);
+
+            // Organizacion
+            doc.setFontSize(9);
+            doc.setTextColor(80);
+            doc.text(g.organization || '', x + 3, y + 26);
+
+            // QR
+            if (g.qr_token) {
+                try {
+                    const qrDataUrl = await QRCode.toDataURL(g.qr_token, { width: 80, margin: 1 });
+                    doc.addImage(qrDataUrl, 'PNG', x + cardW - 45, y + 25, 40, 40);
+                } catch (_) {}
+            }
+
+            // Pie
+            doc.setFontSize(7);
+            doc.setTextColor(150);
+            doc.text('Check Pro', x + 3, y + cardH - 3);
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Gafetes_${event.name.replace(/\s+/g, '_')}.pdf`);
+        res.send(Buffer.from(doc.output('arraybuffer')));
+    } catch (err) {
+        console.error('[BADGES] Error:', err.message);
+        res.status(500).json({ error: 'Error generando gafetes' });
+    }
+});
+
+// PDF: Reporte del evento
+router.get('/:eventId/report', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+
+        const event = db.prepare("SELECT * FROM events WHERE id = ?").get(eId);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        const targetDb = getEventDb(eId);
+        const guests = targetDb.prepare("SELECT * FROM guests WHERE event_id = ? ORDER BY name ASC").all(eId);
+
+        const total = guests.length;
+        const checkedIn = guests.filter(g => g.checked_in).length;
+        const conversionRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+        const orgs = [...new Set(guests.map(g => g.organization).filter(Boolean))].length;
+
+        const { jsPDF } = require('jspdf');
+        const autoTable = require('jspdf-autotable').default;
+        const doc = new jsPDF();
+
+        // Portada
+        doc.setFontSize(22);
+        doc.setTextColor(124, 58, 237);
+        doc.text('Reporte del Evento', 14, 30);
+        doc.setFontSize(12);
+        doc.setTextColor(60);
+        doc.text(event.name || 'Sin nombre', 14, 40);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 48);
+
+        // KPIs
+        doc.setFontSize(16);
+        doc.setTextColor(0);
+        doc.text('Resumen', 14, 68);
+
+        const kpiData = [
+            ['Total invitados', String(total)],
+            ['Check-ins', String(checkedIn)],
+            ['Pendientes', String(total - checkedIn)],
+            ['Tasa de conversion', conversionRate + '%'],
+            ['Organizaciones', String(orgs)]
+        ];
+
+        autoTable(doc, {
+            startY: 74,
+            head: [['Metrica', 'Valor']],
+            body: kpiData,
+            theme: 'grid',
+            headStyles: { fillColor: [124, 58, 237] }
+        });
+
+        // Lista de invitados
+        if (guests.length > 0) {
+            if (doc.lastAutoTable.finalY + 20 > 250) doc.addPage();
+            doc.setFontSize(16);
+            doc.setTextColor(0);
+            doc.text('Invitados', 14, (doc.lastAutoTable?.finalY || 74) + 20);
+
+            autoTable(doc, {
+                startY: (doc.lastAutoTable?.finalY || 74) + 26,
+                head: [['Nombre', 'Email', 'Organizacion', 'Estado', 'Asistio']],
+                body: guests.map(g => [
+                    g.name || '-',
+                    g.email || '-',
+                    g.organization || '-',
+                    g.status || 'lead',
+                    g.checked_in ? 'Si' : 'No'
+                ]),
+                theme: 'striped',
+                headStyles: { fillColor: [124, 58, 237] },
+                styles: { fontSize: 8 }
+            });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Reporte_${event.name.replace(/\s+/g, '_')}.pdf`);
+        res.send(Buffer.from(doc.output('arraybuffer')));
+    } catch (err) {
+        console.error('[REPORT] Error:', err.message);
+        res.status(500).json({ error: 'Error generando reporte' });
     }
 });
 

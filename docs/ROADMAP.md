@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.595 |
-| **Ultima feature completada** | F1-02: Pipeline Estados - columna status, log, dropdown en tabla, filtro |
+| **Version** | v12.44.596 |
+| **Ultima feature completada** | F2-04: PDF Export - gafetes con QR + reporte descargable |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | F2-04: PDF Export |
+| **Proximo feature** | F2-05: Guest Categories |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
@@ -182,7 +182,7 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 | Orden | Feature | Dependencia | Descripcion |
 |-------|---------|-------------|-------------|
 | 1 | **F1-02** Pipeline Estados | Ninguna directa (sienta base para F2-04, F2-05) | ✅ Completado v12.44.594 — status en BD, log, dropdown en tabla |
-| 2 | **F2-04** PDF Export | Pipeline (F1-02) | Gafetes con QR, reportes, certificados |
+| 2 | **F2-04** PDF Export | Pipeline (F1-02) | ✅ Completado v12.44.596 — gafetes QR + reporte con botones en toolbar |
 | 3 | **F2-05** Guest Categories | Pipeline (F1-02) | Categorias VIP, Regular, Staff con capacidad y campos personalizados |
 
 ### Tier 3 — Pronto (categorias o independientes)
@@ -948,7 +948,7 @@ Registro de espacios fisicos para eventos:
 | F1-01 | Dashboard Analytics (graficas visuales integradas) | ✅ | v12.44.592 | 2026-05-07 |
 | F1-02 | Pipeline Estados (status, log, dropdown, filtro) | ✅ | v12.44.594 | 2026-05-07 |
 | F1-03 | Clone Events | ✅ | v12.44.541 | 2026-05-07 |
-| F2-04 | PDF Export | ⏳ Pendiente | — | — |
+| F2-04 | PDF Export (gafetes QR + reporte) | ✅ | v12.44.596 | 2026-05-07 |
 | F2-05 | Guest Categories | ⏳ Pendiente | — | — |
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |

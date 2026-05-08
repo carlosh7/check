@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.595</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.596</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -169,11 +169,17 @@
                         <button class="btn-secondary" onclick="App.exportAttendance()">
                             <span class="material-symbols-outlined">download</span> Exportar
                         </button>
+                        <button class="btn-secondary" onclick="App.downloadBadges()">
+                            <span class="material-symbols-outlined">badge</span> Gafetes
+                        </button>
                         <button class="btn-danger" onclick="App.clearAttendanceDatabase()">
                             <span class="material-symbols-outlined">delete_forever</span> Borrar DB
                         </button>
                         <button id="btn-toggle-analytics" class="btn-secondary" onclick="App.toggleAnalytics()">
                             <span class="material-symbols-outlined">insights</span> Analytics
+                        </button>
+                        <button class="btn-secondary" onclick="App.downloadReport()">
+                            <span class="material-symbols-outlined">assessment</span> Reporte
                         </button>
                     </div>
 
