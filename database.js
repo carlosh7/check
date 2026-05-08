@@ -831,6 +831,19 @@ for (const sql of additionalIndices) {
     try { db.exec(sql); } catch (_) {}
 }
 
+// ═══ VENUES / ESPACIOS ═══
+db.exec(`CREATE TABLE IF NOT EXISTS venues (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    address TEXT,
+    capacity INTEGER DEFAULT 0,
+    resources TEXT DEFAULT '[]',
+    description TEXT,
+    created_at TEXT,
+    created_by TEXT
+)`);
+try { db.exec("ALTER TABLE events ADD COLUMN venue_id TEXT"); } catch (_) {}
+
 // ═══ SISTEMA DE AUTO-REPARACIÓN (V12.37.20) ═══
 // Detectar y reparar registros con ID nulo que bloquean la UI
 (function repairNullIds() {

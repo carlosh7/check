@@ -28,6 +28,7 @@ const webhooksRoutes = require('./webhooks.routes');
 const pushRoutes = require('./push.routes');
 const statsRoutes = require('./stats.routes');
 const importRoutes = require('./import.routes');
+const venuesRoutes = require('./venues.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -141,7 +142,8 @@ function registerRoutes(app, rootDir) {
     
     // Push notifications (Web Push API)
     app.use('/api/push', pushRoutes.router);
-    
+    app.use('/api/venues', venuesRoutes);
+
     // Stats (Dashboard Analítica)
     app.use('/api', statsRoutes);
     

@@ -10928,7 +10928,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10966,9 +10966,100 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'legal') this.loadLegalTexts();
         if (tabName === 'email') this.loadEmailModuleData();
         if (tabName === 'activity') this.loadActivityLogs();
+        if (tabName === 'venues') this.loadVenues();
 
 
         if (tabName === 'account') this.loadUserProfile();
+    },
+
+    // ── Venues / Espacios ──
+    loadVenues: async function() {
+        const tbody = document.getElementById('venues-tbody');
+        if (!tbody) return;
+        try {
+            const venues = await this.fetchAPI('/venues');
+            if (!Array.isArray(venues)) { tbody.innerHTML = '<tr><td colspan="5" class="table-td text-center">Error al cargar</td></tr>'; return; }
+            if (venues.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="table-td text-center text-[var(--text-muted)]">No hay espacios registrados</td></tr>'; return; }
+            tbody.innerHTML = venues.map(v =>
+                '<tr class="hover:bg-[var(--bg-hover)] transition-colors">' +
+                '<td class="table-td font-medium text-white">' + (v.name || '-') + '</td>' +
+                '<td class="table-td text-[var(--text-secondary)]">' + (v.address || '-') + '</td>' +
+                '<td class="table-td">' + (v.capacity || 0) + '</td>' +
+                '<td class="table-td text-[var(--text-secondary)]">' + (() => { try { return JSON.parse(v.resources || '[]').join(', ') || '-'; } catch(e) { return '-'; } })() + '</td>' +
+                '<td class="table-td"><div class="flex gap-1"><button onclick="App.openVenueModal(\'' + v.id + '\')" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="Editar"><span class="material-symbols-outlined text-slate-400 text-sm">edit</span></button>' +
+                '<button onclick="App.deleteVenue(\'' + v.id + '\')" class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors" title="Eliminar"><span class="material-symbols-outlined text-slate-400 text-sm">delete</span></button></div></td></tr>'
+            ).join('');
+        } catch(e) {
+            console.error('[VENUES] Error loading:', e);
+            tbody.innerHTML = '<tr><td colspan="5" class="table-td text-center text-red-400">Error al cargar espacios</td></tr>';
+        }
+    },
+
+    openVenueModal: async function(venueId) {
+        let venue = { name: '', address: '', capacity: 0, resources: [], description: '' };
+        if (venueId) {
+            try { venue = await this.fetchAPI('/venues/' + venueId); } catch(e) {}
+        }
+        const resources = ['Proyector', 'Sonido', 'WiFi', 'Aire acondicionado', 'Catering', 'Estacionamiento', 'Escenario', 'Pantalla'];
+        const checked = (venue.resources || []);
+        const resourceCheckboxes = resources.map(r =>
+            '<label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" class="venue-resource" value="' + r + '" ' + (checked.includes(r) ? 'checked' : '') + ' /> ' + r + '</label>'
+        ).join('');
+
+        Swal.fire({
+            title: venueId ? 'Editar Espacio' : 'Nuevo Espacio',
+            html:
+                '<div class="text-left space-y-3">' +
+                '<input id="swal-venue-id" type="hidden" value="' + (venueId || '') + '" />' +
+                '<div><label class="text-xs font-bold text-slate-400">Nombre *</label><input id="swal-venue-name" class="input-field w-full mt-1" value="' + (venue.name || '') + '" /></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Direcci&oacute;n</label><input id="swal-venue-address" class="input-field w-full mt-1" value="' + (venue.address || '') + '" /></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Capacidad</label><input id="swal-venue-capacity" type="number" class="input-field w-full mt-1" value="' + (venue.capacity || 0) + '" /></div>' +
+                '<div><label class="text-xs font-bold text-slate-400 mb-1 block">Recursos</label><div class="grid grid-cols-2 gap-1">' + resourceCheckboxes + '</div></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Descripci&oacute;n</label><textarea id="swal-venue-desc" class="input-field w-full mt-1" rows="2">' + (venue.description || '') + '</textarea></div></div>',
+            width: '500px',
+            background: '#0f172a', color: '#fff',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const name = document.getElementById('swal-venue-name')?.value?.trim();
+                if (!name) { Swal.showValidationMessage('El nombre es requerido'); return false; }
+                const resourcesSelected = Array.from(document.querySelectorAll('.venue-resource:checked')).map(cb => cb.value);
+                return {
+                    name, address: document.getElementById('swal-venue-address')?.value || '',
+                    capacity: parseInt(document.getElementById('swal-venue-capacity')?.value) || 0,
+                    resources: resourcesSelected,
+                    description: document.getElementById('swal-venue-desc')?.value || ''
+                };
+            }
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try {
+                const data = result.value;
+                const id = document.getElementById('swal-venue-id')?.value;
+                if (id) {
+                    await this.fetchAPI('/venues/' + id, { method: 'PUT', body: JSON.stringify(data) });
+                } else {
+                    await this.fetchAPI('/venues', { method: 'POST', body: JSON.stringify(data) });
+                }
+                this.loadVenues();
+                Swal.fire({ icon: 'success', title: 'Guardado', timer: 1500, background: '#0f172a', color: '#fff' });
+            } catch(e) {
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'No se pudo guardar', background: '#0f172a', color: '#fff' });
+            }
+        });
+    },
+
+    deleteVenue: async function(venueId) {
+        const result = await Swal.fire({ title: 'Eliminar espacio?', text: 'Esta acci&oacute;n no se puede deshacer', icon: 'warning', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!result.isConfirmed) return;
+        try {
+            await this.fetchAPI('/venues/' + venueId, { method: 'DELETE' });
+            this.loadVenues();
+            Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1500, background: '#0f172a', color: '#fff' });
+        } catch(e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'No se pudo eliminar', background: '#0f172a', color: '#fff' });
+        }
     },
 
     activityPage: 1,

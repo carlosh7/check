@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.583</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.584</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -951,6 +951,9 @@
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="activity" onclick="App.switchSystemTab('activity')">
                             <span class="material-symbols-outlined text-base">history</span> Actividad
                         </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
+                            <span class="material-symbols-outlined text-base">location_on</span> Espacios
+                        </button>
                     </div>
                     </div>
 
@@ -1308,6 +1311,33 @@
                             <button id="btn-activity-prev" onclick="App.loadActivityLogs(-1)" class="btn-secondary !px-3 !py-1 text-xs" disabled>Anterior</button>
                             <button id="btn-activity-next" onclick="App.loadActivityLogs(1)" class="btn-secondary !px-3 !py-1 text-xs">Siguiente</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESPACIOS -->
+                <div id="sys-content-venues" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-semibold tracking-tight">Espacios <span class="text-[var(--primary)]">F&iacute;sicos</span></h2>
+                            <p class="text-[var(--text-secondary)] text-sm">Registra y gestiona los espacios donde se realizan los eventos.</p>
+                        </div>
+                        <button class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openVenueModal()">
+                            <span class="material-symbols-outlined text-base">add_location</span> + Espacio
+                        </button>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th class="table-th">Nombre</th>
+                                    <th class="table-th">Direcci&oacute;n</th>
+                                    <th class="table-th">Capacidad</th>
+                                    <th class="table-th">Recursos</th>
+                                    <th class="table-th">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="venues-tbody" class="table-tbody"></tbody>
+                        </table>
                     </div>
                 </div>
 
