@@ -77,13 +77,20 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
 .toast.err{background:#7f1d1d;color:#fca5a5}
 @keyframes pop{0%{transform:scale(.9)translateX(-50%);opacity:0}to{transform:scale(1)translateX(-50%);opacity:1}}
 
+@media(min-width:400px){
+.wof__wheel{width:400px;height:400px}
+}
+@media(min-width:500px){
+.wof__wheel{width:450px;height:450px}
+}
 @media(min-width:1025px){
 .wof__main{flex-direction:row}
 .wof__main__l{margin-right:40px}
 .wof__main__r{text-align:left}
-.wof__wheel{width:500px;height:500px;-webkit-transform:rotate(0);transform:rotate(0)}
+.wof__wheel{width:550px;height:550px;-webkit-transform:rotate(0);transform:rotate(0);padding:14px}
 .wof__wheel__logo{width:120px;height:120px;transform:translate(-50%,-50%) rotate(0)}
 .wof__wheel__pointer{width:74px;height:45px;right:-40px}
+.wof__wheel__border{border-width:16px}
 .wof__main__watermark{bottom:20px;right:30px;left:auto;transform:none;font-size:13px}
 .wof__main__options{bottom:30px;right:30px;left:auto}
 .wof__main__btn{max-width:300px}
@@ -94,7 +101,7 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
 <div id="loading"><div><div class="sp"></div><p>Cargando ruleta...</p></div></div>
 <div id="error"><div><h2>Ruleta no disponible</h2><p id="errmsg"></p><button onclick="window.location.href='/'">Volver</button></div></div>
 
-<div id="screencast" class="wof__main centered">
+<div id="screencast" class="wof__main">
   <div class="wof__main__l">
     <div class="wof__wheel__winner" id="winner-display" style="display:none">
       <h2 id="winner-name"></h2>
@@ -113,7 +120,7 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
       </div>
       <div class="wof__wheel__border" id="wheel-border"></div>
     </div>
-    <button id="btn-spin" class="wof__main__btn" style="display:none">🎡 GIRAR</button>
+    <button id="btn-spin" class="wof__main__btn" style="display:none" onclick="spin()">🎡 GIRAR</button>
     <div class="wof__main__winners" id="winners-list"></div>
   </div>
   <div class="wof__main__r" id="right-panel" style="display:none">
@@ -211,6 +218,7 @@ function spin(){
     fetch(API+'/raffles/'+data.id+'/spin-with-lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({winnerName:'___lead___',name:fn+' '+ln,email:em})}).catch(function(){});
   }
   spinning=true;
+  document.getElementById('screencast').classList.add('spinning');
   document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=true});
   document.getElementById('winner-display').style.display='none';
   var cl=cols(),dur=cl.dur*1000;
@@ -221,6 +229,7 @@ function spin(){
     rot=sr+(target-sr)*e;draw();
     if(p<1)requestAnimationFrame(an);else{
       spinning=false;
+      document.getElementById('screencast').classList.remove('spinning');
       document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=false});
       var a=2*Math.PI/parts.length,f=(-rot)%(2*Math.PI);if(f<0)f+=2*Math.PI;
       var idx=Math.floor(f/a)%parts.length,win=parts[idx];
@@ -263,7 +272,7 @@ function confetti(){
     if(a)requestAnimationFrame(an)}(),setTimeout(function(){ctx.clearRect(0,0,cvc.width,cvc.height)},4e3)
 }
 
-function resetWheel(){rot=0;spinning=false;draw();document.getElementById('winner-display').style.display='none';document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=false})}
+function resetWheel(){rot=0;spinning=false;document.getElementById('screencast').classList.remove('spinning');draw();document.getElementById('winner-display').style.display='none';document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=false})}
 function useTheme(idx){
   var ts=[{name:'Clasico',colors:['#ff7878','#7eecec','#fff171','#7280fd']},{name:'Oceano',colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A']},{name:'Naturaleza',colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332']},{name:'Fuego',colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C']},{name:'Pastel',colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF']},{name:'Neon',colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600']}];
   var t=ts[idx];if(!t)return;
@@ -350,7 +359,9 @@ async function load(){
     }
 
     // Right panel visibility
-    if(showT||showD||showBtn){document.getElementById('right-panel').style.display='flex'}
+    var hasRight=showT&&c.title||showD&&c.description||showBtn;
+    if(hasRight){document.getElementById('right-panel').style.display='flex';document.getElementById('screencast').classList.remove('centered')}
+    else{document.getElementById('screencast').classList.add('centered')}
 
     // Sound
     sound=c.play_sounds!==false;
