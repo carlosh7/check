@@ -11019,7 +11019,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -11060,6 +11060,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'venues') this.loadVenues();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
+        if (tabName === 'google') this.loadGoogleTab();
 
         if (tabName === 'account') this.loadUserProfile();
     },
@@ -11843,7 +11844,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions', 'config-content-seatmaps', 'config-content-google'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -11895,7 +11896,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'badge') this.loadBadgeConfig();
         if (tabName === 'sessions') this.loadSessions();
         if (tabName === 'seatmaps') this.loadSeatLayouts();
-        if (tabName === 'seatmaps') this.loadSeatLayouts();
+        if (tabName === 'google') this.loadGoogleEventConfigData();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -16812,8 +16813,252 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
-};
+    // ── Google Sheets (F3-09) ──
 
+    loadGoogleTab: async function() {
+        try {
+            var res = await this.fetchAPI('/google/');
+            var configured = res && res.configured;
+            if (configured) {
+                var configRes = await this.fetchAPI('/settings');
+                if (configRes) {
+                    var cid = document.getElementById('google-client-id');
+                    var csec = document.getElementById('google-client-secret');
+                    var redir = document.getElementById('google-redirect-uri');
+                    if (cid) cid.value = configRes.google_client_id || '';
+                    if (csec) csec.value = configRes.google_client_secret || '';
+                    if (redir) redir.value = configRes.google_redirect_uri || '';
+                }
+                this.loadGoogleGroupsFilter();
+                this.loadGoogleAccounts();
+            } else {
+                var list = document.getElementById('google-accounts-list');
+                if (list) list.innerHTML = '<p class="text-xs text-slate-500 italic">Configura las credenciales OAuth de Google primero.</p>';
+            }
+        } catch(e) { console.error('[GOOGLE] Error loading tab:', e.message); }
+    },
+
+    loadGoogleGroupsFilter: async function() {
+        var sel = document.getElementById('google-filter-group');
+        if (!sel) return;
+        try {
+            var groups = await this.fetchAPI('/groups');
+            if (Array.isArray(groups)) {
+                var current = sel.value;
+                sel.innerHTML = '<option value="">Seleccionar empresa...</option>' +
+                    groups.map(function(g) { return '<option value="' + g.id + '">' + (g.name || 'Sin nombre') + '</option>'; }).join('');
+                if (current) sel.value = current;
+                if (current) this.loadGoogleAccounts();
+            }
+        } catch(e) {}
+    },
+
+    loadGoogleAccounts: async function() {
+        var sel = document.getElementById('google-filter-group');
+        var list = document.getElementById('google-accounts-list');
+        var addForm = document.getElementById('google-add-account-form');
+        if (!sel || !list) return;
+        var groupId = sel.value;
+        if (!groupId) {
+            list.innerHTML = '<p class="text-xs text-slate-500 italic">Selecciona una empresa para ver sus cuentas.</p>';
+            if (addForm) addForm.classList.add('hidden');
+            return;
+        }
+        if (addForm) addForm.classList.remove('hidden');
+        try {
+            var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
+            if (accounts.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin cuentas conectadas. Agrega una cuenta abajo.</p>';
+            } else {
+                list.innerHTML = accounts.map(function(a) {
+                    return '<div class="flex justify-between items-center p-2 rounded-lg bg-slate-800/50 mb-1">' +
+                        '<div><span class="text-sm text-white font-medium">' + (a.label || 'Sin etiqueta') + '</span>' +
+                        '<br><span class="text-xs text-slate-500">' + (a.google_email || 'Email desconocido') + '</span></div>' +
+                        '<div class="flex gap-1"><button class="btn-icon" onclick="App.editGoogleAccountLabel(\'' + a.id + '\',\'' + (a.label || '') + '\')"><span class="material-symbols-outlined text-sm text-slate-400">edit</span></button>' +
+                        '<button class="btn-icon text-red-400" onclick="App.deleteGoogleAccount(\'' + groupId + '\',\'' + a.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                }).join('');
+            }
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    saveGoogleOAuthConfig: async function() {
+        var clientId = document.getElementById('google-client-id')?.value?.trim();
+        var clientSecret = document.getElementById('google-client-secret')?.value?.trim();
+        var redirectUri = document.getElementById('google-redirect-uri')?.value?.trim();
+        try {
+            if (clientId) await this.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ key: 'google_client_id', value: clientId }) });
+            if (clientSecret) await this.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ key: 'google_client_secret', value: clientSecret }) });
+            if (redirectUri) await this.fetchAPI('/settings', { method: 'PUT', body: JSON.stringify({ key: 'google_redirect_uri', value: redirectUri }) });
+            Swal.fire({ icon: 'success', title: 'Configuraci&oacute;n guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            this.loadGoogleGroupsFilter();
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    connectGoogleAccount: async function() {
+        var sel = document.getElementById('google-filter-group');
+        var labelInput = document.getElementById('google-new-account-label');
+        var groupId = sel?.value;
+        var label = labelInput?.value?.trim() || 'Mi cuenta Google';
+        if (!groupId) { Swal.fire({ icon: 'warning', title: 'Selecciona una empresa', background: '#0f172a', color: '#fff' }); return; }
+        try {
+            var res = await this.fetchAPI('/google/auth?group_id=' + groupId + '&label=' + encodeURIComponent(label));
+            if (res && res.url) {
+                window.addEventListener('focus', function handler() {
+                    window.removeEventListener('focus', handler);
+                    setTimeout(function() { App.loadGoogleAccounts(); }, 2000);
+                });
+                window.open(res.url, 'google-oauth', 'width=600,height=700');
+            }
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    editGoogleAccountLabel: async function(accountId, currentLabel) {
+        var result = await Swal.fire({
+            title: 'Editar etiqueta',
+            input: 'text',
+            inputValue: currentLabel || '',
+            background: '#0f172a', color: '#fff',
+            showCancelButton: true, confirmButtonText: 'Guardar'
+        });
+        if (result.isConfirmed && result.value?.trim()) {
+            var sel = document.getElementById('google-filter-group');
+            if (sel) {
+                await this.fetchAPI('/google/groups/' + sel.value + '/accounts/' + accountId, { method: 'PUT', body: JSON.stringify({ label: result.value.trim() }) });
+                this.loadGoogleAccounts();
+            }
+        }
+    },
+
+    deleteGoogleAccount: async function(groupId, accountId) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar cuenta?', text: 'Los eventos que usan esta cuenta se desvincular&aacute;n.', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/google/groups/' + groupId + '/accounts/' + accountId, { method: 'DELETE' });
+            this.loadGoogleAccounts();
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    onGoogleAccountChange: async function() {
+        var sel = document.getElementById('evs-google-account');
+        var status = document.getElementById('evs-google-status');
+        if (sel && status) {
+            if (sel.value) {
+                status.innerHTML = '<p class="text-green-400">Cuenta seleccionada. Guarda la configuraci&oacute;n para aplicar.</p>';
+            } else {
+                status.innerHTML = '<p class="text-slate-500">Sin cuenta seleccionada. Los datos no se exportar&aacute;n a Sheets.</p>';
+            }
+        }
+    },
+
+    onGoogleSyncModeChange: function() {
+        var mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value;
+        var intervalGroup = document.getElementById('evs-google-interval-group');
+        if (intervalGroup) intervalGroup.classList.toggle('hidden', mode !== 'scheduled');
+    },
+
+    loadGoogleEventConfigData: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) return;
+        try {
+            var event = await this.fetchAPI('/events/' + eventId);
+            if (!event) return;
+            var groupId = event.group_id;
+            if (!groupId) {
+                var sel = document.getElementById('evs-google-account');
+                if (sel) { sel.innerHTML = '<option value="">El evento no tiene empresa asignada</option>'; }
+                return;
+            }
+            var accounts = await this.fetchAPI('/google/groups/' + groupId + '/accounts');
+            var sel = document.getElementById('evs-google-account');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Sin conexi&oacute;n --</option>' +
+                    accounts.map(function(a) { return '<option value="' + a.id + '">' + (a.label || 'Sin etiqueta') + (a.google_email ? ' (' + a.google_email + ')' : '') + '</option>'; }).join('');
+                sel.value = event.google_account_id || '';
+            }
+            this.loadGoogleEventConfig(eventId);
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    loadGoogleEventConfig: async function(eventId) {
+        if (!eventId) return;
+        try {
+            var event = await this.fetchAPI('/events/' + eventId);
+            if (!event) return;
+            var googleAccountId = document.getElementById('evs-google-account');
+            var googleSyncMode = document.querySelectorAll('input[name="evs-google-sync"]');
+            var googleInterval = document.getElementById('evs-google-interval');
+            var googleStatus = document.getElementById('evs-google-status');
+
+            if (googleAccountId) googleAccountId.value = event.google_account_id || '';
+
+            googleSyncMode.forEach(function(r) {
+                r.checked = r.value === (event.google_auto_sync_mode || 'manual');
+            });
+
+            if (googleInterval) googleInterval.value = event.google_sync_interval || 60;
+
+            if (googleStatus) {
+                var lastSync = event.google_last_sync_at ? new Date(event.google_last_sync_at).toLocaleString() : 'Nunca';
+                googleStatus.innerHTML = '<p class="text-xs text-slate-500">Modo: <strong class="text-white">' + (event.google_auto_sync_mode || 'manual') + '</strong> | Última sincronizaci&oacute;n: <strong class="text-white">' + lastSync + '</strong></p>';
+            }
+
+            this.onGoogleSyncModeChange();
+        } catch(e) { console.error('[GOOGLE] Error loading event config:', e.message); }
+    },
+
+    saveGoogleEventConfig: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento', background: '#0f172a', color: '#fff' }); return; }
+        var accountId = document.getElementById('evs-google-account')?.value || null;
+        var mode = document.querySelector('input[name="evs-google-sync"]:checked')?.value || 'manual';
+        var interval = parseInt(document.getElementById('evs-google-interval')?.value) || 60;
+        try {
+            await this.fetchAPI('/google/events/' + eventId + '/sync-config', {
+                method: 'PUT',
+                body: JSON.stringify({ google_account_id: accountId, google_auto_sync_mode: mode, google_sync_interval: interval })
+            });
+            Swal.fire({ icon: 'success', title: 'Configuraci&oacute;n guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        } catch(e) { console.error('[GOOGLE] Error:', e.message); }
+    },
+
+    exportEventToSheets: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) return;
+        try {
+            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST' });
+            if (res && res.success) {
+                Swal.fire({
+                    icon: 'success', title: 'Exportado correctamente',
+                    html: '<p class="text-sm text-slate-400 mb-3">' + res.guestCount + ' invitados exportados.</p><a href="' + res.spreadsheetUrl + '" target="_blank" class="btn-primary text-xs px-4 py-2">Abrir en Google Sheets</a>',
+                    background: '#0f172a', color: '#fff', showConfirmButton: false
+                });
+                var status = document.getElementById('evs-google-status');
+                if (status) status.innerHTML = '<p class="text-xs text-green-400">Última sincronizaci&oacute;n: ahora</p>';
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: res?.error || 'Error al exportar', background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    importEventFromSheets: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) return;
+        var confirm = await Swal.fire({
+            icon: 'question', title: 'Importar desde Sheets?',
+            text: 'Se importar&aacute;n los invitados desde la hoja vinculada. Los duplicados se omitir&aacute;n.',
+            showCancelButton: true, confirmButtonText: 'Importar', background: '#0f172a', color: '#fff'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+            var res = await this.fetchAPI('/google/events/' + eventId + '/import', { method: 'POST' });
+            if (res && res.success) {
+                Swal.fire({ icon: 'success', title: 'Importados ' + res.imported + ' invitados', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: res?.error || 'Error al importar', background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    }
+};
 
 window.switchSystemTab = App.switchSystemTab.bind(App);
 window.switchEventTab = App.switchEventTab.bind(App);

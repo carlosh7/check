@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.629</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.630</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -344,6 +344,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="seatmaps" onclick="App.switchConfigTab('seatmaps')">
                             <span class="material-symbols-outlined">event_seat</span> Planos
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="google" onclick="App.switchConfigTab('google')">
+                            <span class="material-symbols-outlined">table_chart</span> Google Sheets
                         </button>
                     </div>
 
@@ -1121,6 +1124,55 @@
                         </div>
                     </div>
                 </div>
+
+                    <!-- CONTENIDO: GOOGLE SHEETS -->
+                    <div id="config-content-google" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Google <span class="text-[var(--primary)]">Sheets</span></h2>
+                        </div>
+                        <div class="card p-4 space-y-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Cuenta Google</label>
+                                <select id="evs-google-account" class="input-field w-full" onchange="App.onGoogleAccountChange()">
+                                    <option value="">-- Sin conexi&oacute;n --</option>
+                                </select>
+                                <p class="text-[10px] text-slate-500 mt-1">Las cuentas se configuran en Sistema &gt; Google Sheets, seleccionando una empresa.</p>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Modo de sincronizaci&oacute;n</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                        <input type="radio" name="evs-google-sync" value="manual" class="radio-sm" onchange="App.onGoogleSyncModeChange()"> Manual
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                        <input type="radio" name="evs-google-sync" value="checkin" class="radio-sm" onchange="App.onGoogleSyncModeChange()"> Por check-in
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                        <input type="radio" name="evs-google-sync" value="scheduled" class="radio-sm" onchange="App.onGoogleSyncModeChange()"> Programado
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="evs-google-interval-group" class="hidden">
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Intervalo (minutos)</label>
+                                <input type="number" id="evs-google-interval" class="input-field w-32" value="60" min="5" max="1440">
+                                <p class="text-[10px] text-slate-500 mt-1">M&iacute;nimo 5 min, m&aacute;ximo 1440 min (24h).</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-primary text-xs" onclick="App.saveGoogleEventConfig()">
+                                    <span class="material-symbols-outlined text-sm">save</span> Guardar configuraci&oacute;n
+                                </button>
+                                <button class="btn-secondary text-xs" onclick="App.exportEventToSheets()">
+                                    <span class="material-symbols-outlined text-sm">table_chart</span> Exportar ahora
+                                </button>
+                                <button class="btn-secondary text-xs" onclick="App.importEventFromSheets()">
+                                    <span class="material-symbols-outlined text-sm">download</span> Importar desde Sheets
+                                </button>
+                            </div>
+                            <div id="evs-google-status" class="text-xs text-slate-500">
+                                <p>Selecciona una cuenta y guarda la configuraci&oacute;n.</p>
+                            </div>
+                        </div>
+                    </div>
             </section>
 
             <!-- VIEW: SISTEMA (UNIFIED HUB) -->
@@ -1156,6 +1208,9 @@
                         </button>
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="compliance" onclick="App.switchSystemTab('compliance')">
                             <span class="material-symbols-outlined text-base">verified_user</span> Compliance
+                        </button>
+                        <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="google" onclick="App.switchSystemTab('google')">
+                            <span class="material-symbols-outlined text-base">table_chart</span> Google Sheets
                         </button>
                         <button class="btn-secondary btn-standard flex items-center gap-1.5 sub-nav-btn" data-tab="venues" onclick="App.switchSystemTab('venues')">
                             <span class="material-symbols-outlined text-base">location_on</span> Espacios
@@ -1801,6 +1856,55 @@
                                 <button id="btn-access-prev" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(-1)" disabled>Anterior</button>
                                 <button id="btn-access-next" class="btn-secondary text-xs px-3 py-1" onclick="App.loadComplianceAccessLogs(1)">Siguiente</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: GOOGLE SHEETS (F3-09) -->
+                <div id="sys-content-google" class="hidden space-y-4">
+                    <div>
+                        <h2 class="text-2xl font-semibold tracking-tight">Google <span class="text-[var(--primary)]">Sheets</span></h2>
+                        <p class="text-[var(--text-secondary)] text-sm">Conecta cuentas Google y sincroniza invitados con Google Sheets.</p>
+                    </div>
+
+                    <!-- Configuración OAuth Global -->
+                    <div class="card p-4 space-y-3">
+                        <h3 class="text-sm font-bold text-white">Configuraci&oacute;n OAuth Global</h3>
+                        <p class="text-xs text-slate-500">Necesitas un proyecto en Google Cloud Console con la API de Sheets habilitada.</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Client ID</label>
+                                <input id="google-client-id" class="input-field w-full text-xs" placeholder="xxx.apps.googleusercontent.com">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Client Secret</label>
+                                <input id="google-client-secret" type="password" class="input-field w-full text-xs" placeholder="GOCSPX-xxx">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Redirect URI</label>
+                                <input id="google-redirect-uri" class="input-field w-full text-xs" placeholder="https://tudominio.com/api/google/callback">
+                            </div>
+                        </div>
+                        <button class="btn-primary text-xs" onclick="App.saveGoogleOAuthConfig()">Guardar configuraci&oacute;n OAuth</button>
+                    </div>
+
+                    <!-- Cuentas por Grupo -->
+                    <div class="card p-4 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-white">Cuentas conectadas por empresa</h3>
+                            <select id="google-filter-group" onchange="App.loadGoogleAccounts()" class="input-field text-xs py-1 px-2">
+                                <option value="">Seleccionar empresa...</option>
+                            </select>
+                        </div>
+                        <div id="google-accounts-list">
+                            <p class="text-xs text-slate-500 italic">Selecciona una empresa para ver sus cuentas.</p>
+                        </div>
+                        <div id="google-add-account-form" class="hidden flex gap-2 items-end">
+                            <div class="flex-1">
+                                <label class="text-xs font-bold text-slate-400 block mb-1">Etiqueta para la cuenta</label>
+                                <input id="google-new-account-label" class="input-field w-full text-xs" placeholder="Ej: Cliente Hotel X">
+                            </div>
+                            <button class="btn-primary text-xs" onclick="App.connectGoogleAccount()">Conectar cuenta Google</button>
                         </div>
                     </div>
                 </div>

@@ -118,6 +118,11 @@ try { db.exec("ALTER TABLE events ADD COLUMN ticket_bg_url TEXT"); } catch (_) {
 try { db.exec("ALTER TABLE events ADD COLUMN ticket_accent_color TEXT DEFAULT '#7c3aed'"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_email_whitelist TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN reg_email_blacklist TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_account_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_auto_sync_mode TEXT DEFAULT 'scheduled'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_sync_interval INTEGER DEFAULT 60"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_last_sync_at TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN google_debounce_until TEXT"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
@@ -418,6 +423,11 @@ db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_openrouter_key', '');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_model', 'google/gemini-2.0-flash-lite-preview-02-05:free');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_system_prompt', 'Eres un asistente experto en gestión de eventos para la plataforma Check Pro. Ayudas a redactar correos, analizar datos de invitados y responder dudas logísticas.');
+
+// 7.3 Configuración Google Sheets OAuth (F3-09)
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('google_client_id', '');
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('google_client_secret', '');
+db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('google_redirect_uri', '');
 
 // ============================================================
 // 7.3 Políticas de Seguridad IA por defecto (v12.44.624)
@@ -928,6 +938,23 @@ db.exec(`CREATE TABLE IF NOT EXISTS user_events (
 // Migraciones: agregar group_id a tablas existentes si no existen
 try { db.exec("ALTER TABLE users ADD COLUMN group_id TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN group_id TEXT"); } catch (_) {}
+
+// ═══ TABLA: CUENTAS GOOGLE POR GRUPO (F3-09) ═══
+db.exec(`CREATE TABLE IF NOT EXISTS group_google_accounts (
+    id TEXT PRIMARY KEY,
+    group_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    google_email TEXT,
+    refresh_token TEXT,
+    created_by TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT,
+    FOREIGN KEY (group_id) REFERENCES groups(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+)`);
+
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_gga_group ON group_google_accounts(group_id)"); } catch (_) {}
+try { db.exec("ALTER TABLE group_google_accounts ADD COLUMN spreadsheet_id TEXT"); } catch (_) {}
 
 // ═══ NUEVAS TABLAS V12.45: CLIENTES ═══
 

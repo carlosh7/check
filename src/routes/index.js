@@ -33,6 +33,7 @@ const seatLayoutsRoutes = require('./seat-layouts.routes');
 const aiSecurityRoutes = require('./ai-security.routes');
 const complianceRoutes = require('./compliance.routes');
 const venuesRoutes = require('./venues.routes');
+const googleRoutes = require('./google.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -159,6 +160,10 @@ app.use('/api/compliance', complianceRoutes);
     // Push notifications (Web Push API)
     app.use('/api/push', pushRoutes.router);
     app.use('/api/venues', venuesRoutes);
+
+    // Google Sheets Integration (F3-09)
+    app.use('/api/google', googleRoutes.router);
+    googleRoutes.startSyncWorker();
 
     // Stats (Dashboard Analítica)
     app.use('/api', statsRoutes);
