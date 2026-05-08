@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.634</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.635</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -70,29 +70,89 @@
         <div class="app-scroll-area">
 
             <!-- VIEW: MIS EVENTOS -->
-            <section id="view-my-events" class="view-section hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h1 class="page-title">Mis Eventos</h1>
-                    <button id="btn-new-event-full" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openCreateEventModal()">
-                        <span class="material-symbols-outlined text-base">add</span> Nuevo Evento
-                    </button>
-                </div>
-                <div class="flex gap-2 flex-wrap items-center mb-4">
-                    <input id="event-search" type="text" class="search-input" placeholder="Buscar eventos por nombre, cliente o ubicaci&oacute;n..."
-                           oninput="App.filterMyEvents()" autocomplete="off">
-                    <select id="filter-event-client" onchange="App.filterMyEvents()" class="filter-select">
-                        <option value="">Todos los clientes</option>
-                    </select>
-                    <select id="filter-event-status" onchange="App.filterMyEvents()" class="filter-select">
-                        <option value="">Todos los estados</option>
-                        <option value="ACTIVE">Activos</option>
-                        <option value="DRAFT">Borrador</option>
-                        <option value="COMPLETED">Completados</option>
-                        <option value="CANCELLED">Cancelados</option>
-                    </select>
-                </div>
-                <div id="events-table-container" class="card p-0 overflow-hidden">
-                    <p class="text-center py-8 text-slate-500">Cargando eventos...</p>
+            <section id="view-my-events" class="view-section hidden" data-section="my-events">
+                <div class="w-full">
+                    <div class="sticky-header">
+                        <div class="action-bar">
+                            <div class="action-bar-group">
+                                <button id="btn-new-event-full" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openCreateEventModal()">
+                                    <span class="material-symbols-outlined text-base">add</span> Evento
+                                </button>
+                                <button id="btn-edit-events" class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openEventEditAction()">
+                                    <span class="material-symbols-outlined text-base">edit</span> Editar
+                                </button>
+                                <button id="btn-import-events" class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.openImportModal('events')">
+                                    <span class="material-symbols-outlined text-base">upload</span> Importar
+                                </button>
+                                <button id="btn-export-events" class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.exportEvents()">
+                                    <span class="material-symbols-outlined text-base">download</span> Exportar
+                                </button>
+                                <button id="btn-clone-event" class="btn-secondary btn-standard flex items-center gap-1.5" onclick="App.cloneSelectedEvent()">
+                                    <span class="material-symbols-outlined text-base">content_copy</span> Duplicar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="filters-row flex gap-2 flex-wrap items-center mt-3">
+                            <select id="filter-event-client" onchange="App.filterEvents()" class="filter-select">
+                                <option value="">Cliente</option>
+                            </select>
+                            <select id="filter-event-status" onchange="App.filterEvents()" class="filter-select">
+                                <option value="">Estado</option>
+                                <option value="active">Activo</option>
+                                <option value="upcoming">Pr&oacute;ximo</option>
+                                <option value="completed">Finalizado</option>
+                                <option value="draft">Borrador</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div class="page-header mt-3">
+                            <div>
+                                <h1 class="page-title">Mis <span class="text-[var(--primary)]">Eventos</span></h1>
+                                <p id="my-events-subtitle" class="text-sm text-slate-400"></p>
+                            </div>
+                        </div>
+
+                        <div class="search-box-container mt-3">
+                            <input id="event-search" type="text" class="search-input" placeholder="Buscar por nombre, cliente, locaci&oacute;n, estado..."
+                                   oninput="App.filterEvents(); App.showEventSuggestions()" onfocus="App.showEventSuggestions()" autocomplete="off">
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <span id="event-voice-btn" class="material-symbols-outlined search-icon-btn" onclick="App.toggleVoiceSearch('event')" title="B&uacute;squeda por voz">mic</span>
+                            <span class="material-symbols-outlined search-clear-btn" onclick="document.getElementById('event-search').value=''; App.filterEvents(); App.hideEventSuggestions();">close</span>
+                            <div id="event-suggestions" class="hidden suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll-container mt-4">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th class="table-th table-checkbox-cell" style="width:40px">
+                                        <input type="checkbox" id="select-all-events" onchange="App.toggleSelectAllEvents()" class="checkbox-sm">
+                                    </th>
+                                    <th class="table-th sortable" data-sort="name" data-type="text" onclick="App.sortEventsTable('name')">Evento <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="date" data-type="date" onclick="App.sortEventsTable('date')">Fecha / Cuenta Regresiva <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="client" data-type="text" onclick="App.sortEventsTable('client')">Cliente <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="location" data-type="text" onclick="App.sortEventsTable('location')">Locaci&oacute;n <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="guests" data-type="number" onclick="App.sortEventsTable('guests')">Asistentes <span class="sort-icon">⇅</span></th>
+                                    <th class="table-th sortable" data-sort="status" data-type="text" onclick="App.sortEventsTable('status')">Estado <span class="sort-icon">⇅</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="events-tbody" class="table-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="events-empty-state" class="empty-state hidden flex flex-col items-center justify-center py-12">
+                        <div class="empty-state-icon mb-4">
+                            <span class="material-symbols-outlined text-5xl text-slate-600">event</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-400 mb-2">Sin eventos activos</h3>
+                        <p class="text-sm text-slate-500 mb-4">Comienza creando tu primer evento</p>
+                        <button id="btn-new-event-full-empty" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openCreateEventModal()">
+                            <span class="material-symbols-outlined text-base">add</span> Crear Evento
+                        </button>
+                    </div>
                 </div>
             </section>
 
