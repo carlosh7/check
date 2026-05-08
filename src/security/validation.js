@@ -103,7 +103,9 @@ const schemas = {
         reg_show_vegan: z.union([z.boolean(), z.number()]).optional(),
         qr_color_dark: z.string().optional(),
         qr_color_light: z.string().optional(),
-        ticket_accent_color: z.string().optional()
+        ticket_bg_url: z.string().optional(),
+        ticket_accent_color: z.string().optional(),
+        venue_id: z.string().optional().nullable()
     }),
 
     createGuest: z.object({

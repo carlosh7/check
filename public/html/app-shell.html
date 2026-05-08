@@ -205,7 +205,8 @@
                         <div>
                             <h1 id="admin-event-title" class="page-title">Cargando...</h1>
                             <div class="event-details">
-                                <span id="admin-event-location" class="font-bold uppercase tracking-widest">Ubicación</span>
+                                <span id="admin-event-location" class="font-bold uppercase tracking-widest">Ubicaci&oacute;n</span>
+                                <span id="admin-event-venue" class="text-xs text-[var(--text-secondary)] block mt-1"></span>
                             </div>
                         </div>
                     </div>
@@ -799,8 +800,14 @@
                                         <input type="text" id="evs-name" class="input-field w-full" placeholder="Nombre del evento">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold uppercase text-">Ubicación</label>
+                                        <label class="text-xs font-bold uppercase text-">Ubicaci&oacute;n</label>
                                         <input type="text" id="evs-location" class="input-field w-full" placeholder="Ciudad, Hotel o Virtual">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase text-[var(--text-secondary)]">Espacio (Venue)</label>
+                                        <select id="evs-venue" class="input-field w-full">
+                                            <option value="">-- Sin espacio asignado --</option>
+                                        </select>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-xs font-bold uppercase text-">Descripción</label>

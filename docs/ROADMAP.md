@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.558 |
-| **Ultima feature completada** | F2-06: Activity Logs (timeline en Sistema) |
+| **Version** | v12.44.584 |
+| **Ultima feature completada** | F4-12: Venues/Espacios + conexion con eventos |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | F1-01: Dashboard Analytics |
+| **Proximo feature** | F4-11: Sesiones + Seat Maps |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
@@ -956,7 +956,7 @@ Registro de espacios fisicos para eventos:
 | F3-09 | Export Google Sheets | ⏳ Pendiente | — | — |
 | F4-10 | Rol Organizer | ⏳ Pendiente | — | — |
 | F4-11 | Sesiones + Seat Maps | ⏳ Pendiente | — | — |
-| F4-12 | Venues | ⏳ Pendiente | — | — |
+| F4-12 | Venues | ✅ | v12.44.584 | 2026-05-07 |
 | BL-13..28 | Backlog | ⏳ Pendiente | — | — |
 
 ---

@@ -212,7 +212,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
             ticket_bg_url = COALESCE(?, ticket_bg_url),
             ticket_accent_color = COALESCE(?, ticket_accent_color),
             reg_email_whitelist = COALESCE(?, reg_email_whitelist),
-            reg_email_blacklist = COALESCE(?, reg_email_blacklist)
+            reg_email_blacklist = COALESCE(?, reg_email_blacklist),
+            venue_id = COALESCE(?, venue_id)
         WHERE id = ?
     `).run(
         d.name, d.date, d.location, d.logo_url, d.description, d.end_date, d.status, 
@@ -225,7 +226,8 @@ router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
         'reg_show_dietary' in d ? (d.reg_show_dietary ? 1 : 0) : undefined, 
         'reg_show_gender' in d ? (d.reg_show_gender ? 1 : 0) : undefined, 
         'reg_require_agreement' in d ? (d.reg_require_agreement ? 1 : 0) : undefined, 
-        d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color, d.reg_email_whitelist, d.reg_email_blacklist, eventId
+        d.qr_color_dark, d.qr_color_light, d.qr_logo_url, d.ticket_bg_url, d.ticket_accent_color,
+        d.reg_email_whitelist, d.reg_email_blacklist, d.venue_id || null, eventId
     );
 
     // Invalidate cache

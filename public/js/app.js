@@ -9663,6 +9663,19 @@ navigate(viewName, params = {}, push = true) {
         const loc = document.getElementById('admin-event-location');
         if (tit) tit.innerText = this.state.event.name;
         if (loc) loc.innerText = this.state.event.location;
+        // Mostrar venue asignado
+        const venueId = this.state.event.venue_id;
+        const venueEl = document.getElementById('admin-event-venue');
+        if (venueEl) {
+            if (venueId) {
+                try {
+                    const venue = await this.fetchAPI('/venues/' + venueId);
+                    venueEl.textContent = '📍 ' + (venue.name || '');
+                } catch(e) { venueEl.textContent = ''; }
+            } else {
+                venueEl.textContent = '';
+            }
+        }
         this.loadGuests();
         this.updateStats();
         if (this.state.socket) this.state.socket.emit('join_event', id);
@@ -11062,6 +11075,20 @@ navigate(viewName, params = {}, push = true) {
         }
     },
 
+    loadVenuesSelect: async function() {
+        const sel = document.getElementById('evs-venue');
+        if (!sel) return;
+        try {
+            const venues = await this.fetchAPI('/venues');
+            if (Array.isArray(venues)) {
+                const current = sel.value;
+                sel.innerHTML = '<option value="">-- Sin espacio asignado --</option>' +
+                    venues.map(v => '<option value="' + v.id + '">' + v.name + (v.address ? ' - ' + v.address : '') + '</option>').join('');
+                if (current) sel.value = current;
+            }
+        } catch(e) {}
+    },
+
     activityPage: 1,
 
     loadActivityLogs: async function(direction) {
@@ -11291,6 +11318,11 @@ navigate(viewName, params = {}, push = true) {
         if (document.getElementById('evs-desc')) document.getElementById('evs-desc').value = ev.description || '';
         if (document.getElementById('evs-date')) document.getElementById('evs-date').value = ev.date ? ev.date.slice(0, 16) : '';
         if (document.getElementById('evs-end-date')) document.getElementById('evs-end-date').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+        // Cargar venues y seleccionar el asignado
+        this.loadVenuesSelect().then(() => {
+            const sel = document.getElementById('evs-venue');
+            if (sel && ev.venue_id) sel.value = ev.venue_id;
+        });
         
         // Link de registro
         const regLink = `${window.location.origin}/registro.html?event=${ev.id}`;
@@ -11356,7 +11388,8 @@ navigate(viewName, params = {}, push = true) {
             ticket_bg_url: getVal('evs-ticket-bg'),
             ticket_accent_color: getVal('evs-ticket-accent'),
             reg_email_whitelist: getVal('evs-reg-whitelist'),
-            reg_email_blacklist: getVal('evs-reg-blacklist')
+            reg_email_blacklist: getVal('evs-reg-blacklist'),
+            venue_id: getVal('evs-venue')
         };
         
         try {
