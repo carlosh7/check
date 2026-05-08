@@ -11289,7 +11289,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge', 'config-content-sessions'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -11339,6 +11339,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
         if (tabName === 'badge') this.loadBadgeConfig();
+        if (tabName === 'sessions') this.loadSessions();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');
@@ -11928,6 +11929,104 @@ navigate(viewName, params = {}, push = true) {
         win.document.close();
         win.focus();
         setTimeout(function() { win.print(); }, 300);
+    },
+
+    // ── Sesiones ──
+
+    loadSessions: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const tbody = document.getElementById('sessions-tbody');
+        if (!tbody) return;
+        try {
+            const sessions = await this.fetchAPI('/sessions/' + eId);
+            if (!sessions || sessions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin sesiones. Crea la primera!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = sessions.map(function(s) {
+                var cap = s.capacity > 0 ? s.capacity : 'Ilimitado';
+                var pct = s.capacity > 0 ? (s.guestCount >= s.capacity ? 'text-red-400' : 'text-green-400') : '';
+                return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                    '<td class="table-td font-medium text-white">' + (s.title || '') + (s.description ? '<br><span class="text-[10px] text-slate-500">' + s.description + '</span>' : '') + '</td>' +
+                    '<td class="table-td">' + (s.date || '-') + '</td>' +
+                    '<td class="table-td">' + (s.start_time || '') + (s.end_time ? ' - ' + s.end_time : '') + '</td>' +
+                    '<td class="table-td">' + cap + '</td>' +
+                    '<td class="table-td font-bold ' + pct + '">' + (s.guestCount || 0) + '</td>' +
+                    '<td class="table-td text-slate-400">' + (s.location || '-') + '</td>' +
+                    '<td class="table-td">' +
+                    '<button class="btn-icon" onclick="App.editSession(\'' + s.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                    '<button class="btn-icon text-red-400" onclick="App.deleteSession(\'' + s.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>' +
+                    '</td></tr>';
+            }).join('');
+        } catch(e) { console.error('[SESSIONS] Error:', e.message); }
+    },
+
+    openSessionModal: function(session) {
+        var modal = document.getElementById('modal-session');
+        if (!modal) return;
+        document.getElementById('session-id')?.remove();
+        document.getElementById('session-title').value = session?.title || '';
+        document.getElementById('session-description').value = session?.description || '';
+        document.getElementById('session-date').value = session?.date || '';
+        document.getElementById('session-start').value = session?.start_time || '';
+        document.getElementById('session-end').value = session?.end_time || '';
+        document.getElementById('session-capacity').value = session?.capacity || '';
+        document.getElementById('session-location').value = session?.location || '';
+        if (session) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.id = 'session-id';
+            input.value = session.id;
+            modal.querySelector('form').appendChild(input);
+        }
+        modal.classList.remove('hidden');
+    },
+
+    editSession: function(sId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI('/sessions/' + eId).then(function(sessions) {
+            var s = (sessions || []).find(function(s) { return s.id === sId; });
+            if (s) App.openSessionModal(s);
+        });
+    },
+
+    saveSession: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var title = document.getElementById('session-title')?.value.trim();
+        if (!title) return Swal.fire({ icon: 'warning', title: 'Titulo requerido' });
+        var sId = document.getElementById('session-id')?.value;
+        var body = {
+            title: title,
+            description: document.getElementById('session-description')?.value || '',
+            date: document.getElementById('session-date')?.value || '',
+            start_time: document.getElementById('session-start')?.value || '',
+            end_time: document.getElementById('session-end')?.value || '',
+            capacity: parseInt(document.getElementById('session-capacity')?.value) || 0,
+            location: document.getElementById('session-location')?.value || ''
+        };
+        try {
+            if (sId) {
+                await this.fetchAPI('/sessions/' + eId + '/' + sId, { method: 'PUT', body: JSON.stringify(body) });
+            } else {
+                await this.fetchAPI('/sessions/' + eId, { method: 'POST', body: JSON.stringify(body) });
+            }
+            document.getElementById('modal-session')?.classList.add('hidden');
+            this.loadSessions();
+        } catch(e) { console.error('[SESSIONS] Error:', e.message); }
+    },
+
+    deleteSession: async function(sId) {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sesion?', text: 'Los invitados registrados seran liberados.', showCancelButton: true });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/sessions/' + eId + '/' + sId, { method: 'DELETE' });
+            this.loadSessions();
+        } catch(e) { console.error('[SESSIONS] Error:', e.message); }
     },
 
     changeGuestCategory: async function(guestId, categoryId) {

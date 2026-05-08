@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.617</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.618</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -421,6 +421,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="badge" onclick="App.switchConfigTab('badge')">
                             <span class="material-symbols-outlined">badge</span> Gafete
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="sessions" onclick="App.switchConfigTab('sessions')">
+                            <span class="material-symbols-outlined">live_help</span> Sesiones
                         </button>
                     </div>
 
@@ -1076,6 +1079,36 @@
                                         <div id="badge-elements-list" class="space-y-0.5 max-h-32 overflow-y-auto text-xs"></div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: SESIONES -->
+                    <div id="config-content-sessions" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Sesiones del Evento</h2>
+                            <button class="btn-primary" onclick="App.openSessionModal()">
+                                <span class="material-symbols-outlined">add</span> Nueva Sesi&oacute;n
+                            </button>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">T&iacute;tulo</th>
+                                            <th class="table-th">Fecha</th>
+                                            <th class="table-th">Horario</th>
+                                            <th class="table-th">Capacidad</th>
+                                            <th class="table-th">Inscritos</th>
+                                            <th class="table-th">Ubicaci&oacute;n</th>
+                                            <th class="table-th">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sessions-tbody">
+                                        <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -2791,5 +2824,55 @@
                 <span class="material-symbols-outlined text-sm">print</span> Imprimir
             </button>
         </div>
+    </div>
+</div>
+
+<!-- MODAL: SESION -->
+<div id="modal-session" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-lg mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Sesi&oacute;n</h3>
+            <button onclick="document.getElementById('modal-session').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveSession()" class="p-5 space-y-4">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">T&iacute;tulo</label>
+                <input id="session-title" class="input-field w-full" placeholder="Taller de..." required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Descripci&oacute;n</label>
+                <textarea id="session-description" class="input-field w-full" rows="2"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Fecha</label>
+                    <input id="session-date" type="date" class="input-field w-full">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Capacidad</label>
+                    <input id="session-capacity" type="number" class="input-field w-full" placeholder="0 = Ilimitado" min="0">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Hora inicio</label>
+                    <input id="session-start" type="time" class="input-field w-full">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Hora fin</label>
+                    <input id="session-end" type="time" class="input-field w-full">
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Ubicaci&oacute;n / Sala</label>
+                <input id="session-location" class="input-field w-full" placeholder="Sala principal, Salon A, etc.">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="document.getElementById('modal-session').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
