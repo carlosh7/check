@@ -11537,7 +11537,8 @@ navigate(viewName, params = {}, push = true) {
                 <div class="badge-handle badge-handle-b"></div>
                 <div class="badge-handle badge-handle-bl"></div>
                 <div class="badge-handle badge-handle-l"></div>` : '';
-            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + this._getElementStyle(el) + '">' + content + handles + '</div>';
+            const opacity = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
+            return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + opacity + this._getElementStyle(el) + '">' + content + handles + '</div>';
         }).join('');
         // Attach event listeners
         elLayer.querySelectorAll('.badge-element').forEach(el => {
@@ -11596,7 +11597,9 @@ navigate(viewName, params = {}, push = true) {
         }
         if (el.type === 'logo') {
             const isBack = (el.zIndex || 10) < 5;
+            const opacity = el.opacity ?? 1;
             html += '<div class="space-y-1"><button class="btn-secondary text-xs" onclick="document.getElementById(\'badge-logo-input-' + elId + '\').click()">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" onchange="App.uploadBadgeElementLogo(\'' + elId + '\',this)"></div>';
+            html += '<div class="space-y-1 mt-1"><label class="text-[10px] text-slate-400">Opacidad: <span id="opacity-val-' + elId + '">' + Math.round(opacity * 100) + '%</span></label><input type="range" min="0.1" max="1" step="0.05" value="' + opacity + '" oninput="document.getElementById(\'opacity-val-' + elId + '\').textContent=Math.round(this.value*100)+\'%\';App.updateBadgeElementProperty(\'' + elId + '\',\'opacity\',parseFloat(this.value))" class="w-full"></div>';
             html += '<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" ' + (isBack ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'zIndex\',this.checked?1:10)" class="checkbox-sm"> Al fondo</label>';
         }
         html += '<hr class="border-[var(--border)] my-2">';
@@ -11637,7 +11640,7 @@ navigate(viewName, params = {}, push = true) {
         const data = await this._uploadImage(file);
         if (!data || !data.url) return;
         const bw = parseInt(document.getElementById('badge-width-mm').value) || 90;
-        const el = { id: 'el_' + Date.now(), type: 'logo', url: data.url, x: Math.round(bw * 0.3), y: 5, w: Math.round(bw * 0.4), h: Math.round(bw * 0.4 * 0.6), zIndex: 10 };
+        const el = { id: 'el_' + Date.now(), type: 'logo', url: data.url, x: Math.round(bw * 0.3), y: 5, w: Math.round(bw * 0.4), h: Math.round(bw * 0.4 * 0.6), zIndex: 10, opacity: 1 };
         this._badgeElements.push(el);
         this.renderBadgeEditor();
         this.selectBadgeElement(el.id);
@@ -11807,7 +11810,8 @@ navigate(viewName, params = {}, push = true) {
         (elements || []).forEach(function(el) {
             if (!el.show && el.show !== undefined) return;
             var l = (el.x || 0) * scale, t = (el.y || 0) * scale, ew = (el.w || 20) * scale, eh = (el.h || 10) * scale;
-            html += '<div style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;';
+            var opacityStyle = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
+            html += '<div style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;' + opacityStyle;
             if (el.type !== 'qr' && el.type !== 'logo') {
                 html += 'font-size:' + ((el.fontSize || 12) * scale / 2.83) + 'px;color:' + (el.color || '#000') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';';
             }
