@@ -262,4 +262,59 @@ router.get('/:id/report', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
     }
 });
 
+// ── Endpoint público ──
+
+router.get('/:id/public', (req, res) => {
+    try {
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        var event = db.prepare("SELECT id, name, date, location FROM events WHERE id = ?").get(raffle.event_id);
+        var participants = db.prepare("SELECT id, name, email FROM raffle_participants WHERE raffle_id = ?").all(raffle.id);
+        var results = db.prepare("SELECT * FROM raffle_results WHERE raffle_id = ? ORDER BY round DESC").all(raffle.id);
+        results.forEach(function(r) {
+            try { r.winners = JSON.parse(r.winners_json); } catch(e) { r.winners = []; }
+        });
+        var config = {};
+        if (raffle.config_json) try { config = JSON.parse(raffle.config_json); } catch(e) {}
+        var participantNames = participants.map(function(p) { return p.name || p.email || 'Participante'; });
+        res.json({
+            id: raffle.id,
+            type: raffle.type,
+            name: raffle.name,
+            config: config,
+            is_active: raffle.status === 'published' || raffle.status === 'active',
+            event_name: event ? event.name : 'Evento',
+            participants: participantNames,
+            participantCount: participants.length,
+            results: results
+        });
+    } catch (err) {
+        console.error('[RAFFLE] Public error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── Configuración pública para wheel (compatible con wheel.html legacy) ──
+
+router.get('/:id/wheel-config', (req, res) => {
+    try {
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        var config = {};
+        if (raffle.config_json) try { config = JSON.parse(raffle.config_json); } catch(e) {}
+        var defaultConfig = {
+            visual: {
+                wheel_colors: config.wheel_colors || ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'],
+                wheel_text_color: config.wheel_text_color || '#FFFFFF',
+                pointer_color: config.pointer_color || '#FF0000',
+                sound_enabled: config.sound_enabled !== false,
+                confetti_on_win: config.confetti_on_win !== false
+            }
+        };
+        res.json(defaultConfig);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

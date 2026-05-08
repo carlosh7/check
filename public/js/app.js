@@ -13341,7 +13341,7 @@ navigate(viewName, params = {}, push = true) {
             if (!eventId) { Swal.fire({ icon: 'warning', title: 'Selecciona un evento primero', background: '#0f172a', color: '#fff' }); return; }
             try {
                 var res = await App.fetchAPI('/raffles/events/' + eventId + '/raffles', { method: 'POST', body: JSON.stringify(result.value) });
-                if (res && res.id) App.openRaffleEditor(res.id);
+                if (res && res.id) await App.openRaffleEditor(res.id);
                 App.loadRaffles();
             } catch(e) { console.error('[RAFFLE] Error:', e.message); }
         });
@@ -13353,6 +13353,9 @@ navigate(viewName, params = {}, push = true) {
         if (list) list.classList.add('hidden');
         if (editor) editor.classList.remove('hidden');
         this._currentRaffleId = raffleId;
+        this._raffleAllParticipants = [];
+        this._raffleFilteredParticipants = [];
+        this._raffleParticipantPage = 1;
         try {
             var raffle = await this.fetchAPI('/raffles/' + raffleId);
             if (!raffle) return;
@@ -13366,6 +13369,28 @@ navigate(viewName, params = {}, push = true) {
             if (winnersEl) winnersEl.value = raffle.winner_count || 1;
             this.onRaffleTypeChange();
             this.onRaffleSourceChange();
+
+            // Generar URL única
+            var eventName = (this.state.event?.name || 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            var shareUrl = window.location.origin + '/' + eventName + '/raffle/' + raffleId;
+            var urlEl = document.getElementById('raffle-share-url');
+            if (urlEl) urlEl.value = shareUrl;
+
+            // Cargar configuración visual
+            var config = raffle.config || {};
+            var c1 = document.getElementById('raffle-color-1');
+            var c2 = document.getElementById('raffle-color-2');
+            var ct = document.getElementById('raffle-text-color');
+            var cp = document.getElementById('raffle-pointer-color');
+            var ss = document.getElementById('raffle-sound');
+            var cf = document.getElementById('raffle-confetti');
+            if (c1) c1.value = config.wheel_colors?.[0] || '#FF6B6B';
+            if (c2) c2.value = config.wheel_colors?.[1] || '#4ECDC4';
+            if (ct) ct.value = config.wheel_text_color || '#FFFFFF';
+            if (cp) cp.value = config.pointer_color || '#FF0000';
+            if (ss) ss.checked = config.sound_enabled !== false;
+            if (cf) cf.checked = config.confetti_on_win !== false;
+
             this.loadRaffleParticipants(raffleId);
             this.loadRaffleResults(raffleId);
         } catch(e) { console.error('[RAFFLE] Error:', e.message); }
@@ -13375,8 +13400,10 @@ navigate(viewName, params = {}, push = true) {
         var type = document.getElementById('raffle-type')?.value || 'wheel';
         var winnerConfig = document.getElementById('raffle-winner-config');
         var groupConfig = document.getElementById('raffle-group-config');
+        var visualConfig = document.getElementById('raffle-visual-config');
         if (winnerConfig) winnerConfig.classList.toggle('hidden', type === 'group_raffle');
         if (groupConfig) groupConfig.classList.toggle('hidden', type !== 'group_raffle');
+        if (visualConfig) visualConfig.classList.toggle('hidden', type !== 'wheel');
     },
 
     onRaffleSourceChange: function() {
@@ -13424,18 +13451,63 @@ navigate(viewName, params = {}, push = true) {
         if (!raffleId) return;
         try {
             var participants = await this.fetchAPI('/raffles/' + raffleId + '/participants');
-            var tbody = document.getElementById('raffle-participants-tbody');
+            this._raffleAllParticipants = participants || [];
+            this._raffleFilteredParticipants = this._raffleAllParticipants;
+            this._raffleParticipantPage = 1;
+            this.renderRaffleParticipants();
             var countEl = document.getElementById('raffle-participant-count');
-            if (countEl) countEl.textContent = (participants || []).length + ' participantes';
-            if (!tbody) return;
-            if (!participants || participants.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Sin participantes. Pobla la lista primero.</td></tr>';
-            } else {
-                tbody.innerHTML = participants.map(function(p) {
-                    return '<tr class="hover:bg-white/[0.02]"><td class="table-td text-xs">' + (p.name || '-') + '</td><td class="table-td text-xs text-slate-400">' + (p.email || '-') + '</td><td class="table-td text-xs text-slate-500">' + (p.source || '-') + '</td><td class="table-td"><button class="btn-icon text-red-400" onclick="App.removeRaffleParticipant(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
-                }).join('');
-            }
+            var infoEl = document.getElementById('raffle-participant-info');
+            if (countEl) countEl.textContent = participants ? participants.length : 0;
+            if (infoEl) infoEl.textContent = (participants ? participants.length : 0) + ' participantes';
         } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    renderRaffleParticipants: function() {
+        var tbody = document.getElementById('raffle-participants-tbody');
+        if (!tbody) return;
+        var search = (document.getElementById('raffle-participant-search')?.value || '').toLowerCase().trim();
+        if (search) {
+            this._raffleFilteredParticipants = this._raffleAllParticipants.filter(function(p) {
+                return (p.name || '').toLowerCase().includes(search) || (p.email || '').toLowerCase().includes(search);
+            });
+        } else {
+            this._raffleFilteredParticipants = this._raffleAllParticipants;
+        }
+        var page = this._raffleParticipantPage || 1;
+        var perPage = 50;
+        var total = this._raffleFilteredParticipants.length;
+        var totalPages = Math.ceil(total / perPage) || 1;
+        if (page > totalPages) page = totalPages;
+        var start = (page - 1) * perPage;
+        var pageItems = this._raffleFilteredParticipants.slice(start, start + perPage);
+        var prevBtn = document.getElementById('btn-participant-prev');
+        var nextBtn = document.getElementById('btn-participant-next');
+        var infoEl = document.getElementById('raffle-participant-info');
+        if (prevBtn) prevBtn.disabled = page <= 1;
+        if (nextBtn) nextBtn.disabled = page >= totalPages;
+        if (infoEl) infoEl.textContent = total + ' participantes' + (search ? ' (filtrados)' : '');
+        if (total === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">' + (search ? 'Sin resultados de búsqueda' : 'Sin participantes. Pobla la lista primero.') + '</td></tr>';
+            return;
+        }
+        tbody.innerHTML = pageItems.map(function(p) {
+            return '<tr class="hover:bg-white/[0.02]"><td class="table-td text-xs">' + (p.name || '-') + '</td><td class="table-td text-xs text-slate-400">' + (p.email || '-') + '</td><td class="table-td text-xs text-slate-500">' + (p.source || '-') + '</td><td class="table-td"><button class="btn-icon text-red-400" onclick="App.removeRaffleParticipant(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+        }).join('');
+    },
+
+    filterRaffleParticipants: function() {
+        this._raffleParticipantPage = 1;
+        this.renderRaffleParticipants();
+    },
+
+    pageRaffleParticipants: function(dir) {
+        var total = this._raffleFilteredParticipants.length;
+        var totalPages = Math.ceil(total / 50) || 1;
+        var page = (this._raffleParticipantPage || 1) + dir;
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        this._raffleParticipantPage = page;
+        this.renderRaffleParticipants();
     },
 
     removeRaffleParticipant: async function(participantId) {
@@ -13467,14 +13539,24 @@ navigate(viewName, params = {}, push = true) {
         try {
             var results = await this.fetchAPI('/raffles/' + raffleId + '/results');
             var list = document.getElementById('raffle-results-list');
+            var countEl = document.getElementById('raffle-results-count');
+            if (countEl) countEl.textContent = results ? results.length : 0;
             if (!list) return;
             if (!results || results.length === 0) {
-                list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin resultados aún</p>';
+                list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin resultados aún. Haz clic en "¡Sortear!" para generar.</p>';
             } else {
                 list.innerHTML = results.map(function(r) {
                     var winners = r.winners || [];
-                    return '<div class="p-3 rounded-lg bg-slate-800/50"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">Ronda ' + r.round + '</span><span class="text-xs text-slate-500">' + r.total_participants + ' participantes</span></div>' +
-                        winners.map(function(w) { return '<div class="flex items-center gap-2 text-xs text-slate-300"><span class="material-symbols-outlined text-sm text-amber-400">emoji_events</span>' + (w.name || '-') + ' — ' + (w.email || '') + '</div>'; }).join('') + '</div>';
+                    var dateStr = r.created_at ? new Date(r.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    return '<div class="p-3 rounded-lg bg-slate-800/50 border-l-4 border-l-amber-500">' +
+                        '<div class="flex justify-between items-center mb-2">' +
+                        '<div><span class="text-xs font-bold text-white">Ronda ' + r.round + '</span>' +
+                        (dateStr ? '<span class="text-[10px] text-slate-500 ml-2">' + dateStr + '</span>' : '') + '</div>' +
+                        '<span class="text-xs text-slate-500">' + r.total_participants + ' participantes</span></div>' +
+                        winners.map(function(w, i) {
+                            var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+                            return '<div class="flex items-center gap-2 py-1 text-xs text-slate-300"><span>' + medal + '</span><span class="font-bold text-white">' + (w.name || '-') + '</span><span class="text-slate-500">' + (w.email || '') + '</span></div>';
+                        }).join('') + '</div>';
                 }).join('');
             }
         } catch(e) { console.error('[RAFFLE] Error:', e.message); }
@@ -13496,11 +13578,36 @@ navigate(viewName, params = {}, push = true) {
         if (!raffleId) { Swal.fire({ icon: 'warning', title: 'No hay sorteo activo', background: '#0f172a', color: '#fff' }); return; }
         var name = document.getElementById('raffle-name')?.value?.trim();
         if (!name) { Swal.fire({ icon: 'warning', title: 'Nombre requerido', background: '#0f172a', color: '#fff' }); return; }
+        var config = {
+            wheel_colors: [document.getElementById('raffle-color-1')?.value || '#FF6B6B', document.getElementById('raffle-color-2')?.value || '#4ECDC4'],
+            wheel_text_color: document.getElementById('raffle-text-color')?.value || '#FFFFFF',
+            pointer_color: document.getElementById('raffle-pointer-color')?.value || '#FF0000',
+            sound_enabled: document.getElementById('raffle-sound')?.checked !== false,
+            confetti_on_win: document.getElementById('raffle-confetti')?.checked !== false
+        };
         try {
-            await this.fetchAPI('/raffles/' + raffleId, { method: 'PUT', body: JSON.stringify({ name: name, type: document.getElementById('raffle-type')?.value, winner_count: parseInt(document.getElementById('raffle-winner-count')?.value) || 1, data_source: document.getElementById('raffle-data-source')?.value }) });
+            await this.fetchAPI('/raffles/' + raffleId, { method: 'PUT', body: JSON.stringify({ name: name, type: document.getElementById('raffle-type')?.value, winner_count: parseInt(document.getElementById('raffle-winner-count')?.value) || 1, data_source: document.getElementById('raffle-data-source')?.value, config: config }) });
             Swal.fire({ icon: 'success', title: 'Guardado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
             this.loadRaffles();
-        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+            this.openRaffleEditor(raffleId);
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); Swal.fire({ icon: 'error', title: 'Error al guardar', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    openRafflePublic: function() {
+        var urlEl = document.getElementById('raffle-share-url');
+        if (urlEl && urlEl.value) window.open(urlEl.value, '_blank');
+        else Swal.fire({ icon: 'warning', title: 'Guarda el sorteo primero', background: '#0f172a', color: '#fff' });
+    },
+
+    copyRaffleUrl: function() {
+        var urlEl = document.getElementById('raffle-share-url');
+        if (!urlEl || !urlEl.value) { Swal.fire({ icon: 'warning', title: 'Guarda el sorteo primero', background: '#0f172a', color: '#fff' }); return; }
+        navigator.clipboard.writeText(urlEl.value).then(function() {
+            Swal.fire({ icon: 'success', title: 'Link copiado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        }).catch(function() {
+            urlEl.select();
+            document.execCommand('copy');
+        });
     },
 
     deleteRaffle: async function(raffleId) {

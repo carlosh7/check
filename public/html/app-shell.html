@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.646</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.647</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -555,6 +555,22 @@
                                 </div>
                             </div>
 
+                            <!-- Link del sorteo -->
+                            <div class="card p-4 space-y-3 border-l-4 border-l-[var(--primary)]">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[var(--primary)]">link</span> Link del sorteo
+                                </h3>
+                                <div class="flex gap-2">
+                                    <input id="raffle-share-url" type="text" readonly class="input-field flex-1 text-xs" placeholder="Guarda el sorteo para generar el link...">
+                                    <button id="btn-copy-raffle-url" class="btn-secondary btn-standard" onclick="App.copyRaffleUrl()" title="Copiar link">
+                                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    </button>
+                                    <button id="btn-open-raffle" class="btn-primary btn-standard" onclick="App.openRafflePublic()" title="Abrir en nueva pestaña">
+                                        <span class="material-symbols-outlined text-sm">open_in_new</span> Abrir
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Config de sorteo -->
                             <div class="card p-4 space-y-3">
                                 <h3 class="text-sm font-bold text-white">Configuración del sorteo</h3>
@@ -566,7 +582,39 @@
                                     <label class="text-xs font-bold text-slate-400 block mb-1">Cantidad de grupos</label>
                                     <input type="number" id="raffle-group-count" class="input-field w-24" value="2" min="2" max="100">
                                 </div>
-                                <div class="flex gap-2">
+
+                                <!-- Personalización visual (ruleta) -->
+                                <div id="raffle-visual-config" class="space-y-3">
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Personalización visual</h4>
+                                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                        <div>
+                                            <label class="text-xs text-slate-500 block mb-1">Color 1</label>
+                                            <input type="color" id="raffle-color-1" class="input-field w-full h-10 p-1" value="#FF6B6B">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-slate-500 block mb-1">Color 2</label>
+                                            <input type="color" id="raffle-color-2" class="input-field w-full h-10 p-1" value="#4ECDC4">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-slate-500 block mb-1">Color texto</label>
+                                            <input type="color" id="raffle-text-color" class="input-field w-full h-10 p-1" value="#FFFFFF">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-slate-500 block mb-1">Color puntero</label>
+                                            <input type="color" id="raffle-pointer-color" class="input-field w-full h-10 p-1" value="#FF0000">
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                            <input type="checkbox" id="raffle-sound" class="checkbox-sm" checked> Sonido al girar
+                                        </label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                            <input type="checkbox" id="raffle-confetti" class="checkbox-sm" checked> Confeti al ganar
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-2 flex-wrap">
                                     <button class="btn-primary" onclick="App.drawRaffle()"><span class="material-symbols-outlined text-sm">casino</span> ¡Sortear!</button>
                                     <button class="btn-secondary" onclick="App.generateRaffleReport()"><span class="material-symbols-outlined text-sm">assessment</span> Reporte PDF</button>
                                     <button class="btn-secondary" onclick="App.exportRaffleToDrive()"><span class="material-symbols-outlined text-sm">table_chart</span> Exportar a Drive</button>
@@ -576,7 +624,10 @@
                             <!-- Participantes -->
                             <div class="card p-4 space-y-3">
                                 <div class="flex justify-between items-center">
-                                    <h3 class="text-sm font-bold text-white">Participantes</h3>
+                                    <h3 class="text-sm font-bold text-white">Participantes <span id="raffle-participant-count" class="text-xs text-slate-500 font-normal">0</span></h3>
+                                </div>
+                                <div class="flex gap-2">
+                                    <input id="raffle-participant-search" type="text" class="input-field flex-1 text-xs" placeholder="Buscar por nombre o email..." oninput="App.filterRaffleParticipants()">
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="data-table w-full">
@@ -584,15 +635,32 @@
                                         <tbody id="raffle-participants-tbody"></tbody>
                                     </table>
                                 </div>
+                                <div class="flex justify-between items-center text-xs text-slate-500">
+                                    <span id="raffle-participant-info">0 participantes</span>
+                                    <div class="flex gap-2">
+                                        <button id="btn-participant-prev" class="btn-secondary text-xs px-2 py-1" onclick="App.pageRaffleParticipants(-1)" disabled>Anterior</button>
+                                        <button id="btn-participant-next" class="btn-secondary text-xs px-2 py-1" onclick="App.pageRaffleParticipants(1)">Siguiente</button>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Resultados -->
                             <div class="card p-4 space-y-3">
                                 <div class="flex justify-between items-center">
-                                    <h3 class="text-sm font-bold text-white">Resultados</h3>
-                                    <button class="btn-secondary text-xs" onclick="App.clearRaffleResults()">Borrar resultados</button>
+                                    <h3 class="text-sm font-bold text-white">
+                                        Resultados
+                                        <span id="raffle-results-count" class="text-xs text-slate-500 font-normal ml-2">0</span>
+                                    </h3>
+                                    <button class="btn-secondary text-xs" onclick="App.clearRaffleResults()">
+                                        <span class="material-symbols-outlined text-sm">delete_sweep</span> Borrar todo
+                                    </button>
                                 </div>
                                 <div id="raffle-results-list" class="space-y-2"></div>
+                                <div id="raffle-all-participants" class="hidden">
+                                    <hr class="border-slate-700">
+                                    <h4 class="text-sm font-bold text-white mt-3 mb-2">Todos los participantes</h4>
+                                    <div id="raffle-all-participants-list" class="text-xs text-slate-400 max-h-40 overflow-y-auto"></div>
+                                </div>
                             </div>
 
                             <div class="flex gap-2">
