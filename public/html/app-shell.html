@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.633</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.634</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -68,6 +68,33 @@
 
     <main id="app-main-content" class="app-main-content">
         <div class="app-scroll-area">
+
+            <!-- VIEW: MIS EVENTOS -->
+            <section id="view-my-events" class="view-section hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="page-title">Mis Eventos</h1>
+                    <button id="btn-new-event-full" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openCreateEventModal()">
+                        <span class="material-symbols-outlined text-base">add</span> Nuevo Evento
+                    </button>
+                </div>
+                <div class="flex gap-2 flex-wrap items-center mb-4">
+                    <input id="event-search" type="text" class="search-input" placeholder="Buscar eventos por nombre, cliente o ubicaci&oacute;n..."
+                           oninput="App.filterMyEvents()" autocomplete="off">
+                    <select id="filter-event-client" onchange="App.filterMyEvents()" class="filter-select">
+                        <option value="">Todos los clientes</option>
+                    </select>
+                    <select id="filter-event-status" onchange="App.filterMyEvents()" class="filter-select">
+                        <option value="">Todos los estados</option>
+                        <option value="ACTIVE">Activos</option>
+                        <option value="DRAFT">Borrador</option>
+                        <option value="COMPLETED">Completados</option>
+                        <option value="CANCELLED">Cancelados</option>
+                    </select>
+                </div>
+                <div id="events-table-container" class="card p-0 overflow-hidden">
+                    <p class="text-center py-8 text-slate-500">Cargando eventos...</p>
+                </div>
+            </section>
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="view-section hidden">
