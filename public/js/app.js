@@ -11676,56 +11676,6 @@ navigate(viewName, params = {}, push = true) {
         e.stopPropagation();
     },
 
-    _showElementProperties: function(elId) {
-        const panel = document.getElementById('badge-properties-panel');
-        if (!panel) return;
-        const el = (this._badgeElements || []).find(e => e.id === elId);
-        if (!el) return;
-        const typeLabels = { text: 'Texto', name: 'Nombre', org: 'Organización', cargo: 'Cargo', email: 'Email', phone: 'Teléfono', qr: 'Código QR', logo: 'Logo' };
-        let html = '<h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">' + (typeLabels[el.type] || 'Elemento') + '</h3>';
-        if (el.type === 'text') {
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Texto</label><input class="input-field w-full text-xs py-1" value="' + (el.text || '') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'text\',this.value)"></div>';
-        }
-        if (el.type !== 'qr' && el.type !== 'logo') {
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Tamaño</label><input type="number" class="input-field w-full text-xs py-1" value="' + (el.fontSize || 12) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'fontSize\',parseFloat(this.value)||12)"></div>';
-            html += '<div class="space-y-1.5"><label class="text-[10px] text-slate-400">Color</label><input type="color" class="input-field w-full h-8 p-0.5" value="' + (el.color || '#ffffff') + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'color\',this.value)"></div>';
-            html += '<div class="flex items-center gap-2 text-xs"><label class="text-slate-400">Alinear:</label><select class="input-field py-1 text-xs" style="width:auto" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'align\',this.value)"><option value="left"' + (el.align === 'left' ? ' selected' : '') + '>Izq</option><option value="center"' + (el.align === 'center' ? ' selected' : '') + '>Centro</option><option value="right"' + (el.align === 'right' ? ' selected' : '') + '>Der</option></select></div>';
-            html += '<label class="flex items-center gap-2 text-xs"><input type="checkbox" ' + (el.bold ? 'checked' : '') + ' onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'bold\',this.checked)" class="checkbox-sm"> Negrita</label>';
-        }
-        if (el.type === 'logo') {
-            html += '<div class="space-y-1"><button class="btn-secondary text-xs" onclick="document.getElementById(\'badge-logo-input-' + elId + '\').click()">Subir imagen</button><input id="badge-logo-input-' + elId + '" type="file" accept="image/*" class="hidden" onchange="App.uploadBadgeElementLogo(\'' + elId + '\',this)"></div>';
-        }
-        html += '<hr class="border-[var(--border)] my-2">';
-        html += '<div class="grid grid-cols-2 gap-1 text-[10px]"><label class="text-slate-400">X:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.x || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'x\',parseFloat(this.value)||0)"><label class="text-slate-400">Y:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.y || 0) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'y\',parseFloat(this.value)||0)"><label class="text-slate-400">W:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.w || 20) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'w\',parseFloat(this.value)||20)"><label class="text-slate-400">H:</label><input type="number" class="input-field py-0.5 text-xs" value="' + (el.h || 10) + '" onchange="App.updateBadgeElementProperty(\'' + elId + '\',\'h\',parseFloat(this.value)||10)"></div>';
-        html += '<button class="btn-danger text-xs mt-2" onclick="App.deleteBadgeElement(\'' + elId + '\')"><span class="material-symbols-outlined text-sm">delete</span> Eliminar</button>';
-        panel.innerHTML = html;
-    },
-
-    updateBadgeElementProperty: function(elId, prop, value) {
-        const el = (this._badgeElements || []).find(e => e.id === elId);
-        if (!el) return;
-        el[prop] = value;
-        this.renderBadgeElements();
-    },
-
-    addBadgeElement: function(type) {
-        const els = this._badgeElements || [];
-        const id = 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-        const el = { id, type, x: 10, y: 10, w: type === 'qr' ? 20 : 60, h: type === 'qr' ? 20 : 10 };
-        if (type === 'text') { el.text = 'Nuevo texto'; el.fontSize = 12; el.color = '#ffffff'; el.align = 'center'; el.bold = false; }
-        if (type === 'logo') { el.url = null; }
-        els.push(el);
-        this._badgeElements = els;
-        this.selectBadgeElement(id);
-        this.renderBadgeEditor();
-    },
-
-    deleteBadgeElement: function(elId) {
-        this._badgeElements = (this._badgeElements || []).filter(e => e.id !== elId);
-        if (this._selectedBadgeElement === elId) this._selectedBadgeElement = null;
-        this.renderBadgeEditor();
-    },
-
     applyBadgePresetSize: function(value) {
         if (!value) return;
         const parts = value.split('x');
@@ -11764,6 +11714,30 @@ navigate(viewName, params = {}, push = true) {
         input.value = '';
     },
 
+    uploadBadgeElementLogo: async function(elId, input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const formData = new FormData();
+        formData.append('logo', file);
+        try {
+            const token = this.state.user?.token;
+            const userId = this.state.user?.userId;
+            const res = await fetch('/api/events/' + eId + '/badge-logo', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'x-user-id': userId || '' },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                var el = (this._badgeElements || []).find(function(e) { return e.id === elId; });
+                if (el) { el.url = data.url; this.renderBadgeEditor(); }
+            }
+        } catch(e) { console.error('[BADGE] Error:', e.message); }
+        input.value = '';
+    },
+
     updateBadgeElementsList: function() {
         const list = document.getElementById('badge-elements-list');
         if (!list) return;
@@ -11771,7 +11745,70 @@ navigate(viewName, params = {}, push = true) {
         if (els.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin elementos</p>'; return; }
         const typeLabels = { text: 'Texto', name: 'Nombre', org: 'Org', cargo: 'Cargo', email: 'Email', phone: 'Teléfono', qr: 'QR', logo: 'Logo' };
         list.innerHTML = els.map(e => '<div class="flex items-center gap-1 text-xs px-2 py-1 rounded ' + (this._selectedBadgeElement === e.id ? 'bg-[var(--primary)]/20' : 'hover:bg-[var(--bg-hover)]') + ' cursor-pointer" onclick="App.selectBadgeElement(\'' + e.id + '\')"><span class="material-symbols-outlined text-xs">' + (e.type === 'text' ? 'text_fields' : e.type === 'qr' ? 'qr_code' : e.type === 'logo' ? 'image' : 'badge') + '</span>' + (typeLabels[e.type] || e.type) + '</div>').join('');
-    }
+    },
+
+    // ── Print-on-Checkin ──
+
+    renderBadgeHtml: function(elements, bgUrl, widthMm, heightMm) {
+        const scale = window.devicePixelRatio > 1 ? 3.78 : 2.83;
+        const w = (widthMm || 90) * scale;
+        const h = (heightMm || 55) * scale;
+        const typeLabels = {
+            name: 'Maria Gonzalez', org: 'Empresa Ejemplo', cargo: 'Director',
+            email: 'email@ejemplo.com', phone: '+52 123 456 7890',
+            text: function(el) { return el.text || 'Texto'; },
+            qr: function() { return '<div style="width:80%;height:80%;margin:10%;background:#000;border-radius:2px"></div>'; },
+            logo: function(el) { return el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : ''; }
+        };
+        let html = '<div style="position:relative;width:' + w + 'px;height:' + h + 'px;background:#fff;overflow:hidden;';
+        if (bgUrl) html += 'background-image:url(' + bgUrl + ');background-size:cover;background-position:center;';
+        html += '">';
+        (elements || []).forEach(function(el) {
+            if (!el.show && el.show !== undefined) return;
+            var l = (el.x || 0) * scale, t = (el.y || 0) * scale, ew = (el.w || 20) * scale, eh = (el.h || 10) * scale;
+            html += '<div style="position:absolute;left:' + l + 'px;top:' + t + 'px;width:' + ew + 'px;height:' + eh + 'px;overflow:hidden;box-sizing:border-box;';
+            if (el.type !== 'qr' && el.type !== 'logo') {
+                html += 'font-size:' + ((el.fontSize || 12) * scale / 2.83) + 'px;color:' + (el.color || '#000') + ';text-align:' + (el.align || 'center') + ';font-weight:' + (el.bold ? 'bold' : 'normal') + ';display:flex;align-items:center;justify-content:' + (el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center') + ';';
+            }
+            html += '">';
+            if (el.type === 'text') html += typeLabels.text(el);
+            else if (el.type === 'qr') html += typeLabels.qr();
+            else if (el.type === 'logo') html += typeLabels.logo(el);
+            else html += typeLabels[el.type] || el.text || '';
+            html += '</div>';
+        });
+        html += '</div>';
+        return html;
+    },
+
+    showBadgePrintModal: function(config) {
+        var container = document.getElementById('badge-print-container');
+        if (!container) return;
+        container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight);
+        var modal = document.getElementById('modal-badge-print');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    printBadgeFromModal: function() {
+        var container = document.getElementById('badge-print-container');
+        if (!container || !container.innerHTML.trim()) return;
+        var win = window.open('', '_blank', 'width=400,height=600');
+        if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + container.innerHTML + '</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(function() { win.print(); }, 300);
+    },
+
+    printBadgeDirect: function(config) {
+        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight);
+        var win = window.open('', '_blank', 'width=400,height=600');
+        if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
+        win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + html + '</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(function() { win.print(); }, 300);
+    },
 
     changeGuestCategory: async function(guestId, categoryId) {
         const eId = this.state.event?.id || this.state.currentEventId;
@@ -16575,6 +16612,22 @@ App.toggleValidateAttendance = async function(clientId) {
         
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Error en servidor');
+        
+        // Si es check-in (validated=1), verificar config de gafete
+        if (newValidated === 1) {
+            try {
+                const cfgRes = await this.fetchAPI(`/events/${eventId}/badge-config`);
+                const badgeCfg = cfgRes?.badgeConfig;
+                if (badgeCfg) {
+                    const action = badgeCfg.checkinAction || 'nothing';
+                    if (action === 'modal') {
+                        this.showBadgePrintModal(badgeCfg);
+                    } else if (action === 'print') {
+                        this.printBadgeDirect(badgeCfg);
+                    }
+                }
+            } catch(_) {}
+        }
         
     } catch(e) {
         console.error('[ATTENDANCE] Fallo al validar:', e.message);

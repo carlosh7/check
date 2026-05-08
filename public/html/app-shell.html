@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.600</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.601</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -2759,5 +2759,26 @@
                 <button type="submit" class="btn-primary">Guardar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- MODAL: GAFETE PARA IMPRIMIR -->
+<div id="modal-badge-print" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-lg mt-[5vh] mx-4">
+        <div class="p-4 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Gafete</h3>
+            <button onclick="document.getElementById('modal-badge-print').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <div class="p-4 flex flex-col items-center">
+            <div id="badge-print-container" class="rounded-lg" style="background:#fff; overflow:hidden;"></div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] flex justify-center gap-3">
+            <button class="btn-secondary" onclick="document.getElementById('modal-badge-print').classList.add('hidden')">Cerrar</button>
+            <button class="btn-primary" onclick="App.printBadgeFromModal()">
+                <span class="material-symbols-outlined text-sm">print</span> Imprimir
+            </button>
+        </div>
     </div>
 </div>
