@@ -11868,7 +11868,7 @@ navigate(viewName, params = {}, push = true) {
         }
 
         const panel = document.getElementById('config-content-' + tabName);
-        if (panel) panel.classList.remove('hidden');
+        if (panel) { panel.classList.remove('hidden'); panel.style.display = ''; }
 
         // Guardar pestaña activa en sessionStorage
         sessionStorage.setItem('active_config_tab', tabName);
