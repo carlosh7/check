@@ -11280,7 +11280,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories', 'config-content-badge'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -11329,6 +11329,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'settings') this.loadConfigSettings();
         if (tabName === 'categories') this.loadCategories();
+        if (tabName === 'badge') this.loadBadgeConfig();
     },
     
     // Cargar encuestas (v12.34.2)
@@ -11435,6 +11436,143 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) {
             console.error('[CATEGORIES] Error:', e.message);
         }
+    },
+
+    // ── Badge Config ──
+
+    loadBadgeConfig: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            const res = await this.fetchAPI(`/events/${eId}/badge-config`);
+            const cfg = res?.badgeConfig || {};
+            document.getElementById('badge-primary-color').value = cfg.primaryColor || '#7c3aed';
+            document.getElementById('badge-font-family').value = cfg.fontFamily || 'sans-serif';
+            document.getElementById('badge-field-name').checked = cfg.fields?.includes('name') ?? true;
+            document.getElementById('badge-field-organization').checked = cfg.fields?.includes('organization') ?? true;
+            document.getElementById('badge-field-cargo').checked = cfg.fields?.includes('cargo') ?? false;
+            document.getElementById('badge-field-email').checked = cfg.fields?.includes('email') ?? false;
+            document.getElementById('badge-field-phone').checked = cfg.fields?.includes('phone') ?? false;
+            document.getElementById('badge-field-qr').checked = cfg.fields?.includes('qr') ?? true;
+            const action = cfg.checkinAction || 'modal';
+            const radio = document.querySelector(`input[name="badge-checkin-action"][value="${action}"]`);
+            if (radio) radio.checked = true;
+            const logoPreview = document.getElementById('badge-logo-preview');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            if (cfg.logo) {
+                logoPreview.innerHTML = `<img src="${cfg.logo}" class="w-full h-full object-contain">`;
+                removeBtn.classList.remove('hidden');
+            } else {
+                logoPreview.innerHTML = 'Sin logo';
+                removeBtn.classList.add('hidden');
+            }
+            this._badgeConfig = cfg;
+            this.updateBadgePreview();
+        } catch(e) {
+            console.error('[BADGE] Error:', e.message);
+        }
+    },
+
+    saveBadgeConfig: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const fields = [];
+        if (document.getElementById('badge-field-name').checked) fields.push('name');
+        if (document.getElementById('badge-field-organization').checked) fields.push('organization');
+        if (document.getElementById('badge-field-cargo').checked) fields.push('cargo');
+        if (document.getElementById('badge-field-email').checked) fields.push('email');
+        if (document.getElementById('badge-field-phone').checked) fields.push('phone');
+        if (document.getElementById('badge-field-qr').checked) fields.push('qr');
+        const action = document.querySelector('input[name="badge-checkin-action"]:checked')?.value || 'modal';
+        const config = {
+            ...(this._badgeConfig || {}),
+            primaryColor: document.getElementById('badge-primary-color').value,
+            fontFamily: document.getElementById('badge-font-family').value,
+            fields,
+            checkinAction: action
+        };
+        try {
+            await this.fetchAPI(`/events/${eId}/badge-config`, {
+                method: 'PUT',
+                body: JSON.stringify({ config })
+            });
+            this._badgeConfig = config;
+            this.updateBadgePreview();
+            Swal.fire({ icon: 'success', title: 'Guardado', text: 'Configuracion del gafete guardada', timer: 1500, showConfirmButton: false });
+        } catch(e) {
+            console.error('[BADGE] Error:', e.message);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar' });
+        }
+    },
+
+    uploadBadgeLogo: async function(input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const formData = new FormData();
+        formData.append('logo', file);
+        try {
+            const token = this.state.user?.token;
+            const userId = this.state.user?.userId;
+            const res = await fetch(`/api/events/${eId}/badge-logo`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'x-user-id': userId || '' },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                const cfg = this._badgeConfig || {};
+                cfg.logo = data.url;
+                this._badgeConfig = cfg;
+                const logoPreview = document.getElementById('badge-logo-preview');
+                logoPreview.innerHTML = `<img src="${data.url}" class="w-full h-full object-contain">`;
+                document.getElementById('btn-remove-logo').classList.remove('hidden');
+                this.updateBadgePreview();
+            }
+        } catch(e) {
+            console.error('[BADGE] Error:', e.message);
+        }
+        input.value = '';
+    },
+
+    removeBadgeLogo: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            await this.fetchAPI(`/events/${eId}/badge-logo`, { method: 'DELETE' });
+            const cfg = this._badgeConfig || {};
+            delete cfg.logo;
+            this._badgeConfig = cfg;
+            document.getElementById('badge-logo-preview').innerHTML = 'Sin logo';
+            document.getElementById('btn-remove-logo').classList.add('hidden');
+            this.updateBadgePreview();
+        } catch(e) {
+            console.error('[BADGE] Error:', e.message);
+        }
+    },
+
+    updateBadgePreview: function() {
+        const preview = document.getElementById('badge-preview');
+        const content = document.getElementById('preview-badge-content');
+        if (!preview || !content) return;
+        const cfg = this._badgeConfig || {};
+        const color = cfg.primaryColor || '#7c3aed';
+        const font = cfg.fontFamily || 'sans-serif';
+        const fields = cfg.fields || ['name', 'organization', 'qr'];
+        preview.style.background = color;
+        preview.style.fontFamily = font;
+        let html = '';
+        if (cfg.logo) {
+            html += `<img src="${cfg.logo}" style="max-height:40px; margin-bottom:8px;">`;
+        }
+        if (fields.includes('name')) html += `<div style="font-size:16px; font-weight:bold; color:#fff; margin:2px 0;">Maria Gonzalez</div>`;
+        if (fields.includes('organization')) html += `<div style="font-size:11px; color:rgba(255,255,255,0.8); margin:1px 0;">Empresa Ejemplo</div>`;
+        if (fields.includes('cargo')) html += `<div style="font-size:10px; color:rgba(255,255,255,0.6); margin:1px 0;">Director</div>`;
+        if (fields.includes('email')) html += `<div style="font-size:9px; color:rgba(255,255,255,0.5); margin:1px 0;">email@ejemplo.com</div>`;
+        if (fields.includes('phone')) html += `<div style="font-size:9px; color:rgba(255,255,255,0.5); margin:1px 0;">+52 123 456 7890</div>`;
+        if (fields.includes('qr')) html += `<div style="margin-top:8px;"><div style="width:50px; height:50px; background:rgba(255,255,255,0.9); border-radius:4px; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:8px; color:#333;">QR</div></div>`;
+        content.innerHTML = html;
     },
 
     changeGuestCategory: async function(guestId, categoryId) {

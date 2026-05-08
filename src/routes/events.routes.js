@@ -11,6 +11,9 @@ const { schemas, validate } = require('../security/validation');
 const { logAction, AUDIT_ACTIONS } = require('../security/audit');
 const { CACHE_KEYS, cacheOrFetch, del } = require('../utils/cache');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // Función helper para obtener la BD correcta según el evento (V12.44.345)
 function getEventDbForAttendance(eventId) {
@@ -1205,6 +1208,78 @@ router.post('/:id/clone', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, re
     } catch (e) {
         console.error('[CLONE] Error clonando evento:', e);
         res.status(500).json({ error: 'Error al clonar el evento: ' + e.message });
+    }
+});
+
+// ── Badge Config (diseno de gafetes) ──
+
+const badgeStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, '../../uploads/logos');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `badge_${req.params.id}_${Date.now()}${ext}`);
+    }
+});
+const uploadLogo = multer({ storage: badgeStorage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+    cb(null, allowed.includes(path.extname(file.originalname).toLowerCase()));
+} });
+
+// GET /api/events/:id/badge-config
+router.get('/:id/badge-config', authMiddleware(), (req, res) => {
+    try {
+        const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
+        if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+        res.json({ badgeConfig: event.badge_config ? JSON.parse(event.badge_config) : null });
+    } catch (err) {
+        console.error('[BADGE_CONFIG] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener config' });
+    }
+});
+
+// PUT /api/events/:id/badge-config
+router.put('/:id/badge-config', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const config = JSON.stringify(req.body.config || {});
+        db.prepare("UPDATE events SET badge_config = ? WHERE id = ?").run(config, req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[BADGE_CONFIG] Error:', err.message);
+        res.status(500).json({ error: 'Error al guardar config' });
+    }
+});
+
+// POST /api/events/:id/badge-logo
+router.post('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    uploadLogo.single('logo')(req, res, (err) => {
+        if (err) return res.status(400).json({ error: 'Error al subir: ' + (err.message || 'archivo invalido') });
+        if (!req.file) return res.status(400).json({ error: 'No se envio archivo' });
+        const url = `/uploads/logos/${req.file.filename}`;
+        res.json({ success: true, url });
+    });
+});
+
+// DELETE /api/events/:id/badge-logo
+router.delete('/:id/badge-logo', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const event = db.prepare("SELECT badge_config FROM events WHERE id = ?").get(req.params.id);
+        if (event && event.badge_config) {
+            const config = JSON.parse(event.badge_config);
+            if (config.logo) {
+                const filePath = path.join(__dirname, '../..', config.logo);
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            }
+            delete config.logo;
+            db.prepare("UPDATE events SET badge_config = ? WHERE id = ?").run(JSON.stringify(config), req.params.id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[BADGE_CONFIG] Error:', err.message);
+        res.status(500).json({ error: 'Error al eliminar logo' });
     }
 });
 

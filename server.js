@@ -237,6 +237,9 @@ app.use('/html', express.static(path.join(__dirname, 'public/html'), {
     lastModified: true
 }));
 
+// Archivos subidos (logos, etc.)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Archivos estáticos raíz (imágenes, favicon, etc.)
 app.use(express.static(path.join(__dirname, '/'), {
     maxAge: '1h',

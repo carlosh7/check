@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.598</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.599</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -417,6 +417,9 @@
                         </button>
                         <button class="btn-secondary sub-nav-btn" data-tab="categories" onclick="App.switchConfigTab('categories')">
                             <span class="material-symbols-outlined">category</span> Categor&iacute;as
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="badge" onclick="App.switchConfigTab('badge')">
+                            <span class="material-symbols-outlined">badge</span> Gafete
                         </button>
                     </div>
 
@@ -988,6 +991,87 @@
                                         <tr><td colspan="6" class="text-center py-8 text-slate-500">Cargando...</td></tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: GAFETE (BADGE DESIGNER) -->
+                    <div id="config-content-badge" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Dise&ntilde;o del Gafete</h2>
+                        </div>
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-7 space-y-4">
+                                <div class="card p-4 space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Logo</h3>
+                                    <div class="flex items-center gap-4">
+                                        <div id="badge-logo-preview" class="w-20 h-20 rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center text-slate-500 text-xs overflow-hidden bg-[var(--bg-secondary)]">
+                                            Sin logo
+                                        </div>
+                                        <div class="space-y-2">
+                                            <button class="btn-secondary text-xs" onclick="document.getElementById('badge-logo-input').click()">
+                                                <span class="material-symbols-outlined text-sm">upload</span> Subir Logo
+                                            </button>
+                                            <input id="badge-logo-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" onchange="App.uploadBadgeLogo(this)">
+                                            <button id="btn-remove-logo" class="btn-secondary text-xs hidden" onclick="App.removeBadgeLogo()">
+                                                <span class="material-symbols-outlined text-sm">delete</span> Eliminar
+                                            </button>
+                                            <p class="text-[10px] text-slate-500">PNG, JPG, GIF, WebP. Max 2MB</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card p-4 space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Estilo</h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Color primario</label>
+                                            <input id="badge-primary-color" type="color" class="input-field w-full h-10 p-1" value="#7c3aed">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Fuente</label>
+                                            <select id="badge-font-family" class="input-field w-full">
+                                                <option value="sans-serif">Sans-serif</option>
+                                                <option value="serif">Serif</option>
+                                                <option value="monospace">Monospace</option>
+                                                <option value="Arial">Arial</option>
+                                                <option value="Helvetica">Helvetica</option>
+                                                <option value="Georgia">Georgia</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card p-4 space-y-3">
+                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Campos a mostrar</h3>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-name" checked class="checkbox-sm"> Nombre</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-organization" checked class="checkbox-sm"> Organizaci&oacute;n</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-cargo" class="checkbox-sm"> Cargo</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-email" class="checkbox-sm"> Email</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-phone" class="checkbox-sm"> Tel&eacute;fono</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-qr" checked class="checkbox-sm"> QR</label>
+                                    </div>
+                                </div>
+                                <div class="card p-4 space-y-3">
+                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Acci&oacute;n al hacer check-in</h3>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="nothing" class="checkbox-sm"> No hacer nada</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="modal" checked class="checkbox-sm"> Mostrar modal con bot&oacute;n imprimir</label>
+                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="print" class="checkbox-sm"> Imprimir directamente</label>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" onclick="App.saveBadgeConfig()">
+                                    <span class="material-symbols-outlined">save</span> Guardar Configuraci&oacute;n
+                                </button>
+                            </div>
+                            <div class="col-span-5">
+                                <div class="card p-4">
+                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)] mb-3">Vista previa</h3>
+                                    <div id="badge-preview" class="rounded-xl border-2 flex flex-col items-center justify-center p-4 text-center" style="min-height:280px; background:#fff; color:#333; font-family:sans-serif;">
+                                        <div id="preview-badge-content">
+                                            <p class="text-slate-400 text-xs">Configura y guarda para ver la previsualizaci&oacute;n</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

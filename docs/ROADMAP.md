@@ -8,10 +8,10 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.598 |
-| **Ultima feature completada** | F2-05: Guest Categories - CRUD, columna en tabla, filtro, modal |
+| **Version** | v12.44.599 |
+| **Ultima feature completada** | Badge Designer: pestana Gafete con editor (logo, color, fuentes, campos, preview) |
 | **Feature en curso** | Ninguna |
-| **Proximo feature** | Fase 2 Badge Config (diseno gafete + print-on-checkin) |
+| **Proximo feature** | Print-on-Checkin (modal/batch segun config) |
 | **Postura Seguridad IA** | 🔴 5 areas evaluadas vs CrowdStrike (ver `docs/SECURITY_IA.md`) |
 | **Infraestructura** | Linux + Portainer + nginx-proxy + proxy-network |
 | **URL** | `http://192.168.2.17:3000` |
