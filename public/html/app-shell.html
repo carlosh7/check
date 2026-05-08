@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.599</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.600</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1001,75 +1001,74 @@
                             <h2 class="text-xl font-bold text-white">Dise&ntilde;o del Gafete</h2>
                         </div>
                         <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-7 space-y-4">
-                                <div class="card p-4 space-y-4">
-                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Logo</h3>
-                                    <div class="flex items-center gap-4">
-                                        <div id="badge-logo-preview" class="w-20 h-20 rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center text-slate-500 text-xs overflow-hidden bg-[var(--bg-secondary)]">
-                                            Sin logo
-                                        </div>
-                                        <div class="space-y-2">
-                                            <button class="btn-secondary text-xs" onclick="document.getElementById('badge-logo-input').click()">
-                                                <span class="material-symbols-outlined text-sm">upload</span> Subir Logo
-                                            </button>
-                                            <input id="badge-logo-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" onchange="App.uploadBadgeLogo(this)">
-                                            <button id="btn-remove-logo" class="btn-secondary text-xs hidden" onclick="App.removeBadgeLogo()">
-                                                <span class="material-symbols-outlined text-sm">delete</span> Eliminar
-                                            </button>
-                                            <p class="text-[10px] text-slate-500">PNG, JPG, GIF, WebP. Max 2MB</p>
+                            <div class="col-span-8 space-y-3">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button class="btn-secondary text-xs" onclick="App.addBadgeElement('text')">
+                                        <span class="material-symbols-outlined text-sm">text_fields</span> Texto
+                                    </button>
+                                    <button class="btn-secondary text-xs" onclick="App.addBadgeElement('qr')">
+                                        <span class="material-symbols-outlined text-sm">qr_code</span> QR
+                                    </button>
+                                    <button class="btn-secondary text-xs" onclick="document.getElementById('badge-bg-input').click()">
+                                        <span class="material-symbols-outlined text-sm">image</span> Fondo
+                                    </button>
+                                    <input id="badge-bg-input" type="file" accept="image/*" class="hidden" onchange="App.uploadBadgeBackground(this)">
+                                    <span class="text-xs text-slate-500">|</span>
+                                    <label class="text-xs text-slate-400">Zoom:</label>
+                                    <select id="badge-zoom" class="input-field py-1 px-2 text-xs" style="width:auto" onchange="App.renderBadgeEditor()">
+                                        <option value="1">50%</option>
+                                        <option value="1.5">75%</option>
+                                        <option value="2" selected>100%</option>
+                                        <option value="3">150%</option>
+                                        <option value="4">200%</option>
+                                    </select>
+                                    <span class="text-xs text-slate-500">|</span>
+                                    <label class="text-xs text-slate-400">Ancho:</label>
+                                    <input id="badge-width-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:60px" value="90" onchange="App.renderBadgeEditor()"> mm
+                                    <label class="text-xs text-slate-400">Alto:</label>
+                                    <input id="badge-height-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:60px" value="55" onchange="App.renderBadgeEditor()"> mm
+                                    <select id="badge-preset-size" class="input-field py-1 px-2 text-xs" style="width:auto" onchange="App.applyBadgePresetSize(this.value)">
+                                        <option value="">Tama&ntilde;os predefinidos...</option>
+                                        <option value="90x55">Est&aacute;ndar evento (90x55mm)</option>
+                                        <option value="85.6x54">CR-80 Tarjeta ID (85.6x54mm)</option>
+                                        <option value="60x40">Name tag peque&ntilde;o (60x40mm)</option>
+                                        <option value="105x74">A7 Tarjeta (105x74mm)</option>
+                                        <option value="50x50">Cuadrado 50x50mm</option>
+                                        <option value="70x50">Esticker 70x50mm</option>
+                                        <option value="100x70">Esticker grande 100x70mm</option>
+                                        <option value="d50">Redondo D50mm</option>
+                                        <option value="d75">Redondo D75mm</option>
+                                    </select>
+                                    <button class="btn-primary text-xs" onclick="App.saveBadgeConfig()">
+                                        <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                    </button>
+                                </div>
+                                <div class="card p-0 overflow-hidden" style="background:#1e293b">
+                                    <div id="badge-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:400px; max-height:600px; padding:20px;">
+                                        <div id="badge-canvas" class="relative" style="background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.3); overflow:hidden;">
+                                            <div id="badge-background-layer" class="absolute inset-0"></div>
+                                            <div id="badge-elements-layer" class="absolute inset-0"></div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card p-4 space-y-4">
-                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Estilo</h3>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Color primario</label>
-                                            <input id="badge-primary-color" type="color" class="input-field w-full h-10 p-1" value="#7c3aed">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Fuente</label>
-                                            <select id="badge-font-family" class="input-field w-full">
-                                                <option value="sans-serif">Sans-serif</option>
-                                                <option value="serif">Serif</option>
-                                                <option value="monospace">Monospace</option>
-                                                <option value="Arial">Arial</option>
-                                                <option value="Helvetica">Helvetica</option>
-                                                <option value="Georgia">Georgia</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card p-4 space-y-3">
-                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Campos a mostrar</h3>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-name" checked class="checkbox-sm"> Nombre</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-organization" checked class="checkbox-sm"> Organizaci&oacute;n</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-cargo" class="checkbox-sm"> Cargo</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-email" class="checkbox-sm"> Email</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-phone" class="checkbox-sm"> Tel&eacute;fono</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="badge-field-qr" checked class="checkbox-sm"> QR</label>
-                                    </div>
-                                </div>
-                                <div class="card p-4 space-y-3">
-                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)]">Acci&oacute;n al hacer check-in</h3>
-                                    <div class="space-y-2">
-                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="nothing" class="checkbox-sm"> No hacer nada</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="modal" checked class="checkbox-sm"> Mostrar modal con bot&oacute;n imprimir</label>
-                                        <label class="flex items-center gap-2 text-sm"><input type="radio" name="badge-checkin-action" value="print" class="checkbox-sm"> Imprimir directamente</label>
-                                    </div>
-                                </div>
-                                <button class="btn-primary" onclick="App.saveBadgeConfig()">
-                                    <span class="material-symbols-outlined">save</span> Guardar Configuraci&oacute;n
-                                </button>
                             </div>
-                            <div class="col-span-5">
-                                <div class="card p-4">
-                                    <h3 class="text-sm font-bold uppercase text-[var(--text-secondary)] mb-3">Vista previa</h3>
-                                    <div id="badge-preview" class="rounded-xl border-2 flex flex-col items-center justify-center p-4 text-center" style="min-height:280px; background:#fff; color:#333; font-family:sans-serif;">
-                                        <div id="preview-badge-content">
-                                            <p class="text-slate-400 text-xs">Configura y guarda para ver la previsualizaci&oacute;n</p>
-                                        </div>
+                            <div class="col-span-4 space-y-3">
+                                <div class="card p-3">
+                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Acci&oacute;n check-in</h3>
+                                    <div class="space-y-1">
+                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="nothing" class="checkbox-sm"> No hacer nada</label>
+                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="modal" checked class="checkbox-sm"> Modal con imprimir</label>
+                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="print" class="checkbox-sm"> Imprimir directo</label>
+                                    </div>
+                                </div>
+                                <div id="badge-properties-panel" class="card p-3 space-y-3">
+                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Propiedades</h3>
+                                    <p class="text-xs text-slate-500 italic">Selecciona un elemento en el gafete para editarlo</p>
+                                </div>
+                                <div class="card p-3 space-y-2">
+                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Elementos</h3>
+                                    <div id="badge-elements-list" class="space-y-1 max-h-40 overflow-y-auto">
+                                        <p class="text-xs text-slate-500 italic">Sin elementos</p>
                                     </div>
                                 </div>
                             </div>

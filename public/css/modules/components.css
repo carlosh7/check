@@ -602,3 +602,25 @@
     from { opacity: 0; }
     to { opacity: 1; }
 }
+.badge-element {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    overflow: hidden;
+}
+.badge-element:hover { border-color: rgba(124, 58, 237, 0.4); }
+.badge-element.badge-selected { border-color: #7c3aed; z-index: 10; }
+.badge-handle {
+    position: absolute; width: 8px; height: 8px;
+    background: #7c3aed; border: 2px solid #fff; border-radius: 2px; z-index: 20;
+}
+.badge-handle-tl { top: -4px; left: -4px; cursor: nwse-resize; }
+.badge-handle-t  { top: -4px; left: 50%; margin-left: -4px; cursor: ns-resize; }
+.badge-handle-tr { top: -4px; right: -4px; cursor: nesw-resize; }
+.badge-handle-r  { top: 50%; right: -4px; margin-top: -4px; cursor: ew-resize; }
+.badge-handle-br { bottom: -4px; right: -4px; cursor: nwse-resize; }
+.badge-handle-b  { bottom: -4px; left: 50%; margin-left: -4px; cursor: ns-resize; }
+.badge-handle-bl { bottom: -4px; left: -4px; cursor: nesw-resize; }
+.badge-handle-l  { top: 50%; left: -4px; margin-top: -4px; cursor: ew-resize; }
