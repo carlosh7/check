@@ -11919,7 +11919,7 @@ navigate(viewName, params = {}, push = true) {
         try {
             var list = document.getElementById('survey-templates-list');
             if (!list) return;
-            var templates = await this.fetchAPI('/surveys/' + eId + '/templates');
+            var templates = await this.fetchAPI('/events/' + eId + '/templates');
             var builder = document.getElementById('survey-builder');
             var dashboard = document.getElementById('survey-dashboard');
             if (builder) builder.classList.add('hidden');
@@ -11958,11 +11958,11 @@ navigate(viewName, params = {}, push = true) {
 
         if (templateId) {
             try {
-                var tRes = await this.fetchAPI('/surveys/templates/' + templateId);
+                var tRes = await this.fetchAPI('/events/templates/' + templateId);
                 if (tRes) {
                     if (titleInput) titleInput.value = tRes.title || '';
                 }
-                var qRes = await this.fetchAPI('/surveys/templates/' + templateId + '/questions');
+                var qRes = await this.fetchAPI('/events/templates/' + templateId + '/questions');
                 if (Array.isArray(qRes)) this.surveyBuilderQuestions = qRes;
             } catch(e) {}
         } else {
@@ -12009,7 +12009,7 @@ navigate(viewName, params = {}, push = true) {
         var q = { type: type, title: defaultTitles[type] || 'Nueva pregunta', description: '', options: defaultOptions[type] || null, required: true, order_index: this.surveyBuilderQuestions.length };
         if (this._currentSurveyTemplateId) {
             try {
-                var res = await this.fetchAPI('/surveys/templates/' + this._currentSurveyTemplateId + '/questions', {
+                var res = await this.fetchAPI('/events/templates/' + this._currentSurveyTemplateId + '/questions', {
                     method: 'POST', body: JSON.stringify(q)
                 });
                 if (res && res.id) q.id = res.id;
@@ -12052,7 +12052,7 @@ navigate(viewName, params = {}, push = true) {
             q.required = data.required;
             if (q.id && !q.id.startsWith('tmp_')) {
                 try {
-                    await App.fetchAPI('/surveys/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
+                    await App.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
                 } catch(e) {}
             }
             App.renderSurveyBuilderQuestions();
@@ -12064,7 +12064,7 @@ navigate(viewName, params = {}, push = true) {
         if (!confirm.isConfirmed) return;
         this.surveyBuilderQuestions = this.surveyBuilderQuestions.filter(function(q) { return q.id !== questionId; });
         if (questionId && !questionId.startsWith('tmp_')) {
-            try { await this.fetchAPI('/surveys/questions/' + questionId, { method: 'DELETE' }); } catch(e) {}
+            try { await this.fetchAPI('/events/questions/' + questionId, { method: 'DELETE' }); } catch(e) {}
         }
         this.renderSurveyBuilderQuestions();
     },
@@ -12076,9 +12076,9 @@ navigate(viewName, params = {}, push = true) {
         try {
             var templateId = this._currentSurveyTemplateId;
             if (templateId) {
-                await this.fetchAPI('/surveys/templates/' + templateId, { method: 'PUT', body: JSON.stringify({ title: title }) });
+                await this.fetchAPI('/events/templates/' + templateId, { method: 'PUT', body: JSON.stringify({ title: title }) });
             } else {
-                var res = await this.fetchAPI('/surveys/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
+                var res = await this.fetchAPI('/events/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
                 if (res && res.id) templateId = res.id;
             }
             if (templateId) {
@@ -12086,10 +12086,10 @@ navigate(viewName, params = {}, push = true) {
                 for (var i = 0; i < this.surveyBuilderQuestions.length; i++) {
                     var q = this.surveyBuilderQuestions[i];
                     if (!q.id || q.id.startsWith('tmp_')) {
-                        var res2 = await this.fetchAPI('/surveys/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
+                        var res2 = await this.fetchAPI('/events/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
                         if (res2 && res2.id) q.id = res2.id;
                     } else {
-                        await this.fetchAPI('/surveys/questions/' + q.id, { method: 'PUT', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
+                        await this.fetchAPI('/events/questions/' + q.id, { method: 'PUT', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
                     }
                 }
             }
@@ -12113,7 +12113,7 @@ navigate(viewName, params = {}, push = true) {
         if (dashboard) dashboard.classList.remove('hidden');
         this._currentSurveyTemplateId = templateId;
         try {
-            var stats = await this.fetchAPI('/surveys/templates/' + templateId + '/stats');
+            var stats = await this.fetchAPI('/events/templates/' + templateId + '/stats');
             if (!stats) return;
             var titleEl = document.getElementById('survey-dashboard-title');
             if (titleEl) titleEl.textContent = stats.template?.title || 'Dashboard';
@@ -12141,14 +12141,14 @@ navigate(viewName, params = {}, push = true) {
 
             var respTbody = document.getElementById('survey-responses-tbody');
             if (respTbody) {
-                var responses = await this.fetchAPI('/surveys/templates/' + templateId + '/export/csv');
+                var responses = await this.fetchAPI('/events/templates/' + templateId + '/export/csv');
             }
         } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
     },
 
     exportSurveyCsv: function() {
         if (this._currentSurveyTemplateId) {
-            window.open('/api/surveys/templates/' + this._currentSurveyTemplateId + '/export/csv', '_blank');
+            window.open('/api/events/templates/' + this._currentSurveyTemplateId + '/export/csv', '_blank');
         }
     },
 
@@ -12156,7 +12156,7 @@ navigate(viewName, params = {}, push = true) {
         var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar encuesta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
         if (!confirm.isConfirmed) return;
         try {
-            await this.fetchAPI('/surveys/templates/' + templateId, { method: 'DELETE' });
+            await this.fetchAPI('/events/templates/' + templateId, { method: 'DELETE' });
             this.loadSurveyTemplates();
         } catch(e) { console.error('[SURVEY] Error:', e.message); }
     },
@@ -13392,7 +13392,7 @@ navigate(viewName, params = {}, push = true) {
         var eId = this.state.event?.id;
         if (!eId) return;
         try {
-            var templates = await this.fetchAPI('/surveys/' + eId + '/templates');
+            var templates = await this.fetchAPI('/events/' + eId + '/templates');
             var sel = document.getElementById('raffle-source-template');
             if (sel) {
                 sel.innerHTML = '<option value="">Seleccionar encuesta...</option>' +

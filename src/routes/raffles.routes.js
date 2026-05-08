@@ -42,6 +42,15 @@ router.post('/events/:eventId/raffles', authMiddleware(['ADMIN', 'PRODUCTOR']), 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.get('/:id', authMiddleware(['ADMIN', 'PRODUCTOR', 'ORGANIZER']), (req, res) => {
+    try {
+        var raffle = db.prepare("SELECT * FROM raffles WHERE id = ?").get(req.params.id);
+        if (!raffle) return res.status(404).json({ error: 'Sorteo no encontrado' });
+        if (raffle.config_json) try { raffle.config = JSON.parse(raffle.config_json); } catch(e) {}
+        res.json(raffle);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.put('/:id', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         var { type, name, winner_count, data_source, source_template_id, config, status } = req.body;
