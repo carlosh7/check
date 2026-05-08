@@ -1005,6 +1005,7 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
                 g.email as client_email, 
                 g.phone as client_phone, 
                 g.organization, 
+                g.qr_token,
                 COALESCE(g.cargo, g.position) as cargo, 
                 g.vegano, 
                 g.status,

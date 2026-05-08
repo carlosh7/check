@@ -11823,13 +11823,17 @@ navigate(viewName, params = {}, push = true) {
 
     // ── Print-on-Checkin ──
 
-    renderBadgeHtml: function(elements, bgUrl, widthMm, heightMm, qrUrls) {
+    renderBadgeHtml: function(elements, bgUrl, widthMm, heightMm, qrUrls, guestData) {
         const scale = window.devicePixelRatio > 1 ? 3.78 : 2.83;
         const w = (widthMm || 90) * scale;
         const h = (heightMm || 55) * scale;
+        const gd = guestData || {};
         const typeLabels = {
-            name: 'Maria Gonzalez', org: 'Empresa Ejemplo', cargo: 'Director',
-            email: 'email@ejemplo.com', phone: '+52 123 456 7890',
+            name: gd.name || 'Maria Gonzalez',
+            org: gd.organization || 'Empresa Ejemplo',
+            cargo: gd.cargo || 'Director',
+            email: gd.email || 'email@ejemplo.com',
+            phone: gd.phone || '+52 123 456 7890',
             text: function(el) { return el.text || 'Texto'; },
             qr: function(el) { var url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
             logo: function(el) { return el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : ''; }
@@ -11856,18 +11860,18 @@ navigate(viewName, params = {}, push = true) {
         return html;
     },
 
-    showBadgePrintModal: async function(config) {
+    showBadgePrintModal: async function(config, guestData) {
         var container = document.getElementById('badge-print-container');
         if (!container) return;
         var qrUrls = {};
         var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
         for (var i = 0; i < qrEls.length; i++) {
-            var text = qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+            var text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
             if (typeof QRCode !== 'undefined') {
                 try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(e) { console.error('[QR] Error:', e.message); }
             }
         }
-        container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls);
+        container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         var modal = document.getElementById('modal-badge-print');
         if (modal) modal.classList.remove('hidden');
     },
@@ -11883,16 +11887,32 @@ navigate(viewName, params = {}, push = true) {
         setTimeout(function() { win.print(); }, 300);
     },
 
-    printBadgeDirect: async function(config) {
+    printBadgeFromEdit: async function() {
+        var clientId = document.getElementById('edit-attendance-client-id')?.value;
+        if (!clientId) return;
+        var attendance = this.state.attendance || [];
+        var current = attendance.find(function(a) { return String(a.client_id) === String(clientId); });
+        if (!current) return;
+        var eventId = this.state.event?.id || this.state.currentEventId;
+        if (!eventId) return;
+        try {
+            var cfgRes = await this.fetchAPI('/events/' + eventId + '/badge-config');
+            var badgeCfg = cfgRes?.badgeConfig || { badgeWidth: 90, badgeHeight: 55, checkinAction: 'modal', elements: this._getDefaultBadgeElements() };
+            var guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
+            await this.showBadgePrintModal(badgeCfg, guestData);
+        } catch(e) { console.error('[BADGE_PRINT] Error:', e.message); }
+    },
+
+    printBadgeDirect: async function(config, guestData) {
         var qrUrls = {};
         var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
         for (var i = 0; i < qrEls.length; i++) {
-            var text = qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+            var text = (guestData && guestData.qr_token) || qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
             if (typeof QRCode !== 'undefined') {
-                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(_) {}
+                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(e) { console.error('[QR] Error:', e.message); }
             }
         }
-        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls);
+        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls, guestData);
         var win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
         win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + html + '</body></html>');
@@ -16714,10 +16734,11 @@ App.toggleValidateAttendance = async function(clientId) {
                     elements: this._getDefaultBadgeElements()
                 };
                 const action = badgeCfg.checkinAction || 'modal';
+                var guestData = { name: current.client_name, organization: current.organization, cargo: current.cargo, email: current.client_email, phone: current.client_phone, qr_token: current.qr_token };
                 if (action === 'modal') {
-                    this.showBadgePrintModal(badgeCfg);
+                    this.showBadgePrintModal(badgeCfg, guestData);
                 } else if (action === 'print') {
-                    this.printBadgeDirect(badgeCfg);
+                    this.printBadgeDirect(badgeCfg, guestData);
                 }
             } catch(e) { console.error('[BADGE_PRINT] Error al mostrar gafete:', e.message); }
         }
