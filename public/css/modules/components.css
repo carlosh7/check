@@ -624,3 +624,12 @@
 .badge-handle-b  { bottom: -4px; left: 50%; margin-left: -4px; cursor: ns-resize; }
 .badge-handle-bl { bottom: -4px; left: -4px; cursor: nesw-resize; }
 .badge-handle-l  { top: 50%; left: -4px; margin-top: -4px; cursor: ew-resize; }
+
+#badge-properties-panel input,
+#badge-properties-panel select {
+    font-size: 11px;
+    padding: 2px 6px;
+}
+#badge-elements-list > div {
+    padding: 3px 6px;
+}

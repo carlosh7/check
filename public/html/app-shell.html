@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.601</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.602</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -1000,8 +1000,8 @@
                         <div class="flex justify-between items-center">
                             <h2 class="text-xl font-bold text-white">Dise&ntilde;o del Gafete</h2>
                         </div>
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-8 space-y-3">
+                        <div class="grid grid-cols-12 gap-3">
+                            <div class="col-span-9 space-y-3">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <button class="btn-secondary text-xs" onclick="App.addBadgeElement('text')">
                                         <span class="material-symbols-outlined text-sm">text_fields</span> Texto
@@ -1018,33 +1018,35 @@
                                     <select id="badge-zoom" class="input-field py-1 px-2 text-xs" style="width:auto" onchange="App.renderBadgeEditor()">
                                         <option value="1">50%</option>
                                         <option value="1.5">75%</option>
-                                        <option value="2" selected>100%</option>
+                                        <option value="2">100%</option>
                                         <option value="3">150%</option>
                                         <option value="4">200%</option>
+                                        <option value="5">250%</option>
+                                        <option value="6">300%</option>
                                     </select>
                                     <span class="text-xs text-slate-500">|</span>
-                                    <label class="text-xs text-slate-400">Ancho:</label>
-                                    <input id="badge-width-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:60px" value="90" onchange="App.renderBadgeEditor()"> mm
-                                    <label class="text-xs text-slate-400">Alto:</label>
-                                    <input id="badge-height-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:60px" value="55" onchange="App.renderBadgeEditor()"> mm
+                                    <label class="text-xs text-slate-400">Tama&ntilde;o:</label>
+                                    <input id="badge-width-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:55px" value="90" onchange="App.renderBadgeEditor()">
+                                    <span class="text-xs text-slate-400">x</span>
+                                    <input id="badge-height-mm" type="number" class="input-field py-1 px-2 text-xs" style="width:55px" value="55" onchange="App.renderBadgeEditor()"> mm
                                     <select id="badge-preset-size" class="input-field py-1 px-2 text-xs" style="width:auto" onchange="App.applyBadgePresetSize(this.value)">
-                                        <option value="">Tama&ntilde;os predefinidos...</option>
-                                        <option value="90x55">Est&aacute;ndar evento (90x55mm)</option>
-                                        <option value="85.6x54">CR-80 Tarjeta ID (85.6x54mm)</option>
-                                        <option value="60x40">Name tag peque&ntilde;o (60x40mm)</option>
-                                        <option value="105x74">A7 Tarjeta (105x74mm)</option>
-                                        <option value="50x50">Cuadrado 50x50mm</option>
-                                        <option value="70x50">Esticker 70x50mm</option>
-                                        <option value="100x70">Esticker grande 100x70mm</option>
-                                        <option value="d50">Redondo D50mm</option>
-                                        <option value="d75">Redondo D75mm</option>
+                                        <option value="">Predefinidos</option>
+                                        <option value="90x55">Evento (90x55)</option>
+                                        <option value="85.6x54">CR-80 (85.6x54)</option>
+                                        <option value="60x40">Name tag (60x40)</option>
+                                        <option value="105x74">A7 (105x74)</option>
+                                        <option value="50x50">Cuad 50x50</option>
+                                        <option value="70x50">Esticker 70x50</option>
+                                        <option value="100x70">Esticker 100x70</option>
+                                        <option value="d50">Redondo D50</option>
+                                        <option value="d75">Redondo D75</option>
                                     </select>
                                     <button class="btn-primary text-xs" onclick="App.saveBadgeConfig()">
                                         <span class="material-symbols-outlined text-sm">save</span> Guardar
                                     </button>
                                 </div>
                                 <div class="card p-0 overflow-hidden" style="background:#1e293b">
-                                    <div id="badge-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:400px; max-height:600px; padding:20px;">
+                                    <div id="badge-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:calc(100vh - 300px); padding:10px;">
                                         <div id="badge-canvas" class="relative" style="background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.3); overflow:hidden;">
                                             <div id="badge-background-layer" class="absolute inset-0"></div>
                                             <div id="badge-elements-layer" class="absolute inset-0"></div>
@@ -1052,23 +1054,25 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-span-4 space-y-3">
-                                <div class="card p-3">
-                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Acci&oacute;n check-in</h3>
-                                    <div class="space-y-1">
-                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="nothing" class="checkbox-sm"> No hacer nada</label>
-                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="modal" checked class="checkbox-sm"> Modal con imprimir</label>
-                                        <label class="flex items-center gap-2 text-xs"><input type="radio" name="badge-checkin-action" value="print" class="checkbox-sm"> Imprimir directo</label>
+                            <div class="col-span-3 space-y-3">
+                                <div class="card p-3 space-y-3">
+                                    <div>
+                                        <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">Acci&oacute;n check-in</h3>
+                                        <div class="flex flex-wrap gap-2 text-xs">
+                                            <label class="flex items-center gap-1"><input type="radio" name="badge-checkin-action" value="nothing" class="checkbox-sm"> Nada</label>
+                                            <label class="flex items-center gap-1"><input type="radio" name="badge-checkin-action" value="modal" checked class="checkbox-sm"> Modal</label>
+                                            <label class="flex items-center gap-1"><input type="radio" name="badge-checkin-action" value="print" class="checkbox-sm"> Directo</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div id="badge-properties-panel" class="card p-3 space-y-3">
-                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Propiedades</h3>
-                                    <p class="text-xs text-slate-500 italic">Selecciona un elemento en el gafete para editarlo</p>
-                                </div>
-                                <div class="card p-3 space-y-2">
-                                    <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-2">Elementos</h3>
-                                    <div id="badge-elements-list" class="space-y-1 max-h-40 overflow-y-auto">
-                                        <p class="text-xs text-slate-500 italic">Sin elementos</p>
+                                    <hr class="border-[var(--border)]">
+                                    <div id="badge-properties-panel" class="space-y-2 max-h-[35vh] overflow-y-auto">
+                                        <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)]">Propiedades</h3>
+                                        <p class="text-xs text-slate-500 italic">Selecciona un elemento en el gafete</p>
+                                    </div>
+                                    <hr class="border-[var(--border)]">
+                                    <div>
+                                        <h3 class="text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">Elementos</h3>
+                                        <div id="badge-elements-list" class="space-y-0.5 max-h-32 overflow-y-auto text-xs"></div>
                                     </div>
                                 </div>
                             </div>

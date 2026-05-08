@@ -11454,6 +11454,15 @@ navigate(viewName, params = {}, push = true) {
             const radio = document.querySelector('input[name="badge-checkin-action"][value="' + action + '"]');
             if (radio) radio.checked = true;
             this._badgeConfig = cfg;
+            // Auto-fit zoom segun ancho disponible
+            const container = document.getElementById('badge-canvas-container');
+            if (container) {
+                const availW = container.clientWidth - 30;
+                const bw = cfg.badgeWidth || 90;
+                const fitZoom = Math.max(1, Math.min(6, Math.floor(availW / bw)));
+                const zoomSel = document.getElementById('badge-zoom');
+                if (zoomSel) { zoomSel.value = fitZoom; }
+            }
             this.renderBadgeEditor();
         } catch(e) { console.error('[BADGE] Error:', e.message); }
     },
@@ -16626,7 +16635,7 @@ App.toggleValidateAttendance = async function(clientId) {
                         this.printBadgeDirect(badgeCfg);
                     }
                 }
-            } catch(_) {}
+            } catch(e) { console.error('[BADGE_PRINT] Error al mostrar gafete:', e.message); }
         }
         
     } catch(e) {
