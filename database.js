@@ -419,6 +419,302 @@ db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_model', 'google/gemini-2.0-flash-lite-preview-02-05:free');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_system_prompt', 'Eres un asistente experto en gestión de eventos para la plataforma Check Pro. Ayudas a redactar correos, analizar datos de invitados y responder dudas logísticas.');
 
+// ============================================================
+// 7.3 Políticas de Seguridad IA por defecto (v12.44.624)
+// Basado en: NIST AI RMF, NCSC/CISA Guidelines, MITRE ATLAS,
+//            CrowdStrike "Proteger los Sistemas de IA", OWASP LLM Top 10
+// ============================================================
+
+const defaultAiPolicies = [
+    {
+        name: 'Uso Aceptable de Herramientas de Inteligencia Artificial',
+        description: 'Directrices para el uso seguro, responsable y autorizado de sistemas de IA en la organizacion. Aplica a todo el personal, contratistas y terceros con acceso a la plataforma.',
+        content: `POLITICA DE USO ACEPTABLE DE INTELIGENCIA ARTIFICIAL
+
+1. ALCANCE Y PROPOSITO
+Esta politica establece las reglas para el uso de herramientas, modelos y agentes de inteligencia artificial (IA) dentro de la organizacion. Su objetivo es garantizar que la IA se utilice de forma segura, etica, transparente y cumpliendo con la normativa aplicable. Aplica a todos los usuarios, incluyendo personal interno, contratistas, proveedores y cualquier tercero con acceso a los sistemas de la organizacion.
+
+2. AUTORIZACION Y REGISTRO
+2.1. Solo se permite el uso de herramientas, modelos y agentes de IA que hayan sido previamente autorizados e incluidos en el inventario oficial de sistemas de IA aprobados.
+2.2. Cualquier herramienta, extension de navegador, plugin, copiloto o servicio SaaS con capacidades de IA que no figure en el inventario aprobado se considera NO autorizado (Shadow AI).
+2.3. Los usuarios que necesiten utilizar una herramienta de IA no listada deben solicitarlo formalmente al administrador del sistema, quien evaluara los riesgos de seguridad y privacidad antes de autorizarla.
+2.4. Queda prohibida la instalacion o activacion de extensiones de navegador, plugins de IDE, o complementos basados en IA sin la autorizacion explicita del equipo de seguridad.
+
+3. CLASIFICACION Y PROTECCION DE DATOS
+3.1. PROHIBIDO: Ingresar datos personales de invitados (PII: nombres completos, emails, telefonos, direcciones, datos biomedicos), credenciales de acceso, claves de API, tokens de autenticacion, informacion financiera, propiedad intelectual (codigo fuente propietario, algoritmos, secretos comerciales) o cualquier dato clasificado como "Confidencial" o "Restringido" en herramientas de IA externas no autorizadas.
+3.2. DATOS SINTETICOS: Para pruebas, demostraciones y capacitacion con IA, utilizar EXCLUSIVAMENTE datos sinteticos o anonimizados. Queda prohibido el uso de datos reales de invitados, eventos o clientes en entornos de prueba, demostracion o entrenamiento de modelos de IA.
+3.3. MINIMIZACION: Al interactuar con sistemas de IA autorizados, proporcionar unicamente la informacion estrictamente necesaria para la tarea. Evitar incluir contextos completos, historiales de chat extensos o bases de conocimiento enteras cuando solo se requiere una consulta especifica.
+3.4. ENMASCARAMIENTO: Los datos sensibles (emails, telefonos, identificadores numericos, direcciones) deben ser enmascarados, seudonimizados o anonimizados antes de ser enviados a modelos de IA externos o basados en la nube.
+
+4. TRANSPARENCIA Y CONSENTIMIENTO
+4.1. Los invitados y usuarios tienen derecho a saber cuando estan interactuando con un sistema de IA, ya sea un chatbot, un asistente virtual, un sistema de recomendacion o cualquier otro sistema basado en IA.
+4.2. Cuando la IA se utilice para tomar decisiones que afecten a invitados (ejemplo: priorizacion, clasificacion, evaluacion), se debe informar explicitamente al invitado sobre el uso de IA en el proceso y ofrecer la posibilidad de solicitar revision humana.
+4.3. Los invitados deben haber consentido explicitamente al tratamiento de sus datos antes de que estos sean procesados por sistemas de IA. El consentimiento debe ser libre, informado, especifico e inequivoco.
+
+5. EVALUACION DE RIESGOS (Basado en NCSC Secure Design)
+5.1. Todo nuevo caso de uso de IA debe pasar por una evaluacion de riesgos de seguridad antes de ser implementado en produccion.
+5.2. La evaluacion debe incluir:
+    a) Identificacion del modelo y proveedor
+    b) Datos que seran procesados (tipo, volumen, sensibilidad)
+    c) Integraciones con otros sistemas (APIs, bases de datos, servicios externos)
+    d) Analisis de vectores de ataque (threat modeling): inyeccion de prompts, envenenamiento de datos, extraccion de informacion del modelo, manipulacion de salidas, escalada de privilegios a traves de agentes
+    e) Medidas de mitigacion implementadas
+    f) Responsable del caso de uso y del modelo
+5.3. Los casos de uso de IA clasificados como de "Alto Riesgo" (segun criterios NIST AI RMF y Ley de IA de la UE) requieren aprobacion del comite de seguridad antes de su implementacion.
+
+6. PROVEEDORES Y TERCEROS
+6.1. Solo se contrataran servicios de IA de proveedores que cumplan con:
+    a) Acuerdos de nivel de servicio (SLA) que incluyan seguridad y privacidad
+    b) Politicas de retencion y eliminacion de datos claras
+    c) Cumplimiento con regulaciones aplicables (GDPR, Ley de IA UE, CCPA, etc.)
+    d) Capacidad de auditabilidad y portabilidad de datos
+    e) Sin clausulas que permitan el entrenamiento de modelos con los datos del cliente sin consentimiento explicito
+6.2. Los proveedores de IA deben ser revisados y aprobados por el equipo de seguridad antes de su contratacion.
+
+7. REPORTE DE INCIDENTES
+7.1. Cualquier comportamiento anomalo de un sistema de IA debe ser reportado inmediatamente al equipo de seguridad:
+    a) Respuestas inesperadas, ofensivas, o que revelen informacion no autorizada
+    b) Intentos de inyeccion de prompts o manipulacion del modelo
+    c) Acceso a datos que no corresponden al perfil del usuario
+    d) Agentes que realicen acciones no autorizadas o no previstas
+    e) Sospecha de que el modelo ha sido comprometido o envenenado
+7.2. El reporte debe incluir: fecha, hora, sistema afectado, descripcion del incidente, pasos para reproducirlo (si aplica) y acciones tomadas.
+
+8. INCUMPLIMIENTO
+El incumplimiento de esta politica puede resultar en:
+    a) Suspension temporal o permanente del acceso al sistema
+    b) Acciones disciplinarias segun la politica interna de la organizacion
+    c) Notificacion a autoridades regulatorias si el incumplimiento resulta en una violacion de datos
+    d) Responsabilidad legal por danos causados por el uso no autorizado de IA`
+
+    },
+    {
+        name: 'Gobernanza de Datos y Privacidad en Sistemas de IA',
+        description: 'Clasificacion, proteccion, retencion y eliminacion de datos procesados por sistemas de IA. Basado en NIST AI RMF y OWASP LLM Top 10.',
+        content: `POLITICA DE GOBERNANZA DE DATOS Y PRIVACIDAD EN SISTEMAS DE IA
+
+1. OBJETIVO Y ALCANCE
+Esta politica establece los principios y procedimientos para la clasificacion, proteccion, retencion, portabilidad y eliminacion de datos procesados por sistemas de inteligencia artificial. Se alinea con el NIST AI Risk Management Framework (AI RMF) en sus cuatro funciones: Govern (Gobernar), Map (Mapear), Measure (Medir) y Manage (Gestionar). Aplica a todos los datos que ingresan, circulan o son generados por sistemas de IA dentro de la organizacion.
+
+2. CLASIFICACION DE DATOS (Basado en NIST AI RMF - Govern)
+2.1. Todos los datos que interactuan con sistemas de IA deben ser etiquetados segun su nivel de sensibilidad:
+
+    a) PUBLICO: Informacion que puede ser divulgada sin restricciones. Ejemplo: nombres de eventos publicos, fechas, ubicaciones generales.
+    b) INTERNO: Informacion de uso interno que no contiene datos personales ni sensibles. Ejemplo: configuraciones del sistema, estadisticas agregadas.
+    c) CONFIDENCIAL: Informacion que contiene datos personales de invitados (PII), datos de clientes, o informacion comercial sensible. Ejemplo: nombres, emails, telefonos, organizaciones, cargos, preferencias alimenticias, restricciones medicas.
+    d) RESTRINGIDO: Informacion altamente sensible cuyo acceso o divulgacion no autorizada podria causar danos significativos. Ejemplo: credenciales de acceso, claves de API, tokens de autenticacion, datos biomedicos, informacion financiera, propiedad intelectual.
+
+2.2. Por defecto, todos los datos deben clasificarse como CONFIDENCIAL hasta que se demuestre lo contrario.
+
+3. MAPEO DE DATOS (Basado en NIST AI RMF - Map)
+3.1. Para cada sistema de IA implementado, se debe mantener un mapa de datos que documente:
+    a) Que datos ingresa el sistema (origen, tipo, volumen, formato)
+    b) Que contexto adicional se anade (bases de conocimiento, historiales, integraciones)
+    c) Que datos genera el sistema (respuestas, analiticas, decisiones)
+    d) Donde se almacenan los datos (base de datos, logs, cache, vectores)
+    e) Por cuanto tiempo se retienen (plazos de retencion)
+    f) Quien tiene acceso a los datos en cada etapa
+    g) Hacia donde se transmiten los datos (servicios internos, APIs externas, modelos en la nube)
+
+4. MEDICION Y CONTROL (Basado en NIST AI RMF - Measure)
+4.1. Controles de acceso:
+    a) Aplicar el principio de minimo privilegio: los sistemas de IA solo deben tener acceso a los datos estrictamente necesarios para su funcion.
+    b) Los agentes de IA deben tener identidades unicas con permisos granularizados. Prohibido el uso de cuentas de servicio compartidas o credenciales de administrador para agentes.
+    c) Implementar Zero Trust: toda solicitud de acceso a datos por parte de un sistema de IA debe ser autenticada, autorizada y auditada.
+    d) Los roles y permisos deben ser asignados a traves de controles de identidad, no embebidos en configuraciones de modelos.
+
+4.2. Consentimiento y procedencia:
+    a) Todo dato personal ingresado a un sistema de IA debe tener una procedencia documentada y un consentimiento valido asociado.
+    b) Los equipos juridicos y de privacidad deben validar: si se obtuvo el consentimiento, si se permite la retencion, que derechos estan asociados a la reutilizacion o entrenamiento del modelo, y si se aplican controles jurisdiccionales o de transferencia de datos.
+    c) Tratar la procedencia de datos como parte de la revision de riesgos y adquisiciones, no solo de la gobernanza de privacidad.
+
+4.3. Evaluacion de Impacto en Privacidad (DPIA):
+    a) Antes de implementar cualquier sistema de IA que procese datos personales, se debe realizar una Evaluacion de Impacto en Privacidad (DPIA).
+    b) La DPIA debe documentar: el proposito del tratamiento, la base legal, los datos involucrados, los riesgos para los derechos y libertades de las personas, y las medidas de mitigacion implementadas.
+    c) Las DPIAs deben ser revisadas y aprobadas por el oficial de privacidad o el equipo legal.
+
+5. RETENCION Y ELIMINACION DE DATOS
+5.1. Plazos maximos de retencion para logs de interacciones con IA:
+    a) Prompts de usuario (entrada): maximo 90 dias
+    b) Respuestas del modelo (salida): maximo 90 dias
+    c) Logs de auditoria de acceso: maximo 1 ano
+    d) Datos de entrenamiento personalizados: solo el tiempo necesario para el ajuste del modelo, maximo 30 dias tras completar el entrenamiento
+    e) Datos de evaluacion y pruebas: eliminar inmediatamente despues de su uso
+
+5.2. Al cumplirse los plazos de retencion, los datos deben ser eliminados de forma segura:
+    a) Datos en BD: DELETE con confirmacion de eliminacion
+    b) Archivos: eliminacion segura (sobrescritura o trituracion digital)
+    c) Backups: respetar politicas de retencion de backups, pero asegurar que los datos restaurados no excedan los plazos de retencion
+
+5.3. Los invitados tienen derecho a solicitar la eliminacion de sus datos personales de los sistemas de IA (Derecho al Olvido / Supresion):
+    a) La solicitud debe ser procesada en un maximo de 30 dias calendario
+    b) Incluye: datos de invitados en la BD principal, logs de interacciones con IA, datos en vectores de embeddings (si se usan), datos en caches
+    c) Se debe confirmar por escrito al solicitante la eliminacion completa
+
+6. PORTABILIDAD DE DATOS
+6.1. Los invitados tienen derecho a solicitar la exportacion de todos sus datos almacenados, incluyendo aquellos procesados por sistemas de IA.
+6.2. El formato de exportacion debe ser JSON estructurado y legible por maquina.
+6.3. La exportacion debe incluir:
+    a) Datos personales del invitado (nombre, email, telefono, organizacion, cargo)
+    b) Historial de eventos a los que ha sido invitado
+    c) Registro de interacciones con sistemas de IA (prompts y respuestas anonimizados)
+    d) Cualquier otro dato generado o procesado por sistemas de IA que este vinculado al invitado
+6.4. La solicitud de portabilidad debe ser procesada en un maximo de 30 dias calendario.
+
+7. ENTRENAMIENTO Y AJUSTE DE MODELOS
+7.1. Si la organizacion entrena o ajusta modelos de IA:
+    a) Eliminar toda PII, PHI (informacion medica protegida) e IP (propiedad intelectual) de los conjuntos de entrenamiento
+    b) Excluir datos confidenciales o sujetos a regulaciones de los conjuntos de entrenamiento
+    c) Usar pipelines de filtrado y validacion manual durante la ingesta de datos de entrenamiento
+    d) Documentar el linaje de datos de entrenamiento con fines de auditoria y trazabilidad
+    e) Mantener registros inmutables de: datos de entrenamiento utilizados, configuracion del modelo, hiperparametros, metricas de rendimiento, y resultados de evaluaciones
+7.2. Prohibido el entrenamiento de modelos con datos de produccion sin autorizacion explicita y sin el consentimiento de los titulares de los datos.
+
+8. SEGMENTACION DE ENTORNOS
+8.1. Los entornos de IA deben estar claramente segmentados:
+    a) DESARROLLO: Solo datos sinteticos o anonimizados. Sin acceso a datos de produccion.
+    b) PRUEBAS/STAGING: Solo datos sinteticos. Sin acceso a APIs de produccion.
+    c) PRODUCCION: Datos reales con todos los controles de seguridad y privacidad implementados.
+8.2. Prohibido mover datos entre entornos sin autorizacion y sin cumplir con las politicas de clasificacion.`
+
+    },
+    {
+        name: 'Seguridad en Operaciones y Respuesta a Incidentes con IA',
+        description: 'Monitoreo en tiempo real, deteccion de amenazas, respuesta a incidentes y Red Teaming para sistemas de IA. Basado en NCSC Secure Operations, MITRE ATLAS y CISA guidelines.',
+        content: `POLITICA DE SEGURIDAD EN OPERACIONES Y RESPUESTA A INCIDENTES CON IA
+
+1. OBJETIVO Y ALCANCE
+Esta politica establece los requisitos de monitoreo, deteccion de amenazas, respuesta a incidentes y pruebas de seguridad (Red Teaming) para todos los sistemas de inteligencia artificial implementados en la organizacion. Se basa en las guias de NCSC (National Cyber Security Centre) para Secure Operations, el framework MITRE ATLAS para tacticas adversariales de IA, y las recomendaciones de CISA. Aplica a todos los modelos, agentes, copilotos y sistemas basados en IA en entornos de produccion.
+
+2. LOGGING Y AUDITORIA (Basado en NCSC Secure Operations)
+2.1. Toda interaccion con sistemas de IA debe ser registrada en logs inmutables con la siguiente informacion minima:
+    a) Identificador unico de la interaccion (UUID)
+    b) Timestamp con precision de milisegundos
+    c) Identidad del usuario o sistema que realiza la consulta (user_id, session_id)
+    d) Prompt del usuario (texto enviado al modelo)
+    e) Contexto adicional enviado al modelo (datos recuperados de bases de conocimiento, integraciones, historial de conversacion)
+    f) Respuesta completa del modelo
+    g) Modelo utilizado (nombre, version, proveedor)
+    h) Tiempo de respuesta (latencia en ms)
+    i) Tokens consumidos (input/output)
+    j) Resultado de la validacion de seguridad (aprobado/bloqueado/mascarado)
+    k) Direccion IP de origen y user-agent
+
+2.2. Datos sensibles en logs:
+    a) Los campos que contengan PII (nombres, emails, telefonos) deben ser enmascarados automaticamente en los logs mediante funcion de hashing o seudonimizacion
+    b) Las claves de API, tokens y credenciales deben ser completamente removidas de los logs
+    c) El enmascaramiento debe ocurrir antes de la persistencia del log, no solo en la visualizacion
+
+2.3. Los logs deben ser:
+    a) Inmutables: una vez escritos, no pueden ser modificados ni eliminados antes de su periodo de retencion
+    b) Firmados digitalmente o almacenados en sistemas de solo append (append-only)
+    c) Accesibles solo para el equipo de seguridad y auditoria
+    d) Respaldados con la misma frecuencia que los logs del sistema central
+
+3. MONITOREO Y DETECCION DE AMENAZAS (Basado en MITRE ATLAS)
+3.1. El sistema de monitoreo debe generar alertas automaticas para los siguientes comportamientos anomalos:
+
+    a) Volumen anormal de consultas: mas de X consultas por minuto desde una misma IP o usuario (umbral configurable por caso de uso)
+    b) Patrones de inyeccion de prompts: cadenas de texto que coincidan con patrones conocidos de jailbreaking, prompt injection, o bypass de instrucciones del sistema (basado en taxonomia de metodos de inyeccion de prompts de CrowdStrike)
+    c) Acceso a datos fuera del perfil: consultas que intenten acceder a informacion de invitados, eventos o configuraciones que no correspondan al perfil del usuario autenticado
+    d) Ubicaciones geograficas no habituales: accesos desde paises o regiones donde la organizacion no tiene presencia operativa
+    e) Intentos de extraccion de informacion del modelo: consultas repetitivas diseñadas para extraer el prompt del sistema, las instrucciones internas, los datos de entrenamiento o la configuracion del modelo (model extraction / inversion)
+    f) Manipulacion de salidas: intentos de forzar al modelo a generar contenido prohibido, engañoso, o a suplantar identidades
+    g) Llamadas a funciones no autorizadas: agentes que intenten invocar herramientas, APIs o funciones que no estan en su lista de capacidades autorizadas
+    h) Encadenamiento no intencionado de tareas: agentes que ejecuten secuencias de acciones que no fueron solicitadas por el usuario
+
+3.2. Los umbrales de alerta deben ser calibrados por caso de uso y revisados trimestralmente.
+
+4. PROTECCION DE DATOS EN TIEMPO REAL (DLP para IA)
+4.1. Antes de enviar datos a un modelo externo, se deben aplicar los siguientes controles en tiempo real:
+    a) Inspeccion de contenido: detectar y bloquear el envio de PII, credenciales, claves de API, tokens, informacion financiera o propiedad intelectual
+    b) Enmascaramiento automatico: reemplazar datos sensibles con placeholders antes del envio al modelo
+    c) Bloqueo contextual: si el prompt contiene una combinacion de datos que sugiere un intento de exfiltracion, la consulta debe ser bloqueada y registrada
+
+4.2. A la salida del modelo:
+    a) Inspeccion de respuestas: detectar si el modelo esta revelando informacion que no deberia (datos de entrenamiento, prompts del sistema, informacion de otros usuarios)
+    b) Filtrado de contenido sensible: bloquear respuestas que contengan PII no autorizada, credenciales, o informacion confidencial
+    c) Validacion de formato: asegurar que la respuesta cumple con el formato esperado y no contiene inyeccion de codigo (HTML, SQL, JavaScript, comandos de sistema)
+
+5. RESPUESTA A INCIDENTES (Basado en MITRE ATLAS y NCSC)
+5.1. Clasificacion de incidentes de IA:
+
+    a) INYECCION DE PROMPTS (Prompt Injection / Jailbreaking):
+       - Accion inmediata: Bloquear la consulta, notificar al equipo de seguridad, registrar el intento con todos los detalles
+       - Accion de remediacion: Revisar y fortalecer las instrucciones del sistema (system prompt), implementar filtros adicionales de entrada, actualizar el modelo si es necesario
+       - Tiempo objetivo de respuesta: < 15 minutos
+
+    b) FILTRACION DE DATOS (Data Exfiltration):
+       - Accion inmediata: Detener el servicio de IA afectado, revisar logs para identificar el alcance de la exposicion, notificar al oficial de privacidad
+       - Accion de remediacion: Identificar que datos fueron expuestos, contactar a los afectados si es requerido por ley, implementar controles adicionales de DLP
+       - Tiempo objetivo de respuesta: < 1 hora
+
+    c) ENVENENAMIENTO DE MODELO (Model Poisoning):
+       - Accion inmediata: Detener la inferencia, aislar el modelo comprometido, revisar el pipeline de entrenamiento
+       - Accion de remediacion: Revertir a una version anterior del modelo, auditar los datos de entrenamiento recientes, fortalecer los controles de ingesta de datos
+       - Tiempo objetivo de respuesta: < 2 horas
+
+    d) ESCALADA DE PRIVILEGIOS POR AGENTES (Agent Privilege Escalation):
+       - Accion inmediata: Revocar credenciales del agente, detener su ejecucion, auditar todas las acciones realizadas por el agente
+       - Accion de remediacion: Revisar y reducir los permisos del agente, implementar controles de acceso adicionales, registrar el incidente
+       - Tiempo objetivo de respuesta: < 30 minutos
+
+    e) COMPORTAMIENTO ANOMALO DE AGENTE (Agent Behavioral Anomaly):
+       - Accion inmediata: Pausar el agente, revisar logs de acciones, identificar la causa raiz
+       - Accion de remediacion: Actualizar las reglas de comportamiento del agente, implementar limites de ejecucion, registrar el incidente
+       - Tiempo objetivo de respuesta: < 1 hora
+
+5.2. Todos los incidentes de IA deben ser documentados en el sistema de tickets de seguridad.
+
+6. ACTUALIZACIONES Y GESTION DE VULNERABILIDADES
+6.1. Los modelos y componentes de IA deben mantenerse actualizados:
+    a) Modelos de IA: actualizar a versiones que corrijan vulnerabilidades de seguridad conocidas en un maximo de 30 dias calendario desde la publicacion del parche
+    b) Dependencias de software (librerias, paquetes, frameworks): escanear semanalmente con herramientas como npm audit, pip audit, trivy, snyk o similares
+    c) Vulnerabilidades criticas (CVSS >= 9.0): parchar en un maximo de 7 dias calendario
+    d) Vulnerabilidades altas (CVSS >= 7.0): parchar en un maximo de 30 dias calendario
+    e) Vulnerabilidades medias/bajas: parchar en el ciclo regular de actualizaciones
+
+6.2. Los proveedores de IA deben ser revisados trimestralmente.
+
+7. SEGMENTACION Y AISLAMIENTO
+7.1. Los entornos de IA deben estar estrictamente segmentados:
+    a) DESARROLLO: Sin acceso a datos de produccion, sin conexion a APIs de produccion, sin credenciales reales
+    b) PRUEBAS (STAGING): Datos sinteticos o anonimizados, conexiones a servicios de prueba, credenciales de prueba
+    c) PRODUCCION: Datos reales con controles de seguridad completos, conexiones a servicios de produccion, credenciales con minimo privilegio
+
+7.2. Prohibido usar datos de produccion en entornos de desarrollo o pruebas, compartir credenciales entre entornos, tener acceso a produccion desde entornos de desarrollo, almacenar claves de API/tokens/secretos en el codigo fuente o configuraciones accesibles por el modelo.
+
+8. RED TEAMING Y PRUEBAS DE SEGURIDAD (Basado en MITRE ATLAS y OWASP LLM Top 10)
+8.1. Se deben realizar pruebas de seguridad adversarial (Red Teaming) especificas para IA con una frecuencia minima de cada 6 meses.
+8.2. Escenarios minimos a probar: inyeccion directa de prompts, inyeccion indirecta (via RAG), extraccion de informacion del modelo, manipulacion de salidas, uso indebido de herramientas y agentes, ataques de denegacion de servicio (IA DoS).
+8.3. Las vulnerabilidades descubiertas deben ser registradas en el sistema de seguimiento.
+
+9. INTEGRACION CON EL SOC
+9.1. Las detecciones de seguridad de IA deben integrarse en los flujos de trabajo del SOC existente.
+9.2. Se debe establecer un canal de comunicacion directo entre el equipo de seguridad de IA y el SOC.
+
+10. MEJORA CONTINUA
+10.1. Las politicas, controles y procedimientos de seguridad de IA deben revisarse anualmente como minimo, despues de cada incidente significativo, al implementar nuevos tipos de modelos o agentes, y cuando cambien las regulaciones aplicables.
+10.2. Las lecciones aprendidas deben documentarse y utilizarse para mejorar continuamente la postura de seguridad de IA.`
+
+    }
+];
+
+// Seed politicas por defecto (solo si no existen)
+defaultAiPolicies.forEach(function(policy) {
+    try {
+        var existing = db.prepare("SELECT id FROM ai_policies WHERE name = ?").get(policy.name);
+        if (!existing) {
+            var pId = uuidv4();
+            db.prepare("INSERT INTO ai_policies (id, name, description, content, created_at) VALUES (?, ?, ?, ?, ?)")
+              .run(pId, policy.name, policy.description, policy.content, new Date().toISOString());
+            console.log('[SEED] Politica IA creada:', policy.name);
+        }
+    } catch(e) {
+        console.error('[SEED] Error creando politica IA:', e.message);
+    }
+});
+
 // Tabla de inventario de sistemas de IA (Shadow AI Detection)
 db.exec(`CREATE TABLE IF NOT EXISTS ai_inventory (
     id TEXT PRIMARY KEY,
