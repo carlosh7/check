@@ -22,7 +22,7 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
 #error p{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:24px}
 #error button{padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
 
-.wof__main{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background-size:cover;background-position:center;position:relative}
+.wof__main{width:100vw;height:100vh;display:none;align-items:center;justify-content:center;flex-direction:column;background-size:cover;background-position:center;position:relative}
 .wof__main.playing{background-size:cover;background-repeat:no-repeat}
 .wof__main.centered{justify-content:center}
 .wof__main.fullscreen{position:fixed;inset:0;z-index:99998;border-radius:0}
@@ -124,7 +124,7 @@ body{font-family:'Inter',sans-serif;background:#0f172a;color:#f1f5f9;min-height:
       <input class="fld" id="lead-last-name" placeholder="Apellido" autocomplete="family-name">
       <input class="fld" id="lead-email" type="email" placeholder="Email" autocomplete="email">
     </div>
-    <button id="btn-spin-r" class="wof__main__btn" style="display:none">🎡 GIRAR</button>
+    <button id="btn-spin-r" class="wof__main__btn" style="display:none" onclick="spin()">🎡 GIRAR</button>
   </div>
 
   <div class="wof__main__options">
@@ -191,10 +191,9 @@ function draw(){
   cx.restore()
 }
 function updDesign(){
-  var cl=cols();
+  var cl=cols(),c=cfg();
   var sc=document.getElementById('screencast');
-  var bg=c.page_background_color||'#D1E4FF';
-  sc.style.backgroundColor=bg;
+  sc.style.backgroundColor=c.page_background_color||'#D1E4FF';
   sc.style.color=c.main_color||'#1a1a1a';
   document.querySelector('.wof__wheel__pointer-svg path').setAttribute('fill',cl.pc);
   document.querySelector('.wof__wheel__border').style.borderColor=cl.bc;
@@ -265,6 +264,14 @@ function confetti(){
 }
 
 function resetWheel(){rot=0;spinning=false;draw();document.getElementById('winner-display').style.display='none';document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=false})}
+function useTheme(idx){
+  var ts=[{name:'Clasico',colors:['#ff7878','#7eecec','#fff171','#7280fd']},{name:'Oceano',colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A']},{name:'Naturaleza',colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332']},{name:'Fuego',colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C']},{name:'Pastel',colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF']},{name:'Neon',colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600']}];
+  var t=ts[idx];if(!t)return;
+  var c=data.config||{};
+  c.wheel_colors=t.colors;
+  // Also update pointer and border for demo
+  draw()
+}
 function toggleSound(){sound=!sound;document.getElementById('btn-sound-toggle').textContent=sound?'🔊':'🔇'}
 function toggleFS(){
   var el=document.getElementById('screencast');
@@ -337,6 +344,7 @@ async function load(){
     if(c.capture_leads){
       document.getElementById('lead-form').style.display='block';
       document.getElementById('btn-spin').style.display='none';
+      document.getElementById('btn-spin-r').style.display='flex';
     }else{
       document.getElementById('btn-spin').style.display='flex';
     }
@@ -349,17 +357,14 @@ async function load(){
     document.getElementById('btn-sound-toggle').textContent=sound?'🔊':'🔇';
 
     // Themes
-    var themes=window._wheelThemes;
-    if(themes&&themes.length){
-      document.getElementById('quick-themes').classList.remove('hidden');
-      document.getElementById('quick-themes').innerHTML=themes.map(function(t,i){
-        return '<div class="cp" onclick="useTheme('+i+')">'+t.colors.map(function(c){return'<span style="background:'+c+'"></span>'}).join('')+'</div>'
-      }).join('')
-    }
+    var themes=[{name:'Clasico',colors:['#ff7878','#7eecec','#fff171','#7280fd']},{name:'Oceano',colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A']},{name:'Naturaleza',colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332']},{name:'Fuego',colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C']},{name:'Pastel',colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF']},{name:'Neon',colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600']}];
+    document.getElementById('quick-themes').classList.remove('hidden');
+    document.getElementById('quick-themes').innerHTML=themes.map(function(t,i){
+      return '<div class="cp" onclick="useTheme('+i+')">'+t.colors.map(function(c){return'<span style="background:'+c+'"></span>'}).join('')+'</div>'
+    }).join('');
 
     draw();
     if(wins.length)updWinners();
-    document.getElementById('stat-p').textContent=parts.length;
   }catch(e){
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error').classList.add('show');
