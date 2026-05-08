@@ -11449,20 +11449,27 @@ navigate(viewName, params = {}, push = true) {
         if (!eId) return;
         try {
             const res = await this.fetchAPI(`/events/${eId}/badge-config`);
-            const cfg = res?.badgeConfig || {};
-            this._badgeElements = cfg.elements || this._getDefaultBadgeElements();
-            this._badgeBackground = cfg.background || null;
-            document.getElementById('badge-width-mm').value = cfg.badgeWidth || 90;
-            document.getElementById('badge-height-mm').value = cfg.badgeHeight || 55;
-            const action = cfg.checkinAction || 'modal';
+            const cfg = res?.badgeConfig;
+            if (cfg) {
+                this._badgeElements = cfg.elements || this._getDefaultBadgeElements();
+                this._badgeBackground = cfg.background || null;
+                this._badgeSavedOnce = true;
+            } else {
+                this._badgeElements = this._getDefaultBadgeElements();
+                this._badgeBackground = null;
+                this._badgeSavedOnce = false;
+            }
+            document.getElementById('badge-width-mm').value = (cfg && cfg.badgeWidth) || 90;
+            document.getElementById('badge-height-mm').value = (cfg && cfg.badgeHeight) || 55;
+            const action = (cfg && cfg.checkinAction) || 'modal';
             const radio = document.querySelector('input[name="badge-checkin-action"][value="' + action + '"]');
             if (radio) radio.checked = true;
-            this._badgeConfig = cfg;
+            this._badgeConfig = cfg || {};
             // Auto-fit zoom segun ancho disponible
             const container = document.getElementById('badge-canvas-container');
             if (container) {
                 const availW = container.clientWidth - 30;
-                const bw = cfg.badgeWidth || 90;
+                const bw = (cfg && cfg.badgeWidth) || 90;
                 const fitZoom = Math.max(1, Math.min(6, Math.floor(availW / bw)));
                 const zoomSel = document.getElementById('badge-zoom');
                 if (zoomSel) { zoomSel.value = fitZoom; }
@@ -11479,7 +11486,7 @@ navigate(viewName, params = {}, push = true) {
         ];
     },
 
-    saveBadgeConfig: async function() {
+    saveBadgeConfig: async function(silent) {
         const eId = this.state.event?.id;
         if (!eId) return;
         const config = {
@@ -11492,10 +11499,12 @@ navigate(viewName, params = {}, push = true) {
         try {
             await this.fetchAPI(`/events/${eId}/badge-config`, { method: 'PUT', body: JSON.stringify({ config }) });
             this._badgeConfig = config;
-            Swal.fire({ icon: 'success', title: 'Guardado', text: 'Diseno del gafete guardado', timer: 1500, showConfirmButton: false });
+            if (!silent) {
+                Swal.fire({ icon: 'success', title: 'Guardado', text: 'Diseno del gafete guardado', timer: 1500, showConfirmButton: false });
+            }
         } catch(e) {
             console.error('[BADGE] Error:', e.message);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar' });
+            if (!silent) Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar' });
         }
     },
 
@@ -11518,6 +11527,11 @@ navigate(viewName, params = {}, push = true) {
         canvas.style.background = this._badgeBackground?.url ? 'transparent' : '#ffffff';
         this.renderBadgeElements();
         this.updateBadgeElementsList();
+        // Auto-save primera vez si hay elementos modificados
+        if (!this._badgeSavedOnce && this._badgeElements && this._badgeElements.length > 0) {
+            this._badgeSavedOnce = true;
+            this.saveBadgeConfig(true);
+        }
     },
 
     renderBadgeElements: function() {
@@ -16694,14 +16708,16 @@ App.toggleValidateAttendance = async function(clientId) {
         if (newValidated === 1) {
             try {
                 const cfgRes = await this.fetchAPI(`/events/${eventId}/badge-config`);
-                const badgeCfg = cfgRes?.badgeConfig;
-                if (badgeCfg) {
-                    const action = badgeCfg.checkinAction || 'nothing';
-                    if (action === 'modal') {
-                        this.showBadgePrintModal(badgeCfg);
-                    } else if (action === 'print') {
-                        this.printBadgeDirect(badgeCfg);
-                    }
+                const badgeCfg = cfgRes?.badgeConfig || {
+                    badgeWidth: 90, badgeHeight: 55,
+                    checkinAction: 'modal',
+                    elements: this._getDefaultBadgeElements()
+                };
+                const action = badgeCfg.checkinAction || 'modal';
+                if (action === 'modal') {
+                    this.showBadgePrintModal(badgeCfg);
+                } else if (action === 'print') {
+                    this.printBadgeDirect(badgeCfg);
                 }
             } catch(e) { console.error('[BADGE_PRINT] Error al mostrar gafete:', e.message); }
         }
