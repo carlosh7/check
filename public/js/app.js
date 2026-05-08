@@ -17351,6 +17351,16 @@ App.renderAttendanceTable = function(attendance) {
                     class="attendance-switch mx-auto ${a.validated ? 'validated' : ''}">
                 </div>
             </td>
+            <td class="!py-3 !px-3 text-center">
+                <div class="flex items-center justify-center gap-0.5">
+                    <button onclick="App.exportGuestData('${a.event_id || ''}', '${a.client_id}')" title="Exportar datos (GDPR)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-blue-500/20 text-blue-400 transition-colors">
+                        <span class="material-symbols-outlined text-xs">download</span>
+                    </button>
+                    <button onclick="App.eraseGuestData('${a.event_id || ''}', '${a.client_id}', '${(a.client_name || '').replace(/'/g, "\\'")}')" title="Derecho al olvido" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-xs">delete_forever</span>
+                    </button>
+                </div>
+            </td>
         </tr>`;
     }).join('');
 },
