@@ -132,6 +132,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
     dietary_notes TEXT,
     restricciones TEXT,
     vegano TEXT DEFAULT 'NO',
+    status TEXT DEFAULT 'lead',
     is_new_registration INTEGER DEFAULT 0,
     checked_in INTEGER DEFAULT 0,
     checkin_time TEXT,
@@ -146,7 +147,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
 // Migración V12.44.301: Asegurar columnas unificadas en la tabla guests
 try {
     const columns = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
-    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token'];
+    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status'];
     required.forEach(col => {
         if (!columns.includes(col)) {
             let def = "TEXT";
@@ -162,7 +163,22 @@ try {
     console.error('[MIGRATION] Error migrando tabla guests:', e.message);
 }
 try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_guests_qr_token ON guests(qr_token)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_guests_status ON guests(status)"); } catch (_) {}
 
+// Tabla de log de cambios de estado del pipeline
+db.exec(`CREATE TABLE IF NOT EXISTS guest_status_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_id TEXT,
+    event_id TEXT,
+    from_status TEXT,
+    to_status TEXT,
+    changed_by TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guest_id) REFERENCES guests(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_event ON guest_status_log(event_id)"); } catch (_) {}
 
 // 3.1 Pre-Registros (Inscripción previa)
 db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (

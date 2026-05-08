@@ -170,6 +170,7 @@ function createEventTables(db, eventId) {
             dietary_notes TEXT,
             restricciones TEXT,
             vegano TEXT DEFAULT 'NO',
+            status TEXT DEFAULT 'lead',
             is_new_registration INTEGER DEFAULT 0,
             checked_in INTEGER DEFAULT 0,
             checkin_time TEXT,
@@ -177,11 +178,24 @@ function createEventTables(db, eventId) {
             validated INTEGER DEFAULT 0,
             validated_at TEXT,
             validated_by TEXT,
-            unsubscribed INTEGER DEFAULT 0,
-            unsubscribe_token TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     `);
+    
+    // Tabla de log de cambios de estado del pipeline
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS guest_status_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guest_id TEXT,
+            event_id TEXT,
+            from_status TEXT,
+            to_status TEXT,
+            changed_by TEXT,
+            notes TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)"); } catch (_) {}
     
     // Tabla de pre-registros
     db.exec(`

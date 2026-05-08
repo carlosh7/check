@@ -15910,8 +15910,10 @@ App.renderAttendanceTable = function(attendance) {
     
     tbody.innerHTML = attendance.map(a => {
         const isSelected = selectedIds.includes(a.client_id);
-        const statusColors = { PENDIENTE: '#f59e0b', CONFIRMADO: '#10b981', CANCELADO: '#ef4444' };
-        const statusColor = statusColors[a.status] || '#64748b';
+    const statusColors = { lead: '#64748b', contacted: '#3b82f6', confirmed: '#10b981', attended: '#8b5cf6', not_interested: '#ef4444' };
+    const statusLabels = { lead: 'Lead', contacted: 'Contactado', confirmed: 'Confirmado', attended: 'Asistió', not_interested: 'No interesado' };
+    const currentStatus = a.status || 'lead';
+    const statusColor = statusColors[currentStatus] || '#64748b';
         const veganoBadge = a.vegano === 'SI' 
             ? `<span class="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400">Sí</span>`
             : `<span class="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-red-500/20 text-red-400">No</span>`;
@@ -15939,10 +15941,15 @@ App.renderAttendanceTable = function(attendance) {
             <td class="!py-3 !px-3">${veganoBadge}</td>
             <td class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
             <td class="!py-3 !px-3">
-                <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase" 
-                    style="background: ${statusColor}20; color: ${statusColor};">
-                    ${a.status || 'PENDIENTE'}
-                </span>
+                <select onchange="App.changeGuestStatus('${a.client_id}', this.value)"
+                    class="status-pipeline-select text-[10px] font-bold rounded-full px-2 py-1 cursor-pointer outline-none"
+                    style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40; -webkit-appearance: none; appearance: none;">
+                    <option value="lead" ${currentStatus === 'lead' ? 'selected' : ''}>Lead</option>
+                    <option value="contacted" ${currentStatus === 'contacted' ? 'selected' : ''}>Contactado</option>
+                    <option value="confirmed" ${currentStatus === 'confirmed' ? 'selected' : ''}>Confirmado</option>
+                    <option value="attended" ${currentStatus === 'attended' ? 'selected' : ''}>Asistió</option>
+                    <option value="not_interested" ${currentStatus === 'not_interested' ? 'selected' : ''}>No interesado</option>
+                </select>
             </td>
             <td class="!py-3 !px-3 text-center">
                 <div onclick="App.toggleValidateAttendance('${a.client_id}')" 
@@ -15973,6 +15980,24 @@ App.toggleAttendance = function(clientId) {
         this._selectedAttendance.push(clientId);
     }
     this.filterAttendance();
+},
+
+App.changeGuestStatus = async function(guestId, newStatus) {
+    const eventId = this.state.currentEventId || this.state.event?.id;
+    if (!eventId || !guestId) return;
+    try {
+        const res = await this.fetchAPI(`/guests/${eventId}/guest-status/${guestId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (res && res.success) {
+            const guest = this.state.attendance?.find(a => a.client_id == guestId);
+            if (guest) guest.status = newStatus;
+            this.filterAttendance();
+        }
+    } catch(e) {
+        console.error('[PIPELINE] Error cambiando estado:', e.message);
+    }
 },
 
 App.toggleValidateAttendance = async function(clientId) {

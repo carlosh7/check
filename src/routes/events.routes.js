@@ -1004,6 +1004,7 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
                 g.organization, 
                 COALESCE(g.cargo, g.position) as cargo, 
                 g.vegano, 
+                g.status,
                 COALESCE(g.restricciones, g.dietary_notes) as restricciones, 
                 g.checked_in as validated, g.checkin_time as validated_at
             FROM guests g

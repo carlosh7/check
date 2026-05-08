@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.592</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.593</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -189,12 +189,14 @@
                             <option value="SI">S&iacute;</option>
                             <option value="NO">No</option>
                         </select>
-                        <select id="filter-attendance-status" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-evento">
-                            <option value="">Estado</option>
-                            <option value="PENDIENTE">Pendiente</option>
-                            <option value="CONFIRMADO">Confirmado</option>
-                            <option value="CANCELADO">Cancelado</option>
-                        </select>
+                <select id="filter-attendance-status" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-evento">
+                    <option value="">Estado</option>
+                    <option value="lead">Lead</option>
+                    <option value="contacted">Contactado</option>
+                    <option value="confirmed">Confirmado</option>
+                    <option value="attended">Asistió</option>
+                    <option value="not_interested">No interesado</option>
+                </select>
                     </div>
 
                     <div class="event-info">

@@ -325,5 +325,72 @@ router.post('/clear/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res
     res.json({ success: true });
 });
 
+// Cambiar estado de invitado (Pipeline)
+router.patch('/:eventId/guest-status/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        const gId = castId('guests', req.params.guestId);
+        const { status, notes } = req.body;
+        
+        const validStatuses = ['lead', 'contacted', 'confirmed', 'attended', 'not_interested'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Estado invalido. Validos: ' + validStatuses.join(', ') });
+        }
+        
+        const targetDb = getEventConnection(eId) || db;
+        const guest = targetDb.prepare("SELECT * FROM guests WHERE id = ? AND event_id = ?").get(gId, eId);
+        if (!guest) return res.status(404).json({ error: 'Invitado no encontrado' });
+        
+        const fromStatus = guest.status || 'lead';
+        
+        targetDb.prepare("UPDATE guests SET status = ? WHERE id = ?").run(status, gId);
+        
+        targetDb.prepare("INSERT INTO guest_status_log (guest_id, event_id, from_status, to_status, changed_by, notes) VALUES (?, ?, ?, ?, ?, ?)").run(
+            gId, eId, fromStatus, status, req.userId, notes || null
+        );
+        
+        const io = socketGetIO();
+        if (io) io.to(eId).emit('update_stats', eId);
+        
+        res.json({ success: true, fromStatus, toStatus: status });
+    } catch (err) {
+        console.error('[PIPELINE] Error cambiando estado:', err.message);
+        res.status(500).json({ error: 'Error al cambiar estado' });
+    }
+});
+
+// Obtener resumen del pipeline (conteo por estado)
+router.get('/:eventId/pipeline', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        
+        const targetDb = getEventConnection(eId) || db;
+        
+        const counts = targetDb.prepare(`
+            SELECT status, COUNT(*) as count FROM guests WHERE event_id = ? GROUP BY status
+        `).all(eId);
+        
+        const defaultStatuses = ['lead', 'contacted', 'confirmed', 'attended', 'not_interested'];
+        const pipeline = defaultStatuses.map(s => ({
+            status: s,
+            count: 0,
+            label: s === 'lead' ? 'Lead' : s === 'contacted' ? 'Contactado' : s === 'confirmed' ? 'Confirmado' : s === 'attended' ? 'Asistió' : 'No interesado'
+        }));
+        
+        counts.forEach(c => {
+            const found = pipeline.find(p => p.status === c.status);
+            if (found) found.count = c.count;
+        });
+        
+        const total = pipeline.reduce((a, p) => a + p.count, 0);
+        
+        res.json({ pipeline, total });
+    } catch (err) {
+        console.error('[PIPELINE] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener pipeline' });
+    }
+});
+
 module.exports = router;
 module.exports.tempImport = tempImport;
