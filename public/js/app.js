@@ -336,11 +336,6 @@ const App = window.App = {
                         }
                     } catch(e) {}
                 }
-                    
-                    const clients = this.state.clients || [];
-                    clientSelect.innerHTML = '<option value="">Seleccionar cliente</option>' + 
-                        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-                }
 
                 // Asegurar listener único
                 form.onsubmit = (e) => {
