@@ -11864,7 +11864,7 @@ navigate(viewName, params = {}, push = true) {
         for (var i = 0; i < qrEls.length; i++) {
             var text = qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
             if (typeof QRCode !== 'undefined') {
-                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(_) {}
+                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(e) { console.error('[QR] Error:', e.message); }
             }
         }
         container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls);
