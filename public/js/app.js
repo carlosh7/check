@@ -11908,11 +11908,261 @@ navigate(viewName, params = {}, push = true) {
     
     // Cargar encuestas (v12.34.2)
     loadSurveys() {
-        if (typeof this.loadSurveyQuestions === 'function') {
-            this.loadSurveyQuestions();
+        this.loadSurveyTemplates();
+    },
+
+    surveyBuilderQuestions: [],
+
+    loadSurveyTemplates: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var list = document.getElementById('survey-templates-list');
+            if (!list) return;
+            var templates = await this.fetchAPI('/surveys/' + eId + '/templates');
+            var builder = document.getElementById('survey-builder');
+            var dashboard = document.getElementById('survey-dashboard');
+            if (builder) builder.classList.add('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+            if (templates.length === 0) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>Crea tu primera encuesta</p></div>';
+            } else {
+                list.innerHTML = templates.map(function(t) {
+                    var statusColor = t.status === 'published' ? 'text-green-400' : t.status === 'draft' ? 'text-amber-400' : 'text-slate-400';
+                    var statusIcon = t.status === 'published' ? 'check_circle' : t.status === 'draft' ? 'edit_note' : 'visibility';
+                    return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">' +
+                        '<div class="flex items-center gap-3">' +
+                        '<span class="material-symbols-outlined text-[var(--primary)]">poll</span>' +
+                        '<div><p class="text-sm font-bold text-white">' + (t.title || 'Sin título') + '</p>' +
+                        '<p class="text-xs text-slate-500">' + (t.total_responses || 0) + ' respuestas</p></div></div>' +
+                        '<div class="flex gap-1">' +
+                        '<span class="text-xs ' + statusColor + ' flex items-center gap-1"><span class="material-symbols-outlined text-xs">' + statusIcon + '</span>' + t.status + '</span>' +
+                        '<button class="btn-icon" onclick="App.openSurveyBuilder(\'' + t.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                        '<button class="btn-icon" onclick="App.openSurveyDashboard(\'' + t.id + '\')" title="Dashboard"><span class="material-symbols-outlined text-sm">insights</span></button>' +
+                        '<button class="btn-icon text-red-400" onclick="App.deleteSurveyTemplate(\'' + t.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                }).join('');
+            }
+        } catch(e) { console.error('[SURVEY] Error:', e.message); }
+    },
+
+    openSurveyBuilder: async function(templateId) {
+        var list = document.getElementById('survey-templates-list');
+        var builder = document.getElementById('survey-builder');
+        var dashboard = document.getElementById('survey-dashboard');
+        var titleInput = document.getElementById('survey-builder-title');
+        var container = document.getElementById('survey-questions-container');
+        if (list) list.classList.add('hidden');
+        if (builder) builder.classList.remove('hidden');
+        if (dashboard) dashboard.classList.add('hidden');
+        this.surveyBuilderQuestions = [];
+
+        if (templateId) {
+            try {
+                var tRes = await this.fetchAPI('/surveys/templates/' + templateId);
+                if (tRes) {
+                    if (titleInput) titleInput.value = tRes.title || '';
+                }
+                var qRes = await this.fetchAPI('/surveys/templates/' + templateId + '/questions');
+                if (Array.isArray(qRes)) this.surveyBuilderQuestions = qRes;
+            } catch(e) {}
         } else {
-            console.warn('[CONFIG] loadSurveyQuestions not available');
+            if (titleInput) titleInput.value = '';
         }
+        this._currentSurveyTemplateId = templateId;
+        this.renderSurveyBuilderQuestions();
+    },
+
+    renderSurveyBuilderQuestions: function() {
+        var container = document.getElementById('survey-questions-container');
+        if (!container) return;
+        if (this.surveyBuilderQuestions.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-slate-500 border-2 border-dashed border-slate-700 rounded-xl"><p class="text-sm">Haz clic en un tipo de pregunta para agregarla</p></div>';
+            return;
+        }
+        container.innerHTML = this.surveyBuilderQuestions.map(function(q, i) {
+            var typeLabels = { short_text: '📝 Texto corto', paragraph: '📄 Párrafo', multiple_choice: '🔘 Opción múltiple', checkboxes: '✅ Casillas', dropdown: '🔽 Lista', linear_scale: '⭐ Escala', date: '📅 Fecha', time: '⏱ Hora' };
+            var preview = '';
+            if (q.type === 'short_text') preview = '<input type="text" class="input-field w-full mt-2" placeholder="Respuesta corta" disabled>';
+            else if (q.type === 'paragraph') preview = '<textarea class="input-field w-full mt-2" rows="2" placeholder="Respuesta larga" disabled></textarea>';
+            else if (q.type === 'multiple_choice' && q.options) preview = q.options.map(function(o) { return '<label class="flex items-center gap-2 text-sm text-slate-300 mt-1"><input type="radio" disabled>' + o + '</label>'; }).join('');
+            else if (q.type === 'checkboxes' && q.options) preview = q.options.map(function(o) { return '<label class="flex items-center gap-2 text-sm text-slate-300 mt-1"><input type="checkbox" disabled>' + o + '</label>'; }).join('');
+            else if (q.type === 'dropdown' && q.options) preview = '<select class="input-field w-full mt-2" disabled>' + q.options.map(function(o) { return '<option>' + o + '</option>'; }).join('') + '</select>';
+            else if (q.type === 'linear_scale') preview = '<div class="flex gap-2 mt-2">' + [1,2,3,4,5].map(function(n) { return '<span class="text-xs text-slate-500">' + n + '</span>'; }).join('') + '</div>';
+            return '<div class="card p-4 border-l-4 border-l-[var(--primary)]" data-qid="' + q.id + '">' +
+                '<div class="flex justify-between items-start">' +
+                '<div class="flex-1"><div class="flex items-center gap-2">' +
+                '<span class="text-xs text-slate-500 font-mono">' + (typeLabels[q.type] || q.type) + '</span>' +
+                (q.required ? '<span class="text-xs text-red-400">*</span>' : '') +
+                '</div>' +
+                '<p class="text-sm font-bold text-white mt-1">' + (q.title || 'Pregunta sin título') + '</p>' +
+                (q.description ? '<p class="text-xs text-slate-500">' + q.description + '</p>' : '') +
+                preview + '</div>' +
+                '<div class="flex gap-1 ml-2">' +
+                '<button class="btn-icon" onclick="App.editSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                '<button class="btn-icon text-red-400" onclick="App.deleteSurveyQuestion(\'' + q.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div></div>';
+        }).join('');
+    },
+
+    addSurveyQuestion: async function(type) {
+        var defaultTitles = { short_text: 'Nueva pregunta de texto', paragraph: 'Nueva pregunta de párrafo', multiple_choice: 'Nueva opción múltiple', checkboxes: 'Nuevas casillas', dropdown: 'Nueva lista', linear_scale: 'Nueva escala', date: 'Nueva fecha', time: 'Nueva hora' };
+        var defaultOptions = { multiple_choice: ['Opción 1', 'Opción 2', 'Opción 3'], checkboxes: ['Opción 1', 'Opción 2', 'Opción 3'], dropdown: ['Opción 1', 'Opción 2', 'Opción 3'] };
+        var q = { type: type, title: defaultTitles[type] || 'Nueva pregunta', description: '', options: defaultOptions[type] || null, required: true, order_index: this.surveyBuilderQuestions.length };
+        if (this._currentSurveyTemplateId) {
+            try {
+                var res = await this.fetchAPI('/surveys/templates/' + this._currentSurveyTemplateId + '/questions', {
+                    method: 'POST', body: JSON.stringify(q)
+                });
+                if (res && res.id) q.id = res.id;
+            } catch(e) { console.error('[SURVEY] Error adding question:', e); }
+        }
+        if (!q.id) q.id = 'tmp_' + Date.now();
+        this.surveyBuilderQuestions.push(q);
+        this.renderSurveyBuilderQuestions();
+    },
+
+    editSurveyQuestion: function(questionId) {
+        var q = this.surveyBuilderQuestions.find(function(x) { return x.id === questionId; });
+        if (!q) return;
+        var typeLabels = { short_text: 'Texto corto', paragraph: 'Párrafo', multiple_choice: 'Opción múltiple', checkboxes: 'Casillas', dropdown: 'Lista', linear_scale: 'Escala lineal', date: 'Fecha', time: 'Hora' };
+        Swal.fire({
+            title: 'Editar pregunta', width: '500px', background: '#0f172a', color: '#fff',
+            html: '<div class="text-left space-y-3">' +
+                '<div><label class="text-xs font-bold text-slate-400">Tipo</label><select id="swal-q-type" class="input-field w-full">' + Object.keys(typeLabels).map(function(k) { return '<option value="' + k + '" ' + (q.type === k ? 'selected' : '') + '>' + typeLabels[k] + '</option>'; }).join('') + '</select></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Título</label><input id="swal-q-title" class="input-field w-full" value="' + (q.title || '') + '"></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Descripción</label><input id="swal-q-desc" class="input-field w-full" value="' + (q.description || '') + '"></div>' +
+                '<div id="swal-q-options-group" class="' + (['multiple_choice','checkboxes','dropdown'].includes(q.type) ? '' : 'hidden') + '"><label class="text-xs font-bold text-slate-400">Opciones (una por línea)</label><textarea id="swal-q-options" class="input-field w-full" rows="4">' + ((q.options || []).join('\n')) + '</textarea></div>' +
+                '<label class="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" id="swal-q-required" ' + (q.required ? 'checked' : '') + '> Requerido</label></div>',
+            showCancelButton: true, confirmButtonText: 'Guardar',
+            preConfirm: function() {
+                return {
+                    type: document.getElementById('swal-q-type')?.value || 'short_text',
+                    title: document.getElementById('swal-q-title')?.value || 'Pregunta',
+                    description: document.getElementById('swal-q-desc')?.value || '',
+                    options: (document.getElementById('swal-q-options')?.value || '').split('\n').filter(Boolean),
+                    required: document.getElementById('swal-q-required')?.checked || false
+                };
+            }
+        }).then(async function(result) {
+            if (!result.isConfirmed) return;
+            var data = result.value;
+            q.type = data.type;
+            q.title = data.title;
+            q.description = data.description;
+            q.options = data.options;
+            q.required = data.required;
+            if (q.id && !q.id.startsWith('tmp_')) {
+                try {
+                    await App.fetchAPI('/surveys/questions/' + q.id, { method: 'PUT', body: JSON.stringify(data) });
+                } catch(e) {}
+            }
+            App.renderSurveyBuilderQuestions();
+        });
+    },
+
+    deleteSurveyQuestion: async function(questionId) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar pregunta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        this.surveyBuilderQuestions = this.surveyBuilderQuestions.filter(function(q) { return q.id !== questionId; });
+        if (questionId && !questionId.startsWith('tmp_')) {
+            try { await this.fetchAPI('/surveys/questions/' + questionId, { method: 'DELETE' }); } catch(e) {}
+        }
+        this.renderSurveyBuilderQuestions();
+    },
+
+    saveSurveyTemplate: async function() {
+        var eId = this.state.event?.id;
+        var title = document.getElementById('survey-builder-title')?.value?.trim();
+        if (!title) { Swal.fire({ icon: 'warning', title: 'Título requerido', background: '#0f172a', color: '#fff' }); return; }
+        try {
+            var templateId = this._currentSurveyTemplateId;
+            if (templateId) {
+                await this.fetchAPI('/surveys/templates/' + templateId, { method: 'PUT', body: JSON.stringify({ title: title }) });
+            } else {
+                var res = await this.fetchAPI('/surveys/' + eId + '/templates', { method: 'POST', body: JSON.stringify({ title: title }) });
+                if (res && res.id) templateId = res.id;
+            }
+            if (templateId) {
+                this._currentSurveyTemplateId = templateId;
+                for (var i = 0; i < this.surveyBuilderQuestions.length; i++) {
+                    var q = this.surveyBuilderQuestions[i];
+                    if (!q.id || q.id.startsWith('tmp_')) {
+                        var res2 = await this.fetchAPI('/surveys/templates/' + templateId + '/questions', { method: 'POST', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
+                        if (res2 && res2.id) q.id = res2.id;
+                    } else {
+                        await this.fetchAPI('/surveys/questions/' + q.id, { method: 'PUT', body: JSON.stringify({ type: q.type, title: q.title, description: q.description, options: q.options, required: q.required, order_index: i }) });
+                    }
+                }
+            }
+            Swal.fire({ icon: 'success', title: 'Encuesta guardada', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        } catch(e) { console.error('[SURVEY] Error saving:', e.message); }
+    },
+
+    backToSurveyTemplates: function() {
+        document.getElementById('survey-templates-list').classList.remove('hidden');
+        document.getElementById('survey-builder').classList.add('hidden');
+        document.getElementById('survey-dashboard').classList.add('hidden');
+        this.loadSurveyTemplates();
+    },
+
+    openSurveyDashboard: async function(templateId) {
+        var list = document.getElementById('survey-templates-list');
+        var builder = document.getElementById('survey-builder');
+        var dashboard = document.getElementById('survey-dashboard');
+        if (list) list.classList.add('hidden');
+        if (builder) builder.classList.add('hidden');
+        if (dashboard) dashboard.classList.remove('hidden');
+        this._currentSurveyTemplateId = templateId;
+        try {
+            var stats = await this.fetchAPI('/surveys/templates/' + templateId + '/stats');
+            if (!stats) return;
+            var titleEl = document.getElementById('survey-dashboard-title');
+            if (titleEl) titleEl.textContent = stats.template?.title || 'Dashboard';
+
+            var kpis = document.getElementById('survey-kpis');
+            if (kpis) {
+                kpis.innerHTML = '<div class="card p-4 text-center"><p class="text-2xl font-bold text-white">' + (stats.kpis?.total || 0) + '</p><p class="text-xs text-slate-500">Total respuestas</p></div>' +
+                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-green-400">' + (stats.kpis?.completed || 0) + '</p><p class="text-xs text-slate-500">Completadas</p></div>' +
+                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-amber-400">' + (stats.kpis?.completionRate || 0) + '%</p><p class="text-xs text-slate-500">Tasa de completitud</p></div>' +
+                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-blue-400">' + (stats.kpis?.today || 0) + '</p><p class="text-xs text-slate-500">Hoy</p></div>' +
+                    '<div class="card p-4 text-center"><p class="text-2xl font-bold text-purple-400">' + (stats.questionStats?.length || 0) + '</p><p class="text-xs text-slate-500">Preguntas</p></div>';
+            }
+
+            if (window.Chart && stats.dailyTrend) {
+                var ctx = document.getElementById('survey-chart-trend');
+                if (ctx && window._surveyTrendChart) window._surveyTrendChart.destroy();
+                if (ctx) {
+                    window._surveyTrendChart = new Chart(ctx, {
+                        type: 'line',
+                        data: { labels: stats.dailyTrend.map(function(d) { return d.date; }), datasets: [{ label: 'Respuestas', data: stats.dailyTrend.map(function(d) { return d.count; }), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', fill: true }] },
+                        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
+                    });
+                }
+            }
+
+            var respTbody = document.getElementById('survey-responses-tbody');
+            if (respTbody) {
+                var responses = await this.fetchAPI('/surveys/templates/' + templateId + '/export/csv');
+            }
+        } catch(e) { console.error('[SURVEY] Dashboard error:', e.message); }
+    },
+
+    exportSurveyCsv: function() {
+        if (this._currentSurveyTemplateId) {
+            window.open('/api/surveys/templates/' + this._currentSurveyTemplateId + '/export/csv', '_blank');
+        }
+    },
+
+    deleteSurveyTemplate: async function(templateId) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar encuesta?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/surveys/templates/' + templateId, { method: 'DELETE' });
+            this.loadSurveyTemplates();
+        } catch(e) { console.error('[SURVEY] Error:', e.message); }
+    },
+
+    toggleSurveyPreview: function() {
+        // Simple toggle - will be expanded
     },
 
     // ── Categorias de Invitados ──
@@ -13041,10 +13291,241 @@ navigate(viewName, params = {}, push = true) {
         if (panel) panel.classList.remove('hidden');
 
         // Load specific data
-        if (tabName === 'wheel') this.loadWheels();
+        if (tabName === 'wheel') this.loadRaffles();
     },
     
-    // Cargar ruletas del evento
+    async loadRaffles() {
+        var eventId = this.state.event?.id;
+        if (!eventId) return;
+        try {
+            var raffles = await this.fetchAPI('/raffles/events/' + eventId + '/raffles');
+            var list = document.getElementById('raffles-list');
+            var editor = document.getElementById('raffle-editor');
+            if (editor) editor.classList.add('hidden');
+            if (!list) return;
+            if (!raffles || raffles.length === 0) {
+                list.innerHTML = '<div class="text-center py-8 text-slate-500"><p>No hay sorteos. Crea uno nuevo.</p></div>';
+            } else {
+                var typeLabels = { wheel: '🎡 Ruleta', group_raffle: '👥 Grupos', list_raffle: '🎯 Lista' };
+                var typeColors = { wheel: '#7c3aed', group_raffle: '#0ba5ec', list_raffle: '#10b981' };
+                list.innerHTML = raffles.map(function(r) {
+                    return '<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">' +
+                        '<div class="flex items-center gap-3">' +
+                        '<span class="text-lg">' + (typeLabels[r.type] || '🎡') + '</span>' +
+                        '<div><p class="text-sm font-bold text-white">' + (r.name || 'Sin nombre') + '</p>' +
+                        '<p class="text-xs text-slate-500">' + (r.total_participants || 0) + ' participantes | ' + (typeLabels[r.type] || r.type) + '</p></div></div>' +
+                        '<div class="flex gap-1">' +
+                        '<button class="btn-icon" onclick="App.openRaffleEditor(\'' + r.id + '\')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                        '<button class="btn-icon text-red-400" onclick="App.deleteRaffle(\'' + r.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                }).join('');
+            }
+        } catch(e) { console.error('[RAFFLE] Error loading:', e.message); }
+    },
+
+    openRaffleModal: function() {
+        Swal.fire({
+            title: 'Nuevo sorteo', width: '450px', background: '#0f172a', color: '#fff',
+            html: '<div class="text-left space-y-3">' +
+                '<div><label class="text-xs font-bold text-slate-400">Nombre</label><input id="swal-raffle-name" class="input-field w-full" placeholder="Nombre del sorteo"></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Tipo</label><select id="swal-raffle-type" class="input-field w-full"><option value="wheel">🎡 Ruleta</option><option value="group_raffle">👥 Sorteo de grupos</option><option value="list_raffle">🎯 Sorteo de lista</option></select></div>' +
+                '<div><label class="text-xs font-bold text-slate-400">Ganadores</label><input type="number" id="swal-raffle-winners" class="input-field w-24" value="1" min="1"></div></div>',
+            showCancelButton: true, confirmButtonText: 'Crear',
+            preConfirm: function() {
+                var name = document.getElementById('swal-raffle-name')?.value?.trim();
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
+                return { name: name, type: document.getElementById('swal-raffle-type')?.value || 'wheel', winner_count: parseInt(document.getElementById('swal-raffle-winners')?.value) || 1 };
+            }
+        }).then(async function(result) {
+            if (!result.isConfirmed) return;
+            var eventId = App.state.event?.id;
+            if (!eventId) return;
+            try {
+                var res = await App.fetchAPI('/raffles/events/' + eventId + '/raffles', { method: 'POST', body: JSON.stringify(result.value) });
+                if (res && res.id) App.openRaffleEditor(res.id);
+                App.loadRaffles();
+            } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+        });
+    },
+
+    openRaffleEditor: async function(raffleId) {
+        var list = document.getElementById('raffles-list');
+        var editor = document.getElementById('raffle-editor');
+        if (list) list.classList.add('hidden');
+        if (editor) editor.classList.remove('hidden');
+        this._currentRaffleId = raffleId;
+        try {
+            var raffle = await this.fetchAPI('/raffles/' + raffleId);
+            if (!raffle) return;
+            var nameEl = document.getElementById('raffle-name');
+            var typeEl = document.getElementById('raffle-type');
+            var sourceEl = document.getElementById('raffle-data-source');
+            var winnersEl = document.getElementById('raffle-winner-count');
+            if (nameEl) nameEl.value = raffle.name || '';
+            if (typeEl) typeEl.value = raffle.type || 'wheel';
+            if (sourceEl) sourceEl.value = raffle.data_source || 'guests';
+            if (winnersEl) winnersEl.value = raffle.winner_count || 1;
+            this.onRaffleTypeChange();
+            this.onRaffleSourceChange();
+            this.loadRaffleParticipants(raffleId);
+            this.loadRaffleResults(raffleId);
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    onRaffleTypeChange: function() {
+        var type = document.getElementById('raffle-type')?.value || 'wheel';
+        var winnerConfig = document.getElementById('raffle-winner-config');
+        var groupConfig = document.getElementById('raffle-group-config');
+        if (winnerConfig) winnerConfig.classList.toggle('hidden', type === 'group_raffle');
+        if (groupConfig) groupConfig.classList.toggle('hidden', type !== 'group_raffle');
+    },
+
+    onRaffleSourceChange: function() {
+        var source = document.getElementById('raffle-data-source')?.value || 'guests';
+        var templateGroup = document.getElementById('raffle-source-template-group');
+        var manualGroup = document.getElementById('raffle-manual-input');
+        if (templateGroup) templateGroup.classList.toggle('hidden', source !== 'survey');
+        if (manualGroup) manualGroup.classList.toggle('hidden', source !== 'manual');
+        if (source === 'survey') this.loadSurveyTemplatesDropdown();
+    },
+
+    loadSurveyTemplatesDropdown: async function() {
+        var eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            var templates = await this.fetchAPI('/surveys/' + eId + '/templates');
+            var sel = document.getElementById('raffle-source-template');
+            if (sel) {
+                sel.innerHTML = '<option value="">Seleccionar encuesta...</option>' +
+                    templates.map(function(t) { return '<option value="' + t.id + '">' + (t.title || 'Sin título') + '</option>'; }).join('');
+            }
+        } catch(e) {}
+    },
+
+    populateRaffle: async function() {
+        var raffleId = this._currentRaffleId;
+        if (!raffleId) return;
+        var source = document.getElementById('raffle-data-source')?.value || 'guests';
+        try {
+            if (source === 'manual') {
+                var text = document.getElementById('raffle-manual-list')?.value || '';
+                var lines = text.split('\n').filter(Boolean);
+                for (var i = 0; i < lines.length; i++) {
+                    var parts = lines[i].split(',').map(function(s) { return s.trim(); });
+                    await this.fetchAPI('/raffles/' + raffleId + '/participants', { method: 'POST', body: JSON.stringify({ name: parts[0] || '', email: parts[1] || '' }) });
+                }
+            } else {
+                await this.fetchAPI('/raffles/' + raffleId + '/populate', { method: 'POST' });
+            }
+            this.loadRaffleParticipants(raffleId);
+        } catch(e) { console.error('[RAFFLE] Error populating:', e.message); }
+    },
+
+    loadRaffleParticipants: async function(raffleId) {
+        if (!raffleId) return;
+        try {
+            var participants = await this.fetchAPI('/raffles/' + raffleId + '/participants');
+            var tbody = document.getElementById('raffle-participants-tbody');
+            var countEl = document.getElementById('raffle-participant-count');
+            if (countEl) countEl.textContent = (participants || []).length + ' participantes';
+            if (!tbody) return;
+            if (!participants || participants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Sin participantes. Pobla la lista primero.</td></tr>';
+            } else {
+                tbody.innerHTML = participants.map(function(p) {
+                    return '<tr class="hover:bg-white/[0.02]"><td class="table-td text-xs">' + (p.name || '-') + '</td><td class="table-td text-xs text-slate-400">' + (p.email || '-') + '</td><td class="table-td text-xs text-slate-500">' + (p.source || '-') + '</td><td class="table-td"><button class="btn-icon text-red-400" onclick="App.removeRaffleParticipant(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                }).join('');
+            }
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    removeRaffleParticipant: async function(participantId) {
+        var raffleId = this._currentRaffleId;
+        if (!raffleId) return;
+        try {
+            await this.fetchAPI('/raffles/' + raffleId + '/participants/' + participantId, { method: 'DELETE' });
+            this.loadRaffleParticipants(raffleId);
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    drawRaffle: async function() {
+        var raffleId = this._currentRaffleId;
+        if (!raffleId) return;
+        try {
+            var result = await this.fetchAPI('/raffles/' + raffleId + '/draw', { method: 'POST' });
+            if (result && result.winners) {
+                var winnersHtml = result.winners.map(function(w, i) { return '<div class="flex items-center gap-2 p-2 rounded-lg bg-green-500/10"><span class="text-lg">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><span class="text-sm font-bold text-white">' + (w.name || '-') + '</span><span class="text-xs text-slate-400">' + (w.email || '') + '</span></div>'; }).join('');
+                Swal.fire({ icon: 'success', title: '¡Sorteo completado!', html: winnersHtml, background: '#0f172a', color: '#fff', confirmButtonText: 'OK' });
+                this.loadRaffleResults(raffleId);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result?.error || 'Error al sortear', background: '#0f172a', color: '#fff' });
+            }
+        } catch(e) { console.error('[RAFFLE] Error drawing:', e.message); }
+    },
+
+    loadRaffleResults: async function(raffleId) {
+        if (!raffleId) return;
+        try {
+            var results = await this.fetchAPI('/raffles/' + raffleId + '/results');
+            var list = document.getElementById('raffle-results-list');
+            if (!list) return;
+            if (!results || results.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-500 italic">Sin resultados aún</p>';
+            } else {
+                list.innerHTML = results.map(function(r) {
+                    var winners = r.winners || [];
+                    return '<div class="p-3 rounded-lg bg-slate-800/50"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">Ronda ' + r.round + '</span><span class="text-xs text-slate-500">' + r.total_participants + ' participantes</span></div>' +
+                        winners.map(function(w) { return '<div class="flex items-center gap-2 text-xs text-slate-300"><span class="material-symbols-outlined text-sm text-amber-400">emoji_events</span>' + (w.name || '-') + ' — ' + (w.email || '') + '</div>'; }).join('') + '</div>';
+                }).join('');
+            }
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    clearRaffleResults: async function() {
+        var raffleId = this._currentRaffleId;
+        if (!raffleId) return;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Borrar resultados?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/raffles/' + raffleId + '/results', { method: 'DELETE' });
+            this.loadRaffleResults(raffleId);
+        } catch(e) {}
+    },
+
+    saveRaffle: async function() {
+        var raffleId = this._currentRaffleId;
+        if (!raffleId) return;
+        var name = document.getElementById('raffle-name')?.value?.trim();
+        if (!name) { Swal.fire({ icon: 'warning', title: 'Nombre requerido', background: '#0f172a', color: '#fff' }); return; }
+        try {
+            await this.fetchAPI('/raffles/' + raffleId, { method: 'PUT', body: JSON.stringify({ name: name, type: document.getElementById('raffle-type')?.value, winner_count: parseInt(document.getElementById('raffle-winner-count')?.value) || 1, data_source: document.getElementById('raffle-data-source')?.value }) });
+            Swal.fire({ icon: 'success', title: 'Guardado', timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            this.loadRaffles();
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    deleteRaffle: async function(raffleId) {
+        var id = raffleId || this._currentRaffleId;
+        if (!id) return;
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sorteo?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/raffles/' + id, { method: 'DELETE' });
+            this._currentRaffleId = null;
+            this.loadRaffles();
+        } catch(e) { console.error('[RAFFLE] Error:', e.message); }
+    },
+
+    backToRafflesList: function() {
+        document.getElementById('raffles-list').classList.remove('hidden');
+        document.getElementById('raffle-editor').classList.add('hidden');
+        this.loadRaffles();
+    },
+
+    generateRaffleReport: function() {
+        var raffleId = this._currentRaffleId;
+        if (raffleId) window.open('/api/raffles/' + raffleId + '/report', '_blank');
+    },
+
     async loadWheels() {
         const eventId = this.state.event?.id;
         if (!eventId) return;
@@ -17098,6 +17579,24 @@ navigate(viewName, params = {}, push = true) {
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: res?.error || 'Error al exportar', background: '#0f172a', color: '#fff' });
             }
+        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    exportSurveyToDrive: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) return;
+        try {
+            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_surveys: true }) });
+            Swal.fire({ icon: 'success', title: 'Encuestas exportadas', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+        } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
+    },
+
+    exportRaffleToDrive: async function() {
+        var eventId = this.state?.event?.id;
+        if (!eventId) return;
+        try {
+            var res = await this.fetchAPI('/google/events/' + eventId + '/export', { method: 'POST', body: JSON.stringify({ export_raffles: true }) });
+            Swal.fire({ icon: 'success', title: 'Sorteos exportados', timer: 2000, showConfirmButton: false, background: '#0f172a', color: '#fff' });
         } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: e.message, background: '#0f172a', color: '#fff' }); }
     },
 

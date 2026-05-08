@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.639</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.640</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -504,22 +504,104 @@
                         </div>
                     </div>
 
-                    <div id="config-content-wheel" class="config-tab-content hidden">
-                        <div class="section-header">
-                            <div>
-                                <h2 class="section-title">Ruleta de <span class="page-title-accent">Sorteos</span></h2>
-                                <p class="section-subtitle">Crea sorteos interactivos para tus eventos.</p>
-                            </div>
-                            <button id="btn-new-wheel" class="btn-primary">+ Nueva Ruleta</button>
+                    <div id="config-content-wheel" class="config-tab-content hidden space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Sorteos</h2>
+                            <button id="btn-new-raffle" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openRaffleModal()">
+                                <span class="material-symbols-outlined text-sm">add</span> Nuevo Sorteo
+                            </button>
                         </div>
-                        
-                        <div class="card">
-                            <h3 class="card-title">Mis Ruletas</h3>
-                            <div id="wheels-list">
-                                <p class="empty-text">Cargando ruletas...</p>
+
+                        <!-- Lista de sorteos -->
+                        <div id="raffles-list" class="space-y-2">
+                            <p class="text-xs text-slate-500 italic">Cargando sorteos...</p>
+                        </div>
+
+                        <!-- Editor de sorteo (oculto) -->
+                        <div id="raffle-editor" class="hidden space-y-4">
+                            <div class="flex items-center gap-3">
+                                <button class="btn-secondary btn-standard" onclick="App.backToRafflesList()">
+                                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                </button>
+                                <input id="raffle-name" class="input-field text-lg font-bold w-80" placeholder="Nombre del sorteo">
+                                <select id="raffle-type" class="input-field" onchange="App.onRaffleTypeChange()">
+                                    <option value="wheel">🎡 Ruleta</option>
+                                    <option value="group_raffle">👥 Sorteo de grupos</option>
+                                    <option value="list_raffle">🎯 Sorteo de lista</option>
+                                </select>
+                            </div>
+
+                            <!-- Config fuente de datos -->
+                            <div class="card p-4 space-y-3">
+                                <h3 class="text-sm font-bold text-white">Fuente de participantes</h3>
+                                <select id="raffle-data-source" class="input-field w-full" onchange="App.onRaffleSourceChange()">
+                                    <option value="guests">Todos los invitados</option>
+                                    <option value="checked_in">Asistentes (check-in)</option>
+                                    <option value="pre_registered">Pre-registrados</option>
+                                    <option value="survey">Respondieron encuesta</option>
+                                    <option value="manual">Lista manual</option>
+                                </select>
+                                <div id="raffle-source-template-group" class="hidden">
+                                    <label class="text-xs font-bold text-slate-400 block mb-1">Encuesta:</label>
+                                    <select id="raffle-source-template" class="input-field w-full"></select>
+                                </div>
+                                <div id="raffle-manual-input" class="hidden">
+                                    <label class="text-xs font-bold text-slate-400 block mb-1">Participantes (Nombre, Email uno por línea):</label>
+                                    <textarea id="raffle-manual-list" class="input-field w-full" rows="5" placeholder="Juan Pérez, juan@email.com&#10;María García, maria@email.com"></textarea>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-secondary text-xs" onclick="App.populateRaffle()"><span class="material-symbols-outlined text-sm">group_add</span> Poblar participantes</button>
+                                    <span id="raffle-participant-count" class="text-xs text-slate-500 self-center">0 participantes</span>
+                                </div>
+                            </div>
+
+                            <!-- Config de sorteo -->
+                            <div class="card p-4 space-y-3">
+                                <h3 class="text-sm font-bold text-white">Configuración del sorteo</h3>
+                                <div id="raffle-winner-config">
+                                    <label class="text-xs font-bold text-slate-400 block mb-1">Cantidad de ganadores</label>
+                                    <input type="number" id="raffle-winner-count" class="input-field w-24" value="1" min="1" max="999">
+                                </div>
+                                <div id="raffle-group-config" class="hidden">
+                                    <label class="text-xs font-bold text-slate-400 block mb-1">Cantidad de grupos</label>
+                                    <input type="number" id="raffle-group-count" class="input-field w-24" value="2" min="2" max="100">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-primary" onclick="App.drawRaffle()"><span class="material-symbols-outlined text-sm">casino</span> ¡Sortear!</button>
+                                    <button class="btn-secondary" onclick="App.generateRaffleReport()"><span class="material-symbols-outlined text-sm">assessment</span> Reporte PDF</button>
+                                    <button class="btn-secondary" onclick="App.exportRaffleToDrive()"><span class="material-symbols-outlined text-sm">table_chart</span> Exportar a Drive</button>
+                                </div>
+                            </div>
+
+                            <!-- Participantes -->
+                            <div class="card p-4 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-sm font-bold text-white">Participantes</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="data-table w-full">
+                                        <thead><tr class="table-header-row"><th class="table-th">Nombre</th><th class="table-th">Email</th><th class="table-th">Fuente</th><th class="table-th">Acción</th></tr></thead>
+                                        <tbody id="raffle-participants-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Resultados -->
+                            <div class="card p-4 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-sm font-bold text-white">Resultados</h3>
+                                    <button class="btn-secondary text-xs" onclick="App.clearRaffleResults()">Borrar resultados</button>
+                                </div>
+                                <div id="raffle-results-list" class="space-y-2"></div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button class="btn-primary" onclick="App.saveRaffle()">Guardar sorteo</button>
+                                <button class="btn-danger" onclick="App.deleteRaffle()">Eliminar</button>
                             </div>
                         </div>
-                        
+
+                        <!-- Legacy wheel editor (mantener compatibilidad) -->
                         <div id="wheel-editor" class="hidden">
                             <div class="action-bar">
                                 <button id="btn-back-to-wheels" class="btn-secondary">
@@ -795,24 +877,96 @@
                     <!-- CONTENIDO: ENCUESTAS -->
                     <div id="config-content-surveys" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-semibold tracking-tight">Encuesta QR</h2>
-                            <button id="btn-create-survey" class="btn-primary btn-lg">+ Nueva Encuesta</button>
+                            <h2 class="text-xl font-bold text-white">Encuestas</h2>
+                            <button id="btn-create-survey" class="btn-primary btn-standard flex items-center gap-1.5" onclick="App.openSurveyBuilder()">
+                                <span class="material-symbols-outlined text-sm">add</span> Nueva Encuesta
+                            </button>
                         </div>
-                        <div class="table-scroll-container">
-                            <div class="overflow-x-auto">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr class="table-header-row">
-                                            <th class="table-th">Nombre</th>
-                                            <th class="table-th text-center">Estado</th>
-                                            <th class="table-th text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="survey-tbody" class="table-tbody"></tbody>
-                                </table>
+
+                        <!-- Lista de templates -->
+                        <div id="survey-templates-list" class="space-y-2">
+                            <p class="text-xs text-slate-500 italic">Cargando...</p>
+                        </div>
+
+                        <!-- Builder (oculto hasta seleccionar una encuesta) -->
+                        <div id="survey-builder" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <button class="btn-secondary btn-standard" onclick="App.backToSurveyTemplates()">
+                                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                    </button>
+                                    <input id="survey-builder-title" class="input-field text-lg font-bold w-80" placeholder="Título de la encuesta">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-secondary btn-standard" onclick="App.toggleSurveyPreview()">
+                                        <span class="material-symbols-outlined text-sm">visibility</span> Vista previa
+                                    </button>
+                                    <button class="btn-primary btn-standard" onclick="App.saveSurveyTemplate()">
+                                        <span class="material-symbols-outlined text-sm">save</span> Guardar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preguntas -->
+                            <div id="survey-questions-container" class="space-y-3">
+                                <p class="text-xs text-slate-500 italic">Agrega preguntas con el botón de abajo.</p>
+                            </div>
+
+                            <!-- Paleta de tipos -->
+                            <div class="card p-3">
+                                <div class="flex gap-2 flex-wrap">
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('short_text')">📝 Texto corto</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('paragraph')">📄 Párrafo</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('multiple_choice')">🔘 Opción múltiple</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('checkboxes')">✅ Casillas</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('dropdown')">🔽 Lista desplegable</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('linear_scale')">⭐ Escala lineal</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('date')">📅 Fecha</button>
+                                    <button class="btn-secondary text-xs" onclick="App.addSurveyQuestion('time')">⏱ Hora</button>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2">
+                                <button class="btn-primary" onclick="App.saveSurveyTemplate()">Guardar encuesta</button>
+                                <button class="btn-secondary" onclick="App.backToSurveyTemplates()">Volver</button>
                             </div>
                         </div>
-                        <div id="survey-questions-list" class="space-y-4"></div>
+
+                        <!-- Dashboard (oculto hasta seleccionar stats) -->
+                        <div id="survey-dashboard" class="hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <button class="btn-secondary btn-standard" onclick="App.backToSurveyTemplates()">
+                                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                    </button>
+                                    <h3 class="text-lg font-bold text-white" id="survey-dashboard-title">Dashboard</h3>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-secondary btn-standard" onclick="App.exportSurveyCsv()">
+                                        <span class="material-symbols-outlined text-sm">download</span> Exportar CSV
+                                    </button>
+                                    <button class="btn-secondary btn-standard" onclick="App.exportSurveyToDrive()">
+                                        <span class="material-symbols-outlined text-sm">table_chart</span> Exportar a Drive
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- KPIs -->
+                            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3" id="survey-kpis"></div>
+                            <!-- Charts -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div class="card p-4"><h4 class="text-sm font-bold text-white mb-2">Tendencia diaria</h4><canvas id="survey-chart-trend"></canvas></div>
+                                <div class="card p-4"><h4 class="text-sm font-bold text-white mb-2">Distribución</h4><canvas id="survey-chart-distribution"></canvas></div>
+                            </div>
+                            <!-- Heatmap -->
+                            <div class="card p-4"><h4 class="text-sm font-bold text-white mb-2">Actividad por hora/día</h4><canvas id="survey-chart-heatmap"></canvas></div>
+                            <!-- Respuestas individuales -->
+                            <div class="card p-0 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="data-table w-full"><tbody id="survey-responses-tbody"></tbody></table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- CONTENIDO: AJUSTES -->

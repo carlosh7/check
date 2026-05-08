@@ -34,6 +34,7 @@ const aiSecurityRoutes = require('./ai-security.routes');
 const complianceRoutes = require('./compliance.routes');
 const venuesRoutes = require('./venues.routes');
 const googleRoutes = require('./google.routes');
+const rafflesRoutes = require('./raffles.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -163,6 +164,9 @@ app.use('/api/compliance', complianceRoutes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);
+
+    // Raffles / Sorteos (V12.45)
+    app.use('/api/raffles', rafflesRoutes);
     googleRoutes.startSyncWorker();
 
     // Stats (Dashboard Analítica)

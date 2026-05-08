@@ -465,6 +465,55 @@ function createEventTables(db, eventId) {
         )
     `);
     
+    // Tabla de templates de encuesta
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS survey_templates (
+            id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+            title TEXT NOT NULL, description TEXT,
+            status TEXT DEFAULT 'draft', total_responses INTEGER DEFAULT 0,
+            created_at TEXT, updated_at TEXT
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS survey_questions (
+            id TEXT PRIMARY KEY, template_id TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'short_text', title TEXT NOT NULL,
+            description TEXT, options_json TEXT,
+            required INTEGER DEFAULT 1, order_index INTEGER DEFAULT 0,
+            section TEXT, image_url TEXT,
+            has_other INTEGER DEFAULT 0, conditional_json TEXT,
+            created_at TEXT,
+            FOREIGN KEY (template_id) REFERENCES survey_templates(id) ON DELETE CASCADE
+        )
+    `);
+    // Tabla de sorteos
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS raffles (
+            id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'wheel', name TEXT NOT NULL,
+            config_json TEXT, data_source TEXT DEFAULT 'guests',
+            source_template_id TEXT, winner_count INTEGER DEFAULT 1,
+            total_participants INTEGER DEFAULT 0, status TEXT DEFAULT 'draft',
+            created_at TEXT, updated_at TEXT
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS raffle_participants (
+            id TEXT PRIMARY KEY, raffle_id TEXT NOT NULL,
+            guest_id TEXT, name TEXT, email TEXT, phone TEXT,
+            source TEXT DEFAULT 'guests', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
+        )
+    `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS raffle_results (
+            id TEXT PRIMARY KEY, raffle_id TEXT NOT NULL,
+            round INTEGER DEFAULT 1, winners_json TEXT NOT NULL DEFAULT '[]',
+            total_participants INTEGER DEFAULT 0, label TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
+        )
+    `);
     // Crear índices para mejor rendimiento
     const indices = [
         "CREATE INDEX IF NOT EXISTS idx_guests_event_id ON guests(event_id)",
@@ -476,7 +525,12 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_survey_responses_event ON survey_responses(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_event_agenda_event ON event_agenda(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_guests_event ON guests(event_id)",
-        "CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email)"
+        "CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email)",
+        "CREATE INDEX IF NOT EXISTS idx_survey_questions_template ON survey_questions(template_id)",
+        "CREATE INDEX IF NOT EXISTS idx_survey_templates_event ON survey_templates(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
+        "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)"
     ];
     
     for (const sql of indices) {
