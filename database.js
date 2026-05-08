@@ -307,13 +307,25 @@ db.exec(`CREATE TABLE IF NOT EXISTS surveys (
 // 9. Respuestas de Encuestas
 db.exec(`CREATE TABLE IF NOT EXISTS survey_responses (
     id TEXT PRIMARY KEY,
+    template_id TEXT,
     event_id TEXT,
     guest_id TEXT,
+    answers_json TEXT,
     responses_json TEXT,
+    time_spent_seconds INTEGER,
+    device TEXT,
+    ip_address TEXT,
     submitted_at TEXT,
     FOREIGN KEY (event_id) REFERENCES events (id),
     FOREIGN KEY (guest_id) REFERENCES guests (id)
 )`);
+
+try { db.exec("ALTER TABLE survey_responses ADD COLUMN template_id TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE survey_responses ADD COLUMN answers_json TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE survey_responses ADD COLUMN time_spent_seconds INTEGER"); } catch (_) {}
+try { db.exec("ALTER TABLE survey_responses ADD COLUMN device TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE survey_responses ADD COLUMN ip_address TEXT"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_survey_responses_template ON survey_responses(template_id)"); } catch (_) {}
 
 // ═══ NUEVAS TABLAS: SURVEY TEMPLATES + RAFFLES (V12.45) ═══
 

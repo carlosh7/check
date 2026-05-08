@@ -428,9 +428,14 @@ function createEventTables(db, eventId) {
     db.exec(`
         CREATE TABLE IF NOT EXISTS survey_responses (
             id TEXT PRIMARY KEY,
+            template_id TEXT,
             event_id TEXT,
             guest_id TEXT,
+            answers_json TEXT,
             responses_json TEXT,
+            time_spent_seconds INTEGER,
+            device TEXT,
+            ip_address TEXT,
             submitted_at TEXT,
             FOREIGN KEY (guest_id) REFERENCES guests(id)
         )
@@ -523,6 +528,7 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_event_wheels_event ON event_wheels(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_surveys_event ON surveys(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_survey_responses_event ON survey_responses(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_survey_responses_template ON survey_responses(template_id)",
         "CREATE INDEX IF NOT EXISTS idx_event_agenda_event ON event_agenda(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_guests_event ON guests(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email)",

@@ -94,7 +94,7 @@ router.post('/:id/populate', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) 
             var guestIds = respondents.map(function(r) { return r.guest_id; }).filter(Boolean);
             if (guestIds.length === 0) return res.json({ added: 0, message: 'No hay invitados que respondieron la encuesta' });
             var placeholders = guestIds.map(function() { return '?'; }).join(',');
-            var guests = db.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")").all.apply(null, [raffle.eventId].concat(guestIds));
+            var guests = db.prepare("SELECT id as guest_id, name, email, phone FROM guests WHERE event_id = ? AND id IN (" + placeholders + ")").all.apply(null, [raffle.event_id].concat(guestIds));
             sourceSql = null;
             var insert = db.prepare("INSERT OR IGNORE INTO raffle_participants (id, raffle_id, guest_id, name, email, phone, source) VALUES (?, ?, ?, ?, ?, ?, ?)");
             var count = 0;
