@@ -419,6 +419,32 @@ db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_model', 'google/gemini-2.0-flash-lite-preview-02-05:free');
 db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`).run('ai_system_prompt', 'Eres un asistente experto en gestión de eventos para la plataforma Check Pro. Ayudas a redactar correos, analizar datos de invitados y responder dudas logísticas.');
 
+// Tabla de inventario de sistemas de IA (Shadow AI Detection)
+db.exec(`CREATE TABLE IF NOT EXISTS ai_inventory (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT DEFAULT 'llm',
+    provider TEXT,
+    description TEXT,
+    data_processed TEXT DEFAULT '[]',
+    risk_level TEXT DEFAULT 'medium',
+    status TEXT DEFAULT 'detected',
+    detected_at TEXT,
+    last_seen_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+
+// Tabla de politicas de uso de IA
+db.exec(`CREATE TABLE IF NOT EXISTS ai_policies (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    content TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT
+)`);
+
 // 8. Logs de Auditoría (V10)
 db.exec(`CREATE TABLE IF NOT EXISTS logs (
     id TEXT PRIMARY KEY,

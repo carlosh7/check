@@ -30,6 +30,7 @@ const statsRoutes = require('./stats.routes');
 const importRoutes = require('./import.routes');
 const sessionsRoutes = require('./sessions.routes');
 const seatLayoutsRoutes = require('./seat-layouts.routes');
+const aiSecurityRoutes = require('./ai-security.routes');
 const venuesRoutes = require('./venues.routes');
 
 // Configuración segura de multer (memoryStorage para import/export)
@@ -144,7 +145,9 @@ app.use('/api/sessions', sessionsRoutes);
 
 // Seat layouts
 app.use('/api/seat-layouts', seatLayoutsRoutes);
-    
+
+// AI Security
+app.use('/api/security', aiSecurityRoutes);
     // Webhooks (integraciones externas)
     app.use('/api/webhooks', webhooksRoutes);
     

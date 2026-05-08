@@ -11058,6 +11058,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'email') this.loadEmailModuleData();
         if (tabName === 'activity') this.loadActivityLogs();
         if (tabName === 'venues') this.loadVenues();
+        if (tabName === 'ai-security') this.loadAiSecurity();
 
 
         if (tabName === 'account') this.loadUserProfile();
@@ -11151,6 +11152,133 @@ navigate(viewName, params = {}, push = true) {
         } catch(e) {
             Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'No se pudo eliminar', background: '#0f172a', color: '#fff' });
         }
+    },
+
+    // ── AI Security ──
+
+    loadAiSecurity: async function() {
+        try {
+            var inventory = await this.fetchAPI('/security/ai/inventory') || [];
+            var tbody = document.getElementById('ai-inventory-tbody');
+            if (tbody) {
+                if (inventory.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Sin sistemas de IA detectados</td></tr>';
+                } else {
+                    var riskColors = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', critical: '#dc2626' };
+                    var statusLabels = { detected: 'Detectado', approved: 'Aprobado', blocked: 'Bloqueado' };
+                    tbody.innerHTML = inventory.map(function(item) {
+                        return '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                            '<td class="table-td font-medium text-white">' + (item.name || '') + (item.description ? '<br><span class="text-[10px] text-slate-500">' + item.description + '</span>' : '') + '</td>' +
+                            '<td class="table-td text-slate-400">' + (item.type || '-') + '</td>' +
+                            '<td class="table-td text-slate-400">' + (item.provider || '-') + '</td>' +
+                            '<td class="table-td"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:' + (riskColors[item.risk_level] || '#64748b') + '30;color:' + (riskColors[item.risk_level] || '#64748b') + '">' + (item.risk_level || 'unknown') + '</span></td>' +
+                            '<td class="table-td">' + (statusLabels[item.status] || item.status) + '</td>' +
+                            '<td class="table-td text-xs text-slate-500">' + (item.detected_at ? new Date(item.detected_at).toLocaleDateString() : '-') + '</td>' +
+                            '<td class="table-td"><button class="btn-icon text-red-400" onclick="App.deleteAiInventory(\'' + item.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></td></tr>';
+                    }).join('');
+                }
+            }
+            var policies = await this.fetchAPI('/security/ai/policies') || [];
+            var pList = document.getElementById('ai-policies-list');
+            if (pList) {
+                if (policies.length === 0) {
+                    pList.innerHTML = '<p class="text-xs text-slate-500 italic">Sin politicas definidas</p>';
+                } else {
+                    pList.innerHTML = policies.map(function(p) {
+                        return '<div class="flex justify-between items-center p-2 rounded-lg bg-[var(--bg-hover)]">' +
+                            '<div><p class="text-sm font-medium text-white">' + (p.name || '') + '</p>' +
+                            (p.description ? '<p class="text-xs text-slate-500">' + p.description + '</p>' : '') +
+                            (p.content ? '<p class="text-xs text-slate-600 mt-1 italic">' + p.content.substring(0, 120) + (p.content.length > 120 ? '...' : '') + '</p>' : '') + '</div>' +
+                            '<div class="flex gap-1"><button class="btn-icon" onclick="App.editAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">edit</span></button>' +
+                            '<button class="btn-icon text-red-400" onclick="App.deleteAiPolicy(\'' + p.id + '\')"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
+                    }).join('');
+                }
+            }
+        } catch(e) { console.error('[AI] Error:', e.message); }
+    },
+
+    openAiInventoryModal: function() {
+        Swal.fire({
+            title: 'Agregar sistema de IA',
+            html: '<input id="swal-ai-name" class="swal2-input" placeholder="Nombre (ej: ChatGPT, Copilot...)">' +
+                  '<select id="swal-ai-type" class="swal2-input"><option value="llm">LLM / Chat</option><option value="image">Generacion de imagenes</option><option value="code">Asistente de codigo</option><option value="other">Otro</option></select>' +
+                  '<input id="swal-ai-provider" class="swal2-input" placeholder="Proveedor (ej: OpenAI, Google...)">' +
+                  '<select id="swal-ai-risk" class="swal2-input"><option value="low">Bajo</option><option value="medium" selected>Medio</option><option value="high">Alto</option></select>' +
+                  '<textarea id="swal-ai-desc" class="swal2-textarea" placeholder="Descripcion del uso..."></textarea>',
+            background: '#0f172a', color: '#fff',
+            confirmButtonText: 'Agregar',
+            showCancelButton: true,
+            preConfirm: function() {
+                var name = document.getElementById('swal-ai-name')?.value.trim();
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
+                return {
+                    name: name,
+                    type: document.getElementById('swal-ai-type')?.value || 'llm',
+                    provider: document.getElementById('swal-ai-provider')?.value || '',
+                    risk_level: document.getElementById('swal-ai-risk')?.value || 'medium',
+                    description: document.getElementById('swal-ai-desc')?.value || ''
+                };
+            }
+        }).then(async function(result) {
+            if (result.isConfirmed && result.value) {
+                try {
+                    await App.fetchAPI('/security/ai/inventory', { method: 'POST', body: JSON.stringify(result.value) });
+                    App.loadAiSecurity();
+                } catch(e) { console.error('[AI] Error:', e.message); }
+            }
+        });
+    },
+
+    deleteAiInventory: async function(id) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar sistema?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/security/ai/inventory/' + id, { method: 'DELETE' });
+            this.loadAiSecurity();
+        } catch(e) { console.error('[AI] Error:', e.message); }
+    },
+
+    openAiPolicyModal: function(policy) {
+        Swal.fire({
+            title: policy ? 'Editar politica' : 'Nueva politica',
+            html: '<input id="swal-pol-name" class="swal2-input" placeholder="Nombre" value="' + (policy ? (policy.name || '') : '') + '">' +
+                  '<input id="swal-pol-desc" class="swal2-input" placeholder="Descripcion" value="' + (policy ? (policy.description || '') : '') + '">' +
+                  '<textarea id="swal-pol-content" class="swal2-textarea" placeholder="Contenido de la politica..." rows="6">' + (policy ? (policy.content || '') : '') + '</textarea>',
+            background: '#0f172a', color: '#fff',
+            confirmButtonText: policy ? 'Guardar' : 'Crear',
+            showCancelButton: true,
+            preConfirm: function() {
+                var name = document.getElementById('swal-pol-name')?.value.trim();
+                if (!name) { Swal.showValidationMessage('Nombre requerido'); return; }
+                return { name: name, description: document.getElementById('swal-pol-desc')?.value || '', content: document.getElementById('swal-pol-content')?.value || '' };
+            }
+        }).then(async function(result) {
+            if (result.isConfirmed && result.value) {
+                try {
+                    if (policy) {
+                        await App.fetchAPI('/security/ai/policies/' + policy.id, { method: 'PUT', body: JSON.stringify(result.value) });
+                    } else {
+                        await App.fetchAPI('/security/ai/policies', { method: 'POST', body: JSON.stringify(result.value) });
+                    }
+                    App.loadAiSecurity();
+                } catch(e) { console.error('[AI] Error:', e.message); }
+            }
+        });
+    },
+
+    editAiPolicy: async function(id) {
+        var policies = await this.fetchAPI('/security/ai/policies') || [];
+        var p = policies.find(function(x) { return x.id === id; });
+        if (p) this.openAiPolicyModal(p);
+    },
+
+    deleteAiPolicy: async function(id) {
+        var confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar politica?', showCancelButton: true, background: '#0f172a', color: '#fff' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI('/security/ai/policies/' + id, { method: 'DELETE' });
+            this.loadAiSecurity();
+        } catch(e) { console.error('[AI] Error:', e.message); }
     },
 
     loadVenuesSelect: async function() {
