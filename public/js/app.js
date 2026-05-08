@@ -4757,7 +4757,7 @@ const App = window.App = {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
         
-        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'].map(r => 
+        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE', 'ORGANIZER'].map(r => 
             `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`
         ).join('');
         
@@ -5259,8 +5259,9 @@ const App = window.App = {
         const selectedUsers = userIds ? users.filter(u => userIds.some(uid => String(uid) === String(u.id))) : [];
         const roles = [
             { value: 'ADMIN', label: 'ADMIN', color: '#ef4444', icon: 'admin_panel_settings' },
-            { value: 'PRODUCTOR', label: 'PRODUCTOR', color: '#f59e0b', icon: 'work' },
-            { value: 'LOGISTICO', label: 'LOGÍSTICO', color: '#3b82f6', icon: 'local_shipping' },
+    { value: 'PRODUCTOR', label: 'PRODUCTOR', color: '#f59e0b', icon: 'work' },
+    { value: 'ORGANIZER', label: 'ORGANIZER', color: '#06b6d4', icon: 'event' },
+    { value: 'LOGISTICO', label: 'LOGÍSTICO', color: '#3b82f6', icon: 'local_shipping' },
             { value: 'STAFF', label: 'STAFF', color: '#10b981', icon: 'badge' },
             { value: 'CLIENTE', label: 'CLIENTE', color: '#8b5cf6', icon: 'person' }
         ];
@@ -5315,7 +5316,7 @@ const App = window.App = {
     assignRoleToUsersFromModal: async function(newRole) {
         const userIds = this.state.selectedUsers || [];
         if (userIds.length === 0) return;
-        const roleNames = { ADMIN: 'ADMIN', PRODUCTOR: 'PRODUCTOR', LOGISTICO: 'LOGÍSTICO', STAFF: 'STAFF', CLIENTE: 'CLIENTE' };
+        const roleNames = { ADMIN: 'ADMIN', PRODUCTOR: 'PRODUCTOR', ORGANIZER: 'ORGANIZER', LOGISTICO: 'LOGÍSTICO', STAFF: 'STAFF', CLIENTE: 'CLIENTE' };
         const roleName = roleNames[newRole] || newRole;
         const result = await Swal.fire({
             title: '¿Cambiar rol?',
@@ -6364,6 +6365,7 @@ const App = window.App = {
 
     // Editar usuario (colaborador)
     editUser: async function(userId) {
+        this.updateRoleOptions();
         const user = this.state.allUsers?.find(u => u.id === userId);
         if (!user) {
             this._notifyAction('Error', 'Usuario no encontrado', 'error');
@@ -13114,7 +13116,7 @@ navigate(viewName, params = {}, push = true) {
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const inputBg = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)';
         
-        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'].map(r => 
+        const roleOptions = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE', 'ORGANIZER'].map(r => 
             `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`
         ).join('');
         
@@ -13544,7 +13546,7 @@ navigate(viewName, params = {}, push = true) {
         const textSecondary = isDark ? '#94a3b8' : '#475569';
         const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         
-        const roles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE'];
+        const roles = ['ADMIN', 'PRODUCTOR', 'LOGISTICO', 'STAFF', 'CLIENTE', 'ORGANIZER'];
         
         const html = `
             <div class="space-y-5" style="padding-right: 8px;">
@@ -13621,6 +13623,7 @@ navigate(viewName, params = {}, push = true) {
     
     // Registro rápido de staff desde configuración del evento
     quickRegisterStaff: function() {
+        this.updateRoleOptions();
         // Usar el modal de invitación existente
         document.getElementById('invite-user-form')?.reset();
         this.state.editingUserId = null;

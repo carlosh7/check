@@ -8,7 +8,7 @@ Plan maestro del proyecto. Cualquier agente que llega por primera vez **lee esto
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.613 |
+| **Version** | v12.44.614 |
 | **Ultima feature completada** | F4-10: Rol Organizer - permisos, eventos asignados, frontend |
 | **Feature en curso** | Ninguna |
 | **Proximo feature** | F3-08: Waitlist |
@@ -189,7 +189,7 @@ Cruza todas las features del proyecto evaluando impacto, esfuerzo y dependencias
 | Orden | Feature | Dependencia | Descripcion |
 |-------|---------|-------------|-------------|
 | 1 | **F3-09** Export Google Sheets | Ninguna | Sincronizar invitados con Google Sheets via OAuth |
-| 2 | **F4-10** Rol Organizer | Ninguna | Rol intermedio con permisos limitados a eventos asignados |
+| 2 | **F4-10** Rol Organizer | Ninguna | ✅ Completado v12.44.614 — ORGANIZER en backend + frontend completo |
 | 3 | **F3-07** Stripe / PayPal | Categories (F2-05) | Venta de boletos con planes y precios |
 | 4 | **F3-08** Waitlist | Categories (F2-05) | Lista de espera con auto-promocion al cancelar |
 
@@ -954,7 +954,7 @@ Registro de espacios fisicos para eventos:
 | F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
 | F3-08 | Waitlist | ⏳ Pendiente | — | — |
 | F3-09 | Export Google Sheets | ⏳ Pendiente | — | — |
-| F4-10 | Rol Organizer | ⏳ Pendiente | — | — |
+| F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
 | F4-11 | Sesiones + Seat Maps | ⏳ Pendiente | — | — |
 | F4-12 | Venues | ✅ | v12.44.584 | 2026-05-07 |
 | BL-13..28 | Backlog | ⏳ Pendiente | — | — |
