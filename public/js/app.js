@@ -11532,6 +11532,7 @@ navigate(viewName, params = {}, push = true) {
             const h = (el.h || 10) * zoom;
             const isSelected = this._selectedBadgeElement === el.id;
             const content = this._getElementContent(el);
+            const opacity = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
             const handles = isSelected ? `
                 <div class="badge-handle badge-handle-tl"></div>
                 <div class="badge-handle badge-handle-t"></div>
@@ -11541,7 +11542,6 @@ navigate(viewName, params = {}, push = true) {
                 <div class="badge-handle badge-handle-b"></div>
                 <div class="badge-handle badge-handle-bl"></div>
                 <div class="badge-handle badge-handle-l"></div>` : '';
-            const opacity = (el.type === 'logo' || el.type === 'qr') && el.opacity != null ? 'opacity:' + el.opacity + ';' : '';
             return '<div class="badge-element' + (isSelected ? ' badge-selected' : '') + '" data-el="' + el.id + '" style="left:' + l + 'px;top:' + t + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (el.zIndex || (el.type === 'logo' ? 10 : 5)) + ';' + opacity + this._getElementStyle(el) + '">' + content + handles + '</div>';
         }).join('');
         // Attach event listeners
@@ -11551,6 +11551,18 @@ navigate(viewName, params = {}, push = true) {
         });
         elLayer.querySelectorAll('.badge-handle').forEach(h => {
             h.addEventListener('mousedown', (e) => { e.stopPropagation(); this._startResizeBadgeElement(h, e); });
+        });
+        // Generate real QR codes async
+        els.filter(e => e.type === 'qr').forEach(el => {
+            const elDiv = elLayer.querySelector('[data-el="' + el.id + '"]');
+            if (!elDiv) return;
+            const qrText = el.qrText || 'https://check.app/guest/' + (el.id || Date.now());
+            if (typeof QRCode !== 'undefined') {
+                QRCode.toDataURL(qrText, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }).then(url => {
+                    const img = elDiv.querySelector('.badge-qr-img');
+                    if (img) img.src = url;
+                }).catch(() => {});
+            }
         });
         // Clear properties panel if no selection
         if (!this._selectedBadgeElement) {
@@ -11566,7 +11578,7 @@ navigate(viewName, params = {}, push = true) {
             email: 'email@ejemplo.com',
             phone: '+52 123 456 7890',
             text: el.text || 'Texto',
-            qr: '<div style="width:80%;height:80%;margin:10%;background:#000;border-radius:2px"></div><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:6px;color:#fff;font-weight:bold">QR</div>',
+            qr: '<img class="badge-qr-img" style="width:100%;height:100%;object-fit:contain;padding:2px">',
             logo: el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:#999">Logo</div>'
         };
         return types[el.type] || types.text;
@@ -11797,7 +11809,7 @@ navigate(viewName, params = {}, push = true) {
 
     // ── Print-on-Checkin ──
 
-    renderBadgeHtml: function(elements, bgUrl, widthMm, heightMm) {
+    renderBadgeHtml: function(elements, bgUrl, widthMm, heightMm, qrUrls) {
         const scale = window.devicePixelRatio > 1 ? 3.78 : 2.83;
         const w = (widthMm || 90) * scale;
         const h = (heightMm || 55) * scale;
@@ -11805,7 +11817,7 @@ navigate(viewName, params = {}, push = true) {
             name: 'Maria Gonzalez', org: 'Empresa Ejemplo', cargo: 'Director',
             email: 'email@ejemplo.com', phone: '+52 123 456 7890',
             text: function(el) { return el.text || 'Texto'; },
-            qr: function() { return '<div style="width:80%;height:80%;margin:10%;background:#000;border-radius:2px"></div>'; },
+            qr: function(el) { var url = qrUrls && qrUrls[el.id]; return url ? '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain">' : '<div style="width:80%;height:80%;margin:10%;background:#e5e5e5;border-radius:2px"></div>'; },
             logo: function(el) { return el.url ? '<img src="' + el.url + '" style="width:100%;height:100%;object-fit:contain">' : ''; }
         };
         let html = '<div style="position:relative;width:' + w + 'px;height:' + h + 'px;background:#fff;overflow:hidden;';
@@ -11830,10 +11842,18 @@ navigate(viewName, params = {}, push = true) {
         return html;
     },
 
-    showBadgePrintModal: function(config) {
+    showBadgePrintModal: async function(config) {
         var container = document.getElementById('badge-print-container');
         if (!container) return;
-        container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight);
+        var qrUrls = {};
+        var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
+        for (var i = 0; i < qrEls.length; i++) {
+            var text = qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+            if (typeof QRCode !== 'undefined') {
+                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(_) {}
+            }
+        }
+        container.innerHTML = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls);
         var modal = document.getElementById('modal-badge-print');
         if (modal) modal.classList.remove('hidden');
     },
@@ -11849,8 +11869,16 @@ navigate(viewName, params = {}, push = true) {
         setTimeout(function() { win.print(); }, 300);
     },
 
-    printBadgeDirect: function(config) {
-        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight);
+    printBadgeDirect: async function(config) {
+        var qrUrls = {};
+        var qrEls = (config.elements || []).filter(function(e) { return e.type === 'qr'; });
+        for (var i = 0; i < qrEls.length; i++) {
+            var text = qrEls[i].qrText || 'https://check.app/guest/' + (qrEls[i].id || Date.now());
+            if (typeof QRCode !== 'undefined') {
+                try { qrUrls[qrEls[i].id] = await QRCode.toDataURL(text, { width: 200, margin: 1, color: { dark: '#000', light: '#fff' } }); } catch(_) {}
+            }
+        }
+        var html = this.renderBadgeHtml(config.elements, config.background?.url, config.badgeWidth, config.badgeHeight, qrUrls);
         var win = window.open('', '_blank', 'width=400,height=600');
         if (!win) { alert('Permite ventanas emergentes para imprimir'); return; }
         win.document.write('<!DOCTYPE html><html><head><title>Gafete</title><style>body{margin:0;padding:20px;display:flex;justify-content:center}@media print{body{padding:0}}img{max-width:100%}</style></head><body>' + html + '</body></html>');
