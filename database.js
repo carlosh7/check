@@ -221,6 +221,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
     session_id TEXT,
     guest_id TEXT,
     event_id TEXT,
+    seat_id TEXT,
     checked_in INTEGER DEFAULT 0,
     checkin_time TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -228,6 +229,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)"); } catch (_) {}
+try { db.exec("ALTER TABLE session_guests ADD COLUMN seat_id TEXT"); } catch (_) {}
 
 // Tabla de planos de sala (seat maps)
 db.exec(`CREATE TABLE IF NOT EXISTS seat_layouts (

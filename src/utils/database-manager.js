@@ -144,11 +144,13 @@ function getEventConnection(eventId) {
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
                 id TEXT PRIMARY KEY, session_id TEXT, guest_id TEXT, event_id TEXT,
+                seat_id TEXT,
                 checked_in INTEGER DEFAULT 0, checkin_time TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(session_id, guest_id)
             )`);
             db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_session ON session_guests(session_id)");
             db.exec("CREATE INDEX IF NOT EXISTS idx_session_guests_guest ON session_guests(guest_id)");
+            try { db.exec("ALTER TABLE session_guests ADD COLUMN seat_id TEXT"); } catch (_) {}
         } catch (_) {}
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS seat_layouts (

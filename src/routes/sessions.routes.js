@@ -99,19 +99,23 @@ router.post('/:eventId/:sessionId/register', authMiddleware(['ADMIN', 'PRODUCTOR
     try {
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
-        const { guest_id } = req.body;
+        const { guest_id, seat_id } = req.body;
         if (!guest_id) return res.status(400).json({ error: 'guest_id requerido' });
         const targetDb = getEventDb(eId);
-        // Verificar cupo
         const session = targetDb.prepare("SELECT capacity FROM sessions WHERE id = ? AND event_id = ?").get(sId, eId);
         if (!session) return res.status(404).json({ error: 'Sesion no encontrada' });
         if (session.capacity > 0) {
             const count = targetDb.prepare("SELECT COUNT(*) as c FROM session_guests WHERE session_id = ?").get(sId);
             if (count.c >= session.capacity) return res.status(400).json({ error: 'Capacidad completa' });
         }
+        // Verificar que el asiento no este ocupado
+        if (seat_id) {
+            const taken = targetDb.prepare("SELECT id FROM session_guests WHERE session_id = ? AND seat_id = ?").get(sId, seat_id);
+            if (taken) return res.status(400).json({ error: 'Asiento ocupado' });
+        }
         const id = uuidv4();
-        targetDb.prepare("INSERT OR IGNORE INTO session_guests (id, session_id, guest_id, event_id) VALUES (?, ?, ?, ?)").run(id, sId, guest_id, eId);
-        res.json({ success: true, id });
+        targetDb.prepare("INSERT INTO session_guests (id, session_id, guest_id, event_id, seat_id) VALUES (?, ?, ?, ?, ?)").run(id, sId, guest_id, eId, seat_id || null);
+        res.json({ success: true, id, seat_id: seat_id || null });
     } catch (err) {
         console.error('[SESSIONS] Error:', err.message);
         res.status(500).json({ error: 'Error al registrar invitado' });
@@ -159,7 +163,7 @@ router.get('/:eventId/my-sessions/:guestId', authMiddleware(), (req, res) => {
         const gId = req.params.guestId;
         const targetDb = getEventDb(eId);
         const sessions = targetDb.prepare(`
-            SELECT s.*, sg.checked_in, sg.checkin_time
+            SELECT s.*, sg.checked_in, sg.checkin_time, sg.seat_id
             FROM session_guests sg
             INNER JOIN sessions s ON sg.session_id = s.id
             WHERE sg.guest_id = ? AND s.event_id = ?

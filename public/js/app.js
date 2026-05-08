@@ -17720,20 +17720,39 @@ App.editAttendance = function(clientIds) {
         ]).then(function(results) {
             var sessions = results[0] || [];
             var mySessions = results[1] || [];
-            var myIds = {};
-            (mySessions || []).forEach(function(s) { myIds[s.id] = true; });
+            var myMap = {};
+            (mySessions || []).forEach(function(s) { myMap[s.id] = s; });
             var container = document.getElementById('edit-attendance-sessions');
             if (!container) return;
             if (sessions.length === 0) {
                 container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay sesiones disponibles</p>';
                 return;
             }
-            container.innerHTML = sessions.map(function(s) {
-                var checked = myIds[s.id] ? 'checked' : '';
-                return '<label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-[var(--bg-hover)] px-1 py-0.5 rounded">' +
-                    '<input type="checkbox" class="session-checkbox checkbox-sm" data-session="' + s.id + '" ' + checked + '> ' +
-                    (s.title || '') + ' <span class="text-slate-500">(' + (s.start_time || '') + ')</span></label>';
-            }).join('');
+            // Cargar renders de sesiones con plano
+            var renderPromises = [];
+            sessions.forEach(function(s) {
+                if (s.layout_id) renderPromises.push(App.fetchAPI('/seat-layouts/' + eId + '/' + s.layout_id + '/render').then(function(r) { s._seats = r.seats || []; }).catch(function() { s._seats = []; }));
+            });
+            Promise.all(renderPromises).then(function() {
+                container.innerHTML = sessions.map(function(s) {
+                    var my = myMap[s.id];
+                    var checked = my ? 'checked' : '';
+                    var seatHtml = '';
+                    if (s._seats && s._seats.length > 0) {
+                        var takenSeatIds = {};
+                        // Not ideal but we don't have taken seats here; rely on backend validation
+                        var curSeat = (my && my.seat_id) || '';
+                        seatHtml = ' <select class="session-seat-select text-[10px] input-field py-0.5 px-1" style="width:auto" data-session="' + s.id + '">' +
+                            '<option value="">Sin asiento</option>' +
+                            s._seats.filter(function(se) { return se.type === 'seat'; }).map(function(se) {
+                                return '<option value="' + se.id + '" ' + (se.id === curSeat ? 'selected' : '') + '>' + se.id + '</option>';
+                            }).join('') + '</select>';
+                    }
+                    return '<label class="flex items-center gap-1 text-xs cursor-pointer hover:bg-[var(--bg-hover)] px-1 py-0.5 rounded">' +
+                        '<input type="checkbox" class="session-checkbox checkbox-sm" data-session="' + s.id + '" ' + checked + '> ' +
+                        (s.title || '') + ' <span class="text-slate-500">(' + (s.start_time || '') + ')</span>' + seatHtml + '</label>';
+                }).join('');
+            });
         }).catch(function() {});
     }
     
@@ -17758,21 +17777,28 @@ App.editAttendance = function(clientIds) {
          await this.fetchAPI(`/events/${eventId}/attendance/${clientId}`, { method: 'PUT', body: JSON.stringify(data) });
          
          // Sincronizar sesiones del invitado
-         var sessionCheckboxes = document.querySelectorAll('#edit-attendance-sessions .session-checkbox');
-         var sessionOps = [];
-         sessionCheckboxes.forEach(function(cb) {
-             var sId = cb.dataset.session;
-             sessionOps.push({ sessionId: sId, register: cb.checked });
-         });
+          var sessionCheckboxes = document.querySelectorAll('#edit-attendance-sessions .session-checkbox');
+          var sessionSeatSelects = document.querySelectorAll('#edit-attendance-sessions .session-seat-select');
+          var seatMap = {};
+          sessionSeatSelects.forEach(function(sel) { seatMap[sel.dataset.session] = sel.value; });
+          var sessionOps = [];
+          sessionCheckboxes.forEach(function(cb) {
+              var sId = cb.dataset.session;
+              sessionOps.push({ sessionId: sId, register: cb.checked, seatId: seatMap[sId] || null });
+          });
          // Obtener sesiones actuales del invitado
          var currentSessions = await this.fetchAPI('/sessions/' + eventId + '/my-sessions/' + clientId) || [];
          var currentIds = {};
          (currentSessions || []).forEach(function(s) { currentIds[s.id] = true; });
          for (var i = 0; i < sessionOps.length; i++) {
              var op = sessionOps[i];
-             if (op.register && !currentIds[op.sessionId]) {
-                 await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register', { method: 'POST', body: JSON.stringify({ guest_id: clientId }) });
-             } else if (!op.register && currentIds[op.sessionId]) {
+              if (op.register && !currentIds[op.sessionId]) {
+                  await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register', { method: 'POST', body: JSON.stringify({ guest_id: clientId, seat_id: op.seatId || null }) });
+              } else if (op.register && currentIds[op.sessionId] && op.seatId) {
+                  // Update seat if changed - re-register
+                  await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register/' + clientId, { method: 'DELETE' });
+                  await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register', { method: 'POST', body: JSON.stringify({ guest_id: clientId, seat_id: op.seatId }) });
+              } else if (!op.register && currentIds[op.sessionId]) {
                  await this.fetchAPI('/sessions/' + eventId + '/' + op.sessionId + '/register/' + clientId, { method: 'DELETE' });
              }
          }
