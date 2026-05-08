@@ -399,6 +399,85 @@ router.get('/:eventId/pipeline', authMiddleware(), (req, res) => {
     }
 });
 
+// ── CRUD Categorias de Invitados ──
+
+router.get('/:eventId/categories', authMiddleware(), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const targetDb = getEventDb(eId);
+        const cats = targetDb.prepare("SELECT * FROM guest_categories WHERE event_id = ? ORDER BY sort_order ASC, name ASC").all(eId);
+        res.json(cats);
+    } catch (err) {
+        console.error('[CATEGORIES] Error:', err.message);
+        res.status(500).json({ error: 'Error al obtener categorias' });
+    }
+});
+
+router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const { name, color, capacity, sort_order } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+        const id = uuidv4();
+        const targetDb = getEventDb(eId);
+        targetDb.prepare("INSERT INTO guest_categories (id, event_id, name, color, capacity, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run(
+            id, eId, name.trim(), color || '#64748b', capacity || 0, sort_order || 0
+        );
+        res.json({ success: true, id });
+    } catch (err) {
+        console.error('[CATEGORIES] Error:', err.message);
+        res.status(500).json({ error: 'Error al crear categoria' });
+    }
+});
+
+router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        const catId = req.params.catId;
+        if (!eId) return res.status(400).json({ error: 'ID invalido' });
+        const { name, color, capacity, sort_order } = req.body;
+        const targetDb = getEventDb(eId);
+        targetDb.prepare("UPDATE guest_categories SET name = COALESCE(?, name), color = COALESCE(?, color), capacity = COALESCE(?, capacity), sort_order = COALESCE(?, sort_order) WHERE id = ? AND event_id = ?").run(
+            name || null, color || null, capacity != null ? capacity : null, sort_order != null ? sort_order : null, catId, eId
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[CATEGORIES] Error:', err.message);
+        res.status(500).json({ error: 'Error al actualizar categoria' });
+    }
+});
+
+router.delete('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        const catId = req.params.catId;
+        const targetDb = getEventDb(eId);
+        targetDb.prepare("UPDATE guests SET category_id = NULL WHERE category_id = ? AND event_id = ?").run(catId, eId);
+        targetDb.prepare("DELETE FROM guest_categories WHERE id = ? AND event_id = ?").run(catId, eId);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[CATEGORIES] Error:', err.message);
+        res.status(500).json({ error: 'Error al eliminar categoria' });
+    }
+});
+
+// Cambiar categoria de un invitado
+router.patch('/:eventId/guest-category/:guestId', authMiddleware(['ADMIN', 'PRODUCTOR', 'LOGISTICO']), (req, res) => {
+    try {
+        const eId = castId('events', req.params.eventId);
+        const gId = castId('guests', req.params.guestId);
+        const { category_id } = req.body;
+        const targetDb = getEventDb(eId);
+        targetDb.prepare("UPDATE guests SET category_id = ? WHERE id = ? AND event_id = ?").run(category_id || null, gId, eId);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[CATEGORIES] Error:', err.message);
+        res.status(500).json({ error: 'Error al cambiar categoria' });
+    }
+});
+
 // PDF: Descargar gafetes (badges) con QR
 router.get('/:eventId/badges', authMiddleware(), async (req, res) => {
     try {

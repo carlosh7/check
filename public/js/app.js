@@ -11280,7 +11280,7 @@ navigate(viewName, params = {}, push = true) {
 
     
     switchConfigTab(tabName) {
-        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings'];
+        const ALL_CONFIG_IDS = ['config-content-staff', 'config-content-email', 'config-content-agenda', 'config-content-wheel', 'config-content-pre-registrations', 'config-content-surveys', 'config-content-settings', 'config-content-categories'];
         ALL_CONFIG_IDS.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -11328,6 +11328,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'pre-registrations') this.loadPreRegistrations();
         if (tabName === 'surveys') this.loadSurveys();
         if (tabName === 'settings') this.loadConfigSettings();
+        if (tabName === 'categories') this.loadCategories();
     },
     
     // Cargar encuestas (v12.34.2)
@@ -11338,7 +11339,131 @@ navigate(viewName, params = {}, push = true) {
             console.warn('[CONFIG] loadSurveyQuestions not available');
         }
     },
-    
+
+    // ── Categorias de Invitados ──
+
+    loadCategories: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        try {
+            const cats = await this.fetchAPI(`/guests/${eId}/categories`);
+            const tbody = document.getElementById('categories-tbody');
+            if (!tbody) return;
+            if (!cats || cats.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Sin categorias. Crea la primera!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = cats.map(c => `
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                    <td class="table-td font-medium text-white">${c.name}</td>
+                    <td class="table-td"><span class="inline-block w-6 h-6 rounded-full border" style="background:${c.color}"></span></td>
+                    <td class="table-td">${c.capacity || 'Ilimitado'}</td>
+                    <td class="table-td">${c._count || '-'}</td>
+                    <td class="table-td">${c.sort_order || 0}</td>
+                    <td class="table-td">
+                        <button class="btn-icon" onclick="App.editCategory('${c.id}')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                        <button class="btn-icon text-red-400" onclick="App.deleteCategory('${c.id}')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            console.error('[CATEGORIES] Error:', e.message);
+        }
+    },
+
+    openCategoryModal: function(cat) {
+        const modal = document.getElementById('modal-category');
+        if (!modal) return;
+        document.getElementById('category-id')?.remove();
+        document.getElementById('category-name').value = cat?.name || '';
+        document.getElementById('category-color').value = cat?.color || '#64748b';
+        document.getElementById('category-capacity').value = cat?.capacity || '';
+        document.getElementById('category-sort').value = cat?.sort_order || 0;
+        if (cat) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.id = 'category-id';
+            input.value = cat.id;
+            modal.querySelector('form').appendChild(input);
+        }
+        modal.classList.remove('hidden');
+    },
+
+    editCategory: function(catId) {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        this.fetchAPI(`/guests/${eId}/categories`).then(cats => {
+            const cat = (cats || []).find(c => c.id === catId);
+            if (cat) this.openCategoryModal(cat);
+        });
+    },
+
+    saveCategory: async function() {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const name = document.getElementById('category-name')?.value.trim();
+        if (!name) return Swal.fire({ icon: 'warning', title: 'Nombre requerido' });
+        const catId = document.getElementById('category-id')?.value;
+        const body = {
+            name,
+            color: document.getElementById('category-color')?.value || '#64748b',
+            capacity: parseInt(document.getElementById('category-capacity')?.value) || 0,
+            sort_order: parseInt(document.getElementById('category-sort')?.value) || 0
+        };
+        try {
+            if (catId) {
+                await this.fetchAPI(`/guests/${eId}/categories/${catId}`, { method: 'PUT', body: JSON.stringify(body) });
+            } else {
+                await this.fetchAPI(`/guests/${eId}/categories`, { method: 'POST', body: JSON.stringify(body) });
+            }
+            document.getElementById('modal-category')?.classList.add('hidden');
+            this.loadCategories();
+        } catch(e) {
+            console.error('[CATEGORIES] Error:', e.message);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar la categoria' });
+        }
+    },
+
+    deleteCategory: async function(catId) {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        const confirm = await Swal.fire({ icon: 'warning', title: 'Eliminar categoria?', text: 'Los invitados en esta categoria quedaran sin categoria asignada.', showCancelButton: true, confirmButtonText: 'Eliminar' });
+        if (!confirm.isConfirmed) return;
+        try {
+            await this.fetchAPI(`/guests/${eId}/categories/${catId}`, { method: 'DELETE' });
+            this.loadCategories();
+        } catch(e) {
+            console.error('[CATEGORIES] Error:', e.message);
+        }
+    },
+
+    changeGuestCategory: async function(guestId, categoryId) {
+        const eId = this.state.event?.id || this.state.currentEventId;
+        if (!eId || !guestId) return;
+        try {
+            const res = await this.fetchAPI(`/guests/${eId}/guest-category/${guestId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ category_id: categoryId || null })
+            });
+            if (res && res.success) {
+                const guest = this.state.attendance?.find(a => a.client_id == guestId);
+                if (guest) {
+                    guest.category_id = categoryId || null;
+                    // Re-fetch categories to get updated name/color
+                    const cats = await this.fetchAPI(`/guests/${eId}/categories`);
+                    if (cats) {
+                        const cat = (cats || []).find(c => c.id === categoryId);
+                        guest.category_name = cat?.name || null;
+                        guest.category_color = cat?.color || null;
+                    }
+                }
+                this.filterAttendance();
+            }
+        } catch(e) {
+            console.error('[CATEGORIES] Error:', e.message);
+        }
+    },
+
     // Cargar staff en config view
     loadConfigStaff() {
         const eventId = this.state.event?.id;
@@ -15873,6 +15998,20 @@ App.populateAttendanceFilters = function() {
         cargoSelect.innerHTML = '<option value="">Cargo</option>' + 
             cargos.map(c => `<option value="${c}">${c}</option>`).join('');
     }
+    
+    // Poblar filtro de categorias
+    const eId = this.state.event?.id || this.state.currentEventId;
+    if (eId) {
+        this.fetchAPI(`/guests/${eId}/categories`).then(cats => {
+            const catSelect = document.getElementById('filter-attendance-category');
+            if (catSelect && cats) {
+                const currentVal = catSelect.value;
+                catSelect.innerHTML = '<option value="">Categoría</option>' + 
+                    cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                catSelect.value = currentVal;
+            }
+        }).catch(() => {});
+    }
 },
 
  App.clearAttendanceDatabase = async function() {
@@ -15924,6 +16063,7 @@ App.filterAttendance = function() {
     const cargoFilter = document.getElementById('filter-attendance-cargo')?.value || '';
     const veganoFilter = document.getElementById('filter-attendance-vegano')?.value || '';
     const statusFilter = document.getElementById('filter-attendance-status')?.value || '';
+    const catFilter = document.getElementById('filter-attendance-category')?.value || '';
     
     let filtered = this.state.attendance || [];
     
@@ -15941,6 +16081,7 @@ App.filterAttendance = function() {
     if (cargoFilter) filtered = filtered.filter(a => a.cargo === cargoFilter);
     if (veganoFilter) filtered = filtered.filter(a => a.vegano === veganoFilter);
     if (statusFilter) filtered = filtered.filter(a => a.status === statusFilter);
+    if (catFilter) filtered = filtered.filter(a => a.category_id === catFilter);
     
     // Actualizar contador visual dual (Total / Presentes) (V12.44.368)
     const badge = document.getElementById('attendance-total-badge');
@@ -15958,7 +16099,7 @@ App.renderAttendanceTable = function(attendance) {
     if (!tbody) return;
     
     if (!attendance || attendance.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">No hay asistentes registrados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-500">No hay asistentes registrados</td></tr>`;
         return;
     }
     
@@ -15996,6 +16137,11 @@ App.renderAttendanceTable = function(attendance) {
             <td class="!py-3 !px-3 text-slate-300">${a.cargo || '-'}</td>
             <td class="!py-3 !px-3">${veganoBadge}</td>
             <td class="!py-3 !px-3 text-slate-300 text-xs">${a.restricciones || '-'}</td>
+            <td class="!py-3 !px-3">
+                ${a.category_name 
+                    ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold" style="background:${a.category_color || '#64748b'}30; color:${a.category_color || '#64748b'}">${a.category_name}</span>`
+                    : '<span class="text-slate-500 text-[10px]">-</span>'}
+            </td>
             <td class="!py-3 !px-3">
                 <select onchange="App.changeGuestStatus('${a.client_id}', this.value)"
                     class="status-pipeline-select text-[10px] font-bold rounded-full px-2 py-1 cursor-pointer outline-none"
@@ -16164,6 +16310,18 @@ App.openAddAssistantModal = function() {
     document.getElementById('add-attendance-cargo').value = '';
     document.getElementById('add-attendance-vegano').value = 'NO';
     document.getElementById('add-attendance-restricciones').value = '';
+    
+    // Poblar selector de categorias
+    const eId = this.state.event?.id || this.state.currentEventId;
+    if (eId) {
+        this.fetchAPI(`/guests/${eId}/categories`).then(cats => {
+            const sel = document.getElementById('add-attendance-category');
+            if (sel && cats) {
+                sel.innerHTML = '<option value="">Sin categoría</option>' + 
+                    cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+        }).catch(() => {});
+    }
     
     document.getElementById('modal-add-attendance').classList.remove('hidden');
 },
@@ -16847,7 +17005,8 @@ App.clearSelectedAttendanceClient = function() {
              organization: document.getElementById('add-attendance-organization').value,
              cargo: document.getElementById('add-attendance-cargo').value,
              vegano: document.getElementById('add-attendance-vegano').value,
-             restricciones: document.getElementById('add-attendance-restricciones').value
+             restricciones: document.getElementById('add-attendance-restricciones').value,
+             category_id: document.getElementById('add-attendance-category')?.value || null
          }) });
         document.getElementById('modal-add-attendance').classList.add('hidden');
         await this.loadAttendance(eventId);

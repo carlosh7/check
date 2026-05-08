@@ -1005,9 +1005,13 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
                 COALESCE(g.cargo, g.position) as cargo, 
                 g.vegano, 
                 g.status,
+                g.category_id,
+                c.name as category_name,
+                c.color as category_color,
                 COALESCE(g.restricciones, g.dietary_notes) as restricciones, 
                 g.checked_in as validated, g.checkin_time as validated_at
             FROM guests g
+            LEFT JOIN guest_categories c ON g.category_id = c.id
             WHERE g.event_id = ?
             ORDER BY g.name ASC
         `).all(eventId);
@@ -1024,7 +1028,7 @@ router.get('/:id/attendance', authMiddleware(), async (req, res) => {
 // POST /api/events/:id/attendance - Agregar asistente manual
 router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res) => {
     const eventId = castId('events', req.params.id);
-    const { name, email, phone, organization, cargo, vegano, restricciones } = req.body;
+    const { name, email, phone, organization, cargo, vegano, restricciones, category_id } = req.body;
     
     if (!eventId || !name) return res.status(400).json({ error: 'ID de evento y nombre requeridos' });
     
@@ -1037,13 +1041,13 @@ router.post('/:id/attendance', authMiddleware(['ADMIN', 'PRODUCTOR']), async (re
         targetDb.prepare(`
             INSERT INTO guests (
                 id, event_id, name, email, phone, organization, position, cargo, 
-                vegano, dietary_notes, restricciones, created_at
+                vegano, dietary_notes, restricciones, category_id, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             id, eventId, name, email || null, phone || null, organization || null, 
             cargo || null, cargo || null, vegano || 'NO', 
-            restricciones || null, restricciones || null, now
+            restricciones || null, restricciones || null, category_id || null, now
         );
         
         res.json({ success: true, id });

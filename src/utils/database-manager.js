@@ -97,6 +97,9 @@ function getEventConnection(eventId) {
             if (!cols.includes('status')) {
                 db.exec("ALTER TABLE guests ADD COLUMN status TEXT DEFAULT 'lead'");
             }
+            if (!cols.includes('category_id')) {
+                db.exec("ALTER TABLE guests ADD COLUMN category_id TEXT");
+            }
         } catch (_) {}
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS guest_status_log (
@@ -110,6 +113,18 @@ function getEventConnection(eventId) {
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )`);
             db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)");
+        } catch (_) {}
+        try {
+            db.exec(`CREATE TABLE IF NOT EXISTS guest_categories (
+                id TEXT PRIMARY KEY,
+                event_id TEXT,
+                name TEXT NOT NULL,
+                color TEXT DEFAULT '#64748b',
+                capacity INTEGER DEFAULT 0,
+                sort_order INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )`);
+            db.exec("CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)");
         } catch (_) {}
         
         console.log('✓ Conexión a base de datos del evento:', eventId);
@@ -192,6 +207,7 @@ function createEventTables(db, eventId) {
             restricciones TEXT,
             vegano TEXT DEFAULT 'NO',
             status TEXT DEFAULT 'lead',
+            category_id TEXT,
             is_new_registration INTEGER DEFAULT 0,
             checked_in INTEGER DEFAULT 0,
             checkin_time TEXT,
@@ -225,6 +241,20 @@ function createEventTables(db, eventId) {
         )
     `);
     try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)"); } catch (_) {}
+    
+    // Tabla de categorias de invitados
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS guest_categories (
+            id TEXT PRIMARY KEY,
+            event_id TEXT,
+            name TEXT NOT NULL,
+            color TEXT DEFAULT '#64748b',
+            capacity INTEGER DEFAULT 0,
+            sort_order INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)"); } catch (_) {}
     
     // Tabla de pre-registros
     db.exec(`

@@ -133,6 +133,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
     restricciones TEXT,
     vegano TEXT DEFAULT 'NO',
     status TEXT DEFAULT 'lead',
+    category_id TEXT,
     is_new_registration INTEGER DEFAULT 0,
     checked_in INTEGER DEFAULT 0,
     checkin_time TEXT,
@@ -147,7 +148,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS guests (
 // Migración V12.44.301: Asegurar columnas unificadas en la tabla guests
 try {
     const columns = db.prepare("PRAGMA table_info(guests)").all().map(c => c.name);
-    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status'];
+    const required = ['cargo', 'vegano', 'restricciones', 'validated', 'validated_at', 'validated_by', 'unsubscribed', 'unsubscribe_token', 'status', 'category_id'];
     required.forEach(col => {
         if (!columns.includes(col)) {
             let def = "TEXT";
@@ -180,6 +181,18 @@ db.exec(`CREATE TABLE IF NOT EXISTS guest_status_log (
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_guest ON guest_status_log(guest_id)"); } catch (_) {}
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_status_log_event ON guest_status_log(event_id)"); } catch (_) {}
+
+// Tabla de categorias de invitados por evento
+db.exec(`CREATE TABLE IF NOT EXISTS guest_categories (
+    id TEXT PRIMARY KEY,
+    event_id TEXT,
+    name TEXT NOT NULL,
+    color TEXT DEFAULT '#64748b',
+    capacity INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_guest_categories_event ON guest_categories(event_id)"); } catch (_) {}
 
 // 3.1 Pre-Registros (Inscripción previa)
 db.exec(`CREATE TABLE IF NOT EXISTS pre_registrations (

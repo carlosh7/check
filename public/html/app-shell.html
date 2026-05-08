@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.596</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.597</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -195,6 +195,9 @@
                             <option value="SI">S&iacute;</option>
                             <option value="NO">No</option>
                         </select>
+                <select id="filter-attendance-category" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select">
+                    <option value="">Categor&iacute;a</option>
+                </select>
                 <select id="filter-attendance-status" onchange="App.filterAttendance(); App.loadAnalytics()" class="filter-select filter-select-evento">
                     <option value="">Estado</option>
                     <option value="lead">Lead</option>
@@ -408,10 +411,13 @@
                     <button class="btn-secondary sub-nav-btn" data-tab="surveys" onclick="App.switchConfigTab('surveys')">
                         <span class="material-symbols-outlined">poll</span> Encuestas
                     </button>
-                    <button class="btn-secondary sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
-                        <span class="material-symbols-outlined">settings</span> Ajustes
-                    </button>
-                </div>
+                        <button class="btn-secondary sub-nav-btn" data-tab="settings" onclick="App.switchConfigTab('settings')">
+                            <span class="material-symbols-outlined">settings</span> Ajustes
+                        </button>
+                        <button class="btn-secondary sub-nav-btn" data-tab="categories" onclick="App.switchConfigTab('categories')">
+                            <span class="material-symbols-outlined">category</span> Categor&iacute;as
+                        </button>
+                    </div>
 
                 <div class="action-bar">
                     <button id="btn-config-staff-new" onclick="App.quickRegisterStaff()" class="btn-primary">
@@ -952,6 +958,35 @@
                                         <textarea id="evs-reg-blacklist" class="input-field w-full" rows="2" placeholder="spam@email.com, etc."></textarea>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: CATEGORIAS -->
+                    <div id="config-content-categories" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Categor&iacute;as del Evento</h2>
+                            <button id="btn-new-category" class="btn-primary" onclick="App.openCategoryModal()">
+                                <span class="material-symbols-outlined">add</span> Nueva Categor&iacute;a
+                            </button>
+                        </div>
+                        <div class="card p-0 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="data-table w-full">
+                                    <thead>
+                                        <tr class="table-header-row">
+                                            <th class="table-th">Nombre</th>
+                                            <th class="table-th">Color</th>
+                                            <th class="table-th">Capacidad</th>
+                                            <th class="table-th">Invitados</th>
+                                            <th class="table-th">Orden</th>
+                                            <th class="table-th">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categories-tbody">
+                                        <tr><td colspan="6" class="text-center py-8 text-slate-500">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -2585,6 +2620,12 @@
                 <label class="text-10 font-medium text- uppercase tracking-wider">Restricciones Alimentarias</label>
                 <textarea id="add-attendance-restricciones" placeholder="Alergias o restricciones" class="input-field w-full" rows="2"></textarea>
             </div>
+            <div class="space-y-1.5">
+                <label class="text-10 font-medium text- uppercase tracking-wider">Categor&iacute;a</label>
+                <select id="add-attendance-category" class="input-field w-full">
+                    <option value="">Sin categor&iacute;a</option>
+                </select>
+            </div>
         </div>
         <div class="p-4 border-t border- shrink-0 flex justify-end gap-3>
             <button onclick="document.getElementById('modal-add-attendance').classList.add('hidden')" class="px-4 py-2 rounded-lg bg- text-sm font-medium">Cancelar</button>
@@ -2592,5 +2633,41 @@
                 <span class="material-symbols-outlined text-sm mr-1">add</span> Agregar
             </button>
         </div>
+    </div>
+</div>
+
+<!-- MODAL: CATEGORIA -->
+<div id="modal-category" class="hidden fixed inset-0 z-999999 overflow-y-auto flex items-start justify-center bg-black-60 backdrop-blur-sm">
+    <div class="bg-[var(--bg-primary)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-md mt-[10vh] mx-4">
+        <div class="p-5 border-b border-[var(--border)] flex justify-between items-center">
+            <h3 class="text-lg font-bold text-white">Categor&iacute;a</h3>
+            <button onclick="document.getElementById('modal-category').classList.add('hidden')" class="w-8 h-8 rounded-lg hover:bg-[var(--bg-hover)] flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-slate-400">close</span>
+            </button>
+        </div>
+        <form onsubmit="event.preventDefault(); App.saveCategory()" class="p-5 space-y-4">
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Nombre</label>
+                <input id="category-name" class="input-field w-full" placeholder="VIP, Regular, Staff..." required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Color</label>
+                <input id="category-color" type="color" class="input-field w-full h-10 p-1" value="#64748b">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Capacidad m&aacute;x</label>
+                    <input id="category-capacity" type="number" class="input-field w-full" placeholder="0 = Ilimitado" min="0">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-secondary)] block mb-1">Orden</label>
+                    <input id="category-sort" type="number" class="input-field w-full" value="0" min="0">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="document.getElementById('modal-category').classList.add('hidden')" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
