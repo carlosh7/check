@@ -213,6 +213,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS sessions (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 )`);
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)"); } catch (_) {}
+try { db.exec("ALTER TABLE sessions ADD COLUMN layout_id TEXT"); } catch (_) {}
 
 // Tabla de registro de invitados a sesiones
 db.exec(`CREATE TABLE IF NOT EXISTS session_guests (

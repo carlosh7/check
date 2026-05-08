@@ -11974,6 +11974,21 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('session-end').value = session?.end_time || '';
         document.getElementById('session-capacity').value = session?.capacity || '';
         document.getElementById('session-location').value = session?.location || '';
+        // Poblar selector de planos
+        var layoutSel = document.getElementById('session-layout-id');
+        if (layoutSel) {
+            var eId = this.state.event?.id;
+            if (eId) {
+                this.fetchAPI('/seat-layouts/' + eId).then(function(layouts) {
+                    if (layouts && layoutSel) {
+                        var curId = session?.layout_id || '';
+                        layoutSel.innerHTML = '<option value="">Sin plano</option>' + layouts.map(function(l) { return '<option value="' + l.id + '" ' + (l.id === curId ? 'selected' : '') + '>' + (l.name || '') + '</option>'; }).join('');
+                    }
+                }).catch(function() {});
+            } else {
+                layoutSel.innerHTML = '<option value="">Sin plano</option>';
+            }
+        }
         if (session) {
             var input = document.createElement('input');
             input.type = 'hidden';
@@ -12006,7 +12021,8 @@ navigate(viewName, params = {}, push = true) {
             start_time: document.getElementById('session-start')?.value || '',
             end_time: document.getElementById('session-end')?.value || '',
             capacity: parseInt(document.getElementById('session-capacity')?.value) || 0,
-            location: document.getElementById('session-location')?.value || ''
+            location: document.getElementById('session-location')?.value || '',
+            layout_id: document.getElementById('session-layout-id')?.value || null
         };
         try {
             if (sId) {
@@ -12055,6 +12071,7 @@ navigate(viewName, params = {}, push = true) {
 
     openSeatLayoutModal: function() {
         document.getElementById('seat-editor-title').textContent = 'Nuevo Plano';
+        document.getElementById('seat-layout-type').value = 'auditorium';
         document.getElementById('seat-room-width').value = 10;
         document.getElementById('seat-room-length').value = 8;
         document.getElementById('seat-rows').value = 5;
@@ -12062,10 +12079,13 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('seat-aisle').value = 4;
         document.getElementById('seat-stage').value = 'front';
         document.getElementById('seat-size').value = 0.5;
+        document.getElementById('seat-table-diam').value = 1.8;
+        document.getElementById('seat-chairs-per-table').value = 8;
+        document.getElementById('seat-table-gap').value = 0.8;
         document.getElementById('seat-layouts-list').classList.add('hidden');
         document.getElementById('seat-layout-editor').classList.remove('hidden');
         delete this._editingSeatLayoutId;
-        this.renderSeatPreview();
+        this.onSeatLayoutTypeChange();
     },
 
     openSeatEditor: async function(layoutId) {
@@ -12075,18 +12095,22 @@ navigate(viewName, params = {}, push = true) {
             const res = await this.fetchAPI('/seat-layouts/' + eId + '/' + layoutId + '/render');
             var cfg = res.layout.config;
             document.getElementById('seat-editor-title').textContent = 'Editar: ' + (res.layout.name || '');
+            document.getElementById('seat-layout-type').value = cfg.layoutType || 'auditorium';
             document.getElementById('seat-room-width').value = cfg.roomWidth || 10;
             document.getElementById('seat-room-length').value = cfg.roomLength || 8;
             document.getElementById('seat-rows').value = cfg.rows || 5;
             document.getElementById('seat-cols').value = cfg.cols || 8;
-            document.getElementById('seat-aisle').value = cfg.aislePos || Math.floor((cfg.cols || 8) / 2);
+            document.getElementById('seat-aisle').value = cfg.aislePos != null ? cfg.aislePos : Math.floor((cfg.cols || 8) / 2);
             document.getElementById('seat-stage').value = cfg.stagePos || 'front';
             document.getElementById('seat-size').value = cfg.seatSize || 0.5;
+            document.getElementById('seat-table-diam').value = cfg.tableDiameter || 1.8;
+            document.getElementById('seat-chairs-per-table').value = cfg.chairsPerTable || 8;
+            document.getElementById('seat-table-gap').value = cfg.tableGap || 0.8;
             document.getElementById('seat-layouts-list').classList.add('hidden');
             document.getElementById('seat-layout-editor').classList.remove('hidden');
             this._editingSeatLayoutId = layoutId;
             this._seatRenderCache = res.seats || [];
-            this.renderSeatPreview();
+            this.onSeatLayoutTypeChange();
         } catch(e) { console.error('[SEAT] Error:', e.message); }
     },
 
@@ -12098,64 +12122,112 @@ navigate(viewName, params = {}, push = true) {
         this.loadSeatLayouts();
     },
 
+    onSeatLayoutTypeChange: function() {
+        var type = document.getElementById('seat-layout-type').value;
+        var isAuditorium = type === 'auditorium';
+        var isHerringbone = type === 'herringbone';
+        var isBanquet = type === 'banquet';
+        document.getElementById('seat-param-rows').style.display = (isAuditorium || isHerringbone) ? '' : 'none';
+        document.getElementById('seat-param-aisle').style.display = isAuditorium ? '' : 'none';
+        document.getElementById('seat-param-stage').style.display = isAuditorium ? '' : 'none';
+        document.getElementById('seat-param-size').style.display = (isAuditorium || isHerringbone) ? '' : 'none';
+        document.getElementById('seat-param-banquet').style.display = isBanquet ? '' : 'none';
+        if (isAuditorium) document.getElementById('seat-cols').value = 8;
+        if (isHerringbone) document.getElementById('seat-cols').value = 6;
+        this.renderSeatPreview();
+    },
+
     renderSeatPreview: function() {
         var canvas = document.getElementById('seat-canvas');
         if (!canvas) return;
+        var type = document.getElementById('seat-layout-type').value;
         var roomW = parseFloat(document.getElementById('seat-room-width').value) || 10;
         var roomH = parseFloat(document.getElementById('seat-room-length').value) || 8;
+        var scale = Math.min(600 / roomW, 400 / roomH);
+        var cw = roomW * scale, ch = roomH * scale;
+        canvas.style.cssText = 'width:' + cw + 'px;height:' + ch + 'px;background:#f0f0f0;position:relative;border-radius:4px;';
+        canvas.innerHTML = '';
+
+        if (type === 'auditorium') this._renderAuditorium(canvas, roomW, roomH, scale);
+        else if (type === 'herringbone') this._renderHerringbone(canvas, roomW, roomH, scale);
+        else if (type === 'banquet') this._renderBanquet(canvas, roomW, roomH, scale);
+    },
+
+    _renderAuditorium: function(canvas, roomW, roomH, scale) {
         var rows = parseInt(document.getElementById('seat-rows').value) || 5;
         var cols = parseInt(document.getElementById('seat-cols').value) || 8;
         var aislePos = parseInt(document.getElementById('seat-aisle').value) || Math.floor(cols / 2);
         var stagePos = document.getElementById('seat-stage').value || 'front';
         var seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
-        var scale = Math.min(600 / roomW, 400 / roomH);
-        var gap = 0.1;
-        var seatPx = seatSize * scale;
-        var gapPx = gap * scale;
-        var cw = roomW * scale;
-        var ch = roomH * scale;
-        canvas.style.width = cw + 'px';
-        canvas.style.height = ch + 'px';
-        canvas.style.background = '#f0f0f0';
-        canvas.style.position = 'relative';
-
+        var seatPx = seatSize * scale, gap = 0.1 * scale, marginX = 0.5 * scale, marginY = 0.6 * scale;
         // Stage
-        var stageEl = document.createElement('div');
-        stageEl.style.cssText = 'position:absolute;background:#7c3aed;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:4px;';
-        if (stagePos === 'front') {
-            stageEl.style.bottom = '0'; stageEl.style.left = '10%'; stageEl.style.width = '80%'; stageEl.style.height = (0.6 * scale) + 'px';
-        } else {
-            stageEl.style.top = '0'; stageEl.style.left = '10%'; stageEl.style.width = '80%'; stageEl.style.height = (0.6 * scale) + 'px';
-        }
-        stageEl.textContent = 'ESCENARIO';
-        canvas.innerHTML = '';
-        canvas.appendChild(stageEl);
-
-        // Generate seats
-        var marginX = 0.5 * scale;
-        var marginY = stagePos === 'front' ? 0.3 * scale : (0.6 + 0.3) * scale;
-        var usableW = roomW * scale - marginX * 2;
-        var availableCols = cols;
-        if (aislePos > 0 && aislePos < cols) availableCols = cols - 1;
-        var totalW = availableCols * seatPx + (availableCols - 1) * gapPx;
-        var startX = marginX + (usableW - totalW) / 2;
+        var st = this._createDiv(canvas, (stagePos === 'front') ? 'bottom:0' : 'top:0', '10%', '80%', (0.5 * scale) + 'px', '#7c3aed');
+        st.textContent = 'ESCENARIO';
+        var totalW = (cols - 1) * (seatPx + gap);
+        var startX = marginX + (roomW * scale - marginX * 2 - totalW) / 2;
         var rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
         for (var r = 0; r < rows; r++) {
             var label = rowLabels[r] || ('R' + (r + 1));
             var colCount = 0;
             for (var c = 0; c < cols; c++) {
                 if (c === aislePos) continue;
-                var sx = startX + colCount * (seatPx + gapPx);
-                var sy = (stagePos === 'front') ? (roomH * scale - marginY - (rows - r) * (seatPx + gapPx)) : (marginY + r * (seatPx + gapPx));
-                var seat = document.createElement('div');
-                seat.style.cssText = 'position:absolute;left:' + sx + 'px;top:' + sy + 'px;width:' + seatPx + 'px;height:' + seatPx + 'px;background:#10b981;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;color:#fff;font-weight:bold;cursor:pointer;';
+                var sx = startX + colCount * (seatPx + gap);
+                var sy = (stagePos === 'front') ? (roomH * scale - marginY - (rows - r) * (seatPx + gap)) : (marginY + r * (seatPx + gap));
+                var seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + sy + 'px', seatPx + 'px', seatPx + 'px', '', '#10b981');
                 seat.title = label + (c + 1);
-                seat.textContent = label + (c + 1);
-                canvas.appendChild(seat);
                 colCount++;
             }
         }
+    },
+
+    _renderHerringbone: function(canvas, roomW, roomH, scale) {
+        var rows = parseInt(document.getElementById('seat-rows').value) || 5;
+        var cols = parseInt(document.getElementById('seat-cols').value) || 6;
+        var seatSize = parseFloat(document.getElementById('seat-size').value) || 0.5;
+        var seatPx = seatSize * scale, gap = 0.15 * scale, margin = 0.8 * scale, centerX = roomW / 2 * scale;
+        var rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (var r = 0; r < rows; r++) {
+            var label = rowLabels[r] || ('R' + (r + 1));
+            var yPos = margin + r * (seatPx + gap);
+            var xOff = (r % 2 === 0 ? 0 : (seatPx + gap) * 0.3);
+            var blockW = cols * (seatPx + gap);
+            var startX = centerX - blockW / 2 + xOff;
+            for (var c = 0; c < cols; c++) {
+                var sx = startX + c * (seatPx + gap);
+                var seat = this._createDiv(canvas, 'left:' + sx + 'px;top:' + yPos + 'px;transform:rotate(' + (r % 2 === 0 ? '-35' : '35') + 'deg)', seatPx + 'px', seatPx + 'px', '', '#0ea5e9');
+                seat.title = label + (c + 1);
+            }
+        }
+    },
+
+    _renderBanquet: function(canvas, roomW, roomH, scale) {
+        var tableDiam = (parseFloat(document.getElementById('seat-table-diam').value) || 1.8) * scale;
+        var chairs = parseInt(document.getElementById('seat-chairs-per-table').value) || 8;
+        var tableGap = (parseFloat(document.getElementById('seat-table-gap').value) || 0.8) * scale;
+        var margin = 0.5 * scale, cols = Math.floor(((roomW * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
+        var rows = Math.floor(((roomH * scale) - margin * 2 + tableGap) / (tableDiam + tableGap));
+        var startX = margin + ((roomW * scale) - margin * 2 - cols * (tableDiam + tableGap) + tableGap) / 2;
+        var chairR = tableDiam / 2 + 3;
+        for (var t = 0; t < Math.min(cols * rows, 20); t++) {
+            var tx = startX + (t % cols) * (tableDiam + tableGap) + tableDiam / 2;
+            var ty = margin + Math.floor(t / cols) * (tableDiam + tableGap) + tableDiam / 2;
+            var table = this._createDiv(canvas, 'left:' + (tx - tableDiam / 2) + 'px;top:' + (ty - tableDiam / 2) + 'px;border-radius:50%', tableDiam + 'px', tableDiam + 'px', '', '#94a3b8');
+            table.title = 'Mesa ' + (t + 1);
+            for (var ch = 0; ch < chairs; ch++) {
+                var a = ch * (360 / chairs) * Math.PI / 180;
+                var cx = tx + chairR * Math.cos(a) - 5;
+                var cy = ty + chairR * Math.sin(a) - 5;
+                var seat = this._createDiv(canvas, 'left:' + cx + 'px;top:' + cy + 'px;border-radius:50%', '10px', '10px', '', '#10b981');
+                seat.title = 'T' + (t + 1) + '-' + (ch + 1);
+            }
+        }
+    },
+
+    _createDiv: function(parent, pos, w, h, extra, bg) {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:absolute;' + pos + ';width:' + w + ';height:' + h + ';' + (extra || '') + ';background:' + bg + ';display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:bold;overflow:hidden;cursor:pointer;';
+        parent.appendChild(el);
+        return el;
     },
 
     saveSeatLayout: async function() {
@@ -12167,15 +12239,26 @@ navigate(viewName, params = {}, push = true) {
             if (!result.isConfirmed || !result.value) return;
             name = result.value.trim();
         }
+        var type = document.getElementById('seat-layout-type').value;
         var config = {
+            layoutType: type,
             roomWidth: parseFloat(document.getElementById('seat-room-width').value),
-            roomLength: parseFloat(document.getElementById('seat-room-length').value),
-            rows: parseInt(document.getElementById('seat-rows').value),
-            cols: parseInt(document.getElementById('seat-cols').value),
-            aislePos: parseInt(document.getElementById('seat-aisle').value),
-            stagePos: document.getElementById('seat-stage').value,
-            seatSize: parseFloat(document.getElementById('seat-size').value)
+            roomLength: parseFloat(document.getElementById('seat-room-length').value)
         };
+        if (type === 'auditorium' || type === 'herringbone') {
+            config.rows = parseInt(document.getElementById('seat-rows').value);
+            config.cols = parseInt(document.getElementById('seat-cols').value);
+            config.seatSize = parseFloat(document.getElementById('seat-size').value);
+        }
+        if (type === 'auditorium') {
+            config.aislePos = parseInt(document.getElementById('seat-aisle').value);
+            config.stagePos = document.getElementById('seat-stage').value;
+        }
+        if (type === 'banquet') {
+            config.tableDiameter = parseFloat(document.getElementById('seat-table-diam').value);
+            config.chairsPerTable = parseInt(document.getElementById('seat-chairs-per-table').value);
+            config.tableGap = parseFloat(document.getElementById('seat-table-gap').value);
+        }
         try {
             if (this._editingSeatLayoutId) {
                 await this.fetchAPI('/seat-layouts/' + eId + '/' + this._editingSeatLayoutId, { method: 'PUT', body: JSON.stringify({ config: config }) });

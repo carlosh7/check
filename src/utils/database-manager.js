@@ -139,6 +139,7 @@ function getEventConnection(eventId) {
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )`);
             db.exec("CREATE INDEX IF NOT EXISTS idx_sessions_event ON sessions(event_id)");
+            try { db.exec("ALTER TABLE sessions ADD COLUMN layout_id TEXT"); } catch (_) {}
         } catch (_) {}
         try {
             db.exec(`CREATE TABLE IF NOT EXISTS session_guests (
@@ -301,6 +302,7 @@ function createEventTables(db, eventId) {
             end_time TEXT,
             capacity INTEGER DEFAULT 0,
             location TEXT,
+            layout_id TEXT,
             sort_order INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )

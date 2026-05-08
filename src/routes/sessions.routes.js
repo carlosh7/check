@@ -38,14 +38,14 @@ router.post('/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, res) => {
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { title, description, date, start_time, end_time, capacity, location, sort_order } = req.body;
+        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id } = req.body;
         if (!title || !title.trim()) return res.status(400).json({ error: 'Titulo requerido' });
         const id = uuidv4();
         const targetDb = getEventDb(eId);
-        targetDb.prepare(`INSERT INTO sessions (id, event_id, title, description, date, start_time, end_time, capacity, location, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        targetDb.prepare(`INSERT INTO sessions (id, event_id, title, description, date, start_time, end_time, capacity, location, layout_id, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
             id, eId, title.trim(), description || null, date || null, start_time || null,
-            end_time || null, capacity || 0, location || null, sort_order || 0
+            end_time || null, capacity || 0, location || null, layout_id || null, sort_order || 0
         );
         res.json({ success: true, id });
     } catch (err) {
@@ -60,17 +60,17 @@ router.put('/:eventId/:sessionId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req,
         const eId = castId('events', req.params.eventId);
         const sId = req.params.sessionId;
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { title, description, date, start_time, end_time, capacity, location, sort_order } = req.body;
+        const { title, description, date, start_time, end_time, capacity, location, sort_order, layout_id } = req.body;
         const targetDb = getEventDb(eId);
         targetDb.prepare(`UPDATE sessions SET
             title = COALESCE(?, title), description = COALESCE(?, description),
             date = COALESCE(?, date), start_time = COALESCE(?, start_time),
             end_time = COALESCE(?, end_time), capacity = COALESCE(?, capacity),
-            location = COALESCE(?, location), sort_order = COALESCE(?, sort_order)
+            location = COALESCE(?, location), layout_id = COALESCE(?, layout_id), sort_order = COALESCE(?, sort_order)
             WHERE id = ? AND event_id = ?`).run(
             title || null, description || null, date || null, start_time || null,
             end_time || null, capacity != null ? capacity : null, location || null,
-            sort_order != null ? sort_order : null, sId, eId
+            layout_id || null, sort_order != null ? sort_order : null, sId, eId
         );
         res.json({ success: true });
     } catch (err) {
