@@ -11489,6 +11489,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'badge') this.loadBadgeConfig();
         if (tabName === 'sessions') this.loadSessions();
         if (tabName === 'seatmaps') this.loadSeatLayouts();
+        if (tabName === 'seatmaps') this.loadSeatLayouts();
         
         // Mostrar action-bar solo en tab Personal
         const actionBar = document.getElementById('config-action-bar');

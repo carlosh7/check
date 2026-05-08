@@ -9,97 +9,65 @@
                     <span class="app-sidebar-brand-title">Check<span>.</span>Pro</span>
                     <span class="app-sidebar-brand-subtitle">Ecosistema Elite</span>
                     </div>
-                </div>
+                    </div>
+                    </div>
+        
+        <div id="premium-toast-container" class="toast-container"></div>
 
-                    <!-- CONTENIDO: PLANOS DE SALA -->
-                    <div id="config-content-seatmaps" class="config-tab-content hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-bold text-white">Planos de Sala</h2>
-                            <button class="btn-primary" onclick="App.openSeatLayoutModal()">
-                                <span class="material-symbols-outlined">add</span> Nuevo Plano
-                            </button>
-                        </div>
-                        <div id="seat-layouts-list" class="grid grid-cols-3 gap-3"></div>
-                        <div id="seat-layout-editor" class="hidden">
-                            <div class="card p-4 space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <h3 id="seat-editor-title" class="text-lg font-bold text-white">Editor</h3>
-                                    <button class="btn-secondary text-xs" onclick="App.closeSeatEditor()">Cerrar editor</button>
-                                </div>
-                                <div class="grid grid-cols-12 gap-4">
-                                    <div class="col-span-3 space-y-3">
-                                        <div>
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Tipo de montaje</label>
-                                            <select id="seat-layout-type" class="input-field w-full" onchange="App.onSeatLayoutTypeChange()">
-                                                <option value="auditorium">Auditorio</option>
-                                                <option value="herringbone">Espina de pescado</option>
-                                                <option value="banquet">Banquete (mesas)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Ancho sala (m)</label>
-                                            <input id="seat-room-width" type="number" class="input-field w-full" value="10" step="0.5" min="2" onchange="App.renderSeatPreview()">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Largo sala (m)</label>
-                                            <input id="seat-room-length" type="number" class="input-field w-full" value="8" step="0.5" min="2" onchange="App.renderSeatPreview()">
-                                        </div>
-                                        <div id="seat-param-rows" class="space-y-3">
-                                            <div>
-                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Filas</label>
-                                                <input id="seat-rows" type="number" class="input-field w-full" value="5" min="1" max="26" onchange="App.renderSeatPreview()">
-                                            </div>
-                                            <div>
-                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Columnas</label>
-                                                <input id="seat-cols" type="number" class="input-field w-full" value="8" min="1" max="50" onchange="App.renderSeatPreview()">
-                                            </div>
-                                        </div>
-                                        <div id="seat-param-aisle">
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Pasillo tras columna</label>
-                                            <input id="seat-aisle" type="number" class="input-field w-full" value="4" min="0" max="49" onchange="App.renderSeatPreview()">
-                                        </div>
-                                        <div id="seat-param-stage">
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Escenario</label>
-                                            <select id="seat-stage" class="input-field w-full" onchange="App.renderSeatPreview()">
-                                                <option value="front">Al frente</option>
-                                                <option value="back">Atras</option>
-                                            </select>
-                                        </div>
-                                        <div id="seat-param-size">
-                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Tama&ntilde;o asiento (m)</label>
-                                            <input id="seat-size" type="number" class="input-field w-full" value="0.5" step="0.05" min="0.2" max="1" onchange="App.renderSeatPreview()">
-                                        </div>
-                                        <div id="seat-param-banquet" class="hidden space-y-3">
-                                            <div>
-                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Di&aacute;metro mesa (m)</label>
-                                                <input id="seat-table-diam" type="number" class="input-field w-full" value="1.8" step="0.1" min="0.6" max="3">
-                                            </div>
-                                            <div>
-                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Sillas por mesa</label>
-                                                <input id="seat-chairs-per-table" type="number" class="input-field w-full" value="8" min="2" max="20">
-                                            </div>
-                                            <div>
-                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Sep. entre mesas (m)</label>
-                                                <input id="seat-table-gap" type="number" class="input-field w-full" value="0.8" step="0.1" min="0.2" max="3">
-                                            </div>
-                                        </div>
-                                        <button class="btn-primary w-full" onclick="App.saveSeatLayout()">
-                                            <span class="material-symbols-outlined text-sm">save</span> Guardar Plano
-                                        </button>
-                                    </div>
-                                    <div class="col-span-9">
-                                        <div class="card p-0 overflow-hidden" style="background:#1e293b; min-height:400px;">
-                                            <div id="seat-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:400px; padding:20px;">
-                                                <div id="seat-canvas" class="relative" style="background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.3);"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <nav class="app-nav">
+            <button id="nav-btn-my-events" class="nav-item app-nav-item" data-tab="my-events">
+                <span class="material-symbols-outlined">event</span>
+                <span class="app-nav-item-text">Mis Eventos</span>
+            </button>
+
+            <button id="nav-btn-admin" class="nav-item app-nav-item" data-tab="admin" data-view="admin">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="app-nav-item-text">Dashboard</span>
+            </button>
+
+            <button id="nav-btn-event-config" class="nav-item app-nav-item" data-tab="event-config" data-view="event-config">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="app-nav-item-text">Configuraci&oacute;n</span>
+            </button>
+
+            <button id="nav-btn-system" class="nav-item app-nav-item" data-tab="system" data-view="system">
+                <span class="material-symbols-outlined">tune</span>
+                <span class="app-nav-item-text">Sistema</span>
+            </button>
+            
+            <div class="sidebar-user-section">
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-avatar">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="sidebar-user-details">
+                        <span id="sidebar-username" class="sidebar-user-name">admin@check.com</span>
+                        <span id="sidebar-role" class="sidebar-user-role">ADMIN</span>
                     </div>
                 </div>
-            </section>
+                
+                <div class="sidebar-user-actions">
+                    <button id="btn-toggle-theme" class="sidebar-action-btn" title="Cambiar tema">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                    </button>
+                    
+                    <button id="btn-logout" class="sidebar-action-btn logout-btn" title="Cerrar sesi&oacute;n">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.626</p>
+                    <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
+                        Powered By Smart Eventos
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main id="app-main-content" class="app-main-content">
+        <div class="app-scroll-area">
 
             <!-- VIEW: ADMIN DASHBOARD (EVENTO) -->
             <section id="view-admin" class="view-section hidden">
@@ -1060,6 +1028,94 @@
                                         <tr><td colspan="7" class="text-center py-8 text-slate-500">Cargando...</td></tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO: PLANOS DE SALA -->
+                    <div id="config-content-seatmaps" class="config-tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-white">Planos de Sala</h2>
+                            <button class="btn-primary" onclick="App.openSeatLayoutModal()">
+                                <span class="material-symbols-outlined">add</span> Nuevo Plano
+                            </button>
+                        </div>
+                        <div id="seat-layouts-list" class="grid grid-cols-3 gap-3"></div>
+                        <div id="seat-layout-editor" class="hidden">
+                            <div class="card p-4 space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <h3 id="seat-editor-title" class="text-lg font-bold text-white">Editor</h3>
+                                    <button class="btn-secondary text-xs" onclick="App.closeSeatEditor()">Cerrar editor</button>
+                                </div>
+                                <div class="grid grid-cols-12 gap-4">
+                                    <div class="col-span-3 space-y-3">
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Tipo de montaje</label>
+                                            <select id="seat-layout-type" class="input-field w-full" onchange="App.onSeatLayoutTypeChange()">
+                                                <option value="auditorium">Auditorio</option>
+                                                <option value="herringbone">Espina de pescado</option>
+                                                <option value="banquet">Banquete (mesas)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Ancho sala (m)</label>
+                                            <input id="seat-room-width" type="number" class="input-field w-full" value="10" step="0.5" min="2" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Largo sala (m)</label>
+                                            <input id="seat-room-length" type="number" class="input-field w-full" value="8" step="0.5" min="2" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div id="seat-param-rows" class="space-y-3">
+                                            <div>
+                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Filas</label>
+                                                <input id="seat-rows" type="number" class="input-field w-full" value="5" min="1" max="26" onchange="App.renderSeatPreview()">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Columnas</label>
+                                                <input id="seat-cols" type="number" class="input-field w-full" value="8" min="1" max="50" onchange="App.renderSeatPreview()">
+                                            </div>
+                                        </div>
+                                        <div id="seat-param-aisle">
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Pasillo tras columna</label>
+                                            <input id="seat-aisle" type="number" class="input-field w-full" value="4" min="0" max="49" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div id="seat-param-stage">
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Escenario</label>
+                                            <select id="seat-stage" class="input-field w-full" onchange="App.renderSeatPreview()">
+                                                <option value="front">Al frente</option>
+                                                <option value="back">Atras</option>
+                                            </select>
+                                        </div>
+                                        <div id="seat-param-size">
+                                            <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Tama&ntilde;o asiento (m)</label>
+                                            <input id="seat-size" type="number" class="input-field w-full" value="0.5" step="0.05" min="0.2" max="1" onchange="App.renderSeatPreview()">
+                                        </div>
+                                        <div id="seat-param-banquet" class="hidden space-y-3">
+                                            <div>
+                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Di&aacute;metro mesa (m)</label>
+                                                <input id="seat-table-diam" type="number" class="input-field w-full" value="1.8" step="0.1" min="0.6" max="3">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Sillas por mesa</label>
+                                                <input id="seat-chairs-per-table" type="number" class="input-field w-full" value="8" min="2" max="20">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-bold text-[var(--text-secondary)] block mb-1">Sep. entre mesas (m)</label>
+                                                <input id="seat-table-gap" type="number" class="input-field w-full" value="0.8" step="0.1" min="0.2" max="3">
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary w-full" onclick="App.saveSeatLayout()">
+                                            <span class="material-symbols-outlined text-sm">save</span> Guardar Plano
+                                        </button>
+                                    </div>
+                                    <div class="col-span-9">
+                                        <div class="card p-0 overflow-hidden" style="background:#1e293b; min-height:400px;">
+                                            <div id="seat-canvas-container" class="flex items-center justify-center overflow-auto" style="min-height:400px; padding:20px;">
+                                                <div id="seat-canvas" class="relative" style="background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.3);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
