@@ -1,8 +1,9 @@
 # INSTRUCCIONES:
 # 1. Reemplaza TOKEN_AQUI con tu Personal Access Token de GitHub.
-#    El token debe tener permisos: Contents (Read-only) para carlosh7/check-3d-planner.
-#    Ej: https://x-access-token:github_pat_XXXXX@github.com/...
-# 2. El servicio check-app (repo público) no necesita token.
+#    El token debe tener permisos: Contents (Read-only) para ambos repos:
+#    - carlosh7/check
+#    - carlosh7/check-3d-planner
+# 2. Ambos repos son privados. Usa el mismo TOKEN_AQUI para los dos clones.
 # 3. Pegar en Portainer y desplegar.
 
 version: '3.8'
@@ -33,7 +34,7 @@ services:
       mkdir -p /usr/src/app/persistence/system /usr/src/app/persistence/events /usr/src/app/persistence/uploads &&
       chmod -R 777 /usr/src/app/persistence &&
       rm -rf /tmp/app_new &&
-      git clone --depth 1 https://github.com/carlosh7/check.git /tmp/app_new &&
+      git clone --depth 1 https://x-access-token:TOKEN_AQUI@github.com/carlosh7/check.git /tmp/app_new &&
       rsync -av /tmp/app_new/. /usr/src/app/ &&
       rm -rf /tmp/app_new &&
       cd /usr/src/app &&
