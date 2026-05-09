@@ -106,7 +106,7 @@ app.use(helmet({
             connectSrc: ["'self'", "wss:", "https:"],
             mediaSrc: ["'self'", "https:"],
             objectSrc: ["'none'"],
-            frameSrc: ["'self'", "http://localhost:3001", "http://192.168.2.17:3001", "https://planner.tudominio.com"],
+            frameSrc: ["*"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: null
