@@ -123,6 +123,11 @@ try { db.exec("ALTER TABLE events ADD COLUMN google_auto_sync_mode TEXT DEFAULT 
 try { db.exec("ALTER TABLE events ADD COLUMN google_sync_interval INTEGER DEFAULT 60"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN google_last_sync_at TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE events ADD COLUMN google_debounce_until TEXT"); } catch (_) {}
+// Payment fields (F3-07)
+try { db.exec("ALTER TABLE events ADD COLUMN payment_required INTEGER DEFAULT 0"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN currency TEXT DEFAULT 'USD'"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN stripe_account TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE events ADD COLUMN paypal_email TEXT"); } catch (_) {}
 
 // 3. Invitados
 db.exec(`CREATE TABLE IF NOT EXISTS guests (
@@ -417,6 +422,28 @@ try { db.exec("ALTER TABLE raffle_spins ADD COLUMN lead_json TEXT"); } catch (_)
 try { db.exec("CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)"); } catch (_) {}
 try { db.exec("ALTER TABLE raffle_results ADD COLUMN notes TEXT"); } catch (_) {}
 try { db.exec("ALTER TABLE raffle_results ADD COLUMN label TEXT"); } catch (_) {}
+try { db.exec("ALTER TABLE guest_categories ADD COLUMN price REAL DEFAULT 0"); } catch (_) {}
+
+// Transactions table (F3-07)
+db.exec(`CREATE TABLE IF NOT EXISTS transactions (
+    id TEXT PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    guest_id TEXT,
+    category_id TEXT,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'USD',
+    provider TEXT NOT NULL,
+    provider_txn_id TEXT,
+    status TEXT DEFAULT 'pending',
+    guest_name TEXT,
+    guest_email TEXT,
+    metadata_json TEXT,
+    created_at TEXT,
+    completed_at TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+)`);
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_transactions_event ON transactions(event_id)"); } catch (_) {}
+try { db.exec("CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)"); } catch (_) {}
 
 // 7. Configuración Global (Legales V10)
 db.exec(`CREATE TABLE IF NOT EXISTS settings (

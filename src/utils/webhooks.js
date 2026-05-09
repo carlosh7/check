@@ -20,7 +20,13 @@ const WEBHOOK_EVENTS = {
     EMAIL_FAILED: 'email.failed',
     SURVEY_SUBMITTED: 'survey.submitted',
     PRE_REGISTRATION_CREATED: 'pre_registration.created',
-    PRE_REGISTRATION_CONFIRMED: 'pre_registration.confirmed'
+
+    PRE_REGISTRATION_CONFIRMED: 'pre_registration.confirmed',
+
+    PAYMENT_COMPLETED: 'payment.completed',
+
+    PAYMENT_FAILED: 'payment.failed'
+
 };
 
 /**

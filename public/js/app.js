@@ -12164,6 +12164,7 @@ navigate(viewName, params = {}, push = true) {
                     <td class="table-td"><span class="inline-block w-6 h-6 rounded-full border" style="background:${c.color}"></span></td>
                     <td class="table-td">${c.capacity || 'Ilimitado'}</td>
                     <td class="table-td">${c._count || '-'}</td>
+                    <td class="table-td">${c.price ? '$' + parseFloat(c.price).toFixed(2) : 'Gratis'}</td>
                     <td class="table-td">${c.sort_order || 0}</td>
                     <td class="table-td">
                         <button class="btn-icon" onclick="App.editCategory('${c.id}')" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
@@ -12184,6 +12185,7 @@ navigate(viewName, params = {}, push = true) {
         document.getElementById('category-color').value = cat?.color || '#64748b';
         document.getElementById('category-capacity').value = cat?.capacity || '';
         document.getElementById('category-sort').value = cat?.sort_order || 0;
+        document.getElementById('category-price').value = cat?.price || '';
         if (cat) {
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -12213,7 +12215,8 @@ navigate(viewName, params = {}, push = true) {
             name,
             color: document.getElementById('category-color')?.value || '#64748b',
             capacity: parseInt(document.getElementById('category-capacity')?.value) || 0,
-            sort_order: parseInt(document.getElementById('category-sort')?.value) || 0
+            sort_order: parseInt(document.getElementById('category-sort')?.value) || 0,
+            price: parseFloat(document.getElementById('category-price')?.value) || 0
         };
         try {
             if (catId) {
@@ -13257,6 +13260,12 @@ navigate(viewName, params = {}, push = true) {
         setVal('evs-reg-whitelist', ev.reg_email_whitelist);
         setVal('evs-reg-blacklist', ev.reg_email_blacklist);
         
+        // Payment fields (F3-07)
+        setCheck('evs-payment-required', ev.payment_required === 1);
+        setVal('evs-currency', ev.currency || 'USD');
+        setVal('evs-stripe-account', ev.stripe_account);
+        setVal('evs-paypal-email', ev.paypal_email);
+        
         // Actualizar vista previa QR
         if (typeof this.updateQRPreview === 'function') this.updateQRPreview();
     },
@@ -13296,7 +13305,11 @@ navigate(viewName, params = {}, push = true) {
             ticket_accent_color: getVal('evs-ticket-accent'),
             reg_email_whitelist: getVal('evs-reg-whitelist'),
             reg_email_blacklist: getVal('evs-reg-blacklist'),
-            venue_id: getVal('evs-venue')
+            venue_id: getVal('evs-venue'),
+            payment_required: getCheck('evs-payment-required') ? 1 : 0,
+            currency: getVal('evs-currency'),
+            stripe_account: getVal('evs-stripe-account'),
+            paypal_email: getVal('evs-paypal-email')
         };
         
         try {

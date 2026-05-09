@@ -462,6 +462,21 @@ function createEventTables(db, eventId) {
             FOREIGN KEY (raffle_id) REFERENCES raffles(id) ON DELETE CASCADE
         )
     `);
+    // Transactions table (F3-07)
+    try { db.exec("ALTER TABLE guest_categories ADD COLUMN price REAL DEFAULT 0"); } catch (_) {}
+    try {
+        db.exec(`CREATE TABLE IF NOT EXISTS transactions (
+            id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
+            guest_id TEXT, category_id TEXT,
+            amount REAL NOT NULL, currency TEXT DEFAULT 'USD',
+            provider TEXT NOT NULL, provider_txn_id TEXT,
+            status TEXT DEFAULT 'pending',
+            guest_name TEXT, guest_email TEXT,
+            metadata_json TEXT,
+            created_at TEXT, completed_at TEXT,
+            FOREIGN KEY (event_id) REFERENCES guests(event_id)
+        )`);
+    } catch (_) {}
     // Crear índices para mejor rendimiento
     const indices = [
         "CREATE INDEX IF NOT EXISTS idx_guests_event_id ON guests(event_id)",
@@ -480,7 +495,9 @@ function createEventTables(db, eventId) {
         "CREATE INDEX IF NOT EXISTS idx_raffles_event ON raffles(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_participants_raffle ON raffle_participants(raffle_id)",
         "CREATE INDEX IF NOT EXISTS idx_raffle_results_raffle ON raffle_results(raffle_id)",
-        "CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)"
+        "CREATE INDEX IF NOT EXISTS idx_raffle_spins_raffle ON raffle_spins(raffle_id)",
+        "CREATE INDEX IF NOT EXISTS idx_transactions_event ON transactions(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)"
     ];
     
     for (const sql of indices) {

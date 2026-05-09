@@ -418,12 +418,12 @@ router.post('/:eventId/categories', authMiddleware(['ADMIN', 'PRODUCTOR']), (req
     try {
         const eId = castId('events', req.params.eventId);
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { name, color, capacity, sort_order } = req.body;
+        const { name, color, capacity, sort_order, price } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre requerido' });
         const id = uuidv4();
         const targetDb = getEventDb(eId);
-        targetDb.prepare("INSERT INTO guest_categories (id, event_id, name, color, capacity, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run(
-            id, eId, name.trim(), color || '#64748b', capacity || 0, sort_order || 0
+        targetDb.prepare("INSERT INTO guest_categories (id, event_id, name, color, capacity, sort_order, price) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
+            id, eId, name.trim(), color || '#64748b', capacity || 0, sort_order || 0, price || 0
         );
         res.json({ success: true, id });
     } catch (err) {
@@ -437,10 +437,10 @@ router.put('/:eventId/categories/:catId', authMiddleware(['ADMIN', 'PRODUCTOR'])
         const eId = castId('events', req.params.eventId);
         const catId = req.params.catId;
         if (!eId) return res.status(400).json({ error: 'ID invalido' });
-        const { name, color, capacity, sort_order } = req.body;
+        const { name, color, capacity, sort_order, price } = req.body;
         const targetDb = getEventDb(eId);
-        targetDb.prepare("UPDATE guest_categories SET name = COALESCE(?, name), color = COALESCE(?, color), capacity = COALESCE(?, capacity), sort_order = COALESCE(?, sort_order) WHERE id = ? AND event_id = ?").run(
-            name || null, color || null, capacity != null ? capacity : null, sort_order != null ? sort_order : null, catId, eId
+        targetDb.prepare("UPDATE guest_categories SET name = COALESCE(?, name), color = COALESCE(?, color), capacity = COALESCE(?, capacity), sort_order = COALESCE(?, sort_order), price = COALESCE(?, price) WHERE id = ? AND event_id = ?").run(
+            name || null, color || null, capacity != null ? capacity : null, sort_order != null ? sort_order : null, price != null ? price : null, catId, eId
         );
         res.json({ success: true });
     } catch (err) {

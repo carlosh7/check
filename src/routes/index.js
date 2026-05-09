@@ -35,6 +35,7 @@ const complianceRoutes = require('./compliance.routes');
 const venuesRoutes = require('./venues.routes');
 const googleRoutes = require('./google.routes');
 const rafflesRoutes = require('./raffles.routes');
+const paymentsRoutes = require('./payments.routes').router;
 
 // Configuración segura de multer (memoryStorage para import/export)
 const upload = multer({
@@ -161,6 +162,9 @@ app.use('/api/compliance', complianceRoutes);
     // Push notifications (Web Push API)
     app.use('/api/push', pushRoutes.router);
     app.use('/api/venues', venuesRoutes);
+
+    // Payments (F3-07)
+    app.use('/api', paymentsRoutes);
 
     // Google Sheets Integration (F3-09)
     app.use('/api/google', googleRoutes.router);
