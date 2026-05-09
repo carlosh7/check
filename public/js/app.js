@@ -13084,7 +13084,11 @@ navigate(viewName, params = {}, push = true) {
         var status = document.getElementById('editor-3d-status');
         if (!overlay || !iframe) return;
 
-        iframe.src = 'http://192.168.2.17:3001/?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        // Auto-detectar entorno: HTTPS → VPS con subdominio, HTTP → misma red local
+        var editorHost = window.location.protocol === 'https:'
+            ? 'https://planner.tudominio.com'
+            : 'http://192.168.2.17:3001';
+        iframe.src = editorHost + '/?eventId=' + eId + '&jwt=' + (this.state.token || '');
         overlay.classList.remove('hidden');
         status.classList.remove('hidden');
         status.textContent = 'Conectando con el editor 3D...';
