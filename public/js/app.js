@@ -12850,7 +12850,7 @@ navigate(viewName, params = {}, push = true) {
             }
             container.innerHTML = layouts.map(function(l) {
                 var cfg = l.config || {};
-                return '<div class="card p-3 cursor-pointer hover:border-[var(--primary)] transition-colors" onclick="App.openSeatEditor(\'' + l.id + '\')">' +
+                return '<div class="card p-3 cursor-pointer hover:border-[var(--primary)] transition-colors" onclick="App.openEditor3D(\'' + l.id + '\', \'' + (l.name || '').replace(/'/g, "\\'") + '\')">' +
                     '<div class="flex justify-between items-start"><div><h4 class="text-sm font-bold text-white">' + (l.name || '') + '</h4>' +
                     '<p class="text-[10px] text-slate-500">' + (cfg.rows || 0) + ' filas x ' + (cfg.cols || 0) + ' asientos</p></div>' +
                     '<button class="btn-icon text-red-400" onclick="event.stopPropagation();App.deleteSeatLayout(\'' + l.id + '\')" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button></div></div>';
@@ -13068,6 +13068,75 @@ navigate(viewName, params = {}, push = true) {
             await this.fetchAPI('/seat-layouts/' + eId + '/' + layoutId, { method: 'DELETE' });
             this.loadSeatLayouts();
         } catch(e) { console.error('[SEAT] Error:', e.message); }
+    },
+
+    // ── Editor 3D (check-3d-planner) ──
+
+    editor3DState: { eventId: null, layoutId: null, layoutName: null, opened: false },
+
+    openEditor3D: function(layoutId, layoutName) {
+        const eId = this.state.event?.id;
+        if (!eId) return;
+        this.editor3DState = { eventId: eId, layoutId: layoutId || null, layoutName: layoutName || 'Nuevo plano', opened: true };
+
+        var overlay = document.getElementById('editor-3d-overlay');
+        var iframe = document.getElementById('editor-3d-iframe');
+        var status = document.getElementById('editor-3d-status');
+        if (!overlay || !iframe) return;
+
+        iframe.src = 'http://192.168.2.17:3001/?eventId=' + eId + '&jwt=' + (this.state.token || '');
+        overlay.classList.remove('hidden');
+        status.classList.remove('hidden');
+        status.textContent = 'Conectando con el editor 3D...';
+
+        window.addEventListener('message', this._editorMessageHandler = function(event) {
+            var msg = event.data;
+            if (!msg || !msg.type) return;
+            switch (msg.type) {
+                case 'connected':
+                    var s = document.getElementById('editor-3d-status');
+                    if (s) { s.textContent = '✓ Conectado'; setTimeout(function() { s.classList.add('hidden'); }, 3000); }
+                    var state = App.editor3DState;
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({ type: 'init', eventId: state.eventId, jwt: App.state.token, layoutId: state.layoutId, layoutName: state.layoutName }, '*');
+                    }
+                    break;
+                case 'saved':
+                    App.loadSeatLayouts();
+                    if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Plano guardado', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                    break;
+                case 'closed':
+                    App.cleanupEditor3D();
+                    break;
+            }
+        });
+    },
+
+    toggleEditorFullscreen: function() {
+        var panel = document.getElementById('editor-3d-panel');
+        if (panel) panel.classList.toggle('fullscreen');
+    },
+
+    closeEditor3D: function() {
+        var overlay = document.getElementById('editor-3d-overlay');
+        var iframe = document.getElementById('editor-3d-iframe');
+        if (overlay) overlay.classList.add('hidden');
+        document.getElementById('editor-3d-status')?.classList.add('hidden');
+        if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'close' }, '*');
+        var handler = this._editorMessageHandler;
+        if (handler) window.removeEventListener('message', handler);
+        var state = this.editor3DState;
+        if (state.layoutId) {
+            this.loadSeatLayouts();
+            if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Plano guardado', showConfirmButton: false, timer: 2000 });
+        }
+        this.cleanupEditor3D();
+    },
+
+    cleanupEditor3D: function() {
+        var iframe = document.getElementById('editor-3d-iframe');
+        if (iframe) iframe.src = '';
+        this.editor3DState.opened = false;
     },
 
     changeGuestCategory: async function(guestId, categoryId) {
