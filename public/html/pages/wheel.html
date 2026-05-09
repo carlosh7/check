@@ -164,6 +164,36 @@ textarea.form-control{resize:vertical;min-height:70px}
 </head>
 <body>
 <div id="loading"><div><div class="sp"></div><p>Cargando ruleta...</p></div></div>
+<div id="error" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#fff;z-index:99999;flex-direction:column;text-align:center;padding:32px">
+  <h2 style="font-size:20px;margin-bottom:8px;color:#1a1a1a">Ruleta no disponible</h2>
+  <p id="errmsg" style="font-size:14px;color:#6b7280;margin-bottom:24px"></p>
+  <button onclick="location.reload()" style="padding:10px 28px;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Reintentar</button>
+</div>
+
+<div class="app-hero hidden" id="hero-stats">
+  <div class="stats">
+    <span>👁️ <span id="stat-visits">0</span> <b>Visitas</b></span>
+    <span>🔄 <span id="stat-spins">0</span> <b>Giros</b></span>
+    <span>👤 <span id="stat-users">0</span> <b>Usuarios</b></span>
+  </div>
+  <div class="actions">
+    <button onclick="openModal('share-modal')">🔗 Compartir</button>
+    <button onclick="newWheel()">➕ Nueva Ruleta</button>
+  </div>
+</div>
+
+<div class="wheel-type-switch" id="type-switch">
+  <div class="wheel-type-switch-item active" onclick="setType(false)" id="type-anon">
+    <div class="check"></div>
+    <h4>🎡 Ruleta Anónima</h4>
+    <p>Participantes anónimos y resultados inmediatos</p>
+  </div>
+  <div class="wheel-type-switch-item" onclick="setType(true)" id="type-lead">
+    <div class="check"></div>
+    <h4>📋 Captura de Leads</h4>
+    <p>Los participantes deben registrarse antes de girar</p>
+  </div>
+</div>
 
 <div id="wof" class="wof">
   <!-- SIDEBAR -->
@@ -323,13 +353,70 @@ textarea.form-control{resize:vertical;min-height:70px}
   </div>
 </div>
 
+<!-- Edit Entry Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <h3>Editar entrada</h3>
+    <p>Modifica el nombre y la probabilidad</p>
+    <input type="text" id="edit-name" placeholder="Nombre">
+    <div class="form-group"><label style="font-size:12px;color:#6b7280;margin-bottom:4px">Probabilidad</label>
+      <select id="edit-chance" class="form-control form-control-lg">
+        <option value="-1">Auto</option>
+        <option value="0">0%</option><option value="1">1%</option><option value="3">3%</option><option value="5">5%</option>
+        <option value="10">10%</option><option value="15">15%</option><option value="20">20%</option><option value="25">25%</option>
+        <option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option>
+        <option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option>
+      </select>
+    </div>
+    <div class="btn-row"><button class="primary" onclick="applyEditEntry()">Aplicar cambios</button><button class="secondary" onclick="closeModal('edit-modal')">Cancelar</button></div>
+  </div>
+</div>
+
 <script>
 // ===== STATE =====
-var API='/api',data=null,parts=[],wins=[],spinning=false,rot=0,sound=true;
+var API='/api',data=null,parts=[],wins=[],spinning=false,rot=0,sound=true,editIdx=-1;
 var currentId=null,logoDataUrl=null,isPlaying=false,jsConfetti=null;
 var segCs=['#ff7878','#7eecec','#fff171','#7280fd'];
 var cv=document.getElementById('canvas'),cx=cv.getContext('2d');
 var themes=[{name:'Clasico',colors:['#ff7878','#7eecec','#fff171','#7280fd']},{name:'Oceano',colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A']},{name:'Natura',colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332']},{name:'Fuego',colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C']},{name:'Pastel',colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF']},{name:'Neon',colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600']}];
+
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+function setType(val){
+  document.getElementById('cfg-lds').checked=val;
+  document.getElementById('type-anon').classList.toggle('active',!val);
+  document.getElementById('type-lead').classList.toggle('active',val);
+  refreshP()
+}
+
+function openEditEntry(idx){
+  editIdx=idx;document.getElementById('edit-name').value=parts[idx]||'';
+  document.getElementById('edit-chance').value='-1';
+  openModal('edit-modal')
+}
+function applyEditEntry(){
+  var nm=document.getElementById('edit-name').value.trim();
+  if(!nm||editIdx<0)return;
+  parts[editIdx]=nm;
+  document.getElementById('parts-ta').value=parts.join('\n');
+  document.getElementById('part-cnt').textContent=parts.length;
+  if(document.getElementById('cfg-adv').checked)renderAdv();
+  draw();closeModal('edit-modal');
+  editIdx=-1
+}
+
+function newWheel(){
+  if(!currentId)return;
+  // Reset current
+  currentId=null;parts=[];wins=[];
+  document.getElementById('wheel-name').value='';
+  document.getElementById('parts-ta').value='';
+  document.getElementById('part-cnt').textContent='0';
+  document.getElementById('btn-play').disabled=true;
+  document.getElementById('hero-stats').classList.add('hidden');
+  draw()
+}
 
 function toggleCollapse(h,id){
   var b=document.getElementById(id);if(!b)return;
@@ -400,7 +487,7 @@ function spin(){
   document.querySelectorAll('.wof__main__btn').forEach(function(b){b.disabled=true});
   var cl=getC(),dur=cl.dur*1000;
   var spins=8,target=rot+spins*2*Math.PI+Math.random()*2*Math.PI,st=Date.now(),sr=rot;
-  if(cl.snd){try{new Audio('/media/ding.mp3').play()}catch(e){}}
+  if(cl.snd){try{new Audio('/media/ding.mp3').play()}catch(e){try{var a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=800;g.gain.value=.06;o.start();o.stop(a.currentTime+0.06)}catch(ex){}}}
   (function an(){
     var p=Math.min((Date.now()-st)/dur,1);
     var e=p===1?1:1-Math.pow(2,-10*p);
@@ -478,7 +565,7 @@ function sortP(){var t=document.getElementById('parts-ta');if(!t)return;t.value=
 function shuffleP(){var t=document.getElementById('parts-ta');if(!t)return;var l=t.value.split('\n').map(function(s){return s.trim()}).filter(Boolean);for(var i=l.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=l[i];l[i]=l[j];l[j]=x}t.value=l.join('\n');onPartsChange()}
 function clearP(){document.getElementById('parts-ta').value='';onPartsChange()}
 function toggleAdv(){renderAdv()}
-function renderAdv(){var list=document.getElementById('adv-list'),btn=document.getElementById('btn-add-e'),adv=document.getElementById('cfg-adv').checked;if(!adv){list.style.display='none';btn.style.display='none';return}list.style.display='block';btn.style.display='block';list.innerHTML=parts.map(function(n,i){return'<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input class="form-control" style="flex:1;font-size:12px;padding:4px 8px" value="'+n+'" onchange="parts['+i+']=this.value;draw()"><select class="form-control" style="width:60px;font-size:11px;padding:4px"><option value="-1">Auto</option><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option></select><button style="background:none;border:none;cursor:pointer;font-size:14px;color:#ef4444" onclick="rmE('+i+')">🗑️</button></div>'}).join('')}
+function renderAdv(){var list=document.getElementById('adv-list'),btn=document.getElementById('btn-add-e'),adv=document.getElementById('cfg-adv').checked;if(!adv){list.style.display='none';btn.style.display='none';return}list.style.display='block';btn.style.display='block';list.innerHTML=parts.map(function(n,i){var pct=Math.round(100/parts.length);return'<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input class="form-control" style="flex:1;font-size:12px;padding:4px 8px" value="'+n+'" onchange="parts['+i+']=this.value;draw()"><span style="font-size:11px;color:#6b7280;min-width:36px;text-align:right">Auto</span><button style="background:none;border:none;cursor:pointer;font-size:13px" onclick="openEditEntry('+i+')">⚙️</button><button style="background:none;border:none;cursor:pointer;font-size:13px;color:#ef4444" onclick="rmE('+i+')">🗑️</button></div>'}).join('')}
 function rmE(i){parts.splice(i,1);document.getElementById('parts-ta').value=parts.join('\n');renderAdv();document.getElementById('part-cnt').textContent=parts.length;draw()}
 function addE(){parts.push('');renderAdv();document.getElementById('parts-ta').value=parts.join('\n');document.getElementById('part-cnt').textContent=parts.length}
 
@@ -594,8 +681,15 @@ async function load(){
     renderThemes();document.getElementById('q-themes').style.display='flex';
     segCs=c.wheel_colors||['#ff7878','#7eecec','#fff171','#7280fd'];renderSegCs();
     document.getElementById('parts-ta').value=parts.join('\n');document.getElementById('part-cnt').textContent=parts.length;
+    // Hero stats
+    fetch(API+'/raffles/'+id+'/stats').then(function(r){return r.json()}).then(function(s){
+      document.getElementById('stat-visits').textContent=s.visits||0;
+      document.getElementById('stat-spins').textContent=s.spins||0;
+      document.getElementById('stat-users').textContent=s.participants||0;
+      document.getElementById('hero-stats').classList.remove('hidden')
+    }).catch(function(){});
     draw();if(wins.length)updWins()
-  }catch(e){document.getElementById('loading').classList.add('hidden');document.getElementById('error')&&(document.getElementById('error').style.display='flex')}
+  }catch(e){document.getElementById('loading').classList.add('hidden');document.getElementById('error').style.display='flex';document.getElementById('errmsg').textContent='Error al cargar la ruleta'}
 }
 load();
 </script>
