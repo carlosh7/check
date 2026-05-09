@@ -13084,10 +13084,16 @@ navigate(viewName, params = {}, push = true) {
         var status = document.getElementById('editor-3d-status');
         if (!overlay || !iframe) return;
 
-        // Auto-detectar entorno: HTTPS → VPS con subdominio, HTTP → misma red local
-        var editorHost = window.location.protocol === 'https:'
-            ? 'https://planner.tudominio.com'
-            : 'http://192.168.2.17:3001';
+        // Auto-detectar entorno
+        var loc = window.location;
+        var editorHost;
+        if (loc.protocol === 'https:') {
+            editorHost = 'https://planner.tudominio.com';
+        } else if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') {
+            editorHost = 'http://localhost:3001';
+        } else {
+            editorHost = 'http://192.168.2.17:3001';
+        }
         iframe.src = editorHost + '/?eventId=' + eId + '&jwt=' + (this.state.token || '');
         overlay.classList.remove('hidden');
         status.classList.remove('hidden');
