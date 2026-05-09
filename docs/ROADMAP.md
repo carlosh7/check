@@ -951,7 +951,7 @@ Registro de espacios fisicos para eventos:
 | F2-04 | PDF Export (gafetes QR + reporte) | ✅ | v12.44.596 | 2026-05-07 |
 | F2-05 | Guest Categories (CRUD, columna, filtro, modal) | ✅ | v12.44.598 | 2026-05-07 |
 | F2-06 | Activity Logs | ✅ | v12.44.557 | 2026-05-07 |
-| F3-07 | Stripe/PayPal | ⏳ Pendiente | — | — |
+| F3-07 | Stripe/PayPal (BD, backend, config admin, webhooks) | ✅ | v12.44.669 | 2026-05-08 |
 | F3-08 | Waitlist (cupo por categoria, promocion, auditoria) | ✅ | v12.44.615 | 2026-05-08 |
 | F3-09 | Export Google Sheets | ✅ | v12.44.631 | 2026-05-08 |
 | F4-10 | Rol Organizer (permisos, eventos, frontend) | ✅ | v12.44.614 | 2026-05-08 |
