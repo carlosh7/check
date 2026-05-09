@@ -56,6 +56,20 @@ body{font-family:'Inter',sans-serif;font-size:15px;background:#fff;color:#212529
 .wof__config__footer .btn-success{background:#10b981;color:#fff}
 .wof__config__footer .btn-success:hover{opacity:.85}
 
+/* Mobile tabs */
+.wof__config__menu{display:none;border-bottom:1px solid rgba(0,0,0,0.06)}
+.wof__config__menu-item{padding:10px 12px;cursor:pointer;font-size:12px;font-weight:600;color:#9ca3af;text-align:center;flex:1;border-bottom:2px solid transparent;transition:all .2s}
+.wof__config__menu-item.active{color:#7c3aed;border-bottom-color:#7c3aed}
+.wof__config__menu-item:hover{color:#6b7280}
+@media(max-width:1024px){.wof__config__menu{display:flex}}
+.sec-b.mobile-hidden{display:none}
+
+/* Locked features */
+.locked-opt{padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04)}
+.locked-opt label{font-size:13px;color:#9ca3af;display:flex;align-items:center;gap:8px;cursor:pointer}
+.locked-opt input[type=checkbox]{pointer-events:none;accent-color:#d1d5db}
+.locked-opt .lock{color:#d1d5db;font-size:14px}
+
 /* Sidebar sections */
 .sec-h{padding:10px 16px;cursor:pointer;font-size:14px;font-weight:700;color:#1a1a1a;border-bottom:1px solid rgba(0,0,0,0.05);display:flex;align-items:center;gap:8px;user-select:none}
 .sec-h:hover{background:rgba(0,0,0,0.015)}
@@ -84,7 +98,7 @@ textarea.form-control{resize:vertical;min-height:70px}
 
 /* Preview */
 .wof__main{flex:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;background-size:cover;background-position:center;position:relative;min-height:calc(100vh - 112px);overflow:hidden}
-.wof__main.playing{position:fixed;inset:0;z-index:99998;border-radius:0}
+.wof__main.playing{position:fixed;inset:0;z-index:99998;border-radius:0;background-size:cover;background-position:center}
 .wof__main.centered{justify-content:center}
 
 .wof__main__l{display:flex;flex-direction:column;align-items:center;position:relative}
@@ -198,12 +212,17 @@ textarea.form-control{resize:vertical;min-height:70px}
 <div id="wof" class="wof">
   <!-- SIDEBAR -->
   <div id="sidebar" class="wof__config">
+    <div class="wof__config__menu">
+      <div class="wof__config__menu-item active" onclick="switchTab('config',this)">⚙️ Config</div>
+      <div class="wof__config__menu-item" onclick="switchTab('parts',this)">👥 Participantes</div>
+      <div class="wof__config__menu-item" onclick="switchTab('design',this)">🎨 Diseño</div>
+    </div>
     <div class="wof__config__body" id="sidebar-body">
       <div class="sec-h" onclick="toggleCollapse(this,'sec-name')"><span>📝</span>Nombre<span class="chev">▼</span></div>
       <div id="sec-name" class="sec-b"><input id="wheel-name" class="form-control form-control-lg" placeholder="Nombre de la ruleta"></div>
 
       <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-config')">⚙️ Configuración<span class="chev">▼</span></div>
-      <div id="sec-config" class="sec-b hidden">
+      <div id="sec-config" class="sec-b hidden" data-tab="config">
         <div class="custom-check"><input type="checkbox" id="cfg-st" checked onchange="refreshP()"><label for="cfg-st">Título</label></div>
         <input id="cfg-title" class="form-control" placeholder="Título" oninput="refreshP()" style="display:none;margin-bottom:6px">
         <div class="custom-check"><input type="checkbox" id="cfg-sd" checked onchange="refreshP()"><label for="cfg-sd">Descripción</label></div>
@@ -219,10 +238,13 @@ textarea.form-control{resize:vertical;min-height:70px}
           </select>
         </div>
         <div class="custom-check"><input type="checkbox" id="cfg-lds" onchange="refreshP()"><label for="cfg-lds">📋 Captura Leads</label></div>
+        <div class="custom-check"><input type="checkbox" id="cfg-imp" onchange="refreshP()"><label for="cfg-imp">✨ Mejorar slices</label></div>
+        <div class="locked-opt"><label><input type="checkbox"> 🚫 Quitar anuncios <span class="lock">🔒</span></label></div>
+        <div class="locked-opt"><label><input type="checkbox"> 🚫 Quitar marca de agua <span class="lock">🔒</span></label></div>
       </div>
 
       <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-parts')">👥 Participantes<span class="chev">▼</span></div>
-      <div id="sec-parts" class="sec-b hidden">
+      <div id="sec-parts" class="sec-b hidden" data-tab="parts">
         <div class="flex-cb"><label style="font-size:12px;color:#6b7280;margin:0">Fuente:</label>
           <select id="src-src" class="form-control" style="width:auto" onchange="onSrcChange()">
             <option value="manual">✍️ Manual</option>
@@ -248,7 +270,7 @@ textarea.form-control{resize:vertical;min-height:70px}
       </div>
 
       <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-des')">🎨 Diseño<span class="chev">▼</span></div>
-      <div id="sec-des" class="sec-b hidden">
+      <div id="sec-des" class="sec-b hidden" data-tab="design">
         <div class="form-group"><label>Temas</label><div id="theme-ps" style="display:flex;gap:4px;overflow-x:auto"></div></div>
         <div class="form-group"><label>Logo</label>
           <div style="display:flex;align-items:center;gap:8px">
@@ -256,6 +278,13 @@ textarea.form-control{resize:vertical;min-height:70px}
             <button class="form-control" style="padding:4px 12px;cursor:pointer;width:auto" onclick="uploadLogo()">Subir</button>
             <button id="btn-rm-logo" class="form-control" style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" onclick="rmLogo()">Eliminar</button>
           </div>
+        </div>
+        <div class="form-group"><label>Imagen de fondo</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="form-control" style="padding:4px 12px;cursor:pointer;width:auto" onclick="uploadBg()">Subir</button>
+            <button id="btn-rm-bg" class="form-control" style="padding:4px 12px;cursor:pointer;width:auto;display:none;color:#ef4444" onclick="rmBg()">Eliminar</button>
+          </div>
+          <div id="bg-preview" style="display:none;margin-top:4px;width:100%;height:60px;border-radius:6px;background-size:cover;background-position:center;border:1px solid #e5e7eb"></div>
         </div>
         <div class="flex-cb"><label style="font-size:12px;color:#6b7280">Fondo página</label>
           <div class="color-input"><span id="v-bg">#D1E4FF</span><input type="color" id="c-bg" value="#D1E4FF" onchange="refreshP()"></div>
@@ -278,8 +307,8 @@ textarea.form-control{resize:vertical;min-height:70px}
         </div>
       </div>
 
-      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-sav')">💾 Mis Ruletas<span class="chev">▼</span></div>
-      <div id="sec-sav" class="sec-b hidden">
+      <div class="sec-h collapsed" onclick="toggleCollapse(this,'sec-sav')" data-tab="">💾 Mis Ruletas<span class="chev">▼</span></div>
+      <div id="sec-sav" class="sec-b hidden" data-tab="">
         <div id="sav-list" style="font-size:13px;color:#6b7280;text-align:center;padding:8px">Cargando...</div>
       </div>
     </div>
@@ -375,7 +404,7 @@ textarea.form-control{resize:vertical;min-height:70px}
 <script>
 // ===== STATE =====
 var API='/api',data=null,parts=[],wins=[],spinning=false,rot=0,sound=true,editIdx=-1;
-var currentId=null,logoDataUrl=null,isPlaying=false,jsConfetti=null;
+var currentId=null,logoDataUrl=null,bgDataUrl=null,isPlaying=false,jsConfetti=null;
 var segCs=['#ff7878','#7eecec','#fff171','#7280fd'];
 var cv=document.getElementById('canvas'),cx=cv.getContext('2d');
 var themes=[{name:'Clasico',colors:['#ff7878','#7eecec','#fff171','#7280fd']},{name:'Oceano',colors:['#0077B6','#00B4D8','#90E0EF','#CAF0F8','#48CAE4','#023E8A']},{name:'Natura',colors:['#2D6A4F','#40916C','#52B788','#95D5B2','#D8F3DC','#1B4332']},{name:'Fuego',colors:['#FF4500','#FF6347','#FF8C00','#FFA500','#FFD700','#DC143C']},{name:'Pastel',colors:['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E8BAFF']},{name:'Neon',colors:['#FF00FF','#00FF00','#FFFF00','#00FFFF','#FF00FF','#FF6600']}];
@@ -408,15 +437,38 @@ function applyEditEntry(){
 
 function newWheel(){
   if(!currentId)return;
-  // Reset current
-  currentId=null;parts=[];wins=[];
+  currentId=null;parts=[];wins=[];bgDataUrl=null;
   document.getElementById('wheel-name').value='';
   document.getElementById('parts-ta').value='';
   document.getElementById('part-cnt').textContent='0';
   document.getElementById('btn-play').disabled=true;
   document.getElementById('hero-stats').classList.add('hidden');
+  document.getElementById('bg-preview').style.display='none';document.getElementById('btn-rm-bg').style.display='none';
   draw()
 }
+
+function switchTab(tab,el){
+  if(window.innerWidth>=1025)return;
+  document.querySelectorAll('.wof__config__menu-item').forEach(function(e){e.classList.remove('active')});
+  if(el)el.classList.add('active');
+  document.querySelectorAll('[data-tab]').forEach(function(e){
+    if(e.getAttribute('data-tab')===tab){e.classList.remove('hidden');e.style.display='block'}
+    else{e.classList.add('hidden');e.style.display='none'}
+  })
+}
+// Handle resize between mobile and desktop
+window.addEventListener('resize',function(){
+  if(window.innerWidth>=1025){
+    document.querySelectorAll('[data-tab]').forEach(function(e){e.style.display=''})
+  }
+})
+
+function uploadBg(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){bgDataUrl=ev.target.result;document.getElementById('bg-preview').style.backgroundImage='url('+ev.target.result+')';document.getElementById('bg-preview').style.display='block';document.getElementById('btn-rm-bg').style.display='block';refreshP()};reader.readAsDataURL(file)};
+  inp.click()
+}
+function rmBg(){bgDataUrl=null;document.getElementById('bg-preview').style.display='none';document.getElementById('btn-rm-bg').style.display='none';refreshP()}
 
 function toggleCollapse(h,id){
   var b=document.getElementById(id);if(!b)return;
@@ -531,7 +583,7 @@ function exitPlay(){isPlaying=false;document.getElementById('wof').classList.rem
 // ===== SIDEBAR REFRESH =====
 function refreshP(){
   var sc=document.getElementById('screencast'),bg=document.getElementById('c-bg').value,mn=document.getElementById('c-main').value;
-  sc.style.backgroundColor=bg;sc.style.color=mn;
+  sc.style.backgroundColor=bg;sc.style.backgroundImage=bgDataUrl?'url('+bgDataUrl+')':'none';sc.style.backgroundSize='cover';sc.style.backgroundPosition='center';sc.style.color=mn;
   document.querySelector('.wof__wheel__pointer').style.color=document.getElementById('c-ptr').value;
   document.querySelector('.wof__wheel__border').style.borderColor=document.getElementById('c-bdr').value;
   var st=document.getElementById('cfg-st').checked,tv=document.getElementById('cfg-title').value;
@@ -600,7 +652,7 @@ function saveW(){
   var el=document.getElementById('wheel-name'),name=el?.value?.trim();
   if(!name){toast('Nombre requerido','err');return}
   if(!currentId){toast('Primero crea la ruleta','err');return}
-  var cfg={page_background_color:document.getElementById('c-bg').value,main_color:document.getElementById('c-main').value,pointer_color:document.getElementById('c-ptr').value,wheel_border_color:document.getElementById('c-bdr').value,wheel_slices_text_color:document.getElementById('c-txt').value,wheel_colors:segCs,wheel_lines_size:parseInt(document.getElementById('cfg-ln').value)||0,wheel_spin_duration:parseInt(document.getElementById('cfg-dur').value)||10,play_sounds:document.getElementById('cfg-snd').checked,show_confettis:document.getElementById('cfg-cft').checked,wheel_auto_remove:document.getElementById('cfg-arm').checked,capture_leads:document.getElementById('cfg-lds').checked,show_title:document.getElementById('cfg-st').checked,title:document.getElementById('cfg-title').value,show_desc:document.getElementById('cfg-sd').checked,description:document.getElementById('cfg-desc').value,show_start_button:document.getElementById('cfg-sb').checked,start_button:document.getElementById('cfg-bt').value,logo:logoDataUrl};
+  var cfg={page_background_color:document.getElementById('c-bg').value,page_background_image:bgDataUrl,main_color:document.getElementById('c-main').value,pointer_color:document.getElementById('c-ptr').value,wheel_border_color:document.getElementById('c-bdr').value,wheel_slices_text_color:document.getElementById('c-txt').value,wheel_colors:segCs,wheel_lines_size:parseInt(document.getElementById('cfg-ln').value)||0,wheel_spin_duration:parseInt(document.getElementById('cfg-dur').value)||10,play_sounds:document.getElementById('cfg-snd').checked,show_confettis:document.getElementById('cfg-cft').checked,wheel_auto_remove:document.getElementById('cfg-arm').checked,capture_leads:document.getElementById('cfg-lds').checked,improve_slices:document.getElementById('cfg-imp').checked,show_title:document.getElementById('cfg-st').checked,title:document.getElementById('cfg-title').value,show_desc:document.getElementById('cfg-sd').checked,description:document.getElementById('cfg-desc').value,show_start_button:document.getElementById('cfg-sb').checked,start_button:document.getElementById('cfg-bt').value,logo:logoDataUrl};
   fetch(API+'/raffles/'+currentId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,config:cfg})})
     .then(function(){return fetch(API+'/raffles/'+currentId+'/participants/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({participants:parts.map(function(n){return{name:n}})})})})
     .then(function(){toast('✅ Guardado','ok');document.getElementById('btn-play').disabled=false;loadSav()})
@@ -633,6 +685,9 @@ function loadW(id,name){
     document.getElementById('cfg-ln').value=String(c.wheel_lines_size||0);document.getElementById('cfg-dur').value=String(c.wheel_spin_duration||10);
     document.getElementById('cfg-snd').checked=c.play_sounds!==false;document.getElementById('cfg-cft').checked=c.show_confettis!==false;
     document.getElementById('cfg-arm').checked=c.wheel_auto_remove===true;document.getElementById('cfg-lds').checked=c.capture_leads===true;
+    document.getElementById('cfg-imp').checked=c.improve_slices===true;
+    bgDataUrl=c.page_background_image||null;
+    if(bgDataUrl){document.getElementById('bg-preview').style.backgroundImage='url('+bgDataUrl+')';document.getElementById('bg-preview').style.display='block';document.getElementById('btn-rm-bg').style.display='block'}else{document.getElementById('bg-preview').style.display='none';document.getElementById('btn-rm-bg').style.display='none'}
     document.getElementById('cfg-st').checked=c.show_title!==false;document.getElementById('cfg-title').value=c.title||'';
     document.getElementById('cfg-sd').checked=c.show_desc!==false;document.getElementById('cfg-desc').value=c.description||'';
     document.getElementById('cfg-sb').checked=c.show_start_button!==false;document.getElementById('cfg-bt').value=c.start_button||'Girar';
@@ -666,6 +721,7 @@ async function load(){
     var c=data.config||{};currentId=data.id;
     window._eventId=data.event_id||null;
     document.getElementById('screencast').style.backgroundColor=c.page_background_color||'#D1E4FF';
+    if(c.page_background_image){document.getElementById('screencast').style.backgroundImage='url('+c.page_background_image+')';document.getElementById('screencast').style.backgroundSize='cover';document.getElementById('screencast').style.backgroundPosition='center'}else{document.getElementById('screencast').style.backgroundImage='none'}
     document.getElementById('screencast').style.color=c.main_color||'#1a1a1a';
     document.querySelector('.wof__wheel__pointer').style.color=c.pointer_color||'#ff7878';
     document.querySelector('.wof__wheel__border').style.borderColor=c.wheel_border_color||'#111111';
