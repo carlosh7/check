@@ -378,113 +378,177 @@ router.post('/validate', authMiddleware(['ADMIN', 'PRODUCTOR']), async (req, res
 
         stats.message = `${stats.new} nuevos, ${stats.update} para actualizar, ${stats.errors} errores`;
 
-        // ─── PROCESAR ASISTENTES (type: attendance) ───
+        // ─── PROCESAR ASISTENTES (type: attendance) — BL-27 ───
         if (type === 'attendance') {
             let availableColumns = [];
-            let previewRows = [];
+            let allRows = [];
             let totalRows = 0;
+            let detectedFields = {};
             const eventId = castId('events', req.body.eventId);
 
+            // Smart field detection keywords
+            var fieldKeywords = {
+                name: ['nombre', 'name', 'apellido', 'names', 'nombres', 'asistente', 'invitado', 'guest', 'attendee'],
+                email: ['email', 'correo', 'mail', 'e-mail', 'e_mail'],
+                phone: ['telefono', 'phone', 'teléfono', 'tel', 'celular', 'cel', 'movil', 'whatsapp'],
+                organization: ['organizacion', 'organization', 'empresa', 'company', 'compañia', 'compania', 'entidad'],
+                position: ['cargo', 'position', 'puesto', 'rol', 'role', 'titulo', 'title'],
+                dietary: ['dietary', 'dieta', 'restricciones', 'restriccion', 'alergia', 'alergias', 'notas', 'notes'],
+                vegan: ['vegano', 'vegan', 'vegetariano', 'vegetarian']
+            };
+
+            function smartDetectCol(headerName, sampleValues) {
+                var h = headerName.toLowerCase().trim();
+                // Try keyword match first
+                for (var field in fieldKeywords) {
+                    if (fieldKeywords[field].some(function(kw) { return h.includes(kw); })) {
+                        return field;
+                    }
+                }
+                // Try content sampling
+                if (sampleValues && sampleValues.length > 0) {
+                    var atCount = 0, digCount = 0;
+                    sampleValues.forEach(function(v) {
+                        var s = (v || '').toString().trim();
+                        if (s.includes('@') && s.includes('.')) atCount++;
+                        if (s.replace(/[^0-9]/g,'').length >= 7) digCount++;
+                    });
+                    if (atCount >= sampleValues.length * 0.3) return 'email';
+                    if (digCount >= sampleValues.length * 0.3) return 'phone';
+                }
+                return null;
+            }
+
             if (filename.toLowerCase().endsWith('.pdf')) {
-                // Soporte PDF (Extracción básica de emails/nombres)
                 try {
                     const pdfParse = require('pdf-parse');
                     const pdfData = await pdfParse(buffer);
                     const text = pdfData.text;
                     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5);
-                    
-                    availableColumns = ['Dato Detectado'];
-                    previewRows = lines.slice(0, 10).map(l => ({ 'Dato Detectado': l }));
+                    availableColumns = [{ index: 0, name: 'Dato Detectado' }];
+                    allRows = lines.map(function(l) { return [l]; });
                     totalRows = lines.length;
-                    
-                    data.attendance = lines.map(line => ({ raw: line }));
-                    stats.message = `PDF detectado: ${lines.length} líneas encontradas`;
+                    stats.message = 'PDF: ' + lines.length + ' líneas';
                 } catch (pdfErr) {
-                    console.error('Error procesando PDF:', pdfErr);
                     throw new Error('No se pudo procesar el PDF');
                 }
             } else {
-                // Excel / XLSX
-                const sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1) || workbook.getWorksheet('asistentes');
-                if (!sheet) throw new Error('No se encontró una hoja válida en el Excel');
-
-                // Obtener cabeceras (Fila 1)
-                const headerRow = sheet.getRow(1);
-                headerRow.eachCell((cell, colNumber) => {
-                    availableColumns.push({
-                        index: colNumber - 1,
-                        name: cell.text?.trim() || `Columna ${colNumber}`
-                    });
-                });
-
-                // Detectar columna de email automáticamente (V12.44.309) para conteo real
-                let emailColIdx = -1;
-                headerRow.eachCell((cell, colNumber) => {
-                    const txt = (cell.text || '').toLowerCase();
-                    if (txt.includes('email') || txt.includes('correo')) {
-                        emailColIdx = colNumber - 1;
+                // Try Excel first, fallback to CSV
+                var sheet = null;
+                try {
+                    await workbook.xlsx.load(buffer);
+                    sheet = workbook.getWorksheet('Asistentes') || workbook.getWorksheet(1) || workbook.getWorksheet('asistentes');
+                } catch (e) {
+                    // CSV fallback: try loading as CSV
+                    try {
+                        var csvBuffer = buffer.toString('utf-8');
+                        var csvLines = csvBuffer.split('\n').filter(Boolean);
+                        if (csvLines.length > 0) {
+                            // Create a temp worksheet manually
+                            var wb2 = new ExcelJS.Workbook();
+                            sheet = wb2.addWorksheet('Asistentes');
+                            csvLines.forEach(function(l, i) {
+                                var cells = l.split(',').map(function(c) { return c.trim().replace(/^"|"$/g,''); });
+                                sheet.getRow(i+1).values = cells;
+                            });
+                        }
+                    } catch (csvErr) {
+                        throw new Error('No se pudo leer el archivo como Excel ni como CSV');
                     }
+                }
+                if (!sheet) throw new Error('No se encontró una hoja válida en el archivo');
+
+                // Headers
+                var headerRow = sheet.getRow(1);
+                var colSample = {};
+                headerRow.eachCell(function(cell, colNumber) {
+                    var idx = colNumber - 1;
+                    availableColumns.push({ index: idx, name: cell.text?.trim() || 'Columna ' + colNumber });
+                    colSample[idx] = [];
                 });
 
-                // Si no se encuentra por nombre, buscar por contenido en la segunda fila
-                if (emailColIdx === -1) {
-                    const secondRow = sheet.getRow(2);
-                    secondRow.eachCell((cell, colNumber) => {
-                        const val = cell.text || '';
-                        if (val.includes('@') && val.includes('.')) {
-                            emailColIdx = colNumber - 1;
+                // Collect all rows + sample values for smart detection
+                sheet.eachRow({ skip: 1 }, function(row) {
+                    var vals = [];
+                    row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+                        var v = cell.text?.trim() || '';
+                        vals[colNumber - 1] = v;
+                        if (colSample[colNumber - 1] && colSample[colNumber - 1].length < 5) {
+                            colSample[colNumber - 1].push(v);
                         }
                     });
+                    allRows.push(vals);
+                });
+                totalRows = allRows.length;
+
+                // Smart detect fields
+                var detectedFields = {};
+                availableColumns.forEach(function(col) {
+                    var field = smartDetectCol(col.name, colSample[col.index]);
+                    if (field) detectedFields[col.index] = field;
+                });
+
+                // Load existing guests for fuzzy matching
+                var existingGuests = [];
+                if (eventId) {
+                    try {
+                        var { getEventConnection: gec2 } = require('../../database');
+                        var tdb2 = gec2(eventId);
+                        if (tdb2) existingGuests = tdb2.prepare("SELECT id, name, email, phone FROM guests WHERE event_id = ?").all(eventId);
+                    } catch (_) {}
                 }
 
-                // Cargar emails existentes del evento si hay emailColIdx
-                const existingEmails = new Set();
-                if (emailColIdx !== -1 && eventId) {
-                    const targetDb = getEventConnection(eventId);
-                    if (targetDb) {
-                        const guests = targetDb.prepare("SELECT email FROM guests WHERE event_id = ?").all(eventId);
-                        guests.forEach(g => {
-                            if (g.email) existingEmails.add(g.email.toLowerCase().trim());
-                        });
-                    }
-                }
-
-                // Procesar todas las filas para estadísticas reales
-                sheet.eachRow({ skip: 1 }, (row, rowNumber) => {
-                    const vals = [];
-                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                        vals[colNumber - 1] = cell.text?.trim() || '';
-                    });
-                    
-                    if (rowNumber <= 11) { // 1 header + 10 rows
-                        previewRows.push(vals);
-                    }
-
-                    if (emailColIdx !== -1) {
-                        const email = (vals[emailColIdx] || '').toString().toLowerCase().trim();
-                        if (email && email.includes('@')) {
-                            if (existingEmails.has(email)) {
-                                stats.update++;
-                            } else {
-                                stats.new++;
+                // Fuzzy duplicate detection
+                var fuzzyNew = 0, fuzzyUpdate = 0;
+                allRows.forEach(function(vals) {
+                    var isDuplicate = false;
+                    for (var g = 0; g < existingGuests.length; g++) {
+                        var eg = existingGuests[g];
+                        // Email match
+                        for (var ei in detectedFields) {
+                            if (detectedFields[ei] === 'email') {
+                                var ve = (vals[ei] || '').toString().toLowerCase().trim();
+                                if (ve && eg.email && ve === eg.email.toLowerCase().trim()) { isDuplicate = true; break; }
                             }
                         }
+                        if (isDuplicate) break;
+                        // Phone match (normalized)
+                        for (var pi in detectedFields) {
+                            if (detectedFields[pi] === 'phone') {
+                                var vp = (vals[pi] || '').toString().replace(/[^0-9]/g,'');
+                                var ep = (eg.phone || '').replace(/[^0-9]/g,'');
+                                if (vp && ep && vp === ep) { isDuplicate = true; break; }
+                            }
+                        }
+                        if (isDuplicate) break;
+                        // Name fuzzy match
+                        for (var ni in detectedFields) {
+                            if (detectedFields[ni] === 'name') {
+                                var vn = (vals[ni] || '').toString().toLowerCase().trim();
+                                var en = (eg.name || '').toLowerCase().trim();
+                                if (vn && en && (vn === en || vn.includes(en) || en.includes(vn))) { isDuplicate = true; break; }
+                            }
+                        }
+                        if (isDuplicate) break;
                     }
-
-                    totalRows++;
+                    if (isDuplicate) fuzzyUpdate++;
+                    else fuzzyNew++;
                 });
 
-                stats.message = `Excel: ${totalRows} filas detectadas. (${stats.new} nuevos, ${stats.update} existentes)`;
+                stats.new = fuzzyNew;
+                stats.update = fuzzyUpdate;
+                stats.message = (filename.toLowerCase().endsWith('.csv') ? 'CSV' : 'Excel') + ': ' + totalRows + ' filas. (' + fuzzyNew + ' nuevos, ' + fuzzyUpdate + ' existentes)';
             }
 
-            return res.json({ 
-                success: true, 
-                data, 
-                stats: { ...stats, totalRows }, 
-                availableColumns, 
-                previewRows,
-                // allRows ELIMINADO para evitar error 500 en archivos grandes
-                isMappingRequired: true 
+            return res.json({
+                success: true,
+                data: data,
+                stats: { new: stats.new, update: stats.update, errors: stats.errors, totalRows: totalRows, message: stats.message },
+                availableColumns: availableColumns,
+                previewRows: allRows.slice(0, 10),
+                allRows: allRows,
+                detectedFields: detectedFields || {},
+                isMappingRequired: true
             });
         }
 

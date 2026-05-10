@@ -18426,7 +18426,6 @@ App.manageAttendance = function(clientIds) {
 },
 
 App.openImportAttendanceModal = function() {
-    // Limpiar modal
     document.getElementById('import-attendance-file-input').value = '';
     document.getElementById('import-attendance-progress-container').classList.add('hidden');
     document.getElementById('btn-confirm-import-attendance').disabled = true;
@@ -18434,10 +18433,11 @@ App.openImportAttendanceModal = function() {
     document.getElementById('import-attendance-update-count').textContent = '0';
     document.getElementById('import-attendance-error-count').textContent = '0';
     document.getElementById('import-attendance-progress-fill').style.width = '0%';
-    
-    // Configurar event listeners para drop zone si no existen
+    document.getElementById('import-attendance-preview')?.classList.add('hidden');
+    this._allImportRows = [];
+    this._detectedFields = {};
+    this._attPreviewPage = 0;
     this.initAttendanceImportHandlers();
-    
     document.getElementById('modal-import-attendance').classList.remove('hidden');
 },
 
@@ -18519,13 +18519,16 @@ App.processAttendanceImportFile = async function(file) {
                 document.getElementById('import-attendance-status').textContent = data.stats.message || 'Archivo procesado';
                 document.getElementById('import-attendance-progress-fill').style.width = '100%';
                 
-                // 2. Gestionar Mapeo (V12.44.298)
-                if (data.isMappingRequired && this._availableColumns.length > 0) {
+                    // 2. Gestionar Mapeo (V12.44.298 + BL-27)
+                    this._allImportRows = data.allRows || [];
+                    this._detectedFields = data.detectedFields || {};
+                    
+                    if (data.isMappingRequired && this._availableColumns.length > 0) {
                     const mappingContainer = document.getElementById('import-attendance-mapping-container');
                     const fieldsList = document.getElementById('mapping-fields-list');
                     mappingContainer.classList.remove('hidden');
                     
-                    const fields = [
+                    var fields = [
                         { id: 'att-map-name', label: 'Nombre Completo *', key: 'name', icon: 'person', required: true },
                         { id: 'att-map-email', label: 'Email *', key: 'email', icon: 'mail', required: true },
                         { id: 'att-map-phone', label: 'Teléfono', key: 'phone', icon: 'phone' },
@@ -18535,22 +18538,29 @@ App.processAttendanceImportFile = async function(file) {
                         { id: 'att-map-vegano', label: 'Vegano (Sí/No)', key: 'vegano', icon: 'leaf' }
                     ];
                     
-                    fieldsList.innerHTML = fields.map(f => `
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[12px]">${f.icon}</span> ${f.label}
-                            </label>
-                            <select id="${f.id}" class="premium-select !bg-[var(--bg-main)] !py-2 !text-xs">
-                                <option value="">-- No importar --</option>
-                                ${this._availableColumns.map(col => {
-                                    const lowerName = col.name.toLowerCase();
-                                    const lowerLabel = f.label.toLowerCase();
-                                    const isSelected = lowerName.includes(f.key) || lowerName.includes(f.label.toLowerCase().split(' ')[0]) ? 'selected' : '';
-                                    return `<option value="${col.index}" ${isSelected}>${col.name}</option>`;
-                                }).join('')}
-                            </select>
-                        </div>
-                    `).join('');
+                    fieldsList.innerHTML = fields.map(function(f) {
+                        // Use smart detection: prefer detected field, then column name match
+                        var detectedColIdx = null;
+                        for (var idx in App._detectedFields) {
+                            if (App._detectedFields[idx] === f.key) { detectedColIdx = idx; break; }
+                        }
+                        return '<div class="flex flex-col gap-1.5">' +
+                            '<label class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-1">' +
+                                '<span class="material-symbols-outlined text-[12px]">' + f.icon + '</span> ' + f.label +
+                            '</label>' +
+                            '<select id="' + f.id + '" class="premium-select !bg-[var(--bg-main)] !py-2 !text-xs">' +
+                                '<option value="">-- No importar --</option>' +
+                                App._availableColumns.map(function(col) {
+                                    var isSelected = '';
+                                    if (detectedColIdx !== null && parseInt(col.index) === parseInt(detectedColIdx)) isSelected = 'selected';
+                                    else if (!detectedColIdx) {
+                                        var ln = col.name.toLowerCase();
+                                        isSelected = ln.includes(f.key) ? 'selected' : '';
+                                    }
+                                    return '<option value="' + col.index + '" ' + isSelected + '>' + col.name + '</option>';
+                                }).join('') +
+                            '</select></div>';
+                    }).join('');
 
                     // Habilitar botón si hay mapeo básico
                     document.getElementById('btn-confirm-import-attendance').disabled = false;
@@ -18620,6 +18630,47 @@ App.updateAttendanceImportStats = function(availableColumns, previewRows, stats)
     document.getElementById('import-attendance-update-count').textContent = updateCount;
     document.getElementById('import-attendance-error-count').textContent = '0';
     
+    // Render preview table (BL-27)
+    this._attPreviewPage = 0;
+    this._attPreviewPerPage = 25;
+    this.renderAttPreview();
+};
+
+App.renderAttPreview = function() {
+    var allRows = this._allImportRows || [];
+    var cols = this._availableColumns || [];
+    var container = document.getElementById('import-attendance-preview');
+    var thead = document.getElementById('att-preview-header');
+    var tbody = document.getElementById('att-preview-body');
+    if (!container || !thead || !tbody) return;
+    if (allRows.length === 0) { container.classList.add('hidden'); return; }
+    container.classList.remove('hidden');
+
+    // Header
+    thead.innerHTML = cols.map(function(c) { return '<th class="table-th text-[10px]">' + (c.name || '') + '</th>'; }).join('');
+
+    // Paginate
+    var page = this._attPreviewPage || 0;
+    var perPage = this._attPreviewPerPage || 25;
+    var start = page * perPage;
+    var pageRows = allRows.slice(start, start + perPage);
+    var totalPages = Math.ceil(allRows.length / perPage);
+
+    document.getElementById('att-preview-info').textContent = (start + 1) + '-' + Math.min(start + perPage, allRows.length) + ' / ' + allRows.length;
+    document.getElementById('btn-att-prev').disabled = page <= 0;
+    document.getElementById('btn-att-next').disabled = page >= totalPages - 1;
+
+    tbody.innerHTML = pageRows.map(function(row) {
+        return '<tr class="hover:bg-white/[0.02]">' + cols.map(function(c, ci) {
+            var val = (row[ci] !== undefined && row[ci] !== null) ? row[ci].toString() : '';
+            return '<td class="table-td text-[10px] max-w-[120px] truncate" title="' + val.replace(/"/g, '&quot;') + '">' + (val || '') + '</td>';
+        }).join('') + '</tr>';
+    }).join('');
+};
+
+App.pageAttPreview = function(dir) {
+    this._attPreviewPage = Math.max(0, (this._attPreviewPage || 0) + dir);
+    this.renderAttPreview();
 };
 
 App.executeAttendanceImport = async function() {

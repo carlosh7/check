@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.670</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.671</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -3125,15 +3125,52 @@
             </button>
         </div>
         <div class="p-6 overflow-y-auto flex-1 min-h-0">
-            <!-- Descarga de plantilla -->
             <div class="mb-6">
-                <h4 class="text-xs font-bold uppercase tracking-wider text- mb-3 flex items-center gap-2>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">description</span> Descargar Plantilla
                 </h4>
-                <p class="text-xs text- mb-3">Descarga la plantilla Excel con los campos a completar para importar nuevos eventos:</p>
+                <p class="text-xs text-[var(--text-secondary)] mb-3">Descarga la plantilla Excel con los campos a completar:</p>
                 <button onclick="App.downloadImportTemplate()" class="btn-secondary btn-lg text-sm">
                     <span class="material-symbols-outlined text-sm mr-1">download</span> Descargar Plantilla
                 </button>
+            </div>
+
+            <!-- Drop Zone -->
+            <div class="mt-6 pt-6 border-t border-[var(--border)]">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">upload_file</span> Subir archivo
+                </h4>
+                <div id="import-drop-zone" class="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center cursor-pointer hover:border-[var(--primary)] transition-colors">
+                    <span class="material-symbols-outlined text-4xl text-[var(--text-secondary)] mb-2">cloud_upload</span>
+                    <p class="text-sm text-[var(--text-secondary)]">Arrastra tu archivo Excel aqu&iacute; o haz clic para seleccionar</p>
+                    <p class="text-[10px] text-[var(--text-muted)] mt-1">Formatos: .xlsx, .xls, .csv</p>
+                </div>
+                <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" class="hidden">
+
+                <!-- Progress / Stats -->
+                <div id="import-progress-container" class="hidden mt-4 space-y-3">
+                    <div class="w-full bg-[var(--bg-secondary)] rounded-full h-2 overflow-hidden">
+                        <div id="import-progress-fill" class="h-full bg-[var(--primary)] rounded-full transition-all duration-300" style="width:0%"></div>
+                    </div>
+                    <div id="import-status" class="text-xs text-[var(--text-secondary)]"></div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="text-center p-2 bg-green-10 rounded-lg border border-green-20">
+                            <p class="text-lg font-bold text-green-400" id="import-new-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-green-70">Nuevos</p>
+                        </div>
+                        <div class="text-center p-2 bg-blue-10 rounded-lg border border-blue-20">
+                            <p class="text-lg font-bold text-blue-400" id="import-update-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-blue-70">Actualizar</p>
+                        </div>
+                        <div class="text-center p-2 bg-red-10 rounded-lg border border-red-20">
+                            <p class="text-lg font-bold text-red-400" id="import-error-count">0</p>
+                            <p class="text-[10px] uppercase tracking-wider text-red-70">Errores</p>
+                        </div>
+                    </div>
+                    <button id="btn-confirm-import" class="btn-primary w-full" disabled>
+                        <span class="material-symbols-outlined text-sm mr-1">check</span> Confirmar Importaci&oacute;n
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3286,10 +3323,28 @@
                         </div>
                     </div>
                     
+                    <!-- Preview de datos (BL-27) -->
+                    <div id="import-attendance-preview" class="hidden mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Vista previa</p>
+                            <div class="flex gap-1 items-center">
+                                <span id="att-preview-info" class="text-[10px] text-slate-500"></span>
+                                <button class="btn-secondary text-[10px] px-2 py-0.5" onclick="App.pageAttPreview(-1)" id="btn-att-prev" disabled>‹</button>
+                                <button class="btn-secondary text-[10px] px-2 py-0.5" onclick="App.pageAttPreview(1)" id="btn-att-next">›</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto max-h-48 overflow-y-auto border border-[var(--border)] rounded-lg">
+                            <table class="data-table w-full text-[10px]">
+                                <thead><tr class="table-header-row" id="att-preview-header"></tr></thead>
+                                <tbody id="att-preview-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Opciones de importación -->
-                    <div class="mt-4 pt-4 border-t border->
-                        <label class="flex items-center gap-2 text-sm text- cursor-pointer>
-                            <input type="checkbox" id="import-attendance-skip-duplicates" class="w-4 h-4 accent- checked>
+                    <div class="mt-4 pt-4 border-t border-[var(--border)]">
+                        <label class="flex items-center gap-2 text-sm text-[var(--text-main)] cursor-pointer">
+                            <input type="checkbox" id="import-attendance-skip-duplicates" class="w-4 h-4 accent-[var(--primary)]" checked>
                             <span>Ignorar duplicados</span>
                         </label>
                     </div>
