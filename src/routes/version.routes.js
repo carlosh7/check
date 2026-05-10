@@ -11,8 +11,13 @@ const { getStats } = require('../utils/cache');
 const router = express.Router();
 
 router.get('/app-version', (req, res) => {
-    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
-    res.json({ version: pkg.version });
+    try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
+        res.json({ version: pkg.version });
+    } catch (err) {
+        console.error('[VERSION] Error:', err.message);
+        res.status(500).json({ error: 'Version no disponible' });
+    }
 });
 
 router.get('/health', (req, res) => {
@@ -49,11 +54,13 @@ router.get('/health/redis', async (req, res) => {
  * Verifica: DB, Cache, SMTP
  */
 router.get('/health/full', async (req, res) => {
+    var appVersion = 'unknown';
+    try { var pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')); appVersion = pkg.version; } catch(e) {}
     const checks = {
         status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')).version,
+        version: appVersion,
         database: { status: 'unknown' },
         cache: { status: 'unknown' },
         smtp: { status: 'unknown' }

@@ -57,7 +57,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
-                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.679</p>
+                    <p class="sidebar-footer-version app-version-text">Check Pro v12.44.680</p>
                     <a href="https://smarteventos.co/" target="_blank" rel="noopener noreferrer" class="sidebar-footer-link">
                         Powered By Smart Eventos
                     </a>
@@ -760,14 +760,14 @@
                     <div id="config-content-email" class="config-tab-content hidden space-y-6">
                         <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text-">Mailing</span></h2>
-                                <p class="text- text-sm">Gestiona el envío de emails a los invitados de este evento.</p>
+                                <h2 class="text-2xl font-semibold tracking-tight">Módulo de <span class="text-[var(--primary)]">Mailing</span></h2>
+                                <p class="text-[var(--text-secondary)] text-sm">Gestiona el envío de emails a los invitados de este evento.</p>
                             </div>
                         </div>
 
                         <!-- Sub-tabs para Mailing -->
                         <div class="flex gap-2 mb-6">
-                            <button id="mailing-tab-composer" class="px-4 py-2 rounded-xl bg-#0ba5ec-20 text-#0ba5ec text-xs font-bold uppercase tracking-wider onclick=App.switchMailingSubTab('composer')">Compositor</button>
+                            <button id="mailing-tab-composer" class="px-4 py-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-wider" onclick="App.switchMailingSubTab('composer')">Compositor</button>
                             <button id="mailing-tab-campaigns" class="px-4 py-2 rounded-xl bg-white-5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white-10" onclick="App.switchMailingSubTab('campaigns')">Campañas</button>
                             <button id="mailing-tab-templates" class="px-4 py-2 rounded-xl bg-white-5 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white-10" onclick="App.switchMailingSubTab('templates')">Plantillas</button>
                         </div>
@@ -792,10 +792,16 @@
                                         <div>
                                             <label class="text-xs font-bold uppercase text-slate-500 mb-1 block">Destinatarios</label>
                                             <div class="space-y-2">
-                                                <label class="flex items-center gap-2 text-sm text-slate-300">
+                                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                                                     <input type="radio" name="mailing-recipient-type" value="all" checked class="accent-[var(--primary)]" /> Todos los invitados
+                                                </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                                                     <input type="radio" name="mailing-recipient-type" value="confirmed" class="accent-[var(--primary)]" /> Solo confirmados
+                                                </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                                                     <input type="radio" name="mailing-recipient-type" value="pending" class="accent-[var(--primary)]" /> Solo pendientes
+                                                </label>
+                                                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                                                     <input type="radio" name="mailing-recipient-type" value="group" class="accent-[var(--primary)]" /> Por grupo espec&iacute;fico
                                                 </label>
                                             </div>

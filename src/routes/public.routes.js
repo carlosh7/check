@@ -60,6 +60,7 @@ const { AuditLog } = require('../security/audit');
 const router = express.Router();
 const { castId } = require('../utils/helpers');
 const { triggerWebhooks, WEBHOOK_EVENTS } = require('../utils/webhooks');
+const { authMiddleware } = require('../middleware/auth');
 
 // Obtener detalles públicos de un evento para registro
 router.get('/event/:id', (req, res) => {
@@ -262,7 +263,7 @@ router.post('/public-register', async (req, res) => {
     }
 });
 
-router.get('/audit-logs', (req, res) => {
+router.get('/audit-logs', authMiddleware(['ADMIN']), (req, res) => {
     const { page = 1, limit = 50, action, user_id } = req.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * Math.min(200, Math.max(1, parseInt(limit)));
 

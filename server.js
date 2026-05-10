@@ -147,8 +147,11 @@ app.use(cors({
     },
     credentials: true
 }));
+// Stripe webhook necesita raw body (antes de express.json)
+app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
+
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
-app.use(express.json({ limit: '50mb' })); // Límite de 50MB para permitir importaciones masivas
+app.use(express.json({ limit: '50mb' }));
 
 // --- RATE LIMITING POR ENDPOINT ---
 app.set('trust proxy', 1);

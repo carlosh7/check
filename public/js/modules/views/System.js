@@ -118,7 +118,8 @@ class SystemView {
     // Cargar usuarios
     async loadUsers() {
         try {
-            const res = await fetch('/api/users');
+            var token = App?.state?.user?.token || '';
+            const res = await fetch('/api/users', { headers: { 'Authorization': 'Bearer ' + token } });
             if (res.ok) {
                 const users = await res.json();
                 AppStateManager.set('allUsers', users);
