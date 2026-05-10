@@ -4,6 +4,7 @@
   - [Crear evento](01-eventos/01-crear-evento.md)
   - [Configurar evento](01-eventos/02-configurar-evento.md)
   - [Clonar evento](01-eventos/03-clonar-evento.md)
+  - [Sesiones](01-eventos/04-sesiones.md)
 - **Invitados**
   - [Importar](02-invitados/01-importar.md)
   - [Check-in](02-invitados/02-checkin.md)
@@ -27,4 +28,9 @@
   - [Usuarios y roles](07-administracion/01-usuarios-roles.md)
   - [Espacios](07-administracion/02-espacios.md)
   - [Google Sheets](07-administracion/03-google-sheets.md)
+  - [Google Sync](07-administracion/04-google-sheets.md)
+- **Integraciones**
+  - [Landing + QR](08-integraciones/02-landing-qr.md)
+  - [Portal PWA](08-integraciones/03-portal-pwa.md)
+  - [Checkout Stripe](08-integraciones/04-checkout-stripe.md)
 - [FAQ](09-faq.md)

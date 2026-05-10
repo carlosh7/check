@@ -4,6 +4,7 @@
 - [01. Crear evento](01-eventos/01-crear-evento.md)
 - [02. Configurar evento](01-eventos/02-configurar-evento.md)
 - [03. Clonar evento](01-eventos/03-clonar-evento.md)
+- [04. Sesiones](01-eventos/04-sesiones.md)
 
 ## 02 — Invitados
 - [01. Importar invitados](02-invitados/01-importar.md)
@@ -33,6 +34,12 @@
 - [01. Usuarios y roles](07-administracion/01-usuarios-roles.md)
 - [02. Espacios (Venues)](07-administracion/02-espacios.md)
 - [03. Google Sheets](07-administracion/03-google-sheets.md)
+- [04. Google Sheets sincronización](07-administracion/04-google-sheets.md)
+
+## 08 — Integraciones
+- [02. Landing + QR](08-integraciones/02-landing-qr.md)
+- [03. Portal PWA](08-integraciones/03-portal-pwa.md)
+- [04. Checkout Stripe](08-integraciones/04-checkout-stripe.md)
 
 ## 09 — FAQ
 - [Preguntas frecuentes](09-faq.md)
