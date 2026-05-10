@@ -1675,4 +1675,85 @@ FASE 30: DevOps & Calidad
 
 ---
 
+# Ciclo 9 — Madurez y Automatización Inteligente
+
+## ⚡ Estado Actual
+
+| Item | Valor |
+|------|-------|
+| **Version** | v12.44.731 |
+| **Ultimo ciclo completado** | Ciclo 8 — Expansión y Ecosistema ✅ |
+| **Feature en curso** | **Ciclo 9 — Por definir** |
+| **Proximo feature** | C9-13 Tema oscuro/claro global |
+
+---
+
+## 🗺️ Dependencias — Ciclo 9
+
+```
+FASE 31: Quick Wins UX (S-M)
+  C9-13 Tema oscuro/claro global        ← S (sistema de themes CSS completo)
+  C9-14 Atajos de teclado               ← S (navegación rápida con teclas)
+  C9-12 Dashboard personalizable        ← M (widgets reordenables)
+
+FASE 32: Inteligencia Aumentada (M)
+  C9-04 Smart tagging de invitados      ← M (auto-categorizar por comportamiento)
+  C9-03 Predicción de asistencia        ← M (ML básico: predecir check-ins)
+  C9-05 Recomendaciones de venta        ← M (upsell basado en historial)
+  C9-08 Webhook de acciones             ← M (triggers que ejecutan acciones internas)
+
+FASE 33: Automatización Avanzada (L-XL)
+  C9-07 Reglas de negocio personalizadas ← L (scripts JS del usuario en sandbox)
+  C9-02 Offline-first con sync           ← L (datos locales + sync móvil)
+  C9-06 Workflows visuales               ← XL (arrastrar y soltar: si-entonces)
+
+FASE 34: Mobile Nativo (XL)
+  C9-01 App React Native funcional      ← XL (build real, no solo guía)
+
+FASE 35: Escalabilidad y Calidad (M-XL)
+  C9-09 PostgreSQL real (no script)     ← XL (migración completa con pruebas)
+  C9-10 Tests de carga/estrés           ← M (k6 o artillery para benchmarks)
+  C9-11 Documentación de arquitectura   ← M (diagramas, flujos, decisiones técnicas)
+```
+
+## 🚀 Orden de Ejecución — Ciclo 9
+
+| Orden | Feature | Esfuerzo | Fase | Justificación |
+|-------|---------|----------|------|---------------|
+| 1 | **C9-13** Tema oscuro/claro global | S | F31 | Alto impacto UX, mínimo riesgo |
+| 2 | **C9-14** Atajos de teclado | S | F31 | Usuarios avanzados, desarrollo rápido |
+| 3 | **C9-12** Dashboard personalizable | M | F31 | Mejora inmediata de experiencia |
+| 4 | **C9-04** Smart tagging de invitados | M | F32 | Base de datos para segmentación |
+| 5 | **C9-08** Webhook de acciones | M | F32 | Extiende webhooks existentes |
+| 6 | **C9-03** Predicción de asistencia | M | F32 | ML simple, valor demostrable |
+| 7 | **C9-05** Recomendaciones de venta | M | F32 | Monetización directa |
+| 8 | **C9-07** Reglas de negocio personalizadas | L | F33 | Power users |
+| 9 | **C9-02** Offline-first con sync | L | F33 | Base para mobile |
+| 10 | **C9-06** Workflows visuales | XL | F33 | Feature estrella |
+| 11 | **C9-01** App React Native funcional | XL | F34 | Mobile real |
+| 12 | **C9-10** Tests de carga/estrés | M | F35 | Calidad |
+| 13 | **C9-09** PostgreSQL real | XL | F35 | Escalabilidad |
+| 14 | **C9-11** Documentación de arquitectura | M | F35 | Mantenibilidad |
+
+## 📊 Tablero de Progreso — Ciclo 9
+
+| ID | Feature | Estado | Esfuerzo | Fase |
+|----|---------|--------|----------|------|
+| C9-13 | Tema oscuro/claro global | ⏳ | S | F31 |
+| C9-14 | Atajos de teclado | ⏳ | S | F31 |
+| C9-12 | Dashboard personalizable | ⏳ | M | F31 |
+| C9-04 | Smart tagging de invitados | ⏳ | M | F32 |
+| C9-08 | Webhook de acciones | ⏳ | M | F32 |
+| C9-03 | Predicción de asistencia | ⏳ | M | F32 |
+| C9-05 | Recomendaciones de venta | ⏳ | M | F32 |
+| C9-07 | Reglas de negocio personalizadas | ⏳ | L | F33 |
+| C9-02 | Offline-first con sync | ⏳ | L | F33 |
+| C9-06 | Workflows visuales | ⏳ | XL | F33 |
+| C9-01 | App React Native funcional | ⏳ | XL | F34 |
+| C9-10 | Tests de carga/estrés | ⏳ | M | F35 |
+| C9-09 | PostgreSQL real | ⏳ | XL | F35 |
+| C9-11 | Documentación de arquitectura | ⏳ | M | F35 |
+
+---
+
 ## 📚 Documentacion Referenciada
