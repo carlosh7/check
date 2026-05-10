@@ -282,6 +282,9 @@ if (!swaggerUi || isProduction) {
     }));
 }
 
+// --- MIGRACIONES AUTOMÁTICAS (BL-23) ---
+try { require('./src/utils/migrate').runPending(); } catch(e) { console.error('[MIGRATE] Error:', e.message); }
+
 // --- RUTAS PÚBLICAS DE RULETA (antes del registro de rutas) ---
 // Debe estar ANTES de registerRoutes para que tenga prioridad
 app.get(/\/wheel\/[^/]+\/public$/, (req, res) => {
