@@ -194,8 +194,29 @@ async function load(){
       }).join('');
     }
 
-    // Service worker registration
-    if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
+    // PWA: register service worker + cache guest data for offline
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+      // Cache guest data for offline access
+      if(guestData && guestData.guest){
+        var cacheData = { guest: guestData.guest, event: guestData.event };
+        try{ localStorage.setItem('portal_guest_' + guestId, JSON.stringify(cacheData)); }catch(e){}
+      }
+    }
+    // Check if we're offline and have cached data
+    if(!navigator.onLine){
+      var cached = localStorage.getItem('portal_guest_' + guestId);
+      if(cached && !guestData){
+        try{
+          var cd = JSON.parse(cached);
+          document.getElementById('guest-name').textContent = cd.guest?.name || 'Invitado';
+          document.getElementById('guest-email').textContent = cd.guest?.email || '';
+          document.getElementById('event-name-header').textContent = cd.event?.name || 'Evento';
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('main').style.display = 'block';
+        }catch(e){}
+      }
+    }
   }catch(e){
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('main').innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#ef4444">Portal no disponible</h2><p style="color:rgba(255,255,255,0.4);margin-top:8px">No se pudo cargar tu información.</p></div>';
