@@ -9,7 +9,6 @@ const { db } = require('./database');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const imap = require('imap');
 
@@ -155,60 +154,36 @@ app.use('/api/deploy/webhook', express.raw({ type: 'application/json' }));
 // ⚠️ SECURITY: Limitar tamaño de request JSON para prevenir DoS
 app.use(express.json({ limit: '50mb' }));
 
-// --- RATE LIMITING POR ENDPOINT ---
+// --- RATE LIMITING GRANULAR (C8-14) ---
+const { limiters, getRateLimitStatus } = require('./src/middleware/rate-limiter');
 app.set('trust proxy', 1);
-const skipLocal = (req) => {
-    // Detectar peticiones locales: localhost, 127.0.0.1, ::1, red docker (172.x.x.x)
-    const ip = req.ip || '';
-    return ip === '::1' || 
-           ip === '127.0.0.1' || 
-           ip === '::ffff:127.0.0.1' ||
-           ip.startsWith('172.') ||    // Docker network
-           ip.startsWith('192.168.') || // Local network
-           ip.startsWith('10.') ||      // Docker/Local network
-           !ip;                          // No IP (internal)
-};
 
-// Rate limit general: 10000 pet/15min (aumentado para evitar 429)
-const apiLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 10000, 
-    skip: skipLocal, 
-    message: { error: 'Demasiadas peticiones. Espera unos segundos.' } 
-});
-
-// Rate limit estricto para auth: 50 pet/15min (aumentado)
-const authLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 50, 
-    skip: skipLocal, 
-    message: { error: 'Demasiados intentos de login. Espera unos segundos.' },
-    standardHeaders: true,
-    legacyHeaders: false
-});
-
-// Rate limit para guests: 500 pet/15min (aumentado para evitar 429)
-const guestLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 500, 
-    skip: skipLocal, 
-    message: { error: 'Demasiadas consultas. Espera unos segundos.' } 
-});
-
-// Rate limit para uploads: 30 pet/15min (aumentado)
-const uploadLimiter = rateLimit({ 
-    windowMs: 15*60*1000, 
-    max: 30, 
-    skip: skipLocal, 
-    message: { error: 'Demasiadas cargas. Espera unos segundos.' } 
-});
-
-app.use('/api/', apiLimiter);
-app.use('/api/login', authLimiter);
-app.use('/api/signup', authLimiter);  // Prevenir creación masiva de cuentas
-app.use('/api/password-reset', authLimiter);  // Prevenir abuso de reset
-app.use('/api/guests', guestLimiter);
-app.use('/api/events', guestLimiter);
+app.use('/api/', limiters.general);
+app.use('/api/login', limiters.auth);
+app.use('/api/signup', limiters.auth);
+app.use('/api/password-reset', limiters.auth);
+app.use('/api/guests', limiters.guests);
+app.use('/api/events', limiters.guests);
+app.use('/api/email', limiters.email);
+app.use('/api/webhooks', limiters.webhooks_out);
+app.use('/api/stats', limiters.stats);
+app.use('/api/analytics', limiters.stats);
+app.use('/api/reports', limiters.stats);
+app.use('/api/bi', limiters.stats);
+app.use('/api/health', limiters.stats);
+app.use('/api/deploy', limiters.deploy);
+app.use('/api/compliance', limiters.compliance);
+app.use('/api/raffles', limiters.raffles);
+app.use('/api/proposals', limiters.proposals);
+app.use('/api/automation', limiters.automation);
+app.use('/api/settings', limiters.settings);
+app.use('/api/surveys', limiters.surveys);
+app.use('/api/sessions', limiters.sessions);
+app.use('/api/venues', limiters.venues);
+app.use('/api/chatbot', limiters.chatbot);
+app.use('/api/api-keys', limiters.apikeys);
+app.use('/api/v1', limiters.apiKeyLimit);
+app.use('/api/security', limiters.settings);
 
 // --- SEGURIDAD: Headers y CSRF ---
 app.use(securityHeaders); // Headers de seguridad

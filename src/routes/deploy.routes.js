@@ -81,4 +81,13 @@ router.post('/deploy/migrate-encryption', (req, res) => {
     }
 });
 
+router.get('/deploy/rate-limit-status', (req, res) => {
+    try {
+        const { getRateLimitStatus } = require('../middleware/rate-limiter');
+        res.json(getRateLimitStatus());
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

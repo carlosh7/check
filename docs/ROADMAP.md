@@ -1602,10 +1602,10 @@ FASE 25: Consolidación y Pulido
 
 | Item | Valor |
 |------|-------|
-| **Version** | v12.44.728 |
-| **Ultimo ciclo completado** | Ciclo 7 — Consolidación + Features Diferidas ✅ |
-| **Feature en curso** | **Ciclo 8 — Por definir** |
-| **Proximo feature** | Elegir de la propuesta abajo |
+| **Version** | v12.44.729 |
+| **Ultimo feature completado** | C8-14 Rate limiting granular |
+| **Feature en curso** | **Ciclo 8 — Expansión y Ecosistema** |
+| **Proximo feature** | C8-01 Notificaciones push avanzadas |
 
 ---
 
@@ -1672,7 +1672,7 @@ FASE 30: DevOps & Calidad
 | C8-11 | Sistema de pricing/tiers | ⏳ | — | — |
 | C8-12 | Tests E2E (Playwright) | ⏳ | — | — |
 | C8-13 | Migracion a PostgreSQL | ⏳ | — | — |
-| C8-14 | Rate limiting granular | ⏳ | — | — |
+| C8-14 | Rate limiting granular | ✅ | v12.44.729 | 2026-05-10 |
 
 ---
 
