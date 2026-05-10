@@ -248,4 +248,53 @@ router.get('/reports/:eventId', authMiddleware(['ADMIN', 'PRODUCTOR']), (req, re
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── BI Dashboard (C5-01) ───
+
+router.get('/bi/dashboard', authMiddleware(['ADMIN']), (req, res) => {
+    try {
+        var period = parseInt(req.query.period) || 30;
+        var since = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
+
+        // System-wide KPIs
+        var totalEvents = db.prepare("SELECT COUNT(*) as c FROM events").get().c;
+        var totalGuests = db.prepare("SELECT COUNT(*) as c FROM guests").get().c;
+        var totalChecked = db.prepare("SELECT COUNT(*) as c FROM guests WHERE checked_in = 1").get().c;
+        var totalUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE status = 'APPROVED'").get().c;
+        var conversionRate = totalGuests > 0 ? Math.round((totalChecked / totalGuests) * 100) : 0;
+
+        // Trends (daily registrations)
+        var dailyRegs = db.prepare("SELECT date(created_at) as d, COUNT(*) as c FROM guests WHERE created_at >= ? GROUP BY d ORDER BY d ASC").all(since);
+        var dailyCheckins = db.prepare("SELECT date(checkin_time) as d, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time >= ? GROUP BY d ORDER BY d ASC").all(since);
+
+        // Top events
+        var topEvents = db.prepare("SELECT e.id, e.name, e.date, COUNT(g.id) as guests, SUM(CASE WHEN g.checked_in = 1 THEN 1 ELSE 0 END) as checked FROM events e LEFT JOIN guests g ON g.event_id = e.id GROUP BY e.id ORDER BY guests DESC LIMIT 10").all();
+
+        // Monthly comparison
+        var monthly = db.prepare("SELECT strftime('%Y-%m', created_at) as m, COUNT(*) as c FROM guests GROUP BY m ORDER BY m ASC LIMIT 12").all();
+
+        // Category distribution
+        var catDist = db.prepare("SELECT c.name, COUNT(g.id) as count FROM guest_categories c LEFT JOIN guests g ON g.category_id = c.id GROUP BY c.id ORDER BY count DESC LIMIT 10").all();
+
+        // Revenue stats (completed transactions)
+        var revenue = db.prepare("SELECT SUM(amount) as total, COUNT(*) as txns, AVG(amount) as avg FROM transactions WHERE status = 'completed'").get();
+        var revenueByMonth = db.prepare("SELECT strftime('%Y-%m', completed_at) as m, SUM(amount) as total, COUNT(*) as txns FROM transactions WHERE status = 'completed' AND completed_at >= ? GROUP BY m ORDER BY m ASC").all(since);
+
+        // Hourly check-in distribution
+        var hourlyDist = db.prepare("SELECT strftime('%H', checkin_time) as h, COUNT(*) as c FROM guests WHERE checked_in = 1 AND checkin_time IS NOT NULL GROUP BY h ORDER BY h ASC").all();
+
+        res.json({
+            system: { totalEvents, totalGuests, totalChecked, totalUsers, conversionRate },
+            trends: { dailyRegistrations: dailyRegs, dailyCheckins: dailyCheckins },
+            topEvents,
+            monthly,
+            categoryDistribution: catDist,
+            revenue: { total: revenue?.total || 0, count: revenue?.txns || 0, average: revenue?.avg || 0 },
+            revenueByMonth,
+            hourlyDistribution: hourlyDist,
+            period,
+            generatedAt: new Date().toISOString()
+        });
+    } catch(err) { console.error('[BI] Error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

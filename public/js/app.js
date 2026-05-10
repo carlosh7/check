@@ -1055,6 +1055,45 @@ const App = window.App = {
         } catch(e) { console.error('[ANALYTICS] Global:', e.message); }
     },
 
+    // ═══ BI Dashboard (C5-01) ═══
+    _biCharts: [],
+    loadBiDashboard: async function() {
+        var period = document.getElementById('bi-period')?.value || 30;
+        try {
+            var data = await this.fetchAPI('/bi/dashboard?period=' + period);
+            if (!data) return;
+
+            document.getElementById('bi-events').textContent = data.system?.totalEvents || 0;
+            document.getElementById('bi-guests').textContent = data.system?.totalGuests || 0;
+            document.getElementById('bi-checked').textContent = data.system?.totalChecked || 0;
+            document.getElementById('bi-rate').textContent = (data.system?.conversionRate || 0) + '%';
+
+            this._biCharts.forEach(function(c) { try { c.destroy(); } catch(e) {} }); this._biCharts = [];
+            if (typeof Chart === 'undefined') return;
+
+            var regsC = document.getElementById('bi-chart-regs');
+            if (regsC && data.trends?.dailyRegistrations) {
+                var r = data.trends.dailyRegistrations;
+                this._biCharts.push(new Chart(regsC, { type: 'line', data: { labels: r.map(function(x) { return x.d; }), datasets: [{ label: 'Registros', data: r.map(function(x) { return x.c; }), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
+            }
+            var hrsC = document.getElementById('bi-chart-hours');
+            if (hrsC && data.hourlyDistribution) {
+                var h = data.hourlyDistribution;
+                this._biCharts.push(new Chart(hrsC, { type: 'bar', data: { labels: h.map(function(x) { return x.h + ':00'; }), datasets: [{ label: 'Check-ins', data: h.map(function(x) { return x.c; }), backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
+            }
+            var topC = document.getElementById('bi-chart-top');
+            if (topC && data.topEvents) {
+                var t = data.topEvents.slice(0, 5);
+                this._biCharts.push(new Chart(topC, { type: 'bar', data: { labels: t.map(function(x) { return (x.name || '').slice(0, 15); }), datasets: [{ label: 'Invitados', data: t.map(function(x) { return x.guests || 0; }), backgroundColor: '#0ea5e9' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y' } }));
+            }
+            var revC = document.getElementById('bi-chart-revenue');
+            if (revC && data.revenueByMonth) {
+                var v = data.revenueByMonth;
+                this._biCharts.push(new Chart(revC, { type: 'line', data: { labels: v.map(function(x) { return x.m; }), datasets: [{ label: 'Ingresos', data: v.map(function(x) { return x.total || 0; }), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }));
+            }
+        } catch(e) { console.error('[BI] Error:', e.message); }
+    },
+
     loadAnalytics: async function() {
         const eventId = this.state.event?.id;
         if (!eventId) return;
@@ -10934,7 +10973,7 @@ navigate(viewName, params = {}, push = true) {
         }
         
         // Obtener todos los tabs
-        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms', 'sys-content-whatsapp', 'sys-content-tenants'];
+        const ALL_SYS_IDS = ['sys-content-users', 'sys-content-groups', 'sys-content-clients', 'sys-content-legal', 'sys-content-email', 'sys-content-account', 'sys-content-db', 'sys-content-activity', 'sys-content-venues', 'sys-content-compliance', 'sys-content-google', 'sys-content-ai-security', 'sys-content-webhooks', 'sys-content-sms', 'sys-content-whatsapp', 'sys-content-tenants', 'sys-content-bi'];
         
         // Ocultar todos los contenidos
         ALL_SYS_IDS.forEach(id => {
@@ -10977,6 +11016,7 @@ navigate(viewName, params = {}, push = true) {
         if (tabName === 'sms') this.loadSmsSettings();
         if (tabName === 'whatsapp') this.loadWaSettings();
         if (tabName === 'tenants') this.loadTenants();
+        if (tabName === 'bi') this.loadBiDashboard();
         if (tabName === 'ai-security') this.loadAiSecurity();
         if (tabName === 'compliance') this.loadCompliance();
         if (tabName === 'google') this.loadGoogleTab();
